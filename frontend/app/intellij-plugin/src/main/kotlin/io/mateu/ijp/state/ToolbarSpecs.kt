@@ -11,6 +11,8 @@ data class ToolbarSpec(
     val disabled: Boolean,
     val primary: Boolean,
     val parameters: Map<String, Any?> = emptyMap(),
+    /** A RouteLink button (YAML toolbars): pressing it navigates there instead of running an action. */
+    val route: String? = null,
 )
 
 object ToolbarSpecs {
@@ -26,6 +28,7 @@ object ToolbarSpecs {
                 disabled = b.bool("disabled"),
                 primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
                 parameters = params(b.path("parameters")),
+                route = b.text("route").ifBlank { null },
             )
         }
 }

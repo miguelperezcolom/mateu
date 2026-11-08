@@ -143,12 +143,22 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         return container
     }
 
-    val caption = JBLabel(plain(if (required) "$label *" else label))
+    // Read-only by declaration (a record's view mode) → the value as text (ReadOnlyValues); a field
+    // a rule disables keeps its disabled control.
+    val readOnlyText = if (metadata.bool("readOnly") && !metadata.bool("disabled") &&
+        !io.mateu.ijp.state.Expressions.truthy(ruleAttrs["disabled"])) ReadOnlyValues.textOf(metadata, rawValue) else null
+
+    // A read-only value has nothing to fill in: no required asterisk, and a quiet caption so the
+    // VALUE carries the weight (label above value, the web's read-only layout).
+    val caption = JBLabel(plain(if (required && readOnlyText == null) "$label *" else label))
+    if (readOnlyText != null) caption.foreground = ToneColors.secondaryText()
     caption.alignmentX = Component.LEFT_ALIGNMENT
     container.add(caption)
 
     val options = metadata.arr("options")
-    val input: JComponent = when {
+    val input: JComponent = if (readOnlyText != null) {
+        ReadOnlyValues.component(readOnlyText, ReadOnlyValues.isMultiline(metadata, readOnlyText))
+    } else when {
         stereotype == "badge" -> badgeChip(label, io.mateu.ijp.state.Expressions.truthy(value))
         stereotype == "plainText" -> JBLabel(plain(
             if (MoneyValues.isAmount(rawValue)) MoneyValues.text(rawValue) else if (dataType == "money") formatMoney(value) else value),

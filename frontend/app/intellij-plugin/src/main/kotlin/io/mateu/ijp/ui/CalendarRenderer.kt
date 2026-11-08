@@ -105,7 +105,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
     val model = Calendars.parse(metadata)
     var view = model.view
     val root = verticalPanel(6)
-    val title = JBLabel(plain(Calendars.periodTitle(view, model.anchor))).apply { font = font.deriveFont(Font.BOLD, 15f) }
+    val title = JBLabel(plain(Calendars.periodTitle(view, model.anchor))).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(15f)) }
     val body = JPanel(BorderLayout()).apply { isOpaque = false }
 
     fun dayAction(date: LocalDate): (() -> Unit)? =
@@ -138,7 +138,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
             dayAction(date),
         )
         cell.add(muted(Calendars.weekdayShort(date).uppercase(), 11f))
-        cell.add(JBLabel(plain(date.dayOfMonth.toString())).apply { font = font.deriveFont(Font.BOLD, 16f) })
+        cell.add(JBLabel(plain(date.dayOfMonth.toString())).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(16f)) })
         dayLabel(date)?.let { cell.add(it) }
         return cell
     }

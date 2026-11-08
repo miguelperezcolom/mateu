@@ -29,13 +29,13 @@ fun renderPricingTable(r: ComponentRenderer, metadata: JsonNode): JComponent {
         card.preferredSize = Dimension(190, card.preferredSize.height)
         if (featured) card.addStacked(JBLabel("RECOMMENDED").apply {
             foreground = Color(0x1A, 0x73, 0xE8)
-            font = font.deriveFont(Font.BOLD, 10f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(10f))
         }, 2)
         card.addStacked(JBLabel(plain(plan.text("name"))).apply {
             foreground = ToneColors.secondaryText()
         }, 2)
         val price = plan.text("price") + plan.text("period").let { if (it.isNotBlank()) " $it" else "" }
-        card.addStacked(JBLabel(plain(price)).apply { font = font.deriveFont(Font.BOLD, 22f) }, 4)
+        card.addStacked(JBLabel(plain(price)).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(22f)) }, 4)
         for (feature in plan.arr("features")) {
             card.addStacked(JBLabel(plain("✓ ${feature.asText()}")), 2)
         }
@@ -62,7 +62,7 @@ fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val icon = feature.text("icon")
         val title = feature.text("title")
         card.addStacked(JBLabel(plain((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title)).apply {
-            font = font.deriveFont(Font.BOLD, 14f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(14f))
         }, 2)
         val desc = feature.text("description")
         if (desc.isNotBlank()) {
@@ -129,7 +129,7 @@ fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val icon = metadata.text("icon")
     val title = metadata.text("title")
     body.addStacked(JBLabel(plain((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title)).apply {
-        font = font.deriveFont(Font.BOLD, 15f)
+        font = font.deriveFont(Font.BOLD, PageChrome.fontSize(15f))
     }, 2)
     val desc = metadata.text("description")
     if (desc.isNotBlank()) {

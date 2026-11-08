@@ -32,7 +32,7 @@ fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
     panel.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
     val left = verticalPanel(2)
     val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
-    titleRow.add(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, 16f) })
+    titleRow.add(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(16f)) })
     for (badge in metadata.arr("badges")) titleRow.add(uxChip(badge.text("label"), badge.text("color")))
     left.addStacked(titleRow, 2)
     val subtitle = metadata.text("subtitle")
@@ -43,7 +43,7 @@ fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
         for (fact in facts) {
             val cell = verticalPanel(1)
             cell.addStacked(JBLabel(plain(fact.text("label"))).apply {
-                font = font.deriveFont(Font.BOLD, 9f)
+                font = font.deriveFont(Font.BOLD, PageChrome.fontSize(9f))
                 foreground = uxMuted()
             }, 1)
             val actionId = fact.text("actionId")
@@ -65,11 +65,11 @@ fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val metric = verticalPanel(1)
         val metricLabel = metadata.text("metricLabel")
         if (metricLabel.isNotBlank()) metric.addStacked(JBLabel(plain(metricLabel)).apply {
-            font = font.deriveFont(Font.BOLD, 9f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(9f))
             foreground = uxMuted()
         }, 1)
         metric.addStacked(JBLabel(plain(metricValue)).apply {
-            font = font.deriveFont(Font.BOLD, 22f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(22f))
             foreground = uxAccent()
         }, 1)
         val caption = metadata.text("metricCaption")
@@ -95,12 +95,12 @@ fun renderMeter(metadata: JsonNode): JComponent {
     val panel = verticalPanel(3)
     val label = metadata.text("label")
     if (label.isNotBlank()) panel.addStacked(JBLabel(plain(label)).apply {
-        font = font.deriveFont(Font.BOLD, 10f)
+        font = font.deriveFont(Font.BOLD, PageChrome.fontSize(10f))
         foreground = uxMuted()
     }, 2)
     val unit = metadata.text("unit")
     panel.addStacked(JBLabel(plain(uxFormatAmount(value) + (if (unit.isNotBlank()) " $unit" else ""))).apply {
-        font = font.deriveFont(Font.BOLD, 22f)
+        font = font.deriveFont(Font.BOLD, PageChrome.fontSize(22f))
     }, 4)
     val track = object : JPanel() {
         override fun paintComponent(g: Graphics) {
@@ -151,7 +151,7 @@ fun renderTaskProgress(r: ComponentRenderer, metadata: JsonNode): JComponent {
         if (i <= done) pills.add(uxChip("$i/$total", "success"))
         else pills.add(JBLabel(plain("$i/$total")).apply {
             foreground = uxMuted()
-            font = font.deriveFont(Font.BOLD, 10f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(10f))
             border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(0, 5))
         })
     }
@@ -216,7 +216,7 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     val actionLabel = metadata.text("actionLabel")
     val status = metadata.text("status")
     if ((actionId.isBlank() || actionLabel.isBlank()) && status.isNotBlank()) {
-        row.add(JBLabel(plain(status)).apply { foreground = ink; font = font.deriveFont(Font.BOLD, 11f) }, BorderLayout.EAST)
+        row.add(JBLabel(plain(status)).apply { foreground = ink; font = font.deriveFont(Font.BOLD, PageChrome.fontSize(11f)) }, BorderLayout.EAST)
     }
     if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
         row.add(JButton(plain(actionLabel)).apply {
@@ -245,7 +245,7 @@ private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: Stri
     )
     val head = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false }
     val avatar = item.text("avatar")
-    if (avatar.isNotBlank()) head.add(JBLabel(plain(avatar)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+    if (avatar.isNotBlank()) head.add(JBLabel(plain(avatar)).apply { font = font.deriveFont(PageChrome.fontSize(15f)) }, BorderLayout.WEST)
     head.add(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.CENTER)
     val status = item.text("status")
     if (status.isNotBlank()) head.add(uxChip(status, item.text("statusColor")), BorderLayout.EAST)
@@ -306,7 +306,7 @@ fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val icon = item.text("icon")
         if (avatar.isNotBlank()) {
             row.add(uxAvatar(avatar, if (compact) 22 else 28), BorderLayout.WEST)
-        } else if (icon.isNotBlank()) row.add(JBLabel(plain(icon)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+        } else if (icon.isNotBlank()) row.add(JBLabel(plain(icon)).apply { font = font.deriveFont(PageChrome.fontSize(15f)) }, BorderLayout.WEST)
         val body = verticalPanel(1)
         body.addStacked(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val desc = item.text("description")
@@ -373,7 +373,7 @@ fun renderProcessMonitor(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val systems = item.arr("systems").joinToString(" · ") { it.asText() }
         if (systems.isNotBlank()) body.addStacked(JBLabel(plain(systems)).apply {
             foreground = uxMuted()
-            font = font.deriveFont(11f)
+            font = font.deriveFont(PageChrome.fontSize(11f))
         }, 0)
         row.add(body, BorderLayout.CENTER)
         val right = JPanel(FlowLayout(FlowLayout.RIGHT, 8, 0)).apply { isOpaque = false }

@@ -72,7 +72,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
                 "current" -> Color(0x1A, 0x73, 0xE8)
                 else -> ToneColors.secondaryText()
             }
-        dot.font = dot.font.deriveFont(Font.BOLD, 15f)
+        dot.font = dot.font.deriveFont(Font.BOLD, PageChrome.fontSize(15f))
         val title = JBLabel(plain(step.text("title")), align).apply {
             if (status == "upcoming") foreground = ToneColors.secondaryText()
             else font = font.deriveFont(Font.BOLD)
@@ -126,7 +126,7 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
         }, 2)
     }
     val value = metadata.text("value") + metadata.text("unit").let { if (it.isNotBlank()) " $it" else "" }
-    tile.addStacked(JBLabel(plain(value)).apply { font = font.deriveFont(Font.BOLD, 24f) }, 4)
+    tile.addStacked(JBLabel(plain(value)).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(24f)) }, 4)
     val delta = metadata.text("delta")
     val spark = metadata.arr("spark").mapNotNull { it.asDouble() }
     val foot = JPanel(BorderLayout(8, 0))

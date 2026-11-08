@@ -107,7 +107,7 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     card.add(title)
 
     val value = JBLabel(plain((metadata.text("value") + " " + metadata.text("unit")).trim()))
-    value.font = value.font.deriveFont(Font.BOLD, 26f)
+    value.font = value.font.deriveFont(Font.BOLD, PageChrome.fontSize(26f))
     value.alignmentX = Component.LEFT_ALIGNMENT
     card.add(value)
 
@@ -294,31 +294,26 @@ internal fun chartTextAlternative(labels: List<String>, values: List<Double>, li
 
 // ── markdown ──────────────────────────────────────────────────────────────────────────
 
-/** Minimal markdown (bullets, bold, italics) → HTML in a non-editable [JEditorPane]. */
+/** Markdown → HTML ([MarkdownHtml]) in a non-editable [JEditorPane]; links open in the browser. */
 fun renderMarkdown(metadata: JsonNode): JComponent {
-    val pane = JEditorPane("text/html", markdownToHtml(metadata.text("markdown")))
+    // An HTML pane asks for its UNWRAPPED width, so a long line ran past its column and was cut
+    // (the museum's "Before you start"). This one asks for at most its current width and reports
+    // the height its text needs there; a width change re-lays it out.
+    val pane = object : JEditorPane("text/html", MarkdownHtml.toHtml(metadata.text("markdown"))) {
+        override fun getPreferredSize(): java.awt.Dimension = wrappedPreferredSize(this) { super.getPreferredSize() }
+        override fun getMinimumSize() = java.awt.Dimension(0, super.getMinimumSize().height)
+    }
+    pane.addComponentListener(object : java.awt.event.ComponentAdapter() {
+        private var lastWidth = -1
+        override fun componentResized(e: java.awt.event.ComponentEvent) {
+            if (pane.width != lastWidth) { lastWidth = pane.width; pane.revalidate() }
+        }
+    })
     pane.isEditable = false
     pane.isOpaque = false
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-    return pane
-}
-
-private fun markdownToHtml(md: String): String {
-    val sb = StringBuilder("<html><body>")
-    var inList = false
-    for (rawLine in md.lines()) {
-        val lineHtml = rawLine
-            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            .replace(Regex("\\*\\*([^*]+)\\*\\*"), "<b>$1</b>")
-            .replace(Regex("\\*([^*]+)\\*"), "<i>$1</i>")
-        if (lineHtml.trimStart().startsWith("- ")) {
-            if (!inList) { sb.append("<ul>"); inList = true }
-            sb.append("<li>").append(lineHtml.trimStart().removePrefix("- ")).append("</li>")
-        } else {
-            if (inList) { sb.append("</ul>"); inList = false }
-            if (lineHtml.isNotBlank()) sb.append(lineHtml).append("<br>")
-        }
+    pane.addHyperlinkListener { e ->
+        if (e.eventType == javax.swing.event.HyperlinkEvent.EventType.ACTIVATED) SafeHtml.browse(e.description)
     }
-    if (inList) sb.append("</ul>")
-    return sb.append("</body></html>").toString()
+    return pane
 }

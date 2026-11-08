@@ -57,8 +57,10 @@ private class MateuToolbarAction(
     override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = !spec.disabled
     }
-    override fun actionPerformed(e: AnActionEvent) =
-        ctx.runAction(spec.actionId, spec.parameters.ifEmpty { null })
+    override fun actionPerformed(e: AnActionEvent) {
+        val route = spec.route
+        if (route != null) ctx.openRoute(route) else ctx.runAction(spec.actionId, spec.parameters.ifEmpty { null })
+    }
 }
 
 /** Platform icons for the well-known CRUD action ids; unknown actions render as text-only buttons. */

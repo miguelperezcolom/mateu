@@ -30,15 +30,17 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
-    val weights = children.map { flexPercent(it.text("style")) }
-    if (weights.any { it != null }) {
+    val specs = children.map { FlexSpec.of(it.text("style")) }
+    if (specs.any { it != null }) {
         val row = JPanel(java.awt.GridBagLayout())
         row.isOpaque = false
         children.forEachIndexed { i, child ->
+            val spec = specs[i]
+            val fixedPx = spec?.fixedPx
             val gbc = java.awt.GridBagConstraints().apply {
                 gridx = i
                 gridy = 0
-                weightx = weights[i] ?: 10.0
+                weightx = spec?.weight ?: 10.0
                 weighty = 1.0
                 // Preferred height anchored NORTH: every column starts at the top of the row
                 // (the wire even says so: align-items: flex-start).
@@ -46,7 +48,8 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 anchor = java.awt.GridBagConstraints.NORTH
                 insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
             }
-            row.add(r.render(child, state, data), gbc)
+            val rendered = r.render(child, state, data)
+            row.add(if (fixedPx != null) FixedWidth(JBUI.scale(fixedPx), rendered) else rendered, gbc)
         }
         return row
     }
@@ -56,9 +59,45 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     return row
 }
 
-/** The flex-basis percentage in a CSS style (`flex: G S NN%`); null when absent. */
-private fun flexPercent(style: String): Double? =
-    Regex("flex:\\s*\\d+\\s+\\d+\\s+(\\d+(?:\\.\\d+)?)%").find(style)?.groupValues?.get(1)?.toDoubleOrNull()
+/**
+ * A child's CSS `flex` in a row, as GridBag terms. `flex: G S NN%` weighs NN (the zones'
+ * percentages); `flex: G` / `flex: G S <length>` with G > 0 grows with weight G; `flex: 0 0 <len>`
+ * is a FIXED column of that width. Only the percentage form was read: the RAIL wizard's
+ * `flex: 1` form beside its `flex: 0 0 15rem` rail fell back to equal weights at preferred
+ * widths, and the form shrank to a 130px column at the far left.
+ */
+data class FlexSpec(val weight: Double, val fixedPx: Int? = null) {
+    companion object {
+        private val FLEX = Regex("""(?:^|;)\s*flex:\s*([^;]+)""")
+        private val LENGTH = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)$""")
+
+        private val PERCENT = Regex("""(\d+(?:\.\d+)?)%""")
+
+        fun of(style: String): FlexSpec? {
+            val value = FLEX.find(style)?.groupValues?.get(1)?.trim() ?: return null
+            val parts = value.split(Regex("\\s+"))
+            val grow = parts.getOrNull(0)?.toDoubleOrNull() ?: return null
+            // a percentage basis, bare or inside calc() (the zones: `calc(64% - var(--gap))`), weighs it
+            PERCENT.find(value)?.groupValues?.get(1)?.toDoubleOrNull()?.let { return FlexSpec(it) }
+            val basis = parts.getOrNull(2) ?: parts.getOrNull(1)?.takeUnless { it.toDoubleOrNull() != null }
+            val px = basis?.let { LENGTH.matchEntire(it) }?.let { m ->
+                val n = m.groupValues[1].toDouble()
+                (if (m.groupValues[2] == "px") n else n * 16).toInt()
+            }
+            return if (grow <= 0.0 && px != null) FlexSpec(0.0, px) else FlexSpec(grow.coerceAtLeast(0.01) * 100)
+        }
+    }
+}
+
+/** Lays its child out at exactly [width] (a `flex: 0 0 <len>` column). */
+private class FixedWidth(private val width: Int, child: JComponent) : JPanel(java.awt.BorderLayout()) {
+    init {
+        isOpaque = false
+        add(child, java.awt.BorderLayout.CENTER)
+    }
+    override fun getPreferredSize() = java.awt.Dimension(width, super.getPreferredSize().height)
+    override fun getMinimumSize() = java.awt.Dimension(width, super.getMinimumSize().height)
+}
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {

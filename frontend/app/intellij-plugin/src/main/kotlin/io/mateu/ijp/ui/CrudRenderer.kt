@@ -52,7 +52,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val title = metadata.text("title")
     if (title.isNotBlank()) {
         val l = JBLabel(plain(title))
-        l.font = l.font.deriveFont(Font.BOLD, 18f)
+        l.font = l.font.deriveFont(Font.BOLD, PageChrome.fontSize(18f))
         header.addStacked(l, 2)
     }
     val subtitle = metadata.text("subtitle")
@@ -915,7 +915,7 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     val title = metadata.text("title")
     if (title.isNotBlank()) {
         val l = JBLabel(plain(title))
-        l.font = l.font.deriveFont(Font.BOLD, 18f)
+        l.font = l.font.deriveFont(Font.BOLD, PageChrome.fontSize(18f))
         panel.add(l, BorderLayout.NORTH)
     }
     val firstColumn = metadata.leafColumns().firstNotNullOfOrNull { col ->

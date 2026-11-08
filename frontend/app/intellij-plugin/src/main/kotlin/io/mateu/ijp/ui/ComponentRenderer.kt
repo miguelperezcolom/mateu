@@ -30,7 +30,13 @@ class ComponentRenderer(val ctx: AppContext) {
     }
 
     private fun renderClientSide(component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-        val metadata = component.path("metadata")
+        val raw = component.path("metadata")
+        // `${state.x}` in a component's texts (a record page's "Image: ${state.imageCredit}", an
+        // avatar's `${state.image}`) reached the screen as typed: only the Page and field labels
+        // were interpolated. The web interpolates these same keys.
+        val metadata = INTERPOLATED_KEYS[raw.text("type")]
+            ?.let { keys -> PageChrome.interpolated(raw, keys, PageChrome.exprContext(ctx, state, data)) }
+            ?: raw
         return when (metadata.text("type")) {
             "App" -> renderApp(this, component, metadata)
             "Page" -> renderPage(this, component, metadata, state, data)
@@ -48,7 +54,10 @@ class ComponentRenderer(val ctx: AppContext) {
             "RecordMerge" -> renderRecordMerge(ctx, metadata)
             "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
             "Map" -> renderMap(ctx, metadata)
-            "Text" -> JBLabel(plain(metadata.text("text"))).also { label ->
+            // A long paragraph WRAPS to its column (a one-line label cut "…link the museum's own image
+            // URLs — never" mid-sentence at the card's edge); headings and short texts stay labels.
+            "Text" -> if (wrapsAsParagraph(metadata)) paragraph(metadata.text("text"), metadata.text("size")) else
+                JBLabel(plain(metadata.text("text"))).also { label ->
                 // IJ-11: a Text in an h1–h6 container is a HEADING (a wizard's title arrives as an
                 // h2) — it rendered as body text. Bold and sized on the platform's title scale.
                 headingScale(metadata.text("container"))?.let { scale ->
@@ -196,6 +205,66 @@ class ComponentRenderer(val ctx: AppContext) {
         return panel
     }
 }
+
+/** Past this many characters a body Text wraps instead of running past its column. */
+internal const val PARAGRAPH_CHARS = 90
+
+/** Whether a Text is a body paragraph long enough to wrap (never a heading). */
+internal fun wrapsAsParagraph(metadata: JsonNode): Boolean =
+    headingScale(metadata.text("container")) == null && metadata.text("text").length > PARAGRAPH_CHARS
+
+/** Read-only text that wraps at its container's width, in the label's font and colour. */
+/** Before a wrapping text has a width of its own, it is measured for a column this wide. */
+internal const val ASSUMED_COLUMN_PX = 360
+
+/**
+ * The preferred size of a text that wraps: at most its current width (an assumed column while it has
+ * none yet), with the height its text needs there. A stacked panel freezes a child's height when the
+ * child is added — before any width exists — so measuring the UNWRAPPED line there left one line of
+ * room and the rest of the paragraph was cut; measured for a column, it stays visible.
+ */
+internal fun wrappedPreferredSize(c: JComponent, natural: () -> java.awt.Dimension): java.awt.Dimension {
+    val unwrapped = natural()
+    val w = if (c.width > 0) c.width else com.intellij.util.ui.JBUI.scale(ASSUMED_COLUMN_PX)
+    if (unwrapped.width <= w) return unwrapped
+    val keep = c.size
+    c.setSize(w, Short.MAX_VALUE.toInt())
+    val wrapped = natural()
+    if (keep.width > 0) c.size = keep
+    return java.awt.Dimension(w, wrapped.height)
+}
+
+internal fun paragraph(text: String, size: String = ""): JComponent = object : com.intellij.ui.components.JBTextArea(text) {
+    override fun getPreferredSize(): java.awt.Dimension = wrappedPreferredSize(this) { super.getPreferredSize() }
+}.apply {
+    isEditable = false
+    isOpaque = false
+    lineWrap = true
+    wrapStyleWord = true
+    border = com.intellij.util.ui.JBUI.Borders.empty()
+    font = com.intellij.util.ui.JBUI.Fonts.label().let { f ->
+        when (size) {
+            "xl" -> f.deriveFont(f.size2D * 1.5f)
+            "l" -> f.deriveFont(f.size2D * 1.25f)
+            "s" -> f.deriveFont(f.size2D * 0.875f)
+            "xs" -> f.deriveFont(f.size2D * 0.78f)
+            else -> f
+        }
+    }
+    foreground = com.intellij.util.ui.UIUtil.getLabelForeground()
+    accessibleContext.accessibleName = text
+}
+
+/** Per component type, the metadata texts that may carry `${…}` and are interpolated before rendering. */
+internal val INTERPOLATED_KEYS: Map<String, List<String>> = mapOf(
+    "Text" to listOf("text"),
+    "Image" to listOf("src", "alt"),
+    "Avatar" to listOf("name", "image"),
+    "Markdown" to listOf("markdown"),
+    "Badge" to listOf("text"),
+    "Anchor" to listOf("text", "url"),
+    "Notice" to listOf("text"),
+)
 
 /** Font scale of a heading container (h1 → 1.6 … h6 → 1.0), or null when it is not a heading. */
 internal fun headingScale(container: String): Float? = when (container.trim().lowercase()) {

@@ -38,7 +38,7 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         isOpaque = false
         add(uxChip(tag, "contrast"))
     }, 4)
-    panel.addStacked(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
+    panel.addStacked(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(15f)) }, 2)
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) panel.addStacked(JBLabel(plain(subtitle)).apply { foreground = uxMuted() }, 4)
     val features = metadata.arr("features")
@@ -100,7 +100,7 @@ fun renderAddOnPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         card.isOpaque = false
         card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(10))
         val icon = item.text("icon")
-        if (icon.isNotBlank()) card.add(JBLabel(plain(icon)).apply { font = font.deriveFont(16f) }, BorderLayout.WEST)
+        if (icon.isNotBlank()) card.add(JBLabel(plain(icon)).apply { font = font.deriveFont(PageChrome.fontSize(16f)) }, BorderLayout.WEST)
         val body = verticalPanel(1)
         body.addStacked(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val desc = item.text("description")
@@ -196,7 +196,7 @@ fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         ctxBox.border = JBUI.Borders.empty(4, 8)
         val contextLabel = metadata.text("contextLabel")
         if (contextLabel.isNotBlank()) ctxBox.addStacked(JBLabel(plain(contextLabel)).apply {
-            font = font.deriveFont(Font.BOLD, 9f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(9f))
             foreground = uxPaletteColor("success")
         }, 1)
         ctxBox.addStacked(JBLabel(plain(contextValue)).apply { font = uxMono(font) }, 0)
