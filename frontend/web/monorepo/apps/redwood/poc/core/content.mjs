@@ -6,7 +6,7 @@ import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
-import { ojIconOrGenericOf } from './shellNav.mjs'
+import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
@@ -264,6 +264,12 @@ export function styledTextOf(cls, wireStyle) {
   if (n >= 700) out += ' oj-typography-bold'
   else if (n >= 500) out += ' oj-typography-semi-bold'
   return { cls: out.trim(), style }
+}
+
+/** A Badge's icons as Redwood icon classes ('' = none, or a name with no Redwood glyph). */
+export function badgeIconsOf(m) {
+  const cls = (name) => (ojIconOf(name) ? ojIconOf(name) + ' mateu-badge-icon' : '')
+  return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
 }
 
 /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
@@ -1387,7 +1393,13 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Badge') {
-      atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+      atom({
+        isBadge: true,
+        label: interp(m.text),
+        badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+        // its icons, inside the chip before/after the text (they were never drawn)
+        ...badgeIconsOf(m),
+      }, container)
       return
     }
     if (t === 'ResourceGrid') {

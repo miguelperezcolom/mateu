@@ -5,7 +5,7 @@ import {
   checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged,
   initialPaymentMethod, initialQueueSelection, isImageAvatar, ledgerTotal, noticeShows, offerCtaLabel,
   ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights,
-  textEmphasis,
+  textEmphasis, badgeIconsOf,
 } from './displayFigures.ts';
 
 test('sparkline bars span 4..26 over the series range; a flat series sits at the floor', () => {
@@ -106,4 +106,10 @@ test("a Text's variants: b is bold, i italic, none adds nothing", () => {
   assert.deepEqual(textEmphasis(['b', 'i']), { fontWeight: 'bold', fontStyle: 'italic' });
   assert.deepEqual(textEmphasis(undefined), {});
   assert.deepEqual(textEmphasis('b'), {});
+});
+
+test("a Badge's iconOnLeft / iconOnRight become Material icons inside the chip", () => {
+  assert.deepEqual(badgeIconsOf({ iconOnLeft: 'vaadin:check' }), { iconLeft: 'check', iconRight: undefined });
+  assert.deepEqual(badgeIconsOf({ iconOnRight: 'vaadin:arrow-right' }), { iconLeft: undefined, iconRight: 'arrow-right' });
+  assert.deepEqual(badgeIconsOf({}), { iconLeft: undefined, iconRight: undefined });
 });
