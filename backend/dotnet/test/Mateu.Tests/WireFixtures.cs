@@ -1181,6 +1181,22 @@ public class DeliveryInfo
     public int Days { get; set; } = 3;
 }
 
+/// <summary>An [Inline] nested object whose properties carry client-rule attributes.</summary>
+public class ContactInfo
+{
+    [Hidden("state.reference == 'internal'")] public string? Phone { get; set; } = "600 000 000";
+    [Disabled] public string? Email { get; set; } = "buyer@acme.test";
+}
+
+/// <summary>Client rules are the view's own properties' only (Java's RuleMapper): the [Inline]
+/// nested object's get none (inline-form-rules).</summary>
+[UI("conformance/inline-form-rules"), Title("Inline form rules")]
+public class InlineFormRules
+{
+    [Disabled] public string? Reference { get; set; } = "PO-1";
+    [Inline] public ContactInfo Contact { get; set; } = new();
+}
+
 /// <summary>A crud entity holding a plain nested data object (crud-nested-form, -action): its record
 /// form draws it as a sub-form and ADVERTISES its nested-form-action-supplier-&lt;method&gt; actions,
 /// which run on the nested object hydrated from the flattened state (Java's).</summary>

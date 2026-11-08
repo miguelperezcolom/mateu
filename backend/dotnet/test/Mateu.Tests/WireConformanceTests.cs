@@ -290,6 +290,7 @@ public class WireConformanceTests
         { "inline-form-action", typeof(Wire.InlineForm) },
         { "crud-nested-form", typeof(Wire.PurchaseOrdersCrud) },
         { "crud-nested-form-action", typeof(Wire.PurchaseOrder) },
+        { "inline-form-rules", typeof(Wire.InlineFormRules) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

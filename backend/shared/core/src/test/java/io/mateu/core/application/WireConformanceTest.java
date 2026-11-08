@@ -1902,6 +1902,30 @@ class WireConformanceTest {
     public int days = 3;
   }
 
+  /** An {@code @Inline} nested object whose fields carry client-rule annotations. */
+  @SuppressWarnings("unused")
+  public static class ContactInfo {
+    @io.mateu.uidl.annotations.Hidden("state.reference == 'internal'")
+    public String phone = "600 000 000";
+
+    @io.mateu.uidl.annotations.Disabled public String email = "buyer@acme.test";
+  }
+
+  /**
+   * Client rules ({@code @Hidden(expr)}, {@code @Disabled}) are the VIEW's own fields' only: the
+   * page's {@code @Disabled reference} gets its rule, the {@code @Inline} nested object's fields
+   * (drawn as {@code contact-phone}, {@code contact-email}) get none — {@code RuleMapper} reads the
+   * view class's fields, not its nested objects'.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/inline-form-rules")
+  @Title("Inline form rules")
+  public static class InlineFormRules {
+    @io.mateu.uidl.annotations.Disabled public String reference = "PO-1";
+
+    @io.mateu.uidl.annotations.Inline public ContactInfo contact = new ContactInfo();
+  }
+
   @SuppressWarnings("unused")
   @UI("/conformance/inline-form")
   @Title("Inline form")
@@ -2098,7 +2122,8 @@ class WireConformanceTest {
           "inline-form",
           "inline-form-action",
           "crud-nested-form",
-          "crud-nested-form-action");
+          "crud-nested-form-action",
+          "inline-form-rules");
 
   static TestMateu mateu;
 
@@ -2185,6 +2210,7 @@ class WireConformanceTest {
             PageNoBreadcrumbs.class,
             PageBreadcrumbs.class,
             InlineForm.class,
+            InlineFormRules.class,
             PurchaseOrdersCrud.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with

@@ -1213,6 +1213,26 @@ class InlineForm:
         self.delivery = DeliveryInfo()
 
 
+class ContactInfo:
+    """An Inline() nested object whose fields carry client-rule markers."""
+
+    phone: Annotated[str, Hidden("state.reference == 'internal'")] = "600 000 000"
+    email: Annotated[str, Disabled()] = "buyer@acme.test"
+
+
+@ui("/conformance/inline-form-rules")
+@title("Inline form rules")
+class InlineFormRules:
+    """Client rules are the view's own fields' only (Java's RuleMapper): the nested object's get
+    none."""
+
+    reference: Annotated[str, Disabled()] = "PO-1"
+    contact: Annotated[ContactInfo, Inline()] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.contact = ContactInfo()
+
+
 class PurchaseOrder:
     """A crud entity holding a plain nested data object (a ``SupplierInfo``, no Inline()): its
     record form draws it as a sub-form and ADVERTISES its ``nested-form-action-supplier-<method>``
@@ -1539,7 +1559,7 @@ class ConformanceRoutes(RouteEntrySupplier):
         ]
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules)]
 
 
 def test_every_case_of_the_corpus_is_wired():
