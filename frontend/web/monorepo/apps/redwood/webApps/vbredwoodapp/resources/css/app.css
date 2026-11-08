@@ -2109,6 +2109,10 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-meter-success { background: var(--oj-core-success-3, rgb(80, 130, 35)); }
 .mateu-meter-warning { background: var(--oj-core-warning-3, rgb(172, 99, 12)); }
 .mateu-meter-error { background: var(--oj-core-danger-3, rgb(199, 70, 52)); }
+/* ProgressBar `theme` (success / error / warning): the bar's fill takes the tone (progressBarAtomOf
+   stamps mateu-tone-*; nothing painted with it, so every bar was the brand colour) */
+oj-progress-bar[class*="mateu-tone-"] { --oj-progress-bar-value-bg-color: var(--mateu-tone); }
+oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color: var(--mateu-tone) !important; }
 /* a StatusItem / status text in the info tone: JET has no oj-text-color-info */
 .mateu-text-info { color: var(--oj-core-info-3, rgb(0, 104, 140)); }
 /* HeroSection in the content (heroAtomOf): `centered` centres its texts, and over an `image` (darkened

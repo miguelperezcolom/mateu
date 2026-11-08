@@ -152,7 +152,25 @@ fun renderProgressBar(metadata: JsonNode, state: JsonNode): JComponent {
         bar.string = text
         bar.accessibleName(text)
     }
+    // the bar's theme (success / error / warning): the platform's own status colours, as the
+    // test runner's bar uses them — every bar used to be the accent colour
+    progressBarStatus(metadata.text("theme"))?.let { status ->
+        bar.putClientProperty("ProgressBar.status", status)
+        bar.foreground = when (status) {
+            "passed" -> ToneColors.solid(ToneColors.Tone.SUCCESS).first
+            "warning" -> ToneColors.solid(ToneColors.Tone.WARNING).first
+            else -> ToneColors.solid(ToneColors.Tone.DANGER).first
+        }
+    }
     return bar
+}
+
+/** A ProgressBar's wire theme as the platform's ProgressBar.status (passed / warning / error). */
+internal fun progressBarStatus(theme: String): String? = when (theme.trim().lowercase()) {
+    "success" -> "passed"
+    "warning" -> "warning"
+    "error", "danger" -> "error"
+    else -> null
 }
 
 private fun stackChildren(r: ComponentRenderer, panel: javax.swing.JPanel, component: JsonNode, state: JsonNode, data: JsonNode) {
