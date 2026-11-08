@@ -48,7 +48,7 @@ public class AreaPage implements ComponentTreeSupplier {
       md.append("\n");
     }
     return Form.builder()
-        .title(found.title())
+        .title(EntryPage.literal(found.title()))
         .overline("Mateu Explorer")
         .contentItem(new Markdown(md.toString(), null, null))
         .build();
