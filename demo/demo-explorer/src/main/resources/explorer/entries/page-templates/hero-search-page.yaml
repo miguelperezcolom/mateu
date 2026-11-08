@@ -1,0 +1,18 @@
+id: hero-search-page
+area: page-templates
+group: templates
+title: Hero search page
+covers: [template:HeroSearchPage]
+description: |
+  `template: {type: HeroSearchPage}`: the form's title and subtitle are the hero's, its `content` the
+  results — a searchable `Listing` (cards). On Redwood the page opens as the landing hero and turns
+  into the collection view on the first search. Type `monet` and press Enter.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/hero-search-page
+pages:
+  - {route: x/page-templates/hero-search-page, layout: explorer/page-templates/hero-search-page/search.yaml}
+code:
+  - {label: REST source (MuseumApi), path: src/main/java/io/mateu/explorer/examples/pagetemplates/data/MuseumApi.java}

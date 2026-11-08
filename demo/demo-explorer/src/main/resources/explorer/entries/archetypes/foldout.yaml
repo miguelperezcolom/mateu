@@ -1,0 +1,18 @@
+id: foldout
+area: archetypes
+group: records
+title: Foldout
+covers: [archetype:Foldout]
+description: |
+  Extend `Foldout`: the first component field is the always-visible overview; every `@Panel` field is a
+  lateral panel the user folds in and out (`open = false` starts folded, and `panelSummary(field)` is
+  what its folded strip shows). `navigationHeader()` names the parent and the previous / next record
+  (each an action). Edge to edge.
+examples:
+  - title: Impressions of light
+    java: io.mateu.explorer.examples.archetypes.foldout.ExhibitionFoldout
+pages:
+  - {route: x/archetypes/foldout, viewModel: io.mateu.explorer.examples.archetypes.foldout.ExhibitionFoldout}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/foldout/ExhibitionFoldout.cs}
+  - {label: Python, path: src/main/ports/archetypes/foldout/exhibition_foldout.py}

@@ -1,0 +1,18 @@
+id: hero-search
+area: archetypes
+group: overview
+title: Hero search
+covers: [archetype:HeroSearch]
+description: |
+  Extend `HeroSearch<Filters, Row>` and implement `search(...)` exactly like any `Listing`: the archetype
+  composes a big hero (`heroTitle()`/`heroSubtitle()`/`heroImage()`) holding the search box, turns the
+  `Filters` record into facets and shows the results as cards (`gridLayout()`). It **starts empty** and
+  searches on Enter — type `print` or `monet` and press Enter.
+examples:
+  - title: Find an artwork
+    java: io.mateu.explorer.examples.archetypes.herosearch.ArtworkHeroSearch
+pages:
+  - {route: x/archetypes/hero-search, viewModel: io.mateu.explorer.examples.archetypes.herosearch.ArtworkHeroSearch}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/hero-search/ArtworkHeroSearch.cs}
+  - {label: Python, path: src/main/ports/archetypes/hero-search/artwork_hero_search.py}

@@ -1,0 +1,18 @@
+id: advanced-create-edit-page
+area: page-templates
+group: templates
+title: Advanced create / edit page
+covers: [template:AdvancedCreateEditPage]
+description: |
+  `template: {type: AdvancedCreateEditPage}`: the form's `content` is the `main` slot — the sections,
+  indexed by the anchor navigator — and the `detail` slot is contextual data beside the form. The header
+  is the form's toolbar: a cancel (`actionId: cancel-new`/`cancel-edit`/`cancel`) and the primary
+  action. The primary's `save` runs on the route's view model (`NewArtwork.save()`), which validates
+  first (Title and Artist are required).
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/advanced-create-edit-page
+pages:
+  - {route: x/page-templates/advanced-create-edit-page, layout: explorer/page-templates/advanced-create-edit-page/artwork-new.yaml, viewModel: io.mateu.explorer.examples.pagetemplates.advancedcreateeditpage.NewArtwork}

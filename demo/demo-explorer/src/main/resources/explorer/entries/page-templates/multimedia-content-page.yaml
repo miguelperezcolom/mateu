@@ -1,0 +1,16 @@
+id: multimedia-content-page
+area: page-templates
+group: templates
+title: Multimedia content page
+covers: [template:MultimediaContentPage]
+description: |
+  `template: {type: MultimediaContentPage}`: a welcome-style banner — the form's title, subtitle,
+  overline and toolbar, toned by `backgroundColor` — over the content sections (`Card`s with the
+  `mateu-section` class), which the vertical anchor navigator indexes.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/multimedia-content-page
+pages:
+  - {route: x/page-templates/multimedia-content-page, layout: explorer/page-templates/multimedia-content-page/gallery.yaml}

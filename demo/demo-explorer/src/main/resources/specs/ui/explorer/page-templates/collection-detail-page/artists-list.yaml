@@ -1,0 +1,13 @@
+# The collection, shared by the two pages (nothing selected / an artist selected): a Listing whose
+# rowRoute is the selected page — selection lives in the URL. Rows from MuseumApi (/explorer-api/artists).
+content:
+  - type: Listing
+    searchable: true
+    pageSize: 20
+    rowRoute: x/page-templates/collection-detail-page/${row.id}
+    rowsSource:
+      url: /explorer-api/artists?search=${state.searchText ?? ''}
+      itemsPath: content
+    columns:
+      - {type: GridColumn, id: name, label: Artist, identifier: true}
+      - {type: GridColumn, id: nationality, label: Nationality}

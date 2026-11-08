@@ -1,0 +1,20 @@
+id: crud
+area: archetypes
+group: collections
+title: Crud (capability listing)
+covers: [archetype:Crud]
+description: |
+  A hand-written CRUD is a `Listing<Row>` plus the **capability interfaces** it wants — `Searchable`
+  (search box), `Filterable<F>` (filter bar), `Navigable` (clickable rows + `/:id`), `Editable`,
+  `Creatable` (New + `/new`), `Deletable` (selection + Delete). `Crud<…>` is the full pack; this one
+  declares search, view, create and delete only — so there is no Edit button and no edit route. A plain
+  class declaring an interaction capability is promoted to the CRUD mediator: no orchestrator to extend.
+examples:
+  - title: The whole CRUD
+    description: Try it — search, open a record, create one. It is a whole page, so it runs embedded here and opens on its own too.
+    route: x/archetypes/crud
+pages:
+  - {route: x/archetypes/crud, viewModel: io.mateu.explorer.examples.archetypes.crud.LenderListing}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/crud/LenderListing.cs}
+  - {label: Python, path: src/main/ports/archetypes/crud/lender_listing.py}

@@ -1,0 +1,17 @@
+id: guided-process-page
+area: page-templates
+group: templates
+title: Guided process page
+covers: [template:GuidedProcessPage]
+description: |
+  `template: {type: GuidedProcessPage, steps: [...]}` — each `GuidedProcessStep` has an `id`, `title`,
+  `description` and `content`. All the steps are **one form**: moving between them keeps what was typed,
+  with no round trip. The toolbar's primary is the process's primary action (`send` runs
+  `LoanRequest.send()` on the route's view model), its cancel the way out.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/guided-process-page
+pages:
+  - {route: x/page-templates/guided-process-page, layout: explorer/page-templates/guided-process-page/loan-new.yaml, viewModel: io.mateu.explorer.examples.pagetemplates.guidedprocesspage.LoanRequest}
