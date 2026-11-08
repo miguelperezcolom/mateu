@@ -88,7 +88,8 @@ version (latest release).
 | `demo-static-bundle` | 8097 | Static bundle that also derives an OpenAPI + a server for its OWN endpoints (the full `mateu-bundle` path). |
 | [`demo-static-vcn`](demo-static-vcn) | — (static) | A 100% static UI over an external REST API, authored twice (Java and YAML): no Mateu backend at runtime. `run-static.sh` builds and serves it. |
 | `demo-redwood-showcase` | 8597 | The Redwood renderer line. |
-| `explorer` | 8598 | Explorer app on the Redwood renderer. |
+| `explorer` | 8598 | A small Redwood-renderer test harness (not the Mateu Explorer — that is `demo-explorer`). |
+| [`demo-explorer`](demo-explorer) | 8640 | **The Mateu Explorer** (explorer.mateu.io): every component, page template, archetype, behaviour and distributed-UI pattern, live, with the source that renders it. Uses the latest release. |
 | [`demo-vb`](demo-vb) | 9005 | Reference app for the Redwood / Oracle Visual Builder renderer. |
 | [`demo-vb-pms`](demo-vb-pms) | 9010 | An OPERA Cloud-like property management system, written once, rendered by both Redwood and Vaadin. |
 | [`demo-eventconductor`](demo-eventconductor) | 8620–8622 | Using a third-party Mateu UI (EventConductor's workflow console): in-process with `mateu.ui.modules`, and federated into a Java and a YAML shell with `RemoteMenu` / `MicroFrontend`. |

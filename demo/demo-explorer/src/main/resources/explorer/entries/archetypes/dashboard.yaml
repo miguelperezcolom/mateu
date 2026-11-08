@@ -1,0 +1,19 @@
+# TEMPLATE ENTRY — an archetype: a whole page. It is registered as its own route (pages:) so it can
+# be opened on its own, and embedded on the entry page as an island (java:).
+id: dashboard
+area: archetypes
+group: overview
+title: Dashboard
+covers: [archetype:Dashboard]
+description: |
+  Extend `Dashboard` and declare fields: consecutive `MetricCard`s become the KPI band, `@Panel`
+  component fields become titled tiles on a responsive grid. No layout code. A card with an
+  `actionId` is clickable and runs the `@Action` of that name.
+examples:
+  - title: Museum operations
+    java: io.mateu.explorer.examples.archetypes.dashboard.MuseumDashboard
+pages:
+  - {route: x/archetypes/dashboard, viewModel: io.mateu.explorer.examples.archetypes.dashboard.MuseumDashboard}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/dashboard/MuseumDashboard.cs}
+  - {label: Python, path: src/main/ports/archetypes/dashboard/museum_dashboard.py}

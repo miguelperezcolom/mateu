@@ -1,0 +1,26 @@
+# Buttons as DATA: the partial the Explorer's Button entry draws live (and shows in its Code tab).
+# A list partial wraps its components in `content:`.
+content:
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - {type: Button, label: Primary, buttonStyle: primary}
+      - {type: Button, label: Secondary, buttonStyle: secondary}
+      - {type: Button, label: Tertiary, buttonStyle: tertiary}
+      - {type: Button, label: Disabled, disabled: true}
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - {type: Button, label: Success, color: success, buttonStyle: primary}
+      - {type: Button, label: Error, color: error, buttonStyle: primary}
+      - {type: Button, label: Warning, color: warning}
+      - {type: Button, label: Contrast, color: contrast}
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - {type: Button, label: Small, size: small}
+      - {type: Button, label: Normal}
+      - {type: Button, label: Large, size: large}
+      - {type: Button, label: With icons, iconOnLeft: "vaadin:star", iconOnRight: "vaadin:arrow-right"}
+  # a button carrying a RouteLink navigates — no server code at all
+  - {type: Button, label: Go to the Explorer home, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
