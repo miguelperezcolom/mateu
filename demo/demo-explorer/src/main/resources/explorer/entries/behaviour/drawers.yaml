@@ -1,0 +1,20 @@
+id: drawers
+area: behaviour
+group: overlays
+title: Drawers — general, bottom, modeless
+covers: [behaviour:drawer-general, behaviour:drawer-bottom, behaviour:drawer-modeless]
+description: |
+  A `Drawer` returned from an action slides in from an edge. One record, three templates:
+
+  - **general** — a `subtitle`, a `size` (`s`/`m`/`l`/`xl`), a ⤢ **maximize** button stepping up
+    the sizes, and **peer arrows** (`PeerNav`) to the previous / next object;
+  - **bottom** — `position(bottom)`: full width, docked at the bottom; `collapsible` adds a handle
+    that folds it to its header strip;
+  - **modeless** — no backdrop: the page behind stays usable while it is open.
+
+  Try it: open the general drawer and press ⤢ — it widens; press › — you land on the next entry.
+  Open the bottom drawer and fold it with its handle. Open the modeless one and type in *Note*
+  on the page behind it.
+examples:
+  - title: Drawers
+    java: io.mateu.explorer.examples.behaviour.drawers.DrawersDemo

@@ -1,0 +1,23 @@
+id: audit-history
+area: behaviour
+group: listings
+title: Audit history and version diff
+covers: [behaviour:audit-history]
+description: |
+  A crud implementing `Auditable` gets a **History** button. `history(...)` returns one `AuditEntry`
+  per changed field — who, when, old and new value — and the dialog groups the entries by their
+  `when`, so each group reads as one **version** of the record. Keeping the trail is the app's
+  job (here the store compares the product before and after each save).
+
+  Try it: open the CRUD, edit `P-2`, change its price and stock and save; press **History** — a new
+  version on top with the two fields, old → new.
+
+  **Known issue (3.0-beta.51):** the History button is refused with a 403. The crud's own action
+  handlers claim `history` before the audit runner sees it ("no such action"), and once past that,
+  the dialog's own search is refused because its listing type (`AuditHistoryListing`) is not on the
+  wire allow-list. The entry stays so it turns green when the framework is fixed.
+examples:
+  - title: Price list
+    yaml: specs/ui/explorer/behaviour/audit-history/open.yaml
+pages:
+  - {route: x/behaviour/audit-history, viewModel: io.mateu.explorer.examples.behaviour.audithistory.PricesCrud}

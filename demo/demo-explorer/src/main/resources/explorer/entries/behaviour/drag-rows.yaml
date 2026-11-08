@@ -1,0 +1,16 @@
+id: drag-rows
+area: behaviour
+group: listings
+title: Drag rows to a drop zone
+covers: [behaviour:drag-rows]
+description: |
+  `@DragRows("order")` on a listing makes its rows draggable — the selected ones, or the one under
+  the pointer. A `DropZone` that `accept`s `order` runs its action when rows are dropped on it,
+  with the dragged ids in `_draggedIds` plus its own `parameters`. Here the zones are the listing's
+  header (`HeaderSupplier`) and the action moves the orders to that status.
+
+  Try it: drag the first row onto **Shipped** — the zone's count goes up and the row's status
+  changes; tick two rows and drag them together onto **On hold**.
+examples:
+  - title: Order triage
+    java: io.mateu.explorer.examples.behaviour.dragrows.OrderTriage

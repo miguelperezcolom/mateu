@@ -1,0 +1,20 @@
+id: close-with-result
+area: behaviour
+group: overlays
+title: Close with a result, nested overlays
+covers: [behaviour:close-with-result, behaviour:nested-overlays]
+description: |
+  An overlay hands its result back by closing with an event: `UICommand.closeModal("contact-saved",
+  payload)` closes the topmost overlay AND emits the event on the bus, so the page that opened it
+  — subscribed with `@SubscribeTo` — runs an action with the payload as parameters. Closing with ✕
+  or Esc emits nothing (dismissed). Overlays **nest**: a dialog opened from a drawer stacks on top,
+  and each close unwinds only the topmost one.
+
+  Try it: press **Add contact**, type `Ada` and press **Check duplicates** — a dialog opens over
+  the drawer; close it: the drawer is still there with `Ada`. Press **Save**: the drawer closes and
+  the page shows *Last saved* `Ada`.
+examples:
+  - title: Contacts
+    java: io.mateu.explorer.examples.behaviour.overlayresult.ContactsPage
+code:
+  - {label: ContactEditor.java, path: src/main/java/io/mateu/explorer/examples/behaviour/overlayresult/ContactEditor.java}

@@ -1,0 +1,22 @@
+id: bulk-actions
+area: behaviour
+group: listings
+title: Bulk actions on selected rows
+covers: [behaviour:bulk-actions]
+description: |
+  A `@ListToolbarButton` method is a **bulk action**: its button sits in the listing toolbar, it
+  needs a selection, and a `List<Order>` parameter receives the selected rows already typed.
+  `confirmationRequired` asks first — `@Action` says what the confirmation reads and `@Toolbar`
+  how the button looks (here: red, because it is destructive). The listing refreshes after it.
+
+  Try it: open the CRUD, tick three rows and press **Mark as shipped** — their status becomes
+  Shipped; tick two more and press **Cancel orders**, then confirm with *Cancel them*.
+examples:
+  - title: Orders
+    yaml: specs/ui/explorer/behaviour/bulk-actions/open.yaml
+pages:
+  - {route: x/behaviour/bulk-actions, viewModel: io.mateu.explorer.examples.behaviour.bulkactions.BulkOrdersCrud}
+code:
+  - {label: Order.java, path: src/main/java/io/mateu/explorer/examples/behaviour/listingdata/Order.java}
+  - {label: "C#", path: src/main/ports/behaviour/bulk-actions/BulkOrdersCrud.cs}
+  - {label: Python, path: src/main/ports/behaviour/bulk-actions/bulk_orders_crud.py}

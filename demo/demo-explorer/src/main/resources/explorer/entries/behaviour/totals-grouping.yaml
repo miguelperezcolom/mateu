@@ -1,0 +1,22 @@
+id: totals-grouping
+area: behaviour
+group: listings
+title: Totals and grouping
+covers: [behaviour:totals-grouping]
+description: |
+  `@GroupBy` on a row field groups the listing by it — a header row per group with its subtotals,
+  and the group becomes the implicit first sort. `@Aggregate(sum | avg | min | max | count)` adds
+  the totals. Both are computed by `CrudStore.summaries` over the **whole filtered result**, not
+  the page you see (in memory by default; a database store answers it with one query).
+
+  Try it: open the CRUD — the footer *Total* (321 units) counts all 50 rows, not the 10 on the page,
+  and *East (12)* has its own subtotal; search `chairs` — groups and totals are recomputed over the
+  chairs only (73 units).
+examples:
+  - title: Sales by region
+    yaml: specs/ui/explorer/behaviour/totals-grouping/open.yaml
+pages:
+  - {route: x/behaviour/totals-grouping, viewModel: io.mateu.explorer.examples.behaviour.totalsgrouping.SalesCrud}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/totals-grouping/SalesCrud.cs}
+  - {label: Python, path: src/main/ports/behaviour/totals-grouping/sales_crud.py}
