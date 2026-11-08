@@ -1,6 +1,29 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 
+export type OfferFooter =
+    | { kind: 'current', label: string | undefined }
+    | { kind: 'cta', label: string | undefined, price: string | undefined, added: boolean, enabled: boolean }
+    | { kind: 'price', price: string }
+
+/**
+ * What an offer card's footer shows. The CTA (its label, or the addedLabel once added, with the
+ * price inside) shows whenever it has something to say — without an actionId it is drawn INERT
+ * rather than dropped: a card used to lose its price and its CTA, and `added` showed nothing, when
+ * it carried no action (a static page, a YAML partial). A price alone still shows.
+ */
+export const offerFooterOf = (card: {
+    current?: boolean, currentLabel?: string, priceLabel?: string, actionLabel?: string,
+    actionId?: string, added?: boolean, addedLabel?: string,
+}): OfferFooter | null => {
+    if (card.current) return { kind: 'current', label: card.currentLabel }
+    const added = !!card.added
+    const label = added ? (card.addedLabel || card.actionLabel) : card.actionLabel
+    if (label) return { kind: 'cta', label, price: card.priceLabel, added, enabled: !!card.actionId }
+    if (card.priceLabel) return { kind: 'price', price: card.priceLabel }
+    return null
+}
+
 /**
  * Current-vs-upgrade offer card: optional 16:9 image header with a floating tag chip, title +
  * subtitle, features as outline chips, and a footer that is either a muted "included" label (when
@@ -87,6 +110,12 @@ export class MateuOfferCard extends LitElement {
             color: var(--lumo-primary-contrast-color, #fff);
         }
         button:hover { filter: brightness(1.08); }
+        /* an inert CTA (no actionId): drawn the same, not clickable */
+        button:disabled { cursor: default; filter: none; }
+        .price-only {
+            display: block; text-align: right; padding: .45rem 0;
+            font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-body-text-color, #111);
+        }
         button.added { background: var(--lumo-success-color, #2e7d32); }
         .price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
     `
@@ -98,6 +127,24 @@ export class MateuOfferCard extends LitElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    private renderFooter() {
+        const footer = offerFooterOf(this)
+        if (!footer) return nothing
+        if (footer.kind === 'current') {
+            return footer.label ? html`<span class="current-label">${footer.label}</span>` : nothing
+        }
+        if (footer.kind === 'price') {
+            return html`<span class="price-only"><span class="price">${footer.price}</span></span>`
+        }
+        return html`
+            <button class="${footer.added ? 'added' : ''}" ?disabled="${!footer.enabled}"
+                    @click="${() => this.runAction()}">
+                <span>${footer.label}</span>
+                ${footer.price ? html`<span class="price">${footer.price}</span>` : nothing}
+            </button>
+        `
     }
 
     render() {
@@ -115,16 +162,7 @@ export class MateuOfferCard extends LitElement {
                         </div>
                     ` : nothing}
                 </div>
-                <div class="footer">
-                    ${this.current
-                        ? (this.currentLabel ? html`<span class="current-label">${this.currentLabel}</span>` : nothing)
-                        : (this.actionLabel && this.actionId ? html`
-                            <button class="${this.added ? 'added' : ''}" @click="${() => this.runAction()}">
-                                <span>${this.added ? (this.addedLabel || this.actionLabel) : this.actionLabel}</span>
-                                ${this.priceLabel ? html`<span class="price">${this.priceLabel}</span>` : nothing}
-                            </button>
-                        ` : nothing)}
-                </div>
+                <div class="footer">${this.renderFooter()}</div>
             </div>
         `
     }

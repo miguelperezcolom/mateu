@@ -81,4 +81,25 @@ test('a StatusList draws its rows\' icon / avatar in every layout, and columns: 
   assert.deepEqual(list({ items: [{ id: 'r1', title: '101' }] }).wrapStyle, {})
 })
 
+test('an OfferCard without an actionId keeps its price and an inert CTA; added shows its addedLabel', () => {
+  const offers = atomsOf(node({ type: 'HorizontalLayout' }, [
+    node({ type: 'OfferCard', title: 'Junior suite', priceLabel: '+ € 60 / night', actionLabel: 'Upgrade' }),
+    node({ type: 'OfferCard', title: 'Breakfast', priceLabel: '€ 20 / person', added: true, addedLabel: 'Added' }),
+    node({ type: 'OfferCard', title: 'Spa', actionLabel: 'Book', actionId: 'book' }),
+    node({ type: 'OfferCard', title: 'Deluxe', current: true, currentLabel: 'Current room', actionLabel: 'x' }),
+  ])).filter((a) => a.isOffer)
+  assert.deepEqual(offers.map((o) => [o.actionLabel, o.ctaDisabled, o.priceLabel]), [
+    ['Upgrade', true, '+ € 60 / night'],
+    ['Added', true, '€ 20 / person'],
+    ['Book', false, ''],
+    ['', true, ''],
+  ])
+  assert.equal(offers[1].ctaChroming, 'outlined')
+  for (const markup of [template(), page()]) {
+    const block = markup.split('<oj-bind-if test="[[ $current.data.isOffer ]]">')[1].split('</oj-bind-if>\n')[1]
+    assert.ok(markup.includes('disabled="[[ $current.data.ctaDisabled ]]"'), 'the CTA binds its inert state')
+    assert.ok(block !== undefined)
+  }
+})
+
 console.log(`\n${passed} explorer-findings tests OK`)

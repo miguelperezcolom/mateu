@@ -1435,7 +1435,11 @@ export function islandContentOf(ctx, opts = {}) {
         currentLabel: m.current ? (m.currentLabel || '') : '',
         addedLabel: m.added ? (m.addedLabel || '') : '',
         priceLabel: interp(m.priceLabel || ''),
-        actionLabel: m.actionId ? (m.actionLabel || '') : '',
+        // the CTA shows whenever it has a label (once added: the addedLabel) — with no actionId it
+        // is INERT, not dropped; `added` used to show nothing at all
+        actionLabel: m.current ? '' : interp((m.added ? (m.addedLabel || m.actionLabel) : m.actionLabel) || ''),
+        ctaDisabled: !m.actionId,
+        ctaChroming: m.added ? 'outlined' : 'callToAction',
         actionId: m.actionId || '',
         parameters: {},
       }, container)

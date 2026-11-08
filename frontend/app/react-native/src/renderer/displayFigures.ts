@@ -131,3 +131,23 @@ export function badgeIconsOf(m: { iconOnLeft?: unknown; iconOnRight?: unknown })
     iconRight: materialIconOf(typeof m.iconOnRight === 'string' ? m.iconOnRight : undefined),
   };
 }
+
+export type OfferFooter =
+  | { kind: 'current'; label?: string }
+  | { kind: 'cta'; label: string; price?: string; added: boolean; enabled: boolean }
+  | { kind: 'price'; price: string };
+
+/** An OfferCard's footer, as the web's offerFooterOf: the CTA (the addedLabel once added, the price
+ *  inside) shows whenever it has a label - INERT without an actionId, not dropped - and a price
+ *  alone still shows. A card without an action used to lose its price and CTA, and added showed nothing. */
+export function offerFooterOf(m: {
+  current?: boolean; currentLabel?: string; priceLabel?: string; actionLabel?: string;
+  actionId?: string; added?: boolean; addedLabel?: string;
+}): OfferFooter | null {
+  if (m.current === true) return { kind: 'current', label: m.currentLabel };
+  const added = m.added === true;
+  const label = added ? (m.addedLabel || m.actionLabel) : m.actionLabel;
+  if (label) return { kind: 'cta', label, price: m.priceLabel, added, enabled: !!m.actionId };
+  if (m.priceLabel) return { kind: 'price', price: m.priceLabel };
+  return null;
+}

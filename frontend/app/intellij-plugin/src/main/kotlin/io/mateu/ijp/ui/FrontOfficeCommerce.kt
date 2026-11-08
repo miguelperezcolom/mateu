@@ -49,26 +49,40 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         })
         panel.addStacked(row, 6)
     }
-    if (current) {
-        val currentLabel = metadata.text("currentLabel")
-        if (currentLabel.isNotBlank()) panel.addStacked(JBLabel(plain(currentLabel)).apply { foreground = uxMuted() }, 0)
-    } else {
-        val actionLabel = metadata.text("actionLabel")
-        val actionId = metadata.text("actionId")
-        if (actionLabel.isNotBlank()) {
-            // toggle offers: while added the CTA shows addedLabel in success green
-            val added = metadata.bool("added")
-            val addedLabel = metadata.text("addedLabel")
-            val label = if (added && addedLabel.isNotBlank()) addedLabel else actionLabel
-            val priceLabel = metadata.text("priceLabel")
-            val text = label + (if (priceLabel.isNotBlank()) "   $priceLabel" else "")
+    when (val footer = offerFooterOf(metadata)) {
+        is OfferFooter.Current ->
+            if (footer.label.isNotBlank()) panel.addStacked(JBLabel(plain(footer.label)).apply { foreground = uxMuted() }, 0)
+        is OfferFooter.Price -> panel.addStacked(JBLabel(plain(footer.price)).apply { font = font.deriveFont(Font.BOLD) }, 0)
+        is OfferFooter.Cta -> {
+            val text = footer.label + (if (footer.price.isNotBlank()) "   ${footer.price}" else "")
             panel.addStacked(JButton(plain(text)).apply {
-                if (added) foreground = JBColor(0x3E8635, 0x4CAF50)
-                if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
+                // toggle offers: while added the CTA shows addedLabel in success green
+                if (footer.added) foreground = JBColor(0x3E8635, 0x4CAF50)
+                // without an actionId it is drawn INERT, not dropped
+                isEnabled = footer.enabled
+                if (footer.enabled) addActionListener { r.ctx.runAction(metadata.text("actionId"), null) }
             }, 0)
         }
+        null -> Unit
     }
     return panel
+}
+
+/** What an OfferCard's footer shows — the web's offerFooterOf: the CTA (addedLabel once added, the
+ *  price inside) whenever it has a label, inert without an actionId; a price alone still shows. */
+internal sealed interface OfferFooter {
+    data class Current(val label: String) : OfferFooter
+    data class Cta(val label: String, val price: String, val added: Boolean, val enabled: Boolean) : OfferFooter
+    data class Price(val price: String) : OfferFooter
+}
+
+internal fun offerFooterOf(metadata: JsonNode): OfferFooter? {
+    if (metadata.bool("current")) return OfferFooter.Current(metadata.text("currentLabel"))
+    val added = metadata.bool("added")
+    val label = (if (added) metadata.text("addedLabel") else "").ifBlank { metadata.text("actionLabel") }
+    val price = metadata.text("priceLabel")
+    if (label.isNotBlank()) return OfferFooter.Cta(label, price, added, metadata.text("actionId").isNotBlank())
+    return if (price.isNotBlank()) OfferFooter.Price(price) else null
 }
 
 /** AddOnPicker: priced extras cards with a +/✓ toggle and a live running total. */
