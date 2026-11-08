@@ -209,6 +209,59 @@ internal static class UiPage
         return null;
     }
 
+    // ── gzip of the renderer's text files: Java's io.mateu.core.infra.AssetCompression ─────────────
+
+    /// <summary>Smaller files are served as they are.</summary>
+    public const int GzipMinBytes = 1024;
+
+    private static readonly HashSet<string> Compressible = new(StringComparer.OrdinalIgnoreCase)
+        { ".js", ".mjs", ".css", ".html", ".htm", ".json", ".map", ".svg", ".txt", ".md", ".xml", ".wasm" };
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte[]> Gzips = new();
+
+    /// <summary>Whether the path names a text format worth compressing (Java's <c>compressible</c>).</summary>
+    public static bool IsCompressible(string path)
+    {
+        var query = path.IndexOf('?');
+        return Compressible.Contains(Path.GetExtension(query < 0 ? path : path[..query]));
+    }
+
+    /// <summary>Whether an <c>Accept-Encoding</c> accepts gzip: named (or <c>*</c>) without <c>q=0</c>.</summary>
+    public static bool AcceptsGzip(string? acceptEncoding)
+    {
+        if (string.IsNullOrWhiteSpace(acceptEncoding)) return false;
+        bool? star = null;
+        foreach (var part in acceptEncoding.Split(','))
+        {
+            var pieces = part.Trim().Split(';');
+            var coding = pieces[0].Trim().ToLowerInvariant();
+            var refused = false;
+            foreach (var p in pieces.Skip(1))
+            {
+                var param = p.Trim().ToLowerInvariant().Replace(" ", "");
+                if (param.StartsWith("q="))
+                    refused = !double.TryParse(param[2..], System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var q) || q <= 0;
+            }
+            if (coding is "gzip" or "x-gzip") return !refused;
+            if (coding == "*") star = !refused;
+        }
+        return star == true;
+    }
+
+    /// <summary>The gzip bytes of a renderer file, compressed once per content (cached by path and
+    /// a hash of the bytes, so a replaced file is compressed again).</summary>
+    public static byte[] Gzipped(string path, byte[] raw)
+    {
+        var key = path + "|" + raw.Length + "|" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(raw));
+        return Gzips.GetOrAdd(key, _ =>
+        {
+            using var output = new MemoryStream(Math.Max(64, raw.Length / 3));
+            using (var gz = new GZipStream(output, CompressionLevel.SmallestSize, leaveOpen: true)) gz.Write(raw);
+            return output.ToArray();
+        });
+    }
+
     public static string ContentTypeOf(string path) =>
         ContentTypes.TryGetValue(Path.GetExtension(path), out var type) ? type : "application/octet-stream";
 

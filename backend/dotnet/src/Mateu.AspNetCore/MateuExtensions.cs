@@ -364,6 +364,18 @@ public static class MateuExtensions
             var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
+            var path = ctx.Request.Path.Value ?? "/";
+            // the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
+            // Vaadin first load); Java's AssetCompression
+            if (UiPage.IsAsset(path) && UiPage.IsCompressible(path))
+            {
+                ctx.Response.Headers.Vary = "Accept-Encoding";
+                if (body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString()))
+                {
+                    body = UiPage.Gzipped(path, body);
+                    ctx.Response.Headers.ContentEncoding = "gzip";
+                }
+            }
             ctx.Response.StatusCode = StatusCodes.Status200OK;
             ctx.Response.ContentType = contentType;
             ctx.Response.ContentLength = body.Length;

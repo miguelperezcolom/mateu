@@ -143,7 +143,7 @@ public final class TreeActionHarvester {
     if (!type.isRecord() || !type.getPackageName().startsWith("io.mateu.dtos")) {
       return;
     }
-    for (RecordComponent component : type.getRecordComponents()) {
+    for (RecordComponent component : io.mateu.core.domain.Records.components(type)) {
       Object value;
       try {
         value = component.getAccessor().invoke(node);

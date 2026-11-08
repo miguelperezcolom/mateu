@@ -4,6 +4,7 @@ import io.mateu.core.application.MateuService;
 import io.mateu.core.application.mcp.McpEndpoint;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlAppLoader;
+import io.mateu.core.infra.AssetCompression;
 import io.mateu.core.infra.ClasspathAssets;
 import io.mateu.core.infra.ClientErrorLog;
 import io.mateu.core.infra.CorsPolicy;
@@ -232,7 +233,16 @@ public class MateuQuarkusRoutes {
     }
     var request = rc.request();
     var response = rc.response();
-    String etag = asset.etag();
+    boolean gzip =
+        AssetCompression.shouldGzip(
+            AssetCompression.enabled(),
+            asset.path(),
+            asset.contentLength(),
+            request.getHeader("Accept-Encoding"));
+    if (AssetCompression.compressible(asset.path())) {
+      response.putHeader("Vary", "Accept-Encoding");
+    }
+    String etag = gzip ? AssetCompression.gzipEtag(asset.etag()) : asset.etag();
     if (etag != null) {
       response.putHeader("ETag", etag);
     }
@@ -241,7 +251,7 @@ public class MateuQuarkusRoutes {
       response.putHeader("Last-Modified", lastModified);
     }
     if (asset.notModified(
-        request.getHeader("If-None-Match"), request.getHeader("If-Modified-Since"))) {
+        request.getHeader("If-None-Match"), request.getHeader("If-Modified-Since"), etag)) {
       response.setStatusCode(304).end();
       return;
     }
@@ -250,7 +260,16 @@ public class MateuQuarkusRoutes {
       response.putHeader("Content-Type", contentType);
     }
     try {
-      byte[] body = asset.read();
+      byte[] body =
+          gzip
+              ? AssetCompression.gzipped(
+                  asset.url().toString(), asset.contentLength(), asset.lastModified(), asset::read)
+              : asset.read();
+      if (gzip) {
+        // already compressed: Vert.x's own compression (quarkus.http.enable-compression) leaves
+        // a response that names its encoding alone
+        response.putHeader("Content-Encoding", "gzip");
+      }
       if (request.method() == HttpMethod.HEAD) {
         response.putHeader("Content-Length", String.valueOf(body.length)).end();
       } else {

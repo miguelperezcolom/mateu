@@ -89,7 +89,7 @@ public final class ModelViewContractExtractor {
     if (!metadata.getClass().isRecord()) {
       return;
     }
-    for (var recordComponent : metadata.getClass().getRecordComponents()) {
+    for (var recordComponent : io.mateu.core.domain.Records.components(metadata.getClass())) {
       Object value;
       try {
         value = recordComponent.getAccessor().invoke(metadata);

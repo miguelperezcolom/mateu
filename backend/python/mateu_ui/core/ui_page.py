@@ -257,6 +257,57 @@ def cache_control_for(path: str) -> str | None:
     return None
 
 
+# ── gzip of the renderer's text files: Java's io.mateu.core.infra.AssetCompression ──────────────
+
+GZIP_MIN_BYTES = 1024
+_COMPRESSIBLE = {".js", ".mjs", ".css", ".html", ".htm", ".json", ".map", ".svg", ".txt", ".md", ".xml", ".wasm"}
+_GZIPS: dict[tuple[str, int, int], bytes] = {}
+
+
+def compressible(path: str) -> bool:
+    """Whether the path names a text format worth compressing."""
+    bare = path.split("?", 1)[0]
+    name = bare.rsplit("/", 1)[-1]
+    return "." in name and "." + name.rsplit(".", 1)[-1].lower() in _COMPRESSIBLE
+
+
+def accepts_gzip(accept_encoding: str | None) -> bool:
+    """Whether an ``Accept-Encoding`` accepts gzip: named (or ``*``) without ``q=0``."""
+    if not accept_encoding or not accept_encoding.strip():
+        return False
+    star = None
+    for part in accept_encoding.split(","):
+        pieces = part.strip().split(";")
+        coding = pieces[0].strip().lower()
+        refused = False
+        for param in pieces[1:]:
+            param = param.strip().lower().replace(" ", "")
+            if param.startswith("q="):
+                try:
+                    refused = float(param[2:]) <= 0
+                except ValueError:
+                    refused = True
+        if coding in ("gzip", "x-gzip"):
+            return not refused
+        if coding == "*":
+            star = not refused
+    return star is True
+
+
+def gzipped(path: str, raw: bytes) -> bytes:
+    """The gzip bytes of a renderer file, compressed once per content (keyed by path, size and
+    CRC, so a replaced file is compressed again)."""
+    import gzip
+    import zlib
+
+    key = (path, len(raw), zlib.crc32(raw))
+    out = _GZIPS.get(key)
+    if out is None:
+        out = gzip.compress(raw, compresslevel=9, mtime=0)
+        _GZIPS[key] = out
+    return out
+
+
 def api_hint_page(base_url: str) -> str:
     """What a BROWSER gets at the mount of a server that serves no renderer: a short explanation
     instead of a bare JSON 404 — the first thing a newcomer does with a running starter is open its

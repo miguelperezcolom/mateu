@@ -313,7 +313,7 @@ public final class AdvertisedActions {
     if (!type.isRecord() || !isMateuValue(type) || visited.put(node, Boolean.TRUE) != null) {
       return;
     }
-    for (RecordComponent component : type.getRecordComponents()) {
+    for (RecordComponent component : io.mateu.core.domain.Records.components(type)) {
       Object value;
       try {
         value = component.getAccessor().invoke(node);
