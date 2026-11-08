@@ -53,7 +53,10 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         }
       };
     }
-    if (instance instanceof ActionHandler handlesActions) {
+    // the audit history (its button and its dialog's listing) is the audit runner's, whatever
+    // the view's own handlers claim: a crud claims every id and knew no "history"
+    if (instance instanceof ActionHandler handlesActions
+        && !AuditActionRunner.claims(instance, actionId, httpRequest)) {
       if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
           @Override
