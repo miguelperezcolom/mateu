@@ -7,6 +7,7 @@ import { anyPending } from "@infra/ui/pendingIndicator.ts";
 import { reportClientError, failureReportOf } from "@infra/http/clientErrorReporter.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { reloadPage } from '@infra/http/buildWatch.ts'
+import { ISLAND_HOST_STYLE } from '@infra/ui/islandHost.ts'
 
 /**
  * The global busy affordance — the LAST resort, not the first.
@@ -111,9 +112,7 @@ export class MateuApiCaller extends LitElement {
         </div>`
     }
 
-    static styles = css`
-        :host {
-        }
+    static styles = [ISLAND_HOST_STYLE, css`
 
         .loader-container {
             position: relative; /* clave */
@@ -179,7 +178,7 @@ export class MateuApiCaller extends LitElement {
             animation: l5 1s infinite;
         }
         @keyframes l5 {to{transform: rotate(.5turn)}}
-  `
+  `]
 }
 
 declare global {
