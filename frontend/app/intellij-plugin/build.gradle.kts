@@ -55,18 +55,54 @@ repositories {
 // (faster, no download — but Ultimate boots in a remote-dev-aware mode).
 val idePath = findProperty("mateu.idePath") as String?
 // 2025.2.6.4 (never 2025.2.5: its macOS-aarch64 distribution fails bundled-plugin resolution,
-// "Could not find bundled plugin with ID: 'com.intellij.java'"). It is also the IntelliJ IDEA
-// Community the desktop app (buildInstaller) repackages. JetBrains published no Community build after
-// 2025.3 (2026.x is the unified IntelliJ IDEA distribution), so 252 stays the base until 3.1 decides.
+// "Could not find bundled plugin with ID: 'com.intellij.java'"). The plugin COMPILES against it
+// (sinceBuild 252, open-ended), so the Marketplace plugin keeps working on 2025.2 IDEs; the desktop
+// app is no longer packaged on it (see desktopIdeVersion).
 val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.6.4"
-// The IntelliJ build the DESKTOP APP is packaged on. By default it is the same Community release the
-// plugin compiles against, downloaded from download.jetbrains.com. The prototype in
-// .github/workflows/desktop-base.yml (see design/desktop-base-strategy.md) packages on another base:
-// an IntelliJ IDEA Open Source build (JetBrains' intellij-community GitHub release assets, or built
-// from source), passed with -Pinstaller.ideArchive=<file> + -Pinstaller.ideVersion=<its version>.
-// The value is baked into the app (`mateu.desktop.ideVersion`) and into the update feed, so a
-// different base asks installed apps to reinstall (UpdateCheck.ReinstallNeeded).
-val desktopIdeVersion = (findProperty("installer.ideVersion") as String?)?.trim()?.ifBlank { null } ?: ideVersion
+// The IntelliJ build the DESKTOP APP is packaged on: IntelliJ IDEA Open Source (Apache-2.0, the
+// open-source IntelliJ IDEA that replaced Community from 2025.3 on), from the installers JetBrains
+// attaches to the `idea/<version>` GitHub Release of JetBrains/intellij-community. Each download is
+// checked against the sha256 pinned below (= the `digest` the release API lists for the asset). See
+// design/desktop-base-strategy.md. The plugin compiled against 2025.2 loads on it unchanged (the
+// desktop workflow's smoke test launches the packaged app and checks it).
+// The value is baked into the app (`mateu.desktop.ideVersion`) and into the update feed, so CHANGING
+// it asks installed apps to reinstall once (UpdateCheck.ReinstallNeeded). Bump it on the line's patch
+// releases (2026.3.x), together with the digests, and batch bumps with Mateu releases.
+// -Pinstaller.ideVersion=<v> packages another release (its digests are then read from the release API);
+// with -Pinstaller.ideArchive=<file> it names the version of that local archive.
+val pinnedDesktopIdeVersion = "2026.3"
+val desktopIdeVersion = (findProperty("installer.ideVersion") as String?)?.trim()?.ifBlank { null } ?: pinnedDesktopIdeVersion
+// sha256 of the release assets of pinnedDesktopIdeVersion
+// (gh api repos/JetBrains/intellij-community/releases/tags/idea/<v> --jq '.assets[] | "\(.name) \(.digest)"').
+val pinnedDesktopIdeDigests = mapOf(
+    "idea-2026.3-aarch64.dmg" to "35c22051280542990eacfa00104f5b84569bd383eb60533b2c943bfdd18ee255",
+    "idea-2026.3.dmg" to "7cb030be01b1e26c1ea8827c2018ae538b227aeaf64f1bfe533ef3d8c245e97a",
+    "idea-2026.3.tar.gz" to "c9eb3aacbe1467f2bfaf5de85c3f340dd68ba967931cb200dc98cdc1be824fe3",
+    "idea-2026.3.win.zip" to "79b1eb3216269e90de8c319367f0bc6ae66436dcd53dce953b733761e80e69f7",
+)
+
+/** The asset of `idea/<v>` for one installer: macOS `.dmg` (x64 / `-aarch64`), linux `.tar.gz`, windows `.win.zip`. */
+fun desktopIdeAsset(v: String, kind: String): String {
+    // Up to 2025.2 JetBrains named them ideaIC-<v>…; from 2025.3 (IntelliJ IDEA Open Source) idea-<v>….
+    val (major, minor) = v.split('.').let { (it.getOrNull(0)?.toIntOrNull() ?: 0) to (it.getOrNull(1)?.toIntOrNull() ?: 0) }
+    val prefix = if (major < 2025 || (major == 2025 && minor <= 2)) "ideaIC" else "idea"
+    return when (kind) {
+        "macos-aarch64" -> "$prefix-$v-aarch64.dmg"
+        "macos-intel" -> "$prefix-$v.dmg"
+        "linux" -> "$prefix-$v.tar.gz"
+        "windows" -> "$prefix-$v.win.zip"
+        else -> error("unknown installer $kind")
+    }
+}
+
+fun sha256Of(f: File): String {
+    val md = MessageDigest.getInstance("SHA-256")
+    f.inputStream().use { input ->
+        val buf = ByteArray(1 shl 20)
+        while (true) { val n = input.read(buf); if (n < 0) break; md.update(buf, 0, n) }
+    }
+    return md.digest().joinToString("") { "%02x".format(it) }
+}
 
 dependencies {
     intellijPlatform {
@@ -335,14 +371,15 @@ tasks.runIde {
     args(workspace.absolutePath)
 }
 
-// ── Installer: the "Mateu desktop" app = IntelliJ IDEA Community + the Mateu plugin ────────────
+// ── Installer: the "Mateu desktop" app = IntelliJ IDEA Open Source + the Mateu plugin ──────────
 // ./gradlew buildInstaller [-Pinstaller.platform=linux|windows|macos] [-Pinstaller.arch=aarch64|intel]
 //                          [-Pmateu.variant=hub|fixed] [-Pmateu.productName=…]
 //                          [-Pmateu.baseUrl=… | -Pmateu.registryUrl=… -Pmateu.appId=…]   (fixed)
 //                          [-Pmateu.updateUrl=…|none] [-Pinstaller.ideArchive=<local IDE archive>]
-//                          [-Pinstaller.ideVersion=<the archive's IntelliJ version>]
+//                          [-Pinstaller.ideVersion=<another IntelliJ IDEA Open Source release>]
 //
-// -Pinstaller.ideArchive takes JetBrains' release archives (macOS .dmg, linux .tar.gz, windows .win.zip)
+// The base is downloaded from JetBrains/intellij-community's `idea/<desktopIdeVersion>` GitHub Release
+// and sha256-verified (see desktopIdeVersion). -Pinstaller.ideArchive takes JetBrains' release archives (macOS .dmg, linux .tar.gz, windows .win.zip)
 // and also what an intellij-community source build writes (macOS .sit/.zip of the .app; a win.zip
 // with or without a top-level folder). See .github/workflows/desktop-base.yml. NEVER run this task on
 // a developer machine: installers are built on CI only (CLAUDE.md, #1000).
@@ -355,7 +392,7 @@ tasks.runIde {
 //           data/), `mateu.sh` launcher, `install.sh` (per-user install + menu entry + mateu://).
 // windows → …-windows.zip (portable, `mateu.bat`) and, with makensis on the PATH, …-windows-setup.exe
 //           (per-user NSIS installer: %LOCALAPPDATA%\Programs\<product>, shortcuts, mateu://).
-// macos   → build/installer/<product>.app (+ …-macos-<arch>.zip and .dmg): the Community .app rebranded,
+// macos   → build/installer/<product>.app (+ …-macos-<arch>.zip and .dmg): the IntelliJ .app rebranded,
 //           plugin preinstalled by its launcher wrapper, re-signed (ad-hoc, or Developer ID + notarized).
 //
 // Every launcher applies a staged plugin update before the IDE starts (installer/apply-update.sh|.cmd,
@@ -440,7 +477,7 @@ val installerSources = layout.projectDirectory.dir("installer")
 
 tasks.register("buildInstaller") {
     group = "distribution"
-    description = "Builds the Mateu desktop app (IntelliJ IDEA Community + the Mateu plugin) for one OS"
+    description = "Builds the Mateu desktop app (IntelliJ IDEA Open Source + the Mateu plugin) for one OS"
     dependsOn(tasks.buildPlugin)
     doLast {
         val platform = (findProperty("installer.platform") as String?) ?: "linux"
@@ -469,15 +506,41 @@ tasks.register("buildInstaller") {
             System.getenv("PATH").orEmpty().split(File.pathSeparator).any { File(it, tool).canExecute() }
         val installerDir = layout.buildDirectory.dir("installer").get().asFile
         val downloads = File(installerDir, "downloads").apply { mkdirs() }
-        // The IDE archive: -Pinstaller.ideArchive=<file> (a CI cache, an offline build), else downloaded
-        // once into build/installer/downloads/ and reused.
-        fun ideArchive(name: String): File {
+        // The IDE archive: -Pinstaller.ideArchive=<file> (a CI cache, a source build), else JetBrains'
+        // release asset of desktopIdeVersion, downloaded once into build/installer/downloads/, checked
+        // against its sha256 (pinned, else the release API's digest) and reused while it still matches.
+        fun ideArchive(kind: String): File {
             (findProperty("installer.ideArchive") as String?)?.let { return File(it).also { f -> check(f.isFile) { "missing $f" } } }
-            val file = File(downloads, name)
-            if (!file.exists()) {
-                logger.lifecycle("Downloading https://download.jetbrains.com/idea/$name …")
-                run("curl", "-fL", "-o", file.absolutePath, "https://download.jetbrains.com/idea/$name", dir = downloads)
+            val name = desktopIdeAsset(desktopIdeVersion, kind)
+            val tag = "idea/$desktopIdeVersion"
+            val want = (if (desktopIdeVersion == pinnedDesktopIdeVersion) pinnedDesktopIdeDigests[name] else null) ?: run {
+                logger.lifecycle("Reading the sha256 of $name from the $tag release…")
+                val api = "https://api.github.com/repos/JetBrains/intellij-community/releases/tags/$tag"
+                val token = System.getenv("GH_TOKEN") ?: System.getenv("GITHUB_TOKEN")
+                val cmd = mutableListOf("curl", "-fsSL", "-H", "Accept: application/vnd.github+json")
+                if (!token.isNullOrBlank()) cmd += listOf("-H", "Authorization: Bearer $token")
+                cmd += api
+                @Suppress("UNCHECKED_CAST")
+                val release = groovy.json.JsonSlurper().parseText(capture(*cmd.toTypedArray(), dir = downloads)) as Map<String, Any?>
+                val asset = (release["assets"] as List<Map<String, Any?>>).firstOrNull { it["name"] == name }
+                    ?: error("the $tag release of JetBrains/intellij-community has no $name")
+                (asset["digest"] as String?)?.removePrefix("sha256:") ?: error("the $tag release lists no digest for $name")
             }
+            val file = File(downloads, name)
+            if (file.exists() && sha256Of(file) != want) {
+                logger.lifecycle("Cached $name does not match its sha256: downloading it again")
+                file.delete()
+            }
+            if (!file.exists()) {
+                val url = "https://github.com/JetBrains/intellij-community/releases/download/$tag/$name"
+                logger.lifecycle("Downloading $url …")
+                val part = File(downloads, "$name.part")
+                run("curl", "-fL", "--retry", "3", "-o", part.absolutePath, url, dir = downloads)
+                val got = sha256Of(part)
+                if (got != want) { part.delete(); error("$name: sha256 $got, expected $want — refusing to package it") }
+                check(part.renameTo(file)) { "could not move $part" }
+            }
+            logger.lifecycle("IDE base: $name (sha256 $want, verified)")
             return file
         }
         // A file of the IDE layout we append to. It must already exist: appending to a file a newer
@@ -486,12 +549,12 @@ tasks.register("buildInstaller") {
         val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
         logger.lifecycle("Desktop app: ${o.product} — ${o.variant} variant, plugin $version, IntelliJ $desktopIdeVersion")
 
-        // ── macOS: build "<product>.app" from the Community .dmg (branded, plugin preinstalled) ──
+        // ── macOS: build "<product>.app" from the IntelliJ IDEA Open Source .dmg (branded, plugin preinstalled) ──
         if (platform == "macos") {
             val arch = (findProperty("installer.arch") as String?) ?: "aarch64"
             require(arch == "aarch64" || arch == "intel") { "installer.arch must be aarch64 or intel" }
             val key = "macos-$arch"
-            val dmg = ideArchive(if (arch == "intel") "ideaIC-$ideVersion.dmg" else "ideaIC-$ideVersion-aarch64.dmg")
+            val dmg = ideArchive(key)
             val work = File(installerDir, "work/macos").apply { deleteTree(this); mkdirs() }
             val mnt = File(work, "mnt").apply { mkdirs() }
             val appName = "${o.product}.app"
@@ -646,7 +709,7 @@ tasks.register("buildInstaller") {
         }
 
         val linux = platform == "linux"
-        val archive = ideArchive(if (linux) "ideaIC-$ideVersion.tar.gz" else "ideaIC-$ideVersion.win.zip")
+        val archive = ideArchive(platform)
         val work = File(installerDir, "work/$platform")
         deleteTree(work)
         work.mkdirs()
@@ -776,7 +839,7 @@ tasks.register("desktopUpdateFeed") {
         val o = desktopOptions()
         val version = project.version.toString()
         val zip = tasks.buildPlugin.get().outputs.files.singleFile
-        val sha = MessageDigest.getInstance("SHA-256").digest(zip.readBytes()).joinToString("") { "%02x".format(it) }
+        val sha = sha256Of(zip)
         val keys = listOf("macos-aarch64", "macos-intel", "linux", "windows")
         val feed = mapOf(
             "version" to version,

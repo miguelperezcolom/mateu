@@ -1,7 +1,8 @@
-# PROTOTYPE — what the Mateu desktop app could be built on after IntelliJ IDEA Community 2025.2.
-# See design/desktop-base-strategy.md. It never touches a release: no `release:` trigger, no upload
-# to a GitHub Release, artifacts only (a few days' retention). desktop.yml (the real pipeline) is
-# unchanged and keeps packaging IntelliJ IDEA Community 2025.2.6.4 from download.jetbrains.com.
+# MANUAL CHECK / FALLBACK for the desktop app's base. The release pipeline (desktop.yml) packages
+# IntelliJ IDEA Open Source from JetBrains' intellij-community GitHub Release assets (option B of
+# design/desktop-base-strategy.md). This workflow checks a candidate base before a bump, and builds the
+# base FROM SOURCE should JetBrains ever stop attaching binaries (option C). It never touches a
+# release: no `release:` trigger, no upload to a GitHub Release, artifacts only (a few days' retention).
 #
 # Two candidate bases, both IntelliJ IDEA *Open Source* (Apache-2.0, intellij-community):
 #   oss-release  the binaries JetBrains' bot attaches to each `idea/<version>` release of
