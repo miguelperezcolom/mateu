@@ -1404,7 +1404,7 @@ const styles = themed(() => StyleSheet.create({
   bellFilters: { flexDirection: 'row', gap: 6, paddingHorizontal: 20, paddingVertical: 6 },
   bellFilter: { paddingHorizontal: 12, minHeight: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.border, justifyContent: 'center' },
   bellFilterOn: { backgroundColor: theme.primary, borderColor: theme.primary },
-  bellFilterText: { color: theme.ink, fontSize: 13 },
+  bellFilterText: { color: theme.ink, fontSize: 14 },
   bellFilterTextOn: { color: theme.onFill },
   bellCategory: { color: theme.muted, fontSize: 12, fontWeight: '600', paddingLeft: 20, paddingTop: 10, textTransform: 'uppercase' },
   bellEntryRow: { flexDirection: 'row', alignItems: 'center' },
