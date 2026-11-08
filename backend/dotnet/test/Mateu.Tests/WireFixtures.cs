@@ -236,6 +236,18 @@ public class ValidatedTextForm
     public string? Zip { get; set; } = "";
 }
 
+// Constraints on fields the user cannot type into: Java (the reference) still sends them for a
+// [ReadOnly] and a [PlainText] field next to an editable one.
+[UI("conformance/validation-locked"), Title("Locked fields")]
+public class LockedFieldsForm
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [Required, ReadOnly] public string? Code { get; set; } = "A-1";
+
+    [MinLength(3), PlainText] public string? Caption { get; set; } = "Hello";
+}
+
 // The stereotype vocabulary: slider/stars on ints, password/textarea on strings.
 [UI("conformance/stereotypes"), Title("Stereotypes")]
 public class Stereotypes

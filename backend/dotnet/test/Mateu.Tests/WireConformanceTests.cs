@@ -207,6 +207,7 @@ public class WireConformanceTests
         { "app-in-code", typeof(AppInCode) },
         { "validation", typeof(ValidatedForm) },
         { "validation-text", typeof(ValidatedTextForm) },
+        { "validation-locked", typeof(LockedFieldsForm) },
         { "stereotypes", typeof(Stereotypes) },
         { "lookup", typeof(LookupForm) },
         { "tree-select", typeof(TreeSelectForm) },

@@ -326,8 +326,10 @@ class FieldMapperMixin(MixinBase):
         # ReadOnlyUnless(): read-only unless the caller is authorized.
         # ...also when the VIEW CLASS carries it (read_only_unless(...) on the class, .NET's
         # class-level [ReadOnlyUnless])
+        # A field-level ReadOnly() locks the field too (Java's field-level @ReadOnly → readOnly).
         read_only = (
             read_only
+            or f.has(ReadOnly)
             or not self.authorized(f.marker(ReadOnlyUnless))
             or not self.authorized(getattr(instance.__class__, "__mateu_read_only_unless__", None))
         )

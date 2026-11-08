@@ -1,0 +1,136 @@
+{
+  "commands" : [ {
+    "data" : "Locked fields",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "name",
+                        "label" : "Name",
+                        "optionsColumns" : 1,
+                        "required" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "code",
+                        "label" : "Code",
+                        "optionsColumns" : 1,
+                        "readOnly" : true,
+                        "required" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "caption",
+                        "label" : "Caption",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "plainText",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Locked fields form",
+          "pageType" : "form",
+          "title" : "Locked fields",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "caption" : "Hello",
+        "code" : "A-1",
+        "name" : "Ada"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide",
+      "validations" : [ {
+        "condition" : "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined || state['name'].length > 0)",
+        "fieldId" : "name",
+        "message" : "Cannot be empty"
+      }, {
+        "condition" : "state['code'] != null && state['code'] !== '' && (state['code'].length === undefined || state['code'].length > 0)",
+        "fieldId" : "code",
+        "message" : "Cannot be empty"
+      }, {
+        "condition" : "state['caption'] == null || state['caption'] === '' || state['caption'].length === undefined || state['caption'].length >= 3",
+        "fieldId" : "caption",
+        "message" : "Size must be between 3 and 2147483647"
+      } ]
+    },
+    "state" : {
+      "caption" : "Hello",
+      "code" : "A-1",
+      "name" : "Ada"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -20,8 +20,6 @@ from mateu_ui.uidl import (
     Max,
     Min,
     Pattern,
-    PlainText,
-    ReadOnly,
     Required,
     Length,
     ValidationSupplier,
@@ -84,15 +82,17 @@ def required_condition(ref: str) -> str:
 
 
 def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | None = None) -> list:
-    """The fields a form sends constraints for: the ones it renders as an input the user may edit.
-    A constraint on a field the user cannot type into would block the submit for ever."""
+    """The fields a form sends constraints for: the ones it renders. A field-level ``ReadOnly()`` /
+    ``PlainText()`` (or a ``@plain_text`` class) still sends its constraints, as Java's
+    ``PageFormBuilder.rendersAsInput`` does — its value travels pre-filled; whether the reference
+    should skip locked fields is an open question, and the ports follow the reference meanwhile
+    (conformance case ``validation-locked``)."""
     view_read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-    plain_class = bool(class_flag(cls, "__mateu_plain_text__", False))
     if view_read_only:
         return []
     out = []
     for f in fields if fields is not None else view_fields(cls):
-        if not mapper.visible(f) or f.has(ReadOnly) or f.has(PlainText) or plain_class:
+        if not mapper.visible(f):
             continue
         if not _authorized_to_edit(mapper, f, cls):
             continue

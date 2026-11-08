@@ -485,6 +485,7 @@ internal sealed partial class ReflectionMapper
         var multiline = p.Find<MultilineAttribute>() != null;
         var stereotype = StereotypeOf(p, plainText, multiline);
 
+        // [ReadOnly] on the property locks it (Java's field-level @ReadOnly → readOnly on the wire);
         // [ReadOnlyUnless] (field or class level): read-only unless the caller is authorized.
         var readOnlyByPermission =
             !Authorized(p.Find<ReadOnlyUnlessAttribute>())
@@ -495,7 +496,7 @@ internal sealed partial class ReflectionMapper
             Required = required,
             // A plain-text field carries the "plainText" stereotype, not a readOnly flag — Java does
             // not set readOnly on it (the money-field golden's plainText total has no readOnly).
-            ReadOnly = readOnly || readOnlyByPermission,
+            ReadOnly = readOnly || p.Find<ReadOnlyAttribute>() != null || readOnlyByPermission,
             Multiline = multiline,
             Options = options,
             TreeLeavesOnly = p.Find<TreeSelectAttribute>()?.LeavesOnly ?? false,

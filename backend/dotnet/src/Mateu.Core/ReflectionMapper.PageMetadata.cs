@@ -16,7 +16,7 @@ internal sealed partial class ReflectionMapper
     /// ("Cannot be empty"). An absent value satisfies every bound but the required one (Bean
     /// Validation's reading). A [Hidden("expr")] field's constraints are relaxed while it is hidden,
     /// as Java's ValidationMapper does. Emitted in field-declaration order.</summary>
-    private static List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
+    private List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
     {
         var validations = new List<ValidationDto>();
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }
@@ -60,7 +60,7 @@ internal sealed partial class ReflectionMapper
                 field.Add(new ValidationDto(RequiredCondition(reference), fieldId, "Cannot be empty"));
             if (p.Find<HiddenAttribute>()?.Value is { } hidden && !string.IsNullOrWhiteSpace(hidden))
                 field = field.Select(v => v with { Condition = $"({hidden}) || ({v.Condition})" }).ToList();
-            validations.AddRange(field);
+            validations.AddRange(field.Select(v => v with { Message = T(v.Message) }));
         }
         return validations;
     }

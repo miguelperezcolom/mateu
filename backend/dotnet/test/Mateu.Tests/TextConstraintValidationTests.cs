@@ -72,6 +72,29 @@ public class TextConstraintValidationTests
             ComponentState = State(state),
         });
 
+    private sealed class SpanishTranslator : ITranslator
+    {
+        public string Translate(string key) => key switch
+        {
+            "Invalid format" => "Formato no válido",
+            "Size must be between 2 and 2147483647" => "Al menos 2 caracteres",
+            _ => key,
+        };
+    }
+
+    [Fact]
+    public void The_client_messages_go_through_the_translator_like_the_servers_refusal()
+    {
+        // Java's ConstraintValidationMapper.message / Python's mapper.T: the browser shows the same
+        // text the server's refusal gives, in the app's language
+        var inc = new SyncHandler(new MateuRegistry(typeof(TextValidatedSignup).Assembly), new SpanishTranslator())
+            .Handle(new RunActionRqDto { Route = "text-validation", ConsumedRoute = "text-validation" });
+        var json = JsonSerializer.Serialize(inc);
+        Assert.Contains("Formato no v", json);
+        Assert.Contains("Al menos 2 caracteres", json);
+        Assert.DoesNotContain("Invalid format", json);
+    }
+
     [Fact]
     public void A_valid_form_runs_the_button_and_an_absent_optional_value_passes()
     {

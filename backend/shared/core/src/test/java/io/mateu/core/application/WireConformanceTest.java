@@ -459,6 +459,23 @@ class WireConformanceTest {
     public String zip = "";
   }
 
+  /**
+   * Constraints on fields the user cannot type into: a {@code @ReadOnly} and a {@code @PlainText}
+   * field next to an editable one.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-locked")
+  @Title("Locked fields")
+  public static class LockedFieldsForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotEmpty @io.mateu.uidl.annotations.ReadOnly public String code = "A-1";
+
+    @Size(min = 3)
+    @io.mateu.uidl.annotations.PlainText
+    public String caption = "Hello";
+  }
+
   /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
   @SuppressWarnings("unused")
   @UI("/conformance/stereotypes")
@@ -1804,6 +1821,7 @@ class WireConformanceTest {
           "app-in-code",
           "validation",
           "validation-text",
+          "validation-locked",
           "stereotypes",
           "lookup",
           "tree-select",
@@ -1892,6 +1910,7 @@ class WireConformanceTest {
             AppInCode.class,
             ValidatedForm.class,
             ValidatedTextForm.class,
+            LockedFieldsForm.class,
             Stereotypes.class,
             LookupForm.class,
             TreeSelectForm.class,
