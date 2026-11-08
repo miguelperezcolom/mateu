@@ -1,0 +1,15 @@
+# Two ways to reuse a piece of UI by name:
+#  - a Partial names a LAYOUT file (here relative to specs/ui/; a bare name means
+#    specs/ui/partials/<name>.yaml; a class name means a ComponentTreeSupplier);
+#  - a ComponentRef names a BUSINESS COMPONENT from the component catalogue (specs/ui/components.yaml,
+#    or a ComponentCatalogSupplier bean in code — see BusinessComponents.java).
+content:
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - {type: Partial, ref: explorer/components/partial/opening-hours.yaml}
+      - {type: Partial, ref: explorer/components/partial/opening-hours.yaml}
+  - {type: Text, text: "A ComponentRef to the catalogue entry 'ExplorerTicketPrices':", container: h4}
+  - {type: ComponentRef, ref: ExplorerTicketPrices}
+  - {type: Text, text: "An unknown name renders a placeholder, never an error:", container: h4}
+  - {type: ComponentRef, ref: NoSuchComponent}

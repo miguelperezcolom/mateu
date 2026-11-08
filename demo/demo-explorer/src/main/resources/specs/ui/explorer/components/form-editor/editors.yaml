@@ -1,0 +1,24 @@
+# Two visual EDITORS as components. `value` is the document they open, as JSON text:
+# a FormEditor edits a form definition (fields, their data types and stereotypes), a Workflow
+# editor a workflow definition (steps and the steps they wait for).
+content:
+  - {type: Text, text: "FormEditor — a form definition:", container: h4}
+  - type: FormEditor
+    value: |
+      {"name": "Loan request", "description": "What a borrowing museum fills in",
+       "fields": [
+         {"id": "museum", "label": "Borrowing museum", "dataType": "string", "required": true},
+         {"id": "from", "label": "From", "dataType": "date", "required": true},
+         {"id": "to", "label": "To", "dataType": "date", "required": true},
+         {"id": "insurance", "label": "Insured value", "dataType": "money"},
+         {"id": "notes", "label": "Notes", "dataType": "string", "stereotype": "textarea"}]}
+  - {type: Text, text: "Workflow — a workflow definition:", container: h4}
+  - type: Workflow
+    value: |
+      {"name": "Artwork loan", "status": "DRAFT",
+       "steps": [
+         {"id": "review", "type": "USER_TASK", "name": "Curator review"},
+         {"id": "insure", "type": "ACTION", "name": "Request insurance", "preconditionStepId": "review"},
+         {"id": "crate", "type": "ACTION", "name": "Build the crate", "preconditionStepId": "review", "parallel": true},
+         {"id": "join", "type": "JOIN", "name": "Ready to ship", "preconditionStepId": "insure"},
+         {"id": "end", "type": "END", "name": "On loan", "preconditionStepId": "join"}]}

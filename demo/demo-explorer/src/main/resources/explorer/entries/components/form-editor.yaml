@@ -1,0 +1,19 @@
+id: form-editor
+area: components
+group: interactive-widgets
+title: FormEditor & Workflow (visual editors)
+covers: [component:FormEditor, component:Workflow]
+description: |
+  Two visual editors shipped as components, for apps that let their users design things:
+
+  - **FormEditor** — edits a form definition: add, reorder (drag) and configure fields, each with a
+    data type and a stereotype.
+  - **Workflow** — edits a workflow definition: steps (actions, user tasks, forks, joins, ends) and
+    the steps they wait for, drawn as a graph.
+
+  `value` is the document they open, as JSON text; both offer to download what you built. In Java:
+  `new FormEditor(json, style, cssClasses)` / `new Workflow(json, style, cssClasses)`. Java only;
+  the edits stay in the browser.
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/form-editor/editors.yaml

@@ -1,0 +1,22 @@
+id: org-chart
+area: components
+group: visualisation
+title: OrgChart
+covers: [component:OrgChart]
+description: |
+  A hierarchy of people (or units): one `root` whose `children` nest. Each node has a title, a
+  subtitle, an optional avatar and accent colour, and an optional `actionId` that makes it
+  clickable. `display: focus` (with `focus: <node id>`) shows one node at a time — its chain of
+  managers above, its reports below — for organisations too big to read as one tree.
+
+  Try: pick a manager or a report in the focused chart; click a person in the Java example.
+
+  > **Known issue (3.0-beta.51, Vaadin renderer):** the tree's connector lines are misdrawn.
+knownIssue: >-
+  Vaadin renderer, 3.0-beta.51: in the `tree` display the connector lines are misdrawn — no line
+  from a parent down to its children, the horizontal bar spans only the last siblings.
+examples:
+  - title: In YAML — the whole tree, then in focus
+    yaml: specs/ui/explorer/components/org-chart/tree.yaml
+  - title: In Java — clickable nodes
+    java: io.mateu.explorer.examples.components.orgchart.StaffChart

@@ -1,0 +1,19 @@
+id: content-slot
+area: components
+group: composition
+title: ContentSlot
+covers: [component:ContentSlot]
+description: |
+  A place on a screen whose content someone ELSE owns — a CMS, a marketing or communications team.
+  It is a micro frontend resolved on the server against the content remote
+  (`mateu.content-slots.remote`, at `/content-slots/{key}`): the remote's answer is embedded in the
+  first response. When it answers nothing (204), fails or exceeds `timeoutMs`, the `fallback` text
+  shows — or, with no fallback, the slot is removed; `degradeToClient` lets the browser try instead.
+  Keys are `application.screen.name`; in Java, `@ContentSlot(key = …)` on a field, checked unique
+  at compile time.
+
+  This app registers no content service, so what you see are the fallbacks — the behaviour a
+  screen must have when the content service is down. Ported to C# and Python.
+examples:
+  - title: In YAML — two slots, no content service
+    yaml: specs/ui/explorer/components/content-slot/slots.yaml

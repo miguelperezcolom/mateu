@@ -1,0 +1,15 @@
+# The page the MicroFrontend examples embed — an ordinary route of this app (it could as well be a
+# route of ANOTHER Mateu app, named by its baseUrl).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Impressionism
+subtitle: Exhibition · 12 Nov 2026 – 3 Mar 2027
+toolbar:
+  - {type: Button, label: Explorer home, actionable: {type: RouteLink, route: /home}}
+content:
+  - {type: Text, text: "84 works from 31 lenders, in rooms 12 to 16."}
+  - type: HorizontalLayout
+    content:
+      - {type: Badge, text: Monet}
+      - {type: Badge, text: Renoir}
+      - {type: Badge, text: Degas}

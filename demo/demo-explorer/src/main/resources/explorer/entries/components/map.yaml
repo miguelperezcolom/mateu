@@ -1,0 +1,21 @@
+id: map
+area: components
+group: visualisation
+title: Map
+covers: [component:Map]
+description: |
+  A street map with markers. With markers and no `position` the view fits them (a single marker is
+  centred at zoom 15); `position` (`"lat, lon"`) and `zoom` set the view yourself. A marker can
+  carry a `label`, a `description` and a `color`. With `markerActionId` a marker click runs that
+  action with the marker's id in `_markerId`. OpenStreetMap tiles unless `tileUrl`/`attribution`
+  name another provider.
+
+  Try: click a marker in the Java example.
+examples:
+  - title: In YAML — markers that fit the view
+    yaml: specs/ui/explorer/components/map/museums.yaml
+  - title: In Java — clickable markers
+    java: io.mateu.explorer.examples.components.map.MuseumMap
+code:
+  - {label: "C#", path: src/main/ports/components/map/MuseumMap.cs}
+  - {label: Python, path: src/main/ports/components/map/museum_map.py}

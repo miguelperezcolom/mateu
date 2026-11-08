@@ -1,0 +1,8 @@
+# A breadcrumb trail as DATA: the crumbs leading here (text + link), then the current item.
+content:
+  - type: Breadcrumbs
+    breadcrumbs:
+      - {text: Explorer, link: /home}
+      - {text: Components, link: /components/overview}
+      - {text: Actions & navigation, link: /components/actions-and-navigation/button}
+    currentItemText: Breadcrumbs

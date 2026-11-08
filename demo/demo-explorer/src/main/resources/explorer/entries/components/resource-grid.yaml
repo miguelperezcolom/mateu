@@ -1,0 +1,15 @@
+id: resource-grid
+area: components
+group: listings-and-data
+title: ResourceGrid
+covers: [component:ResourceGrid]
+description: |
+  A grid of bookable resources (rooms, desks, vehicles…): each card a title, a subtitle, a coloured
+  status, a note. `recommended` flags a card (`recommendedLabel` names the flag), `disabled` makes
+  it inert, `selected` marks the pick; `columns` fixes the count (0 = responsive). A click on an
+  enabled card runs the grid's `actionId` with the card id in `_item`.
+
+  Try: pick a room — the booked one does not answer.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.resourcegrid.RoomPicker

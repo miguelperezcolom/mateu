@@ -1,0 +1,16 @@
+id: task-queue
+area: components
+group: listings-and-data
+title: TaskQueue
+covers: [component:TaskQueue]
+description: |
+  A work queue: labelled groups of cards, each with a title, a muted caption and badge chips;
+  `selected` marks the current one. A click on a card runs the queue's `actionId` with the card id
+  in `_item` — the building block of the CollectionDetail and TodoList archetypes.
+
+  Try: click a card in the Java example.
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/task-queue/queue.yaml
+  - title: In Java — cards you pick
+    java: io.mateu.explorer.examples.components.taskqueue.ConservationQueue
