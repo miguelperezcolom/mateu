@@ -51,7 +51,8 @@ export function outboundActionOf(reg, id, inputs = {}) {
   const validation = !overlay && validationOf(host, id)
   if (validation) {
     const refusal = formRefusalOf(formSections, host && host.state, draft,
-      host && host.tree && host.tree.validations, validation.fields)
+      host && host.tree && host.tree.validations, validation.fields,
+      host && host.tree && host.tree.rules)
     if (refusal.missing.length) return fieldErrorsStop(refusal, false)
   }
   // ...and the same for a form that is a component of its own INSIDE the overlay (the crud's
@@ -61,7 +62,7 @@ export function outboundActionOf(reg, id, inputs = {}) {
   const overlayValidation = surface && validationOf({ tree: surface }, id)
   if (overlayValidation) {
     const refusal = formRefusalOf(overlay.sections, overlay.state, drawerDraft, surface.validations,
-      overlayValidation.fields)
+      overlayValidation.fields, surface.rules)
     if (refusal.missing.length) return fieldErrorsStop(refusal, true)
   }
   // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to

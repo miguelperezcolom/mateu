@@ -32,15 +32,34 @@ export const onHeaderValuesChanged = (listener: () => void): (() => void) => {
     return () => listeners.delete(listener)
 }
 
-/** What the shell declared — authoritative when the shell is (re)built. */
-export const seedHeaderValues = (declared: HeaderValue[] | undefined) => {
+/** The ids each shell seeded (a top shell and the apps embedded under it each declare their own). */
+const seededBy = new Map<unknown, Set<string>>()
+
+/**
+ * What a shell declared — authoritative for THAT shell when it is (re)built: its previous values it
+ * no longer declares go, another shell's stay. An app embedded under another shell (a MicroFrontend
+ * of a whole app) seeds its own values next to the top shell's; with one store owned by the top
+ * shell its seed was skipped and it drew none.
+ */
+export const seedHeaderValues = (declared: HeaderValue[] | undefined, scope: unknown = 'default') => {
     const next = declared ?? []
-    const same = next.length === values.size
-        && next.every((v) => { const c = values.get(v.id); return c && c.value === v.value && c.label === v.label })
-    if (same) return
-    values.clear()
-    next.forEach((v) => values.set(v.id, { ...v }))
-    notify()
+    const before = seededBy.get(scope) ?? new Set<string>()
+    const nextIds = new Set(next.map((v) => v.id))
+    const othersDeclare = (id: string) => [...seededBy.entries()].some(([s, ids]) => s !== scope && ids.has(id))
+    let changed = false
+    for (const id of before) {
+        if (!nextIds.has(id) && !othersDeclare(id) && values.delete(id)) changed = true
+    }
+    for (const v of next) {
+        const c = values.get(v.id)
+        if (!c || c.value !== v.value || c.label !== v.label) {
+            values.set(v.id, { ...v })
+            changed = true
+        }
+    }
+    if (nextIds.size) seededBy.set(scope, nextIds)
+    else seededBy.delete(scope)
+    if (changed) notify()
 }
 
 /**
@@ -78,5 +97,12 @@ export const installHeaderValuesWatcher = () => {
     })
 }
 
+/** Drops the values of shells no longer on screen (an embedded app navigated away from). */
+export const forgetDetachedHeaderScopes = () => {
+    for (const scope of [...seededBy.keys()]) {
+        if (typeof Node !== 'undefined' && scope instanceof Node && !scope.isConnected) seedHeaderValues([], scope)
+    }
+}
+
 /** Tests only. */
-export const resetHeaderValues = () => { values.clear(); listeners.clear() }
+export const resetHeaderValues = () => { values.clear(); listeners.clear(); seededBy.clear() }

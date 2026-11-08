@@ -111,6 +111,24 @@ describe('mateu-skip-link', () => {
         expect(document.activeElement?.id).toBe('ac')
     })
 
+    // The HAMBURGER_SECTIONS shell has a role="main" with no .app-content, inside the root
+    // mateu-ux's shadow: the link found the ROOT mateu-ux (light DOM, matched before descending) and
+    // focused the WHOLE page — the next Tab landed on the header's "Sections" button.
+    it('focuses the main landmark inside the shell, never the root ux that holds the header too', async () => {
+        mountSkipLink()
+        const ux = document.createElement('mateu-ux')
+        document.body.appendChild(ux)
+        const shadow = ux.attachShadow({ mode: 'open' })
+        shadow.innerHTML = '<header><button id="sections">Sections</button></header>'
+            + '<div role="main" class="m-scroll" id="main"><input id="first"></div>'
+        const link = document.querySelector('mateu-skip-link') as MateuSkipLink
+        await link.updateComplete
+        ;(link.shadowRoot!.querySelector('button') as HTMLButtonElement).click()
+        // (document.activeElement is the shadow host either way: the shadow's own focus decides)
+        expect(shadow.activeElement?.id).toBe('main')
+        expect(ux.hasAttribute('tabindex')).toBe(false)
+    })
+
     it('does nothing when there is no content region', async () => {
         mountSkipLink()
         const link = document.querySelector('mateu-skip-link') as MateuSkipLink

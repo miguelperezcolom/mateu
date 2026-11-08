@@ -661,11 +661,19 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
   const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
   let fetched = []
   let total = null
+  // the load failed: TOLD (an empty table alone reads as "no rows") — what the service said when it
+  // said something (e.detail direct, _restfetchError.detail proxied), else the status
+  let failure = null
   try {
     if (viaProxy(src) && opts.server) {
       const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
       const appData = (inc && inc.appData) || {}
-      if (appData._restfetchError) throw new Error('proxied rows failed')
+      if (appData._restfetchError) {
+        const err = new Error('proxied rows failed')
+        err.status = typeof appData._restfetchError.status === 'number' ? appData._restfetchError.status : 0
+        err.detail = appData._restfetchError.detail
+        throw err
+      }
       ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
     } else {
       const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
@@ -675,9 +683,13 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
     try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
     fetched = []
     total = null
+    const status = e && typeof e.status === 'number' ? e.status : 0
+    const detail = e && typeof e.detail === 'string' && e.detail.trim() ? e.detail : null
+    failure = { variant: 'error', text: detail || ('Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '')) }
   }
   const page = restListingPage(md, fetched, total, componentState, serverPaged)
-  return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }])
+  return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }],
+    failure ? [failure] : [])
 }
 
 // ── field options ─────────────────────────────────────────────────────────────────────────────

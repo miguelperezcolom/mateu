@@ -37,6 +37,31 @@ describe('updateMedata', () => {
     })
 })
 
+describe('updateMedata and the required rule', () => {
+    it('marks a field required while a rule requires it, by component id or field id', () => {
+        const field = { type: ComponentMetadataType.FormField, fieldId: 'vatNumber' }
+        const byId = updateMedata(component(field), { 'b1.required': true }) as any
+        expect(byId.required).toBe(true)
+        expect((field as any).required).toBeUndefined()
+        const byField = updateMedata(component(field), { 'vatNumber.required': true }) as any
+        expect(byField.required).toBe(true)
+    })
+
+    it('leaves the field as declared when the rule says false, and keeps one copy', () => {
+        const field = { type: ComponentMetadataType.FormField, fieldId: 'vatNumber' }
+        expect(updateMedata(component(field), { 'vatNumber.required': false })).toBe(field)
+        const first = updateMedata(component(field), { 'vatNumber.required': true })
+        expect(updateMedata(component(field), { 'vatNumber.required': true })).toBe(first)
+    })
+
+    it('combines with a disabling rule', () => {
+        const field = { type: ComponentMetadataType.FormField, fieldId: 'vatNumber' }
+        const out = updateMedata(component(field), { 'vatNumber.required': true, 'b1.disabled': true }) as any
+        expect(out.required).toBe(true)
+        expect(out.disabled).toBe(true)
+    })
+})
+
 describe('a confirm dialog rendered through the dispatcher', () => {
     it('stays dismissed on the next re-render once answered', async () => {
         const { render } = await import('lit')
