@@ -49,11 +49,16 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
             }
             val rendered = r.render(child, state, data)
-            row.add(if (fixedPx != null) FixedWidth(JBUI.scale(fixedPx), rendered) else rendered, gbc)
+            val column: JComponent = if (fixedPx != null) FixedWidth(JBUI.scale(fixedPx), rendered) else rendered
+            // D-21: a column's CSS side rule (the RAIL wizard's `border-left` + `padding-left`)
+            SideRule.of(child.text("style"))?.let { rule -> 
+                column.border = column.border?.let { javax.swing.BorderFactory.createCompoundBorder(rule.border(), it) } ?: rule.border()
+            }
+            row.add(column, gbc)
         }
         return row
     }
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(gap), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(gap)))
     row.isOpaque = false
     for (child in children) row.add(r.render(child, state, data))
     return row
@@ -85,6 +90,44 @@ data class FlexSpec(val weight: Double, val fixedPx: Int? = null) {
                 (if (m.groupValues[2] == "px") n else n * 16).toInt()
             }
             return if (grow <= 0.0 && px != null) FlexSpec(0.0, px) else FlexSpec(grow.coerceAtLeast(0.01) * 100)
+        }
+    }
+}
+
+/**
+ * A column's divider from its CSS: `border-left` / `border-right` (a width > 0) and the
+ * `padding-left` / `padding-right` that keep the content off it. The RAIL wizard's rail is
+ * `border-left: 1px solid …; padding-left: 1.5rem` — without it the rail floated beside the form
+ * with no edge (D-21). The colour is the THEME's divider, never the CSS one (a Lumo variable).
+ */
+data class SideRule(val leftPx: Int, val rightPx: Int, val padLeftPx: Int, val padRightPx: Int) {
+    fun border(): javax.swing.border.Border = javax.swing.BorderFactory.createCompoundBorder(
+        JBUI.Borders.customLine(com.intellij.ui.JBColor.border(), 0, leftPx, 0, rightPx),
+        JBUI.Borders.empty(0, padLeftPx, 0, padRightPx),
+    )
+
+    companion object {
+        private fun prop(style: String, name: String) =
+            Regex("""(?:^|;)\s*$name:\s*([^;]+)""").find(style)?.groupValues?.get(1)?.trim()
+
+        private fun px(length: String?): Int {
+            val m = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)?$""").matchEntire(length?.trim() ?: return 0) ?: return 0
+            val n = m.groupValues[1].toDouble()
+            return (if (m.groupValues[2] == "rem" || m.groupValues[2] == "em") n * 16 else n).toInt()
+        }
+
+        /** `border-left: 1px solid x` → 1; `none` / `0` / absent → 0. */
+        private fun borderWidth(value: String?): Int {
+            if (value == null || value.startsWith("none")) return 0
+            return value.split(Regex("\\s+")).firstNotNullOfOrNull { part -> px(part).takeIf { it > 0 } } ?: 0
+        }
+
+        /** The side rule of [style], or null when it draws no side border. */
+        fun of(style: String): SideRule? {
+            val left = borderWidth(prop(style, "border-left"))
+            val right = borderWidth(prop(style, "border-right"))
+            if (left == 0 && right == 0) return null
+            return SideRule(left, right, px(prop(style, "padding-left")), px(prop(style, "padding-right")))
         }
     }
 }

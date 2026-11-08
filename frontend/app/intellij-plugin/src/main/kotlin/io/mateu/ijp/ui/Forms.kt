@@ -102,7 +102,7 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
 
 /** FormRow → a horizontal row of its children (each field builds its own label + input). */
 fun renderFormRow(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(JBGap)))
     row.isOpaque = false
     val children = component.path("children")
     if (children.isArray) for (child in children) row.add(r.render(child, state, data))

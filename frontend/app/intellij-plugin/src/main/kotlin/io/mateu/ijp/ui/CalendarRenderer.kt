@@ -144,8 +144,15 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
     }
 
     fun monthView(): JComponent {
+        // D-18: the weekday names are a row of their OWN height above the grid. As the first row of
+        // the 7-column GridLayout they took a full day cell's height — a ~50 px empty band.
+        val weekdays = JPanel(GridLayout(1, 7, 0, 0)).apply {
+            isOpaque = false
+            border = JBUI.Borders.empty(0, 0, 4, 0)
+            name = "calendar-weekdays"
+        }
+        Calendars.WEEKDAY_HEADERS.forEach { weekdays.add(muted(it).apply { horizontalAlignment = JBLabel.CENTER }) }
         val grid = JPanel(GridLayout(0, 7, 0, 0)).apply { isOpaque = false }
-        Calendars.WEEKDAY_HEADERS.forEach { grid.add(muted(it).apply { horizontalAlignment = JBLabel.CENTER }) }
         for (week in Calendars.monthWeeks(model.anchor)) {
             for (date in week) {
                 if (date == null) {
@@ -166,7 +173,11 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
                 grid.add(cell)
             }
         }
-        return grid
+        return JPanel(BorderLayout()).apply {
+            isOpaque = false
+            add(weekdays, BorderLayout.NORTH)
+            add(grid, BorderLayout.CENTER)
+        }
     }
 
     fun column(date: LocalDate, emptyText: String?): JComponent {

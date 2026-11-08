@@ -222,6 +222,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             }
         }
     }
+    // D-16: each header lines up with its cells (numbers to the end, checkboxes centred)
+    ColumnAlign.alignHeaders(table) { modelCol -> specs.getOrNull(modelCol)?.headerAlign() ?: ColumnAlign.Align.START }
 
     // WHOLE-ROW OPEN (decision U1, see RowOpen): a navigable listing (rowRoute, or a `view`
     // column) opens the row's record from ANY non-display cell — a single click, or a double click
@@ -338,15 +340,17 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         ctx.currentComponentState["page"] = (current + delta).coerceAtLeast(0)
         showRestPage()
     }
-    val prev = JButton("‹ Prev").apply {
-        addActionListener { if (isRestListing) stepRestPage(-1) else ctx.runAction("prevPage", null) }
+    // D-20: the platform's pager — square chevron icon buttons around "Page 1 of 20", each in the
+    // Tab order with a name and a tooltip (a "‹ Prev" text button read as a web control)
+    val prev = pagerButton(com.intellij.icons.AllIcons.General.ChevronLeft, "Previous page") {
+        if (isRestListing) stepRestPage(-1) else ctx.runAction("prevPage", null)
     }
-    val next = JButton("Next ›").apply {
-        addActionListener { if (isRestListing) stepRestPage(1) else ctx.runAction("nextPage", null) }
+    val next = pagerButton(com.intellij.icons.AllIcons.General.ChevronRight, "Next page") {
+        if (isRestListing) stepRestPage(1) else ctx.runAction("nextPage", null)
     }
-    val pager = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
+    val pager = JPanel(FlushFlowLayout(JBUI.scale(JBGap))).apply {
         isOpaque = false
-        add(prev); add(next); add(pageInfo)
+        add(prev); add(pageInfo); add(next)
     }
 
     val center = JPanel(BorderLayout(0, JBUI.scale(4)))
@@ -374,7 +378,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             if (isRestListing) showRestPage() else ctx.runAction("search", null)
         }
         searchField.textEditor.addActionListener { doSearch() }
-        val searchBar = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
+        val searchBar = JPanel(FlushFlowLayout(JBUI.scale(JBGap))).apply {
             isOpaque = false
             add(searchField)
         }
@@ -521,7 +525,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val pageNumber = eff.path("pageNumber").asInt(0)
         val pageSize = eff.path("pageSize").asInt(10).coerceAtLeast(1)
         val totalPages = if (total == 0L) 1 else ((total + pageSize - 1) / pageSize).toInt()
-        pageInfo.text = "  Page ${pageNumber + 1} of $totalPages ($total total)"
+        pageInfo.text = pagerText(pageNumber, totalPages, total)
         prev.isEnabled = pageNumber > 0
         next.isEnabled = pageNumber + 1 < totalPages
     }
@@ -594,6 +598,23 @@ private val NUMERIC_TYPES = setOf("integer", "int", "long", "number", "double", 
 internal fun isNumericColumn(dataType: String, stereotype: String): Boolean =
     dataType in NUMERIC_TYPES || stereotype == "money" || stereotype == "currency"
 
+/** The pager's caption: "Page 1 of 20 · 200 items" (it used to carry leading spaces as its gap). */
+internal fun pagerText(pageNumber: Int, totalPages: Int, total: Long): String =
+    "Page ${pageNumber + 1} of $totalPages · $total ${if (total == 1L) "item" else "items"}"
+
+/**
+ * A pager button the IntelliJ way: a square icon button (the L&F's 72 px minimum made "‹ Prev" a
+ * wide web-style control), focusable — it sits in the Tab order and Space/Enter press it — named for
+ * a screen reader and with a tooltip.
+ */
+internal fun pagerButton(icon: javax.swing.Icon, name: String, onPress: () -> Unit): JButton = JButton(icon).apply {
+    putClientProperty("JButton.buttonType", "square")
+    isFocusable = true
+    toolTipText = plainTip(name)
+    accessibleContext.accessibleName = name
+    addActionListener { onPress() }
+}
+
 /**
  * The text of a numeric cell: grouped digits in the user's locale, no spurious ".0" on whole
  * numbers, two decimals for money. "650.0" (the raw double) made a column of prices read as code.
@@ -610,7 +631,7 @@ internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Loc
  * cannot be compared at a glance (Few, "Show Me the Numbers": align numbers on the right) — and
  * formatted with [formatNumberCell].
  */
-private class NumberCellRenderer(private val money: Boolean) : DefaultTableCellRenderer() {
+internal class NumberCellRenderer(private val money: Boolean) : DefaultTableCellRenderer() {
     init { horizontalAlignment = javax.swing.SwingConstants.RIGHT; htmlDisabled() }
     override fun setValue(value: Any?) {
         text = value?.toString()?.let { if (it.isBlank()) it else formatNumberCell(it, money) } ?: ""
@@ -634,6 +655,14 @@ private data class ColSpec(
 ) {
     /** What the whole-row-open rule reads of this column (RowOpen.isDisplayColumn). */
     fun rowOpenColumn() = RowOpen.Column(dataType = dataType, stereotype = stereotype, actionId = actionId, editable = editable)
+
+    /** Where the header sits: where the cells sit (an inline-edited number keeps the text editor's start). */
+    fun headerAlign(): ColumnAlign.Align = when {
+        kind != ColKind.TEXT -> ColumnAlign.Align.START
+        editable && isNumericColumn(dataType, stereotype) -> ColumnAlign.Align.START
+        editorType == "boolean" -> ColumnAlign.Align.CENTER
+        else -> ColumnAlign.of(dataType, stereotype)
+    }
 }
 
 // ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────
@@ -779,28 +808,54 @@ private class StatusCellRenderer(
     override fun getTableCellRendererComponent(
         table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
     ): Component {
-        val wrapper = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), JBUI.scale(2)))
+        // D-17: the chip sits in the MIDDLE of the row (a FlowLayout hung it from the top) and
+        // starts where the column's other cells start
+        val wrapper = JPanel(java.awt.GridBagLayout())
         wrapper.background = if (isSelected) table.selectionBackground else table.background
         val node = value as? JsonNode
         if (node != null && !node.isNull && !node.isMissingNode) {
             // the badge reads as the value's label; its tone is picked by the RAW value
             val text = StatusTones.cellText(node, valueLabels)
             val type = StatusTones.statusType(node, tones)
-            if (text.isNotBlank()) wrapper.add(statusBadge(text, type))
+            if (text.isNotBlank()) wrapper.add(statusBadge(text, type), java.awt.GridBagConstraints().apply {
+                anchor = java.awt.GridBagConstraints.WEST
+                weightx = 1.0
+                insets = JBUI.insets(0, 4)
+            })
         }
         return wrapper
     }
 }
 
-/** A listing status cell: a solid chip whose text reaches AA on its fill (IJ-02). */
+/**
+ * A listing status cell: a solid chip whose text reaches AA on its fill (IJ-02). Rounded like the
+ * platform's tags (a square fill read as a selected cell, D-17).
+ */
 internal fun statusBadge(text: String, type: String): JComponent {
     val (bg, fg) = ToneColors.solid(ToneColors.toneOf(type))
-    val badge = JLabel(plain(text))
-    badge.isOpaque = true
+    val badge = RoundedChip(text)
     badge.foreground = fg
     badge.background = bg
     badge.border = JBUI.Borders.empty(1, 8)
     return badge
+}
+
+/** A label painted on a pill-shaped fill (the IntelliJ "tag" look). */
+internal class RoundedChip(text: String) : JLabel(plain(text)) {
+    init { isOpaque = false }
+
+    override fun paintComponent(g: java.awt.Graphics) {
+        val g2 = g.create() as java.awt.Graphics2D
+        try {
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+            g2.color = background
+            val arc = JBUI.scale(8)
+            g2.fillRoundRect(0, 0, width, height, arc, arc)
+        } finally {
+            g2.dispose()
+        }
+        super.paintComponent(g)
+    }
 }
 
 /** The row-action nodes of an action-group/menu/action field (feeds the row context menu). */
@@ -873,7 +928,8 @@ private class CrudTableModel(
             spec.dataType == "bool" || spec.editorType == "boolean" -> node.asBoolean(false)
             // an editable cell edits the RAW value; a read-only one shows its label
             spec.editable -> node.displayString()
-            else -> StatusTones.cellText(node, spec.valueLabels)
+            // a date reads in the user's locale, not as ISO (D-15)
+            else -> DateValues.cellText(StatusTones.cellText(node, spec.valueLabels), spec.dataType)
         }
     }
 

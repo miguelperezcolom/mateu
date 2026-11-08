@@ -129,10 +129,10 @@ knows only the goal, finds controls by visible text / accessible name.
 | IJ-10 | Any CRUD listing in a headless context (probe, unit tests) | — | `ColumnChooser`/`SavedViews` called `PropertiesComponent.getInstance()` and crashed the whole crud render without an Application | Probe stack trace | Robustness (tooling) | P3 | **Fixed** `UserPrefs` (in-memory fallback) |
 | IJ-11 | Wizard | — | Title rendered as body text; progress text ("Step 1") dropped; progress bar unnamed | Probe dump | WCAG 2.4.6 / 4.1.2; H1 | P2 | **Fixed**: h1–h6 → bold scaled title; bar paints and names its text; test |
 | IJ-12 | Everywhere (43 places) | — | Secondary text (subtitles, captions, hints) painted with the theme's DISABLED label colour: live content read as greyed-out controls | Code | IntelliJ UI guidelines (context-help foreground for secondary text); H4 | P2 | **Fixed** `ToneColors.secondaryText()` |
-| IJ-13 | Navigator | App menu | Menu entries are 16px hyperlinks, no selection state; IDE navigators are trees/lists with a selected row | Probe dump | IntelliJ UI guidelines (tool windows) | P3 | Open |
-| IJ-14 | Listing headers | Price column | Header left-aligned over right-aligned numbers | `ij-products.png` | Few | P3 | Open |
+| IJ-13 | Navigator | App menu | Menu entries are 16px hyperlinks, no selection state; IDE navigators are trees/lists with a selected row | Probe dump | IntelliJ UI guidelines (tool windows) | P3 | **Fixed** (desktop review D-09: `MenuTree`, pinned by `AppShellRenderTest`) |
+| IJ-14 | Listing headers | Price column | Header left-aligned over right-aligned numbers | `ij-products.png` | Few | P3 | **Fixed** (desktop review D-16: `ColumnAlign`) |
 | IJ-15 | Render probe | App-shell navigator PNG | Glyphs dropped in the offscreen paint without a booted IDE (tree dump fine; content screens fine) | `probe` runs | Tooling | P3 | Open (tried forcing the font, `printAll`, a Robot screen capture — same) |
-| IJ-16 | Listing dates | Products → Added | ISO dates ("2026-05-11") not in the user's locale format | `ij-products.png` | H2 | P3 | Open |
+| IJ-16 | Listing dates | Products → Added | ISO dates ("2026-05-11") not in the user's locale format | `ij-products.png` | H2 | P3 | **Fixed** (desktop review D-15: `DateValues`) |
 
 ## Counts
 

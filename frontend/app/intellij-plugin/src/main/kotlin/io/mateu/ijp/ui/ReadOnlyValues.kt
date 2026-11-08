@@ -50,6 +50,7 @@ object ReadOnlyValues {
             options.firstOrNull { it.text("value") == value }?.let { return it.text("label", value) }
         }
         if (dataType in NUMBER_TYPES) return numberText(value)
+        if (DateValues.isDateType(dataType)) return DateValues.text(value)
         return value
     }
 
@@ -64,6 +65,17 @@ object ReadOnlyValues {
         val fmt = java.text.NumberFormat.getNumberInstance(locale)
         fmt.maximumFractionDigits = 6
         return fmt.format(n.stripTrailingZeros())
+    }
+
+    /**
+     * A read-only boolean: "✓" when true, "—" when false (the web's read-only checkbox), in the
+     * label colour — a disabled checkbox drew its caption at ~2:1 (D-19). The screen reader hears
+     * "Yes" / "No", not the glyph.
+     */
+    fun booleanComponent(value: Boolean): JComponent = JBLabel(plain(if (value) "✓" else EMPTY)).apply {
+        foreground = com.intellij.util.ui.UIUtil.getLabelForeground()
+        border = JBUI.Borders.empty(2, 0)
+        accessibleContext.accessibleDescription = if (value) "Yes" else "No"
     }
 
     /** Whether the value reads better as wrapped lines than as one label. */
