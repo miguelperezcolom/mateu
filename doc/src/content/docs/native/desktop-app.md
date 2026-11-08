@@ -177,7 +177,7 @@ https://github.com/miguelperezcolom/mateu/releases/latest/download/mateu-desktop
   "version": "3.0-beta.27",
   "plugin": { "url": "https://…/mateu-intellij-plugin-3.0-beta.27.zip", "sha256": "…" },
   "platform": {
-    "ideVersion": "2025.2.6.3",
+    "ideVersion": "2025.2.6.4",
     "installers": {
       "macos-aarch64": "https://…-macos-aarch64.dmg", "macos-intel": "https://…-macos-intel.dmg",
       "linux": "https://…-linux.tar.gz", "windows": "https://…-windows-setup.exe"

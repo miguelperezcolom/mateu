@@ -77,6 +77,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **The IntelliJ plugin installs on current IDEs again.** It was capped at the 2025.3 line, so the
+  Marketplace marked it incompatible with IntelliJ IDEA 2026.1, 2026.2 and 2026.3. The cap is gone, and
+  every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
+  those three lines.
+  The desktop app moves to IntelliJ IDEA Community 2025.2.6.4 (the latest patch of its base).
 - **A listing's page header sends each toolbar button once.** A button declared
   `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
   page toolbar through both annotations and was sent twice; the listing's copy, which carries the

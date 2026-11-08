@@ -35,6 +35,20 @@ One of them carries a condition:
   visible and is not removed, changed or overlapped. Mateu's BPMN component
   keeps it as bpmn-js renders it.
 
+The Mateu desktop app installers (built on CI from
+frontend/app/intellij-plugin, `buildInstaller`) redistribute IntelliJ IDEA
+Community Edition, Copyright (C) JetBrains s.r.o., licensed under the Apache
+License, Version 2.0. The installers repackage that distribution with the
+Mateu plugin preinstalled and their own name, icon, launcher and settings
+(IntelliJ's own update checks are switched off); its code is not modified. It
+ships with the JetBrains Runtime (a build of OpenJDK, GPLv2 with the
+Classpath Exception) and the third-party libraries it bundles, each under its
+own licence; their notices travel inside the distribution (LICENSE.txt,
+NOTICE.txt and the license/ directory). IntelliJ, IntelliJ IDEA and JetBrains
+are trademarks of JetBrains s.r.o.; the Mateu desktop app is not a JetBrains
+product and is not endorsed by JetBrains. The Mateu plugin itself (the
+io.mateu.ijp code) is Mateu code under Apache License 2.0.
+
 The Map component draws OpenStreetMap tiles by default (map data
 © OpenStreetMap contributors, ODbL). The public OSM tile servers are not meant
 for heavy production traffic: deployments should configure their own provider.

@@ -161,8 +161,9 @@ runtime itself stop then. **3.1 drops `net8.0`.**
 
 - **Spring Boot 3 is not supported.** The Spring adapters are built and tested against Spring
   Boot 4 only. Upgrade to Boot 4 (see [Prerequisites](/java-create-your-project/prerequisites/)).
-- **The IntelliJ plugin supports IDE builds 2025.2 and 2025.3** (`252`–`253.*`). Newer IDE lines are
-  enabled once the plugin verifier passes on them.
+- **The IntelliJ plugin supports IntelliJ IDEA 2025.2 and later** (build `252` on, no upper bound).
+  Each build is checked by the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and
+  2026.3; a later line installs, and joins that list once it ships.
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).

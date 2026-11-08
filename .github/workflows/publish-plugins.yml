@@ -31,6 +31,12 @@ jobs:
     if: startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'plugins-v')
     runs-on: ubuntu-latest
     steps:
+      # verifyPlugin unpacks five IDEs (~25 GB, see pluginVerification in build.gradle.kts)
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
+          df -h /
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -53,8 +59,8 @@ jobs:
         run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
       - name: Set the plugin version from the tag
         run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$INTELLIJ_VERSION"'"/' build.gradle.kts
-      # Never publish what the Plugin Verifier rejects (compatibility with the recommended IDEs of the
-      # since/until range, internal or removed API usage, descriptor problems).
+      # Never publish what the Plugin Verifier rejects (compatibility with the IDE lines listed in
+      # build.gradle.kts pluginVerification, internal or removed API usage, descriptor problems).
       - name: Verify the plugin
         run: cd frontend/app/intellij-plugin && ./gradlew test verifyPlugin --no-daemon --console=plain
       # `publishPlugin` intermittently dies with a transient Gradle `ClosedFileSystemException` during
