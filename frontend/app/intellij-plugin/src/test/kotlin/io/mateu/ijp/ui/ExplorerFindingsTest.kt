@@ -22,4 +22,13 @@ class ExplorerFindingsTest : TestCase() {
         assertEquals("vaadin:arrow-right" to true, badgeIconOf(json.readTree("""{"text":"Details","iconOnRight":"vaadin:arrow-right"}""")))
         assertNull(badgeIconOf(json.readTree("""{"text":"Pending"}""")))
     }
+
+    fun testAFaqAnswerIsMarkdown() {
+        val html = faqAnswerHtml("Yes — **dogs** up to 10 kg")
+        assertTrue(html, html.startsWith("<html>"))
+        assertTrue(html, html.contains("<b>dogs</b>"))
+        assertFalse(html, html.contains("**"))
+        // and markup in it is text, not html
+        assertTrue(faqAnswerHtml("<img src=x>").contains("&lt;img"))
+    }
 }

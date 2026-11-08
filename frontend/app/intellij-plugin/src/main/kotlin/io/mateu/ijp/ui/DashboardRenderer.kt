@@ -303,7 +303,7 @@ fun renderMarkdown(metadata: JsonNode): JComponent {
     return pane
 }
 
-private fun markdownToHtml(md: String): String {
+internal fun markdownToHtml(md: String): String {
     val sb = StringBuilder("<html><body>")
     var inList = false
     for (rawLine in md.lines()) {
