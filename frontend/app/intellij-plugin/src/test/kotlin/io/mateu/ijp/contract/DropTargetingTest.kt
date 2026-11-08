@@ -7,7 +7,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 class DropTargetingTest : LightJavaCodeInsightFixtureTestCase() {
 
   private val page = """
-    modelView: demo.X
+    viewModel: demo.X
     layout:
       type: VerticalLayout
       content:

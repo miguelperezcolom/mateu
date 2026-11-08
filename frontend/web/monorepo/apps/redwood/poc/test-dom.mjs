@@ -1104,20 +1104,20 @@ test('markup field: an editable markdown/html edits its source and previews it r
   assert.ok(!fieldWidgetOf({ fieldId: 'notes', stereotype: 'html', readOnly: true }, {}, { value: '' }).isMarkupEditor)
 })
 
-test('rich text field: opens a legacy Delta as HTML, commits on blur only when it changed, empty is null', () => {
+test('rich text field: opens its HTML, commits on blur only when it changed, empty is null', () => {
   const { doc, win, fire } = makeDom()
   defineRichTextField(win)
   defineRichTextField(win) // twice: defined once
   const f = doc.createElement('mateu-rich-text-field')
   f.setAttribute('aria-label', 'Notes')
-  f.setAttribute('value', JSON.stringify({ ops: [{ insert: 'Hi', attributes: { bold: true } }, { insert: '\n' }] }))
+  f.setAttribute('value', '<p><strong>Hi</strong></p>')
   const values = []
   f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
   doc.body.appendChild(f)
   const area = f.querySelector('.mateu-rte-area')
   assert.equal(area.getAttribute('role'), 'textbox')
   assert.equal(area.getAttribute('aria-label'), 'Notes')
-  assert.match(area.innerHTML, /<strong>Hi<\/strong>/, 'the Delta opened as HTML')
+  assert.match(area.innerHTML, /<strong>Hi<\/strong>/, 'the HTML opened')
   assert.equal(f.querySelector('.mateu-rte-toolbar').querySelectorAll('oj-button').length, 7)
   fire(area, 'blur')
   assert.deepEqual(values, [], 'nothing changed: nothing committed')
@@ -1171,7 +1171,7 @@ test('rich text field: Spectra\'s editor when the page has an AMD loader — unb
   defineRichTextField(win)
   const f = doc.createElement('mateu-rich-text-field')
   f.setAttribute('aria-label', 'Notes')
-  f.setAttribute('value', JSON.stringify([{ insert: 'Hi', attributes: { bold: true } }, { insert: '\n' }]))
+  f.setAttribute('value', '<p><strong>Hi</strong></p>')
   const values = []
   f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
   doc.body.appendChild(f)
@@ -1179,7 +1179,7 @@ test('rich text field: Spectra\'s editor when the page has an AMD loader — unb
   assert.equal(box.getAttribute('data-oj-binding-provider'), 'none', 'or JET waits for bindings nobody applies')
   const editor = box.querySelector('oj-sp-input-rich-text-2')
   assert.equal(editor.getAttribute('label-hint'), 'Notes')
-  assert.equal(editor.getAttribute('value'), '<p><strong>Hi</strong></p>', 'the Delta opened as HTML')
+  assert.equal(editor.getAttribute('value'), '<p><strong>Hi</strong></p>', 'the HTML opened')
   const options = JSON.parse(editor.getAttribute('display-options'))
   assert.deepEqual(options, { label: 'off', formattingToolbar: 'on', toolbarItems: SPECTRA_RICH_TEXT_TOOLBAR })
   assert.ok(!SPECTRA_RICH_TEXT_TOOLBAR.includes('uploadImage'), 'no base64 pictures in the value')

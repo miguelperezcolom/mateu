@@ -56,7 +56,7 @@ import {
   DetailsRenderer, DirectoryRenderer, DrawerInlineRenderer, ElementRenderer, FormEditorRenderer, GridColumnRenderer,
   GridRenderer, IconRenderer, LabelledChildrenRenderer, MasterDetailRenderer, MenuBarRenderer, MessageInputRenderer,
   MessageListRenderer, NestedAppRenderer, NotFoundRenderer, NotificationRenderer, ResponsiveGridRenderer,
-  ResultRenderer, StepperRenderer, TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
+  TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
 } from './WireComponents';
 
 interface Props {
@@ -432,16 +432,12 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Tab':
     case 'AccordionPanel':
       return <LabelledChildrenRenderer component={component} state={state} data={data} />;
-    case 'Stepper':
-      return <StepperRenderer component={component} state={state} data={data} />;
     case 'Chat':
       return <ChatRenderer metadata={metadata} />;
     case 'MessageList':
       return <MessageListRenderer metadata={metadata} />;
     case 'MessageInput':
       return <MessageInputRenderer metadata={metadata} />;
-    case 'Result':
-      return <ResultRenderer metadata={metadata} />;
     case 'NotFound':
       return <NotFoundRenderer metadata={metadata} />;
     case 'Drawer':

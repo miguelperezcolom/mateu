@@ -13,7 +13,7 @@ import {
   funnelAtomOf, featureGridAtomOf, testimonialsAtomOf, calloutAtomOf, commentsAtomOf, fileListAtomOf, fileIconOf,
   checklistAtomOf, comparisonAtomOf, processMonitorAtomOf, skeletonAtomOf, iconAtomOf, menuItemsOf, menuChoiceOf,
   menuTargetOf, dispatchOf, menuBarAtomOf, contextMenuAtomOf, directoryAtomOf, messageListAtomOf, messageInputAtomOf,
-  messageSendOf, chatAtomOf, resultAtomOf, cookieConsentAtomOf, hasConsentCookie, confirmOpenOf, confirmDialogAtomOf,
+  messageSendOf, chatAtomOf, cookieConsentAtomOf, hasConsentCookie, confirmOpenOf, confirmDialogAtomOf,
   breadcrumbsAtomOf, workflowAtomOf, workflowOrderOf, formEditorFieldsOf, bpmnDiagramOf, bpmnAtomOf, componentHtmlOf,
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
@@ -25,7 +25,7 @@ import { attachmentDownloadOf } from './files.mjs'
 import { absoluteUrlOf } from './core/overviews.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
-import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
+import { markdownToHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
@@ -96,7 +96,6 @@ test('every wire type with a projection gets its atom from the visitor', () => {
     Chat: [{ sseUrl: '/agent/stream' }, 'isChatComponent'],
     Bpmn: [{ xml: '<definitions><process><startEvent id="s" name="Start"/></process></definitions>' }, 'isBpmn'],
     Workflow: [{ value: '{"name":"W","steps":[{"id":"a","type":"ACTION","name":"A"}]}' }, 'isWorkflow'],
-    Result: [{ title: 'Done', resultType: 'Success' }, 'isResult'],
     CookieConsent: [{ cookieName: 'c', message: 'Cookies' }, 'isCookieConsent'],
     Breadcrumbs: [{ currentItemText: 'Here', breadcrumbs: [{ text: 'Home', link: '/' }] }, 'isBreadcrumbs'],
     Notification: [{ title: 'Heads up', text: 'x' }, 'isNotice'],
@@ -363,15 +362,6 @@ test('MessageList / MessageInput / Chat component', () => {
   assert.ok(/<strong>ok<\/strong>/.test(turns[1].html) && !/<script/.test(turns[1].html))
 })
 
-test('Result: icon by type, links by destination type, the next action on the atom', () => {
-  const r = resultAtomOf({ title: 'Saved', resultType: 'Error', interestingLinks: [
-    { type: 'Url', value: 'https://x', description: 'Docs' }, { type: 'ActionId', value: 'retry', description: 'Retry' },
-    { type: 'View', value: '/orders', description: 'Orders' }], nowTo: { type: 'ActionId', value: 'home', description: 'Home' } })
-  assert.match(r.panelClass, /mateu-tone-danger/)
-  assert.deepEqual(r.links.map((l) => [l.isLink, l.isAction, l.href || l.actionId]), [[true, false, 'https://x'], [false, true, 'retry'], [true, false, '/orders']])
-  assert.equal(r.actionId, 'home')
-})
-
 test('CookieConsent and its cookie', () => {
   const c = cookieConsentAtomOf({ cookieName: 'ok', position: 'TOP', learnMoreLink: 'javascript:1' })
   assert.match(c.bandClass, /mateu-cookie-top/)
@@ -488,9 +478,7 @@ test('Faq: a collapsible per question, the answer when open (client state)', () 
   assert.ok(atoms.some((a) => a.isRichText && /A2/.test(a.html)))
 })
 
-test('Stepper and VirtualList: their children through the same projection', () => {
-  const st = atomsOf(node({ type: 'Stepper' }, [node({ type: 'Text', text: 'one', title: 'First' }), node({ type: 'Text', text: 'two' })]))
-  assert.deepEqual(st.filter((a) => a.isStepHeader).map((a) => a.number), ['1', '2'])
+test('VirtualList: its children through the same projection', () => {
   const vl = atomsOf(node({ type: 'VirtualList', page: { content: [{ metadata: { type: 'Text', text: 'item' } }, { id: 7, name: 'Ada', age: 36 }, 'plain'] } }))
   assert.equal(vl[0].text, 'item')
   assert.deepEqual([vl[1].label, vl[1].value], ['Ada', 'age: 36'])
@@ -556,14 +544,7 @@ test('Markdown: GFM tables and allowed inline HTML, still sanitised', () => {
   assert.equal(sanitizeHtml('<td align="javascript:x">1</td>'), '<td>1</td>')
 })
 
-test('richText: HTML as it is, a legacy Quill Delta converted; the editor stores sanitised HTML', () => {
-  const delta = JSON.stringify({ ops: [{ insert: 'Title' }, { insert: '\n', attributes: { header: 2 } }, { insert: 'bold', attributes: { bold: true } }, { insert: ' and ' }, { insert: 'link', attributes: { link: 'javascript:x' } }, { insert: '\nA\n', attributes: { list: 'bullet' } }] })
-  assert.ok(deltaOps(delta))
-  assert.equal(deltaOps('[not json'), null)
-  assert.equal(deltaOps('<p>x</p>'), null)
-  assert.equal(richTextHtml(delta), '<h2>Title</h2><ul><li><strong>bold</strong> and link</li><li>A</li></ul>')
-  assert.equal(deltaToHtml([{ insert: 'x\n', attributes: { blockquote: true } }]), '<blockquote>x</blockquote>')
-  assert.equal(richTextHtml('<p>keep</p>'), '<p>keep</p>')
+test('richText: the editor stores sanitised HTML', () => {
   assert.equal(richTextValueOf('<p><br></p>'), '')
   assert.equal(richTextValueOf('<p onclick="x">hi</p>'), '<p>hi</p>')
 })

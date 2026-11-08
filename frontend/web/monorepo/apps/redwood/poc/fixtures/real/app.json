@@ -15,7 +15,7 @@
         "metadata": {
           "type": "App",
           "route": "",
-          "variant": "HAMBURGUER_MENU",
+          "variant": "HAMBURGER_MENU",
           "layout": "SINGLE_SLOT",
           "icon": null,
           "logo": null,

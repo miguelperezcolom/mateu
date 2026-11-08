@@ -1,6 +1,6 @@
 // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
-// "Transport"): shell bootstrap through components/_/action; everything else through
-// sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
+// "Transport"): shell bootstrap through sync/_no_route with actionId '__load__'; everything else
+// through sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
 // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
@@ -57,7 +57,7 @@ export function answeredBy(base, increment) {
   return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
 }
 
-/** Shell bootstrap: the root App only resolves through the generic endpoint.
+/** Shell bootstrap: the root App, a `__load__` of the mount root (sync/_no_route).
  *  Static-bundle: the shell is NOT exported (the bundle stores route loads, not the App's __load__),
  *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
  *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
@@ -70,7 +70,7 @@ export async function bootstrapShell(base, initiator = 'shell') {
   // its absence is the normal case, not an error band nor a sign of being offline
   const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
   try {
-    const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
+    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
@@ -147,7 +147,7 @@ export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '
 }
 
 // ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
-// @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+// @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (sync/_no_route, __load__)
 // answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
 // App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
 // the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what

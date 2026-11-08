@@ -22,7 +22,6 @@ describe('client-side expander — bare-layout definition (Phase 6, increment 1)
     it('recognises a bare layout (no viewModel) as client-expandable', () => {
         expect(isClientExpandable(aboutSpec)).toBe(true)
         expect(isClientExpandable({ ...aboutSpec, viewModel: 'io.example.Foo' })).toBe(false)
-        expect(isClientExpandable({ ...aboutSpec, modelView: 'io.example.Foo' })).toBe(false)
     })
 
     it('expands to the SERVER wire (render-parity: a structural subset of the golden)', () => {

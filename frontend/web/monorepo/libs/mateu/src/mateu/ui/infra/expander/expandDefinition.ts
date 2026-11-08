@@ -34,7 +34,6 @@ const CLIENT_SIDE = 'ClientSide' as unknown as ComponentType
 export interface DefinitionSpec {
     layout?: FluentNode
     viewModel?: string
-    modelView?: string
     actions?: unknown[]
     triggers?: unknown[]
     /** The page's coarse template type — the YAML twin of `@PageTemplate`: landing | collection |
@@ -48,7 +47,7 @@ const MAIN = 'ux_main'
 /** True when this definition can be expanded client-side: it has a layout and NO viewModel (a
  *  viewModel route runs server logic that cannot execute in the browser — the honest boundary). */
 export function isClientExpandable(spec: DefinitionSpec): boolean {
-    const hasViewModel = Boolean(spec.viewModel ?? spec.modelView)
+    const hasViewModel = Boolean(spec.viewModel)
     return !hasViewModel && Boolean(layoutOf(spec))
 }
 

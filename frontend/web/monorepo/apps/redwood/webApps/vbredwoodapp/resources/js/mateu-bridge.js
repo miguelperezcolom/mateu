@@ -1955,89 +1955,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── The stored value of a richText field ─────────────────────────────────────────────────────
-  // (a port of libs/mateu richTextValue.ts — the bridge cannot import libs/mateu.) The value is HTML.
-  // Values written by the old vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or
-  // `{"ops":[…]}`): they are recognised and turned into the equivalent HTML, so existing data still
-  // opens, and the editor writes HTML from the next edit on.
+  // The value is HTML.
 
-  const isDeltaOp = (op) => !!op && typeof op === 'object' && 'insert' in op
-
-  /** The ops of a Delta value, or null when the value is not Delta JSON. */
-  function deltaOps(value) {
-    const raw = String(value == null ? '' : value).trim()
-    if (!raw.startsWith('[') && !raw.startsWith('{')) return null
-    try {
-      const parsed = JSON.parse(raw)
-      const ops = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.ops) ? parsed.ops : null
-      return ops && ops.length > 0 && ops.every(isDeltaOp) ? ops : null
-    } catch (e) {
-      // not JSON: plain text or HTML that happens to start with a bracket
-      return null
-    }
-  }
-
-  const deltaEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const deltaHref = (href) => {
     const h = String(href == null ? '' : href).trim()
     return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
-  }
-  const deltaInline = (text, a = {}) => {
-    let out = deltaEscape(text)
-    if (a.code) out = '<code>' + out + '</code>'
-    if (a.bold) out = '<strong>' + out + '</strong>'
-    if (a.italic) out = '<em>' + out + '</em>'
-    if (a.underline) out = '<u>' + out + '</u>'
-    if (a.strike) out = '<s>' + out + '</s>'
-    if (a.link && deltaHref(a.link)) out = '<a href="' + deltaEscape(deltaHref(a.link)) + '">' + out + '</a>'
-    return out
-  }
-
-  /** Quill Delta → HTML, for the formats the old editor produced (inline marks, links, headings,
-   *  lists, quotes, code blocks). Line formats live on the newline that ends the line. */
-  function deltaToHtml(ops) {
-    const lines = []
-    let current = ''
-    for (const op of ops) {
-      if (typeof op.insert !== 'string') continue // embeds (images…) are not carried over
-      const parts = op.insert.split('\n')
-      parts.forEach((part, i) => {
-        if (part) current += deltaInline(part, op.attributes)
-        if (i < parts.length - 1) {
-          lines.push({ html: current, attrs: op.attributes || {} })
-          current = ''
-        }
-      })
-    }
-    if (current) lines.push({ html: current, attrs: {} })
-    const out = []
-    let list = null
-    const flush = () => {
-      if (list) out.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + i + '</li>').join('') + '</' + list.tag + '>')
-      list = null
-    }
-    for (const line of lines) {
-      const a = line.attrs
-      const listTag = a.list === 'ordered' ? 'ol' : a.list === 'bullet' ? 'ul' : null
-      if (listTag) {
-        if (!list || list.tag !== listTag) { flush(); list = { tag: listTag, items: [] } }
-        list.items.push(line.html)
-        continue
-      }
-      flush()
-      const level = Number(a.header)
-      if (level >= 1 && level <= 6) out.push('<h' + level + '>' + line.html + '</h' + level + '>')
-      else if (a.blockquote) out.push('<blockquote>' + line.html + '</blockquote>')
-      else if (a['code-block']) out.push('<pre><code>' + line.html + '</code></pre>')
-      else out.push('<p>' + line.html + '</p>')
-    }
-    flush()
-    return out.join('')
-  }
-
-  /** The HTML to open a stored value with: the value itself, or its Delta converted. */
-  function richTextHtml(value) {
-    const ops = deltaOps(value)
-    return ops ? deltaToHtml(ops) : (value == null ? '' : String(value))
   }
 
   /** What the editor stores: '' for an editor left empty (only empty paragraphs/breaks), else the
@@ -2147,8 +2069,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * JET element waits for the page's binding provider to apply bindings to it and stays "being
    * upgraded" forever: its wrapper says `data-oj-binding-provider="none"`. Until it loads — and for
    * good when there is no loader or the CDN fails — a small editor of its own: a toolbar of
-   * oj-buttons over a contenteditable region. Either way the value is HTML (a legacy Delta opens
-   * converted) and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
+   * oj-buttons over a contenteditable region. Either way the value is HTML and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
    * JET component, so the field chains treat it like any other — on blur, sanitised by the same
    * allowlist as the viewer.
    */
@@ -2167,7 +2088,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       commitHtml(html) {
         const value = richTextValueOf(html)
-        if (value === richTextValueOf(richTextHtml(this.value))) return
+        if (value === richTextValueOf(this.value)) return
         this.editing = true
         this.value = value
         this.editing = false
@@ -2177,7 +2098,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       render() {
         this.textContent = ''
         this.classList.add('mateu-rich-text-field')
-        const html = sanitizeHtml(richTextHtml(this.value))
+        const html = sanitizeHtml(this.value)
         if (this.readonlyNow) {
           const view = doc.createElement('div')
           view.className = 'mateu-atom-richtext oj-typography-body-md'
@@ -3958,7 +3879,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
     'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
-    'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
+    'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
@@ -5090,7 +5011,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       node.home = sectionHomeOf(node)
       menuTree.push(node)
     }
-    // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+    // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGER_MENU/TILES →
     // hamburger that opens a left DRAWER with oj-navigation-list (like the FA
     // navigator); MENU_ON_TOP → SUBHEADER: a light band under the dark header with the
     // console title and the top-level options (oj-menu dropdown for the groups), like band 2
@@ -5098,10 +5019,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside the dark header (topbar)
     // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
     // level (only the sections) and the subheader carries the second level of the section on screen.
-    // HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU: servers send it since
-    // 3.0-alpha.412; the old one is still accepted (an older server, a static bundle).
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
@@ -6789,7 +6708,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
       if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
       if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
-      if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
       if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
@@ -6878,15 +6796,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
           } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
         }
-        return
-      }
-      if (t === 'Stepper') {
-        // a numbered step per child (the wire record carries no fields of its own)
-        kidsOf(node).forEach((child, i) => {
-          const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
-          atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
-          visit(child, container)
-        })
         return
       }
       if (t === 'FormEditor') {
@@ -12302,7 +12211,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
   // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
   // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
-  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow, Result,
+  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow,
   // Directory, CookieConsent, ConfirmDialog, Breadcrumbs, Notification…).
   //
   // Every function here is PURE: wire metadata → an ATOM (a flat object the atoms template paints).
@@ -12983,46 +12892,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatId: 'mateuChat-' + str(id || 'chat').replace(/[^\w-]/g, '_'),
       sseUrl: elementModuleUrl(str(m.sseUrl)),
       uploadUrl: m.uploadUrl ? elementModuleUrl(str(m.uploadUrl)) : '',
-    }
-  }
-
-  // ── Result: the outcome of an operation — icon by type, message, links ─────────────────────────
-  const RESULT_LOOKS = {
-    success: ['oj-ux-ico-check-circle-s', 'mateu-tone-success'],
-    info: ['oj-ux-ico-information-s', 'mateu-tone-info'],
-    warning: ['oj-ux-ico-warning-s', 'mateu-tone-warning'],
-    error: ['oj-ux-ico-error-s', 'mateu-tone-danger'],
-    ignored: ['oj-ux-ico-information', ''],
-  }
-  const destinationOf = (d, interp) => {
-    if (!d) return null
-    const type = str(d.type)
-    const label = interp(str(d.description || d.value || d.id))
-    if (type === 'Url') return { label, href: safeHref(d.value), isLink: !!safeHref(d.value), isAction: false, actionId: '', parameters: {} }
-    if (type === 'ActionId') return { label, href: '', isLink: false, isAction: true, actionId: d.value || d.id || '', parameters: {} }
-    // View / Component / CustomEvent: a route of the app when the value looks like one
-    const route = str(d.value)
-    if (route.startsWith('/')) return { label, href: route, isLink: true, isAction: false, actionId: '', parameters: {} }
-    return { label, href: '', isLink: false, isAction: !!(d.id), actionId: d.id || '', parameters: {} }
-  }
-  function resultAtomOf(m, interp = (x) => x) {
-    const look = RESULT_LOOKS[str(m.resultType).toLowerCase()] || RESULT_LOOKS.info
-    const links = (m.interestingLinks || []).map((d) => destinationOf(d, interp)).filter(Boolean)
-    const next = destinationOf(m.nowTo, interp)
-    return {
-      isResult: true,
-      title: interp(str(m.title)),
-      message: interp(str(m.message)),
-      iconClass: look[0],
-      panelClass: 'oj-panel oj-sm-padding-8x mateu-result ' + look[1],
-      image: m.leftSideImageUrl ? elementModuleUrl(str(m.leftSideImageUrl)) : '',
-      hasImage: !!m.leftSideImageUrl,
-      links: keyed(links),
-      hasNext: !!next,
-      next: next || { label: '', href: '', isLink: false, isAction: false, actionId: '', parameters: {} },
-      // the «what next» button sends the atom's own action (the block listener reads the atom)
-      actionId: next && next.isAction ? next.actionId : '',
-      parameters: {},
     }
   }
 
@@ -22742,8 +22611,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
   // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
-  // "Transport"): shell bootstrap through components/_/action; everything else through
-  // sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
+  // "Transport"): shell bootstrap through sync/_no_route with actionId '__load__'; everything else
+  // through sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
   // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 
@@ -22799,7 +22668,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
   }
 
-  /** Shell bootstrap: the root App only resolves through the generic endpoint.
+  /** Shell bootstrap: the root App, a `__load__` of the mount root (sync/_no_route).
    *  Static-bundle: the shell is NOT exported (the bundle stores route loads, not the App's __load__),
    *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
    *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
@@ -22812,7 +22681,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // its absence is the normal case, not an error band nor a sign of being offline
     const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
     try {
-      const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
+      const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
@@ -22889,7 +22758,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
-  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (sync/_no_route, __load__)
   // answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
   // App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
   // the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what
@@ -28094,8 +27963,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function previewAnswerOf(url, body, fragment) {
     const u = String(url || '')
     if (u.indexOf('/mateu/v3/') < 0) return null
-    if (u.indexOf('/mateu/v3/components/') >= 0) return previewAppIncrement((body && body.initiatorComponentId) || 'shell')
     if (u.indexOf('/mateu/v3/sync/') >= 0) {
+      // the shell's bootstrap is the only __load__ the bridge sends
+      if (body && body.actionId === '__load__') return previewAppIncrement(body.initiatorComponentId || 'shell')
       // a load is actionId '' — anything else (a search, a button) does nothing on a canvas
       if (body && (body.actionId === '' || body.actionId == null)) return previewLoadIncrement(fragment, body)
       return EMPTY_INCREMENT()
@@ -29353,7 +29223,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
-  // an editable richText (Spectra's editor, HTML; a legacy Delta opens converted) and a colour field
+  // an editable richText (Spectra's editor, HTML) and a colour field
   defineRichTextField();
   defineMarkupField();
   defineColorField();

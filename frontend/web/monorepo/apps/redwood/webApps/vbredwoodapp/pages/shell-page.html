@@ -7,12 +7,12 @@
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader"
     on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
-    <!-- HAMBURGUER_MENU: the hamburger OPENS the left navigator-drawer (not a dropdown) -->
+    <!-- HAMBURGER_MENU: the hamburger OPENS the left navigator-drawer (not a dropdown) -->
     <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
       <!-- the HAMBURGER goes at the far left, before the logo (as in Redwood / Opera
            Cloud), and its glyph says what it does: ☰ with the menu closed, ✕ with it open.
            HAMBURGER_SECTIONS: the menu is a FLOATING panel over the subheader and the content
-           (mateuSectionsOverlay, below); HAMBURGUER_MENU: the usual persistent navigator. -->
+           (mateuSectionsOverlay, below); HAMBURGER_MENU: the usual persistent navigator. -->
       <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections || ($application.variables.mateuNarrow && ($application.variables.mateuMenuSubheader || $application.variables.mateuMenuTopbar)) ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
@@ -694,7 +694,7 @@
         </oj-bind-if>
       </div>
 
-    <!-- PERSISTENT navigator (HAMBURGUER_MENU): oj-drawer-layout (reflow) BELOW the
+    <!-- PERSISTENT navigator (HAMBURGER_MENU): oj-drawer-layout (reflow) BELOW the
          header — open from the start, it is NOT hidden on navigation; the hamburger collapses it
          and the content shifts -->
     <oj-drawer-layout style="flex: 1 1 auto" id="mateuNavDrawer"

@@ -11,7 +11,7 @@ const layout = (yaml: string): PageDoc => parsePage(yaml)
 
 describe('parsePage', () => {
     it('reads the envelope form (modelView + layout)', () => {
-        const doc = parsePage('modelView: com.example.View\nlayout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: hi\n')
+        const doc = parsePage('viewModel: com.example.View\nlayout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: hi\n')
         expect(doc.modelView).toBe('com.example.View')
         expect(doc.bare).toBe(false)
         expect(doc.layout.type).toBe('VerticalLayout')
@@ -41,10 +41,10 @@ describe('parsePage', () => {
 
 describe('serializePage', () => {
     it('round-trips an envelope document', () => {
-        const src = 'modelView: com.example.View\nlayout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: hi\n'
+        const src = 'viewModel: com.example.View\nlayout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: hi\n'
         const doc = parsePage(src)
         const out = serializePage(doc)
-        expect(out).toContain('modelView: com.example.View')
+        expect(out).toContain('viewModel: com.example.View')
         expect(out).toContain('layout:')
         expect(parsePage(out)).toEqual(doc)
     })

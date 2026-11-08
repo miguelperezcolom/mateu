@@ -594,8 +594,8 @@ describe('what the shell publishes on boot', () => {
         expect(el.style.getPropertyValue('--mateu-accent')).toBe('')
     })
 
-    it('an accent draws no colour strip, not even with a strip image (Redwood drops the strip for a custom brand)', async () => {
-        const el = await mount(app({ accentColor: 'teal', accentStrip: '/img/strip.svg', generatedAccentStrip: 'data:image/svg+xml;base64,PHN2Zy8+' }))
+    it('an accent draws no colour strip (Redwood drops the strip for a custom brand)', async () => {
+        const el = await mount(app({ accentColor: 'teal' }))
         expect(el.style.getPropertyValue('--mateu-accent')).toBe('teal')
         expect(el.style.getPropertyValue('--mateu-page-band-h')).toBe('')
         expect(el.style.getPropertyValue('--mateu-page-band-image')).toBe('')

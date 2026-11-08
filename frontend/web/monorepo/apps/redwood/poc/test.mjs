@@ -721,7 +721,7 @@ test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título, sin acento); TABS con 
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
   // flat TABS (the front office): the bottom bar, intact
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
-  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
 })
 
 test('reduceContexts: el @App(accentColor) no llega a la shell de Redwood', () => {
@@ -753,9 +753,8 @@ test('shellNavOf: HAMBURGER_SECTIONS — la hamburguesa lleva las secciones, cad
   assert.ok(nav.sections.every((s) => !s.hasChildren), 'la hamburguesa sólo lleva el primer nivel')
   assert.equal(nav.sections[3].disabled, true)
   assert.equal(nav.sections[3].hint, 'Audit no está disponible ahora.')
-  // the other variants do not change; HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU
+  // the other variants do not change
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
-  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
   assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).mode, 'subheader')
 })
 
@@ -825,7 +824,7 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })
   assert.deepEqual(nav.items.map((i) => i.id), ['/hello', '/products', '/gestion'])
-  // HAMBURGUER_MENU (explicit in the demo) → left drawer with oj-navigation-list
+  // HAMBURGER_MENU (explicit in the demo) → left drawer with oj-navigation-list
   assert.equal(nav.mode, 'drawer')
   const group = nav.menuTree.find((m) => m.hasChildren)
   assert.equal(group.label, 'Gestion')

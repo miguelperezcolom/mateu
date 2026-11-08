@@ -1065,7 +1065,7 @@ test('parity-check: los tipos salen del wire-schema.json, los deprecados aparte'
   const repo = join(here, '..', '..', '..', '..', '..', '..')
   const { produced, deprecated } = wireTypesOf(readFileSync(join(repo, 'backend/shared/uidl/wire-schema.json'), 'utf8'))
   assert.ok(produced.length >= 114)
-  assert.deepEqual([...deprecated].sort(), ['Result', 'Stepper'])
+  assert.deepEqual([...deprecated].sort(), [])
 })
 
 // ── P1 #13 dashboard and charts on any page ──────────────────────────────────────────────────
@@ -2070,7 +2070,7 @@ test('mount: an in-content link is a screen of the app only below the mount, and
 })
 
 test('mount: an @UI that is not an App (a page, a crud) boots as a fresh load of the mount', () => {
-  // what demo-vb's @UI("/hello") HelloPage answers to the bootstrap (components/_/action)
+  // what demo-vb's @UI("/hello") HelloPage answers to the bootstrap (sync/_no_route, __load__)
   const page = { fragments: [{ targetComponentId: null, component: { type: 'ServerSide', id: 'x',
     serverSideType: 'io.mateu.mdd.demovb.infra.in.ui.HelloPage', route: '_empty',
     children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Hola' } }] } }] }

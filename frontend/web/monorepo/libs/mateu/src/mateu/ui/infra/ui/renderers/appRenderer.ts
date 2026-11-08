@@ -528,7 +528,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         `)}
                         
 `:nothing}
-            ${metadata.variant == AppVariant.HAMBURGUER_MENU || metadata.variant == AppVariant.HAMBURGER_MENU?html`
+            ${metadata.variant == AppVariant.HAMBURGER_MENU?html`
                 <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
                     <header class="app-navbar">
                         <button class="drawer-toggle" title="${chromeText('menu')}" aria-label="${chromeText('menu')}"

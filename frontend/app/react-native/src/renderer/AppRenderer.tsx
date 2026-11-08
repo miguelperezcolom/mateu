@@ -1285,7 +1285,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   }
 
   // A Drawer is the native equivalent of a hamburger/side menu, so all menu-bearing variants
-  // (HAMBURGER_MENU, the older HAMBURGUER_MENU spelling, and AUTO) render through it.
+  // (HAMBURGER_MENU and AUTO) render through it.
   if (variant !== 'TABS' && menuItems.length > 0) {
     return guard(
       <NavigationContainer theme={navTheme}>

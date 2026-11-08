@@ -137,9 +137,8 @@ class ComponentRenderer(val ctx: AppContext) {
             "ContentLayout" -> renderContentLayout(this, component, metadata, state, data)
             "ResponsiveGrid" -> renderResponsiveGrid(this, component, metadata, state, data)
             "FormItem" -> renderFormItem(this, component, state, data)
-            // A Tab / AccordionPanel outside its TabLayout / AccordionLayout; a bare Stepper groups its children.
+            // A Tab / AccordionPanel outside its TabLayout / AccordionLayout.
             "Tab", "AccordionPanel" -> renderTitledChildren(this, component, metadata, state, data)
-            "Stepper" -> renderChildren(component, state, data)
             // ── navigation ──
             "Breadcrumbs", "Breadcrumb" -> renderBreadcrumbs(ctx, metadata)
             "MenuBar" -> renderMenuBar(ctx, metadata)
@@ -158,7 +157,6 @@ class ComponentRenderer(val ctx: AppContext) {
             "Details" -> renderDetails(this, metadata, state, data)
             "Tooltip" -> renderTooltip(this, metadata, state, data)
             "Notification" -> renderNotification(metadata)
-            "Result" -> renderResult(ctx, metadata)
             "NotFound" -> renderNotFound(ctx, metadata)
             "CookieConsent" -> renderCookieConsent(metadata)
             "Element" -> renderElement(ctx, metadata)

@@ -496,7 +496,7 @@
                     </div>
                   </oj-label-value>
                 </oj-bind-if>
-                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                   <oj-label-value label-edge="top">
                     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -1884,7 +1884,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -2443,34 +2443,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -2512,12 +2484,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -3013,7 +2979,7 @@
               </div>
             </oj-label-value>
           </oj-bind-if>
-          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
           <oj-bind-if test="[[ $current.data.isRichEditor ]]">
             <oj-label-value label-edge="top">
               <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -4533,7 +4499,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -5092,34 +5058,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -5161,12 +5099,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -6542,7 +6474,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -7101,34 +7033,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -7170,12 +7074,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -8584,7 +8482,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -9143,34 +9041,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -9212,12 +9082,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -10593,7 +10457,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -11152,34 +11016,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -11221,12 +11057,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -12663,7 +12493,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -13222,34 +13052,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -13291,12 +13093,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -14726,7 +14522,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -15285,34 +15081,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -15354,12 +15122,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -16741,7 +16503,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -17300,34 +17062,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -17369,12 +17103,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -18767,7 +18495,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -19326,34 +19054,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -19395,12 +19095,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -20815,7 +20509,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -21374,34 +21068,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -21443,12 +21109,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -22835,7 +22495,7 @@
                                   </div>
                                 </oj-label-value>
                               </oj-bind-if>
-                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                               <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                 <oj-label-value label-edge="top">
                                   <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -23394,34 +23054,6 @@
                           </ol>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isResult ]]">
-                        <div :class="[[ $current.data.panelClass ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                            <oj-bind-if test="[[ $current.data.hasImage ]]">
-                              <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                            </oj-bind-if>
-                            <div class="oj-flex-item">
-                              <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                              <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                              <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                              <ul class="mateu-result-links">
-                                <oj-bind-for-each data="[[ $current.data.links ]]">
-                                  <template>
-                                    <li>
-                                      <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </li>
-                                  </template>
-                                </oj-bind-for-each>
-                              </ul>
-                              <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                              </oj-bind-if>
-                            </div>
-                          </div>
-                        </div>
-                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                         <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                         <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -23463,12 +23095,6 @@
                             <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                           </ol>
                         </nav>
-                      </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                        <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                          <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                          <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                        </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isHero ]]">
                         <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -24873,7 +24499,7 @@
                                   </div>
                                 </oj-label-value>
                               </oj-bind-if>
-                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                               <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                 <oj-label-value label-edge="top">
                                   <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -25432,34 +25058,6 @@
                           </ol>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isResult ]]">
-                        <div :class="[[ $current.data.panelClass ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                            <oj-bind-if test="[[ $current.data.hasImage ]]">
-                              <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                            </oj-bind-if>
-                            <div class="oj-flex-item">
-                              <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                              <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                              <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                              <ul class="mateu-result-links">
-                                <oj-bind-for-each data="[[ $current.data.links ]]">
-                                  <template>
-                                    <li>
-                                      <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </li>
-                                  </template>
-                                </oj-bind-for-each>
-                              </ul>
-                              <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                              </oj-bind-if>
-                            </div>
-                          </div>
-                        </div>
-                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                         <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                         <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -25501,12 +25099,6 @@
                             <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                           </ol>
                         </nav>
-                      </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                        <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                          <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                          <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                        </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isHero ]]">
                         <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -26898,7 +26490,7 @@
                                       </div>
                                     </oj-label-value>
                                   </oj-bind-if>
-                                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                   <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                     <oj-label-value label-edge="top">
                                       <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -27457,34 +27049,6 @@
                               </ol>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ $current.data.isResult ]]">
-                            <div :class="[[ $current.data.panelClass ]]">
-                              <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                                <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                  <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                                </oj-bind-if>
-                                <div class="oj-flex-item">
-                                  <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                  <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                  <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                  <ul class="mateu-result-links">
-                                    <oj-bind-for-each data="[[ $current.data.links ]]">
-                                      <template>
-                                        <li>
-                                          <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                          <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                        </li>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </ul>
-                                  <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                    <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </oj-bind-if>
-                                </div>
-                              </div>
-                            </div>
-                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                             <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                             <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -27526,12 +27090,6 @@
                                 <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                               </ol>
                             </nav>
-                          </oj-bind-if>
-                          <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                            <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                              <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                              <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                            </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isHero ]]">
                             <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -29178,7 +28736,7 @@
                                         </div>
                                       </oj-label-value>
                                     </oj-bind-if>
-                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                       <oj-label-value label-edge="top">
                                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -29737,34 +29295,6 @@
                                 </ol>
                               </div>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isResult ]]">
-                              <div :class="[[ $current.data.panelClass ]]">
-                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                                  <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                    <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                                  </oj-bind-if>
-                                  <div class="oj-flex-item">
-                                    <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                    <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                    <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                    <ul class="mateu-result-links">
-                                      <oj-bind-for-each data="[[ $current.data.links ]]">
-                                        <template>
-                                          <li>
-                                            <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                            <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                          </li>
-                                        </template>
-                                      </oj-bind-for-each>
-                                    </ul>
-                                    <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                      <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </oj-bind-if>
-                                  </div>
-                                </div>
-                              </div>
-                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                               <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                               <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -29806,12 +29336,6 @@
                                   <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                                 </ol>
                               </nav>
-                            </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                              <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                                <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                                <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                              </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isHero ]]">
                               <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -31203,7 +30727,7 @@
                                         </div>
                                       </oj-label-value>
                                     </oj-bind-if>
-                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                       <oj-label-value label-edge="top">
                                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -31762,34 +31286,6 @@
                                 </ol>
                               </div>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isResult ]]">
-                              <div :class="[[ $current.data.panelClass ]]">
-                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                                  <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                    <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                                  </oj-bind-if>
-                                  <div class="oj-flex-item">
-                                    <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                    <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                    <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                    <ul class="mateu-result-links">
-                                      <oj-bind-for-each data="[[ $current.data.links ]]">
-                                        <template>
-                                          <li>
-                                            <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                            <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                          </li>
-                                        </template>
-                                      </oj-bind-for-each>
-                                    </ul>
-                                    <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                      <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </oj-bind-if>
-                                  </div>
-                                </div>
-                              </div>
-                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                               <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                               <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -31831,12 +31327,6 @@
                                   <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                                 </ol>
                               </nav>
-                            </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                              <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                                <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                                <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                              </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isHero ]]">
                               <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -33253,7 +32743,7 @@
                                         </div>
                                       </oj-label-value>
                                     </oj-bind-if>
-                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                       <oj-label-value label-edge="top">
                                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -33812,34 +33302,6 @@
                                 </ol>
                               </div>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isResult ]]">
-                              <div :class="[[ $current.data.panelClass ]]">
-                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                                  <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                    <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                                  </oj-bind-if>
-                                  <div class="oj-flex-item">
-                                    <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                    <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                    <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                    <ul class="mateu-result-links">
-                                      <oj-bind-for-each data="[[ $current.data.links ]]">
-                                        <template>
-                                          <li>
-                                            <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                            <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                          </li>
-                                        </template>
-                                      </oj-bind-for-each>
-                                    </ul>
-                                    <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                      <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </oj-bind-if>
-                                  </div>
-                                </div>
-                              </div>
-                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                               <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                               <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -33881,12 +33343,6 @@
                                   <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                                 </ol>
                               </nav>
-                            </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                              <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                                <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                                <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                              </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isHero ]]">
                               <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -35525,7 +34981,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -36084,34 +35540,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -36153,12 +35581,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -37539,7 +36961,7 @@
                                   </div>
                                 </oj-label-value>
                               </oj-bind-if>
-                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                              <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                               <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                 <oj-label-value label-edge="top">
                                   <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -38098,34 +37520,6 @@
                           </ol>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isResult ]]">
-                        <div :class="[[ $current.data.panelClass ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                            <oj-bind-if test="[[ $current.data.hasImage ]]">
-                              <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                            </oj-bind-if>
-                            <div class="oj-flex-item">
-                              <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                              <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                              <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                              <ul class="mateu-result-links">
-                                <oj-bind-for-each data="[[ $current.data.links ]]">
-                                  <template>
-                                    <li>
-                                      <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                      <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                    </li>
-                                  </template>
-                                </oj-bind-for-each>
-                              </ul>
-                              <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                              </oj-bind-if>
-                            </div>
-                          </div>
-                        </div>
-                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                         <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                         <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -38167,12 +37561,6 @@
                             <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                           </ol>
                         </nav>
-                      </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                        <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                          <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                          <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                        </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isHero ]]">
                         <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -39553,7 +38941,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -40112,34 +39500,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -40181,12 +39541,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -41592,7 +40946,7 @@
                           </div>
                         </oj-label-value>
                       </oj-bind-if>
-                      <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                      <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                       <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                         <oj-label-value label-edge="top">
                           <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -42151,34 +41505,6 @@
                   </ol>
                 </div>
               </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isResult ]]">
-                <div :class="[[ $current.data.panelClass ]]">
-                  <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                    <oj-bind-if test="[[ $current.data.hasImage ]]">
-                      <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                    </oj-bind-if>
-                    <div class="oj-flex-item">
-                      <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                      <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                      <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                      <ul class="mateu-result-links">
-                        <oj-bind-for-each data="[[ $current.data.links ]]">
-                          <template>
-                            <li>
-                              <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </li>
-                          </template>
-                        </oj-bind-for-each>
-                      </ul>
-                      <oj-bind-if test="[[ $current.data.hasNext ]]">
-                        <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                      </oj-bind-if>
-                    </div>
-                  </div>
-                </div>
-              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                 <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                 <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -42220,12 +41546,6 @@
                     <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                   </ol>
                 </nav>
-              </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                  <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                  <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isHero ]]">
                 <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -43617,7 +42937,7 @@
                           </div>
                         </oj-label-value>
                       </oj-bind-if>
-                      <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                      <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                       <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                         <oj-label-value label-edge="top">
                           <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -44176,34 +43496,6 @@
                   </ol>
                 </div>
               </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isResult ]]">
-                <div :class="[[ $current.data.panelClass ]]">
-                  <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                    <oj-bind-if test="[[ $current.data.hasImage ]]">
-                      <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                    </oj-bind-if>
-                    <div class="oj-flex-item">
-                      <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                      <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                      <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                      <ul class="mateu-result-links">
-                        <oj-bind-for-each data="[[ $current.data.links ]]">
-                          <template>
-                            <li>
-                              <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </li>
-                          </template>
-                        </oj-bind-for-each>
-                      </ul>
-                      <oj-bind-if test="[[ $current.data.hasNext ]]">
-                        <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                      </oj-bind-if>
-                    </div>
-                  </div>
-                </div>
-              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                 <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                 <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -44245,12 +43537,6 @@
                     <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                   </ol>
                 </nav>
-              </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                  <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                  <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isHero ]]">
                 <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -45656,7 +44942,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -46215,34 +45501,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -46284,12 +45542,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -48027,7 +47279,7 @@
                                     </div>
                                   </oj-label-value>
                                 </oj-bind-if>
-                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                   <oj-label-value label-edge="top">
                                     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -48586,34 +47838,6 @@
                             </ol>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isResult ]]">
-                          <div :class="[[ $current.data.panelClass ]]">
-                            <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                              <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                              </oj-bind-if>
-                              <div class="oj-flex-item">
-                                <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                <ul class="mateu-result-links">
-                                  <oj-bind-for-each data="[[ $current.data.links ]]">
-                                    <template>
-                                      <li>
-                                        <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                        <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                      </li>
-                                    </template>
-                                  </oj-bind-for-each>
-                                </ul>
-                                <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                  <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </oj-bind-if>
-                              </div>
-                            </div>
-                          </div>
-                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                           <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                           <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -48655,12 +47879,6 @@
                               <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                             </ol>
                           </nav>
-                        </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                          <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                            <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                            <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                          </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isHero ]]">
                           <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -48965,7 +48183,7 @@
                         </div>
                       </oj-label-value>
                     </oj-bind-if>
-                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                       <oj-label-value label-edge="top">
                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -50454,7 +49672,7 @@
                                     </div>
                                   </oj-label-value>
                                 </oj-bind-if>
-                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                   <oj-label-value label-edge="top">
                                     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -51013,34 +50231,6 @@
                             </ol>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isResult ]]">
-                          <div :class="[[ $current.data.panelClass ]]">
-                            <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                              <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                              </oj-bind-if>
-                              <div class="oj-flex-item">
-                                <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                <ul class="mateu-result-links">
-                                  <oj-bind-for-each data="[[ $current.data.links ]]">
-                                    <template>
-                                      <li>
-                                        <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                        <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                      </li>
-                                    </template>
-                                  </oj-bind-for-each>
-                                </ul>
-                                <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                  <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </oj-bind-if>
-                              </div>
-                            </div>
-                          </div>
-                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                           <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                           <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -51082,12 +50272,6 @@
                               <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                             </ol>
                           </nav>
-                        </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                          <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                            <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                            <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                          </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isHero ]]">
                           <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -51392,7 +50576,7 @@
                         </div>
                       </oj-label-value>
                     </oj-bind-if>
-                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                       <oj-label-value label-edge="top">
                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -52867,7 +52051,7 @@
                                     </div>
                                   </oj-label-value>
                                 </oj-bind-if>
-                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                   <oj-label-value label-edge="top">
                                     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -53426,34 +52610,6 @@
                             </ol>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isResult ]]">
-                          <div :class="[[ $current.data.panelClass ]]">
-                            <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                              <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                              </oj-bind-if>
-                              <div class="oj-flex-item">
-                                <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                <ul class="mateu-result-links">
-                                  <oj-bind-for-each data="[[ $current.data.links ]]">
-                                    <template>
-                                      <li>
-                                        <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                        <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                      </li>
-                                    </template>
-                                  </oj-bind-for-each>
-                                </ul>
-                                <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                  <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </oj-bind-if>
-                              </div>
-                            </div>
-                          </div>
-                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                           <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                           <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -53495,12 +52651,6 @@
                               <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                             </ol>
                           </nav>
-                        </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                          <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                            <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                            <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                          </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isHero ]]">
                           <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -53805,7 +52955,7 @@
                         </div>
                       </oj-label-value>
                     </oj-bind-if>
-                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                    <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                     <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                       <oj-label-value label-edge="top">
                         <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -55259,7 +54409,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -55818,34 +54968,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -55887,12 +55009,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -57266,7 +56382,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -57825,34 +56941,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -57894,12 +56982,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -58246,7 +57328,7 @@
                       </div>
                     </oj-label-value>
                   </oj-bind-if>
-                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                   <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                     <oj-label-value label-edge="top">
                       <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -58640,7 +57722,7 @@
                       </div>
                     </oj-label-value>
                   </oj-bind-if>
-                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                   <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                     <oj-label-value label-edge="top">
                       <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -60103,7 +59185,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -60662,34 +59744,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -60731,12 +59785,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -62110,7 +61158,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -62669,34 +61717,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -62738,12 +61758,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -64196,7 +63210,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -64755,34 +63769,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -64824,12 +63810,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -66205,7 +65185,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -66764,34 +65744,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -66833,12 +65785,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -68228,7 +67174,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -68787,34 +67733,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -68856,12 +67774,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -70237,7 +69149,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -70796,34 +69708,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -70865,12 +69749,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -72312,7 +71190,7 @@
                                       </div>
                                     </oj-label-value>
                                   </oj-bind-if>
-                                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                                   <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                                     <oj-label-value label-edge="top">
                                       <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -72871,34 +71749,6 @@
                               </ol>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ $current.data.isResult ]]">
-                            <div :class="[[ $current.data.panelClass ]]">
-                              <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                                <oj-bind-if test="[[ $current.data.hasImage ]]">
-                                  <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                                </oj-bind-if>
-                                <div class="oj-flex-item">
-                                  <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                                  <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                                  <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                                  <ul class="mateu-result-links">
-                                    <oj-bind-for-each data="[[ $current.data.links ]]">
-                                      <template>
-                                        <li>
-                                          <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                          <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                        </li>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </ul>
-                                  <oj-bind-if test="[[ $current.data.hasNext ]]">
-                                    <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </oj-bind-if>
-                                </div>
-                              </div>
-                            </div>
-                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                             <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                             <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -72940,12 +71790,6 @@
                                 <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                               </ol>
                             </nav>
-                          </oj-bind-if>
-                          <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                            <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                              <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                              <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                            </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isHero ]]">
                             <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -74601,7 +73445,7 @@
                               </div>
                             </oj-label-value>
                           </oj-bind-if>
-                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                           <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                             <oj-label-value label-edge="top">
                               <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -75160,34 +74004,6 @@
                       </ol>
                     </div>
                   </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isResult ]]">
-                    <div :class="[[ $current.data.panelClass ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                        <oj-bind-if test="[[ $current.data.hasImage ]]">
-                          <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                        </oj-bind-if>
-                        <div class="oj-flex-item">
-                          <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                          <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                          <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                          <ul class="mateu-result-links">
-                            <oj-bind-for-each data="[[ $current.data.links ]]">
-                              <template>
-                                <li>
-                                  <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </li>
-                              </template>
-                            </oj-bind-for-each>
-                          </ul>
-                          <oj-bind-if test="[[ $current.data.hasNext ]]">
-                            <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                          </oj-bind-if>
-                        </div>
-                      </div>
-                    </div>
-                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                     <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                     <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -75229,12 +74045,6 @@
                         <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                       </ol>
                     </nav>
-                  </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                    <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                      <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                      <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                    </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isHero ]]">
                     <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -76628,7 +75438,7 @@
                               </div>
                             </oj-label-value>
                           </oj-bind-if>
-                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                           <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                             <oj-label-value label-edge="top">
                               <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -77187,34 +75997,6 @@
                       </ol>
                     </div>
                   </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isResult ]]">
-                    <div :class="[[ $current.data.panelClass ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                        <oj-bind-if test="[[ $current.data.hasImage ]]">
-                          <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                        </oj-bind-if>
-                        <div class="oj-flex-item">
-                          <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                          <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                          <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                          <ul class="mateu-result-links">
-                            <oj-bind-for-each data="[[ $current.data.links ]]">
-                              <template>
-                                <li>
-                                  <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </li>
-                              </template>
-                            </oj-bind-for-each>
-                          </ul>
-                          <oj-bind-if test="[[ $current.data.hasNext ]]">
-                            <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                          </oj-bind-if>
-                        </div>
-                      </div>
-                    </div>
-                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                     <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                     <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -77256,12 +76038,6 @@
                         <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                       </ol>
                     </nav>
-                  </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                    <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                      <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                      <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                    </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isHero ]]">
                     <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -78637,7 +77413,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -79196,34 +77972,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -79265,12 +78013,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -80646,7 +79388,7 @@
                                 </div>
                               </oj-label-value>
                             </oj-bind-if>
-                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                            <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                             <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -81205,34 +79947,6 @@
                         </ol>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isResult ]]">
-                      <div :class="[[ $current.data.panelClass ]]">
-                        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                          <oj-bind-if test="[[ $current.data.hasImage ]]">
-                            <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                          </oj-bind-if>
-                          <div class="oj-flex-item">
-                            <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                            <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                            <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                            <ul class="mateu-result-links">
-                              <oj-bind-for-each data="[[ $current.data.links ]]">
-                                <template>
-                                  <li>
-                                    <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                    <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                  </li>
-                                </template>
-                              </oj-bind-for-each>
-                            </ul>
-                            <oj-bind-if test="[[ $current.data.hasNext ]]">
-                              <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                              <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                            </oj-bind-if>
-                          </div>
-                        </div>
-                      </div>
-                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                       <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -81274,12 +79988,6 @@
                           <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                         </ol>
                       </nav>
-                    </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                      <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                        <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                        <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
@@ -81635,7 +80343,7 @@
                     </div>
                   </oj-label-value>
                 </oj-bind-if>
-                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                   <oj-label-value label-edge="top">
                     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -81975,7 +80683,7 @@
                       </div>
                     </oj-label-value>
                   </oj-bind-if>
-                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                  <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                   <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                     <oj-label-value label-edge="top">
                       <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>

@@ -1,4 +1,4 @@
-/* Opens/closes the hamburger menu: the left navigator-drawer (HAMBURGUER_MENU) or the floating
+/* Opens/closes the hamburger menu: the left navigator-drawer (HAMBURGER_MENU) or the floating
  * sections panel (HAMBURGER_SECTIONS). */
 
 define([

@@ -182,35 +182,6 @@ export function contentSlots<T>(children: T[]): { main: T[]; aside: T[]; footer:
   };
 }
 
-// ── Result ──────────────────────────────────────────────────────────────────
-
-export function resultLook(resultType: string | null | undefined): { glyph: string; tone: 'success' | 'info' | 'warning' | 'danger' | 'muted' } {
-  switch (resultType) {
-    case 'Success':
-      return { glyph: '✓', tone: 'success' };
-    case 'Warning':
-      return { glyph: '!', tone: 'warning' };
-    case 'Error':
-      return { glyph: '✕', tone: 'danger' };
-    case 'Ignored':
-      return { glyph: '–', tone: 'muted' };
-    default:
-      return { glyph: 'i', tone: 'info' };
-  }
-}
-
-/** What tapping a Destination does: open a URL, navigate in-app, or run an action. */
-export function destinationIntent(d: Dict | null | undefined): { kind: 'url' | 'route' | 'action' | 'none'; target: string } {
-  if (!d) return { kind: 'none', target: '' };
-  const value = ((d['value'] as string) || (d['id'] as string) || '').trim();
-  const type = d['type'] as string;
-  if (!value) return { kind: 'none', target: '' };
-  if (type === 'ActionId') return { kind: 'action', target: value };
-  if (type === 'Url') return /^[a-z]+:/i.test(value) ? { kind: 'url', target: value } : { kind: 'route', target: value };
-  if (type === 'View' || type === 'Component') return { kind: 'route', target: value };
-  return /^[a-z]+:/i.test(value) ? { kind: 'url', target: value } : { kind: 'route', target: value };
-}
-
 // ── FormEditor ──────────────────────────────────────────────────────────────
 
 export interface FormDefinitionPreview {

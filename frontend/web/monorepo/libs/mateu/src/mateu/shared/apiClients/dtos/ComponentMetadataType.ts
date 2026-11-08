@@ -12,12 +12,8 @@ export enum ComponentMetadataType {
     MicroFrontend = "MicroFrontend",
     Form = "Form",
     Crud = "Crud",
-    /** @deprecated registered on the wire, produced by no server (see {@link DEPRECATED_WIRE_TYPES}). */
-    Result = "Result",
     Card = "Card",
     Directory = "Directory",
-    /** @deprecated registered on the wire, produced by no server (see {@link DEPRECATED_WIRE_TYPES}). */
-    Stepper = "Stepper",
     HorizontalLayout = "HorizontalLayout",
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
@@ -147,14 +143,10 @@ export const DRAWN_BY_THEIR_PARENT = [
 ] as const
 
 /**
- * Registered on the wire but produced by no server — no mapper, no authoring record, no port
- * (`ResultDto`/`StepperDto` are deprecated for removal and carry `"deprecated": true` in
- * wire-schema.json). A renderer need not draw them.
+ * Registered on the wire but produced by no server — no mapper, no authoring record, no port (they
+ * carry `"deprecated": true` in wire-schema.json). A renderer need not draw them. None since 3.0.0.
  */
-export const DEPRECATED_WIRE_TYPES = [
-    ComponentMetadataType.Result,
-    ComponentMetadataType.Stepper,
-] as const
+export const DEPRECATED_WIRE_TYPES = [] as const
 
 export type DrawnByTheirParent = typeof DRAWN_BY_THEIR_PARENT[number]
 export type DeprecatedWireType = typeof DEPRECATED_WIRE_TYPES[number]

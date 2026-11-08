@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import {
   kanbanAtomOf, timelineAtomOf, pricingAtomOf, orgChartAtomOf, heatmapAtomOf, funnelAtomOf, featureGridAtomOf,
   testimonialsAtomOf, fileListAtomOf, checklistAtomOf, processMonitorAtomOf, skeletonAtomOf, menuItemsOf, menuChoiceOf,
-  menuBarAtomOf, directoryAtomOf, messageListAtomOf, messageInputAtomOf, chatAtomOf, resultAtomOf, cookieConsentAtomOf,
+  menuBarAtomOf, directoryAtomOf, messageListAtomOf, messageInputAtomOf, chatAtomOf, cookieConsentAtomOf,
   confirmOpenOf, confirmDialogAtomOf, returnedConfirmDialogsOf, workflowAtomOf, formEditorFieldsOf,
   componentHtmlOf, gridPageOf, autoFitColClass, carouselPagerAtomOf, progressBarAtomOf, customComponentAtomOf,
   registerCustomComponent, setDataProviderFactory, toneOf, cssColorOf,
@@ -230,32 +230,6 @@ test('messages: avatar tone per user index, input/chat ids safe for the DOM', ()
   assert.equal(chat.chatId, 'mateuChat-x_y')
   assert.ok(chat.uploadUrl.endsWith('/up'))
   assert.equal(chatAtomOf({ sseUrl: '/agent' }).uploadUrl, '', 'no upload url, no attach button')
-})
-
-test('a result: its look by type, links by destination type, the «what next» action', () => {
-  const r = resultAtomOf({ resultType: 'ERROR', title: 'Failed', leftSideImageUrl: '/img/x.png',
-    interestingLinks: [
-      { type: 'Url', value: 'https://help.example', description: 'Help' },
-      { type: 'Url', value: 'javascript:x' },
-      { type: 'View', value: '/bookings', description: 'Bookings' },
-      { type: 'Component', value: 'nope', id: 'doIt' },
-      null,
-    ],
-    nowTo: { type: 'ActionId', value: 'retry', description: 'Retry' } })
-  assert.equal(r.iconClass, 'oj-ux-ico-error-s')
-  assert.match(r.panelClass, /mateu-tone-danger/)
-  assert.equal(r.hasImage, true)
-  assert.deepEqual(r.links.map((l) => [l.label, l.isLink, l.href, l.isAction, l.actionId]), [
-    ['Help', true, 'https://help.example', false, ''],
-    ['javascript:x', false, '', false, ''],
-    ['Bookings', true, '/bookings', false, ''],
-    ['nope', false, '', true, 'doIt'],
-  ])
-  assert.equal(r.actionId, 'retry')
-  const plain = resultAtomOf({ resultType: 'whatever' })
-  assert.equal(plain.iconClass, 'oj-ux-ico-information-s', 'an unknown type looks like info')
-  assert.equal(plain.hasNext, false)
-  assert.equal(plain.actionId, '')
 })
 
 test('cookie consent: its texts default to the chrome words, its cookie to cookieconsent_status', () => {

@@ -16,10 +16,10 @@ import org.jetbrains.yaml.psi.YAMLMapping
 
 /**
  * Validates the binding of a Mateu visual-builder page (phase 2): a page YAML that declares a
- * `modelView:` must only reference fields and actions that actually exist on that class. It flags,
+ * `viewModel:` must only reference fields and actions that actually exist on that class. It flags,
  * live as you type:
  *
- *  - a `modelView:` that does not resolve to a class,
+ *  - a `viewModel:` that does not resolve to a class,
  *  - a `FormField` `id:` that is not a property of the ModelView,
  *  - an `actionId:` that is not a method of the ModelView.
  *
@@ -32,20 +32,20 @@ class MateuYamlBindingAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (element !is YAMLKeyValue) return
     val key = element.keyText
-    if (key != "modelView" && key != "actionId" && key != "id") return
+    if (key != "viewModel" && key != "actionId" && key != "id") return
 
     val project = element.project
     if (DumbService.isDumb(project)) return // class resolution is unavailable while indexing
 
     val page = pageMapping(element) ?: return
-    val fqn = page.getKeyValueByKey("modelView")?.valueText?.trim().orEmpty()
+    val fqn = page.getKeyValueByKey("viewModel")?.valueText?.trim().orEmpty()
     if (fqn.isEmpty()) return
 
     val value = element.value ?: return
     val id = element.valueText?.trim().orEmpty()
 
     when (key) {
-      "modelView" -> {
+      "viewModel" -> {
         if (element.parent !== page) return // only the page-level declaration
         if (resolveClass(project, fqn) == null) {
           error(holder, value, "Cannot resolve ModelView class '$fqn'")
@@ -54,7 +54,7 @@ class MateuYamlBindingAnnotator : Annotator {
 
       "actionId" -> {
         if (id.isEmpty()) return
-        val cls = resolveClass(project, fqn) ?: return // the modelView error is reported on its own
+        val cls = resolveClass(project, fqn) ?: return // the viewModel error is reported on its own
         if (!hasAction(cls, id)) {
           errorWithFix(
             holder, value, "'$id' is not an action on ${cls.name} — no method named '$id'",
@@ -102,11 +102,11 @@ class MateuYamlBindingAnnotator : Annotator {
     }
   }
 
-  /** The page envelope (top-level mapping) iff this file is a Mateu bound page: has modelView + layout. */
+  /** The page envelope (top-level mapping) iff this file is a Mateu bound page: has viewModel + layout. */
   private fun pageMapping(element: PsiElement): YAMLMapping? {
     val file = element.containingFile as? YAMLFile ?: return null
     val top = file.documents.firstOrNull()?.topLevelValue as? YAMLMapping ?: return null
-    if (top.getKeyValueByKey("modelView") == null || top.getKeyValueByKey("layout") == null) {
+    if (top.getKeyValueByKey("viewModel") == null || top.getKeyValueByKey("layout") == null) {
       return null
     }
     return top

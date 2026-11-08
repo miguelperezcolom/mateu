@@ -16,7 +16,7 @@ export interface PageNode {
 }
 
 /**
- * A parsed page: the `layout` tree plus the optional `modelView` FQN (envelope form). `bare`
+ * A parsed page: the `layout` tree plus the optional view model FQN (`viewModel:`, envelope form). `bare`
  * records whether the source file was a bare component tree (legacy, no envelope) so we can
  * serialize it back in the same shape.
  */
@@ -101,7 +101,7 @@ function omit(obj: Record<string, unknown>, keys: string[]): Record<string, unkn
 /** Split an envelope's triggers + the other non-layout keys (kept verbatim) off the root object. */
 function envelopeExtras(root: any): { triggers?: PageTrigger[]; rest?: Record<string, unknown> } {
     const triggers = Array.isArray(root?.triggers) ? root.triggers.map(toPageTrigger) : undefined
-    const rest = omit(root && typeof root === 'object' ? root : {}, ['modelView', 'layout', 'layoutDelta', 'triggers'])
+    const rest = omit(root && typeof root === 'object' ? root : {}, ['viewModel', 'layout', 'layoutDelta', 'triggers'])
     return { triggers, rest: Object.keys(rest).length ? rest : undefined }
 }
 
@@ -165,7 +165,7 @@ export function parsePage(yaml: string): PageDoc {
         // A delta is not a tree: there is nothing to render until inference says what it applies
         // to. `hydrate` turns it into an editable layout once the contract arrives.
         return {
-            modelView: (root as any).modelView ?? undefined,
+            modelView: (root as any).viewModel ?? undefined,
             layout: { type: 'FormLayout', content: [] },
             bare: false,
             delta: readDelta((root as any).layoutDelta),
@@ -174,7 +174,7 @@ export function parsePage(yaml: string): PageDoc {
     }
     if (root && typeof root === 'object' && 'layout' in (root as object)) {
         return {
-            modelView: (root as any).modelView ?? undefined,
+            modelView: (root as any).viewModel ?? undefined,
             layout: normalize((root as any).layout),
             bare: false,
             ...envelopeExtras(root),
@@ -222,7 +222,7 @@ export function serializePage(doc: PageDoc): string {
         return stringify(layout)
     }
     const envelope: Record<string, unknown> = {}
-    if (doc.modelView) envelope.modelView = doc.modelView
+    if (doc.modelView) envelope.viewModel = doc.modelView
     const delta = expressibleDelta(doc)
     if (delta) {
         // An empty delta still writes the key: `layoutDelta: {}` says "a human looked and changed

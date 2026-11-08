@@ -3,7 +3,7 @@ import { diffAgainstContract, isInSync } from './viewModelSync'
 import { parsePage } from './pageModel'
 
 describe('viewModelSync', () => {
-    const doc = parsePage(`modelView: com.acme.PersonView
+    const doc = parsePage(`viewModel: com.acme.PersonView
 layout:
   type: VerticalLayout
   content:
