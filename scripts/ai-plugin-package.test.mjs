@@ -125,9 +125,13 @@ test('release bump keeps both manifests and generated package metadata on the sa
     }
     for (const path of ['backend/dotnet/README.md', 'backend/python/README.md']) put(root, path, 'V=3.0-beta.6\n')
     put(root, 'backend/pom.xml', '<mateu.japicmp.baseline>3.0-beta.6</mateu.japicmp.baseline>\n')
+    // the .NET and Python starters name the published packages; the bump moves them too
+    put(root, 'starters/dotnet/MateuStarter.csproj', '<PackageReference Include="Mateu.AspNetCore" Version="3.0.0-beta.6" />\n')
+    put(root, 'starters/python/requirements.txt', 'mateu-ui==3.0.0b6\n')
     for (const [version, semver] of [['3.0-beta.99', '3.0.0-beta.99'], ['3.1.0', '3.1.0']]) {
         const result = spawnSync('bash', [join(root, 'scripts/bump-example-version.sh'), version], { cwd: root, encoding: 'utf8' })
         assert.equal(result.status, 0, result.stderr)
+        assert.match(readFileSync(join(root, 'starters/dotnet/MateuStarter.csproj'), 'utf8'), new RegExp(`Version="${semver.replace(/\./g, '\\.')}"`))
         for (const host of ['.claude-plugin', '.codex-plugin']) {
             assert.equal(JSON.parse(readFileSync(join(root, 'ai/claude-plugin/mateu', host, 'plugin.json'))).version, semver)
         }

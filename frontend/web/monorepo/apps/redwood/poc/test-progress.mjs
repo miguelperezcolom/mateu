@@ -305,6 +305,39 @@ test('DOM: a background task never opens the dialog; a failed one offers Retry i
   assert.ok(buttonByText(list, 'Dismiss'))
 })
 
+test('DOM: Esc closes the open list, the clock ticks while a task runs, a finished blocking dialog closes on its own', async () => {
+  const { doc } = makeDom()
+  const c = createTaskCenter()
+  const h = installTaskCenter(doc, c)
+  const dialog = doc.getElementById('mateuTaskDialog')
+  dialog.open = () => {}
+  dialog.close = () => {}
+  c.upsert(progress({ taskId: 'bg', startedAt: Date.now() - 5000 }), { actionId: 'sync' })
+  const list = doc.getElementById('mateuTaskList')
+  ojAction(doc.getElementById('mateuTaskDockButton'))
+  assert.equal(list.hasAttribute('hidden'), false)
+  doc.querySelector('.mateu-task-dock').dispatchEvent(new FakeEvent('keydown', { bubbles: true, key: 'Escape' }))
+  assert.equal(list.hasAttribute('hidden'), true, 'Esc closes the list')
+  // the elapsed time is rewritten every second while something runs
+  await new Promise((r) => setTimeout(r, 1100))
+  assert.ok(h.state.timer, 'a running task keeps the clock')
+  // a blocking task that finishes with closeAfterSeconds 0 goes to the background by itself
+  c.upsert(progress({ taskId: 'blk', blocking: true, startedAt: Date.now() }), { actionId: 'importAll' })
+  c.upsert(progress({ taskId: 'blk', blocking: true, state: 'done', closeAfterSeconds: 0 }))
+  await new Promise((r) => setTimeout(r, 20))
+  assert.equal(c.get('blk').backgrounded, true)
+  clearInterval(h.state.timer)
+})
+
+test('Cancel that cannot reach the backend reports false and leaves the task running', async () => {
+  const c = createTaskCenter()
+  c.upsert(progress({ taskId: 'x', cancellable: true }), { route: '/r', actionId: 'run' })
+  setTaskTransport(async () => { throw new Error('down') })
+  assert.equal(await cancelTask('x', c), false)
+  assert.equal(c.get('x').state, 'running')
+  setTaskTransport(null)
+})
+
 // ── the inbox (pure) ─────────────────────────────────────────────────────────────────────────
 
 const server = [

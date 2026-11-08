@@ -141,7 +141,7 @@ class AppHandlerMixin(MixinBase):
             # the entry's detail (a drawer, a dialog…) answered like any action's result
             nid = self._str_param(parameters, "id")
             entry = self._own_entry(supplier, nid, rq)
-            if entry is None or not getattr(entry, "has_detail", False):
+            if nid is None or entry is None or not getattr(entry, "has_detail", False):
                 return UIIncrement.of()
             detail = supplier.notification_detail(nid, rq)
             return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
