@@ -62,6 +62,22 @@ class PageMetadata(Wire):
     switcher: "RecordSwitcherRecord | None" = None
 
 
+class TemplateImageRecord(Wire):
+    """A page template's image (mirrors io.mateu.dtos.TemplateImageDto)."""
+
+    src: str | None = None
+    initials: str | None = None
+
+
+class PageTemplateRecord(Wire):
+    """The page template a Form fills, as the renderer reads it (mirrors io.mateu.dtos.PageTemplateDto):
+    its ``type`` (the template record's name) and the avatar/photo of an item overview."""
+
+    type: str
+    avatar: TemplateImageRecord | None = None
+    photo: TemplateImageRecord | None = None
+
+
 class FormMetadata(Wire):
     """A titled form panel with its own toolbar (header) and buttons (footer) — e.g. the row editor
     of a grid field (mirrors io.mateu.dtos.FormDto, wire type "Form")."""
@@ -86,6 +102,8 @@ class FormMetadata(Wire):
     fabs: list["Fab"] = Field(default_factory=list)
     peer_nav: "PeerNav | None" = None
     switcher: "RecordSwitcherRecord | None" = None
+    #: The page template the form fills (``template:``), None for a free page (FormDto.template).
+    template: PageTemplateRecord | None = None
 
 
 class CardMetadata(Wire):
@@ -126,6 +144,8 @@ class VerticalLayoutMetadata(Wire):
     #: Cross-axis alignment of the children (START/CENTER/END/STRETCH; mirrors
     #: VerticalLayoutDto.horizontalAlignment). None lets the renderer default.
     horizontal_alignment: str | None = None
+    #: Whether the layout takes the full width of its container (VerticalLayoutDto.fullWidth).
+    full_width: bool = False
 
 
 class HorizontalLayoutMetadata(Wire):
@@ -136,6 +156,8 @@ class HorizontalLayoutMetadata(Wire):
     #: Main-axis placement of the children (START/CENTER/END/BETWEEN/AROUND/EVENLY; mirrors
     #: HorizontalLayoutDto.justification). None lets the renderer default.
     justification: str | None = None
+    #: Whether the layout takes the full width of its container (HorizontalLayoutDto.fullWidth).
+    full_width: bool = False
 
 
 class FormLayoutMetadata(Wire):

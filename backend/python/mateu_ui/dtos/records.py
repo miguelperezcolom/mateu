@@ -28,6 +28,9 @@ class Button(Wire):
     # selected — on the BUTTON so no renderer has to look the advertised action up by id
     # (mirrors Java's ButtonDto.rowsSelectedRequired)
     rows_selected_required: bool = False
+    #: A route the button NAVIGATES to on the client instead of running ``action_id`` (a
+    #: RouteLink button) — mirrors ButtonDto.route.
+    route: str | None = None
 
 
 class Option(Wire):
@@ -202,6 +205,8 @@ class Banner(Wire):
 
 
 class Badge(Wire):
+    #: BadgeDto is a ComponentMetadataDto: Jackson writes its discriminator
+    type: Literal["Badge"] = "Badge"
     text: str
     color: str
     primary: bool = False

@@ -202,11 +202,19 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
     kind = node.get("type")
     if kind == "VerticalLayout":
         return fluent.VerticalLayout(
-            content=_children(node, partials, chain), spacing=bool(node.get("spacing", False))
+            content=_children(node, partials, chain),
+            spacing=bool(node.get("spacing", False)),
+            full_width=bool(node.get("fullWidth", False)),
+            horizontal_alignment=_str(node.get("horizontalAlignment")),
+            **_box(node),
         )
     if kind == "HorizontalLayout":
         return fluent.HorizontalLayout(
-            content=_children(node, partials, chain), spacing=bool(node.get("spacing", True))
+            content=_children(node, partials, chain),
+            spacing=bool(node.get("spacing", True)),
+            wrap=bool(node.get("wrap", False)),
+            full_width=bool(node.get("fullWidth", False)),
+            **_box(node),
         )
     if kind == "FormLayout":
         # Python has no standalone FormLayout fluent — a stacked VerticalLayout is a faithful preview.
@@ -222,26 +230,31 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             options=_options(node.get("options")),
             style=node.get("style"),
             css_classes=node.get("cssClasses"),
+            # Java's FormField record read from YAML: an absent number is 0 (the code builder's
+            # defaults — 100, 1 — do not apply)
+            slider_min=_int(node.get("sliderMin")),
+            slider_max=_int(node.get("sliderMax")),
+            options_columns=_int(node.get("optionsColumns")),
         )
     if kind == "Button":
-        return fluent.Button(
-            label=node.get("label", ""),
-            action_id=node.get("actionId", ""),
-            button_style="primary" if node.get("buttonStyle") == "primary" else None,
-            disabled=bool(node.get("disabled", False)),
-            route=_route_link_of(node),
-        )
+        return _button(node)
     if kind == "Listing":
         # A listing authored as data: rows from a REST source, fetched client-side (the yaml
         # starter's products page). Before 2026-10-17 it rendered "Unsupported component".
         return _listing(node, partials, chain)
     if kind == "Text":
-        return fluent.Text(text=node.get("text", ""))
+        return fluent.Text(
+            text=str(node.get("text") or ""),
+            size=_str(node.get("size")),
+            no_margins=bool(node.get("noMargins", False)),
+            container=_str(node.get("container")),
+            **_box(node),
+        )
     if kind == "ComponentRef":
         return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     if kind == "Form":
         return _form(node, partials, chain)
-    generic = _generic(kind, node, partials, chain)
+    generic = _generic(kind, _record_defaults(kind, node), partials, chain)
     if generic is not None:
         return generic
     return fluent.Text(text=f"Unsupported component: {kind}")
@@ -366,6 +379,75 @@ def _str(value: Any) -> str | None:
     return None if value is None else str(value)
 
 
+def _record_defaults(kind: Any, node: dict) -> dict:
+    """What an ABSENT key means on the Java record the YAML is read into, where it differs from the
+    Python dataclass' code-authoring default: a panel without ``open:`` is left to the renderer
+    (``autoOpen``, Java's YamlUidlMapperFactory), a tile spans what the grid gives it (0, not 1) and
+    a card has no variant unless it names one."""
+    if kind == "FoldoutPanel" and "open" not in node and "autoOpen" not in node:
+        return {**node, "open": False, "autoOpen": True}
+    if kind == "DashboardPanel":
+        return {"colSpan": 0, "rowSpan": 0, **node}
+    if kind == "Card" and "variants" not in node:
+        return {**node, "variants": []}
+    return node
+
+
+def _button(node: dict) -> fluent.Button:
+    """A YAML ``type: Button`` (Java's Button record): its action id is the declared one, else the
+    one derived from its label (``resolvedActionId``); an absent colour is ``normal``; an
+    ``actionable: {type: RouteLink}`` makes it navigate."""
+    from .naming import camelcasize
+
+    label = str(node.get("label") or "")
+    params = node.get("parameters")
+    return fluent.Button(
+        label=label,
+        action_id=str(node.get("actionId") or camelcasize(label) or ""),
+        button_style=_str(node.get("buttonStyle")),
+        disabled=bool(node.get("disabled", False)),
+        parameters=params if isinstance(params, dict) else None,
+        route=_route_link_of(node),
+        color=str(node.get("color") or "normal"),
+        **_box(node),
+    )
+
+
+def _box(node: dict) -> dict:
+    """The ``id``/``style``/``cssClasses`` every component carries."""
+    return {
+        "id": _str(node.get("id")),
+        "style": _str(node.get("style")),
+        "css_classes": _str(node.get("cssClasses")),
+    }
+
+
+def _template(raw: Any, partials: PartialRegistry, chain: list[str]):
+    """A ``template:`` node (the page template a Form fills): its ``type`` names the template
+    (Java's FormTemplate record), its other keys are the template's fields and slots. An unknown
+    type leaves the page free — and is reported by a reporting build."""
+    from mateu_ui.uidl.page_templates import TEMPLATES
+
+    if not isinstance(raw, dict):
+        return None
+    cls = TEMPLATES.get(str(raw.get("type") or ""))
+    if cls is None:
+        problems = _problems.get()
+        if problems is not None:
+            problems.append(f"Unknown page template: {raw.get('type')}")
+        return None
+    template = _dataclass_of(cls, raw, partials, chain)
+    # a docked panel's content is typed Any on the shared DockedPanel: build it here
+    import dataclasses
+
+    for name in ("end", "bottom"):
+        panel = getattr(template, name, None)
+        if panel is not None and isinstance(panel.content, dict):
+            built = _single(panel.content, partials, chain)
+            object.__setattr__(template, name, dataclasses.replace(panel, content=built))
+    return template
+
+
 def _maps(node: dict, key: str) -> list[dict]:
     raw = node.get(key)
     return [m for m in raw if isinstance(m, dict)] if isinstance(raw, list) else []
@@ -454,14 +536,7 @@ def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.For
     an absent one leaves its wire field None / empty."""
     from mateu_ui.uidl import BannerTheme, PageBanner, PeerNav, RecordSwitcher, SwitcherType
 
-    def button(b: dict) -> fluent.Button:
-        return fluent.Button(
-            label=str(b.get("label") or ""),
-            action_id=str(b.get("actionId") or ""),
-            button_style=_str(b.get("buttonStyle")),
-            disabled=bool(b.get("disabled", False)),
-            route=_route_link_of(b),
-        )
+    button = _button
 
     def theme(raw: Any) -> BannerTheme:
         for t in BannerTheme:
@@ -516,6 +591,7 @@ def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.For
         if isinstance(peer, dict)
         else None,
         record_switcher=switcher,
+        template=_template(node.get("template"), partials, chain),
         banners=tuple(
             PageBanner(
                 theme=theme(b.get("theme")),

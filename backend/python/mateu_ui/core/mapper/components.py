@@ -7,7 +7,12 @@ from typing import Any
 
 import dataclasses
 
+from .. import page_templates
+from ..naming import camelcasize
+
 from mateu_ui.dtos import (
+    TabLayoutMetadata,
+    TabMetadata,
     Badge,
     CardMetadata,
     Banner,
@@ -429,13 +434,34 @@ class ComponentMapperMixin(MixinBase):
             ]
             return self._fluent_client(TimelineMetadata(items=items), c)
         if isinstance(c, fluent.VerticalLayout):
-            out = self._fluent_client(VerticalLayoutMetadata(spacing=c.spacing), c)
+            out = self._fluent_client(
+                VerticalLayoutMetadata(
+                    spacing=c.spacing,
+                    full_width=c.full_width,
+                    horizontal_alignment=c.horizontal_alignment,
+                ),
+                c,
+            )
             out.children = [self.map_component(child) for child in c.content]
             return out
         if isinstance(c, fluent.HorizontalLayout):
-            out = self._fluent_client(HorizontalLayoutMetadata(spacing=c.spacing), c)
+            out = self._fluent_client(
+                HorizontalLayoutMetadata(spacing=c.spacing, wrap=c.wrap, full_width=c.full_width), c
+            )
             out.children = [self.map_component(child) for child in c.content]
             return out
+        if isinstance(c, fluent.TabLayout):
+            return self._fluent_client(
+                TabLayoutMetadata(group_relationship=c.group_relationship, adaptable=c.adaptable),
+                c,
+                [self.map_component(tab) for tab in c.tabs],
+            )
+        if isinstance(c, fluent.Tab):
+            return self._fluent_client(
+                TabMetadata(label=self.T(c.label), active=c.active, shortcut=c.shortcut or None),
+                c,
+                [self.map_component(c.content)] if c.content is not None else [],
+            )
         if isinstance(c, fluent.FormField):
             return self._fluent_client(
                 FormFieldMetadata(
@@ -453,6 +479,7 @@ class ComponentMapperMixin(MixinBase):
                     slider_min=c.slider_min,
                     slider_max=c.slider_max,
                     step=c.step,
+                    options_columns=c.options_columns,
                 ),
                 c,
             )
@@ -630,8 +657,11 @@ class ComponentMapperMixin(MixinBase):
                 c,
             )
         if isinstance(c, fluent.Form):
+            # a page that fills a template lays its slots out around the content (PageTemplates)
             return self._fluent_client(
-                self._form_header(c), c, [self.map_component(child) for child in c.content]
+                self._form_header(c),
+                c,
+                [self.map_component(child) for child in page_templates.content_of(c)],
             )
         if isinstance(c, fluent.EntityHeader):
             meta = EntityHeaderMetadata(
@@ -929,6 +959,7 @@ class ComponentMapperMixin(MixinBase):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
                 button_style=c.button_style, parameters=c.parameters, route=c.route,
+                color=c.color,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.ListingComponent):
@@ -975,7 +1006,8 @@ class ComponentMapperMixin(MixinBase):
             # container:"div" on the wire (a non-empty default the conformance normaliser keeps).
             return self._fluent_client(
                 TextMetadata(
-                    text=self.T(c.text), container="div", size=c.size, no_margins=c.no_margins
+                    text=self.T(c.text), container=c.container or "div", size=c.size,
+                    no_margins=c.no_margins,
                 ),
                 c,
             )
@@ -1249,9 +1281,23 @@ class ComponentMapperMixin(MixinBase):
         declare stays None / empty."""
 
         def button(b) -> Button:
+            # Java's FormMapper.mapToButtonDto: the resolved action id (declared, else derived from
+            # the label), the style/colour a well-known id implies, the route of a RouteLink button
+            action_id = b.action_id or camelcasize(b.label) or ""
+            style = b.button_style
+            if style is None and action_id in ("save", "create"):
+                style = "primary"
+            elif style is None and (
+                action_id.startswith("cancel") or action_id in ("back", "backToList")
+            ):
+                style = "tertiary"
+            color = getattr(b, "color", None)
+            if color in (None, "normal", "none"):
+                deleting = action_id in ("delete", "delete-edit") or action_id.startswith("delete-")
+                color = "error" if deleting else None
             return Button(
-                label=self.T(b.label), action_id=b.action_id, disabled=b.disabled,
-                button_style=b.button_style,
+                label=self.T(b.label), action_id=action_id, disabled=b.disabled,
+                button_style=style, color=color, route=getattr(b, "route", None),
             )
 
         switcher = None
@@ -1270,11 +1316,12 @@ class ComponentMapperMixin(MixinBase):
                 route=getattr(sw, "route", None),
             )
         peer = c.peer_nav
+        owns_header = page_templates.owns_header(c)
         return FormMetadata(
             title=self._opt_t(c.title),
             subtitle=self._opt_t(c.subtitle),
-            no_header=c.no_header,
-            toolbar=[button(b) for b in c.toolbar],
+            no_header=c.no_header or owns_header,
+            toolbar=[] if owns_header else [button(b) for b in c.toolbar],
             buttons=[button(b) for b in c.buttons],
             overline=self._opt_t(c.overline),
             title_placeholder=self._opt_t(c.title_placeholder),
@@ -1316,6 +1363,7 @@ class ComponentMapperMixin(MixinBase):
                 next_route=peer.next_route,
             ),
             switcher=switcher,
+            template=page_templates.record_of(c.template),
         )
 
     @staticmethod
