@@ -1,6 +1,10 @@
 package io.mateu.core.application.runaction;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.application.i18n.TranslationRegistry;
+import io.mateu.core.application.security.YamlAccess;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -48,6 +52,18 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
 
   private final ObjectMapper mapper = YamlUidlMapperFactory.create();
   private final ConcurrentHashMap<String, List<Component>> byRef = new ConcurrentHashMap<>();
+
+  /**
+   * The source tree of a YAML partial that depends on who asks or in which language (it declares
+   * access keys or mentions {@code ${i18n.…}}). Such a partial is never served from {@link #byRef}:
+   * it is re-derived per request — access keys applied for the caller, texts translated — exactly
+   * as when a YAML page pulls it in ({@code YamlPartials} composes it into the page tree before
+   * {@code YamlUidlLoader} applies them). Without this, a partial drawn inside a JAVA page reached
+   * every caller with its {@code eyesOnly:} sections intact.
+   */
+  private final ConcurrentHashMap<String, JsonNode> requestDependent = new ConcurrentHashMap<>();
+
+  private final TranslationRegistry fallbackTranslations = new TranslationRegistry();
   private final ConcurrentHashMap<String, List<Component>> registered = new ConcurrentHashMap<>();
 
   private PartialRegistry() {
@@ -58,6 +74,7 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   @Override
   public void invalidateSpecs() {
     byRef.clear();
+    requestDependent.clear();
   }
 
   /**
@@ -74,6 +91,7 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   public void reset() {
     registered.clear();
     byRef.clear();
+    requestDependent.clear();
   }
 
   /** The components {@code ref} stands for; empty when it resolves to nothing. */
@@ -91,7 +109,64 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
     if (fromClass != null) {
       return fromClass;
     }
-    return byRef.computeIfAbsent(ref, this::fromYaml);
+    var shared = byRef.computeIfAbsent(ref, this::fromYaml);
+    var source = requestDependent.get(ref);
+    return source == null ? shared : personalised(ref, source, httpRequest);
+  }
+
+  /**
+   * A request-dependent partial as {@code httpRequest} sees it. Who may see what is decided first,
+   * and a failure there renders NOTHING of the partial: an unrestricted version would hand the
+   * caller exactly what the access keys take away.
+   */
+  private List<Component> personalised(String ref, JsonNode source, HttpRequest httpRequest) {
+    JsonNode tree;
+    try {
+      tree =
+          YamlAccess.declaresAccess(source)
+              ? YamlAccess.apply(source, httpRequest, routeReachability(httpRequest)).tree()
+              : source.deepCopy();
+    } catch (Exception e) {
+      log.error("Could not apply the access keys of partial '{}'; rendering nothing", ref, e);
+      return NONE;
+    }
+    if (tree == null || tree.isNull() || tree.isMissingNode()) {
+      return NONE; // the whole partial is hidden from this caller
+    }
+    if (!TranslationRegistry.isRaw(httpRequest)) {
+      try {
+        translations().translateTree(tree, TranslationRegistry.localeOf(httpRequest));
+      } catch (Exception e) {
+        log.warn("Could not translate partial '{}' (served untranslated): {}", ref, e.getMessage());
+      }
+    }
+    try {
+      return componentsOf(tree);
+    } catch (Exception e) {
+      log.error("Could not build partial '{}' for the request", ref, e);
+      return NONE;
+    }
+  }
+
+  private static java.util.function.Predicate<String> routeReachability(HttpRequest httpRequest) {
+    try {
+      var routes = MateuBeanProvider.getSingletonBean(RouteRegistry.class);
+      return routes == null ? null : path -> routes.isReachable(path, httpRequest);
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
+  private TranslationRegistry translations() {
+    try {
+      var bean = MateuBeanProvider.getSingletonBean(TranslationRegistry.class);
+      if (bean != null) {
+        return bean;
+      }
+    } catch (Throwable ignored) {
+      // no bean context (a bare test, a build-time export): our own reader of the same files
+    }
+    return fallbackTranslations;
   }
 
   /**
@@ -136,22 +211,31 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
       if (root == null || root.isNull()) {
         return NONE;
       }
-      if (root.has("content")) {
-        var content = new ArrayList<Component>();
-        for (var child : root.get("content")) {
-          var component = mapper.treeToValue(child, Component.class);
-          if (component != null) {
-            content.add(component);
-          }
-        }
-        return List.copyOf(content);
+      if (YamlAccess.declaresAccess(root) || TranslationRegistry.mentionsI18n(root)) {
+        // re-derived per request (resolve → personalised); no shared version exists to leak
+        requestDependent.put(ref, root);
+        return NONE;
       }
-      var single = mapper.treeToValue(root, Component.class);
-      return single == null ? NONE : List.of(single);
+      return componentsOf(root);
     } catch (Exception e) {
       log.error("Could not read partial '{}' from classpath:{}", ref, path, e);
       return NONE;
     }
+  }
+
+  private List<Component> componentsOf(JsonNode root) throws Exception {
+    if (root.has("content")) {
+      var content = new ArrayList<Component>();
+      for (var child : root.get("content")) {
+        var component = mapper.treeToValue(child, Component.class);
+        if (component != null) {
+          content.add(component);
+        }
+      }
+      return List.copyOf(content);
+    }
+    var single = mapper.treeToValue(root, Component.class);
+    return single == null ? NONE : List.of(single);
   }
 
   private List<Component> fromClass(String ref, HttpRequest httpRequest) {

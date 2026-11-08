@@ -255,3 +255,36 @@ def test_a_guarded_section_in_a_partial_is_applied_like_an_inline_one(tmp_path):
     assert "Public text" in anonymous
     assert "Secret salary table" not in anonymous
     assert "Secret salary table" in wire(handler(tmp_path, roles=("hr",)), "/staff")
+
+
+class StaffView:
+    """A CODE view model a YAML layout is drawn inside (the parity case of Java's
+    JavaPagePartialAccessSyncTest: YAML embedded in a code page keeps its access keys)."""
+
+    bonus: float = 0
+
+
+def test_a_guarded_partial_drawn_inside_a_code_page_is_applied_for_the_caller(tmp_path):
+    from mateu_ui.core import type_name
+
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n  - route: staff-code\n    layout: staff-code.yaml\n"
+        f"    viewModel: {type_name(StaffView)}\n"
+    )
+    (tmp_path / "staff-code.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: Text, text: Public text}\n"
+        "    - {type: Partial, ref: payroll}\n"
+    )
+    (tmp_path / "partials").mkdir()
+    (tmp_path / "partials" / "payroll.yaml").write_text(
+        "content:\n"
+        "  - {type: Text, text: Secret salary table, eyesOnly: {roles: [hr]}}\n"
+        "  - {type: FormField, id: bonus, label: Bonus, dataType: number,"
+        " readOnlyUnless: {roles: [hr]}}\n"
+    )
+    guest = wire(handler(tmp_path, roles=()), "/staff-code")
+    assert "Public text" in guest
+    assert "Secret salary table" not in guest
+    assert "eyesOnly" not in guest and "readOnlyUnless" not in guest
+    assert "Secret salary table" in wire(handler(tmp_path, roles=("hr",)), "/staff-code")
