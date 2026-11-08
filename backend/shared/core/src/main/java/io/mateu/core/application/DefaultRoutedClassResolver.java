@@ -35,19 +35,20 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
    * resolves it from the shipped table.
    */
   private Optional<ResolvedRoute> fromRegistry(String route, RunActionCommand command) {
-    var direct = fromRegistry(route, route, "");
-    if (direct.isPresent()) {
-      return direct;
+    var mount = MountPaths.mountOf(command);
+    if (mount.isEmpty() || route == null || MountPaths.startsWithMount(route, mount)) {
+      return fromRegistry(route, route, "");
     }
     // A CLASS-declared non-root mount (@UI("/shop")) is served by its own controller: the browser
     // on /shop/orders posts route=/orders with baseUrl /shop, while the route file tagged
     // `basePath: /shop` is loaded with the mount on every route (shop/orders). Look the route up
     // with the mount in front, and answer a pattern RELATIVE to the mount again, since the callers
     // read the path parameters by aligning that pattern with the route they asked for.
-    var mount = MountPaths.mountOf(command);
-    if (mount.isEmpty() || route == null || MountPaths.startsWithMount(route, mount)) {
-      return Optional.empty();
-    }
+    //
+    // ONLY with the mount in front: the table is absolute, so the bare route names an entry of the
+    // ROOT mount — consulted first, a root `home` (a code RouteEntrySupplier) answered the
+    // `/home` of every other mount, whose own @Menu entry was never reached. Routes are relative
+    // to their mount; resolution stays inside the mount that was asked.
     return fromRegistry(route, MountPaths.withMount(mount, route), mount);
   }
 
