@@ -440,13 +440,21 @@ class SyncHandler(
 
         personal = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
         if personal is None:
-            return rq
+            return self._without_locked_by_pieces(rq, by_pieces)
         if rq.action_id and rq.action_id in personal.refused_actions:
             action_guard.deny(f"action '{rq.action_id}' declares access: not satisfied")
         if rq.action_id == "__restfetch__":
             source_id = (rq.parameters or {}).get("_sourceId")
             if source_id is not None and str(source_id) in personal.refused_actions:
                 action_guard.deny(f"action '{source_id}' declares access: not satisfied")
+        # a business component the layout draws only under a section the caller may not see
+        # locks every field it holds, even with no access keys of its own (fail closed)
+        if components is not None:
+            from ..component_registry import component_refs_in
+
+            hidden = component_refs_in(spec.layout) - component_refs_in(personal.layout)
+            if hidden:
+                by_pieces = {**by_pieces, **components.all_fields_of(sorted(hidden))}
         return self._without_locked_by_pieces(self._without_locked(rq, set(personal.locked_fields)), by_pieces)
 
     @staticmethod

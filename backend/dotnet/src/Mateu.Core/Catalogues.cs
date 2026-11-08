@@ -518,6 +518,15 @@ internal static class MateuCatalogs
         return locked;
     }
 
+    /// <summary>Every field of the business components <paramref name="names"/> (nested ones
+    /// included), field id → the component: they sit where the caller may not see them.</summary>
+    internal static IReadOnlyDictionary<string, string> AllFieldsOf(IEnumerable<string> names)
+    {
+        var locked = new Dictionary<string, string>();
+        foreach (var name in names) Lock(name, [], locked, lockAll: true);
+        return locked;
+    }
+
     /// <summary>STRICT (Java's <c>ClientLockedFields.appWideLockedFor</c>): every field ANY restricted
     /// business component of the app hides or locks for the caller, field id → the component. A view
     /// that may draw pieces — a code view drawing its own tree, a YAML layout — is checked against all
@@ -556,9 +565,18 @@ internal static class MateuCatalogs
     private static void Lock(string name, string[] chain, Dictionary<string, string> lockedBy, bool lockAll)
     {
         if (chain.Contains(name) || chain.Length >= 20) return;
-        if (Components.Get(name) is not { } entry || AuthoredSources.Of(entry) is not { } source) return;
+        if (Components.Get(name) is not { } entry) return;
         chain = [.. chain, name];
         var locked = new FirstWins(lockedBy, name);
+        if (AuthoredSources.Of(entry) is not { } source)
+        {
+            // no access keys of its own: it locks nothing — unless it sits under a section (or a
+            // parent piece) the caller may not see, where none of it (nested pieces included) does
+            if (!lockAll) return;
+            locked.UnionWith(AuthoredSources.FieldIdsInTree(entry.Component));
+            foreach (var child in AuthoredSources.RefsInTree(entry.Component)) Lock(child, chain, lockedBy, lockAll: true);
+            return;
+        }
         var nested = AuthoredSources.RefsIn(source.Node);
         ISet<string> visible = nested;
         if (lockAll)
@@ -726,14 +744,23 @@ internal static class AuthoredSources
     internal static HashSet<string> RefsInTree(object? tree)
     {
         var out_ = new HashSet<string>();
-        WalkTree(tree, out_, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        WalkTree(tree, out_, null, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
         return out_;
     }
 
-    private static void WalkTree(object? value, HashSet<string> refs, HashSet<object> seen, int depth)
+    /// <summary>The ids of every <see cref="FormField"/> of a fluent tree (references not followed).</summary>
+    internal static HashSet<string> FieldIdsInTree(object? tree)
+    {
+        var out_ = new HashSet<string>();
+        WalkTree(tree, new HashSet<string>(), out_, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        return out_;
+    }
+
+    private static void WalkTree(object? value, HashSet<string> refs, HashSet<string>? fieldIds, HashSet<object> seen, int depth)
     {
         if (value is null or string || depth > 64 || value.GetType().IsPrimitive || value is Enum) return;
         if (!seen.Add(value)) return;
+        if (value is FormField field && fieldIds is not null && !string.IsNullOrEmpty(field.FieldId)) fieldIds.Add(field.FieldId);
         if (value is ComponentRef r)
         {
             if (!string.IsNullOrWhiteSpace(r.Ref)) refs.Add(r.Ref.Trim());
@@ -741,7 +768,7 @@ internal static class AuthoredSources
         }
         if (value is System.Collections.IEnumerable items)
         {
-            foreach (var item in items) WalkTree(item, refs, seen, depth + 1);
+            foreach (var item in items) WalkTree(item, refs, fieldIds, seen, depth + 1);
             return;
         }
         if (value is not IComponent) return;
@@ -753,7 +780,7 @@ internal static class AuthoredSources
             object? child;
             try { child = p.GetValue(value); }
             catch { continue; }
-            WalkTree(child, refs, seen, depth + 1);
+            WalkTree(child, refs, fieldIds, seen, depth + 1);
         }
     }
 }

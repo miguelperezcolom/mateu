@@ -174,14 +174,30 @@ class ComponentRegistry:
         names = self.restricted_names()
         return self.locked_by(names, authorized) if names else {}
 
+    def all_fields_of(self, names) -> dict[str, str]:
+        """Every field of the business components ``names`` (nested ones included), field id → the
+        component: they sit where the caller may not see them."""
+        self.catalog()
+        out: dict[str, str] = {}
+        for name in names:
+            self._locked(str(name).strip(), None, (), out, lock_all=True)
+        return out
+
     def _locked(self, name, authorized, chain, out_by: dict[str, str], lock_all: bool) -> None:
         if name in chain or len(chain) >= 20:
             return
         out = _Locking(out_by, name)
         source = self._sources.get(name)
-        if source is None:
-            return  # nothing authored with access keys: it locks nothing of its own
         chain = (*chain, name)
+        if source is None:
+            # no access keys of its own: it locks nothing — unless it sits under a section (or a
+            # parent piece) the caller may not see, where none of it (nested pieces included) does
+            entry = self.get(name) if lock_all else None
+            if entry is not None:
+                out.update(component_field_ids_in(entry.component))
+                for child in component_refs_in(entry.component):
+                    self._locked(child, authorized, chain, out_by, lock_all=True)
+            return
         nested = _refs_in_yaml(source)
         visible = nested
         if lock_all:
@@ -295,6 +311,27 @@ def component_refs_in(tree: Any, _depth: int = 0) -> set[str]:
             v = getattr(tree, f.name, None)
             if isinstance(v, (fluent.Component, list, tuple, dict)) or dataclasses.is_dataclass(v):
                 out |= component_refs_in(v, _depth + 1)
+    return out
+
+
+def component_field_ids_in(tree: Any, _depth: int = 0) -> set[str]:
+    """The ids of every ``FormField`` of a fluent tree (business component references not followed)."""
+    out: set[str] = set()
+    if tree is None or _depth > 64 or isinstance(tree, fluent.ComponentRef):
+        return out
+    if isinstance(tree, fluent.FormField) and tree.field_id:
+        out.add(tree.field_id)
+    if isinstance(tree, (list, tuple)):
+        for v in tree:
+            out |= component_field_ids_in(v, _depth + 1)
+    elif isinstance(tree, dict):
+        for v in tree.values():
+            out |= component_field_ids_in(v, _depth + 1)
+    elif dataclasses.is_dataclass(tree) and not isinstance(tree, type):
+        for f in dataclasses.fields(tree):
+            v = getattr(tree, f.name, None)
+            if isinstance(v, (fluent.Component, list, tuple, dict)) or dataclasses.is_dataclass(v):
+                out |= component_field_ids_in(v, _depth + 1)
     return out
 
 

@@ -274,6 +274,16 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (rq.ActionId == "__restfetch__" && StateString(GetState(rq.Parameters, "_sourceId")) is { } sourceId
             && personal.RefusedActions.Contains(sourceId))
             ActionGuard.Deny($"action '{sourceId}' denied by access:");
+        // a business component the layout draws only under a section the caller may not see
+        // locks every field it holds, even with no access keys of its own (fail closed)
+        var hidden = AuthoredSources.RefsInTree(spec.Layout);
+        hidden.ExceptWith(AuthoredSources.RefsInTree(personal.Layout));
+        if (hidden.Count > 0)
+        {
+            var merged = new Dictionary<string, string>(MateuCatalogs.AllFieldsOf(hidden));
+            foreach (var (key, component) in byPieces) merged.TryAdd(key, component);
+            byPieces = merged;
+        }
         return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
     }
 
