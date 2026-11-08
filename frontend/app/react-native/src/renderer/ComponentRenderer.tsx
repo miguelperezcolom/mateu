@@ -8,6 +8,7 @@ import { useButtonPress } from './useButtonPress';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { RichText } from './FieldWidgets';
+import { textEmphasis } from './displayFigures';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
@@ -200,15 +201,17 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // RN-17: a Text in an h1–h6 container IS a heading (a wizard's title arrives as an h2): it
       // gets a heading's size and weight and is exposed as a header to the screen reader's
       // heading navigation — it used to render as body text, flush against the screen edge.
+      // variants: b = bold, i = italic
+      const emphasis = textEmphasis(metadata['variants']);
       const level = headingLevel(metadata['container'] as string | undefined);
       if (level > 0) {
         return (
-          <Text style={[styles.heading, { fontSize: HEADING_SIZES[level - 1] }, size ? { fontSize: size } : null]} {...headingA11y(level)}>
+          <Text style={[styles.heading, { fontSize: HEADING_SIZES[level - 1] }, size ? { fontSize: size } : null, emphasis]} {...headingA11y(level)}>
             {text}
           </Text>
         );
       }
-      return <Text style={[styles.text, size ? { fontSize: size } : null]}>{text}</Text>;
+      return <Text style={[styles.text, size ? { fontSize: size } : null, emphasis]}>{text}</Text>;
     }
 
     // A horizontal divider line (<hr>) separating contents inside a section or form.

@@ -9,5 +9,7 @@ export default interface Text extends ComponentMetadata {
     size?: string
     /** Drops the container's block margins (margin-block-start/end: 0). Independent of size. */
     noMargins?: boolean
+    /** Emphasis: b (bold) and/or i (italic). Absent = none. */
+    variants?: ('b' | 'i' | string)[]
 
 }

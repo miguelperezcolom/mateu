@@ -5807,6 +5807,12 @@
         },
         "text" : {
           "type" : "string"
+        },
+        "variants" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
         }
       },
       "required" : [ "type" ]

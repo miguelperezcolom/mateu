@@ -266,6 +266,15 @@ export function styledTextOf(cls, wireStyle) {
   return { cls: out.trim(), style }
 }
 
+/** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
+export function withTextVariants(m, styled) {
+  const variants = Array.isArray(m && m.variants) ? m.variants : []
+  let cls = styled.cls
+  if (variants.includes('b') && !/\boj-typography-bold\b/.test(cls)) cls = (cls + ' oj-typography-bold').trim()
+  const style = variants.includes('i') ? { ...styled.style, fontStyle: 'italic' } : styled.style
+  return { cls, style }
+}
+
 /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
 export const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
 
@@ -1069,10 +1078,10 @@ export function islandContentOf(ctx, opts = {}) {
             isH2: m.container === 'h2',
             text,
             // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-            ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
+            ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
           }, container)
         } else {
-          atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
+          atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
         }
       }
       return
