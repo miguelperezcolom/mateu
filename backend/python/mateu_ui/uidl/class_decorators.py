@@ -524,6 +524,19 @@ def read_only(cls: type) -> type:
     return cls
 
 
+def auto_save(debounce_millis: int = 800, action: str = "save"):
+    """Class-level: run ``action`` (a method of the view) whenever the user changes a field,
+    debounced — it fires once the user has been idle for ``debounce_millis`` ms. For settings
+    screens and draft editors with no Save button. Emits the ``AutoSave`` trigger
+    ``{actionId, debounceMillis}`` (mirrors Java's ``@AutoSave(debounceMillis, action)``)."""
+
+    def deco(cls: type) -> type:
+        setattr(cls, "__mateu_auto_save__", (int(debounce_millis), action))
+        return cls
+
+    return deco
+
+
 def confirm_on_navigation_if_dirty(cls: type) -> type:
     setattr(cls, "__mateu_confirm_dirty__", True)
     return cls

@@ -89,7 +89,7 @@ def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | No
     for f in fields if fields is not None else view_fields(cls):
         if not mapper.visible(f) or f.has(ReadOnly) or f.has(PlainText) or plain_class:
             continue
-        if not _authorized_to_edit(mapper, f):
+        if not _authorized_to_edit(mapper, f, cls):
             continue
         out.append(f)
     return out
@@ -123,10 +123,12 @@ def client_validations(
     return out
 
 
-def _authorized_to_edit(mapper, f) -> bool:
+def _authorized_to_edit(mapper, f, cls=None) -> bool:
     from mateu_ui.uidl import ReadOnlyUnless
 
-    return mapper.authorized(f.marker(ReadOnlyUnless))
+    return mapper.authorized(f.marker(ReadOnlyUnless)) and mapper.authorized(
+        getattr(cls, "__mateu_read_only_unless__", None)
+    )
 
 
 def _is_blank(value: Any) -> bool:

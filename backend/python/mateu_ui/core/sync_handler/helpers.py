@@ -226,7 +226,7 @@ class ResponseHelpersMixin(MixinBase):
         for f in view_fields(type(instance)):
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
-            if not action_guard.may_write(self.mapper, f):
+            if not action_guard.may_write(self.mapper, f, type(instance)):
                 continue
             key = camel_case(f.name)
             if key not in state:

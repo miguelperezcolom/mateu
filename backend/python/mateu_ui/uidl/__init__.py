@@ -93,6 +93,7 @@ from .security import (  # noqa: F401
     Audience,
     audience,
     disabled_unless,
+    read_only_unless,
     DisabledUnless,
     eyes_only,
     EyesOnly,
@@ -149,6 +150,7 @@ from .class_decorators import (  # noqa: F401
     auto_layout,
     auto_page,
     compact,
+    auto_save,
     confirm_on_navigation_if_dirty,
     edit_in_drawer,
     emits,
@@ -193,6 +195,7 @@ from .method_decorators import (  # noqa: F401
     group_action,
     kpi,
     list_toolbar_button,
+    view_toolbar_button,
     menu_group,
     menu_item,
     MenuDisplay,
@@ -210,6 +213,8 @@ from .listing import (  # noqa: F401
     E,
     Editable,
     F,
+    FilterCriterion,
+    FilterOperator,
     Filterable,
     GroupSummary,
     I,
@@ -290,6 +295,13 @@ from .adapters import (  # noqa: F401
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
 from .request import ActionRequest  # noqa: F401
+from .editable_views import (  # noqa: F401
+    AutoEditableView,
+    DetailPart,
+    EditableView,
+    MasterDetailView,
+    NoSelection,
+)
 from .environments import Environment, SourceOverride  # noqa: F401
 from .field_types import (  # noqa: F401
     FieldType,
@@ -374,12 +386,12 @@ __all__ = [
     "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageBanners", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "read_only_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
     "static_view",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
+    "auto_save", "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "SubscriptionSource", "TriggerType", "TriggerSpec", "trigger", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
-    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
+    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button", "view_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
@@ -405,4 +417,9 @@ __all__ = [
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",
     "MicroFrontendResolutionListener", "RemoteCatalogSupplier", "RemoteDescriptor",
     "RemoteIdentityStrategy", "RemoteRegistry", "ResolutionOutcome",
+    # Editable views and master-detail views (Java's EditableView / AutoEditableView /
+    # MasterDetailView orchestrators)
+    "AutoEditableView", "DetailPart", "EditableView", "MasterDetailView", "NoSelection",
+    # typed crud search criteria (Java's FilterCriterion / FilterOperator)
+    "FilterCriterion", "FilterOperator",
 ]

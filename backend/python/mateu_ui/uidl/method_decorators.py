@@ -242,6 +242,27 @@ def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_sele
     )
 
 
+@dataclass(frozen=True)
+class _ViewToolbarButton:
+    label: str | None
+    confirmation_required: bool
+
+
+def view_toolbar_button(arg=None, confirmation_required: bool = True):
+    """A toolbar button on a Crud's RECORD VIEW page (before Back to list / Edit) running the
+    decorated crud method on the record shown: a parameter receives the record rebuilt from the
+    page state. Returning None (or the record) re-renders the record page in place; returning only
+    messages shows them over the record RELOADED (``get``); anything else — a navigation, an
+    overlay — maps as a regular action result. Asks for confirmation by default. Supports
+    ``@view_toolbar_button``, ``@view_toolbar_button("Label")`` and keyword flags (mirrors Java's
+    @ViewToolbarButton)."""
+    return _maybe_bare(
+        arg,
+        "__mateu_view_toolbar_button__",
+        lambda label: _ViewToolbarButton(label, confirmation_required),
+    )
+
+
 def wizard_completion_action(label: str = "Finish", available_from_step: int | None = None):
     """Marks the wizard method that COMPLETES it (Java's ``@WizardCompletionAction``): the
     penultimate step shows a primary ``label`` button running it (instead of Next), and the LAST

@@ -645,8 +645,22 @@ class CrudMapperMixin(MixinBase):
         # way back (Cancel / Back to list) is a tertiary button, the view page offers "Edit" (no "Add
         # another": that belongs to the create flow — the toast confirming a create offers it), and
         # an EDIT form saves through "save" ("create" is the creation form's).
+        view_actions: list[Action] = []
         if mode == "view":
-            toolbar = [Button(label="Back to list", action_id="cancel-view", button_style="tertiary")]
+            # @view_toolbar_button methods of the crud first, as Java's ViewToolbarBuilder draws
+            # them (action-on-view-<method>, run on the record shown)
+            toolbar = []
+            for name, fn in methods_with(crud_type, "__mateu_view_toolbar_button__"):
+                if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+                    continue  # refused on invocation, and not advertised to this caller either
+                marker = getattr(fn, "__mateu_view_toolbar_button__")
+                action_id = "action-on-view-" + camel_case(name)
+                toolbar.append(Button(label=self.T(marker.label or humanize(name)), action_id=action_id))
+                view_actions.append(Action(
+                    id=action_id, validation_required=False,
+                    confirmation_required=marker.confirmation_required,
+                ))
+            toolbar.append(Button(label="Back to list", action_id="cancel-view", button_style="tertiary"))
             if can_edit:
                 toolbar.append(Button(label="Edit", action_id="edit"))
         elif mode == "edit":
@@ -690,9 +704,11 @@ class CrudMapperMixin(MixinBase):
             # Saving validates the form on the client first.
             actions=[
                 *self.field_actions(element),
+                *view_actions,
                 *(
                     Action(id=b.action_id, validation_required=b.action_id == save_action_id)
                     for b in toolbar
+                    if all(a.id != b.action_id for a in view_actions)
                 ),
             ],
             triggers=[],

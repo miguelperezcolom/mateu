@@ -155,6 +155,13 @@ class ProxyHandlerMixin(MixinBase):
                 )
             elif source is not None:
                 state = _call_state(rq)
+                # A route's fixedParams win over the client's state and the action's parameters on
+                # this leg too (fixed > client state > …, as on the hydrating path): a pin enforced
+                # only when hydrating the view would be a suggestion to a proxied url (Java's
+                # RestProxyCalls.fetch).
+                match = self.routes.match(rq.route) if getattr(self, "routes", None) else None
+                if match is not None:
+                    state.update(match.entry.fixed_params or {})
                 if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
                     return self._for_each_selected_row(source, state)
                 try:

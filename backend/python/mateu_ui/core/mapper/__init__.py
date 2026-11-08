@@ -265,6 +265,7 @@ from .crud import CrudMapperMixin
 from .layout import LayoutMapperMixin
 from .fields import FieldMapperMixin
 from ..export import Exporters
+from ..hidden_members import is_hidden as is_hidden_member
 
 
 class ReflectionMapper(
@@ -341,6 +342,9 @@ class ReflectionMapper(
             return False
         # HeaderBadge() fields are header chips, never form fields (Java's FormFieldFilter).
         if f.has(HeaderBadge):
+            return False
+        # a member the render in flight hides (a MasterDetailView's unselected detail parts)
+        if is_hidden_member(f.name):
             return False
         return self._permitted(f)
 

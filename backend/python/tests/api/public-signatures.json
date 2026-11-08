@@ -352,6 +352,29 @@
     ]
    ]
   },
+  "AutoEditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "load": [],
+    "persist": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
+   }
+  },
   "BadgeInHeader": {
    "class": [
     [
@@ -757,6 +780,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
@@ -933,6 +961,25 @@
     ],
     [
      "min_height_when_detail_visible",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "DetailPart": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -1139,6 +1186,21 @@
       true
      ]
     ]
+   }
+  },
+  "EditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
    }
   },
   "Emit": {
@@ -1390,6 +1452,33 @@
     ]
    ]
   },
+  "FilterCriterion": {
+   "class": [
+    [
+     "field",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "operator",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FilterOperator": {
+   "enum": [
+    "between",
+    "gte",
+    "in_",
+    "lte"
+   ]
+  },
   "Filterable": {
    "class": [],
    "members": {
@@ -1595,6 +1684,7 @@
       false
      ]
     ],
+    "record_label": [],
     "style": [],
     "switcher_options": []
    }
@@ -1782,6 +1872,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
@@ -2284,6 +2379,15 @@
     "to_command": []
    }
   },
+  "MasterDetailView": {
+   "class": [],
+   "members": {
+    "header": [],
+    "load": [],
+    "no_selection": [],
+    "title": []
+   }
+  },
   "Max": {
    "class": [
     [
@@ -2638,6 +2742,9 @@
    "members": {
     "to_command": []
    }
+  },
+  "NoSelection": {
+   "class": []
   },
   "NotificationChange": {
    "class": [
@@ -4257,6 +4364,20 @@
     ]
    ]
   },
+  "auto_save": {
+   "function": [
+    [
+     "debounce_millis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "banner": {
    "function": [
     [
@@ -4588,6 +4709,30 @@
   },
   "read_only": {
    "function": []
+  },
+  "read_only_unless": {
+   "function": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "remote_menu": {
    "function": [
@@ -4988,6 +5133,20 @@
      "message",
      "POSITIONAL_OR_KEYWORD",
      false
+    ]
+   ]
+  },
+  "view_toolbar_button": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirmation_required",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -6514,6 +6673,13 @@
      "POSITIONAL_OR_KEYWORD",
      true
     ]
+   ]
+  },
+  "EmbeddedChrome": {
+   "enum": [
+    "COMPACT",
+    "NONE",
+    "PAGE"
    ]
   },
   "EmbeddedView": {
@@ -8241,6 +8407,11 @@
     ],
     [
      "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chrome",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

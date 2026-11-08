@@ -1052,6 +1052,7 @@ class ComponentMapperMixin(MixinBase):
                     ("server_side_type", c.server_side_type),
                     ("consumed_route", c.consumed_route),
                     ("action_id", c.action_id),
+                    ("chrome", c.chrome.value if c.chrome is not None else None),
                 )
                 if value is not None
             }
