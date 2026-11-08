@@ -65,6 +65,8 @@ Legend: **removed** = gone in this branch; **kept** = stays, with the reason.
 | Quill Delta JSON → HTML conversion of rich-text values | libs `richTextValue.ts`, Redwood `richtext.mjs`, RN `richTextValue.ts`, IntelliJ `RichTextValue.kt` | the value is HTML | removed |
 | `Result`/`Stepper` in renderer type lists | libs `ComponentMetadataType.ts`, parity gates | — | removed |
 | "older server" fallbacks for optional fields (`MenuOption.path` standing in for `prefix`, selection gate, wireVersion absent…) | libs, Redwood, RN, IntelliJ | — | **kept** — every one also covers the field simply being absent (NON_NULL wire, static bundles, custom producers); they are tolerance rules of the wire, not pre-release support |
+| IntelliJ `OidcSessions.kt` migration of the old refresh-token account | IntelliJ plugin | — | **kept** — a one-time local storage migration on the user's machine, not a wire or API alias; harmless, removable later |
+| The renderers' legacy condition matcher | libs | — | **kept** — a syntax safety net for rule expressions, not tied to a pre-release |
 | Mobile hub app compatibility (`app-compat.json`, `minAppVersion`, `mateuVersion`) | RN, IntelliJ hub | — | **kept** — the store app updates over the air together with the renderers; the rule (compatible / recommended / required by release) still holds for 3.0.0 and later |
 
 ## Figma pipeline (preview tool)
