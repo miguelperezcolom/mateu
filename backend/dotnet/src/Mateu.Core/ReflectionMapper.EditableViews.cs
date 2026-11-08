@@ -86,7 +86,8 @@ internal sealed partial class ReflectionMapper
         {
             EmitsName = emits,
             Rules = MapRules(modelType, model),
-            Validations = mode == "edit" ? MapValidations(modelType) : [],
+            // the entity's constraints ride on the view page too (Java emits them on both)
+            Validations = MapValidations(modelType),
             PageType = mode == "edit" ? "form" : "detail",
             // the editor guards what was typed, like any create/edit form
             ConfirmOnNavigationIfDirty = mode == "edit",

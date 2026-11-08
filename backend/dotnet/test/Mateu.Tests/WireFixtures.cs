@@ -444,6 +444,40 @@ public class ProductsCrud : Crud<Product>
     public override void Delete(string id) { }
 }
 
+// An editable view: the record read-only with Edit, the editor with Cancel + Save.
+public class Profile
+{
+    [Required] public string? Name { get; set; } = "Ada";
+    public string? City { get; set; } = "London";
+}
+
+[UI("conformance/editable-view"), Title("Profile")]
+public class ProfileView : AutoEditableView<Profile>
+{
+    public override Profile Load() => new();
+    public override void Persist(Profile entity) { }
+}
+
+// The Products crud with a [ViewToolbarButton] on its record view.
+[UI("conformance/view-toolbar-button"), Title("Products")]
+public class ViewToolbarProductsCrud : Crud<Product>
+{
+    private static readonly List<Product> Store =
+    [
+        new() { Id = "P-001", Name = "Espresso machine", Price = 249.0, Status = ProductStatus.Available },
+        new() { Id = "P-002", Name = "Coffee grinder", Price = 89.5, Status = ProductStatus.Available },
+        new() { Id = "P-003", Name = "Milk frother", Price = 39.9, Status = ProductStatus.OutOfStock },
+    ];
+
+    public override IEnumerable<Product> Fetch(string? search) => Store;
+    public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
+    public override void Save(Product product) { }
+    public override void Delete(string id) { }
+
+    [ViewToolbarButton(ConfirmationRequired = true)]
+    public Message Discontinue(Product product) => new($"Discontinued {product.Name}");
+}
+
 public class Book
 {
     public string Id { get; set; } = "";
