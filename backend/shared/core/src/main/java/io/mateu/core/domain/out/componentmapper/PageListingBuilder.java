@@ -193,7 +193,14 @@ public class PageListingBuilder {
    */
   private static String getRestListingRowRoute(Object instance) {
     var a = MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RestListing.class);
-    return a == null || a.rowRoute().isBlank() ? null : a.rowRoute();
+    if (a != null && !a.rowRoute().isBlank()) {
+      return a.rowRoute();
+    }
+    // @RowRoute on a plain Listing: only the CRUD path (ListRouteResolver) used to read it, so the
+    // rows of a listing with no interaction capabilities did nothing
+    var rowRoute =
+        MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RowRoute.class);
+    return rowRoute == null || rowRoute.value().isBlank() ? null : rowRoute.value();
   }
 
   /**
