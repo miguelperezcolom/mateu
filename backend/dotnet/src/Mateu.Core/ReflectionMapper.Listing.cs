@@ -162,6 +162,11 @@ internal sealed partial class ReflectionMapper
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
         }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
         var pageChildren = new List<ComponentDto>();
+        // HeroSearch<TFilters,TRow>: the centered hero over the listing (as on the crud one)
+        var hero = instance as IHeroSearch;
+        if (hero is not null)
+            pageChildren.Add(Client(new HeroSectionMetadataDto(
+                hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
         pageChildren.Add(crud);
@@ -169,7 +174,7 @@ internal sealed partial class ReflectionMapper
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
             with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
-        var triggers = smartSearch is null ? new List<TriggerDto> { PreloadSearch() } : [];
+        var triggers = smartSearch is null && hero is null ? new List<TriggerDto> { PreloadSearch() } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
             new Dictionary<string, object?>(), actions, triggers, null, null, null)

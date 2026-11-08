@@ -161,6 +161,7 @@ Mateu.Uidl.HeatCell
 Mateu.Uidl.Heatmap
 Mateu.Uidl.HelpAttribute
 Mateu.Uidl.HeroSearch`1
+Mateu.Uidl.HeroSearch`2
 Mateu.Uidl.HeroSection
 Mateu.Uidl.HeroTone
 Mateu.Uidl.HiddenAttribute

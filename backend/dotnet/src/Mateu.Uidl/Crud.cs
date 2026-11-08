@@ -244,6 +244,23 @@ public abstract class Listing<TFilters, TRow> : IListing<TRow>, ISearchable, IFi
     public virtual string GridLayout() => "auto";
 }
 
+/// <summary>A search-first READ-ONLY page over a declarative listing with its own filters type (the
+/// shape of Java's <c>HeroSearch&lt;Filters, Row&gt;</c>): a centered hero header over the listing,
+/// the <typeparamref name="TFilters"/> properties as the facet bar, results as cards (override
+/// <see cref="GridLayout"/>), starting EMPTY — the user searches. Implement
+/// <see cref="Listing{TFilters,TRow}.Search"/> as on any listing. For a hero page over a WRITABLE
+/// entity crud use <see cref="HeroSearch{T}"/>. (C# analogue of Java's HeroSearch archetype.)</summary>
+public abstract class HeroSearch<TFilters, TRow> : Listing<TFilters, TRow>, IHeroSearch
+    where TFilters : class, new() where TRow : class
+{
+    public virtual string? HeroTitle() => null;
+    public virtual string? HeroSubtitle() => null;
+    /// <summary>Background image URL, rendered with a dark overlay.</summary>
+    public virtual string? HeroImage() => null;
+    /// <summary>Results as cards by default (Java's HeroSearch.gridLayout).</summary>
+    public override string GridLayout() => "cards";
+}
+
 /// <summary>The intro line of a <see cref="SmartSearchPage{TFilters,TRow}"/> page (non-generic
 /// view of it).</summary>
 public interface ISmartSearchPage

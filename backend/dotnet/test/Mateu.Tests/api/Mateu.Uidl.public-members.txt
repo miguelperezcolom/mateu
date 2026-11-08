@@ -802,6 +802,7 @@ Mateu.Uidl.GeneralOverview<TRow> property Mateu.Uidl.GeneralOverviewDisplay Disp
 Mateu.Uidl.GeneralOverview<TRow> property System.Int32 RefreshDebounceMillis { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String InfoWidth { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String Record { get;set; }
+Mateu.Uidl.GeneralOverview<TRow> property System.String RecordLabel { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String RefreshActionId { get; }
 Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent EmptyOverview()
 Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent Info(TRow)
@@ -856,6 +857,11 @@ Mateu.Uidl.HeroSearch<T> ctor()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroImage()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroSubtitle()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroTitle()
+Mateu.Uidl.HeroSearch<TFilters,TRow> ctor()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String GridLayout()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroImage()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroSubtitle()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroTitle()
 Mateu.Uidl.HeroSection ctor()
 Mateu.Uidl.HeroSection property Mateu.Uidl.HeroTone Tone { get;init; }
 Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }

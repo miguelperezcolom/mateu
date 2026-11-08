@@ -277,6 +277,7 @@ internal sealed partial class ReflectionMapper
         if (typeof(Dashboard).IsAssignableFrom(type)) return "dashboard";
         if (typeof(Welcome).IsAssignableFrom(type)) return "landing";
         if (DerivesFrom(type, typeof(HeroSearch<>))) return "landing";
+        if (DerivesFrom(type, typeof(HeroSearch<,>))) return "landing";
         if (DerivesFrom(type, typeof(SmartSearchPage<,>))) return "collection";
         if (DerivesFrom(type, typeof(TodoList<>))) return "collection";
         if (typeof(CalendarPage).IsAssignableFrom(type)) return "collection";

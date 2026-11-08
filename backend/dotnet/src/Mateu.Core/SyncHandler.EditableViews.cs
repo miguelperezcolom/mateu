@@ -89,6 +89,11 @@ internal sealed partial class SyncHandler
                 // any other action is the shown model's own ([Button]/[Toolbar] of the view or the editor)
                 var model = editing ? view.LoadEditor() : view.LoadView();
                 BindState(model, rq.ComponentState);
+                // a [Lookup] field searches its options through the view (or the model) that supplies them
+                if (rq.ActionId.StartsWith("search-", StringComparison.Ordinal))
+                    return FieldSearch(LookupHost(view, model), rq);
+                if (rq.ActionId.StartsWith("codesearch-", StringComparison.Ordinal))
+                    return FieldCodeSearch(model.GetType(), rq);
                 return RunAction(model.GetType(), model, rq, null);
             }
         }
@@ -113,8 +118,13 @@ internal sealed partial class SyncHandler
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
         var component = _mapper.MapEditableViewPage(type, view, model, mode, route, embedded, inline);
         return FragmentResponse(_mapper.TitleOf(model.GetType(), model), component, rq,
-            LookupLabels(model.GetType(), model, model), emitWindowTitle: !embedded);
+            LookupLabels(model.GetType(), model, LookupHost(view, model)), emitWindowTitle: !embedded);
     }
+
+    /// <summary>Who answers a [Lookup] field's options and labels: the editable view when it
+    /// supplies them (it holds the context), else the shown model.</summary>
+    private static object LookupHost(IEditableView view, object model) =>
+        view is IOptionsSupplier or ILookupLabelSupplier ? view : model;
 
     // ── [ViewToolbarButton] on a crud's record view ────────────────────────────
 

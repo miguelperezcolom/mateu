@@ -725,6 +725,8 @@ internal sealed partial class ReflectionMapper
             if (p.Find<SeparatorBeforeAttribute>() != null)
                 fields.Add(Client(new SeparatorMetadataDto(
                     new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
+            // a property holding a fluent component with nothing in it renders nothing (never a field)
+            if (IsComponentProperty(p) && p.GetValue(instance) is null) continue;
             fields.Add(IsIslandProperty(p)
                 ? MapIslandField(p, instance, FormColumns(p.DeclaringType)) ?? MapField(p, instance, readOnly)
                 : MapField(p, instance, readOnly));

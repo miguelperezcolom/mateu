@@ -41,7 +41,12 @@ internal sealed partial class ReflectionMapper
     /// <summary>Whether a property renders as an island instead of a field: its type has a
     /// registered adapter, or is a routed view ([UI]) embedded in the host.</summary>
     internal bool IsIslandProperty(PropertyInfo p) =>
-        registry?.AdapterFor(p.PropertyType) is not null || IsEmbeddedView(p.PropertyType);
+        registry?.AdapterFor(p.PropertyType) is not null || IsEmbeddedView(p.PropertyType) || IsComponentProperty(p);
+
+    /// <summary>A property typed with a fluent component: the component is drawn in the form (Java's
+    /// ReflectionFormFieldMapper renders a Component field as a CustomField around it) and is never
+    /// state.</summary>
+    internal static bool IsComponentProperty(PropertyInfo p) => typeof(IComponent).IsAssignableFrom(p.PropertyType);
 
     private static bool IsEmbeddedView(Type t) =>
         t.IsClass && t != typeof(string) && !typeof(IComponent).IsAssignableFrom(t)
@@ -65,6 +70,13 @@ internal sealed partial class ReflectionMapper
         else if (IsEmbeddedView(p.PropertyType))
         {
             content = MapEmbeddedIsland(p, value);
+        }
+        else if (value is IComponent fluent)
+        {
+            // the component itself, with ITS style on the cell (Java: CustomField.style(component.style()))
+            return Client(new CustomFieldMetadataDto(T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)),
+                    ComponentMapper.Map(fluent), p.Find<ColspanAttribute>()?.Value ?? columns),
+                Naming.CamelCase(p.Name), []) with { Style = fluent.Style };
         }
         else return null;
         var label = p.Find<InlineAttribute>() != null ? "" : T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
