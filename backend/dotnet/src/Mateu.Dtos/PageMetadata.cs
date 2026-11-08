@@ -89,6 +89,8 @@ public record BannerDto(string Theme, string? Title, string? Description)
 /// <summary>A status chip shown in the page header strip.</summary>
 public record BadgeDto(string Text, string Color)
 {
+    /// <summary>The wire discriminator Java's BadgeDto carries.</summary>
+    public string Type => "Badge";
     public bool Primary { get; init; }
     public bool Small { get; init; }
     public bool Pill { get; init; } = true;
@@ -112,6 +114,10 @@ public record VerticalLayoutMetadataDto : ComponentMetadataDto
     /// <summary>Cross-axis alignment of the children: START, CENTER, END, STRETCH, BASELINE (Java
     /// HorizontalAlignmentDto); null = the renderer default.</summary>
     public string? HorizontalAlignment { get; init; }
+
+    /// <summary>Takes the whole width of its container (Java's VerticalLayoutDto.fullWidth).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FullWidth { get; init; }
 }
 
 public record FormLayoutMetadataDto : ComponentMetadataDto

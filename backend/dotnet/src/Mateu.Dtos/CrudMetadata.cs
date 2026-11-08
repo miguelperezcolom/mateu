@@ -64,6 +64,12 @@ public record CrudMetadataDto(
     /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
     public RestDataSourceDto? RowsSource { get; init; }
 
+    /// <summary>The way IN to a record from a listing with no view model behind it: a route template
+    /// (<c>people/${row.id}</c>) the renderer interpolates against the clicked row and navigates to —
+    /// the whole row opens it. Omitted when null. (Java's CrudlDto.rowRoute.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? RowRoute { get; init; }
+
     /// <summary>Rows can be dragged onto a DropZone accepting this type ([DragRows]); null = not
     /// draggable (mirrors CrudlDto.dragType).</summary>
     public string? DragType { get; init; }

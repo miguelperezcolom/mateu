@@ -295,13 +295,15 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
             // page; a page that declares modelView: instantiates that logic class (state + actions)
             // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
+            // a `type: AppShell` definition bound to the route: the mount's app (YamlAppShell)
+            if (yamlSpec.Shell is { } shell) return YamlShellResponse(shell, rq);
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
                 return yamlSpec.Layout is { } bare
                     // the route's seeds (state:, fixed/default/path params, already folded into the
                     // component state) are the page's state: a seeded bare page is wrapped so it
                     // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
                     ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
-                        routeEntry is not null ? rq.ComponentState : null), rq)
+                        routeEntry is not null ? rq.ComponentState : null, yamlSpec.TemplatePageType), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
         }
@@ -529,27 +531,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     HomeServerSideType = homeTypeOverride ?? deepLinked.HomeServerSideType,
                 },
             };
-        // The catalogues ride the APP metadata (app-wide configuration, not per response); a
-        // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
-        if (app is { Metadata: AppMetadataDto catalogued })
-        {
-            var sampleMode = SampleMode;
-            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources, withSamples: sampleMode);
-            var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
-            if (sources.Count > 0) caps.Add(Capabilities.RestSources);
-            app = app with
-            {
-                Metadata = catalogued with
-                {
-                    RestSources = sources,
-                    Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
-                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
-                    RequiredCapabilities = caps.ToList(),
-                    MockSources = sampleMode ? true : null,
-                    AgentPush = AgentPush is not null ? true : null,
-                },
-            };
-        }
+        app = WithCatalogues(app);
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount
@@ -670,9 +652,12 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// page type, so it is wrapped in a server-side page that does (mirrors Java's
     /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Undeclared → unchanged.</summary>
     private static ComponentDto WithDeclaredPageType(
-        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null)
+        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null,
+        string? templatePageType = null)
     {
         if (pageType is null && (state is null || state.Count == 0)) return layout;
+        // wrapped for its seeds: a page that fills a template is the template's kind of page
+        pageType ??= templatePageType;
         var route = (rq.Route ?? "").Split('?')[0].Trim('/');
         return new ServerSideComponentDto(
             "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),

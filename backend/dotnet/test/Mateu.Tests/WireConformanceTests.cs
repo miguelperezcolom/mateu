@@ -36,7 +36,7 @@ public class WireConformanceTests
     /// An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
     /// is a contract break (dropped with every generated id, the ports' CRUD forms shipped with dead
     /// Save/Edit buttons unnoticed).
-    private static JsonNode? Normalise(JsonNode? node, bool inActions = false)
+    internal static JsonNode? Normalise(JsonNode? node, bool inActions = false)
     {
         switch (node)
         {
@@ -299,7 +299,7 @@ public class WireConformanceTests
 
     /// <summary>A path-wise diff of two normalised trees (expected vs actual), so a failure says
     /// WHERE the wire differs instead of dumping two documents.</summary>
-    private static void Diff(string path, JsonNode? expected, JsonNode? actual, List<string> diffs)
+    internal static void Diff(string path, JsonNode? expected, JsonNode? actual, List<string> diffs)
     {
         switch (expected, actual)
         {

@@ -87,6 +87,8 @@ Mateu.Uidl.AddOnPicker property System.Collections.Generic.IReadOnlyList<Mateu.U
 Mateu.Uidl.AddOnPicker property System.String ActionId { get;init; }
 Mateu.Uidl.AddOnPicker property System.String Currency { get;init; }
 Mateu.Uidl.AddOnPicker property System.String TotalLabel { get;init; }
+Mateu.Uidl.AdvancedCreateEditPage ctor()
+Mateu.Uidl.AdvancedCreateEditPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Detail { get;init; }
 Mateu.Uidl.AggregateAttribute ctor(Mateu.Uidl.AggregateFunction = Sum)
 Mateu.Uidl.AggregateAttribute property Mateu.Uidl.AggregateFunction Function { get; }
 Mateu.Uidl.AggregateFunction enum Avg
@@ -325,6 +327,9 @@ Mateu.Uidl.CollectionDetail<TRow> virtual method Mateu.Uidl.IComponent EmptyDeta
 Mateu.Uidl.CollectionDetail<TRow> virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> BadgesOf(TRow)
 Mateu.Uidl.CollectionDetail<TRow> virtual method System.String CaptionOf(TRow)
 Mateu.Uidl.CollectionDetail<TRow> virtual method System.String ListLabel(System.Int32)
+Mateu.Uidl.CollectionDetailPage ctor()
+Mateu.Uidl.CollectionDetailPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> List { get;init; }
+Mateu.Uidl.CollectionDetailPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> NoSelection { get;init; }
 Mateu.Uidl.ColspanAttribute ctor(System.Int32)
 Mateu.Uidl.ColspanAttribute property System.Int32 Value { get; }
 Mateu.Uidl.ColumnMapping ctor()
@@ -434,6 +439,8 @@ Mateu.Uidl.Dashboard method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.Dashboard property System.Boolean Reorderable { get; }
 Mateu.Uidl.Dashboard property System.Int32 Columns { get; }
 Mateu.Uidl.Dashboard property System.String Style { get; }
+Mateu.Uidl.DashboardLandingPage ctor()
+Mateu.Uidl.DashboardLandingPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Kpi { get;init; }
 Mateu.Uidl.DashboardLayout ctor()
 Mateu.Uidl.DashboardLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Items { get;init; }
 Mateu.Uidl.DashboardLayout property System.Int32 Columns { get;init; }
@@ -458,6 +465,9 @@ Mateu.Uidl.DataManagement property System.String View { get;set; }
 Mateu.Uidl.DataManagement virtual method Mateu.Uidl.DockedPanel BottomPanel()
 Mateu.Uidl.DataManagement virtual method Mateu.Uidl.DockedPanel EndPanel()
 Mateu.Uidl.DataManagement virtual method Mateu.Uidl.PageWidthStyle? PageWidth()
+Mateu.Uidl.DataManagementPage ctor()
+Mateu.Uidl.DataManagementPage property Mateu.Uidl.DockedPanel Bottom { get;init; }
+Mateu.Uidl.DataManagementPage property Mateu.Uidl.DockedPanel End { get;init; }
 Mateu.Uidl.DateRange ctor(System.DateOnly? = null, System.DateOnly? = null)
 Mateu.Uidl.DateRange method System.Boolean Contains(System.DateOnly)
 Mateu.Uidl.DateRange property System.Boolean IsEmpty { get; }
@@ -688,6 +698,9 @@ Mateu.Uidl.FoldoutNavigation property System.String ParentActionId { get;init; }
 Mateu.Uidl.FoldoutNavigation property System.String ParentLabel { get;init; }
 Mateu.Uidl.FoldoutNavigation property System.String PreviousActionId { get;init; }
 Mateu.Uidl.FoldoutNavigation property System.String Title { get;init; }
+Mateu.Uidl.FoldoutPage ctor()
+Mateu.Uidl.FoldoutPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Overview { get;init; }
+Mateu.Uidl.FoldoutPage property System.String Orientation { get;init; }
 Mateu.Uidl.FoldoutPanel ctor()
 Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Summary { get;init; }
@@ -698,6 +711,7 @@ Mateu.Uidl.FoldoutPanel property System.String Subtitle { get;init; }
 Mateu.Uidl.FoldoutPanel property System.String Title { get;init; }
 Mateu.Uidl.FoldoutPanel property System.String Width { get;init; }
 Mateu.Uidl.Form ctor()
+Mateu.Uidl.Form property Mateu.Uidl.IFormTemplate Template { get;init; }
 Mateu.Uidl.Form property Mateu.Uidl.PeerNav PeerNav { get;init; }
 Mateu.Uidl.Form property Mateu.Uidl.RecordSwitcher RecordSwitcher { get;init; }
 Mateu.Uidl.Form property System.Boolean NoHeader { get;init; }
@@ -719,6 +733,7 @@ Mateu.Uidl.FormField property System.Boolean ReadOnly { get;init; }
 Mateu.Uidl.FormField property System.Boolean Required { get;init; }
 Mateu.Uidl.FormField property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options { get;init; }
 Mateu.Uidl.FormField property System.Double Step { get;init; }
+Mateu.Uidl.FormField property System.Int32 OptionsColumns { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMax { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMin { get;init; }
 Mateu.Uidl.FormField property System.Object InitialValue { get;init; }
@@ -787,6 +802,8 @@ Mateu.Uidl.GeneralOverviewDisplay ctor(Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle
 Mateu.Uidl.GeneralOverviewDisplay property Mateu.Uidl.Toggle Info { get;init; }
 Mateu.Uidl.GeneralOverviewDisplay property Mateu.Uidl.Toggle PromoteInfoSlot { get;init; }
 Mateu.Uidl.GeneralOverviewDisplay static property Mateu.Uidl.GeneralOverviewDisplay Defaults { get; }
+Mateu.Uidl.GeneralOverviewPage ctor()
+Mateu.Uidl.GeneralOverviewPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Info { get;init; }
 Mateu.Uidl.GlobalSearchResult ctor(System.String, System.String)
 Mateu.Uidl.GlobalSearchResult ctor(System.String, System.String, System.String, System.String)
 Mateu.Uidl.GlobalSearchResult property System.String Category { get;init; }
@@ -815,6 +832,13 @@ Mateu.Uidl.GroupSummary property System.Collections.Generic.IReadOnlyDictionary<
 Mateu.Uidl.GroupSummary property System.Collections.Generic.IReadOnlyList<System.String> HiddenActions { get;init; }
 Mateu.Uidl.GroupSummary property System.Int64 Count { get;init; }
 Mateu.Uidl.GroupSummary property System.String Value { get;init; }
+Mateu.Uidl.GuidedProcessPage ctor()
+Mateu.Uidl.GuidedProcessPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GuidedProcessStep> Steps { get;init; }
+Mateu.Uidl.GuidedProcessStep ctor()
+Mateu.Uidl.GuidedProcessStep property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.GuidedProcessStep property System.String Description { get;init; }
+Mateu.Uidl.GuidedProcessStep property System.String Id { get;init; }
+Mateu.Uidl.GuidedProcessStep property System.String Title { get;init; }
 Mateu.Uidl.HeaderBadgeAttribute ctor(System.String = "normal")
 Mateu.Uidl.HeaderBadgeAttribute property System.String Color { get; }
 Mateu.Uidl.HeaderBadgeAttribute property System.String Label { get;init; }
@@ -834,6 +858,8 @@ Mateu.Uidl.HeroSearch<T> ctor()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroImage()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroSubtitle()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroTitle()
+Mateu.Uidl.HeroSearchPage ctor()
+Mateu.Uidl.HeroSearchPage property System.String BackgroundColor { get;init; }
 Mateu.Uidl.HeroSection ctor()
 Mateu.Uidl.HeroSection property Mateu.Uidl.HeroTone Tone { get;init; }
 Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }
@@ -989,6 +1015,11 @@ Mateu.Uidl.InlineEditingAttribute ctor()
 Mateu.Uidl.ItemOverview ctor()
 Mateu.Uidl.ItemOverview method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.ItemOverview property System.String PanelWidth { get; }
+Mateu.Uidl.ItemOverviewPage ctor()
+Mateu.Uidl.ItemOverviewPage property Mateu.Uidl.TemplateImage Avatar { get;init; }
+Mateu.Uidl.ItemOverviewPage property Mateu.Uidl.TemplateImage Photo { get;init; }
+Mateu.Uidl.ItemOverviewPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Body { get;init; }
+Mateu.Uidl.ItemOverviewPage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer { get;init; }
 Mateu.Uidl.Kanban ctor()
 Mateu.Uidl.Kanban property Mateu.Uidl.KanbanCard Card { get;init; }
 Mateu.Uidl.Kanban property Mateu.Uidl.RestDataSource RowsSource { get;init; }
@@ -1073,6 +1104,7 @@ Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Ma
 Mateu.Uidl.ListingComponent property System.Int32 PageSize { get;init; }
 Mateu.Uidl.ListingComponent property System.String EmptyStateMessage { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridLayout { get;init; }
+Mateu.Uidl.ListingComponent property System.String RowRoute { get;init; }
 Mateu.Uidl.ListingComponent property System.String Subtitle { get;init; }
 Mateu.Uidl.ListingComponent property System.String Title { get;init; }
 Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> From<TRow>(System.Collections.Generic.IEnumerable<TRow>)
@@ -1284,6 +1316,8 @@ Mateu.Uidl.MobileAppAttribute property System.String ThemeColor { get;set; }
 Mateu.Uidl.MobileAppAttribute property System.String[] Scopes { get;set; }
 Mateu.Uidl.MoneyAttribute ctor()
 Mateu.Uidl.MultilineAttribute ctor()
+Mateu.Uidl.MultimediaContentPage ctor()
+Mateu.Uidl.MultimediaContentPage property System.String BackgroundColor { get;init; }
 Mateu.Uidl.NavLink ctor(System.String, System.String = null, System.String = null, System.String = null)
 Mateu.Uidl.NavLink property System.String Href { get;init; }
 Mateu.Uidl.NavLink property System.String Icon { get;init; }
@@ -1808,6 +1842,10 @@ Mateu.Uidl.TaskProgress property System.String Label { get;init; }
 Mateu.Uidl.TaskQueue ctor()
 Mateu.Uidl.TaskQueue property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueGroup> Groups { get;init; }
 Mateu.Uidl.TaskQueue property System.String ActionId { get;init; }
+Mateu.Uidl.TemplateImage ctor()
+Mateu.Uidl.TemplateImage property System.String Initials { get;init; }
+Mateu.Uidl.TemplateImage property System.String Src { get;init; }
+Mateu.Uidl.TemplateTones static method Mateu.Uidl.HeroTone? ToneOf(System.String)
 Mateu.Uidl.Testimonial ctor()
 Mateu.Uidl.Testimonial property System.Int32 Rating { get;init; }
 Mateu.Uidl.Testimonial property System.String Author { get;init; }
@@ -1920,6 +1958,8 @@ Mateu.Uidl.WelcomeBannerAttribute property System.String Image { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Overline { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Subtitle { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Title { get;set; }
+Mateu.Uidl.WelcomePage ctor()
+Mateu.Uidl.WelcomePage property System.String BackgroundColor { get;init; }
 Mateu.Uidl.Wizard abstract method Mateu.Uidl.Message Complete()
 Mateu.Uidl.Wizard ctor()
 Mateu.Uidl.Wizard property Mateu.Uidl.WizardDisplay Display { get; }

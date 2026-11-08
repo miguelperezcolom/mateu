@@ -15,6 +15,7 @@ Mateu.Uidl.ActionPanelItem
 Mateu.Uidl.AdaptedView
 Mateu.Uidl.AddOn
 Mateu.Uidl.AddOnPicker
+Mateu.Uidl.AdvancedCreateEditPage
 Mateu.Uidl.AggregateAttribute
 Mateu.Uidl.AggregateFunction
 Mateu.Uidl.Anchor
@@ -61,6 +62,7 @@ Mateu.Uidl.Checklist
 Mateu.Uidl.ChecklistItem
 Mateu.Uidl.Chip
 Mateu.Uidl.CloseOverlay
+Mateu.Uidl.CollectionDetailPage
 Mateu.Uidl.CollectionDetail`1
 Mateu.Uidl.ColspanAttribute
 Mateu.Uidl.ColumnMapping
@@ -82,9 +84,11 @@ Mateu.Uidl.Crud`1
 Mateu.Uidl.CsvParser
 Mateu.Uidl.CustomComponent
 Mateu.Uidl.Dashboard
+Mateu.Uidl.DashboardLandingPage
 Mateu.Uidl.DashboardLayout
 Mateu.Uidl.DashboardPanel
 Mateu.Uidl.DataManagement
+Mateu.Uidl.DataManagementPage
 Mateu.Uidl.DateRange
 Mateu.Uidl.DeclaredRestSource
 Mateu.Uidl.Details
@@ -130,6 +134,7 @@ Mateu.Uidl.FoldedLayoutAttribute
 Mateu.Uidl.Foldout
 Mateu.Uidl.FoldoutLayout
 Mateu.Uidl.FoldoutNavigation
+Mateu.Uidl.FoldoutPage
 Mateu.Uidl.FoldoutPanel
 Mateu.Uidl.Form
 Mateu.Uidl.FormField
@@ -142,6 +147,7 @@ Mateu.Uidl.Gantt
 Mateu.Uidl.GanttPage
 Mateu.Uidl.GanttTask
 Mateu.Uidl.GeneralOverviewDisplay
+Mateu.Uidl.GeneralOverviewPage
 Mateu.Uidl.GeneralOverview`1
 Mateu.Uidl.GlobalSearchResult
 Mateu.Uidl.GridTrack
@@ -150,11 +156,14 @@ Mateu.Uidl.GroupByAttribute
 Mateu.Uidl.GroupRelationship
 Mateu.Uidl.GroupSummaries
 Mateu.Uidl.GroupSummary
+Mateu.Uidl.GuidedProcessPage
+Mateu.Uidl.GuidedProcessStep
 Mateu.Uidl.HeaderBadgeAttribute
 Mateu.Uidl.HeaderValue
 Mateu.Uidl.HeatCell
 Mateu.Uidl.Heatmap
 Mateu.Uidl.HelpAttribute
+Mateu.Uidl.HeroSearchPage
 Mateu.Uidl.HeroSearch`1
 Mateu.Uidl.HeroSection
 Mateu.Uidl.HeroTone
@@ -178,6 +187,7 @@ Mateu.Uidl.IDraftable
 Mateu.Uidl.IEditable`2
 Mateu.Uidl.IFieldTypeCatalogSupplier
 Mateu.Uidl.IFilterable`1
+Mateu.Uidl.IFormTemplate
 Mateu.Uidl.IFragmentCachePolicySupplier
 Mateu.Uidl.IFragmentCacheStore
 Mateu.Uidl.IGanttPage
@@ -222,6 +232,7 @@ Mateu.Uidl.IncomingRequest
 Mateu.Uidl.InlineAttribute
 Mateu.Uidl.InlineEditingAttribute
 Mateu.Uidl.ItemOverview
+Mateu.Uidl.ItemOverviewPage
 Mateu.Uidl.Kanban
 Mateu.Uidl.KanbanCard
 Mateu.Uidl.KanbanColumn
@@ -275,6 +286,7 @@ Mateu.Uidl.MicroFrontendResolutionOutcome
 Mateu.Uidl.MobileAppAttribute
 Mateu.Uidl.MoneyAttribute
 Mateu.Uidl.MultilineAttribute
+Mateu.Uidl.MultimediaContentPage
 Mateu.Uidl.NavLink
 Mateu.Uidl.Navigate
 Mateu.Uidl.Notice
@@ -383,6 +395,8 @@ Mateu.Uidl.TabLayout
 Mateu.Uidl.TabPanel
 Mateu.Uidl.TaskProgress
 Mateu.Uidl.TaskQueue
+Mateu.Uidl.TemplateImage
+Mateu.Uidl.TemplateTones
 Mateu.Uidl.Testimonial
 Mateu.Uidl.Testimonials
 Mateu.Uidl.Text
@@ -411,6 +425,7 @@ Mateu.Uidl.VersionAttribute
 Mateu.Uidl.VerticalLayout
 Mateu.Uidl.Welcome
 Mateu.Uidl.WelcomeBannerAttribute
+Mateu.Uidl.WelcomePage
 Mateu.Uidl.Wizard
 Mateu.Uidl.WizardDisplay
 Mateu.Uidl.WizardProgressAttribute

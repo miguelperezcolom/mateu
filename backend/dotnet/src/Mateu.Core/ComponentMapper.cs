@@ -90,7 +90,8 @@ internal static class ComponentMapper
             SliderMin = ff.SliderMin,
             SliderMax = ff.SliderMax,
             Step = ff.Step,
-        }),
+            OptionsColumns = ff.OptionsColumns,
+        }) with { Id = ff.Id ?? ff.FieldId },
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
             st.Id, st.Title, st.Description, st.Status)).ToList(), ps.Vertical) { ResultTitle = ps.ResultTitle }),
@@ -260,6 +261,8 @@ internal static class ComponentMapper
         {
             ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
             Route = b.Route,
+            // Java's ButtonMapper: a fluent button without a colour is "normal"
+            Color = "normal",
         }),
         // A listing authored as data (YAML type: Listing): a client-side Crud over a REST source, the
         // shape Java's CrudlMapper emits for a definition-only listing (ft-orders golden).
@@ -284,8 +287,10 @@ internal static class ComponentMapper
             GridLayout = l.GridLayout ?? "auto",
             Compact = l.Compact,
             EmptyStateMessage = l.EmptyStateMessage,
+            RowRoute = l.RowRoute,
         }) with { Id = l.Id ?? "crud", Sizing = "fill" },
-        Form f => Dto(f, MapFormHeader(f), f.Content.Select(MapContent)),
+        // a form that fills a page template carries its slots laid out (PageTemplateLayout)
+        Form f => Dto(f, MapFormHeader(f), PageTemplateLayout.ContentOf(f, MapContent)),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
@@ -387,8 +392,10 @@ internal static class ComponentMapper
     {
         Title = f.Title,
         Subtitle = f.Subtitle,
-        NoHeader = f.NoHeader,
-        Toolbar = f.Toolbar.Select(FormButton).ToList(),
+        // a template that draws the header itself (its banner): the form carries none, nor a toolbar
+        NoHeader = f.NoHeader || PageTemplateLayout.OwnsHeader(f),
+        Toolbar = PageTemplateLayout.OwnsHeader(f) ? [] : f.Toolbar.Select(FormButton).ToList(),
+        Template = PageTemplateLayout.DtoOf(f.Template),
         Buttons = f.Buttons.Select(FormButton).ToList(),
         Overline = f.Overline,
         TitlePlaceholder = f.TitlePlaceholder,
@@ -420,7 +427,18 @@ internal static class ComponentMapper
     private static ButtonDto FormButton(Button b) => new(b.Label, b.ActionId)
     {
         Disabled = b.Disabled,
-        ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null),
+        ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : ToolbarStyleOf(b.ActionId)),
+        Route = b.Route,
+    };
+
+    /// <summary>The style a header button takes from its action id when it declares none (Java's
+    /// FormMapper.resolveStyle): save/create are primary, a cancel/back is tertiary.</summary>
+    private static string? ToolbarStyleOf(string? id) => id switch
+    {
+        null or "" => null,
+        "save" or "create" => "primary",
+        _ when id.StartsWith("cancel", StringComparison.Ordinal) || id is "back" or "backToList" => "tertiary",
+        _ => null,
     };
 
     /// <summary>Foldout: panel headers ride in the metadata; the overview travels as the child
@@ -493,6 +511,7 @@ internal static class ComponentMapper
                 foreach (var b in fm.Toolbar.Concat(fm.Buttons)) Collect(b, ids);
                 foreach (var fab in fm.Fabs.Where(x => !string.IsNullOrEmpty(x.ActionId))) ids.Add(fab.ActionId);
                 if (fm.RecordSwitcher is { Route: null } rs) ids.Add(rs.ActionId ?? IRecordSwitcherSupplier.ActionId);
+                foreach (var i in PageTemplateLayout.SlotComponents(fm.Template)) Collect(i, ids);
                 break;
             case Slotted sl when sl.SlotContent is not null: Collect(sl.SlotContent, ids); break;
             case FoldoutLayout f:
@@ -611,6 +630,8 @@ internal static class ComponentMapper
     {
         for (var i = 0; i < tabs.Count; i++)
             if (tabs[i].Active) return i;
-        return 0;
+        // none declared: none flagged, the renderer opens the first (Java's TabMapper sends the
+        // declared value only)
+        return -1;
     }
 }
