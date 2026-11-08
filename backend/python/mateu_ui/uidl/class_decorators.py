@@ -302,6 +302,17 @@ def title_placeholder(value: str) -> Callable[[type], type]:
     return deco
 
 
+class BackLink(str, Enum):
+    """How an app offers the way back up — the Python mirror of Java's ``BackLink`` enum:
+    ``BREADCRUMBS`` (the default, the automatic trail) or ``PARENT`` — ONE "← Parent" link to the
+    nearest route above the app's that resolves to a screen, labelled with that screen's ``@title``
+    (else its last segment humanized), and no breadcrumb trail: the OCI-console style for a record
+    master opened from a listing. A ``str`` enum, so ``"PARENT"`` works too."""
+
+    BREADCRUMBS = "BREADCRUMBS"
+    PARENT = "PARENT"
+
+
 class AppVariant(str, Enum):
     """The navigation chrome of an ``@app`` — the Python mirror of Java's ``AppVariant`` enum. A
     ``str`` enum, so a plain string still works wherever a variant is expected. ``AUTO`` ("") lets
@@ -342,6 +353,7 @@ def app(
     accent_color: str = "",
     ask_label: str = "",
     ask_icon: str = "",
+    back_link: str | BackLink = BackLink.BREADCRUMBS,
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
@@ -380,7 +392,12 @@ def app(
     ``layout``: "SINGLE_SLOT" (default) or "SPLIT" — the content area as two panes (Java's
     ``@App(layout)``). ``accent_color`` (a CSS colour) is the app's brand colour, ``ask_label`` /
     ``ask_icon`` the text and icon of the AI "ask" entry (Java's ``@App(accentColor, askLabel,
-    askIcon)``); blank = the renderer's own."""
+    askIcon)``); blank = the renderer's own.
+
+    ``back_link=BackLink.PARENT`` replaces the breadcrumb trail with ONE "← Parent" link to the
+    nearest route above the app that resolves to a screen, labelled with its title (Java's
+    ``@App(backLink = PARENT)``)."""
+    back = coerce_enum(back_link, BackLink, "@app(back_link)")
     if layout not in ("SINGLE_SLOT", "SPLIT"):
         raise ValueError(f"@app(layout): {layout!r} is not SINGLE_SLOT or SPLIT")
 
@@ -398,6 +415,7 @@ def app(
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         setattr(cls, "__mateu_app_live_updates__", live_updates)
         setattr(cls, "__mateu_app_idle__", (idle_timeout_minutes, idle_warning_seconds, idle_sign_out_url))
+        setattr(cls, "__mateu_app_back_link__", back)
         setattr(cls, "__mateu_app_presentation__", {
             "layout": layout,
             "accent_color": accent_color.strip() or None,
@@ -437,16 +455,24 @@ def app_shortcut(
     return deco
 
 
-def remote_menu(label: str, base_url: str, route: str = "", explode: bool = False) -> Callable[[type], type]:
+def remote_menu(
+    label: str, base_url: str, route: str = "", explode: bool = False, path: str = ""
+) -> Callable[[type], type]:
     """A FEDERATED menu entry on the ``@app`` class: the option points at another Mateu backend
     by base URL — the frontend fetches the remote app's menu itself and mounts its views, so
     several services compose into one shell at runtime. With ``explode=True`` the remote menu's
     entries are inlined at this level instead of nesting under ``label``. Repeatable. The Python
-    analogue of Java's ``RemoteMenu``."""
+    analogue of Java's ``RemoteMenu``.
+
+    ``path`` is the section's own path in this shell (Java's ``@Menu`` field name, e.g.
+    ``"/workflow"``): the route prefix the remote's screens live under, sent as the option's
+    ``routePrefix`` so the renderer knows the active section before the remote answers; blank = no
+    prefix is claimed. A non-blank ``label`` is the shell's (``shellLabel``): it wins over the one the
+    remote answers with; a blank one is the path's last segment until the remote answers."""
 
     def deco(cls: type) -> type:
         entries = list(getattr(cls, "__mateu_remote_menus__", []))
-        entries.append((label, base_url, route, explode))
+        entries.append((label, base_url, route, explode, path))
         setattr(cls, "__mateu_remote_menus__", entries)
         return cls
 

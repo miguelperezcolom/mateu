@@ -7,7 +7,7 @@ namespace Mateu.Core;
 /// An app shell declared as DATA — a <c>type: AppShell</c> definition bound to a mount's route
 /// (typically its root) — mapped to the wire App, the data-driven counterpart of an <c>[App]</c>
 /// class. Mirrors Java's YamlAppLoader (what is read) + AppMapper/AppMenuDtoBuilder (how it reaches
-/// the wire); pinned by the Java goldens app-shell, app-shell-extras and app-shell-card-menus
+/// the wire); pinned by the Java goldens app-shell, app-shell-extras, app-shell-card-menus and app-shell-back-link
 /// (YamlAppShellTests).
 /// </summary>
 /// <remarks>
@@ -29,9 +29,9 @@ internal static class YamlAppShell
         root is IDictionary<object, object> map && Str(map, "type") == "AppShell";
 
     /// <summary>Whether the shell declares <c>backLink: PARENT</c> (Java's YamlAppLoader reads the
-    /// BackLink enum; anything else is the default, BREADCRUMBS).</summary>
+    /// BackLink enum by its exact name; anything else is the default, BREADCRUMBS).</summary>
     public static bool BackLinkParent(IDictionary<object, object> root) =>
-        string.Equals(Str(root, "backLink")?.Trim(), "PARENT", StringComparison.OrdinalIgnoreCase);
+        string.Equals(Str(root, "backLink")?.Trim(), "PARENT", StringComparison.Ordinal);
 
     /// <summary>The name the shell gives the installed app: its <c>title:</c>, else its
     /// <c>pageTitle:</c> (Java's MobileManifest.sourceOf(AppShell)); null for neither.</summary>

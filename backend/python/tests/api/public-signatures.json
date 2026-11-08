@@ -283,6 +283,11 @@
      "idle_sign_out_url",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "back_link",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -383,6 +388,12 @@
     ],
     "view": []
    }
+  },
+  "BackLink": {
+   "enum": [
+    "BREADCRUMBS",
+    "PARENT"
+   ]
   },
   "BadgeInHeader": {
    "class": [
@@ -4571,6 +4582,11 @@
      "ask_icon",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "back_link",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },
@@ -5028,6 +5044,11 @@
     ],
     [
      "explode",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "path",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

@@ -129,6 +129,13 @@ class MenuItem(Wire):
     base_url: str | None = None
     #: Inline the remote entries at this level instead of nesting under label.
     explode: bool = False
+    #: A remote section only: the route prefix the remote's screens live under, as far as the shell
+    #: can tell before the remote answers — its own path, without the groups the shell nests it in
+    #: (mirrors MenuOptionDto.routePrefix).
+    route_prefix: str | None = None
+    #: A remote section only: True when the shell DECLARED the label, which then wins over the one
+    #: the remote answers with (mirrors MenuOptionDto.shellLabel).
+    shell_label: bool = False
     #: A rule leaf (mirrors MenuOptionDto.rules): a menu entry that RUNS client-side rules when
     #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
     #: leaf leaves it empty.

@@ -669,8 +669,30 @@ server-side proxying:
 @app("Back office")
 @remote_menu("Payments", "https://payments.example.com")           # nests the remote menu
 @remote_menu("Billing", "https://billing.example.com", explode=True)  # inlines its entries
+@remote_menu("", "https://workflow.example.com", path="/workflow")  # the remote names it
 class Shell: ...
 ```
+
+A non-blank label is the shell's: it wins over the one the remote answers with (`shellLabel`). A
+blank one shows the path's last segment until the remote answers with its own. `path` is where the
+remote's screens live in this shell (Java's `@Menu` field name): it travels as the option's
+`routePrefix`, so the renderer knows the active section and the first breadcrumb on a cold load.
+
+### The way back up (`back_link`)
+
+A record master opened from a listing offers ONE "← Parent" link instead of the breadcrumb trail:
+
+```python
+@ui("/customers/7")
+@app("Customer", back_link=BackLink.PARENT)
+class CustomerMaster: ...
+```
+
+The link goes to the nearest route above the app's that resolves to a screen (`/customers`) and is
+labelled with that screen's `@title`, else its last segment humanized — resolved on the server. An
+`AppShell` returned by an `AppSupplier` decides with its own `back_link`; a YAML shell with
+`backLink: PARENT` (its `pageTitle:` names the installed app when it has no `title:`). Java's
+`@App(backLink = PARENT)`.
 
 To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
 

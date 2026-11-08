@@ -85,6 +85,14 @@ class AppMetadata(Wire):
     #: AppDto.askLabel / askIcon). None = the renderer's own.
     ask_label: str | None = None
     ask_icon: str | None = None
+    #: The pages inside this app show no breadcrumb trail — ``@app(back_link=BackLink.PARENT)`` or a
+    #: YAML shell's ``backLink: PARENT`` (mirrors AppDto.noBreadcrumbs).
+    no_breadcrumbs: bool = False
+    #: ``@app(back_link=BackLink.PARENT)``: the route of the "← Parent" link (the nearest route above
+    #: the app that resolves to a screen) and its label (that screen's title); None when there is
+    #: no such route (mirrors AppDto.backRoute / backLabel).
+    back_route: str | None = None
+    back_label: str | None = None
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.

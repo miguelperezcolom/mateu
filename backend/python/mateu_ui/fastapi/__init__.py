@@ -565,11 +565,21 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
 
+    def presented_by():
+        """The class presenting this mount to the mobile app and the installable app: the @app
+        class, else — a YAML mount — its `type: AppShell` definition (title, else pageTitle)."""
+        if registry.app_type is not None:
+            return registry.app_type
+        from mateu_ui.core import yaml_app_shell
+
+        shell = yaml_app_shell.mount_shell(handler, prefix)
+        return yaml_app_shell.manifest_source(shell) if shell is not None else None
+
     # The UI manifest the generic Mateu mobile app reads (experimental): public and cacheable — a
     # name, an icon, the wire version and, optionally, which OIDC provider the host app trusts.
     async def manifest() -> Response:
         return Response(
-            content=mobile_manifest.manifest_json(registry.app_type),
+            content=mobile_manifest.manifest_json(presented_by()),
             status_code=200,
             headers=mobile_manifest.HEADERS,
         )
@@ -580,7 +590,7 @@ def add_mateu(
     # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
     # a plain def: FastAPI runs it in its threadpool, and reading a packaged file blocks
     def pwa_file(file: str) -> Response:
-        served = pwa.asset(file, prefix, registry.app_type)
+        served = pwa.asset(file, prefix, presented_by())
         if served is None:
             return Response(status_code=404)
         return Response(content=served.body, status_code=200, headers=served.headers)
@@ -674,7 +684,7 @@ def add_mateu(
             title=str(title),
             debug=show_details,
             oracle_cdn=oracle_cdn,
-            app_type=app_type,
+            app_type=presented_by(),
             build_id=lambda: skew.build_id,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")

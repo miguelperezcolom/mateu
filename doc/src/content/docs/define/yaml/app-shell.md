@@ -361,9 +361,10 @@ access-keys switches, the context pickers, header actions, inbox and palette sea
 on the shell; page-level FABs are authorable on a page's `type: Form` — see
 [YAML pages](/define/yaml/pages/#page-header--type-form).)
 
-The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there
-(they do carry the [action catalogue](/concepts/action-catalogue/), which a menu leaf of
-their app class can run).
+The .NET and Python servers read `type: AppShell` definitions too (since 3.0 GA), flows included —
+and `backLink` and `pageTitle`: the «← Parent» link is resolved on the server as for an
+`[App(BackLink)]` / `@app(back_link)` class, and `pageTitle` names the installed app (the mobile
+manifest and the PWA) of a YAML mount whose shell has no `title`.
 
 Before shell flows landed, a `RuleLink` in a YAML menu did not parse on the server (the schema
 advertised it, the YAML mapper did not know it), and the whole shell answered "Not found." — it is

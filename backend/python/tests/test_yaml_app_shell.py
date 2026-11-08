@@ -58,6 +58,7 @@ def load(h: SyncHandler, route: str = "") -> dict:
         ("shell-flows", "app-shell"),
         ("card-menus", "app-shell-card-menus"),
         ("shell-extras", "app-shell-extras"),
+        ("shell-back-link", "app-shell-back-link"),
     ],
 )
 def test_a_yaml_app_shell_matches_the_java_golden(tmp_path, case, golden):

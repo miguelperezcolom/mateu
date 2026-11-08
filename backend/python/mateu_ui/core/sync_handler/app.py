@@ -15,6 +15,7 @@ from mateu_ui.uidl import (
     NotificationsSupplier,
 )
 
+from ..mapper.app import back_link_parent
 from ..registry import type_name
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -39,6 +40,7 @@ class AppHandlerMixin(MixinBase):
             else [UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))]
         )
         app_component = self.mapper.map_app(app_type, request_base_url)
+        app_component = self.with_back_link(app_component, back_link_parent(app_type))
         # R2 (App ≠ its Home Screen, coherence-plan #5): type the home fragment with the home
         # SCREEN's class when the home route resolves to a DIFFERENT registered type than the app —
         # a multi-screen app whose home is a distinct route. A single-screen app, a home with no
@@ -61,6 +63,47 @@ class AppHandlerMixin(MixinBase):
             commands=commands,
             fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
+
+    # ── The "← Parent" link (@app(back_link=PARENT) / a YAML shell's backLink: PARENT) ──
+    def with_back_link(self, app_component, parent: bool):
+        """The app with its "← Parent" link when it asks for one (``parent``): no breadcrumb trail,
+        and the route and title of the nearest route above the app's that resolves to a screen,
+        resolved against what this server serves (Java's AppMapper.parentLink)."""
+        meta = getattr(app_component, "metadata", None)
+        if meta is None or not parent:
+            return app_component
+        meta.no_breadcrumbs = True
+        meta.back_route, meta.back_label = self.parent_link(meta.root_route)
+        return app_component
+
+    def parent_link(self, app_route: str | None) -> tuple[str | None, str | None]:
+        """The "← Parent" link of an app at ``app_route``: the route and label of the nearest route
+        ABOVE it that resolves to a screen — ``/customers`` ("Customers") for ``/customers/7``. The
+        label is the screen's ``@title``, else its last segment humanized. ``(None, None)`` when no
+        route above resolves (an app at its mount's root has none)."""
+        from ..naming import humanize_constant
+
+        path = (app_route or "").rstrip("/")
+        while path.rfind("/") > 0:
+            path = path[: path.rfind("/")]
+            screen = self._screen_at(path)
+            if screen is None:
+                continue
+            title = getattr(screen, "__mateu_title__", None)
+            segment = path[path.rfind("/") + 1:]
+            label = title if isinstance(title, str) and title.strip() else humanize_constant(segment.replace("-", " "))
+            return path, label
+        return None, None
+
+    def _screen_at(self, path: str):
+        """The class answering ``path``: a ``@ui`` route, else a routes.yaml entry bound to a view
+        model (a definition-only route has no class, and no title to label a link with)."""
+        found = self.registry.resolve(None, path)
+        if found is not None:
+            return found
+        match = self.routes.match(path)
+        view_model = match.entry.view_model if match is not None else None
+        return self.registry.type_by_name(view_model) if view_model else None
 
     # ── Idle session & live header values (E2 patterns; mirror Java's runners) ──
     def keep_alive_action(self, cls, rq: RunActionRq) -> UIIncrement:

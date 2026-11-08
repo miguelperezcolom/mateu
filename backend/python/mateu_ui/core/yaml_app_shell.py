@@ -19,7 +19,11 @@ placed on a page) and :func:`app_component` maps it to the "App" wire metadata:
   followingLabel}``;
 - the header extras an ``@app`` class gets from its suppliers, as data: ``contextSelectors:``
   (static options or an ``optionsSource``), ``headerActions:`` (navigate with ``route`` or run an
-  ``actionId``), ``notifications: {source, markRead}`` and ``globalSearch: {source}``.
+  ``actionId``), ``notifications: {source, markRead}`` and ``globalSearch: {source}``;
+- ``backLink: PARENT`` — ONE "← Parent" link instead of the breadcrumb trail (resolved by the sync
+  handler, like an ``@app(back_link=PARENT)`` class's), and ``pageTitle:`` — the installed app's name
+  when the shell has no ``title:`` (the UI manifest, :func:`manifest_source`); like in Java it is not
+  part of the shell's wire.
 """
 
 from __future__ import annotations
@@ -38,7 +42,8 @@ from mateu_ui.dtos import (
 from mateu_ui.uidl import AppShortcutEntry, AppVariant, HeaderValue
 from mateu_ui.uidl import components as fluent
 
-from .naming import camelcasize, humanize
+from .mapper.app import remote_route_prefix
+from .naming import camelcasize, humanize, humanize_constant
 
 
 @dataclass(frozen=True)
@@ -79,6 +84,44 @@ def parse(node: dict, build_component) -> YamlAppShell:
         style=_text(node.get("style")),
         css_classes=_text(node.get("cssClasses")),
     )
+
+
+def back_link_parent(node: dict) -> bool:
+    """Whether the shell declares ``backLink: PARENT`` (Java's YamlAppLoader reads the BackLink enum
+    by its exact name; anything else is the default, BREADCRUMBS)."""
+    return str(node.get("backLink") or "").strip() == "PARENT"
+
+
+def manifest_source(node: dict) -> type:
+    """What presents a YAML mount to the mobile app and the installable app (Java's
+    ``MobileManifest.sourceOf(AppShell)``), in the shape :mod:`mateu_ui.core.mobile_manifest` and
+    :mod:`mateu_ui.core.pwa` read off an ``@app`` class: the shell's ``title:``, else its
+    ``pageTitle:`` (else "Mateu"), its ``logo:`` else ``favicon:``, its ``accentColor:`` — each
+    still below its ``MATEU_MOBILE_*`` setting, as Java's members are."""
+
+    def blank(key: str) -> str | None:
+        value = node.get(key)
+        return str(value).strip() if value is not None and str(value).strip() else None
+
+    declared = {
+        "name": blank("title") or blank("pageTitle") or "Mateu",
+        "icon": blank("logo") or blank("favicon"),
+        "theme_color": blank("accentColor"),
+    }
+    return type("YamlAppShellSource", (), {"__mateu_mobile_app__": declared})
+
+
+def mount_shell(handler, base_url: str | None = "") -> dict | None:
+    """The ``type: AppShell`` definition bound to the root of the mount at ``base_url`` (else the
+    root ``""``), or None — what presents a YAML mount (Java's YamlMounts.manifestJson)."""
+    try:
+        for route in dict.fromkeys(((base_url or "").strip("/"), "")):
+            spec = handler.yaml_specs.load_spec(route)
+            if spec is not None and isinstance(spec.layout, YamlAppShell):
+                return spec.layout.node
+    except Exception:  # noqa: BLE001 - a manifest is never refused over an unreadable definition
+        return None
+    return None
 
 
 def app_component(
@@ -133,6 +176,8 @@ def app_component(
         logo=_text(n.get("logo")),
         favicon=_text(n.get("favicon")),
         drawer_closed=bool(n.get("drawerClosed", False)),
+        # backLink: PARENT — the "← Parent" link replaces the trail (the link: SyncHandler.with_back_link)
+        no_breadcrumbs=back_link_parent(n),
         style=shell.style,
         css_classes=shell.css_classes,
         accent_color=_text(n.get("accentColor")),
@@ -400,10 +445,13 @@ def _menu(mapper, raw: Any, mount: str, prefix: str) -> list[MenuItem]:
         look: dict = item["presentation"] if isinstance(item.get("presentation"), dict) else {}
         remote = kind == "RemoteMenu"
         label = _text(item.get("label"))
-        if remote and not (label and label.strip()):
-            source = _text(item.get("path")) or path
+        shell_label = remote and bool(label and label.strip())
+        declared_path = (_text(item.get("path")) or "").strip() or None
+        if remote and not shell_label:
+            # the path's last segment, humanized (Java's AppMenuDtoBuilder.remoteLabel)
+            source = declared_path or path
             segment = source[source.rfind("/") + 1:] if source else ""
-            label = mapper.T(segment[:1].upper() + segment[1:]) if segment else None
+            label = mapper.T(humanize_constant(segment)) if segment else None
         elif label is not None:
             label = mapper.T(label)
         submenus: list[MenuItem] = []
@@ -440,6 +488,10 @@ def _menu(mapper, raw: Any, mount: str, prefix: str) -> list[MenuItem]:
                 remote=remote,
                 base_url=_text(item.get("baseUrl")) if remote else None,
                 explode=bool(item.get("explode", False)) if remote else False,
+                # a remote section: where its screens live (its OWN path, not its group's) and
+                # whether the shell named it (Java's AppMenuDtoBuilder.remoteRoutePrefix / shellLabel)
+                route_prefix=remote_route_prefix(declared_path or path) if remote else None,
+                shell_label=shell_label,
                 submenus=submenus,
                 rules=rules,
                 icon=_text(item.get("icon")) or _text(look.get("icon")),

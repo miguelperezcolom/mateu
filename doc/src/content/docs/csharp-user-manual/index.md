@@ -726,8 +726,29 @@ server-side proxying:
 [App("Back office")]
 [RemoteMenu("Payments", "https://payments.example.com")]          // nests the remote menu
 [RemoteMenu("Billing", "https://billing.example.com", Explode = true)] // inlines its entries
+[RemoteMenu("", "https://workflow.example.com", Path = "/workflow")]  // the remote names it
 public class Shell { ... }
 ```
+
+A non-blank label is the shell's: it wins over the one the remote answers with (`shellLabel`). A
+blank one shows the path's last segment until the remote answers with its own. `Path` is where the
+remote's screens live in this shell (Java's `@Menu` field name): it travels as the option's
+`routePrefix`, so the renderer knows the active section and the first breadcrumb on a cold load.
+
+### The way back up (`BackLink`)
+
+A record master opened from a listing offers ONE "← Parent" link instead of the breadcrumb trail:
+
+```csharp
+[UI("customers/7"), App("Customer", BackLink = BackLink.Parent)]
+public class CustomerMaster { ... }
+```
+
+The link goes to the nearest route above the app's that resolves to a screen (`/customers`) and is
+labelled with that screen's `[Title]`, else its last segment humanized — resolved on the server. An
+`AppShell` returned by an `IAppSupplier` decides with its own `BackLink`; a YAML shell with
+`backLink: PARENT` (its `pageTitle:` names the installed app when it has no `title:`). Java's
+`@App(backLink = PARENT)`.
 
 To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
 
