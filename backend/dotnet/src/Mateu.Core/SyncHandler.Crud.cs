@@ -288,13 +288,12 @@ internal sealed partial class SyncHandler
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
-        // Versioned entities bind onto a DETACHED copy: an in-memory Get may return the live
-        // stored instance by reference, and a rejected (stale) save must persist NOTHING.
         var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
         var storedVersion = StoredVersionOf(stored);
-        var entity = stored is null ? New(element)
-            : storedVersion is null ? stored
-            : CopyOf(stored, element);
+        // The edit binds onto a DETACHED copy: an in-memory Get may return the live stored instance
+        // by reference, and a refused save (stale version, a missing or broken constraint) must
+        // persist NOTHING.
+        var entity = stored is null ? New(element) : CopyOf(stored, element);
         // a field the form did not render ([HiddenInEditor] / [HiddenInCreate]) keeps its value
         BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
         if (id is not null) EntityIds.SetId(entity, id);
@@ -302,6 +301,11 @@ internal sealed partial class SyncHandler
         var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
+        // and the length / range / pattern constraints the form checked — over the fields it
+        // rendered, the browser being neither trusted nor the only client (Java's ServerConstraintCheck)
+        var broken = _mapper.CrudConstraintViolations(element, entity, id is null ? "new" : "edit");
+        if (broken.Count > 0)
+            return Error(string.Join("; ", broken));
 
         // Optimistic locking ([Version] property): reject the editor save when someone else saved
         // in between (unless _forceOverwrite), bump the version otherwise — both no-ops without a
@@ -423,9 +427,15 @@ internal sealed partial class SyncHandler
         }
         BindState(entity, row.Where(e => Writable(e.Key)).ToDictionary(e => e.Key, e => e.Value));
         EntityIds.SetId(entity, id!);
-        var missing = RequiredMissing(entity, element);
+        // the row is the EDIT form's record: a [HiddenInEditor] field is not the user's to fill, and
+        // the constraints the editor checks are checked here too (Java's FilteredAutoCrud.updateRow
+        // → ServerConstraintCheck)
+        var missing = RequiredMissing(entity, element, creating: false);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
+        var broken = _mapper.CrudConstraintViolations(element, entity, "edit");
+        if (broken.Count > 0)
+            return Error(string.Join("; ", broken));
 
         // Optimistic locking ([Version] property): Overwrite re-sends the SAME edited row (the
         // button's parameters merge into the action request), Reload re-runs the search.

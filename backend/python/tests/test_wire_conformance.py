@@ -36,7 +36,7 @@ from mateu_ui.dtos import MenuItem  # noqa: E402
 from mateu_ui.uidl import AppShell, AppSupplier, AppVariant, BackLink, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
 from mateu_ui.uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
 from mateu_ui.uidl import Text as TextField  # noqa: E402
-from mateu_ui.uidl import Max, Min  # noqa: E402
+from mateu_ui.uidl import Length, Max, Min, Pattern  # noqa: E402
 from mateu_ui.uidl import EyesOnly, ReadOnlyUnless, button, disabled_unless  # noqa: E402
 
 
@@ -267,6 +267,20 @@ class ValidatedForm:
     name: Annotated[str, Required()] = "Ada"
     email: Annotated[str, Required()] = "ada@example.com"
     age: Annotated[int, Min(18), Max(99)] = 36
+
+
+@ui("/conformance/validation-text")
+@title("Validated text")
+class ValidatedTextForm:
+    """Text constraints: ``Length`` (each declared bound its own entry, an open max printed as
+    Java's Integer.MAX_VALUE) and ``Pattern`` (verbatim in a JS literal), default and custom messages,
+    after the required check — and a ``Hidden(expr)`` field whose constraint is relaxed while hidden."""
+
+    code: Annotated[str, Required(), Length(min=3, max=8), Pattern(r"^[A-Z]+$")] = "ABC"
+    nickname: Annotated[str, Length(min=2)] = ""
+    bio: Annotated[str, Length(max=140)] = ""
+    tag: Annotated[str, Length(max=10, message="Too long")] = ""
+    zip: Annotated[str, Pattern(r"^[0-9]{5}$", message="Five digits"), Hidden("state['code'] === ''")] = ""
 
 
 @ui("/conformance/stereotypes")
@@ -1356,7 +1370,7 @@ class FluentCrudlOptionsPage(ComponentTreeSupplier):
         )
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("definition-actions", YamlCase)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("definition-actions", YamlCase)]
 
 
 def test_every_case_of_the_corpus_is_wired():

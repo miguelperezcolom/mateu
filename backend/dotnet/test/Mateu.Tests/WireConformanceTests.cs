@@ -206,6 +206,7 @@ public class WireConformanceTests
         { "dashboard", typeof(DashboardPage) },
         { "app-in-code", typeof(AppInCode) },
         { "validation", typeof(ValidatedForm) },
+        { "validation-text", typeof(ValidatedTextForm) },
         { "stereotypes", typeof(Stereotypes) },
         { "lookup", typeof(LookupForm) },
         { "tree-select", typeof(TreeSelectForm) },
