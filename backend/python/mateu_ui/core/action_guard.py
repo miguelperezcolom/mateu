@@ -192,11 +192,16 @@ def deny(what: str) -> NoReturn:
     raise MateuForbiddenException(f"Forbidden: {what}")
 
 
-def may_write(mapper, f) -> bool:
+def may_write(mapper, f, owner=None) -> bool:
     """Whether the wire may WRITE field ``f``: an ``EyesOnly`` field the caller cannot see or a
     ``ReadOnlyUnless`` field the caller cannot edit is dropped, keeping the server-side value
     (mirrors Java's Hydrater)."""
-    return mapper.authorized(f.marker(EyesOnly)) and mapper.authorized(f.marker(ReadOnlyUnless))
+    return (
+        mapper.authorized(f.marker(EyesOnly))
+        and mapper.authorized(f.marker(ReadOnlyUnless))
+        # a class-level read_only_unless(...) locks every field of the view (.NET's owner check)
+        and mapper.authorized(getattr(owner, "__mateu_read_only_unless__", None))
+    )
 
 
 def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:

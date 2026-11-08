@@ -318,7 +318,13 @@ class FieldMapperMixin(MixinBase):
         value = getattr(instance, f.name, None)
 
         # ReadOnlyUnless(): read-only unless the caller is authorized.
-        read_only = read_only or not self.authorized(f.marker(ReadOnlyUnless))
+        # ...also when the VIEW CLASS carries it (read_only_unless(...) on the class, .NET's
+        # class-level [ReadOnlyUnless])
+        read_only = (
+            read_only
+            or not self.authorized(f.marker(ReadOnlyUnless))
+            or not self.authorized(getattr(instance.__class__, "__mateu_read_only_unless__", None))
+        )
         plain = f.has(PlainText) or bool(class_flag(instance.__class__, "__mateu_plain_text__", False))
         multiline = f.has(Multiline)
         stereotype = self.stereotype_of(f, plain, multiline, instance.__class__)

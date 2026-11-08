@@ -241,6 +241,7 @@
   "page_width",
   "plain_text",
   "read_only",
+  "read_only_unless",
   "remote_menu",
   "rest_action",
   "rest_data",

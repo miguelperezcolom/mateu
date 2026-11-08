@@ -4709,6 +4709,30 @@
   "read_only": {
    "function": []
   },
+  "read_only_unless": {
+   "function": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "remote_menu": {
    "function": [
     [
