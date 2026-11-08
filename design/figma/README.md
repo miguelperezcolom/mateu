@@ -1,5 +1,7 @@
 # Mateu ⇄ Figma — design-to-code pipeline
 
+**Published library:** [Mateu UI Kit on Figma Community](https://www.figma.com/community/file/1701291643502429777) (generated with this plugin; republish it with *Share › Publish to Community › Publish update* after regenerating).
+
 ```
 contract.json ──► plugin (this repo) ──► Figma library ──► designer composes screens
       ├────────► to-yaml (this repo)  ◄── Figma REST API ──► specs/ui YAML
@@ -13,11 +15,26 @@ contract.json ──► plugin (this repo) ──► Figma library ──► des
   instances by this name.
 - `variants` — Figma VARIANT axes, named **exactly** like the Mateu annotation/record
   parameters (`theme`, `slim`, `propertyList`, `gridLayout`…).
-- `props` — non-visual config (fieldId, actionId…). The plugin materializes them as a subtle
-  text layer named `#config` whose content is `key=value; key2=value2` — designers fill the
-  values, the importer parses them.
+- `props` — non-visual config (fieldId, actionId…), typed TEXT or BOOLEAN. The plugin makes each
+  one a **component property** (edited in Figma's properties panel). Only a prop Figma refuses as
+  a property falls back to the older subtle `#config` text layer (`key=value; key2=value2`), which
+  the importers still read — as they do in files made with an older library.
 - `texts` — the named text layers whose (overridden) content maps to the given Mateu param
-  (`Title` → `title`, `Text` → `text`…).
+  (`Title` → `title`, `Text` → `text`…); each is a TEXT property bound to the layer. A sketch
+  primitive may name its layer apart from what it draws with `layer` (the Fab's `+` is `Icon`).
+
+What the plugin creates per entry besides the drawing is pure and tested: `plugin/src/plan.ts`
+(`plugin/test/plan.test.mjs`) — every NAMED slot a native Figma slot (SLOT property `slot:<name>`;
+`toolbar`/`buttons` prefer the Button), every prop a TEXT/BOOLEAN property named as the param, every
+text layer a TEXT property named as its param (or as the layer when ambiguous: `Title1`). For an
+entry with variants the properties live on the COMPONENT SET and every variant's layers reference them.
+**Every property drives a layer and no TEXT default is empty** — Figma does not publish a component
+otherwise (the owner's first publish: 88 of 161; every skipped one had an unbound BOOLEAN or an
+unbound, empty TEXT config prop). So a TEXT prop drives the characters of a muted `#prop:<prop>`
+layer (row `#props`) and defaults to its own NAME (`fieldId`), which the converter reads as unset
+(as it still reads an empty value from older files); a BOOLEAN prop drives the visibility of
+`#flag:<prop>` (row `#flags`, hidden by default). `planPublishProblems` pins it over the whole
+contract; the self-test checks the built components (`publishProblems`).
 - `sketch` — the compact draw spec the plugin renders (visual only, never read back).
 - `java` / `csharp` / `python` — the construct each component maps to, for the generators.
 - `yaml` — what the component becomes in a specs/ui file (`to-yaml/`): its YAML `type` (or a
@@ -44,22 +61,25 @@ a mapping reads are exactly the ones the sketch draws.
    component (or variant set) per catalog entry. Publish the file as a team library.
 
 Re-running the plugin **replaces** the generated pages — do it whenever `contract.json` grows
-(new Mateu components) and re-publish.
+(new Mateu components) or the plugin changes, and re-publish. Its final notification counts the
+properties and native slots created and any fallbacks (`#config`, plain slot frames); the plugin
+console logs the same as JSON.
 
 ## Designing screens (conventions the importer relies on)
 
 - Compose screens with **instances from the library only**; free-drawn shapes are ignored.
 - One top-level frame per screen; its name becomes the route/view name.
-- Rename nothing inside instances; **edit text layers** to set labels/titles/texts, and the
-  `#config` line to set ids (`fieldId=email`, `actionId=save`…).
+- Rename nothing inside instances; set labels/titles/texts and ids (`fieldId`, `actionId`,
+  `route`, `required`…) in the **properties panel**.
 - Use variants for the styled knobs (theme, slim, gridLayout, progress…) — they map 1:1 to the
   Mateu parameters.
-- Nesting: put field instances INSIDE a `Mateu/Layout/Section` instance's content area (or a
-  ZonesRow column) exactly like the generated code will nest them.
-- **Slots** are frames named `slot:<name>` (the plugin draws them, dashed, with a `#placeholder`
-  caption). Fill them in place, or — an ordinary instance takes no new layers — put a frame named
-  the same NEXT TO the page-template instance in the screen frame; other siblings are `content`.
-  The page toolbar is `slot:toolbar` (Button instances, the primary first).
+- Nesting: DRAG field instances INTO a `Mateu/Layout/Section` instance's content slot exactly like
+  the generated code will nest them.
+- **Slots** are native Figma slots drawn dashed with a `#placeholder` caption (never read): drag
+  instances into them. A frame named `slot:<name>` NEXT TO the page-template instance in the screen
+  frame fills it too; other siblings are `content`. The page toolbar is the `toolbar` slot (Button
+  instances, the primary first). With a library older than native slots, a Section whose content
+  slot is empty takes the layers that follow it (up to the next Section).
 - A screen with a `Mateu/Page Templates/<FormTemplate>` instance is a templated page; one without
   is a free page (a `Mateu/Page/Header` instance gives its title/subtitle/toolbar).
 - A frame named `partial:<ref>` is written once to `partials/<ref>.yaml` and referenced.
@@ -83,6 +103,23 @@ payload of seven Star Wars screens, built following the plugin's naming) against
 the real authoring validator and YAML loader in `backend/shared/core`
 (`FigmaYamlGoldenTest`), so the converter's output is pinned as a file Mateu actually reads.
 
+## A real file as a fixture (`e2e/`)
+
+`e2e/real-sample-screens.figma.json` is a file really composed in Figma with instances of the
+published kit (`GET /v1/files/:key`, trimmed by `e2e/trim.mjs`: no geometry, paint or file metadata):
+the REST shape of native slots and component properties as Figma answers it. `e2e/golden/` is its
+output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGoldenTest`.
+
+## Publishing with no backend (`publish/`)
+
+A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
+reads the document in the REST shape the converter takes; `src/site.mjs` writes the `specsOnly`
+manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
+`src/hosts.mjs` talks to Netlify (direct, file by file: its zip endpoint answers CORS twice and a browser cannot read it) and Cloudflare Pages
+(through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
+tag in `src/renderer.json`: bump it after a release. `bin/build-site.mjs` makes the same site with no
+Figma around. Guide: `design-systems/figma-guide.md`, section 6.
+
 ## Reading back (modux)
 
 modux's Figma importer (`model-driven-generator`, use case `importfigma`) downloads the file via
@@ -93,9 +130,9 @@ Java (and C#/Python) implementation.
 
 ## Status and how to pick it up (2026-10-29)
 
-The library has **never been generated in a real Figma** — the plugin is verified only by
-`tsc`, esbuild and its unit tests (Figma cannot run headless), and no Mateu library is published
-yet. The goal is to generate it from scratch, review it and publish it. It needs **Figma Desktop
+The plugin is verified here only by `tsc`, esbuild and its unit tests (Figma cannot run
+headless); the owner generated the library in a real Figma on 2026-11-08 (before native slots and
+properties) — the self-test command is the in-Figma check of the current version. The goal is to generate it from scratch, review it and publish it. It needs **Figma Desktop
 on macOS or Windows**: the browser cannot import development plugins and there is no official
 Linux client.
 
@@ -109,10 +146,21 @@ Linux client.
 2. In Figma Desktop create an EMPTY design file (e.g. "Mateu UI Kit").
 3. *Main menu → Plugins → Development → Import plugin from manifest…* →
    `design/figma/plugin/manifest.json`.
-4. *Plugins → Development → Mateu Library Generator*. Expect one page per category
-   (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and the toast
-   `Mateu library generated: 160 components ✔`. If it fails, the error is in
-   *Plugins → Development → Show/Hide console*.
+4. *Plugins → Development → Mateu Library Generator → Generate the library*. Expect one page per
+   category (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and
+   the toast `Mateu library generated: 161 components, N properties, M native slots ✔`. If it
+   fails, the error is in *Plugins → Development → Show/Hide console*.
+4b. *Plugins → Development → Mateu Library Generator → Mateu Library Self-test* (the pure half is
+   `plugin/src/selftest.ts`, tested in `plugin/test/selftest.test.mjs`): a `Mateu · Self-test` page
+   with an instance of every entry (default variant + one per other axis value), a library instance
+   appended to every slot (Button for toolbar-like/preferred slots, TextField otherwise), every
+   TEXT/BOOLEAN property set and read back (text layer / marker visibility included), every variant
+   axis flipped, no leftover `#config`, and every component PUBLISHABLE (every property referenced by
+   a layer, no empty TEXT default — the one thing in-file instances cannot reveal); a results table at the top, a toast, and the JSON report in the console.
+   Download the LIBRARY file and run `cd to-yaml && npm run self-test -- library.json [--report
+   results.json]`: every instance of that page must convert alone with no warning. Commit it as
+   `to-yaml/test/fixtures/self-test.figma.json` (+ `test/golden-self-test/results.json` from
+   `--report`) and `test/self-test.test.mjs` pins it.
 5. Review every page. Things to look at on this first real run: text overflowing its sketch, variant
    sets laid out badly (the set uses horizontal wrap auto-layout), missing fonts, components whose
    sketch does not read as the Mateu component. Fix in `src/code.ts` (drawing) or `../contract.json`

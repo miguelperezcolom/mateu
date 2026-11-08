@@ -36,27 +36,40 @@ class FigmaYamlGoldenTest {
       new UidlValidator(AuthoringResources.specsSchema(OM), OM);
   private static final YamlUidlLoader LOADER = new YamlUidlLoader();
 
-  private static Path golden() {
+  private static Path tests() {
     return Path.of(System.getProperty("user.dir"))
-        .resolve("../../../design/figma/to-yaml/test/golden")
+        .resolve("../../../design/figma/to-yaml/test")
         .normalize();
   }
 
+  private static Path golden() {
+    return tests().resolve("golden");
+  }
+
+  /**
+   * The Star Wars screens ({@code golden}), a screen made with the current library's native slots
+   * and component properties ({@code golden-native}), and the screens really composed in Figma with
+   * the published kit ({@code design/figma/e2e/golden}).
+   */
   private static List<Path> files() throws Exception {
-    try (Stream<Path> walk = Files.walk(golden())) {
-      return walk.filter(p -> p.toString().endsWith(".yaml")).sorted().toList();
+    var out = new ArrayList<Path>();
+    for (var dir : List.of("golden", "golden-native", "../../e2e/golden")) {
+      try (Stream<Path> walk = Files.walk(tests().resolve(dir))) {
+        walk.filter(p -> p.toString().endsWith(".yaml")).sorted().forEach(out::add);
+      }
     }
+    return out;
   }
 
   @TestFactory
   Stream<DynamicTest> everyGeneratedFileIsValidAndLoads() throws Exception {
     var files = files();
-    assertThat(files).as("the converter's golden files").hasSizeGreaterThanOrEqualTo(8);
+    assertThat(files).as("the converter's golden files").hasSizeGreaterThanOrEqualTo(9);
     return files.stream()
         .map(
             file ->
                 DynamicTest.dynamicTest(
-                    golden().relativize(file).toString(),
+                    tests().relativize(file).toString(),
                     () -> {
                       var yaml = Files.readString(file);
                       JsonNode report = VALIDATOR.validate(yaml, null);
@@ -87,6 +100,9 @@ class FigmaYamlGoldenTest {
     var person = (ItemOverviewPage) templateOf("person.yaml");
     assertThat(person.avatar().src()).isEqualTo("${state.image}");
     assertThat(person.body()).hasSize(3);
+    var order = (ItemOverviewPage) templateOf("../golden-native/order.yaml");
+    assertThat(order.avatar().initials()).isEqualTo("${state.initials}");
+    assertThat(order.body()).hasSize(1);
   }
 
   private static Object templateOf(String name) throws Exception {

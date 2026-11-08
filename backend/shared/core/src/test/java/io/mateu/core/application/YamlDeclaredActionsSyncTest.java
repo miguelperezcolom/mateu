@@ -49,6 +49,17 @@ class YamlDeclaredActionsSyncTest {
   }
 
   @Test
+  void aRequiredFieldInsideAPageTemplateIsValidatedToo() {
+    // the walk stopped at Form.template (no Component), so a guided process ran its action with a
+    // required step field empty — found composing the screen in Figma with the published kit
+    var page =
+        (ServerSideComponentDto) mateu.sync("/yaml-guided-required").fragments().get(0).component();
+    assertThat(page.validations())
+        .extracting(v -> v.fieldId())
+        .containsExactly("fullName", "nickname");
+  }
+
+  @Test
   void aRequiredFieldIsValidatedLikeAJavaOne() {
     // a classless page sent no validations at all: its required fields wore the required dot and
     // the action ran with them empty

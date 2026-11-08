@@ -4,21 +4,6 @@
 // describe — the same check the contract test runs over every mapping, so a name nobody declared
 // never reaches a generated file.
 
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const here = dirname(fileURLToPath(import.meta.url))
-export const REPO = join(here, '../../../..')
-
-export function loadSchema(path = join(REPO, 'backend/shared/uidl/uidl-schema.json')) {
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
-
-export function loadContract(path = join(REPO, 'design/figma/contract.json')) {
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
-
 export class Schema {
   constructor(json) {
     this.defs = json.$defs

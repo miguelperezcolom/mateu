@@ -249,15 +249,12 @@ record SeededYamlPage(
       }
       return;
     }
-    if (!(node instanceof Component) || !node.getClass().isRecord()) {
+    // not only Components: a page template and its steps (Form.template → GuidedProcessStep) hold
+    // fields too, and those records are no Component
+    if (!node.getClass().isRecord() || !node.getClass().getName().startsWith("io.mateu.uidl")) {
       return;
     }
     for (var component : node.getClass().getRecordComponents()) {
-      var type = component.getType();
-      if (!Component.class.isAssignableFrom(type)
-          && !java.util.Collection.class.isAssignableFrom(type)) {
-        continue;
-      }
       try {
         collectRequired(component.getAccessor().invoke(node), out, seen);
       } catch (ReflectiveOperationException e) {

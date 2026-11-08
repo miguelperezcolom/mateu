@@ -1,0 +1,48 @@
+# Generated from the Figma frame "welcome" (node 2:1285) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Bienvenido
+subtitle: La colección, las exposiciones y el equipo
+overline: Museo Mateu
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Ver la colección
+    actionable:
+      type: RouteLink
+      route: artworks
+  - type: Button
+    label: Abrir el panel
+    actionable:
+      type: RouteLink
+      route: dashboard
+template:
+  type: WelcomePage
+  backgroundColor: dark-ocean
+content:
+  - type: DashboardLayout
+    columns: 2
+    items:
+      - type: DashboardPanel
+        subtitle: Obras y artistas
+        title: Colección
+        content:
+          type: VerticalLayout
+          content:
+            - type: Button
+              label: Abrir
+              actionable:
+                type: RouteLink
+                route: artworks
+      - type: DashboardPanel
+        subtitle: Escríbenos
+        title: Contacto
+        content:
+          type: VerticalLayout
+          content:
+            - type: Button
+              label: Abrir
+              actionable:
+                type: RouteLink
+                route: contact

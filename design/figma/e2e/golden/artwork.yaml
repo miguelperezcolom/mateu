@@ -1,0 +1,55 @@
+# Generated from the Figma frame "artwork" (node 2:905) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: La noche estrellada
+subtitle: Vincent van Gogh, 1889
+overline: Colección
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Editar
+    actionId: edit
+  - type: Button
+    label: Volver al listado
+    actionable:
+      type: RouteLink
+      route: artworks
+template:
+  type: ItemOverviewPage
+  body:
+    - type: FormField
+      id: technique
+      dataType: string
+      propertyRow: true
+      readOnly: true
+      label: Técnica
+    - type: FormField
+      id: museum
+      dataType: string
+      propertyRow: true
+      readOnly: true
+      label: Museo
+  footer:
+    - type: Text
+      size: s
+      text: Inventario 472.1941
+  avatar:
+    initials: VG
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Descripción
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: Un cielo nocturno en remolinos sobre el pueblo de Saint-Rémy.
+      - type: Tab
+        label: Procedencia
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: Adquirida por el MoMA en 1941 mediante el legado Lillie P. Bliss.

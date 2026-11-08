@@ -348,6 +348,7 @@ export default defineConfig({
 								{ slug: 'define/yaml/project-settings', label: 'Project settings' },
 								{ slug: 'native/ide-tooling', label: 'IDE tooling (IntelliJ & VS Code)' },
 								{ slug: 'design-systems/figma', label: 'From Figma' },
+								{ slug: 'design-systems/figma-guide', label: 'From Figma: step by step' },
 							],
 						},
 						{
