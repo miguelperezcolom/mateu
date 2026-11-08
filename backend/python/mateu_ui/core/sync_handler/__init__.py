@@ -158,8 +158,40 @@ def referenced_rest_source_names(increment) -> tuple[set[str], bool]:
                 carries = True
             if isinstance(node, RestDataSource) and node.ref and node.ref.strip():
                 refs.add(node.ref.strip())
-            stack.extend(getattr(node, name, None) for name in type(node).model_fields)
+            stack.extend(getattr(node, name, None) for name in _walkable_fields(type(node)))
     return refs, carries
+
+
+_WALKABLE: dict[type, tuple[str, ...]] = {}
+_SCALARS = (str, int, float, bool, bytes, type(None))
+
+
+def _walkable_fields(model_type) -> tuple[str, ...]:
+    """The fields of a wire model that can hold another model (scalars — text, numbers, flags,
+    enums — are skipped by declared type), once per class: reading every field of every node
+    was ~20% of a listing load (2026-11). Java's ``ComponentRecords`` "walkable" rule."""
+    names = _WALKABLE.get(model_type)
+    if names is None:
+        names = tuple(n for n, f in model_type.model_fields.items() if not _scalar(f.annotation))
+        _WALKABLE[model_type] = names
+    return names
+
+
+def _scalar(annotation) -> bool:
+    import enum
+    import types as _types
+    import typing
+
+    if annotation in _SCALARS:
+        return True
+    if isinstance(annotation, type) and issubclass(annotation, enum.Enum):
+        return True
+    origin = typing.get_origin(annotation)
+    if origin is typing.Literal:
+        return True
+    if origin in (typing.Union, getattr(_types, "UnionType", ())):
+        return all(_scalar(a) for a in typing.get_args(annotation))
+    return False
 
 class SyncHandler(
     DispatchMixin,

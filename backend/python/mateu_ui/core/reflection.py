@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 import inspect
 import types
+import weakref
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Union, get_args, get_origin
 
@@ -33,20 +34,46 @@ class FieldInfo:
         return self.marker(cls) is not None
 
 
+_HINTS: "weakref.WeakKeyDictionary[type, dict[str, Any]]" = weakref.WeakKeyDictionary()
+
+
 def _local_hints(klass) -> dict[str, Any]:
     """A class's *own* annotations (not inherited), resolved to runtime values.
 
     Uses ``inspect.get_annotations`` so it works under PEP 649 lazy annotations (Python 3.14+),
-    where annotations are no longer eagerly stored in ``__dict__['__annotations__']``."""
+    where annotations are no longer eagerly stored in ``__dict__['__annotations__']``.
+
+    Resolved ONCE per class (a copy is returned): with ``eval_str`` every call ``eval``-ed each
+    string annotation again, and ``view_fields`` runs several times per request — measured
+    (2026-11, design/performance/baseline-2026-11.md) as ~20% of a listing load."""
     try:
-        return inspect.get_annotations(klass, eval_str=True)
+        cached = _HINTS.get(klass)
+    except TypeError:  # not weak-referenceable: not cached
+        return _resolve_local_hints(klass)[0]
+    if cached is None:
+        hints, evaluated = _resolve_local_hints(klass)
+        if not evaluated:
+            # a forward reference not defined YET (asked for at import time): asked again next
+            # time, when it may resolve — only an evaluated answer is final
+            return hints
+        cached = hints
+        try:
+            _HINTS[klass] = cached
+        except TypeError:
+            pass
+    return dict(cached)
+
+
+def _resolve_local_hints(klass) -> tuple[dict[str, Any], bool]:
+    try:
+        return inspect.get_annotations(klass, eval_str=True), True
     except Exception as e:  # noqa: BLE001 - an unresolvable forward ref: read them unevaluated
         _log.debug("%s: annotations not evaluable, reading them raw (%s)", klass, e)
         try:
-            return inspect.get_annotations(klass)
+            return inspect.get_annotations(klass), False
         except Exception as e:  # noqa: BLE001 - logged, not fatal
             _log.warning("%s: annotations unreadable, no fields reflected (%s)", klass, e)
-            return {}
+            return {}, False
 
 
 def _split(hint):
