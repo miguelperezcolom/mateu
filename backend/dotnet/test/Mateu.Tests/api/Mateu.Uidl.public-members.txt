@@ -938,6 +938,9 @@ Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ById(Syst
 Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ForUrl(System.String)
 Mateu.Uidl.IRestSourceCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> RestSources()
 Mateu.Uidl.IRestSourceSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.DeclaredRestSource> DeclaredRestSources()
+Mateu.Uidl.IRestorable<TId> abstract method System.Void RestoreAllById(System.Collections.Generic.IReadOnlyList<TId>)
+Mateu.Uidl.IRestorable<TId> const field System.String RestoreAction
+Mateu.Uidl.IRestorable<TId> const field System.String RestoreIds
 Mateu.Uidl.IRuleSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Rule> Rules()
 Mateu.Uidl.ISecretsProvider abstract method System.String Secret(System.String)
 Mateu.Uidl.ISelector<TRow> abstract method Mateu.Uidl.SelectedItem Selected(TRow)

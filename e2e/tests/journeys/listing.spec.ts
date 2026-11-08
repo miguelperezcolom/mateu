@@ -34,11 +34,11 @@ test.describe('totals and grouping (/j/sales)', () => {
     await page.goto('/j/sales')
     await expect.poll(() => rows(page)).toEqual([
       'North (3) | 440',
-      'S-01 | North | Chairs | 100', 'S-03 | North | Lamps | 40', 'S-05 | North | Tables | 300',
+      'North | Chairs | 100', 'North | Lamps | 40', 'North | Tables | 300',
       'South (2) | 310',
-      'S-02 | South | Tables | 250', 'S-04 | South | Chairs | 60',
+      'South | Tables | 250', 'South | Chairs | 60',
     ])
-    await expect.poll(() => footer(page)).toEqual(['Total', '750'])
+    await expect.poll(() => footer(page)).toEqual(['Total (5)', '750']) // the group column is the first one now (no id column): it counts the rows
   })
 
   test('the totals follow the search: they sum the filtered rows, not the whole table', async ({ page }) => {
@@ -46,10 +46,10 @@ test.describe('totals and grouping (/j/sales)', () => {
     await page.getByRole('textbox', { name: 'Search' }).fill('chairs')
     await page.getByRole('textbox', { name: 'Search' }).press('Enter')
     await expect.poll(() => rows(page)).toEqual([
-      'North (1) | 100', 'S-01 | North | Chairs | 100',
-      'South (1) | 60', 'S-04 | South | Chairs | 60',
+      'North (1) | 100', 'North | Chairs | 100',
+      'South (1) | 60', 'South | Chairs | 60',
     ])
-    await expect.poll(() => footer(page)).toEqual(['Total', '160'])
+    await expect.poll(() => footer(page)).toEqual(['Total (2)', '160'])
   })
 
   test('a group header is not a record: clicking it opens nothing', async ({ page }) => {
@@ -156,19 +156,20 @@ test.describe('saved views and the column chooser (/capability-books)', () => {
   test('hiding and moving columns is remembered across a reload, and Reset brings them back', async ({ page }) => {
     const headers = () => gridHeaders(page)
     await page.goto('/capability-books')
-    await expect.poll(headers).toEqual(['Id', 'Title', 'Author', 'Pages', 'Published', 'Genre'])
+    // the code is labelled, so it stays a column though the rows open by click (W-V-TABLE-ID)
+    await expect.poll(headers).toEqual(['Code', 'Title', 'Author', 'Pages', 'Published', 'Genre'])
 
     await page.getByRole('button', { name: 'Columns' }).click()
     const menu = page.getByRole('menu')
     await menu.locator('.row', { hasText: 'Author' }).getByRole('checkbox').uncheck()
     await menu.getByRole('button', { name: 'Move Genre up' }).click()
-    await expect.poll(headers).toEqual(['Id', 'Title', 'Pages', 'Genre', 'Published'])
+    await expect.poll(headers).toEqual(['Code', 'Title', 'Pages', 'Genre', 'Published'])
 
     await page.reload()
-    await expect.poll(headers).toEqual(['Id', 'Title', 'Pages', 'Genre', 'Published'])
+    await expect.poll(headers).toEqual(['Code', 'Title', 'Pages', 'Genre', 'Published'])
 
     await page.getByRole('button', { name: 'Columns' }).click()
     await page.getByRole('menu').getByRole('button', { name: 'Reset' }).click()
-    await expect.poll(headers).toEqual(['Id', 'Title', 'Author', 'Pages', 'Published', 'Genre'])
+    await expect.poll(headers).toEqual(['Code', 'Title', 'Author', 'Pages', 'Published', 'Genre'])
   })
 })

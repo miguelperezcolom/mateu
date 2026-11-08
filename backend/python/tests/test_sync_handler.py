@@ -2103,11 +2103,8 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     assert '"editorType": "select"' in j
     # …enum editors carry their constants as options…
     assert '"editorOptions": [{"value": "OK"' in j
-    # …ReadOnly() columns stay display-only…
-    assert (
-        '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": "regular", '
-        '"captionPath": null, "leadingPath": null, "editable": false'
-    ) in j
+    # …the technical id is not a column at all (the row opens by click: W-V-TABLE-ID)…
+    assert '"id": "id", "label": "Id"' not in j
     # …and the crud advertises the update-row action.
     assert '"update-row"' in j
 

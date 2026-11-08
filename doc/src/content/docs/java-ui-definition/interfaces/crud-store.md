@@ -51,6 +51,10 @@ public interface CrudStore<T extends Identifiable> {
 | `deleteAllById(ids)` | Delete every entity whose ID appears in the list |
 | `find(searchText, filters, pageable)` | Search, filter, sort and paginate in one call, returning a [`Page<T>`](#the-find-method). **Has a default** implementation (in-memory over `findAll()`), so you only override it for DB-side paging. |
 
+A delete the user can undo is not a store method: the `AutoCrud` declares `Restorable<String>` and
+hands the ids to the store (a soft delete, a trash table) — see
+[Undoable delete](/java-user-manual/build/capability-listings/#undoable-delete--restorable-experimental).
+
 ## Full example
 
 The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, store, and orchestrator in one place.

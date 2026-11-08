@@ -156,6 +156,7 @@
   "RestSourceKind",
   "RestSourceProvenance",
   "RestSourceSupplier",
+  "Restorable",
   "RowStatus",
   "Rule",
   "RuleSupplier",

@@ -32,7 +32,7 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
 
     await expect(drawer(page)).toHaveCount(0)
     await expect(page).toHaveURL(/\/j\/tasks$/)
-    await expect.poll(() => rowsOf(page)).toContain('T-04 | Pack the boxes | 4 | 0')
+    await expect.poll(() => rowsOf(page)).toContain('Pack the boxes | 4 | 0')
   })
 
   test('a required field keeps the drawer open and tells what is missing', async ({ page }) => {
@@ -61,7 +61,7 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
     await drawer(page).getByRole('button', { name: 'Cancel' }).click()
     await expect(drawer(page)).toHaveCount(0)
     // the save bumped the version
-    await expect.poll(() => rowsOf(page)).toContain('T-02 | Write the release notes | 2 | 2')
+    await expect.poll(() => rowsOf(page)).toContain('Write the release notes | 2 | 2')
   })
 
   test('Cancel discards what was typed — after asking', async ({ page }) => {
@@ -80,7 +80,7 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
     await expect(drawer(page)).toHaveCount(0)
     expect(asked).toHaveLength(2)
     await page.reload()
-    await expect.poll(() => rowsOf(page)).toContain('T-01 | Plan the release | 3 | 1')
+    await expect.poll(() => rowsOf(page)).toContain('Plan the release | 3 | 1')
   })
 })
 
@@ -104,15 +104,17 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await expect(conflictOf(page)).toBeVisible()
   }
 
+  // navigates ONCE, then each poll re-reads the grid: a goto per poll read every time before the
+  // listing's search had answered
   const stored = async (page: Page) => {
-    await page.goto('/j/articles')
+    if (!/\/j\/articles\/?$/.test(page.url())) await page.goto('/j/articles')
     return rowsOf(page)
   }
 
   test('the stale save is refused with a conflict dialog and nothing is overwritten behind the user\'s back', async ({ page, browser }) => {
     const other = await (await browser.newContext()).newPage()
     await staleSave(page, other)
-    await expect.poll(() => stored(other)).toEqual(['A-1 | Theirs | 7 | 2'])
+    await expect.poll(() => stored(other)).toEqual(['Theirs | 7 | 2'])
     await other.context().close()
   })
 
@@ -123,7 +125,7 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await staleSave(page, other)
     await conflictOf(page).getByRole('button', { name: /Sobrescribir|Overwrite/ }).click()
     await expect(conflictOf(page)).toHaveCount(0)
-    await expect.poll(() => stored(other)).toEqual(['A-1 | Mine | 9 | 3'])
+    await expect.poll(() => stored(other)).toEqual(['Mine | 9 | 3'])
     await other.context().close()
   })
 
@@ -133,7 +135,7 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await conflictOf(page).getByRole('button', { name: /Recargar|Reload/ }).click()
     await expect(conflictOf(page)).toHaveCount(0)
     await expect(page.getByText('Theirs').first()).toBeVisible()
-    await expect.poll(() => stored(other)).toEqual(['A-1 | Theirs | 7 | 2'])
+    await expect.poll(() => stored(other)).toEqual(['Theirs | 7 | 2'])
     await other.context().close()
   })
 
@@ -154,7 +156,7 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await conflictOf(page).getByRole('button', { name: /Sobrescribir|Overwrite/ }).click()
     await other.reload()
     await expect.poll(() => rowsOf(other)).toEqual([
-      'T-01 | Plan the release | 3 | 1', 'T-02 | Write the notes | 2 | 1', 'T-03 | Mine | 1 | 3'])
+      'Plan the release | 3 | 1', 'Write the notes | 2 | 1', 'Mine | 1 | 3'])
     await other.context().close()
   })
 
@@ -174,7 +176,7 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await expect(conflictOf(page)).toHaveCount(0)
     await expect(drawer(page).getByRole('textbox', { name: 'Title' })).toHaveValue('Theirs')
     await other.reload()
-    await expect.poll(() => rowsOf(other)).toContain('T-03 | Theirs | 1 | 2')
+    await expect.poll(() => rowsOf(other)).toContain('Theirs | 1 | 2')
     await other.context().close()
   })
 })

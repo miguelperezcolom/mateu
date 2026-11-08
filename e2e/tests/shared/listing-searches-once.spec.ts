@@ -52,7 +52,8 @@ test('a deep link to a page sends one search, for that page', async ({ page }) =
 
 test('a delete from the listing sends exactly one search and keeps the listing url', async ({ page }) => {
     await page.goto('/full-crud');
-    await expect(page.getByText('t1').first()).toBeVisible();
+    // the row opens by click, so its technical id is no column (W-V-TABLE-ID): wait for a title
+    await expect(page.getByText('Task Alpha').first()).toBeVisible();
     const searches = countSearches(page);
     await page.locator('vaadin-grid vaadin-checkbox').nth(1).click();
     await page.locator('vaadin-button').filter({ hasText: 'Delete' }).first().click();

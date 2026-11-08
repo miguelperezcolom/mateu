@@ -1,3 +1,4 @@
+import { bodyRepeatsBar } from '../core/barTitle';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
@@ -10,7 +11,7 @@ import { Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useBarTitle, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -34,7 +35,10 @@ export function FormRenderer({ component, metadata, state }: Props) {
   // …unless a page template owns the header (WelcomePage, HeroSearchPage…): it draws them in its own
   // banner, the wire still names them for the window title, and `noHeader` says not to repeat them
   const noHeader = metadata['noHeader'] === true;
-  const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? '', { state });
+  const declaredTitle = noHeader ? '' : interpolate((metadata['title'] as string) ?? '', { state });
+  // the shell's bar already names the screen (RN-22): the header does not say it twice
+  const barTitle = useBarTitle();
+  const title = bodyRepeatsBar(declaredTitle, barTitle) ? '' : declaredTitle;
   const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', { state });
   const readOnly = Boolean(metadata['readOnly']);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];

@@ -48,8 +48,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
         || MetaAnnotations.isPresent(orchestrator.metadataSource(), NotDeletable.class);
   }
 
-  private List<GridContent> withViewOnFirstColumn(Collection<? extends GridContent> rawColumns) {
-    var list = new ArrayList<GridContent>(rawColumns);
+  private List<GridContent> withViewOnFirstColumn(
+      Class<?> rowClass, Collection<? extends GridContent> rawColumns) {
+    // the row opens the record (U1): its technical id is no longer the link, nor a column
+    var list =
+        io.mateu.core.domain.out.componentmapper.TechnicalIdColumn.withoutTechnicalId(
+            rowClass, rawColumns);
     if (list.isEmpty() || !(list.get(0) instanceof GridColumn first)) {
       return list;
     }
@@ -150,6 +154,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                         httpRequest.runActionRq().initiatorComponentId(),
                         httpRequest)
                 : withViewOnFirstColumn(
+                    orchestrator.rowClass(),
                     getColumns(
                         orchestrator.rowClass(),
                         orchestrator,

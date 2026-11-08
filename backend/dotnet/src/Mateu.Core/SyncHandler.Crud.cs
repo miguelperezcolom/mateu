@@ -79,6 +79,9 @@ internal sealed partial class SyncHandler
         // the crud does not allow used to open its form and only refuse the save)
         if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete" or "new" or "edit")
             EnsureWriteAllowed(crud, crudType, rq.ActionId);
+        // the Undo of a delete is gated like the delete it reverses
+        else if (rq.ActionId == IRestorable<string>.RestoreAction)
+            EnsureWriteAllowed(crud, crudType, "delete");
         else if (string.IsNullOrEmpty(rq.ActionId) && mode is "new" or "edit")
             EnsureWriteAllowed(crud, crudType, mode);
 
@@ -95,6 +98,9 @@ internal sealed partial class SyncHandler
                 Error($"Action not available: {rq.ActionId}"),
             // Delete on the LISTING: the rows selected in the grid (Java's DeleteActionHandler)
             "delete" when id is null => DeleteSelected(crud, element, rq),
+            // the Undo of an undoable delete (IRestorable): restore, then the listing searches again
+            IRestorable<string>.RestoreAction => UIIncrementDto.Of(
+                fragments: CrudSearch(crud, element, rq).Fragments, messages: [Restore(crud, rq)]),
             "delete" => Navigate(baseRoute, Delete(crud, id), rq),
             // Crud.CsvExportable / ExcelExportable / PdfExportable: only a crud that offers the
             // export answers its export-* action (the id is wire input).
@@ -554,17 +560,24 @@ internal sealed partial class SyncHandler
     private static UIIncrementDto DeleteSelected(object crud, Type element, RunActionRqDto rq)
     {
         var idField = EntityIds.FieldName(element);
+        var deleted = new List<string>();
         if (GetState(rq.ComponentState, "crud_selected_items")
             is JsonElement { ValueKind: JsonValueKind.Array } selected)
             foreach (var row in selected.EnumerateArray())
                 if (row.ValueKind == JsonValueKind.Object
                     && row.TryGetProperty(idField, out var idEl)
                     && StateString(idEl) is { } rowId)
+                {
                     Delete(crud, rowId);
+                    deleted.Add(rowId);
+                }
         var refreshed = CrudSearch(crud, element, rq);
         return UIIncrementDto.Of(
             fragments: refreshed.Fragments,
-            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
+            // a crud declaring IRestorable offers the way back (W-V-DELETE-FEEDBACK)
+            messages: [RestorableOf(crud.GetType()) is not null && deleted.Count > 0
+                ? UndoableDeleted(deleted)
+                : new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
     private static List<string> RequiredMissing(object entity, Type element) =>

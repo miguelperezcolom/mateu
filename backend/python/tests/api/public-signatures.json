@@ -3381,6 +3381,23 @@
     "declared_rest_sources": []
    }
   },
+  "Restorable": {
+   "class": [],
+   "members": {
+    "restore_all_by_id": [
+     [
+      "deleted_ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
   "RowStatus": {
    "class": []
   },

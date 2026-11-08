@@ -283,7 +283,10 @@ export function islandSession(host: MateuSession, baseUrl: string): MateuSession
  */
 export function navigationSession(host: MateuSession, baseUrl: string): MateuSession {
   if (!baseUrl || baseUrl === host.api.baseUrl) return host;
-  return sessionOver(host, baseUrl);
+  const session = sessionOver(host, baseUrl);
+  // a SCREEN opened against another backend still names the shell's bar (RN-22) — an island does not
+  session.setTitle = (title) => host.setTitle(title);
+  return session;
 }
 
 /** The remotes an app's menu names (its federated entries), declared from the session's backend. */

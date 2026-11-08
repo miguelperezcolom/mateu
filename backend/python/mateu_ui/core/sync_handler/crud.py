@@ -37,6 +37,8 @@ from ..registry import normalize
 from ..export import FORMATS
 from ..mapper.crud import _capable
 from ._base import MixinBase
+from mateu_ui.uidl import Restorable
+from .undo_delete import deleted_message, is_restorable, restore_ids, restored_message
 from ._common import (
     RunActionRq,
     SAVED_IN_DRAWER_EVENT,
@@ -99,7 +101,9 @@ class CrudHandlerMixin(MixinBase):
             (aid in ("new", "create") and not may_create)
             or (aid in ("save", SAVE_AND_NEXT, "update-row") and not may_edit)
             or (aid == SAVE_AND_NEXT and not display.save_and_next.enabled())
-            or (aid == "delete" and not may_delete)
+            or (aid in ("delete", Restorable.RESTORE_ACTION) and not may_delete)
+            # the Undo of a delete is offered only by a crud that declares Restorable
+            or (aid == Restorable.RESTORE_ACTION and not is_restorable(crud))
             or (aid == "edit" and not may_edit)
             or (aid in (None, "") and mode == "new" and not may_create)
             or (aid in (None, "") and mode == "edit" and not may_edit)
@@ -115,12 +119,21 @@ class CrudHandlerMixin(MixinBase):
         if aid == "delete" and id_ is None:
             # Delete on the LISTING: the rows selected in the grid (Java's DeleteActionHandler);
             # the listing re-runs its search in place.
-            for row_id in self._selected_ids(rq):
+            deleted = self._selected_ids(rq)
+            for row_id in deleted:
                 self.delete(crud, row_id)
             refreshed = self.crud_search(crud, element, rq)
+            # a crud declaring Restorable offers the way back (W-V-DELETE-FEEDBACK)
             return refreshed.model_copy(update={"messages": [
+                deleted_message(deleted) if is_restorable(crud) and deleted else
                 MessageDto(variant="success", position="middle", title="", text="Deleted", duration=3000)
             ]})
+        if aid == Restorable.RESTORE_ACTION:
+            ids = restore_ids(rq)
+            if ids:
+                self._invoke(crud.restore_all_by_id, ids, rq)
+            refreshed = self.crud_search(crud, element, rq)
+            return refreshed.model_copy(update={"messages": [restored_message(len(ids))]})
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
         # Crud.<format>_exportable: only an exportable crud answers its export (the id is wire

@@ -204,6 +204,7 @@ Mateu.Uidl.IRemoteIdentityStrategy
 Mateu.Uidl.IRemoteRegistry
 Mateu.Uidl.IRestSourceCatalogSupplier
 Mateu.Uidl.IRestSourceSupplier
+Mateu.Uidl.IRestorable`1
 Mateu.Uidl.IRuleSupplier
 Mateu.Uidl.ISearchable
 Mateu.Uidl.ISecretsProvider

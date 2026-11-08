@@ -1,3 +1,4 @@
+import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
@@ -14,7 +15,7 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useFitsContent, useScreenHasBack } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
@@ -90,7 +91,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   // a page template that owns the header (WelcomePage, HeroSearchPage…) draws its title in its own
   // banner: the wire still names it, for the window title, and `noHeader` says not to repeat it
   const noHeader = metadata['noHeader'] === true;
-  const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
+  const declaredTitle = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
+  // the shell's bar already names the screen (RN-22): the header does not say it twice
+  const barTitle = useBarTitle();
+  const title = bodyRepeatsBar(declaredTitle, barTitle) ? '' : declaredTitle;
   const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', ctx);
   // the same button twice (a listing's toolbar folded in more than once) is one button
   // …and «Back to list» stands down when the screen already has a back arrow (RN-26)
@@ -104,7 +108,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   // Record/context switcher (PageDto.switcher): a compact selector under the title.
   const switcher = switcherOf(metadata);
   // overline / title placeholder / "last updated" / previous-next record (the canonical header)
-  const extras = pageHeaderExtrasOf(metadata, title);
+  const extras = pageHeaderExtrasOf(metadata, declaredTitle);
   const openPeer = (label: string, route: string) =>
     controller.session.openView({ label, route, consumedRoute: '', serverSideType: '' });
 
@@ -119,7 +123,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
       {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers) && (
         <View style={styles.header}>
           {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
-          {!title && !!extras.placeholder && (
+          {!declaredTitle && !!extras.placeholder && (
             <PaperText variant="headlineSmall" style={[styles.title, styles.placeholder]} {...headingA11y(1)}>{extras.placeholder}</PaperText>
           )}
           {!!title && (

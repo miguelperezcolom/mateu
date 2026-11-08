@@ -246,8 +246,9 @@ public class CapabilityListingTests
     public void Navigable_makes_rows_clickable_and_serves_the_detail_route()
     {
         var json = Render(Load(typeof(NavigableBooks), "/navigable-books"));
-        // the first column carries the row-open affordance…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\"", json);
+        // the first column carries the row-open affordance — the technical id is not a column
+        // (W-V-TABLE-ID: the row is the link)…
+        Assert.DoesNotContain("\"id\":\"id\",\"label\":\"Id\"", json);
         Assert.Contains("\"actionId\":\"view\"", json);
         // …and still no create/delete chrome — only what was declared
         Assert.DoesNotContain("\"actionId\":\"new\"", json);

@@ -9,7 +9,8 @@ import { BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
-import { ScreenHasBack } from './ScrollContext';
+import { BarTitle, ScreenHasBack } from './ScrollContext';
+import { barTitleOf } from '../core/barTitle';
 import { useAppContext } from '../context/AppContext';
 import { BACK_HINT, NavTarget, ScreenBack, declareMenuRemotes, navigationSession } from '../core/MateuSession';
 import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
@@ -1204,6 +1205,17 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // the Mateu hub, the hub's "switch UI" — so the hub hides its own (session.hub.claimBar)
   const [headerBack, setHeaderBack] = useState<ScreenBack | null>(null);
   const hostBack = React.useCallback((back: ScreenBack | null) => setHeaderBack(back), []);
+  // RN-22: the bar names the screen on view (SetWindowTitle, or its own title once resolved) — the
+  // Material top app bar; the app's name stays in the drawer header and until a screen names itself
+  const [screenTitle, setScreenTitle] = useState<string | null>(null);
+  React.useEffect(() => {
+    if (!drawerShell) return;
+    session.setTitle = (title: string) => setScreenTitle(title);
+    return () => {
+      session.setTitle = () => {};
+    };
+  }, [drawerShell, session]);
+  const barTitle = barTitleOf(screenTitle, appMeta.title, session.hub?.uiName);
   React.useEffect(() => {
     if (!drawerShell) return;
     session.hub?.claimBar?.(true);
@@ -1219,6 +1231,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   );
 
   const mainScreen = withOverlays(
+    <BarTitle.Provider value={drawerShell ? barTitle : null}>
     <ContentScreen
       key={`${currentNav.route}-${currentNav.consumedRoute}-${currentNav.baseUrl ?? ""}-${contextVersion}-${menuVisit}`}
       route={currentNav.route}
@@ -1227,7 +1240,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       baseUrl={currentNav.baseUrl}
       bottomInset={bottomInset}
       hostBack={drawerShell ? hostBack : undefined}
-    />,
+    />
+    </BarTitle.Provider>,
   );
 
   if (variant === 'TABS' && menuItems.length > 0) {
@@ -1317,7 +1331,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                 ) : (
                   <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
                 )}
-                <Appbar.Content title={appMeta.title ?? session.hub?.uiName ?? 'Mateu'} titleStyle={styles.appBarTitle} />
+                <Appbar.Content title={barTitle} titleStyle={styles.appBarTitle} accessibilityRole="header" testID="app-bar-title" />
                 {appMeta.themeToggle && (
                   <Appbar.Action
                     icon={dark ? 'white-balance-sunny' : 'weather-night'}

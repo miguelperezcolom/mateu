@@ -29,3 +29,10 @@ export const usePageShowsToolbar = (): boolean => useContext(PageShowsToolbar);
  */
 export const ScreenHasBack = createContext(false);
 export const useScreenHasBack = (): boolean => useContext(ScreenHasBack);
+
+/**
+ * What the shell's top app bar says right now (RN-22: the screen's title), or null when the screen
+ * has no bar of its own above it (tabs, the hub's bar): a page header repeating it drops its title.
+ */
+export const BarTitle = createContext<string | null>(null);
+export const useBarTitle = (): string | null => useContext(BarTitle);
