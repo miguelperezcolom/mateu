@@ -103,6 +103,26 @@ payload of seven Star Wars screens, built following the plugin's naming) against
 the real authoring validator and YAML loader in `backend/shared/core`
 (`FigmaYamlGoldenTest`), so the converter's output is pinned as a file Mateu actually reads.
 
+## End to end: sample screens (`plugin` command + `e2e/`)
+
+The plugin's **Mateu Sample Screens** command (`plugin/src/samples.ts` = the pure plan, tested in
+`plugin/test/samples.test.mjs`; the Figma calls in `code.ts` `runSampleScreens`) builds, in any file
+that has the library — local `Mateu · …` pages (a duplicate of the Community kit), else imported by
+publish key (`plugin/src/library-keys.json`, rewritten by `npm run keys -- library.json` after every
+regenerate + publish), else from instances already in the file — a page `Screens (sample)` with six
+frames made only of library instances: `contact` (free form), `artwork` (ItemOverviewPage),
+`artworks` (Listing), `dashboard` (DashboardLandingPage), `onboarding` (GuidedProcessPage),
+`welcome` (WelcomePage).
+
+`e2e/` checks them with no Figma: every `e2e/*.figma.json` (`sample-screens.figma.json`, built
+from the same plan by `npm run fixture` in the REST shape of the owner's file; and
+`real-sample-screens.figma.json`, a real download, when present — `npm run e2e:refresh -- <file
+URL|key>`, token from `FIGMA_TOKEN` / `~/.mateu-secrets/figma-token`) is converted by `to-yaml`,
+served by `e2e/app` (Spring Boot YAML app at the release `starters/yaml` pins, its hand-written
+routes/sources/actions + a sample API; the pages are added with `-Dloader.path`, so one jar serves
+every fixture) on a free port, and driven by Playwright (`e2e/tests`). `npm test` (no JVM) / `npm
+run e2e` / `npm run e2e:serve`. CI: `examples.yml` job `figma-e2e`.
+
 ## Reading back (modux)
 
 modux's Figma importer (`model-driven-generator`, use case `importfigma`) downloads the file via

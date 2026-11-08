@@ -1,0 +1,20 @@
+{
+  "name": "mateu-figma-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Figma design pipeline end to end: the sample screens of the Mateu UI Kit (a Figma REST payload) → specs/ui YAML → a running Mateu app → Playwright checks.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "fixture": "node bin/fixture.mjs",
+    "e2e": "node bin/run.mjs",
+    "e2e:serve": "node bin/run.mjs --serve",
+    "e2e:refresh": "node bin/refresh.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,25 @@
+# The endpoints the designed screens name: `artworks` is the Listing's rowsSource.ref (set in its
+# Figma properties panel), `artwork` the record route's data, `contacts-create` what Save posts.
+# All three are answered by this app (Application.java), so the check needs no network.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+  - name: artworks
+    description: The collection
+    source:
+      url: /api/artworks?search=${encodeURIComponent(state.searchText ?? '')}
+      itemsPath: content
+    totalPath: totalElements
+  - name: artwork
+    description: One artwork by id
+    source:
+      url: /api/artworks/${state.id}
+  - name: contacts-create
+    description: Save a contact
+    source:
+      url: /api/contacts
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: >-
+        {"name":"${state.name}","email":"${state.email}","country":"${state.country ?? ''}",
+        "birthDate":"${state.birthDate ?? ''}","newsletter":"${state.newsletter ?? false}"}
