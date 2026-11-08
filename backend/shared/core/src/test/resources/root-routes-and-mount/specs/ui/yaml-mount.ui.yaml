@@ -1,0 +1,5 @@
+# a non-root mount declared as data: it must not switch off the root routes.yaml
+type: UI
+basePath: /yaml-mount
+routes:
+  - yaml-mount-routes.yaml
