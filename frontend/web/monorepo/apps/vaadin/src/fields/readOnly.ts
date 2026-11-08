@@ -4,7 +4,7 @@ import { isPasswordField, shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import { safeHtml } from '@infra/ui/safeHtml.ts'
 import { Notification } from '@vaadin/notification'
 import { evalIfNecessary } from '@infra/ui/renderers/avatarRenderer.ts'
-import { displayedValue, formatMoney, readOnlyText } from './fieldDisplay'
+import { displayedValue, readOnlyText } from './fieldDisplay'
 import type { FieldLabel, FieldValue } from './fieldEvents'
 import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from './mateu-field'
@@ -108,13 +108,10 @@ export function renderFoldoutReadOnlyField(host: MateuField, value: FieldValue, 
     if ((v === undefined || v === null || v === '') && fromData(host.field.fieldId) !== undefined) v = fromData(host.field.fieldId)
     const lookupLabel = fromData(host.field.fieldId + '-label')
     if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
-    // an amount of money (an Amount, or a number declared money) reads formatted: "89.50", "€89.50"
-    const money = host.field.stereotype === 'money' || host.field.dataType === 'money'
-    if (money && v !== null && v !== undefined && v !== '') v = formatMoney(v)
-    if (v && typeof v === 'object' && 'value' in (v as any)) v = (v as any).value
-    // a select/radio/choice: its option's label, not the code
-    const option = (host.field as any).options?.find?.((o: any) => o && o.value == v)
-    if (option && option.label != null && (lookupLabel === undefined || lookupLabel === '')) v = option.label
+    // an amount of money (an Amount, or a number declared money) reads formatted: "89.50", "€89.50";
+    // a select/radio/choice its option's label, not the code; a date in the UI's locale
+    if (lookupLabel === undefined || lookupLabel === '') v = readOnlyText(v, host.field as any)
+    else if (v && typeof v === 'object' && 'value' in (v as any)) v = (v as any).value
     v = shownReadOnlyValue(host.field, v)
     const display = v !== null && v !== undefined && v !== '' ? String(v) : '—'
     return html`<vaadin-custom-field

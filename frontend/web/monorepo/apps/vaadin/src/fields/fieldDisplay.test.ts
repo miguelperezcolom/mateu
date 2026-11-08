@@ -62,6 +62,9 @@ describe('readOnlyText (what a read-only field shows)', () => {
         expect(readOnlyText('Espresso machine', { dataType: 'string' })).toBe('Espresso machine')
         expect(readOnlyText(undefined, { stereotype: 'money' })).toBeUndefined()
     })
+    it('writes a read-only date in the UI locale', () => {
+        expect(readOnlyText('2026-11-05', { dataType: 'date' })).toBe('11/5/2026')
+    })
     it('plain-text / property rows show the option label too', () => {
         expect(displayedValue('OUT_OF_STOCK', 'string', 'plainText', options).display).toBe('Out of stock')
     })

@@ -1,4 +1,5 @@
 import { moneyValueText } from './money.ts';
+import { temporalText } from './temporalText.ts';
 
 /**
  * What a READ-ONLY field shows — the rule of the web renderers (libs/mateu statusColumnRenderer
@@ -81,5 +82,6 @@ export function readOnlyFieldText(f: ReadOnlyFieldLike, value: unknown): string 
     const v = value as Record<string, unknown>;
     return String(v['message'] ?? v['value'] ?? JSON.stringify(value));
   }
-  return String(value);
+  // a date / date-time / time reads in the UI's locale, like the listing column next to it
+  return String(temporalText(value, f.dataType));
 }

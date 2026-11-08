@@ -17,6 +17,13 @@ test('a read-only amount is formatted in the UI locale, whichever channel says m
   setAppLocale(undefined);
 });
 
+test('a read-only date reads in the UI locale, like its listing column', () => {
+  setAppLocale('es-ES');
+  assert.equal(readOnlyFieldText({ dataType: 'date' }, '2026-11-05'), '5/11/2026');
+  assert.equal(readOnlyFieldText({ dataType: 'string' }, '2026-11-05'), '2026-11-05');
+  setAppLocale(undefined);
+});
+
 test('a value among the options shows the option label, not its code', () => {
   assert.equal(readOnlyFieldText({ options: statusOptions }, 'OUT_OF_STOCK'), 'Out of stock');
   // == : a number matches its option's string value

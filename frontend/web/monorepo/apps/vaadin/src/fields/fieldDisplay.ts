@@ -4,6 +4,8 @@
  */
 
 import { formatMoneyValue, isAmount } from '@infra/ui/moneyFormat.ts'
+import { formatTemporalCell } from '@infra/ui/dateFormat.ts'
+import { uiLocale } from '@infra/ui/uiLocale.ts'
 export type { AmountLike } from '@infra/ui/moneyFormat.ts'
 
 /**
@@ -40,7 +42,8 @@ export const readOnlyText = (raw: unknown, field: { dataType?: string, stereotyp
     const money = field?.dataType === 'money' || field?.stereotype === 'money'
     if (money && v !== null && v !== undefined && v !== '') return formatMoney(v)
     if (isAmount(v)) v = (v as any).value
-    return optionLabel(field?.options, v) ?? v
+    // a date / date-time / time reads in the UI's locale, like the listing column next to it
+    return optionLabel(field?.options, v) ?? formatTemporalCell(v, field?.dataType, uiLocale())
 }
 
 export interface DisplayedValue {
