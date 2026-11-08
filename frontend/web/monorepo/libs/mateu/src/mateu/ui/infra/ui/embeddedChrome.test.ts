@@ -45,13 +45,14 @@ customElements.define('test-embedded-connected', TestConnected)
 const cmd = (type: string, data?: unknown) => ({ type, data } as unknown as UICommand)
 
 /** A tree of plain elements shaped like the real one, without loading anything. */
-const tree = (chrome?: string) => {
+const tree = (chrome?: string, island = false) => {
     const host = document.createElement('section')
     host.setAttribute('data-role', 'host-page')
     // the helpers look for MATEU-UX by tag name: a stand-in that loads nothing
     const fake = document.createElement('div')
     Object.defineProperty(fake, 'tagName', { value: 'MATEU-UX' })
     if (chrome) fake.setAttribute('embedded-chrome', chrome)
+    if (island) fake.setAttribute('micro-frontend', '')
     const shadow = fake.attachShadow({ mode: 'open' })
     const inner = document.createElement('test-embedded-connected') as TestConnected
     shadow.appendChild(inner)
@@ -93,10 +94,19 @@ describe('the chrome and where it applies', () => {
         expect(isSuppressedWindowCommand('SetWindowTitle', host)).toBe(false)
     })
 
-    it('a micro frontend without chrome is top-level, as it always was', () => {
+    it('a mateu-ux that is no island (an app shell\'s content) is top-level', () => {
         const { inner } = tree()
         expect(embeddingChromeOf(inner)).toBeUndefined()
         expect(isSuppressedWindowCommand('SetWindowTitle', inner)).toBe(false)
+    })
+
+    it('a micro frontend island without chrome does not own the window either', () => {
+        const { inner } = tree(undefined, true)
+        expect(embeddingChromeOf(inner)).toBeUndefined()
+        for (const type of ['SetWindowTitle', 'SetFavicon', 'PushStateToHistory']) {
+            expect(isSuppressedWindowCommand(type, inner), type).toBe(true)
+        }
+        expect(isSuppressedWindowCommand('DispatchEvent', inner)).toBe(false)
     })
 })
 
@@ -121,10 +131,14 @@ describe('the window stays the host page\'s', () => {
         expect(pushed).toEqual([])
     })
 
-    it('without chrome the island still names the window (the behaviour it always had)', () => {
-        const { inner } = tree()
+    it('without chrome an island does not move the host page either (a crud row opened inside it replaced the host URL)', () => {
+        const { inner } = tree(undefined, true)
+        const pushed: string[] = []
+        document.addEventListener('route-changed', (e) => pushed.push((e as CustomEvent).detail.route))
         inner.applyCommand(cmd('SetWindowTitle', 'Remote tools'))
-        expect(document.title).toBe('Remote tools')
+        inner.applyCommand(cmd('PushStateToHistory', '/x/behaviour/crud-labels/SUP-10'))
+        expect(document.title).toBe('Herramientas')
+        expect(pushed).toEqual([])
     })
 
     it('every chrome keeps the window: NONE, COMPACT and PAGE alike', () => {
@@ -139,12 +153,13 @@ describe('the window stays the host page\'s', () => {
 })
 
 describe('the island\'s mateu-ux', () => {
-    const mountUx = async (chrome?: string) => {
+    const mountUx = async (chrome?: string, island = false) => {
         const el = document.createElement('mateu-ux') as MateuUx
         el.id = 'mfe_x'
         el.setAttribute('baseurl', '/remote')
         el.setAttribute('route', '/remote-tools')
         if (chrome) el.setAttribute('embedded-chrome', chrome)
+        if (island) el.setAttribute('micro-frontend', '')
         document.body.appendChild(el)
         await el.updateComplete
         for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0))
@@ -178,6 +193,16 @@ describe('the island\'s mateu-ux', () => {
 
     it('a move inside it does not reach the address bar', async () => {
         const el = await mountUx('COMPACT')
+        const seen: string[] = []
+        document.addEventListener('url-update-requested', (e) => seen.push((e as CustomEvent).detail.route))
+        const child = document.createElement('div')
+        el.appendChild(child)
+        child.dispatchEvent(new CustomEvent('route-changed', { detail: { route: '/remote-tools/1' }, bubbles: true, composed: true }))
+        expect(seen).toEqual([])
+    })
+
+    it('a move inside an island without chrome does not reach the address bar either', async () => {
+        const el = await mountUx(undefined, true)
         const seen: string[] = []
         document.addEventListener('url-update-requested', (e) => seen.push((e as CustomEvent).detail.route))
         const child = document.createElement('div')

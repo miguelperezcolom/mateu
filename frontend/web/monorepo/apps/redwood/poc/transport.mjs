@@ -275,7 +275,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
       release()
       if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
       // …and whatever an older remote still sends, the window is not the island's to name
-      return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
+      return outbound.embeddedChrome || outbound.windowless ? withoutWindowCommands(inc) : inc
     }, (e) => { release(); throw e })
 }
 
@@ -579,7 +579,10 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
     // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
-    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
+    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+    // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
+    // opened inside one replaced the host page's address)
+    ...(sub.windowless ? { windowless: true } : {}) }
   // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
   // its actions and triggers still go to ITS baseUrl (outbound, below)
   const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
@@ -589,7 +592,7 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
     componentState: sub.componentState || {},
     ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
   })
-  let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
+  let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
   next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
   for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
     const ctx = next.contexts[sub.id]
@@ -600,7 +603,7 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   }
   // an embedded island leaves the window as the HOST named it: its load does not take the host's
   // title (nor its history push) away from the chains that apply them after loading the blocks
-  if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
+  if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
   return next
 }
 
