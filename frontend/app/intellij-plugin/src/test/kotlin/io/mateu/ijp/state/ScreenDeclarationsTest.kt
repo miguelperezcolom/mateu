@@ -151,4 +151,32 @@ class ScreenDeclarationsTest : TestCase() {
         // the same rules again change nothing
         assertFalse(ClientRules.apply(rules, state, mapOf(), attrs) { ran.add(it) })
     }
+
+    /**
+     * The `required` rule (SetDataValue on `<field>.required`, "the VAT number of a company"):
+     * it reached the state as `vatNumber.required` and nothing read it — no asterisk, and an
+     * empty value was saved.
+     */
+    fun testARequiredRuleMarksTheFieldAndIsRefusedEmpty() {
+        val attrs = HashMap<String, MutableMap<String, Any?>>()
+        val rules = json(
+            """[{"action":"SetDataValue","fieldName":"vatNumber","fieldAttribute":"required",
+                 "expression":"!!state.company"}]""",
+        )
+        val company = HashMap<String, Any?>(mapOf("company" to true, "vatNumber" to ""))
+        ClientRules.apply(rules, company, mapOf(), attrs) {}
+        assertEquals(true, attrs["vatNumber"]?.get("required"))
+        assertEquals(mapOf("vatNumber" to "Cannot be empty"), ClientRules.requiredErrors(attrs, company))
+        company["vatNumber"] = "B1"
+        assertTrue(ClientRules.requiredErrors(attrs, company).isEmpty())
+
+        val person = HashMap<String, Any?>(mapOf("company" to false))
+        ClientRules.apply(rules, person, mapOf(), attrs) {}
+        assertEquals(false, attrs["vatNumber"]?.get("required"))
+        assertTrue(ClientRules.requiredErrors(attrs, person).isEmpty())
+        assertTrue(
+            "a field a rule hides asks nothing",
+            ClientRules.requiredErrors(mapOf("x" to mutableMapOf("required" to true, "hidden" to true)), mapOf()).isEmpty(),
+        )
+    }
 }

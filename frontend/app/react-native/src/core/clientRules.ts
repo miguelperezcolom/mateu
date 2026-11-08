@@ -6,6 +6,24 @@ import { str } from './viewWire.ts';
 
 type Json = Record<string, any>;
 
+/** The data attributes a field honours when a SetDataValue rule writes them. */
+const FIELD_FLAGS = new Set(['hidden', 'disabled', 'required', 'readOnly']);
+
+const isEmpty = (v: unknown) =>
+  v === undefined || v === null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0);
+
+/**
+ * The fields a client-side rule currently makes REQUIRED whose value is empty → { fieldId:
+ * message } (the server's own text for @NotEmpty). A field a rule hides asks nothing.
+ */
+export function ruleRequiredErrorsOf(fieldAttributes: Record<string, Json>, state: Json): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [fieldId, attrs] of Object.entries(fieldAttributes ?? {})) {
+    if (attrs?.['required'] === true && !attrs['hidden'] && isEmpty(state?.[fieldId])) out[fieldId] = 'Cannot be empty';
+  }
+  return out;
+}
+
 /**
  * Evaluates `rules` in order against `ctx`: a rule whose filter holds (no filter = holds; a filter
  * that throws does not) runs its action — SetStateValue/SetDataValue write `state`,
@@ -52,6 +70,15 @@ export function applyClientRules(
         if (state[key] !== v) {
           state[key] = v;
           changed = true;
+        }
+        // `<field>.hidden|disabled|required|readOnly` is a field attribute too: the renderers read
+        // the overrides, so a required rule marks the field and the save refuses it empty
+        if (action === 'SetDataValue' && FIELD_FLAGS.has(attr)) {
+          const attrs = (fieldAttributes[fieldName] ??= {});
+          if (attrs[attr] !== v) {
+            attrs[attr] = v;
+            changed = true;
+          }
         }
       }
     } else if (action === 'SetAttributeValue') {

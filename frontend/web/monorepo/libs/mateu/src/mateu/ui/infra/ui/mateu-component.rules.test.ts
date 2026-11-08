@@ -103,6 +103,45 @@ describe('rules', () => {
     })
 })
 
+describe('the required rule', () => {
+    const vatRule = rule({ action: RuleAction.SetDataValue, fieldName: 'vatNumber',
+        fieldAttribute: RuleFieldAttribute.required, expression: '!!state.company' })
+
+    it('a field a rule makes required is refused empty, and only while the rule holds', () => {
+        const el = element({ rules: [vatRule] }, { company: true, vatNumber: '' })
+        el.applyRules()
+        expect(el.data['vatNumber.required']).toBe(true)
+        el.checkValidations()
+        expect(el.data._valid).toBe(false)
+        expect(el.data.errors.vatNumber).toEqual(['Cannot be empty'])
+
+        el.state = { company: false, vatNumber: '' }
+        el.applyRules()
+        el.checkValidations()
+        expect(el.data._valid).toBe(true)
+        expect(el.data.errors.vatNumber ?? []).toEqual([])
+    })
+
+    it('a value satisfies it, and a hidden field asks nothing', () => {
+        const filled = element({ rules: [vatRule] }, { company: true, vatNumber: 'B123' })
+        filled.applyRules()
+        filled.checkValidations()
+        expect(filled.data._valid).toBe(true)
+
+        const hidden = element({}, { vatNumber: '' }, { 'vatNumber.required': true, 'vatNumber.hidden': true })
+        hidden.checkValidations()
+        expect(hidden.data._valid).toBe(true)
+    })
+
+    it('a partial validation checks it only for the fields asked for', () => {
+        const el = element({}, { vatNumber: '' }, { 'vatNumber.required': true })
+        el.checkValidations('other')
+        expect(el.data._valid).toBe(true)
+        el.checkValidations('vatNumber')
+        expect(el.data._valid).toBe(false)
+    })
+})
+
 describe('validations', () => {
     it('collects the messages of failing conditions per field and flags the form invalid', () => {
         const el = element({ validations: [
