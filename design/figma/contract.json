@@ -1054,74 +1054,6 @@
       }
     },
     {
-      "name": "Mateu/Layout/ContentLayout",
-      "kind": "contentLayout",
-      "variants": {
-        "asidePosition": [
-          "end",
-          "start"
-        ],
-        "asideSticky": [
-          "true",
-          "false"
-        ]
-      },
-      "java": "ContentLayout (fluent) / @Aside on a field",
-      "csharp": "ContentLayout / [Aside]",
-      "python": "ContentLayout / Aside()",
-      "props": {
-        "asideWidth": "TEXT"
-      },
-      "container": true,
-      "sketch": [
-        {
-          "t": "row",
-          "items": [
-            {
-              "t": "slot",
-              "w": 260,
-              "h": 170
-            },
-            {
-              "t": "slot",
-              "w": 150,
-              "h": 170
-            }
-          ]
-        },
-        {
-          "t": "row",
-          "items": [
-            {
-              "t": "slot",
-              "name": "main",
-              "h": 100,
-              "w": 240
-            },
-            {
-              "t": "slot",
-              "name": "aside",
-              "h": 100,
-              "w": 120
-            }
-          ]
-        }
-      ],
-      "yaml": {
-        "type": "ContentLayout",
-        "slots": {
-          "main": {
-            "path": "main",
-            "many": true
-          },
-          "aside": {
-            "path": "aside",
-            "many": true
-          }
-        }
-      }
-    },
-    {
       "name": "Mateu/Layout/VerticalLayout",
       "kind": "verticalLayout",
       "variants": {
@@ -4492,7 +4424,7 @@
         "variant": [
           "MENU_ON_TOP",
           "TABS",
-          "HAMBURGUER_MENU",
+          "HAMBURGER_MENU",
           "TILES"
         ]
       },

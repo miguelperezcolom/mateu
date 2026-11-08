@@ -310,8 +310,7 @@ public sealed class AppAttribute(string title) : Attribute
     /// <summary>Navigation chrome: "" = auto (Java's @App(AUTO) decision table: grouped menu →
     /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS), or an
     /// explicit value, which always wins — use the <see cref="AppVariant"/> constants
-    /// (TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGER_MENU | HAMBURGER_SECTIONS | TILES | RAIL).
-    /// The old misspelling "HAMBURGUER_MENU" is still accepted.</summary>
+    /// (TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGER_MENU | HAMBURGER_SECTIONS | TILES | RAIL).</summary>
     public string Variant { get; set; } = "";
 
     /// <summary>Show the always-present "command center" FAB (the Ask-Oracle pattern): a floating
@@ -414,11 +413,13 @@ public sealed class AIAttribute(string sse) : Attribute
 
     /// <summary>The text of the chat panel's Follow mode button while it is OFF (the toggle that
     /// decides whether the view follows the assistant or stays where the user is). Empty = the
-    /// renderer's own, in the user's language ("Follow", "Seguir"). (Java's <c>@AI(followLabel)</c>.)</summary>
+    /// renderer's own, in the user's language ("Follow", "Seguir"). (Java's <c>@AI(followLabel)</c>.)
+    /// Experimental (3.0-beta.51).</summary>
     public string FollowLabel { get; set; } = "";
 
     /// <summary>The text of the Follow mode button while it is ON (its default state). Empty = the
-    /// renderer's own ("Following", "Siguiendo"). (Java's <c>@AI(followingLabel)</c>.)</summary>
+    /// renderer's own ("Following", "Siguiendo"). (Java's <c>@AI(followingLabel)</c>.)
+    /// Experimental (3.0-beta.51).</summary>
     public string FollowingLabel { get; set; } = "";
 }
 

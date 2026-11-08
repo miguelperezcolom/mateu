@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
  *     "version": "3.0-beta.27",
  *     "plugin": { "url": "https://…/mateu-intellij-plugin-3.0-beta.27.zip", "sha256": "…" },
  *     "platform": {
- *       "ideVersion": "2025.2.6.3",
+ *       "ideVersion": "2025.2.6.4",
  *       "installers": { "macos-aarch64": "…", "macos-intel": "…", "linux": "…", "windows": "…" }
  *     },
  *     "notes": "…"
@@ -53,7 +53,7 @@ data class UpdateFeed(
             }
             val platform = node.path("platform")
             val installers = buildMap {
-                platform.path("installers").fields().forEach { (key, value) ->
+                platform.path("installers").properties().forEach { (key, value) ->
                     value.text()?.takeIf(::isAllowedUrl)?.let { put(key, it) }
                 }
             }

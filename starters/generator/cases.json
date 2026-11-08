@@ -279,14 +279,17 @@
           "title: Catalogue site"
         ],
         "src/main/resources/specs/ui/products.yaml": [
-          "pageType: collection"
+          "pageType: collection",
+          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-alpha.999/backend/shared/uidl/uidl-schema.json"
         ],
         "src/main/resources/specs/ui/app.ui.yaml": [
-          "home: home"
+          "home: home",
+          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-alpha.999/backend/shared/uidl/mount-schema.json"
         ],
         "AGENTS.md": [
           "mvn mateu-bundle:dev",
-          "npx serve -s target/mateu-bundle"
+          "npx serve -s target/mateu-bundle",
+          "mateu/v3.0-alpha.999/backend/shared/uidl/specs-schema.json"
         ],
         ".claude/settings.json": [
           "\"mateu@mateu\": true",
@@ -296,6 +299,12 @@
       "lacks": {
         "pom.xml": [
           "spring-boot"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
+          "mateu/master/backend/shared/uidl"
+        ],
+        "src/main/resources/specs/ui/sources.yaml": [
+          "mateu/master/backend/shared/uidl"
         ]
       }
     },

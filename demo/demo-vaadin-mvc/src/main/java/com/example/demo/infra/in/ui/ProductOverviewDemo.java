@@ -6,7 +6,7 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.Markdown;
 
-/** Pilot of the ContentLayout slot grammar: the ItemOverview archetype now composes a ContentLayout. */
+/** Pilot of the page slot grammar: the ItemOverview archetype composes a ResponsiveGrid. */
 @UI("/product-overview")
 @Title("Ergonomic chair EC-200")
 public class ProductOverviewDemo extends ItemOverview {

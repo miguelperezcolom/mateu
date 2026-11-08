@@ -46,7 +46,7 @@ public class CodeAuthoredApp : IAppSupplier
     })
     {
         HomeRoute = "/codeapp/home",
-        Variant = "HAMBURGUER_MENU",
+        Variant = AppVariant.HamburgerMenu,
     };
 }
 

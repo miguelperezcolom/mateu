@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
@@ -21,7 +22,7 @@ public record ProgressSteps(
     boolean vertical,
     String style,
     String cssClasses,
-    String resultTitle)
+    @Experimental("wizard result title (3.0 beta)") String resultTitle)
     implements Component {
 
   /** Without a result title (the shape before it existed). */

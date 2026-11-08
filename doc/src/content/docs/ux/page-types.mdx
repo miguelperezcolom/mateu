@@ -163,7 +163,7 @@ record switcher), then the record's information grouped into panels: a sticky ke
 tabs, property cards, lateral fold-out panels, or a canvas with a docked detail.
 
 **Components you meet here:** `EntityHeader`, `Card` with property-list sections,
-`TabLayout`, `FoldoutLayout`, `ContentLayout` (main + aside), `Timeline`, `Gantt`.
+`TabLayout`, `FoldoutLayout`, `ResponsiveGrid` (main + aside), `Timeline`, `Gantt`.
 
 | Template | Archetype or piece | Detail |
 |---|---|---|
@@ -489,7 +489,7 @@ public class FrontDesk extends Welcome {
 ## When no template fits
 
 The templates are a starting point, not a cage. Every archetype is a composition of ordinary
-components, so the same pieces compose freely in a page of your own (`ContentLayout`,
+components, so the same pieces compose freely in a page of your own (`ResponsiveGrid`,
 `EntityHeader`, `HeroSection`, `TaskQueue`, `Card`…), and a page you compose still declares its
 type with `@PageTemplate` or `pageType:`. When even composition is not enough, see
 [Extending the UI](/ux/extending/).

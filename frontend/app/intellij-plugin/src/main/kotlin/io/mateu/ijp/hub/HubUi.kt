@@ -244,7 +244,7 @@ class AddUiDialog(private val project: Project, initial: String = "") : DialogWr
             add(Box.createHorizontalStrut(JBUI.scale(6)))
             add(JButton("From an image…").apply {
                 addActionListener {
-                    val file = FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFileDescriptor().withFileFilter { it.extension?.lowercase() in setOf("png", "jpg", "jpeg", "gif", "bmp") }, project, null)
+                    val file = FileChooser.chooseFile(FileChooserDescriptorFactory.singleFile().withFileFilter { it.extension?.lowercase() in setOf("png", "jpg", "jpeg", "gif", "bmp") }, project, null)
                         ?: return@addActionListener
                     scan("in ${file.name}", { HubQr.fromFile(java.io.File(file.path)) }, "No QR code found in ${file.name}.")
                 }

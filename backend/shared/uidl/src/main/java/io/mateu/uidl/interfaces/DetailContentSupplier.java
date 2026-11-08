@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 
 /**
@@ -30,6 +31,7 @@ import io.mateu.uidl.fluent.Component;
  * }
  * }</pre>
  */
+@Experimental("custom CRUD detail content (3.0 beta)")
 public interface DetailContentSupplier {
 
   Component detailContent(HttpRequest httpRequest);

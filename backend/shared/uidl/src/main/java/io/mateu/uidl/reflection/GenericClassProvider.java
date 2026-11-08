@@ -2,7 +2,6 @@ package io.mateu.uidl.reflection;
 
 import static io.mateu.uidl.reflection.TypeProvider.getType;
 
-import io.mateu.uidl.annotations.GenericClass;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -55,27 +54,21 @@ public class GenericClassProvider {
   public static Class getGenericClass(
       Field field, Class asClassOrInterface, String genericArgumentName) {
     Type t = field.getGenericType();
-    if (field.isAnnotationPresent(GenericClass.class))
-      return field.getAnnotation(GenericClass.class).clazz();
-    else
-      return getGenericClass(
-          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
-          field.getType(),
-          asClassOrInterface,
-          genericArgumentName);
+    return getGenericClass(
+        (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+        field.getType(),
+        asClassOrInterface,
+        genericArgumentName);
   }
 
   public static Class getGenericClass(
       AnnotatedElement field, Class asClassOrInterface, String genericArgumentName) {
     Type t = getGenericType(field);
-    if (field.isAnnotationPresent(GenericClass.class))
-      return field.getAnnotation(GenericClass.class).clazz();
-    else
-      return getGenericClass(
-          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
-          getType(field),
-          asClassOrInterface,
-          genericArgumentName);
+    return getGenericClass(
+        (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+        getType(field),
+        asClassOrInterface,
+        genericArgumentName);
   }
 
   public static Class getGenericClass(

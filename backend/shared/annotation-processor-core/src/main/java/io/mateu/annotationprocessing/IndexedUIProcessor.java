@@ -46,10 +46,6 @@ class IndexedUIProcessor {
     String path = entry.getOrDefault("path", "");
     String indexHtmlPath = entry.getOrDefault("indexHtmlPath", "/static/_index.html");
     String frontendComponentPath = entry.getOrDefault("frontendComponentPath", "/assets/mateu.js");
-    String keycloakUrl = entry.getOrDefault("keycloakUrl", "");
-    String keycloakRealm = entry.getOrDefault("keycloakRealm", "");
-    String keycloakClientId = entry.getOrDefault("keycloakClientId", "");
-    String keycloakJsUrl = entry.getOrDefault("keycloakJsUrl", "");
     List<Map<String, Object>> scripts = parseIndexedScripts(entry);
     List<Map<String, Object>> links = parseIndexedLinks(entry);
     List<Map<String, Object>> metas = parseIndexedMetas(entry);
@@ -78,10 +74,6 @@ class IndexedUIProcessor {
           path,
           indexHtmlPath,
           frontendComponentPath,
-          keycloakUrl,
-          keycloakRealm,
-          keycloakClientId,
-          keycloakJsUrl,
           scripts,
           links,
           metas,

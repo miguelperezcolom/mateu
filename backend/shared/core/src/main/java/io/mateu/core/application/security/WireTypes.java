@@ -166,7 +166,6 @@ public final class WireTypes {
           "BannerSupplier",
           "BreadcrumbsSupplier",
           "AvatarSupplier",
-          "BadgeSupplier",
           "HeaderBadgesSupplier",
           "WidgetSupplier",
           "PageWidthSupplier",

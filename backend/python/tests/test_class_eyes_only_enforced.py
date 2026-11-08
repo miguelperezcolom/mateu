@@ -1,12 +1,10 @@
-"""``@secured`` is ENFORCED with the semantics of ``@eyes_only(permissions=[p])`` (3.0-alpha.412) —
-before, nothing read it and a "secured" view was open to everyone. The view and its actions are
-refused (403) to a caller without the permission or with no principal, served to one holding it,
-and the menu entry leading to it hides. It stays deprecated, naming ``eyes_only``."""
+"""A class-level ``@eyes_only(permissions=[p])`` is ENFORCED (it replaced the alpha-era ``@secured``,
+removed for 3.0): the view and its actions are refused (403) to a caller without the permission or
+with no principal, served to one holding it, and the menu entry leading to it hides."""
 
 from __future__ import annotations
 
 import sys
-import warnings
 from pathlib import Path
 
 import pytest
@@ -14,24 +12,23 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_ui.uidl import Identity, Message, app, button, menu_item, secured, title, ui  # noqa: E402
+from mateu_ui.uidl.security import eyes_only  # noqa: E402
+from mateu_ui.uidl import Identity, Message, app, button, menu_item, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 RAN: list[str] = []
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", DeprecationWarning)
 
-    @ui("sec-orders")
-    @title("Orders")
-    @secured("orders.read")
-    class SecuredOrders:
-        total: str = "42 orders"
+@ui("sec-orders")
+@title("Orders")
+@eyes_only(permissions=["orders.read"])
+class SecuredOrders:
+    total: str = "42 orders"
 
-        @button()
-        def export(self):
-            RAN.append("export")
-            return Message("exported")
+    @button()
+    def export(self):
+        RAN.append("export")
+        return Message("exported")
 
 
 @ui("sec-open")

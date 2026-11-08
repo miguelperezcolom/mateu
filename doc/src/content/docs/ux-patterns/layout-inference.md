@@ -160,7 +160,7 @@ to take fine control (e.g. `columns()`).
 
 The minimal way to get the Redwood content-page grammar without composing anything: on an ordinary
 form, mark one component-holder field `@Aside`. That field is pulled out of the form body and placed
-in the contextual **aside**; the rest of the form becomes the **main** region of a `ContentLayout`
+in the contextual **aside**; the rest of the form becomes the **main** region of a "main aside" `ResponsiveGrid`
 (the aside sits beside main on wide viewports and stacks under it when narrow; `position`/`width`/
 `sticky` come from the annotation). You keep declaring data as usual and just point at the one
 supporting panel that belongs to the side.
@@ -259,7 +259,6 @@ Both kinds of inference have one global switch each, named the same way. An anno
 | Layout (`@AutoLayout`) | `mateu.layout.inference.enabled` / `MATEU_LAYOUT_INFERENCE_ENABLED` | `Mateu.LayoutInference.Enabled` | `MATEU_LAYOUT_INFERENCE_ENABLED` | `false` |
 | Page (`@AutoPage`) | `mateu.page.inference.enabled` / `MATEU_PAGE_INFERENCE_ENABLED` | `Mateu.PageInference.Enabled` | `MATEU_PAGE_INFERENCE_ENABLED` | `true` |
 
-The names used before 3.0-alpha.412 still work, but they are deprecated and log one warning naming
-the replacement: `mateu.layout.inference` (C# `Mateu.LayoutInference`) and
-`mateu.page.inference.disabled` (C# `Mateu.PageInference.Disabled`) — mind that one: `disabled=true`
-means `enabled=false`. When both an old and a new name are set, the new one wins.
+The names used before 3.0-alpha.412 — `mateu.layout.inference` (C# `Mateu.LayoutInference`) and
+`mateu.page.inference.disabled` (C# `Mateu.PageInference.Disabled`) — were removed in 3.0.0 and are
+ignored: use the names above (mind the polarity: `disabled=true` was `enabled=false`).

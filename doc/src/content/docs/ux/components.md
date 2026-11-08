@@ -21,7 +21,7 @@ Containers that arrange other components.
 |---|---|
 | [`VerticalLayout`](/java-ui-definition/components/vertical-layout/) / [`HorizontalLayout`](/java-ui-definition/components/horizontal-layout/) | stack children down or across; the everyday containers |
 | [`FormLayout`](/java-ui-definition/components/form-layout/) | responsive columns of fields (`FormRow`, `FormItem`, `FormSection`, `FormSubSection` structure it) |
-| `ContentLayout` | deprecated — the content-page grammar (`main` + `aside` + `footer`) is a `ResponsiveGrid` with named areas (`gridTemplateAreas` + `Slotted` children, `stickyAreas` for a pinned aside) |
+| `ContentLayout` | removed in 3.0.0 — the content-page grammar (`main` + `aside` + `footer`) is a `ResponsiveGrid` with named areas (`gridTemplateAreas` + `Slotted` children, `stickyAreas` for a pinned aside) |
 | [`Card`](/java-ui-definition/components/card/) | a framed group with a title; what a `@Section` becomes |
 | [`TabLayout`](/java-ui-definition/components/tab-layout/) / [`AccordionLayout`](/java-ui-definition/components/accordion-layout/) / [`Details`](/java-ui-definition/components/details/) | groups the user switches between, or expands |
 | [`SplitLayout`](/java-ui-definition/components/split-layout/) / [`MasterDetailLayout`](/java-ui-definition/components/master-detail-layout/) | two resizable panes; a list with its detail |

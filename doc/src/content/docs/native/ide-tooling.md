@@ -6,6 +6,13 @@ description: "Author Mateu YAML in your IDE: schema validation, the visual edito
 Both IDE integrations author the same `specs/ui/**` files and share their file skeletons, so a team
 can mix editors freely.
 
+:::caution[Preview in 3.0]
+The **VS Code extension** and the **visual editor** (in both IDEs) are a **preview** in Mateu 3.0:
+their commands, settings and panels may change in any release and are not covered by the 3.0
+stability promise ([how mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
+The files they write are ordinary `specs/ui/**` YAML, which is stable.
+:::
+
 | | IntelliJ plugin | VS Code extension |
 |---|---|---|
 | Schema validation + completion for `specs/ui/**` YAML | ✅ bundled specs schema | ✅ `yamlValidation` (needs the Red Hat YAML extension) |

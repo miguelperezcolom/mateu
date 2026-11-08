@@ -110,7 +110,7 @@ public abstract class Welcome : IComponentTreeSupplier
     /// (the Redwood welcome-page backgroundColor). (Java's Welcome.heroTone.)</summary>
     protected virtual HeroTone HeroTone => HeroTone.Auto;
     /// <summary>A short line above the hero title introducing it (the Redwood welcome page's
-    /// overline). Null (the default) for none. (Java's Welcome.heroOverline.)</summary>
+    /// overline). Null (the default) for none. (Java's Welcome.heroOverline.) Experimental (3.0-beta.13).</summary>
     protected virtual string? HeroOverline => null;
 
     public IComponent Component() =>
@@ -206,7 +206,8 @@ public static class ArchetypeComposers
         HeroTone heroTone = HeroTone.Auto) =>
         ComposeWelcome(host, heroTitle, heroSubtitle, heroImage, heroTone, null);
 
-    /// <summary>The welcome composition with a hero overline (the line above the title).</summary>
+    /// <summary>The welcome composition with a hero overline (the line above the title).
+    /// Experimental (3.0-beta.13).</summary>
     public static IComponent ComposeWelcome(
         object host, string? heroTitle, string? heroSubtitle, string? heroImage,
         HeroTone heroTone, string? heroOverline)
@@ -609,7 +610,8 @@ public interface ICalendarPage
 
     /// <summary>Moves the displayed period to the one holding <paramref name="date"/> (an ISO date —
     /// what a renderer's date picker dispatches as <c>goCalendarToDate</c>); an unparseable date is
-    /// ignored. Default: nothing, for implementations written before it existed.</summary>
+    /// ignored. Default: nothing, for implementations written before it existed.
+    /// Experimental (3.0-beta.13).</summary>
     void GoToDate(string? date) { }
 
     /// <summary>Switches to the requested view (month|week|day|list); ignored when null.</summary>
@@ -748,6 +750,8 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
 
     public void GoToday() => Month = Iso(DateOnly.FromDateTime(DateTime.Today));
 
+    /// <summary>Moves the displayed period to the one holding <paramref name="date"/> (an ISO date);
+    /// an unparseable date is ignored. Experimental (3.0-beta.13).</summary>
     public void GoToDate(string? date)
     {
         if (date is not null && DateOnly.TryParse(date, System.Globalization.CultureInfo.InvariantCulture, out var parsed))

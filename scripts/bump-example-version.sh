@@ -23,6 +23,14 @@ for f in $files; do
   rm -f "$f.bak"
   echo "$f → $new"
 done
+# The starters' YAML (and the AGENTS.md beside it) point `$schema` at the schemas OF THE RELEASE they
+# pin — the raw files at tag v<version>, never master, which can be ahead of that release. The New
+# Project generator rewrites the same URL to the version it writes (new-project.json `replacements`).
+for f in $(grep -rlE "raw\.githubusercontent\.com/miguelperezcolom/mateu/v$REL/backend/shared/uidl/" starters || true); do
+  sed -E -i.bak "s#(raw\.githubusercontent\.com/miguelperezcolom/mateu/)v$REL(/backend/shared/uidl/)#\1v$new\3#g" "$f"   # \2 is REL's own group
+  rm -f "$f.bak"
+  echo "$f (\$schema) → v$new"
+done
 # The .NET and Python READMEs download the web renderer of a release to serve it (MATEU_UI=…).
 # (The doc site's guides write MATEU_VERSION, which the docs build resolves — nothing to bump there.)
 for f in backend/dotnet/README.md backend/python/README.md; do

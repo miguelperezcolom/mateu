@@ -78,6 +78,15 @@ into `%LOCALAPPDATA%\Programs\<name>`: Start-menu and desktop shortcuts, an entr
 features** (with its uninstaller) and, in the hub variant, the `mateu://` protocol under
 `HKCU\Software\Classes\mateu`. Installing a newer setup over it keeps the user's settings.
 
+The setup published on the GitHub release is **not code-signed** yet, so Windows **SmartScreen**
+stops it the first time with *"Windows protected your PC"*. To install it, check that the file came
+from the [Mateu releases page](https://github.com/miguelperezcolom/mateu/releases) (each release
+lists its files with their SHA-256), then click **More info ▸ Run anyway**. A browser may also flag
+the download as uncommon: keep it from the downloads list. Files unzipped from the portable `.zip`
+carry the same download mark; if Windows warns when you run `mateu.bat`, unblock the zip
+(**Properties ▸ Unblock**) before extracting it. A white-label build you sign
+with your own Authenticode certificate shows none of this.
+
 The setup is built with [NSIS](https://nsis.sourceforge.io): `makensis` must be on the `PATH`
 (`sudo apt-get install nsis`, `brew install makensis`). Without it the build still produces the
 **portable** `mateu-desktop-<version>-windows.zip` — unzip anywhere and run `mateu.bat`.
@@ -168,7 +177,7 @@ https://github.com/miguelperezcolom/mateu/releases/latest/download/mateu-desktop
   "version": "3.0-beta.27",
   "plugin": { "url": "https://…/mateu-intellij-plugin-3.0-beta.27.zip", "sha256": "…" },
   "platform": {
-    "ideVersion": "2025.2.6.3",
+    "ideVersion": "2025.2.6.4",
     "installers": {
       "macos-aarch64": "https://…-macos-aarch64.dmg", "macos-intel": "https://…-macos-intel.dmg",
       "linux": "https://…-linux.tar.gz", "windows": "https://…-windows-setup.exe"

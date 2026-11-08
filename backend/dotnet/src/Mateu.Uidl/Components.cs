@@ -31,7 +31,7 @@ public interface IComponentTreeSupplier
 /// Only the content changes: the page title and toolbar (Back to list, Edit) stay the CRUD's, and the
 /// edit and create forms of the same class keep their forms. <c>null</c> keeps the default form.
 /// (The C# analogue of io.mateu.uidl.interfaces.DetailContentSupplier — parameterless, the port
-/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.)</summary>
+/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.) Experimental (3.0-beta.8).</summary>
 public interface IDetailContentSupplier
 {
     IComponent? DetailContent();
@@ -196,7 +196,8 @@ public sealed record FoldoutPanel : ComponentBase
 
     /// <summary>True = the author did not decide: the renderer opens the panel while it fits the row
     /// (declaration order, after the panels declared open) and folds it otherwise; Open is then
-    /// ignored. Null (default) = Open decides. (Mirrors io.mateu.uidl.data.FoldoutPanel.autoOpen.)</summary>
+    /// ignored. Null (default) = Open decides. (Mirrors io.mateu.uidl.data.FoldoutPanel.autoOpen.)
+    /// Experimental (3.0-beta.42).</summary>
     public bool? AutoOpen { get; init; }
 
     /// <summary>Optional CSS length for the expanded panel (e.g. "40rem"); null = renderer default.</summary>
@@ -228,28 +229,6 @@ public sealed record FoldoutLayout : ComponentBase
     public string? OverviewEditActionId { get; init; }
 }
 
-// ── Content page ─────────────────────────────────────────────────────────────
-
-/// <summary>Redwood-style content page layout: the uniform slot grammar (main / aside / footer)
-/// shared by the page archetypes. Region contents travel as slotted children (main-N / aside-N /
-/// footer-N); the aside sits beside main (side by <see cref="AsidePosition"/>, width by
-/// <see cref="AsideWidth"/>, optionally <see cref="AsideSticky"/>) and stacks under it when narrow;
-/// the footer spans full width below.
-/// <para>Deprecated (coherence-plan #7/#9): prefer a <see cref="ResponsiveGrid"/> named-slot
-/// template (with StickyAreas for a pinned region) — the same "main aside" grammar on the ONE grid.
-/// As of Phase 4 no archetype/mechanism produces a ContentLayout; retained for direct authoring.</para></summary>
-[Obsolete("ContentLayout is deprecated (coherence-plan #7/#9): use a ResponsiveGrid named-slot template (StickyAreas for a pinned region) instead.", DiagnosticId = "MATEU003")]
-public sealed record ContentLayout : ComponentBase
-{
-    public IReadOnlyList<IComponent> Main { get; init; } = [];
-    public IReadOnlyList<IComponent> Aside { get; init; } = [];
-    public IReadOnlyList<IComponent> Footer { get; init; } = [];
-    /// <summary>Which side the aside sits on: "start" or "end".</summary>
-    public string AsidePosition { get; init; } = "end";
-    public string? AsideWidth { get; init; }
-    public bool AsideSticky { get; init; }
-}
-
 /// <summary>Navigation Header of a <see cref="FoldoutLayout"/>: controls to move to the
 /// previous/next object of the same type or go to the parent. Each *ActionId names a method on the
 /// Foldout subclass; a null/blank id hides that control.</summary>
@@ -276,7 +255,8 @@ public sealed record HeroSection : ComponentBase
     /// <summary>The band's tone: Auto (default look) or a dark tinted band with light ink.</summary>
     public HeroTone Tone { get; init; } = HeroTone.Auto;
     /// <summary>A short line ABOVE the title introducing it (the Redwood welcome page's overline:
-    /// "Good morning", "Sales"…). Null/blank for none. (Java's HeroSection.overline.)</summary>
+    /// "Good morning", "Sales"…). Null/blank for none. (Java's HeroSection.overline.)
+    /// Experimental (3.0-beta.13).</summary>
     public string? Overline { get; init; }
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
@@ -413,13 +393,20 @@ public sealed record KanbanColumn
 public sealed record Kanban : ComponentBase
 {
     public IReadOnlyList<KanbanColumn> Columns { get; init; } = [];
+    /// <summary>The action a card move dispatches. Experimental (3.0-beta.33).</summary>
     public string? MoveActionId { get; init; }
+    /// <summary>The REST source the cards are fetched from. Experimental (3.0-beta.33).</summary>
     public RestDataSource? RowsSource { get; init; }
+    /// <summary>The item field naming a card's column. Experimental (3.0-beta.33).</summary>
     public string? ColumnField { get; init; }
+    /// <summary>The card template. Experimental (3.0-beta.33).</summary>
     public KanbanCard? Card { get; init; }
+    /// <summary>Card colours by value. Experimental (3.0-beta.33).</summary>
     public IReadOnlyDictionary<string, string>? CardColors { get; init; }
+    /// <summary>The route a card opens. Experimental (3.0-beta.33).</summary>
     public string? CardRoute { get; init; }
-    /// <summary>The item field that orders a column's cards; a move sends its new value.</summary>
+    /// <summary>The item field that orders a column's cards; a move sends its new value.
+    /// Experimental (3.0-beta.35).</summary>
     public string? OrderField { get; init; }
 }
 
@@ -459,7 +446,7 @@ public sealed record ProgressSteps : ComponentBase
     public bool Vertical { get; init; }
     /// <summary>The title of the screen after the last step (a wizard's result step), which is
     /// no step: a renderer that shows the finished process as one more screen names it with this
-    /// instead of inventing one. Null when there is no such screen.</summary>
+    /// instead of inventing one. Null when there is no such screen. Experimental (3.0-beta.8).</summary>
     public string? ResultTitle { get; init; }
 }
 
@@ -1192,7 +1179,7 @@ public sealed record Image : ComponentBase
     public string Src { get; init; } = "";
 
     /// <summary>The text alternative a screen reader reads; <c>""</c> declares the image
-    /// decorative. Null = none declared.</summary>
+    /// decorative. Null = none declared. Experimental (3.0-beta.4).</summary>
     public string? Alt { get; init; }
 }
 
@@ -1389,10 +1376,12 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     /// <summary>Extra app state seeded into the island's requests.</summary>
     public object? AppState { get; init; }
 
-    /// <summary>The remote view's type name (its serverSideType); null = resolved by the route.</summary>
+    /// <summary>The remote view's type name (its serverSideType); null = resolved by the route.
+    /// Experimental (3.0-beta.27).</summary>
     public string? ServerSideType { get; init; }
 
-    /// <summary>The action the island's first request runs; null = the route load.</summary>
+    /// <summary>The action the island's first request runs; null = the route load.
+    /// Experimental (3.0-beta.27).</summary>
     public string? ActionId { get; init; }
 
     /// <summary>Where the island is resolved: <see cref="Mateu.Uidl.Resolve.Client"/> (the default,

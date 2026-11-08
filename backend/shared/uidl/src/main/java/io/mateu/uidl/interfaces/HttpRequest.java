@@ -2,6 +2,7 @@ package io.mateu.uidl.interfaces;
 
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public interface HttpRequest {
    * header. {@code null} when the adapter cannot tell (the default). Used to cap the live UI
    * sessions of anonymous callers per address.
    */
+  @Experimental("live UI push session caps (3.0 beta)")
   default String getRemoteAddress() {
     return null;
   }

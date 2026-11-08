@@ -30,10 +30,8 @@ public static class AppVariant
     /// <summary>A compact icon rail on the left.</summary>
     public const string Rail = "RAIL";
 
-    /// <summary>The value the variant travels under on the wire. Since 3.0-alpha.412 both
-    /// <see cref="HamburgerMenu"/> and the old misspelling <c>HAMBURGUER_MENU</c> travel as
-    /// <c>HAMBURGER_MENU</c> (the renderers accept both spellings), the same as Java's AppMapper;
-    /// anything else travels unchanged.</summary>
-    public static string ToWire(string variant) =>
-        variant == "HAMBURGUER_MENU" ? HamburgerMenu : variant;
+    /// <summary>The value the variant travels under on the wire: the declared value, unchanged
+    /// (the alpha-era misspelling <c>HAMBURGUER_MENU</c> is no longer translated — declare
+    /// <see cref="HamburgerMenu"/>).</summary>
+    public static string ToWire(string variant) => variant;
 }

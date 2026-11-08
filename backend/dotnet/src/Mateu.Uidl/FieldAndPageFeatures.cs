@@ -386,7 +386,7 @@ public sealed class PageTemplateAttribute(PageType value) : Attribute
 public sealed class WelcomeBannerAttribute : Attribute
 {
     /// <summary>A short line above the title introducing it ("Good morning", "Sales"…). Empty for
-    /// none. (Java's @WelcomeBanner.overline.)</summary>
+    /// none. (Java's @WelcomeBanner.overline.) Experimental (3.0-beta.13).</summary>
     public string Overline { get; set; } = "";
 
     /// <summary>Big banner title. Empty → the view's [Title].</summary>
@@ -456,7 +456,7 @@ public sealed class ListToolbarButtonAttribute(
 /// ([Section], [Tab], [Stereotype], [UseRadioButtons]…) always wins. The rules are deterministic
 /// and based on the declared structure (never on runtime data), so the same class always renders
 /// the same way. [AutoLayout(false)] opts a class out when inference is enabled globally via the
-/// "Mateu.LayoutInference" AppContext switch. (C# analogue of Java's @AutoLayout.)</summary>
+/// "Mateu.LayoutInference.Enabled" AppContext switch. (C# analogue of Java's @AutoLayout.)</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class AutoLayoutAttribute(bool value = true) : Attribute
 {
@@ -467,7 +467,7 @@ public sealed class AutoLayoutAttribute(bool value = true) : Attribute
 /// declared information — a plain class with MetricCard properties composes the Dashboard
 /// archetype; a class with only Button properties and panel components composes the Welcome
 /// landing. Explicit always wins (archetype subclasses are never rewritten); [AutoPage(false)]
-/// opts out under the global "Mateu.LayoutInference" switch. (C# analogue of Java's @AutoPage.)</summary>
+/// opts out while the global "Mateu.PageInference.Enabled" switch is on (the default). (C# analogue of Java's @AutoPage.)</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class AutoPageAttribute(bool value = true) : Attribute
 {

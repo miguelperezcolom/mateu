@@ -8,7 +8,7 @@
         <groupId>io.helidon.applications</groupId>
         <artifactId>helidon-mp</artifactId>
         <!-- the Helidon line the Mateu adapter (mateu-helidon-mp) is built against -->
-        <version>4.5.5</version>
+        <version>4.5.6</version>
         <relativePath/>
     </parent>
 
@@ -23,7 +23,7 @@
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
              -Dmateu.version=0.0.1-MATEU -->
-        <mateu.version>3.0-beta.32</mateu.version>
+        <mateu.version>3.0-beta.51</mateu.version>
     </properties>
 
     <dependencies>

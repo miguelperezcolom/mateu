@@ -137,29 +137,6 @@ public class GeneratedControllersCompileTest {
   }
 
   @Test
-  @SuppressWarnings("removal")
-  public void keycloakSecuredBootsThroughKeycloakWithTheDefaultAdapterUrl() {
-    var result =
-        process(
-            Map.of(
-                "com.acme.Secure",
-                """
-                package com.acme;
-                @io.mateu.uidl.annotations.UI("/secure")
-                @io.mateu.uidl.annotations.KeycloakSecured(
-                    url = "https://auth.example.com", realm = "acme", clientId = "web")
-                public class Secure {}
-                """));
-
-    assertThat(result.generatedSource("com.acme.SecureController"))
-        .contains("url: 'https://auth.example.com'")
-        .contains("realm: 'acme'")
-        .contains("clientId: 'web'")
-        .contains("<script src='https://esm.sh/keycloak-js@26.2.2'></script>")
-        .contains("onload='initKeycloak()'");
-  }
-
-  @Test
   public void metasLinksAndScriptsAreInjectedIntoTheHead() {
     var result =
         process(
