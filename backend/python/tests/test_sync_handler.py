@@ -2159,7 +2159,7 @@ def test_list_toolbar_button_dispatch_receives_typed_selected_rows_and_researche
     assert '"totalElements": 2' in render(inc)
 
 
-def test_list_toolbar_button_non_none_result_maps_as_usual():
+def test_list_toolbar_button_answering_a_message_shows_it_and_researches():
     inc = handler().handle(
         RunActionRq(
             action_id="action-on-row-restockAll",
@@ -2168,6 +2168,8 @@ def test_list_toolbar_button_non_none_result_maps_as_usual():
     )
     assert len(inc.messages) == 1
     assert inc.messages[0].text == "Restocked"
+    # the rows changed all the same: the listing is searched again (it used to stay stale)
+    assert '"totalElements":' in render(inc)
 
 
 def test_update_row_rebuilds_the_entity_and_saves_it():

@@ -149,8 +149,24 @@ internal sealed partial class SyncHandler
         if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
         var result = method.Invoke(crud, BuildBulkArguments(method, rq));
-        return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
+        if (result is null) return CrudSearch(crud, element, rq);
+        // A result that only TELLS the user something (a Message, or a list of them) changed the
+        // rows all the same: the listing is searched again and the messages ride along — it used to
+        // keep showing the stale rows. Anything else is the method's own answer.
+        if (MessagesOnly(result))
+        {
+            var refreshed = CrudSearch(crud, element, rq);
+            var told = MapResult(result, rq);
+            return refreshed with { Messages = [.. refreshed.Messages, .. told.Messages] };
+        }
+        return MapResult(result, rq);
     }
+
+    private static bool MessagesOnly(object result) =>
+        result is Message
+        || (result is System.Collections.IEnumerable items and not string
+            && items.Cast<object>().ToList() is { Count: > 0 } list
+            && list.All(item => item is Message));
 
     /// <summary>Fills a bulk method's parameters: a List&lt;T&gt;/IReadOnlyList&lt;T&gt;
     /// parameter receives the selected rows rebuilt as typed entities (the same New+BindState

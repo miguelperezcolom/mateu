@@ -242,6 +242,28 @@ class BulkActionsSyncTest {
   }
 
   @Test
+  void aBulkActionAnsweringAMessageAlsoRefreshesTheListing() {
+    var increment =
+        run(
+            "action-on-row-approve",
+            Map.of(
+                "_route",
+                "list",
+                "crud_selected_items",
+                List.of(Map.of("id", "1", "customer", "Acme", "total", 100.0, "approved", false))));
+    // the toast still says what happened …
+    assertThat(increment.messages()).extracting(m -> m.text()).contains("1 approved");
+    // … and the listing re-runs its search (it used to keep showing the stale rows)
+    assertThat(increment.commands())
+        .filteredOn(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent)
+        .extracting(c -> String.valueOf(c.data()))
+        .anyMatch(
+            data ->
+                data.contains(
+                    io.mateu.core.infra.declarative.orchestrators.crud.Crud.LISTING_CHANGED_EVENT));
+  }
+
+  @Test
   void builtInBulkDeleteStillRemovesTheSelectedRows() {
     run(
         "delete",
