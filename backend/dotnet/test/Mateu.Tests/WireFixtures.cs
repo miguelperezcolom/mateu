@@ -745,6 +745,40 @@ public class EmployeesCrud : Crud<Employee>
     public override void Delete(string id) { }
 }
 
+public class Seat
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    [HiddenInCreate, Range(100, 999)] public int? Code { get; set; }
+    [HiddenInEditor, Range(1, 9)] public int? Quota { get; set; }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New seat" : Name;
+}
+
+/// <summary>A crud whose hidden-in fields carry constraints: a form that does not render a field
+/// sends no validation for it (crud-hidden-constraints-edit, -new).</summary>
+[UI("conformance/crud-hidden-constraints"), Title("Seats")]
+public class SeatsCrud : Crud<Seat>
+{
+    private static readonly List<Seat> Store = [new() { Id = "S-1", Name = "Front", Code = 101, Quota = 2 }];
+
+    public override IEnumerable<Seat> Fetch(string? search) => Store;
+    public override Seat? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(Seat seat) { }
+    public override void Delete(string id) { }
+}
+
+/// <summary>A hero search page over a declarative listing with its own filters type
+/// (hero-search-filters).</summary>
+[UI("conformance/hero-search-filters"), Title("Books")]
+public class HeroBooks : HeroSearch<BookFilters, Book>
+{
+    public override string? HeroTitle() => "Find a book";
+    public override string? HeroSubtitle() => "Search the catalogue";
+    public override ListingData<Book> Search(SearchRequest request) =>
+        ListingData.From(Books.All());
+}
+
 /// <summary>An action that opens a dialog placed, draggable and resizable (dialog-placement).</summary>
 [UI("conformance/dialog-placement"), Title("Dialog placement")]
 public class DialogPlacementPage

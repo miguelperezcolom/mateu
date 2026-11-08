@@ -120,7 +120,18 @@ internal sealed partial class ReflectionMapper
             }))
             .Select(c => AsListingColumn(WithFieldType(c, row), row))
             .ToList();
-        var actions = new List<ActionDto> { new("search") };
+        // HeroSearch<TFilters,TRow> is Java's HeroSearch<Filters, Row>: a PLAIN listing (no
+        // interaction capability), so it advertises a non-validating search and the open row/view
+        // wildcards, its title is the page's (none on the listing) and its filters lay out inline.
+        var hero = instance as IHeroSearch;
+        var actions = hero is null
+            ? new List<ActionDto> { new("search") }
+            :
+            [
+                new("search", ValidationRequired: false),
+                new("action-on-row-*", ValidationRequired: false),
+                new("action-on-view-*", ValidationRequired: false),
+            ];
         var toolbar = new List<ButtonDto>();
         AddExportButtons(instance, toolbar, actions);
         if (IsSelector(viewType))
@@ -141,9 +152,10 @@ internal sealed partial class ReflectionMapper
             actions.Add(new ActionDto("action-on-row-" + button.ActionId, ValidationRequired: false));
         var gridLayout = viewType.GetMethod("GridLayout")!
             .Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(hero is null ? title : null, columns, toolbar)
         {
             CanEdit = false,
+            FiltersLayout = hero is null ? "auto" : "inline",
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
@@ -163,20 +175,26 @@ internal sealed partial class ReflectionMapper
         }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
         var pageChildren = new List<ComponentDto>();
         // HeroSearch<TFilters,TRow>: the centered hero over the listing (as on the crud one)
-        var hero = instance as IHeroSearch;
         if (hero is not null)
             pageChildren.Add(Client(new HeroSectionMetadataDto(
-                hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
+                hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), "hero", []));
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
         pageChildren.Add(crud);
         // [Compact]: the page carries the high-density preset + --mateu-compact:1, as a [Compact] view
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
-            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
+        var page = hero is not null
+            // Java's HeroSearch is a ComponentTreeSupplier: hero + listing in a full-width
+            // STRETCH vertical layout, no page frame
+            ? Client(new VerticalLayoutMetadataDto
+                {
+                    Spacing = true, HorizontalAlignment = "STRETCH", FullWidth = true,
+                }, null, pageChildren)
+            : Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
+                with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
         var triggers = smartSearch is null && hero is null ? new List<TriggerDto> { PreloadSearch() } : [];
         return new ServerSideComponentDto(
-            Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
+            Guid.NewGuid().ToString(), viewType.FullName!, hero is null ? route : "_empty", [page],
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             PageWidth = PageWidthOf(viewType, instance),

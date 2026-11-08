@@ -25,6 +25,7 @@ from mateu_ui.dtos import (
     ServerSideComponent,
     TextMetadata,
     Trigger,
+    VerticalLayoutMetadata,
 )
 from mateu_ui.uidl import (
     Aggregate,
@@ -40,6 +41,7 @@ from mateu_ui.uidl import (
     Editable,
     GroupBy,
     HeroSearch,
+    HeroSearchListing,
     Hidden,
     Label,
     Lookup,
@@ -546,8 +548,25 @@ class CrudMapperMixin(MixinBase):
                 crud = crud.model_copy(update={"metadata": crud.metadata.model_copy(
                     update={"pre_search": [self.map_component(pre_search)]}
                 )})
+        # HeroSearchListing (Java's HeroSearch<Filters, Row>, a ComponentTreeSupplier): a centered
+        # hero over the listing, both in a full-width STRETCH vertical layout — no page frame.
+        hero = cls() if issubclass(cls, HeroSearchListing) else None
+        if hero is not None:
+            page_children.append(self.client(
+                HeroSectionMetadata(
+                    title=hero.hero_title(), subtitle=hero.hero_subtitle(),
+                    image=hero.hero_image(), centered=True,
+                ),
+                "hero", [],
+            ))
         page_children.append(crud)
-        if bridged:
+        if hero is not None:
+            page = self.client(
+                VerticalLayoutMetadata(spacing=True, horizontal_alignment="STRETCH", full_width=True),
+                None, page_children,
+            )
+            page_style = None
+        elif bridged:
             # a crud: a bare frame, the title rides on the listing (Java's ListRouteResolver)
             page = self.client(PageMetadata(), None, page_children)
             page_style = FULL_WIDTH
@@ -565,8 +584,12 @@ class CrudMapperMixin(MixinBase):
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions,
-            # A smart search page starts EMPTY (the user searches); plain listings preload, once.
-            triggers=[] if smart_search else [Trigger(type="OnLoad", action_id="search", times=1)],
+            # A smart search / hero search page starts EMPTY (the user searches); plain listings
+            # preload, once.
+            triggers=(
+                [] if smart_search or hero is not None
+                else [Trigger(type="OnLoad", action_id="search", times=1)]
+            ),
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),
             style=FULL_WIDTH if bridged else None,

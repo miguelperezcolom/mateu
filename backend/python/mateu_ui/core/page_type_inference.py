@@ -21,6 +21,7 @@ from mateu_ui.uidl import (
     GanttPage,
     GeneralOverview,
     HeroSearch,
+    HeroSearchListing,
     ItemOverview,
     Listing,
     PageType,
@@ -35,8 +36,8 @@ from . import page_inference
 from .reflection import view_fields
 
 #: Archetype base classes per family. Check order matters where archetypes nest: HeroSearch IS
-#: a Crud but resolves to landing, so the landing check runs before the collection one.
-_LANDING = (Welcome, HeroSearch)
+#: a Crud (HeroSearchListing a Listing) but resolves to landing, so the landing check runs before the collection one.
+_LANDING = (Welcome, HeroSearch, HeroSearchListing)
 _COLLECTION = (SmartSearchPage, TodoList, CalendarPage, CollectionDetail, DataManagement, Crud, Listing)
 #: ImportWizard (mateu_ui.core.importwizard) subclasses Wizard, so it resolves to process too.
 _PROCESS = (Wizard,)
