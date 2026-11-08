@@ -62,6 +62,7 @@ export const CHROME_TEXTS = {
     calendarEvents: '{count} events',
     hideUnpopulated: 'Hide unpopulated',
     mapUnavailable: 'The map could not be loaded.',
+    surfaceUnavailable: 'This part of the page could not be loaded.',
     // ── shell ──
     menu: 'Menu',
     context: 'Context',
@@ -323,6 +324,7 @@ export const CHROME_TEXTS = {
     calendarEvents: '{count} eventos',
     hideUnpopulated: 'Ocultar vacías',
     mapUnavailable: 'No se ha podido cargar el mapa.',
+    surfaceUnavailable: 'No se ha podido cargar esta parte de la página.',
     menu: 'Menú',
     context: 'Contexto',
     workContext: 'Contexto de trabajo',
