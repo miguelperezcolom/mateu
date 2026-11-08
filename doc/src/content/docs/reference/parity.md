@@ -284,6 +284,11 @@ tests and — where it changes the wire — by a conformance case Java, .NET and
   breadcrumbs (`@NoBreadcrumbs`, declared trails), the fluent listing's grid options (case
   `fluent-crudl-options`) and a grid field's row detail (.NET `[Details]` + `[DetailForm]`, Python
   `Details()`; case `grid-field-detail`), .NET length/pattern validation.
+- **Bulk actions and streamed completions**: list-toolbar (bulk) buttons take `[Toolbar]`/`@toolbar`
+  style, colour, size, order and separator and `[ActionOptions]`/`@action_options` confirmation texts
+  (cases `bulk-actions`, `bulk-actions-listing`); a wizard's completion can stream a task (Python a
+  `LongTaskRun` from `@wizard_completion_action`, .NET `Wizard.StreamedCompletion()`): progress over
+  SSE, then the result step, an error stays on the step.
 - **Runtime**: `MicroFrontend.chrome` + `embeddedChrome`, typed filter criteria, a route's
   `fixedParams` on the proxied leg, `Dialog` placement, lookup labels on editable-view pages; .NET
   renders a component-typed view property (it used to be a junk field) and Python no longer drops
