@@ -60,6 +60,17 @@ public class BulkDeleteSourcesView : IRestSourceSupplier
     ];
 }
 
+/// <summary>A proxied source with a RELATIVE url: this app's own endpoint.</summary>
+[UI("relative-proxy-sources"), Title("Relative")]
+public class RelativeProxySourcesView : IRestSourceSupplier
+{
+    public IReadOnlyList<DeclaredRestSource> DeclaredRestSources() =>
+    [
+        new(RestSourceKind.Action, "person",
+            new RestDataSource { Url = "/api/people/${state.id}", Proxy = true }),
+    ];
+}
+
 /// <summary>A listing AND a live board, both proxied ROWS sources: the board's fetch names its id.</summary>
 public class TwoRowsSourcesView : IRestSourceSupplier
 {
@@ -287,6 +298,24 @@ public class RestSourceCatalogueTests
             ["_forEachSelectedRow"] = JsonSerializer.SerializeToElement(true),
         },
     };
+
+    /// <summary>Java <c>RestProxyRelativeUrlSyncTest</c>: a relative proxied url is called on this
+    /// server's own base url (it used to fail as an invalid request URI).</summary>
+    [Fact]
+    public async Task A_relative_proxied_url_is_called_on_this_servers_own_base_url()
+    {
+        var fake = new FakeHttp();
+        var handler = new SyncHandler(new MateuRegistry(typeof(ByRefSourcesView).Assembly),
+            http: new HttpClient(fake), restSources: new RestSourceRegistry(RestSourceCatalog.Empty))
+        {
+            SelfBaseUrl = "http://127.0.0.1:5005/",
+        };
+        var rq = RestFetch("relative-proxy-sources", "action", "person");
+        rq = rq with { ComponentState = new() { ["id"] = JsonSerializer.SerializeToElement("1") } };
+        var increment = await handler.HandleAsync(rq);
+        Assert.Equal(["http://127.0.0.1:5005/api/people/1"], fake.Urls);
+        Assert.Equal("[{\"id\":1}]", Fetched(increment));
+    }
 
     [Fact]
     public async Task A_bulk_proxied_write_runs_once_per_selected_row()

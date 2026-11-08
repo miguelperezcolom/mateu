@@ -440,7 +440,7 @@ internal sealed class MicroFrontendServerResolver(
     }
 
     /// <summary>A self base url as a bare http(s) origin, or null when it is not one.</summary>
-    private static string? SaneOrigin(string? self)
+    internal static string? SaneOrigin(string? self)
     {
         if (string.IsNullOrWhiteSpace(self)) return null;
         if (!Uri.TryCreate(self.Trim().TrimEnd('/'), UriKind.Absolute, out var uri)

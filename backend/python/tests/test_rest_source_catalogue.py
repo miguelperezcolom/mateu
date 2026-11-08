@@ -142,6 +142,20 @@ class BulkDeleteForm(RestSourceSupplier):
         ]
 
 
+@ui("cat-relative-proxy")
+class RelativeProxyForm(RestSourceSupplier):
+    """A proxied source with a RELATIVE url: this app's own endpoint."""
+
+    def declared_rest_sources(self):
+        return [
+            DeclaredRestSource(
+                RestSourceKind.ACTION,
+                RestDataSource(url="/api/people/${state.id}", proxy=True),
+                id="person",
+            ),
+        ]
+
+
 def handler(tmp_specs: Path | None = None) -> SyncHandler:
     registry = MateuRegistry(MODULE)
     sources = None
@@ -355,6 +369,21 @@ def test_the_action_parameters_reach_a_proxied_template(fetched):
         )
     )
     assert fetched[0].full_url == "https://api.example.com/people/9"
+
+
+def test_a_relative_proxied_url_is_called_on_this_servers_own_base_url(fetched):
+    # Java RestProxyRelativeUrlSyncTest: resolved against the configured self base url
+    h = handler()
+    h.configure_microfrontends(self_base_url="http://127.0.0.1:5005/")
+    inc = h.handle(
+        RunActionRq(
+            server_side_type=type_name(RelativeProxyForm),
+            action_id="__restfetch__",
+            parameters={"_sourceKind": "action", "_sourceId": "person", "id": "1"},
+        )
+    )
+    assert fetched[0].full_url == "http://127.0.0.1:5005/api/people/1"
+    assert inc.app_data == {"_restfetch": [{"code": "x"}]}
 
 
 def test_a_direct_source_is_never_proxied(fetched):
