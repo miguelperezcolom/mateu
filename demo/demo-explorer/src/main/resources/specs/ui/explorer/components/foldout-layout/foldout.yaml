@@ -1,0 +1,46 @@
+# A FoldoutLayout: an always-visible overview on the left and lateral FoldoutPanels you fold out
+# (closed = a narrow strip with the title). `open: false` starts folded; `summary` is what a folded
+# panel shows; `width` sets an unfolded panel's width.
+content:
+  - type: FoldoutLayout
+    headerTitle: Booking HB-20431
+    style: "height: 24rem;"
+    overview:
+      type: VerticalLayout
+      content:
+        - {type: Avatar, name: Lucía Fernández}
+        - {type: Text, text: Lucía Fernández, container: h4}
+        - {type: Text, text: "14 → 17 Nov 2026 · Room 102 · 2 adults"}
+        - {type: Badge, text: Confirmed, color: success}
+    panels:
+      - type: FoldoutPanel
+        id: folio
+        title: Folio
+        subtitle: "€ 1,284.00"
+        width: 24rem
+        content:
+          type: Ledger
+          currency: "€"
+          totalLabel: Balance
+          lines:
+            - {concept: "Room, 3 nights", amount: 1140}
+            - {concept: City tax, amount: 24}
+            - {concept: Breakfast, amount: 120}
+            - {concept: Deposit, amount: -250}
+      - type: FoldoutPanel
+        id: history
+        title: History
+        open: false
+        summary: {type: Text, text: "4 events"}
+        content:
+          type: Timeline
+          items:
+            - {title: Booked online, timestamp: "2 Oct"}
+            - {title: Deposit paid, timestamp: "2 Oct"}
+            - {title: Airport transfer added, timestamp: "5 Nov"}
+            - {title: Pre-check-in completed, timestamp: "7 Nov"}
+      - type: FoldoutPanel
+        id: preferences
+        title: Preferences
+        open: false
+        content: {type: BulletedList, items: [High floor, Feather-free pillows, Late check-out if possible]}

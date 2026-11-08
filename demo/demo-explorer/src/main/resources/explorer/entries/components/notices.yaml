@@ -1,0 +1,11 @@
+id: notices
+area: components
+group: display
+title: Notices, callouts & empty states
+covers: [component:Notice, component:CalloutCard, component:EmptyState, component:Skeleton, component:NotFound]
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/notices/notices.yaml
+  - title: "With their actions wired — in Java"
+    description: "Press **Review**, **Offer the upgrade** or **New walk-in booking**."
+    java: io.mateu.explorer.examples.components.notices.ActionableNotices

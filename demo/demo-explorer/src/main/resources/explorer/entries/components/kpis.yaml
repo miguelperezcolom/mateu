@@ -1,0 +1,16 @@
+id: kpis
+area: components
+group: status-and-kpis
+title: KPIs, stats & meters
+covers: [component:KPI, component:Stat, component:Meter, component:MetricCard, component:Scoreboard, component:ComparisonCard]
+# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+examples:
+  - title: In YAML
+    description: "Known issues (3.0-beta.51, Vaadin): `KPI` does not render on its own: the page shows *Unknown metadata type KPIDto for component fieldId*."
+    yaml: specs/ui/explorer/components/kpis/kpis.yaml
+  - title: "In Java, with drill-ins"
+    description: "Click **Arrivals** or **Room revenue**."
+    java: io.mateu.explorer.examples.components.kpis.FrontDeskKpis
+code:
+  - {label: "C#", path: src/main/ports/components/kpis/FrontDeskKpis.cs}
+  - {label: "Python", path: src/main/ports/components/kpis/front_desk_kpis.py}

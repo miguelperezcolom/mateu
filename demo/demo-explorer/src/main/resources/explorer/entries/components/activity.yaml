@@ -1,0 +1,11 @@
+id: activity
+area: components
+group: display
+title: Timeline, comments & files
+covers: [component:Timeline, component:CommentThread, component:FileList]
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/activity/activity.yaml
+  - title: "In Java, with clickable entries"
+    description: "Click the declined-card event or the invoice."
+    java: io.mateu.explorer.examples.components.activity.FluentActivity

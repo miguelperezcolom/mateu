@@ -1,0 +1,25 @@
+# Activity around a record: a Timeline (dated events with an icon and a colour), a CommentThread
+# (comments with nested replies) and a FileList (attachments with a type icon and a size; a `url`
+# opens the file).
+content:
+  - type: Timeline
+    items:
+      - {id: e1, title: Booked online, description: "Direct website, 3 nights", timestamp: "2 Oct 2026, 21:14", icon: "🌐", color: "#3b82f6"}
+      - {id: e2, title: Deposit paid, description: "€ 250.00 by card", timestamp: "2 Oct 2026, 21:16", icon: "💳", color: "#10b981"}
+      - {id: e3, title: Airport transfer added, timestamp: "5 Nov 2026, 09:02", icon: "🚐"}
+      - {id: e4, title: Card declined on pre-authorisation, timestamp: "13 Nov 2026, 18:40", icon: "⚠️", color: "#ef4444"}
+  - type: CommentThread
+    comments:
+      - id: c1
+        author: Marta Ruiz
+        text: "The guest asked for a quiet room, away from the lift."
+        timestamp: 2 h ago
+        replies:
+          - {id: c2, author: Joan Puig, text: "Moved to 214, end of the corridor.", timestamp: 1 h ago}
+          - {id: c3, author: Marta Ruiz, text: "Perfect, thanks!", timestamp: 45 min ago}
+      - {id: c4, author: Nerea Gil, text: "Transfer confirmed with the driver for 15:30.", timestamp: 20 min ago}
+  - type: FileList
+    files:
+      - {name: passport-lucia-fernandez.pdf, size: 412 KB, type: application/pdf}
+      - {name: invoice-HB-20431.xlsx, size: 18 KB, type: spreadsheet}
+      - {name: room-102-view.svg, size: 2 KB, type: image/svg+xml, url: /explorer/components/media-and-badges/bay.svg}

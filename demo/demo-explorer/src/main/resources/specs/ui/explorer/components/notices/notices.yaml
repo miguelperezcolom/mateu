@@ -1,0 +1,36 @@
+# Telling the user something. Notice = a compact inline strip (four themes, `slim`, a custom
+# `icon`, `noIcon`, a right-aligned `status`, and any components as `content`). CalloutCard = a
+# highlighted block with a CTA. EmptyState = "nothing here yet". Skeleton = a shimmering
+# placeholder while content loads. NotFound = the page for a record or route that does not exist.
+#
+# (The CTAs here carry no actionId: in a YAML partial an action would bubble to the Explorer page,
+# which handles none — the Java example next to this one runs them.)
+content:
+  - {type: Notice, theme: info, text: "Pre-check-in is open for tomorrow's arrivals."}
+  - {type: Notice, theme: success, text: "Payment of € 1,284.00 received."}
+  - {type: Notice, theme: warning, text: "2 complaints pending", status: "Since 09:10"}
+  - {type: Notice, theme: danger, text: "Card declined — ask for another payment method.", slim: true}
+  - {type: Notice, theme: info, icon: "👥", text: "Guests registered: 2 of 3"}
+  - {type: Notice, theme: success, noIcon: true, text: "A notice without its icon."}
+  - type: Notice
+    theme: info
+    text: "A notice can hold components:"
+    content:
+      - type: HorizontalLayout
+        spacing: true
+        content:
+          - {type: Badge, text: "Pax 1 ✓", color: success}
+          - {type: Badge, text: "Pax 2 ✓", color: success}
+          - {type: Badge, text: "Pax 3", color: warning}
+  - {type: CalloutCard, title: Upgrade to a junior suite, description: "Free for these nights — € 60 more per night, breakfast included.", icon: "⭐", theme: info}
+  - {type: CalloutCard, title: Loyalty programme, description: "Lucía is 2 stays away from Gold.", icon: "🎁", theme: success}
+  - {type: EmptyState, icon: "🛎️", title: No arrivals yet, description: "Bookings for today will show up here as they come in."}
+  - {type: Text, text: "Skeleton — text, card, grid and form shapes", container: h4}
+  - {type: Skeleton, variant: text, count: 2}
+  - type: HorizontalLayout
+    spacing: true
+    content:
+      - {type: Skeleton, variant: card, count: 2}
+  - {type: Skeleton, variant: grid}
+  - {type: Skeleton, variant: form}
+  - {type: NotFound, title: Booking not found, message: "There is no booking HB-99999. It may have been cancelled or merged.", backRoute: home, backLabel: Back to the Explorer}

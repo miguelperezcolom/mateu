@@ -1,0 +1,59 @@
+# Fields as DATA. A FormField is bound to the component state by its `id`; a FormLayout flows its
+# content into up to `maxColumns` columns; a FormSection titles a group, a FormSubSection a group
+# inside it; a FormRow keeps its fields on one line; a CustomField puts any component in a field
+# slot, with a label.
+content:
+  - type: FormSection
+    title: Guest
+    content:
+      - type: FormLayout
+        maxColumns: 3
+        content:
+          - {type: FormField, id: firstName, label: First name, required: true, placeholder: e.g. Lucía}
+          - {type: FormField, id: lastName, label: Last name, required: true}
+          - {type: FormField, id: birthDate, label: Date of birth, dataType: date}
+          - {type: FormField, id: email, label: Email, stereotype: email, colspan: 2,
+             description: We send the booking confirmation here}
+          - {type: FormField, id: vip, label: VIP guest, dataType: bool, stereotype: toggle}
+      - type: FormSubSection
+        title: Stay preferences
+        content:
+          - type: FormLayout
+            maxColumns: 3
+            content:
+              - type: FormField
+                id: roomType
+                label: Room type
+                stereotype: select
+                options:
+                  - {value: standard, label: Standard}
+                  - {value: deluxe, label: Deluxe sea view}
+                  - {value: suite, label: Junior suite}
+              - type: FormField
+                id: pillow
+                label: Pillow
+                stereotype: radio
+                options:
+                  - {value: soft, label: Soft}
+                  - {value: firm, label: Firm}
+              - {type: FormField, id: guests, label: Guests, dataType: integer, min: 1, max: 6, stepButtonsVisible: true, initialValue: 2}
+  - type: FormSection
+    title: Payment
+    content:
+      - type: FormLayout
+        maxColumns: 2
+        content:
+          # a FormRow keeps these two together on one line, whatever the column count
+          - type: FormRow
+            content:
+              - {type: FormField, id: deposit, label: Deposit, dataType: money, initialValue: 250}
+              - {type: FormField, id: paidOn, label: Paid on, dataType: date}
+          # a FormItem wraps the components that make up one field
+          - type: FormItem
+            content:
+              - {type: FormField, id: invoiceTo, label: Invoice to, placeholder: Company name (optional)}
+          # a CustomField: any component in a labelled field slot
+          - type: CustomField
+            label: Cancellation policy
+            colspan: 2
+            content: {type: Notice, theme: info, text: "Free cancellation until 48 h before arrival."}

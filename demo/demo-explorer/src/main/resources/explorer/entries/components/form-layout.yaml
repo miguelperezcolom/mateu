@@ -1,0 +1,15 @@
+id: form-layout
+area: components
+group: fields
+title: Form fields & layout
+covers: [component:FormField, component:FormLayout, component:FormRow, component:FormItem, component:CustomField, component:FormSection, component:FormSubSection]
+# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+examples:
+  - title: In YAML
+    description: "Known issues (3.0-beta.51, Vaadin): `FormItem` does not render: the page shows *Unknown metadata type FormItem for component*. A `money` field does not show its initial value (the YAML deposit shows 0, the Java one is empty). The `FormRow` does not keep Deposit and Paid on on one line."
+    yaml: specs/ui/explorer/components/form-layout/fields.yaml
+  - title: "The declarative way: a Java class"
+    description: "Fields of a class, grouped by `@Section`; types pick the widgets. Press **Register** with the names empty to see the validation."
+    java: io.mateu.explorer.examples.components.formlayout.GuestRegistration
+  - title: "The same tree, fluent Java"
+    java: io.mateu.explorer.examples.components.formlayout.FluentFields

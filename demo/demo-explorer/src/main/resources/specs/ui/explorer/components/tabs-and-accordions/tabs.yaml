@@ -1,0 +1,43 @@
+# Tabs, accordions and a carousel: three ways to show one part of the content at a time.
+# A Tab may start selected (`active`), carry a badge and a keyboard shortcut.
+content:
+  - type: TabLayout
+    variant: bordered
+    tabs:
+      - type: Tab
+        label: Overview
+        content: {type: Text, text: "Deluxe sea view, 32 m², king bed, balcony facing the bay."}
+      - type: Tab
+        label: Amenities
+        badge: "6"
+        active: true
+        shortcut: alt+2
+        content:
+          type: BulletedList
+          items: [Free Wi-Fi, Nespresso machine, Rain shower, Bathrobes, Minibar, Air conditioning]
+      - type: Tab
+        label: Policies
+        content: {type: Text, text: "No smoking. Pets up to 10 kg on request."}
+  - type: AccordionLayout
+    variant: filled
+    panels:
+      - type: AccordionPanel
+        label: Breakfast
+        active: true
+        content: {type: Text, text: "Buffet from 7:00 to 10:30 on the terrace."}
+      - type: AccordionPanel
+        label: Parking
+        content: {type: Text, text: "Underground car park, € 18 per night."}
+      - type: AccordionPanel
+        label: Spa (closed for renovation)
+        disabled: true
+        content: {type: Text, text: "Reopens in March."}
+  - type: CarouselLayout
+    dots: true
+    nav: true
+    loop: true
+    style: "height: 8rem;"
+    content:
+      - {type: Notice, theme: info, text: "Slide 1 — Welcome drink at the lobby bar."}
+      - {type: Notice, theme: success, text: "Slide 2 — 20% off at the spa this week."}
+      - {type: Notice, theme: warning, text: "Slide 3 — The pool closes at 19:00 today."}

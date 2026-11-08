@@ -1,0 +1,38 @@
+# Text: a div by default, or p / span / h1…h6 (`container`), bold/italic (`variants`), five sizes
+# (`size`), `noMargins` for tight captions. Markdown renders markdown; Anchor is a link;
+# BulletedList a plain <ul>.
+content:
+  - {type: Text, text: Grand Hotel Mirador, container: h2}
+  - {type: Text, text: "A heading (h4)", container: h4}
+  - {type: Text, text: "A paragraph: 120 rooms over the bay, ten minutes from the old town.", container: p}
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    verticalAlignment: BASELINE
+    content:
+      - {type: Text, text: "xl", size: xl}
+      - {type: Text, text: "l", size: l}
+      - {type: Text, text: "m (default)", size: m}
+      - {type: Text, text: "s", size: s}
+      - {type: Text, text: "xs", size: xs}
+      - {type: Text, text: "bold", variants: [b]}
+      - {type: Text, text: "italic", variants: [i]}
+      - {type: Text, text: "bold italic", variants: [b, i]}
+  - {type: Text, text: "An xs caption with noMargins — sits tight under the line above.", size: xs, noMargins: true}
+  - type: Markdown
+    markdown: |
+      ### House rules
+      Check-in from **14:00**, check-out until **11:00**.
+      Quiet hours are *23:00 – 07:00*. See the [full policy](https://mateu.io).
+
+      | Service | Hours |
+      |---|---|
+      | Reception | 24 h |
+      | Restaurant | 13:00 – 23:00 |
+  - type: HorizontalLayout
+    spacing: true
+    content:
+      - {type: Anchor, text: "mateu.io (same tab)", url: "https://mateu.io"}
+      - {type: Anchor, text: "mateu.io (new tab)", url: "https://mateu.io", target: _blank}
+  - type: BulletedList
+    items: [Free Wi-Fi in every room, Airport shuttle every 30 minutes, Pets welcome under 10 kg]
