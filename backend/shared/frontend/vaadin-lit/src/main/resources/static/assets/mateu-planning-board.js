@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{D as s,O as c,g as l,y as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
+import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{D as s,O as c,g as l,x as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
         :host {
             display: block;
             width: 100%;
