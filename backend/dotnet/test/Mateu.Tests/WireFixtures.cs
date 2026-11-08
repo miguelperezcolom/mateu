@@ -632,6 +632,86 @@ public class ActionEffectsPage
     };
 }
 
+/// <summary>The [ActionOptions] knobs (action-extras): a streamed background action, a
+/// confirmation with its texts, a link, a client script and a custom event.</summary>
+[UI("conformance/action-extras"), Title("Action extras")]
+public class ActionExtrasPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    // declared in the golden's order: Java lists @Action methods in Class.getDeclaredMethods()
+    // order (unspecified by the JVM), .NET in declaration order
+    [Action, ActionOptions(ConfirmationRequired = true, ConfirmationTitle = "Delete?",
+        ConfirmationMessage = "It cannot be undone", ConfirmationText = "Delete", ConfirmationDenialText = "Keep")]
+    public Message Remove() => new("Deleted");
+
+    [Action, ActionOptions(Sse = true, Background = true)]
+    public Message Stream() => new("Done");
+
+    [Action, ActionOptions(CustomEventName = "order-picked")]
+    public void Pick() { }
+
+    [Action, ActionOptions(Href = "https://mateu.io")]
+    public void OpenDocs() { }
+
+    [Action, ActionOptions(Js = "console.log('hi')")]
+    public void RunScript() { }
+}
+
+/// <summary>An app shell's presentation knobs (app-branding). A [MenuItem] named Home stands in for
+/// Java's `@Menu String home` leaf.</summary>
+[UI("conformance/app-branding"), App("Branded app", Layout = "SPLIT", AccentColor = "#00796b",
+    AskLabel = "Ask Mateu", AskIcon = "vaadin:question")]
+public class BrandedApp
+{
+    [MenuItem("Home")]
+    public void Home() { }
+}
+
+/// <summary>Section options (section-options): the first section pinned, the second forced to one
+/// column with a style on its content.</summary>
+[UI("conformance/section-options"), Title("Section options")]
+public class SectionOptionsForm
+{
+    [Section("Guests", Sticky = true)] public string? Lead { get; set; }
+    public string? Second { get; set; }
+    public string? Third { get; set; }
+    public string? Fourth { get; set; }
+    [Section("Notes", Columns = 1, Style = "gap: 0;")] public string? First { get; set; }
+    public string? Other { get; set; }
+    public string? More { get; set; }
+    public string? Last { get; set; }
+}
+
+public class Employee
+{
+    public string Id { get; set; } = "";
+    [MainFilter] public string Name { get; set; } = "";
+    [HiddenInList] public string? Notes { get; set; }
+    [HiddenInView] public string? SalaryBand { get; set; }
+    [HiddenInEditor] public string? CreatedBy { get; set; }
+    [HiddenInCreate] public string? Code { get; set; }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New employee" : Name;
+}
+
+/// <summary>A crud whose entity hides fields per surface and names its main filter (crud-hidden-in,
+/// -edit, -new).</summary>
+[UI("conformance/crud-hidden-in"), Title("Employees")]
+public class EmployeesCrud : Crud<Employee>
+{
+    private static readonly List<Employee> Store =
+    [
+        new() { Id = "E-1", Name = "Ada", Notes = "Likes tea", SalaryBand = "B2", CreatedBy = "admin", Code = "ADA" },
+        new() { Id = "E-2", Name = "Grace", Notes = "Navy", SalaryBand = "B3", CreatedBy = "admin", Code = "GRC" },
+    ];
+
+    public override IEnumerable<Employee> Fetch(string? search) => Store;
+    public override Employee? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(Employee employee) { }
+    public override void Delete(string id) { }
+}
+
 /// <summary>An action that opens a dialog placed, draggable and resizable (dialog-placement).</summary>
 [UI("conformance/dialog-placement"), Title("Dialog placement")]
 public class DialogPlacementPage
