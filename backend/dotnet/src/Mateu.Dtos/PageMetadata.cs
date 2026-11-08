@@ -76,6 +76,17 @@ public record PageMetadataDto(
     /// <summary>The page's "last updated" timestamp shown in the header (from a [Timestamp]
     /// property); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.timestamp.)</summary>
     public string? Timestamp { get; init; }
+    /// <summary>The breadcrumb trail the page DECLARES ([Breadcrumb] / IBreadcrumbsSupplier); null —
+    /// and omitted — when it declares none (the shell builds the automatic one). (Mirrors
+    /// io.mateu.dtos.PageDto.breadcrumbs.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<BreadcrumbDto>? Breadcrumbs { get; init; }
+    /// <summary>True when the page opts out of the automatic breadcrumb trail ([NoBreadcrumbs] on the
+    /// page, an embedded view, or a page under a [App(BackLink = Parent)] ancestor of its routes.yaml
+    /// chain); null — and omitted — = the shell shows it. A declared trail still shows. (Mirrors
+    /// io.mateu.dtos.PageDto.noBreadcrumbs.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? NoBreadcrumbs { get; init; }
 }
 
 /// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>

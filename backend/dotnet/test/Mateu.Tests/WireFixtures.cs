@@ -711,6 +711,46 @@ public class BackLinkApp
     public void Overview() { }
 }
 
+/// <summary>A page that turns the automatic breadcrumb trail off (page-no-breadcrumbs).</summary>
+[UI("conformance/page-no-breadcrumbs"), Title("Welcome"), NoBreadcrumbs]
+public class PageNoBreadcrumbs
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>A page that declares its own breadcrumb trail (page-breadcrumbs).</summary>
+[UI("conformance/page-breadcrumbs"), Title("Order 7"), Breadcrumb("Home", "/"), Breadcrumb("Orders", "/orders")]
+public class PageBreadcrumbs
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>A record master offering "← Parent", bound in code to conformance/bl-chain/:customerId
+/// with a child `orders` route (page-back-link-chain): the pages under it carry no trail.</summary>
+[App("Back link chain master", BackLink = BackLink.Parent)]
+public class BackLinkChainMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+/// <summary>The master's `orders` tab (page-back-link-chain): its page says noBreadcrumbs.</summary>
+public class BackLinkChainTab
+{
+    public string? Note { get; set; } = "orders";
+}
+
+/// <summary>The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
+/// ConformanceRoutes).</summary>
+public class ConformanceRoutes : IRouteEntrySupplier
+{
+    public IReadOnlyList<RouteEntry> Routes() =>
+    [
+        new("conformance/bl-chain/:customerId", null, typeof(BackLinkChainMaster).FullName,
+            new Dictionary<string, object?>(), new Dictionary<string, object?>(),
+            Children: [RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!)]),
+    ];
+}
+
 /// <summary>The screen above the back-link app (app-back-link): its title labels the link.</summary>
 [UI("conformance"), Title("Records")]
 public class BackLinkParent

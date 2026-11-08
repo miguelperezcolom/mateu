@@ -44,6 +44,7 @@ Mateu.Uidl.BoardLayoutItem
 Mateu.Uidl.BoardLayoutRow
 Mateu.Uidl.Bpmn
 Mateu.Uidl.Breadcrumb
+Mateu.Uidl.BreadcrumbAttribute
 Mateu.Uidl.Breadcrumbs
 Mateu.Uidl.BulletedList
 Mateu.Uidl.BulletedListAttribute
@@ -203,6 +204,7 @@ Mateu.Uidl.HiddenInViewAttribute
 Mateu.Uidl.HorizontalLayout
 Mateu.Uidl.IActionCatalogSupplier
 Mateu.Uidl.IAppActionsSupplier
+Mateu.Uidl.IBreadcrumbsSupplier
 Mateu.Uidl.ICalendarPage
 Mateu.Uidl.IComponent
 Mateu.Uidl.IComponentAdapter

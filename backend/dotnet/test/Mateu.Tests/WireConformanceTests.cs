@@ -263,6 +263,9 @@ public class WireConformanceTests
         { "crud-hidden-constraints-edit", typeof(Wire.SeatsCrud) },
         { "crud-hidden-constraints-new", typeof(Wire.SeatsCrud) },
         { "hero-search-filters", typeof(Wire.HeroBooks) },
+        { "page-no-breadcrumbs", typeof(Wire.PageNoBreadcrumbs) },
+        { "page-breadcrumbs", typeof(Wire.PageBreadcrumbs) },
+        { "page-back-link-chain", typeof(Wire.BackLinkChainTab) },
         // a YAML case: its own specs/ui/ is the handler's specs directory, no class at all
         { "definition-actions", typeof(YamlCase) },
     };

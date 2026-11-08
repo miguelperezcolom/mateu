@@ -164,7 +164,9 @@ internal sealed class RouteRegistry : ISpecsCache
         var full = prefix.Length == 0 ? relative
             : relative.Length == 0 ? prefix
             : prefix + "/" + relative;
-        flat.Add(node with { Route = full, Parent = parent, Children = null });
+        // an entry already flattened (MateuRegistry flattens the suppliers, the registry again) keeps
+        // the parent it carries: flattening twice must not cut the chain
+        flat.Add(node with { Route = full, Parent = parent ?? node.Parent, Children = null });
         if (node.Children is not null)
             foreach (var child in node.Children)
                 FlattenEntry(child, full, full, flat);
@@ -201,6 +203,42 @@ internal sealed class RouteRegistry : ISpecsCache
             return null; // the deepest answering entry decides
         }
         return null;
+    }
+
+    /// <summary>The authored entry answering <paramref name="path"/> preceded by its <c>Parent</c>
+    /// ancestors, outermost first; empty when the table does not know the path. Past a CHILD route
+    /// the path is that child's own business (a crud's record, its <c>/new</c>): the leaf is then the
+    /// longest prefix the table answers, but only when that entry has a parent. (Mirrors Java's
+    /// RouteRegistry.chain.)</summary>
+    public IReadOnlyList<RouteEntry> Chain(string? path)
+    {
+        var table = Authored();
+        var p = path ?? "";
+        var q = p.IndexOf('?');
+        if (q >= 0) p = p[..q];
+        var normalized = Normalize(p);
+        var leaf = table.Match(normalized)?.Entry;
+        if (leaf is null)
+        {
+            var segments = normalized.Length == 0 ? [] : normalized.Split('/');
+            for (var n = segments.Length - 1; n > 0 && leaf is null; n--)
+            {
+                if (table.Match(string.Join('/', segments.Take(n))) is not { } match) continue;
+                if (!match.Entry.HasParent()) return [];
+                leaf = match.Entry;
+            }
+            if (leaf is null) return [];
+        }
+        var chain = new List<RouteEntry> { leaf };
+        var seen = new HashSet<string> { Normalize(leaf.Route) };
+        for (var entry = leaf; entry.HasParent();)
+        {
+            var parent = table.Routes.FirstOrDefault(r => Normalize(r.Route) == Normalize(entry.Parent));
+            if (parent is null || !seen.Add(Normalize(parent.Route))) break;
+            chain.Insert(0, parent);
+            entry = parent;
+        }
+        return chain;
     }
 
     /// <summary>Whether a caller may reach <paramref name="path"/> (see <see cref="RefusingEntry"/>).</summary>
