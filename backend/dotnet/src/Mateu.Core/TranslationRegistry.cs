@@ -190,10 +190,28 @@ internal sealed class TranslationRegistry : ISpecsCache
         return out_;
     }
 
+    /// <summary>True while <c>${i18n.…}</c> must stay AS WRITTEN (Java's
+    /// <c>TranslationRegistry.RAW_ATTRIBUTE</c>): a screen pre-rendered into a static bundle serves
+    /// every visitor, so the browser resolves it for each one's locale from the shipped catalogue.</summary>
+    private static readonly AsyncLocal<bool> RawScope = new();
+
+    /// <summary>Within the returned scope <c>${i18n.…}</c> is left unresolved (bundle export).</summary>
+    internal static IDisposable RawExpressions()
+    {
+        var previous = RawScope.Value;
+        RawScope.Value = true;
+        return new Restore(() => RawScope.Value = previous);
+    }
+
+    private sealed class Restore(Action undo) : IDisposable
+    {
+        public void Dispose() => undo();
+    }
+
     /// <summary><c>${i18n.key}</c> expressions in <paramref name="text"/> resolved for <paramref name="locale"/>.</summary>
     public string Interpolate(string text, string? locale)
     {
-        if (!text.Contains("i18n.")) return text;
+        if (!text.Contains("i18n.") || RawScope.Value) return text;
         return Expression.Replace(text, m =>
         {
             var key = m.Groups[1].Value;

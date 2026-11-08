@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- `dotnet mateu-bundle`: exports a built Mateu.NET app to a static bundle. A LAUNCHER only — it
+       references no Mateu package: it loads the app's assembly with the app's own dependencies
+       (its deps.json) and runs the exporter of the app's OWN Mateu.Core, so the exporter always
+       matches the version the app runs. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackageId>Mateu.Bundle</PackageId>
+    <Description>dotnet mateu-bundle: exports a Mateu.NET app (code and/or YAML specs) to a static bundle — manifest.json, the web renderer and an index page — that a CDN serves with no backend.</Description>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mateu-bundle</ToolCommandName>
+    <RootNamespace>Mateu.Bundle</RootNamespace>
+    <!-- an app built for a newer runtime than the tool's still loads -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- a Mateu app is an ASP.NET Core app: its types reference the shared framework, which must be
+         resolvable when the exporter scans them -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
+  </ItemGroup>
+</Project>

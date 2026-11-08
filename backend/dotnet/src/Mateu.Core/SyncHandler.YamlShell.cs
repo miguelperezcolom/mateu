@@ -10,13 +10,32 @@ internal sealed partial class SyncHandler
     /// <summary>The app a <c>type: AppShell</c> definition declares, as the shell fragment — with the
     /// app-wide catalogues every app carries. Like an [App] class composing its shell in code, it
     /// names no window (the shell is not a page).</summary>
-    private UIIncrementDto YamlShellResponse(IDictionary<object, object> shell, RunActionRqDto rq)
+    private UIIncrementDto YamlShellResponse(IDictionary<object, object> shell, RunActionRqDto rq,
+        string? shellRoute = null, string? aimedAt = null)
     {
-        var shellRoute = RouteRegistry.Normalize(rq.Route);
-        var app = YamlAppShell.Map(shell, shellRoute, _routes.MountHomeOf(shellRoute), null, _fieldTypes);
+        shellRoute ??= RouteRegistry.Normalize(rq.Route);
+        var app = YamlAppShell.Map(shell, shellRoute, _routes.MountHomeOf(shellRoute), null, _fieldTypes, aimedAt);
         return UIIncrementDto.Of(
             commands: [],
             fragments: [new UIFragmentDto(Target(rq), WithCatalogues(app), null, null, "Replace", null)]);
+    }
+
+    /// <summary>A FRESH deep link (consumedRoute <c>_empty</c>, no type yet) to a route of a mount
+    /// whose root is a <c>type: AppShell</c>: the SHELL answers, aimed at that route — the page is
+    /// its content load (Java's <c>ActionInstanceCreator.wrapsInAppShell</c>; Python's dispatch).
+    /// Null when the route is no such deep link.</summary>
+    private UIIncrementDto? YamlShellDeepLink(RunActionRqDto rq)
+    {
+        if (!string.IsNullOrEmpty(rq.ActionId) || !string.IsNullOrEmpty(rq.ServerSideType)
+            || rq.ConsumedRoute != "_empty" || IsTerminalRoute(rq.Route))
+            return null;
+        if (_routes.MountOf(rq.Route) is not { } mount) return null;
+        var path = RouteRegistry.Normalize(rq.Route);
+        var relative = (mount.Length == 0 ? path : path[mount.Length..]).Trim('/');
+        if (relative.Length == 0) return null;
+        return PersonalSpec(mount) is { Shell: { } shell }
+            ? YamlShellResponse(shell, rq, mount, "/" + relative)
+            : null;
     }
 
     /// <summary>The catalogues ride the APP metadata (app-wide configuration, not per response); a

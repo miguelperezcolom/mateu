@@ -296,6 +296,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
         var yamlSpec = PersonalSpec(rq.Route);
+        // a fresh deep link under a YAML app shell: the shell answers, aimed at the route
+        if (YamlShellDeepLink(rq) is { } deepLink) return deepLink;
         if (type is null && yamlSpec is not null)
         {
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
