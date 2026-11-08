@@ -11,13 +11,28 @@ Who does what:
 
 | Step | Who |
 |---|---|
-| [1. Build the library](#1-build-the-library-once) | developer (once per Mateu version) |
+| [0. Get the Mateu UI Kit](#0-get-the-mateu-ui-kit-the-quick-way) | anyone (the quick way) |
+| [1. Build the library](#1-build-the-library-once) | developer (once per Mateu version) — or skip it with step 0 |
 | [2. Publish it](#2-publish-the-library) | whoever owns the team's Figma |
 | [3. Design screens](#3-design-screens) | designer |
 | [4. Convert the design](#4-convert-the-design) | developer |
 | [5. Serve it](#5-serve-the-pages) | developer |
 
+## 0. Get the Mateu UI Kit (the quick way)
+
+The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)**. Open it and
+*Open in Figma* (Figma calls it **duplicating**): you get your own copy of the 161 components in your
+Drafts, with no plugin to build and on any Figma plan, the free Starter included. Then go to
+[2. Publish the library](#2-publish-the-library) to share it with your team, or straight to
+[3. Design screens](#3-design-screens) to design in that same file.
+
+A duplicate is a **copy**: it does not receive later updates of the Community file. When a newer
+Mateu adds or changes components, duplicate the kit again (or build the library yourself, step 1, to
+match the exact Mateu version you run). The kit's description says which Mateu version it matches.
+
 ## 1. Build the library (once)
+
+Build it yourself when you want the library to match your exact Mateu version, or to change it.
 
 You need **Figma Desktop** on macOS or Windows — development plugins cannot be imported in the
 browser — and Node 20 or later.
