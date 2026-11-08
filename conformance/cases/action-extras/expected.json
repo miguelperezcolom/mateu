@@ -7,6 +7,7 @@
     "action" : "Replace",
     "component" : {
       "actions" : [ {
+        "background" : true,
         "confirmationRequired" : true,
         "confirmationTexts" : {
           "confirmationText" : "Delete",
@@ -14,22 +15,13 @@
           "message" : "It cannot be undone",
           "title" : "Delete?"
         },
-        "id" : "remove"
-      }, {
-        "background" : true,
-        "id" : "stream",
-        "sse" : true
-      }, {
         "customEvent" : {
           "eventName" : "order-picked"
         },
-        "id" : "pick"
-      }, {
         "href" : "https://mateu.io",
-        "id" : "openDocs"
-      }, {
-        "id" : "runScript",
-        "js" : "console.log('hi')"
+        "id" : "act",
+        "js" : "console.log('hi')",
+        "sse" : true
       } ],
       "children" : [ {
         "children" : [ {

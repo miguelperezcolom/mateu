@@ -950,37 +950,18 @@ class ActionExtrasPage:
 
     name: str = "Ada"
 
-    # Declared in the order Java's golden lists them: Java advertises @Action methods in the
-    # JVM's getDeclaredMethods order (unspecified, not the source order), this port in
-    # declaration order — so the fixture is written in the order the reference produced.
+    # ONE action carrying every knob (Java's @Action order is the JVM's, unspecified)
     @action
     @action_options(
+        sse=True, background=True,
         confirmation_required=True, confirmation_title="Delete?",
         confirmation_message="It cannot be undone", confirmation_text="Delete",
         confirmation_denial_text="Keep",
+        href="https://mateu.io", js="console.log('hi')", custom_event="order-picked",
     )
-    def remove(self):
-        return Message("Deleted")
-
-    @action
-    @action_options(sse=True, background=True)
-    def stream(self):
+    def act(self):
         return Message("Done")
 
-    @action
-    @action_options(custom_event="order-picked")
-    def pick(self):
-        return None
-
-    @action
-    @action_options(href="https://mateu.io")
-    def open_docs(self):
-        return None
-
-    @action
-    @action_options(js="console.log('hi')")
-    def run_script(self):
-        return None
 
 @ui("/conformance/app-branding")
 @app("Branded app", layout="SPLIT", accent_color="#00796b", ask_label="Ask Mateu", ask_icon="vaadin:question")

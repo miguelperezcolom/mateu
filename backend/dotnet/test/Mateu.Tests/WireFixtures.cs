@@ -683,23 +683,12 @@ public class ActionExtrasPage
 {
     public string? Name { get; set; } = "Ada";
 
-    // declared in the golden's order: Java lists @Action methods in Class.getDeclaredMethods()
-    // order (unspecified by the JVM), .NET in declaration order
-    [Action, ActionOptions(ConfirmationRequired = true, ConfirmationTitle = "Delete?",
-        ConfirmationMessage = "It cannot be undone", ConfirmationText = "Delete", ConfirmationDenialText = "Keep")]
-    public Message Remove() => new("Deleted");
-
-    [Action, ActionOptions(Sse = true, Background = true)]
-    public Message Stream() => new("Done");
-
-    [Action, ActionOptions(CustomEventName = "order-picked")]
-    public void Pick() { }
-
-    [Action, ActionOptions(Href = "https://mateu.io")]
-    public void OpenDocs() { }
-
-    [Action, ActionOptions(Js = "console.log('hi')")]
-    public void RunScript() { }
+    // ONE action carrying every knob (Java's @Action order is the JVM's, unspecified)
+    [Action, ActionOptions(Sse = true, Background = true, ConfirmationRequired = true,
+        ConfirmationTitle = "Delete?", ConfirmationMessage = "It cannot be undone",
+        ConfirmationText = "Delete", ConfirmationDenialText = "Keep", Href = "https://mateu.io",
+        Js = "console.log('hi')", CustomEventName = "order-picked")]
+    public Message Act() => new("Done");
 }
 
 /// <summary>An app shell's presentation knobs (app-branding). A [MenuItem] named Home stands in for

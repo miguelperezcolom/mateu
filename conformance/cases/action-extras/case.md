@@ -8,7 +8,6 @@
 Worth pinning because the ports had no way to declare any of them: a .NET or Python action could
 not ask for confirmation, stream, run in the background, open a link or fire a client event.
 
-Note on ORDER: Java lists `@Action` methods in `Class.getDeclaredMethods()` order, which the JVM
-does not specify (today: `remove`, `stream`, `pick`, `openDocs`, `runScript`); the ports keep
-declaration order, so their fixtures declare the methods in the golden's order. A JDK that
-reorders them changes this golden, not the ports.
+All knobs ride ONE action on purpose: Java lists `@Action` methods in `Class.getDeclaredMethods()`
+order, which the JVM does not specify (it changed between two runs of the same build), so a
+fixture with several actions would pin an order no server controls.

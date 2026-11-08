@@ -621,29 +621,23 @@ class WireConformanceTest {
   public static class ActionExtrasPage {
     public String name = "Ada";
 
-    @io.mateu.uidl.annotations.Action(sse = true, background = true)
-    public Message stream() {
-      return Message.success("Done");
-    }
-
+    // ONE action carrying every knob: Java lists @Action methods in Class.getDeclaredMethods()
+    // order, which the JVM does not specify (it changed between two runs), so a fixture with
+    // several actions would pin an order no server controls
     @io.mateu.uidl.annotations.Action(
+        sse = true,
+        background = true,
         confirmationRequired = true,
         confirmationTitle = "Delete?",
         confirmationMessage = "It cannot be undone",
         confirmationText = "Delete",
-        confirmationDenialText = "Keep")
-    public Message remove() {
-      return Message.success("Deleted");
+        confirmationDenialText = "Keep",
+        href = "https://mateu.io",
+        js = "console.log('hi')",
+        customEventName = "order-picked")
+    public Message act() {
+      return Message.success("Done");
     }
-
-    @io.mateu.uidl.annotations.Action(href = "https://mateu.io")
-    public void openDocs() {}
-
-    @io.mateu.uidl.annotations.Action(js = "console.log('hi')")
-    public void runScript() {}
-
-    @io.mateu.uidl.annotations.Action(customEventName = "order-picked")
-    public void pick() {}
   }
 
   /** An app shell's presentation knobs: a split content area, an accent, the Ask button's brand. */
