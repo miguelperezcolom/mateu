@@ -1,0 +1,35 @@
+{
+  "commands" : [ {
+    "data" : "Branded app",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "accentColor" : "#00796b",
+        "askIcon" : "vaadin:question",
+        "askLabel" : "Ask Mateu",
+        "homeConsumedRoute" : "/conformance/app-branding",
+        "homeRoute" : "/conformance/app-branding/home",
+        "layout" : "SPLIT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-branding",
+          "label" : "Home",
+          "path" : "/home",
+          "route" : "/conformance/app-branding/home",
+          "uriPrefix" : "/conformance/app-branding",
+          "visible" : true
+        } ],
+        "rootRoute" : "/conformance/app-branding",
+        "route" : "/conformance/app-branding",
+        "title" : "Branded app",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
