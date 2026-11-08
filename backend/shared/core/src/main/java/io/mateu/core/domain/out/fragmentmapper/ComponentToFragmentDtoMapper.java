@@ -222,6 +222,20 @@ public final class ComponentToFragmentDtoMapper {
         return mapComponentToDto(
             null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
+      // an object a ComponentAdapter renders is drawn BY THE ADAPTER, as it is as a route or a form
+      // field: the bridge is an island of the adapted model (its type, state and actions). It used
+      // to be reflected field by field — no adapter components, labels or actions.
+      var adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(view.getClass());
+      if (adapter != null) {
+        return mapComponentToDto(
+            null,
+            new io.mateu.core.infra.adapters.AdaptedComponentTree(view, adapter),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+      }
       warnIfGuidedProcessDrawerTooLong(view);
       // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
       // its page in a ServerSideComponentDto carrying the view's own serverSideType + actions, so

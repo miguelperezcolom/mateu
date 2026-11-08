@@ -37,6 +37,23 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
     /// AsyncLocal because the mapper is shared by the singleton SyncHandler across requests.</summary>
     private static readonly AsyncLocal<string?> Audience = new();
 
+    /// <summary>The registry of the request being handled, for the mappers that run without one
+    /// (ComponentMapper's EmbeddedView branch): an embedded object with a component adapter is drawn
+    /// by its adapter. AsyncLocal for the same reason as <see cref="Audience"/>.</summary>
+    private static readonly AsyncLocal<MateuRegistry?> CurrentRegistry = new();
+
+    internal static void SetCurrentRegistry(MateuRegistry? current) => CurrentRegistry.Value = current;
+
+    /// <summary>An embedded view as its island: drawn by its component adapter when it has one (Java:
+    /// ComponentToFragmentDtoMapper's EmbeddedView branch), else mapped as the view's own page.</summary>
+    internal static ServerSideComponentDto MapEmbedded(object view)
+    {
+        var current = CurrentRegistry.Value;
+        if (current?.AdapterFor(view.GetType()) is { } adapter)
+            return new ReflectionMapper(registry: current).MapAdapted(view, adapter, "", out _);
+        return new ReflectionMapper(registry: current).MapEmbeddedView(view);
+    }
+
     /// <summary>Activates (or clears) the audience projection for the current request flow.</summary>
     internal static void SetCurrentAudience(string? audience) =>
         Audience.Value = string.IsNullOrWhiteSpace(audience) ? null : audience;
