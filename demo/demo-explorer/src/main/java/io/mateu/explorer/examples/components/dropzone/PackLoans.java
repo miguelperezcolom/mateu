@@ -36,7 +36,7 @@ public class PackLoans implements ComponentTreeSupplier {
                     .dragType("artwork")
                     .rowsSelectionEnabled(true)
                     .style("flex: 2;")
-                    .rowsSource(RestDataSource.builder().url("/explorer-api/artworks").build())
+                    .rowsSource(RestDataSource.builder().url("/explorer-api/listing-artworks").build())
                     .column(GridColumn.builder().id("id").label("Id").build())
                     .column(GridColumn.builder().id("title").label("Title").build())
                     .build(),

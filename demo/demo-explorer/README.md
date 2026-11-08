@@ -62,6 +62,9 @@ Adding an entry touches **no shared file**: no menu, no routes.yaml, no index. C
      - {label: Python, path: src/main/ports/<area>/<id>/my_view.py}
      - {label: application.properties, path: src/main/resources/application.properties}
    # notDemonstrable: "why"         # instead of examples, for an id that cannot run live
+   # knownIssue: "3.0-beta.N: …"    # a Mateu bug this entry runs into (say it in the description too):
+   #                                #   reported by the guard and the probe, never a failure
+   # probeAllows: ["status of 403"] # what the probe tolerates because the example does it on purpose
    ```
 
    The Code tabs list, automatically, every `yaml:` file, the source of every `java:` class, every
@@ -173,6 +176,49 @@ on the template entries), but Redwood RESHAPES the entry page with its own page 
 header and description are not drawn and only the first example card shows, beside the Code tabs.
 Fix that (in the Redwood projection, or by giving the entry page a shape Redwood keeps) before
 advertising the Redwood twin.
+
+## Status
+
+Measured 2026-11-08 on `explorer/integration` (all eight area PRs merged, Mateu 3.0-beta.51, Vaadin
+renderer, Explorer + every remote booted with `remotes/run.sh`).
+
+**Coverage:** 299 / 299 checklist ids covered by **206 entries** (2 of them `notDemonstrable:` —
+AppShell, and ContentLayout, removed in 3.0.0); **31 entries declare a known Mateu bug**.
+
+**`e2e/explorer-probe.mjs`** — every entry page in a browser:
+
+| Area | Entries | Pass | Failed, known issue (reported) | Fail | Known issues declared |
+|---|---|---|---|---|---|
+| archetypes | 17 | 17 | 0 | 0 | 0 |
+| behaviour | 110 | 110 | 0 | 0 | 11 |
+| components | 53 | 50 | 3 | 0 | 18 |
+| distributed | 15 | 15 | 0 | 0 | 2 |
+| page-templates | 11 | 11 | 0 | 0 | 0 |
+| **total** | **206** | **203** | **3** | **0** | **31** |
+
+The three reported: `components/composition/app-shell` ("Page not found"), `components/fields/form-layout`
+and `components/status-and-kpis/kpis` ("Unknown metadata type"). The other declared known issues are
+visual or need an interaction, which this probe does not try.
+
+**`remotes/probe.mjs`** — the "Try it"s of the distributed area: 23 / 23 (3 known Mateu bugs
+tolerated: a fresh deep link of a remote screen and a YAML-only remote's leaf answer 403; a RouteLink
+on the non-root YAML mount pushes `/yaml-mountsecond`).
+
+Run it:
+
+```bash
+cd demo/demo-explorer
+mvn package                     # the coverage guard, and target/explorer-entries.json
+remotes/run.sh --no-build       # (Python remote: create its .venv first, see above)
+node e2e/explorer-probe.mjs     # PROBE_ONLY=<route part>, PROBE_REPORT=<file.md>, KNOWN_BUGS=strict
+remotes/run.sh stop
+```
+
+Per entry it checks: the title is drawn, every example card has content, no error text in the
+examples ("Unknown metadata type", "Page not found", "Something went wrong"…), the Code tabs are
+there and not empty, no console error, no 5xx. What an example does ON PURPOSE (a permissions demo's
+403, a down remote) goes in the entry's `probeAllows:`. CI: `.github/workflows/explorer.yml` runs
+both the guard and this probe on every change under `demo/demo-explorer/**`.
 
 ## Coverage guard
 

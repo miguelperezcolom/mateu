@@ -24,7 +24,7 @@ public class ArtworksListing implements ComponentTreeSupplier {
         .searchable(true)
         .pageSize(5)
         .filter(FormField.builder().id("status").label("Status").build())
-        .rowsSource(RestDataSource.builder().url("/explorer-api/artworks").build())
+        .rowsSource(RestDataSource.builder().url("/explorer-api/listing-artworks").build())
         .column(GridColumn.builder().id("title").label("Title").identifier(true).sortable(true).build())
         .column(GridColumn.builder().id("artist").label("Artist").sortable(true).build())
         .column(GridColumn.builder().id("year").label("Year").sortable(true).build())

@@ -17,6 +17,9 @@ import java.util.Map;
  *     accepts it as covered with a reason)
  * @param knownIssue a Mateu bug this entry runs into (shown in its description too): reported by
  *     the coverage guard and the Explorer probe, never a failure — drop it once the fix ships
+ * @param probeAllows what the Explorer probe tolerates on this page because the example does it ON
+ *     PURPOSE (a console text such as {@code status of 403}, a down remote's {@code
+ *     ERR_CONNECTION_REFUSED}, an error text the example exists to show)
  */
 public record Entry(
     String id,
@@ -31,6 +34,7 @@ public record Entry(
     List<CodeFile> extraCode,
     String notDemonstrable,
     String knownIssue,
+    List<String> probeAllows,
     String file) {
 
   /**
@@ -153,6 +157,7 @@ public record Entry(
         List.copyOf(code),
         s(raw.get("notDemonstrable")),
         s(raw.get("knownIssue")),
+        list(raw.get("probeAllows")).stream().map(Object::toString).toList(),
         file);
   }
 

@@ -24,6 +24,7 @@ description: |
   below follows the same role (the browser keeps the choice and sends it with every request; reload
   it after switching), and so does the last example: a route with `access: {roles: [manager]}`,
   refused unless you are a manager.
+probeAllows: ["status of 403"]   # done on purpose (see the description)
 examples:
   - title: The role switcher (an app with an @AppContext selector)
     java: io.mateu.explorer.examples.behaviour.permissions.RoleSwitcher

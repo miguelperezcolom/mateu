@@ -10,7 +10,7 @@ content:
     filters:
       - {type: FormField, id: artist, label: Artist}
     rowsSource:
-      url: /explorer-api/artworks
+      url: /explorer-api/listing-artworks
     columns:
       - {type: GridColumn, id: title, label: Title, identifier: true, sortable: true}
       - {type: GridColumn, id: artist, label: Artist, sortable: true}

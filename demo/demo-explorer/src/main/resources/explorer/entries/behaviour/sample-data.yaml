@@ -21,6 +21,7 @@ description: |
   > although a failed call is documented to show what the service said. Reported.
 knownIssue: >-
   3.0-beta.51: a listing whose first load fails (404) shows no error.
+probeAllows: ["status of 404"]   # done on purpose (see the description)
 examples:
   - title: "An endpoint still to be built"
     route: x/behaviour/sample-data/forecast

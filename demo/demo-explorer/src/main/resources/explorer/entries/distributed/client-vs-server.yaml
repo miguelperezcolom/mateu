@@ -21,6 +21,7 @@ description: |
   **Try it:** open the page on its own and look at the first `/mateu/v3/sync` answer in the network
   panel: the SERVER island is inside it, the slow one is fetched by the browser ~2 s later.
   `SLOW_REMOTE_DELAY_MS=100` on the Java remote and the slow one is embedded too.
+probeAllows: ["ERR_CONNECTION_REFUSED"]   # done on purpose (see the description)
 examples:
   - title: Four islands, four outcomes
     java: io.mateu.explorer.examples.distributed.clientvsserver.ClientVsServer

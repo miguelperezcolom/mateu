@@ -14,7 +14,7 @@ public class ArtworksApi {
 
   public record Artwork(String id, String title, String artist, int year, String status) {}
 
-  @GetMapping("/explorer-api/artworks")
+  @GetMapping("/explorer-api/listing-artworks")
   public List<Artwork> artworks() {
     return List.of(
         new Artwork("a1", "The Starry Night", "Vincent van Gogh", 1889, "On display"),

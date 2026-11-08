@@ -92,6 +92,10 @@ class ExplorerCoverageTest {
       if (!routes.add(e.route())) {
         problems.add(where + "route " + e.route() + " used twice");
       }
+      if (e.title().contains("${")
+          || e.examples().stream().anyMatch(x -> x.title() != null && x.title().contains("${"))) {
+        problems.add(where + "a title with ${…} is interpolated on screen: write it without");
+      }
       if (e.knownIssue() == null && mentionsAKnownIssue(e)) {
         problems.add(where + "its description mentions a known issue: add a knownIssue: line");
       }
@@ -171,6 +175,61 @@ class ExplorerCoverageTest {
     if (!"false".equals(System.getProperty("explorer.coverage.strict")) && !pending.isEmpty()) {
       fail(report.toString());
     }
+  }
+
+  /**
+   * Writes {@code target/explorer-entries.json}, what {@code e2e/explorer-probe.mjs} opens: every
+   * entry's page, its example titles, how many Code tabs it shows and its known issue.
+   */
+  @Test
+  void writesTheProbeManifest() throws java.io.IOException {
+    var out = new StringBuilder("[\n");
+    var entries = List.copyOf(ExplorerCatalog.get().entries());
+    for (int i = 0; i < entries.size(); i++) {
+      var e = entries.get(i);
+      var examples =
+          e.examples().stream()
+              .map(x -> json(x.title() == null ? "Live example" : x.title()))
+              .toList();
+      out.append("  {\"id\": ").append(json(e.id()))
+          .append(", \"route\": ").append(json(e.route()))
+          .append(", \"title\": ").append(json(e.title()))
+          .append(", \"examples\": [").append(String.join(", ", examples)).append("]")
+          .append(", \"codeFiles\": ").append(e.code().size())
+          .append(", \"notDemonstrable\": ").append(json(e.notDemonstrable()))
+          .append(", \"knownIssue\": ").append(json(e.knownIssue()))
+          .append(", \"probeAllows\": [")
+          .append(String.join(", ", e.probeAllows().stream().map(ExplorerCoverageTest::json).toList()))
+          .append("]")
+          .append("}")
+          .append(i < entries.size() - 1 ? ",\n" : "\n");
+    }
+    out.append("]\n");
+    Files.createDirectories(MODULE.resolve("target"));
+    Files.writeString(MODULE.resolve("target/explorer-entries.json"), out);
+  }
+
+  private static String json(String s) {
+    if (s == null) {
+      return "null";
+    }
+    var b = new StringBuilder("\"");
+    for (char c : s.strip().toCharArray()) {
+      switch (c) {
+        case '"' -> b.append("\\\"");
+        case '\\' -> b.append("\\\\");
+        case '\n' -> b.append("\\n");
+        case '\r', '\t' -> b.append(' ');
+        default -> {
+          if (c < 0x20) {
+            b.append(String.format("\\u%04x", (int) c));
+          } else {
+            b.append(c);
+          }
+        }
+      }
+    }
+    return b.append('"').toString();
   }
 
   private static boolean mentionsAKnownIssue(Entry e) {
