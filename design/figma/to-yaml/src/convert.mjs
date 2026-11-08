@@ -393,7 +393,8 @@ export class FigmaToYaml {
     if (node.type !== 'INSTANCE' || node.name.startsWith('#')) return false
     const entry = this.entryOf(node)
     if (entry?.name !== 'Mateu/Layout/Section' || !entry.yaml?.slots?.content) return false
-    return !(this.slotsOf(node).get('content') ?? []).length
+    // the library's own `#placeholder` caption (and hidden layers) do not count as content
+    return !(this.slotsOf(node).get('content') ?? []).some((c) => c.visible !== false && !c.name.startsWith('#'))
   }
 
   node(node) {

@@ -126,7 +126,7 @@ test('file names come from the frame names', () => {
 test('a Section left empty takes the layers that follow it, up to the next Section', () => {
   // Figma cannot drop layers into an instance, so a designer stacks the fields UNDER the Section
   const text = (name, characters) => ({ type: 'TEXT', name, characters })
-  const section = (id, title) => ({ type: 'INSTANCE', id, name: 'Section', componentId: 'sec', children: [text('Title', title), { type: 'FRAME', name: 'slot:content', children: [] }] })
+  const section = (id, title) => ({ type: 'INSTANCE', id, name: 'Section', componentId: 'sec', children: [text('Title', title), { type: 'FRAME', name: 'slot:content', children: [text('#placeholder', 'content')] }] })
   const field = (id, label, fieldId) => ({ type: 'INSTANCE', id, name: 'TextField', componentId: 'tf', children: [text('Label', label), text('#config', `fieldId=${fieldId}`)] })
   const file = {
     components: { sec: { name: 'Mateu/Layout/Section' }, tf: { name: 'Mateu/Field/TextField' } },
