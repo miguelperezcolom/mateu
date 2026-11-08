@@ -259,6 +259,7 @@ from .app import AppMapperMixin
 from .view import ViewMapperMixin
 from .archetypes import ArchetypeMapperMixin
 from .components import ComponentMapperMixin
+from .more_components import MoreComponentsMapperMixin
 from .decorations import DecorationMapperMixin
 from .wizard import WizardMapperMixin
 from .crud import CrudMapperMixin
@@ -272,6 +273,7 @@ class ReflectionMapper(
     ViewMapperMixin,
     ArchetypeMapperMixin,
     ComponentMapperMixin,
+    MoreComponentsMapperMixin,
     DecorationMapperMixin,
     WizardMapperMixin,
     CrudMapperMixin,

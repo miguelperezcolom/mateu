@@ -2333,3 +2333,9 @@ __all__ = [
     "Slotted",
     "VerticalLayout",
 ]
+
+# The last components that were Java-only (3.0): defined in their own module, part of this one.
+from .more_components import *  # noqa: E402,F401,F403
+from .more_components import __all__ as _more_components_all  # noqa: E402
+
+__all__ += _more_components_all

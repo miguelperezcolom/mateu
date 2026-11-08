@@ -372,6 +372,73 @@ class GenericComponentsPage(ComponentTreeSupplier):
         ))
 
 
+@ui("/conformance/more-components")
+@title("More components")
+class MoreComponentsPage(ComponentTreeSupplier):
+    """The last wire component types that were Java-only, in one component tree."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_ui.uidl import PageResult
+        from mateu_ui.uidl import components as fl
+
+        def t(text):
+            return fl.Text(text=text)
+
+        return fl.VerticalLayout(content=(
+            fl.BoardLayout(id="board", rows=(fl.BoardLayoutRow(content=(
+                fl.BoardLayoutItem(content=t("Sales"), board_cols=2),
+                fl.BoardLayoutItem(content=t("Stock"), board_cols=1),
+            )),)),
+            fl.CarouselLayout(
+                id="carousel", content=(t("Slide 1"), t("Slide 2")), auto=True, duration=4000,
+                dots=True, loop=True,
+            ),
+            fl.Container(content=t("Contained")),
+            fl.FullWidth(content=t("Wide")),
+            fl.Scroller(content=t("Scrolled"), style="height: 10rem"),
+            fl.FormItem(id="item", content=(t("Field"),)),
+            fl.FormSubSection(title="Address", content=(t("Street"),)),
+            fl.MasterDetailLayout(
+                id="md", master=t("Master"), detail=t("Detail"),
+                orientation=fl.Orientation.horizontal, variant=None,
+            ),
+            fl.ContextMenu(
+                menu=(fl.MenuEntry(label="Orders", path="/orders"),),
+                wrapped=t("Right click me"), activate_on_left_click=True,
+            ),
+            fl.Directory(menu=(fl.MenuEntry(
+                label="Sales", path="/sales",
+                submenu=(fl.MenuEntry(label="Orders", path="/sales/orders"),),
+            ),)),
+            fl.MenuBar(options=(
+                fl.MenuEntry(label="Home", path="/home"), fl.MenuEntry(label="Help", path="/help"),
+            )),
+            fl.Grid(
+                id="grid",
+                content=(
+                    fl.GridColumn(id="name", label="Name", data_type="string"),
+                    fl.GridGroupColumn(id="occupancy", label="Occupancy", columns=(
+                        fl.GridColumn(id="adults", label="Adults", data_type="integer"),
+                        fl.GridColumn(id="children", label="Children", data_type="integer"),
+                    )),
+                ),
+                page=PageResult(content=[{"name": "Ada", "adults": 2, "children": 1}], total_elements=1),
+                row_stripes=True,
+            ),
+            fl.Chat(sse_url="/chat/sse"),
+            fl.MessageList(id="messages", items=(fl.MessageListItem(text="Hello", user_name="Ada"),)),
+            fl.MessageInput(id="input", action_id="send"),
+            fl.NotFound(title="Not here", message="That page does not exist", back_route="/", back_label="Home"),
+            fl.VirtualList(page=PageResult(content=[t("Row 1"), t("Row 2")], total_elements=2)),
+            fl.CookieConsent(message="We use cookies", dismiss="OK", position=fl.CookieConsentPosition.Bottom),
+            fl.FormEditor(value="{}"),
+            fl.Workflow(value="<bpmn/>"),
+        ))
+
+
 @ui("/conformance/triggers")
 @title("Triggers")
 @trigger(TriggerType.on_load, "refresh", timeout_millis=5000, times=0, background=True)
@@ -983,7 +1050,7 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():

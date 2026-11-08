@@ -1202,6 +1202,9 @@ class ComponentMapperMixin(MixinBase):
                 ),
                 id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
             )
+        more = self.map_more_component(c)
+        if more is not None:
+            return more
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
 
     def map_embedded_view(self, view):
