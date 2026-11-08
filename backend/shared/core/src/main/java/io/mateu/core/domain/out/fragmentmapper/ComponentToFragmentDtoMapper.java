@@ -320,7 +320,10 @@ public final class ComponentToFragmentDtoMapper {
           PageWidthResolver.wirePageWidth(view),
           PageTypeResolver.wirePageType(view),
           StaticViewResolver.isStatic(view),
-          null);
+          null,
+          // what a page of its own carries in its fragment's data (a lookup's label…): the island
+          // has no fragment, so it travels with it — the stored id used to be shown raw
+          islandData(view, httpRequest));
     }
     if (component instanceof FutureComponent futureComponent) {
       return mapFutureComponentToDto(

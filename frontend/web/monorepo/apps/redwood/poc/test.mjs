@@ -6553,6 +6553,20 @@ atest('inline islands: registered from their node with NO request, painted in th
   } finally { globalThis.fetch = original }
 })
 
+atest('inline island: the data it arrives with (an EmbeddedView lookup label) is its context data', async () => {
+  // an EmbeddedView island has no fragment of its own: what its page carries in the fragment's data
+  // (the label of a lookup's stored id) travels on the node — the stored id `g2` was shown raw
+  const reg = iiHostOf()
+  const node = {
+    type: 'ServerSide', id: 'booking-island', serverSideType: 'x.BookingForm', initialData: { guestId: 'g2' },
+    data: { 'guestId-label': 'Alan Turing' }, children: [], actions: [], triggers: [],
+  }
+  const sub = iiInlineIslandOf(node)
+  const next = await iiRegisterInlineIsland('http://x', reg, sub, {})
+  assert.equal(next.contexts['booking-island'].state.guestId, 'g2')
+  assert.equal(next.contexts['booking-island'].data['guestId-label'], 'Alan Turing')
+})
+
 atest('event bus across surfaces: DOCUMENT hears any island, COMPONENT only its `from`, SELF what bubbles from inside', async () => {
   const original = globalThis.fetch
   const sent = []

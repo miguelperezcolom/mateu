@@ -5363,6 +5363,9 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "data" : {
+          "description" : "Any JSON value."
+        },
         "emitsName" : {
           "type" : "string"
         },
