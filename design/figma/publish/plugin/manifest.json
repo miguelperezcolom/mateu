@@ -1,0 +1,13 @@
+{
+  "name": "Mateu Publish",
+  "id": "mateu-publish",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://cdn.jsdelivr.net", "https://api.netlify.com", "https://*.workers.dev"],
+    "reasoning": "Downloads the Mateu renderer, and uploads the built site to the host the user chooses."
+  }
+}

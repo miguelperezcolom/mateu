@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml, actionIdsOf, undeclaredActionWarnings } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 
 const e2e = join(dirname(fileURLToPath(import.meta.url)), '../../e2e')
 const fixture = JSON.parse(readFileSync(join(e2e, 'real-sample-screens.figma.json'), 'utf8'))

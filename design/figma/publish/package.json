@@ -1,0 +1,18 @@
+{
+  "name": "mateu-figma-publish",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Publishes a Figma file designed with the Mateu UI Kit as a UI with no backend, on Netlify or Cloudflare Pages.",
+  "scripts": {
+    "build": "node bin/build-plugin.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
+  },
+  "engines": { "node": ">=20" }
+}

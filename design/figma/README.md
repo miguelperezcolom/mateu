@@ -110,6 +110,16 @@ published kit (`GET /v1/files/:key`, trimmed by `e2e/trim.mjs`: no geometry, pai
 the REST shape of native slots and component properties as Figma answers it. `e2e/golden/` is its
 output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGoldenTest`.
 
+## Publishing with no backend (`publish/`)
+
+A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
+reads the document in the REST shape the converter takes; `src/site.mjs` writes the `specsOnly`
+manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
+`src/hosts.mjs` talks to Netlify (direct, it answers CORS for any origin) and Cloudflare Pages
+(through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
+tag in `src/renderer.json`: bump it after a release. `bin/build-site.mjs` makes the same site with no
+Figma around. Guide: `design-systems/figma-guide.md`, section 6.
+
 ## Reading back (modux)
 
 modux's Figma importer (`model-driven-generator`, use case `importfigma`) downloads the file via

@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml, SELF_TEST_PAGE } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const converter = () => new FigmaToYaml({ contract: loadContract(), schema: loadSchema() })

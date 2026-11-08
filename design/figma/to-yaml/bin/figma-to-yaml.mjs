@@ -11,7 +11,7 @@
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { FigmaToYaml, undeclaredActionWarnings } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 
 function usage(message) {
   if (message) console.error(message)

@@ -122,9 +122,15 @@ export class Contract {
 }
 
 export class FigmaToYaml {
-  constructor({ contract, schema }) {
+  /**
+   * `drawnValues`: keep what a field draws as its value (`f.drawn`, field id → text), for a UI
+   * published with no backend, where what the design shows IS the data. Off, a drawn value is an
+   * illustration and stays out of the output.
+   */
+  constructor({ contract, schema, drawnValues = false }) {
     this.contract = contract instanceof Contract ? contract : new Contract(contract)
     this.schema = schema instanceof Schema ? schema : new Schema(schema)
+    this.drawnValues = drawnValues
   }
 
   /**
@@ -146,7 +152,7 @@ export class FigmaToYaml {
         let path = `${slugify(node.name)}.yaml`
         for (let i = 2; taken.has(path); i++) path = `${slugify(node.name)}-${i}.yaml`
         taken.add(path)
-        files.push({ path, frame: node.name, nodeId: node.id, value })
+        files.push({ path, frame: node.name, nodeId: node.id, value, ...(Object.keys(this.drawn).length ? { drawn: this.drawn } : {}) })
       }
     }
     for (const [ref, p] of this.partials) {
@@ -403,9 +409,13 @@ export class FigmaToYaml {
 
     const items = new Map()
     const lists = new Map()
+    let drawnValue
     for (const p of this.readParams(node, entry)) {
       const spec = y.params && p.name in y.params ? y.params[p.name] : p.name
-      if (spec === null) continue
+      if (spec === null) {
+        if (p.name === 'value') drawnValue = p.value
+        continue
+      }
       const s = typeof spec === 'string' ? { path: spec } : spec
       if (s.whenTrue) {
         if (p.value === 'true') this.decorate(obj, s.whenTrue)
@@ -438,6 +448,7 @@ export class FigmaToYaml {
         for (const [path, constant] of Object.entries(s.set)) this.put(ctx, path, constant, true)
       }
     }
+    if (this.drawnValues && drawnValue !== undefined && this.drawn && obj.id) this.drawn[obj.id] = drawnValue
     for (const [path, all] of lists) this.put(ctx, path, all, true)
     if (items.size) this.put(ctx, y.items, [...items.keys()].sort((a, b) => a - b).map((k) => items.get(k)), true)
     return y.into ? { into: y.into, value: obj } : obj
@@ -604,6 +615,7 @@ export class FigmaToYaml {
 
   screen(node) {
     this.into = []
+    this.drawn = {}
     let page
     const entry = this.entryOf(node)
     if (entry && entry.kind === 'pageTemplate' && entry.yaml) {
