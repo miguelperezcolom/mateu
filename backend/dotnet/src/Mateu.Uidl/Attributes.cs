@@ -215,6 +215,33 @@ public sealed class ActionOptionsAttribute : Attribute
 {
     public int TimeoutMillis { get; init; }
     public bool Idempotent { get; init; }
+
+    /// <summary>Runs without the busy veil / pending marker (Java's @Action(background)).</summary>
+    public bool Background { get; init; }
+
+    /// <summary>The client calls it over the SSE endpoint (Java's @Action(sse)); a method returning
+    /// a LongTaskRun streams anyway.</summary>
+    public bool Sse { get; init; }
+
+    /// <summary>Asks the user to confirm before sending (Java's @Action(confirmationRequired)),
+    /// with the optional texts below (blank = the renderer's own wording).</summary>
+    public bool ConfirmationRequired { get; init; }
+    public string? ConfirmationTitle { get; init; }
+    public string? ConfirmationMessage { get; init; }
+    public string? ConfirmationText { get; init; }
+    public string? ConfirmationDenialText { get; init; }
+
+    /// <summary>The client navigates to this URL instead of calling the server (Java's @Action(href)).</summary>
+    public string? Href { get; init; }
+
+    /// <summary>The client runs this script instead of calling the server (Java's @Action(js);
+    /// renderers run it only where RunJS is enabled).</summary>
+    public string? Js { get; init; }
+
+    /// <summary>The client dispatches this DOM event (with <see cref="CustomEventDetail"/>) instead
+    /// of calling the server (Java's @Action(customEventName, customEventDetail)).</summary>
+    public string? CustomEventName { get; init; }
+    public string? CustomEventDetail { get; init; }
 }
 
 /// <summary>Makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
@@ -361,7 +388,48 @@ public sealed class AppAttribute(string title) : Attribute
     /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES
     /// them all. (C# analogue of Java's @App(requires = {...}).)</summary>
     public string[] Requires { get; set; } = [];
+
+    /// <summary>How the content area is arranged: "SINGLE_SLOT" (the default) or "SPLIT" (two
+    /// panes). (C# analogue of Java's @App(layout).)</summary>
+    public string Layout { get; set; } = "SINGLE_SLOT";
+
+    /// <summary>The app's accent colour (a CSS colour) for the shell's chrome; blank = the theme's.
+    /// (C# analogue of Java's @App(accentColor).)</summary>
+    public string AccentColor { get; set; } = "";
+
+    /// <summary>The AI assistant's entry label and icon; blank = the renderer's. (C# analogue of
+    /// Java's @App(askLabel, askIcon).)</summary>
+    public string AskLabel { get; set; } = "";
+
+    public string AskIcon { get; set; } = "";
+
+    /// <summary>Inline CSS / CSS classes of the app shell (Java's @Style / @CssClasses on the app class).</summary>
+    public string Style { get; set; } = "";
+
+    public string CssClasses { get; set; } = "";
 }
+
+/// <summary>The app header's logo (a URL). (C# analogue of Java's @Logo.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class LogoAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>The browser tab's icon (a URL). (C# analogue of Java's @FavIcon.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class FavIconAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>The app's navigation drawer starts closed. (C# analogue of Java's @DrawerClosed.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class DrawerClosedAttribute : Attribute;
+
+/// <summary>The pages inside this app show no breadcrumb trail. (C# analogue of Java's @NoBreadcrumbs.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class NoBreadcrumbsAttribute : Attribute;
 
 /// <summary>What the UI manifest (<c>GET {base}/mateu/v3/manifest</c>) tells the generic Mateu
 /// mobile app about this app: its name, short name, icon and theme colour (defaults: the [App]
@@ -523,6 +591,18 @@ public sealed class SectionAttribute(string caption) : Attribute
     /// section summarises — a "View more" button under its content. Empty = none. (Java's
     /// @Section(viewMoreAction).)</summary>
     public string ViewMoreAction { get; set; } = "";
+
+    /// <summary>The section's card is PINNED (position: sticky) while the rest of the form scrolls —
+    /// several sticky sections stack under the page header. (Java's @Section(sticky).)</summary>
+    public bool Sticky { get; set; }
+
+    /// <summary>The section's own column count; 0 (the default) = the form's ([FormLayout] or the
+    /// inferred one). An explicit 1 stacks this section even on a two-column form. (Java's
+    /// @Section(columns).)</summary>
+    public int Columns { get; set; }
+
+    /// <summary>Inline CSS of the section's content. (Java's @Section(style).)</summary>
+    public string Style { get; set; } = "";
 }
 
 /// <summary>A named column of a multi-column form. Declare several on the class (order matters)

@@ -295,10 +295,11 @@ internal sealed partial class SyncHandler
         var entity = stored is null ? New(element)
             : storedVersion is null ? stored
             : CopyOf(stored, element);
-        BindState(entity, rq.ComponentState);
+        // a field the form did not render ([HiddenInEditor] / [HiddenInCreate]) keeps its value
+        BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
         if (id is not null) EntityIds.SetId(entity, id);
 
-        var missing = RequiredMissing(entity, element);
+        var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
 
@@ -570,8 +571,10 @@ internal sealed partial class SyncHandler
             messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
-    private static List<string> RequiredMissing(object entity, Type element) =>
+    private static List<string> RequiredMissing(object entity, Type element, bool? creating = null) =>
         ReflectionMapper.EditableProperties(element)
+            // a field the form did not render cannot be asked for (Java's ServerConstraintCheck)
+            .Where(p => creating is null || !ReflectionMapper.HiddenInForm(p, creating.Value ? "new" : "edit"))
             .Where(p => p.Find<RequiredAttribute>() != null
                         && string.IsNullOrWhiteSpace(p.GetValue(entity)?.ToString()))
             .Select(p => p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))

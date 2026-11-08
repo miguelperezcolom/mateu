@@ -282,7 +282,30 @@ public record ActionDto(
     /// action (mirrors io.mateu.dtos.ActionDto.commands).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<UICommandDto>? Commands { get; init; }
+
+    /// <summary>Runs without the busy veil (mirrors io.mateu.dtos.ActionDto.background).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Background { get; init; }
+
+    /// <summary>The confirmation dialog's texts (mirrors io.mateu.dtos.ActionDto.confirmationTexts).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ConfirmationTextsDto? ConfirmationTexts { get; init; }
+
+    /// <summary>A URL the client goes to instead of calling the server (mirrors ActionDto.href).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Href { get; init; }
+
+    /// <summary>A script the client runs instead of calling the server (mirrors ActionDto.js).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Js { get; init; }
+
+    /// <summary>A DOM event the client dispatches instead of calling the server (mirrors ActionDto.customEvent).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CustomEventDto? CustomEvent { get; init; }
 }
+
+/// <summary>Mirrors io.mateu.dtos.ConfirmationTextsDto.</summary>
+public record ConfirmationTextsDto(string? Title, string? Message, string? ConfirmationText, string? DenialText);
 
 /// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
 /// (mirrors io.mateu.dtos.RestActionDto): the renderer fetches <c>Source</c> directly, shows

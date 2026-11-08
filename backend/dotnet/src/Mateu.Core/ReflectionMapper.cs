@@ -64,7 +64,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         && member.Find<Mateu.Uidl.AsideAttribute>() == null
         // [AppContext] properties are the shell header's selectors, never form fields (Java's
         // FormFieldFilter) — they leaked into the page an app without a home renders.
-        && member.Find<AppContextAttribute>() == null;
+        && member.Find<AppContextAttribute>() == null
+        // [HiddenInView] / [HiddenInEditor] / [HiddenInCreate] on the crud form being mapped
+        && !HiddenInCurrentForm(member);
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
@@ -189,6 +191,15 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
             actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
+        // An [Action] method with no button is advertised too, with its [ActionOptions] — what a
+        // trigger, a link or a component dispatches (Java's ActionMapper over @Action methods; its
+        // validationRequired defaults to false).
+        foreach (var m in declaredMethods.Where(m => m.Find<ActionAttribute>() != null && Offered(m)))
+        {
+            var id = Naming.CamelCase(m.Name);
+            if (actions.All(x => x.Id != id))
+                actions.Add(WithActionOptions(new ActionDto(id, ValidationRequired: false), type, id));
+        }
         // A page [Fab] dispatches its method like a button, and the web client only SENDS what the
         // component advertises: unadvertised, a click on the floating button did nothing. No client
         // validation — a floating "Add" acts on the page, not on a filled-in form (Java's

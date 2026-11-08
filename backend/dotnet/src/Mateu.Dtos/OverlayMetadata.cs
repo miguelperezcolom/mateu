@@ -85,6 +85,10 @@ public record DialogMetadataDto(string? Id, string? HeaderTitle, ComponentDto? C
     public string? Height { get; init; }
     public bool CloseButtonOnHeader { get; init; } = true;
     public object? InitialData { get; init; }
+    public bool Draggable { get; init; }
+    public bool Resizable { get; init; }
+    public string? Top { get; init; }
+    public string? Left { get; init; }
 }
 
 /// <summary>A form cell holding an arbitrary component (an adapted-type island, an embedded view):

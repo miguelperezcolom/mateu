@@ -642,6 +642,108 @@ public class ActionEffectsPage
     };
 }
 
+/// <summary>The [ActionOptions] knobs (action-extras): a streamed background action, a
+/// confirmation with its texts, a link, a client script and a custom event.</summary>
+[UI("conformance/action-extras"), Title("Action extras")]
+public class ActionExtrasPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    // declared in the golden's order: Java lists @Action methods in Class.getDeclaredMethods()
+    // order (unspecified by the JVM), .NET in declaration order
+    [Action, ActionOptions(ConfirmationRequired = true, ConfirmationTitle = "Delete?",
+        ConfirmationMessage = "It cannot be undone", ConfirmationText = "Delete", ConfirmationDenialText = "Keep")]
+    public Message Remove() => new("Deleted");
+
+    [Action, ActionOptions(Sse = true, Background = true)]
+    public Message Stream() => new("Done");
+
+    [Action, ActionOptions(CustomEventName = "order-picked")]
+    public void Pick() { }
+
+    [Action, ActionOptions(Href = "https://mateu.io")]
+    public void OpenDocs() { }
+
+    [Action, ActionOptions(Js = "console.log('hi')")]
+    public void RunScript() { }
+}
+
+/// <summary>An app shell's presentation knobs (app-branding). A [MenuItem] named Home stands in for
+/// Java's `@Menu String home` leaf.</summary>
+[UI("conformance/app-branding"), App("Branded app", Layout = "SPLIT", AccentColor = "#00796b",
+    AskLabel = "Ask Mateu", AskIcon = "vaadin:question")]
+public class BrandedApp
+{
+    [MenuItem("Home")]
+    public void Home() { }
+}
+
+/// <summary>Section options (section-options): the first section pinned, the second forced to one
+/// column with a style on its content.</summary>
+[UI("conformance/section-options"), Title("Section options")]
+public class SectionOptionsForm
+{
+    [Section("Guests", Sticky = true)] public string? Lead { get; set; }
+    public string? Second { get; set; }
+    public string? Third { get; set; }
+    public string? Fourth { get; set; }
+    [Section("Notes", Columns = 1, Style = "gap: 0;")] public string? First { get; set; }
+    public string? Other { get; set; }
+    public string? More { get; set; }
+    public string? Last { get; set; }
+}
+
+public class Employee
+{
+    public string Id { get; set; } = "";
+    [MainFilter] public string Name { get; set; } = "";
+    [HiddenInList] public string? Notes { get; set; }
+    [HiddenInView] public string? SalaryBand { get; set; }
+    [HiddenInEditor] public string? CreatedBy { get; set; }
+    [HiddenInCreate] public string? Code { get; set; }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New employee" : Name;
+}
+
+/// <summary>A crud whose entity hides fields per surface and names its main filter (crud-hidden-in,
+/// -edit, -new).</summary>
+[UI("conformance/crud-hidden-in"), Title("Employees")]
+public class EmployeesCrud : Crud<Employee>
+{
+    private static readonly List<Employee> Store =
+    [
+        new() { Id = "E-1", Name = "Ada", Notes = "Likes tea", SalaryBand = "B2", CreatedBy = "admin", Code = "ADA" },
+        new() { Id = "E-2", Name = "Grace", Notes = "Navy", SalaryBand = "B3", CreatedBy = "admin", Code = "GRC" },
+    ];
+
+    public override IEnumerable<Employee> Fetch(string? search) => Store;
+    public override Employee? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(Employee employee) { }
+    public override void Delete(string id) { }
+}
+
+/// <summary>An action that opens a dialog placed, draggable and resizable (dialog-placement).</summary>
+[UI("conformance/dialog-placement"), Title("Dialog placement")]
+public class DialogPlacementPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object OpenNotes() => new Dialog
+    {
+        HeaderTitle = "Notes",
+        Content = new Text("Free text"),
+        Top = "4rem",
+        Left = "2rem",
+        Draggable = true,
+        Resizable = true,
+        Width = "30rem",
+        Height = "20rem",
+        Modeless = true,
+        CloseButtonOnHeader = true,
+    };
+}
+
 /// <summary>An action that opens a drawer: an ADD fragment carrying the Drawer and its content.</summary>
 [UI("conformance/drawer"), Title("Drawer")]
 public class DrawerPage
@@ -705,6 +807,75 @@ public class GenericComponentsPage : IComponentTreeSupplier
                 Header = "Delete order?", Content = new Text("This cannot be undone"), CanCancel = true,
                 ConfirmText = "Delete", ConfirmActionId = "deleteOrder", CancelActionId = "keepOrder",
             },
+        ],
+    };
+
+    public string? Style => null;
+}
+
+// The last component types that used to be Java-only, in one component tree (more-components).
+[UI("conformance/more-components"), Title("More components")]
+public class MoreComponentsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content =
+        [
+            new BoardLayout
+            {
+                Id = "board",
+                Rows = [new BoardLayoutRow { Content = [
+                    new BoardLayoutItem { Content = new Text("Sales"), BoardCols = 2 },
+                    new BoardLayoutItem { Content = new Text("Stock"), BoardCols = 1 }] }],
+            },
+            new CarouselLayout
+            {
+                Id = "carousel", Content = [new Text("Slide 1"), new Text("Slide 2")],
+                Auto = true, Duration = 4000, Dots = true, Loop = true,
+            },
+            new Container { Content = new Text("Contained") },
+            new FullWidth { Content = new Text("Wide") },
+            new Scroller { Content = new Text("Scrolled"), Style = "height: 10rem" },
+            new FormItem { Id = "item", Content = [new Text("Field")] },
+            new FormSubSection("Address") { Content = [new Text("Street")] },
+            new MasterDetailLayout(new Text("Master")) { Id = "md", Detail = new Text("Detail") },
+            new ContextMenu
+            {
+                Menu = [new MenuOption("Orders") { Path = "/orders" }],
+                Wrapped = new Text("Right click me"), ActivateOnLeftClick = true,
+            },
+            new DirectoryMenu
+            {
+                Menu = [new MenuOption("Sales") { Path = "/sales", Submenu = [new MenuOption("Orders") { Path = "/sales/orders" }] }],
+            },
+            new MenuBar { Options = [new MenuOption("Home") { Path = "/home" }, new MenuOption("Help") { Path = "/help" }] },
+            new Grid
+            {
+                Id = "grid",
+                Content =
+                [
+                    new GridColumn { Id = "name", Label = "Name" },
+                    new GridGroupColumn("Occupancy")
+                    {
+                        Id = "occupancy",
+                        Columns =
+                        [
+                            new GridColumn { Id = "adults", Label = "Adults", DataType = "integer" },
+                            new GridColumn { Id = "children", Label = "Children", DataType = "integer" },
+                        ],
+                    },
+                ],
+                Rows = [new Dictionary<string, object> { ["name"] = "Ada", ["adults"] = 2, ["children"] = 1 }],
+                RowStripes = true,
+            },
+            new Chat("/chat/sse"),
+            new MessageList { Id = "messages", Items = [new MessageListItem("Hello", "Ada")] },
+            new MessageInput("send") { Id = "input" },
+            new NotFound { Title = "Not here", Message = "That page does not exist", BackRoute = "/", BackLabel = "Home" },
+            new VirtualList { Content = [new Text("Row 1"), new Text("Row 2")] },
+            new CookieConsent { Message = "We use cookies", Dismiss = "OK", Position = CookieConsentPosition.Bottom },
+            new FormEditor("{}"),
+            new Workflow("<bpmn/>"),
         ],
     };
 

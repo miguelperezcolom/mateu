@@ -4,6 +4,11 @@ namespace Mateu.Dtos;
 
 public record FormFieldMetadataDto(string FieldId, string DataType, string Label) : ComponentMetadataDto
 {
+    /// <summary>A listing filter shown outside the "Filter by" panel ([MainFilter]; mirrors
+    /// io.mateu.dtos.FormFieldDto.mainFilter). Omitted when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool MainFilter { get; init; }
+
     public string Stereotype { get; init; } = "regular";
     public bool TreeLeavesOnly { get; init; }
     public bool Required { get; init; }

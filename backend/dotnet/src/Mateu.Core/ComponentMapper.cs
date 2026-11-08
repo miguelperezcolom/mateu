@@ -288,6 +288,19 @@ internal static class ComponentMapper
             Compact = l.Compact,
             EmptyStateMessage = l.EmptyStateMessage,
             RowRoute = l.RowRoute,
+            RowStripes = l.RowStripes,
+            ColumnBorders = l.ColumnBorders,
+            WrapCellContent = l.WrapCellContent,
+            AllRowsVisible = l.AllRowsVisible,
+            NoBorder = l.NoBorder,
+            NoRowBorder = l.NoRowBorder,
+            ColumnReorderingAllowed = l.ColumnReorderingAllowed,
+            InfiniteScrolling = l.InfiniteScrolling,
+            LazyLoading = l.LazyLoading,
+            MultipleRowSelectionEnabled = l.MultipleRowSelectionEnabled,
+            OnRowSelectionChangedActionId = l.OnRowSelectionChangedActionId,
+            GridStyle = l.GridStyle,
+            ContentHeight = l.ContentHeight,
         }) with { Id = l.Id ?? "crud", Sizing = "fill" },
         // a form that fills a page template carries its slots laid out (PageTemplateLayout)
         Form f => Dto(f, MapFormHeader(f), PageTemplateLayout.ContentOf(f, MapContent)),
@@ -338,6 +351,10 @@ internal static class ComponentMapper
             NoPadding = dg.NoPadding,
             Modeless = dg.Modeless,
             CloseButtonOnHeader = dg.CloseButtonOnHeader,
+            Draggable = dg.Draggable,
+            Resizable = dg.Resizable,
+            Top = dg.Top,
+            Left = dg.Left,
         }),
 
         // Generic building blocks ported from Java (M-A5) — same shapes as Java's ElementMapper,
@@ -369,7 +386,8 @@ internal static class ComponentMapper
         Notification nt => new ClientSideComponentDto(
             new NotificationMetadataDto(nt.Title, nt.Text), FieldIdOr(nt.Id), [], nt.Style, nt.CssClasses, null),
 
-        _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
+        _ => MoreComponentMapper.MapOrNull(component)
+             ?? throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };
 
     /// <summary>Reusable mapper for a slotted content component (drawer/dialog Content): an
@@ -528,6 +546,7 @@ internal static class ComponentMapper
             case HorizontalLayout hl: foreach (var i in hl.Content) Collect(i, ids); break;
             case VerticalLayout vl: foreach (var i in vl.Content) Collect(i, ids); break;
             case TabLayout tl: foreach (var t in tl.Tabs) Collect(t.Content, ids); break;
+            default: foreach (var child in MoreComponentMapper.ChildrenOf(c, ids)) Collect(child, ids); break;
         }
     }
 

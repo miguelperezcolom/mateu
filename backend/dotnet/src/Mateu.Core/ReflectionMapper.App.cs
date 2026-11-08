@@ -175,7 +175,8 @@ internal sealed partial class ReflectionMapper
             // The UI language: what the translator says (mirrors AppDto.locale).
             Locale = translator?.Locale,
         };
-        return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
+        meta = WithAppPresentation(meta, appType, app);
+        return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], meta.Style, meta.CssClasses, null);
     }
 
     /// <summary>Prefixes a menu tree with the mount base path, matching Java's

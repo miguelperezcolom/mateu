@@ -286,6 +286,8 @@ internal static class YamlComponentBuilder
             "FoldoutPanel" when !map.ContainsKey("open") && !map.ContainsKey("autoOpen") =>
                 Generic("FoldoutPanel", new Dictionary<object, object>(map) { ["autoOpen"] = true, ["open"] = false }, partials, chain)
                 ?? new Text("Unsupported component: FoldoutPanel"),
+            // the wire type Directory is the C# DirectoryMenu (System.IO.Directory is in every implicit using)
+            "Directory" => Generic(nameof(DirectoryMenu), map, partials, chain),
             var other => Generic(other, map, partials, chain) ?? new Text($"Unsupported component: {other}"),
         };
     }
@@ -529,6 +531,19 @@ internal static class YamlComponentBuilder
         Filters = Maps(map, "filters").Select(f => Build(f, partials, chain)).OfType<FormField>().ToList(),
         RowsSource = SourceOf(map, "rowsSource"),
         RowRoute = Str(map, "rowRoute") is { } rowRoute && !string.IsNullOrWhiteSpace(rowRoute) ? rowRoute.Trim() : null,
+        RowStripes = Bool(map, "rowStripes"),
+        ColumnBorders = Bool(map, "columnBorders"),
+        WrapCellContent = Bool(map, "wrapCellContent"),
+        AllRowsVisible = Bool(map, "allRowsVisible"),
+        NoBorder = Bool(map, "noBorder"),
+        NoRowBorder = Bool(map, "noRowBorder"),
+        ColumnReorderingAllowed = Bool(map, "columnReorderingAllowed"),
+        InfiniteScrolling = Bool(map, "infiniteScrolling"),
+        LazyLoading = Bool(map, "lazyLoading"),
+        MultipleRowSelectionEnabled = Bool(map, "multipleRowSelectionEnabled"),
+        OnRowSelectionChangedActionId = Str(map, "onRowSelectionChangedActionId"),
+        GridStyle = Str(map, "gridStyle"),
+        ContentHeight = Str(map, "contentHeight"),
     };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>

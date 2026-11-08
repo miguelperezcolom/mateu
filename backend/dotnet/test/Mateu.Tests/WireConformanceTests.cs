@@ -148,12 +148,14 @@ public class WireConformanceTests
     /// position in its own state), .NET lists next/back/skip/the completion and keeps
     /// <c>__step</c> — so its actions and state stay out as well.</para>
     private static readonly HashSet<string> Mediated =
-        ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"];
+        ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
+         "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
     /// every side (Java's <c>MEDIATED_FORMS</c>).</summary>
-    private static readonly HashSet<string> MediatedForms = ["crud-new", "crud-edit", "crud-view"];
+    private static readonly HashSet<string> MediatedForms =
+        ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     private static JsonNode WithoutMediatorProtocol(JsonNode increment)
@@ -230,6 +232,14 @@ public class WireConformanceTests
         { "crud-edit", typeof(ProductsCrud) },
         { "crud-view", typeof(ProductsCrud) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "more-components", typeof(Wire.MoreComponentsPage) },
+        { "dialog-placement", typeof(Wire.DialogPlacementPage) },
+        { "action-extras", typeof(Wire.ActionExtrasPage) },
+        { "app-branding", typeof(Wire.BrandedApp) },
+        { "section-options", typeof(Wire.SectionOptionsForm) },
+        { "crud-hidden-in", typeof(Wire.EmployeesCrud) },
+        { "crud-hidden-in-edit", typeof(Wire.EmployeesCrud) },
+        { "crud-hidden-in-new", typeof(Wire.EmployeesCrud) },
         { "triggers", typeof(Wire.TriggersForm) },
         { "field-help", typeof(Wire.FieldHelpForm) },
         { "field-hints", typeof(Wire.FieldHintsPage) },
