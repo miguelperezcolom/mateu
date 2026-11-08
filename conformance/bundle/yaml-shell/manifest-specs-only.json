@@ -1,0 +1,79 @@
+{
+  "actions" : [ {
+    "commands" : [ {
+      "data" : "about",
+      "type" : "NavigateTo"
+    } ],
+    "id" : "goAbout"
+  } ],
+  "definitions" : {
+    "about.yaml" : {
+      "layout" : {
+        "content" : [ {
+          "text" : "About this bundle",
+          "type" : "Text"
+        } ],
+        "type" : "VerticalLayout"
+      }
+    },
+    "hello.yaml" : {
+      "layout" : {
+        "content" : [ {
+          "text" : "${i18n.hello.greeting}",
+          "type" : "Text"
+        }, {
+          "text" : "Bundled hello page",
+          "type" : "Text"
+        } ],
+        "type" : "VerticalLayout"
+      }
+    },
+    "shell.yaml" : {
+      "homeRoute" : "hello",
+      "menu" : [ {
+        "label" : "Hello",
+        "route" : "hello",
+        "type" : "RouteLink"
+      }, {
+        "label" : "About",
+        "route" : "about",
+        "type" : "RouteLink"
+      } ],
+      "title" : "Bundle conformance",
+      "type" : "AppShell"
+    }
+  },
+  "routes" : {
+    "routes" : [ {
+      "definition" : "shell.yaml"
+    }, {
+      "definition" : "hello.yaml",
+      "route" : "hello"
+    }, {
+      "definition" : "about.yaml",
+      "route" : "about"
+    } ]
+  },
+  "sources" : {
+    "sources" : [ {
+      "description" : "ISO country codes",
+      "name" : "countries",
+      "provenance" : "auto",
+      "source" : {
+        "itemsPath" : "items",
+        "labelPath" : "label",
+        "method" : "GET",
+        "url" : "https://api.example.com/countries",
+        "valuePath" : "value"
+      }
+    } ]
+  },
+  "translations" : {
+    "en" : {
+      "hello.greeting" : "Hello from the bundle"
+    },
+    "es" : {
+      "hello.greeting" : "Hola desde el bundle"
+    }
+  }
+}

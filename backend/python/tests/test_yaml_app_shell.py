@@ -174,7 +174,8 @@ def test_a_fresh_deep_link_under_the_shell_answers_the_shell_aimed_at_the_route(
     fresh = h.handle(RunActionRq(route="orders", consumed_route="_empty"))
     meta = fresh.model_dump(by_alias=True, mode="json")["fragments"][0]["component"]["metadata"]
     assert meta["type"] == "App"
-    assert meta["homeRoute"] == "orders"
+    # aimed at the route as Java aims it (conformance/bundle pins this answer)
+    assert meta["homeRoute"] == "/orders"
     # the shell's content load of that route is the page itself
     content = h.handle(RunActionRq(route="orders", consumed_route=""))
     page = content.model_dump(by_alias=True, mode="json")["fragments"][0]["component"]

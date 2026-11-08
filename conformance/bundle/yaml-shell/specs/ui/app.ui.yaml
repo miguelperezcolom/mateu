@@ -1,0 +1,7 @@
+# The bundle conformance fixture (conformance/bundle/README.md): one YAML mount that every backend
+# reads from THIS directory, so the three exporters bundle the same declarations.
+type: UI
+basePath: /
+home: hello
+routes:
+  - routes.yaml

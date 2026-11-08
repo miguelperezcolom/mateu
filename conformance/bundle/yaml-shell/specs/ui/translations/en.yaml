@@ -1,0 +1,5 @@
+type: Translations
+locale: en
+messages:
+  hello:
+    greeting: Hello from the bundle

@@ -282,7 +282,9 @@ class DispatchMixin(MixinBase):
                     return self.fragment_response(
                         "",
                         yaml_app_shell.app_component(
-                            self.mapper, root.layout, mount, mount_home, home_route=relative
+                            # aimed at the route as Java aims it: "/about", the route the
+                            # shell's content slot loads (a bundle pins this answer)
+                            self.mapper, root.layout, mount, mount_home, home_route="/" + relative
                         ),
                         rq,
                         with_title_command=False,

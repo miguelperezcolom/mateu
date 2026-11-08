@@ -1,0 +1,7 @@
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "${i18n.hello.greeting}"
+    - type: Text
+      text: "Bundled hello page"
