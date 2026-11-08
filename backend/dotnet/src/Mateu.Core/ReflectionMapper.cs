@@ -381,6 +381,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         foreach (var id in TriggeredActionIds(type))
             if (actions.All(a => a.Id != id) && ActionGuard.HandlesTreeAction(type, id))
                 actions.Add(new ActionDto(id, ValidationRequired: false));
+        // [AutoSave]: the debounced save may follow any change, so the component claims every
+        // action ("*", first — Java's ActionMapper adds it for an @AutoSave class)
+        if (AutoSaveOf(type) is not null && actions.All(a => a.Id != "*"))
+            actions.Insert(0, new ActionDto("*", ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });
