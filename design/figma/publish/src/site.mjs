@@ -90,6 +90,13 @@ function actionsOf(files) {
   return out
 }
 
+/** The sources the options of a field name (`optionsSource.ref`). */
+function optionRefs(files) {
+  const out = new Set()
+  for (const f of files) walk(f.value, (o) => { if (o.type === 'FormField' && o.optionsSource?.ref) out.add(o.optionsSource.ref) })
+  return out
+}
+
 /** What the design leaves open, with a working answer for each: the panel starts from this. */
 export function defaultConfig(files, title) {
   const frames = pages(files)
@@ -106,6 +113,7 @@ export function defaultConfig(files, title) {
   const home = frames.find((f) => ['home', 'welcome', 'inicio'].includes(routeOf(f)) && !routes[f.path].includes(':')) ?? frames.find((f) => !routes[f.path].includes(':'))
   const data = {}
   for (const [ref, listing] of listings(files)) data[ref] = { rows: proposedRows(listing) }
+  for (const ref of optionRefs(files)) data[ref] ??= { rows: [1, 2, 3].map((i) => ({ value: `${ref}-${i}`, label: `${ref} ${i}` })) }
   const actions = {}
   for (const [id, a] of actionsOf(files)) actions[id] = { kind: 'message', message: `${a.label ?? id}: done` }
   return { title: title ?? 'Mateu UI', home: home?.path, routes, data, actions }

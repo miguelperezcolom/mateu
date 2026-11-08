@@ -62,6 +62,14 @@ test('a listing over a public API is really called and keeps its search', () => 
   assert.ok(!siteFiles(manifest, config, '<!-- AQUIUI --><!-- HASTAAQUIUI -->', new Map()).has('data/artworks.json'))
 })
 
+test('the options a field names are data of the site too', () => {
+  const page = { path: 'f.yaml', frame: 'f', value: { type: 'Form', content: [{ type: 'FormField', id: 'c', optionsSource: { ref: 'countries' } }] } }
+  const config = defaultConfig([page], 'T')
+  assert.deepEqual(config.data.countries.rows[0], { value: 'countries-1', label: 'countries 1' })
+  const site = siteFiles(buildManifest([page], config), config, '<!-- AQUIUI --><!-- HASTAAQUIUI -->', new Map())
+  assert.ok(site.has('data/countries.json'))
+})
+
 test('rows are proposed from the columns, with what the row route needs', () => {
   const rows = proposedRows({ rowRoute: 'a/${row.code}', columns: [{ id: 'name', label: 'Name' }, { id: 'n', dataType: 'integer' }] }, 2)
   assert.deepEqual(rows[1], { code: 2, name: 'Name 2', n: 2 })

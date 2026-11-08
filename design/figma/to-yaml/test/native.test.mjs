@@ -124,3 +124,29 @@ test('a SLOT outside an instance (a detached copy) reads as a layout', () => {
   const { files } = converter().convert(screen([{ type: 'SLOT', id: '4:1', name: 'stuff', layoutMode: 'VERTICAL', children: [text('A', 'Hi')] }], {}))
   assert.equal(files[0].value.content[0].type, 'VerticalLayout')
 })
+
+test('a field says its stereotype and where its options come from', () => {
+  const instance = (id, component, props) => ({
+    type: 'INSTANCE', id, name: component, componentId: component,
+    componentProperties: Object.fromEntries(Object.entries(props).map(([k, value]) => [`${k}#1:1`, { type: 'TEXT', value }])),
+  })
+  const file = screen(
+    [
+      instance('1:2', 'text', { fieldId: 'email', stereotype: 'email', 'label': 'Email' }),
+      instance('1:3', 'number', { fieldId: 'amount', stereotype: 'money' }),
+      instance('1:4', 'select', { fieldId: 'country', 'optionsSource.ref': 'countries' }),
+      instance('1:5', 'plain', { fieldId: 'name', stereotype: 'stereotype' }),
+      instance('1:6', 'number', { fieldId: 'bad', stereotype: 'nonsense' }),
+    ],
+    { text: { name: 'Mateu/Field/TextField' }, number: { name: 'Mateu/Field/Number' }, select: { name: 'Mateu/Field/Select' }, plain: { name: 'Mateu/Field/TextField' } },
+  )
+  const { files, warnings } = converter().convert(file)
+  const [email, amount, country, plain, bad] = files[0].value.content
+  assert.equal(email.stereotype, 'email')
+  assert.equal(amount.stereotype, 'money')
+  assert.deepEqual(country.optionsSource, { ref: 'countries' })
+  assert.ok(!('stereotype' in plain), 'a property still showing its own name is unset')
+  assert.ok(!('stereotype' in bad))
+  assert.equal(warnings.length, 1)
+  assert.match(warnings[0], /stereotype: "nonsense" is not one of/)
+})
