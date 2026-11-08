@@ -24,7 +24,7 @@ import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggl
 import { factAction } from './factAction';
 import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
 import { foldoutOpenStates } from '../core/foldoutFit';
-import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerCtaLabel, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
+import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -1109,6 +1109,7 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component) as unknown as OfferCard;
   const current = m.current === true;
+  const footer = offerFooterOf(m);
   return (
     <View style={[styles.offerCard, !current && styles.offerCardAccent]}>
       {!!m.image && (
@@ -1126,18 +1127,18 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
             {(m.features ?? []).map((f, i) => <Text key={i} style={styles.offerFeature}>{f}</Text>)}
           </View>
         )}
-        {current ? (
-          !!m.currentLabel && <Text style={styles.offerCurrentLabel}>{m.currentLabel}</Text>
-        ) : (
-          !!m.actionLabel && (
-            <TouchableOpacity {...buttonA11y()}
-              style={[styles.offerCta, m.added === true && styles.offerCtaAdded]}
-              onPress={() => m.actionId && void controller.runAction(m.actionId)}
-            >
-              <Text style={styles.offerCtaText}>{offerCtaLabel(m)}</Text>
-              {!!m.priceLabel && <Text style={styles.offerCtaPrice}>{m.priceLabel}</Text>}
-            </TouchableOpacity>
-          )
+        {footer?.kind === 'current' && !!footer.label && <Text style={styles.offerCurrentLabel}>{footer.label}</Text>}
+        {footer?.kind === 'price' && <Text style={styles.offerPriceOnly}>{footer.price}</Text>}
+        {footer?.kind === 'cta' && (
+          // without an actionId the CTA is drawn INERT (disabled), not dropped
+          <TouchableOpacity {...buttonA11y({ disabled: !footer.enabled })}
+            disabled={!footer.enabled}
+            style={[styles.offerCta, footer.added && styles.offerCtaAdded]}
+            onPress={() => m.actionId && void controller.runAction(m.actionId)}
+          >
+            <Text style={styles.offerCtaText}>{footer.label}</Text>
+            {!!footer.price && <Text style={styles.offerCtaPrice}>{footer.price}</Text>}
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -1612,6 +1613,7 @@ const styles = themed(() => StyleSheet.create({
   offerFeatures: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: theme.border, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
+  offerPriceOnly: { fontWeight: '700', textAlign: 'right', marginTop: 4, fontVariant: ['tabular-nums'] },
   offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
   offerCtaText: { color: theme.onFill, fontWeight: '600' },

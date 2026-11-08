@@ -46,4 +46,16 @@ class ExplorerFindingsTest : TestCase() {
         assertNull(statusItemLead(json.readTree("""{"icon":"vaadin:check"}""")))
         assertNull(statusItemLead(json.readTree("{}")))
     }
+
+    fun testAnOfferCardWithoutAnActionKeepsItsPriceAndAnInertCta() {
+        assertEquals(OfferFooter.Cta("Upgrade", "+ 60", added = false, enabled = false),
+            offerFooterOf(json.readTree("""{"actionLabel":"Upgrade","priceLabel":"+ 60"}""")))
+        assertEquals(OfferFooter.Cta("Added", "20", added = true, enabled = false),
+            offerFooterOf(json.readTree("""{"added":true,"addedLabel":"Added","priceLabel":"20"}""")))
+        assertEquals(OfferFooter.Cta("Go", "", added = false, enabled = true),
+            offerFooterOf(json.readTree("""{"actionLabel":"Go","actionId":"go"}""")))
+        assertEquals(OfferFooter.Price("142"), offerFooterOf(json.readTree("""{"priceLabel":"142"}""")))
+        assertEquals(OfferFooter.Current("Your room"), offerFooterOf(json.readTree("""{"current":true,"currentLabel":"Your room"}""")))
+        assertNull(offerFooterOf(json.readTree("{}")))
+    }
 }
