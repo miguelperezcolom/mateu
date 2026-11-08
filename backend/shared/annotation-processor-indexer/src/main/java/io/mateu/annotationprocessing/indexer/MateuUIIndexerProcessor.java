@@ -1,7 +1,6 @@
 package io.mateu.annotationprocessing.indexer;
 
 import io.mateu.uidl.annotations.App;
-import io.mateu.uidl.annotations.KeycloakSecured;
 import io.mateu.uidl.annotations.Link;
 import io.mateu.uidl.annotations.Meta;
 import io.mateu.uidl.annotations.Script;
@@ -49,7 +48,6 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
   }
 
   @Override
-  @SuppressWarnings("removal") // @KeycloakSecured is deprecated but keeps working
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     // Collect routed classes across @UI and @App(route), deduped by name (a class carrying both is
     // indexed once; routeOf resolves which route wins).
@@ -81,19 +79,6 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
         sb.append("path=").append(path).append("\n");
         sb.append("indexHtmlPath=").append(indexHtmlPath).append("\n");
         sb.append("frontendComponentPath=").append(frontendComponentPath).append("\n");
-
-        KeycloakSecured keycloak = e.getAnnotation(KeycloakSecured.class);
-        if (keycloak != null) {
-          sb.append("keycloakUrl=").append(keycloak.url()).append("\n");
-          sb.append("keycloakRealm=").append(keycloak.realm()).append("\n");
-          sb.append("keycloakClientId=").append(keycloak.clientId()).append("\n");
-          sb.append("keycloakJsUrl=").append(keycloak.jsUrl()).append("\n");
-        } else {
-          sb.append("keycloakUrl=\n");
-          sb.append("keycloakRealm=\n");
-          sb.append("keycloakClientId=\n");
-          sb.append("keycloakJsUrl=\n");
-        }
 
         Script[] scripts = e.getAnnotationsByType(Script.class);
         for (int i = 0; i < scripts.length; i++) {

@@ -18,6 +18,7 @@ import java.lang.annotation.Target;
  * method of the page with one of those ids wins over the injected one. Put this annotation on the
  * view-model class of a fully custom page to get none of them.
  */
+@Experimental("custom CRUD sub-screens (3.0 beta)")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented

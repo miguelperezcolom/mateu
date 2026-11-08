@@ -32,8 +32,8 @@ for the sibling implementation.
   cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
   `@confirm_on_navigation_if_dirty`.
 - **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `EyesOnly` /
-  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods (`@secured` is
-  deprecated: it is enforced as `@eyes_only(permissions=[...])`).
+  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods (the alpha-era
+  `@secured` was removed for 3.0: use `@eyes_only(permissions=[...])`).
 - **Layout inference** — `@auto_layout` (opt-in, `@auto_layout(False)` opts out) ports the Java
   `LayoutInference` decision table (same constants/thresholds): heavy unstructured editable forms
   fold optional fields into a collapsed "More options" accordion panel; heavy `@read_only` views

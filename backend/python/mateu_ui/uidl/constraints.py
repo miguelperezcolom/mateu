@@ -13,7 +13,6 @@ browser would be a suggestion. ``Required()`` (in ``markers``) is the analogue o
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 from typing import Callable
 
@@ -42,21 +41,6 @@ class Length:
     min: int = 0
     max: int | None = None
     message: str | None = None
-
-
-@dataclass(frozen=True)
-class Size(Length):
-    """Deprecated (3.0-alpha.412): use :class:`Length` — same fields, same validation. In Java and
-    .NET ``Size`` is the sizing intent of a component, so the length constraint got its own name
-    here. Still works; constructing it warns."""
-
-    def __post_init__(self) -> None:
-        warnings.warn(
-            "mateu_ui.uidl.Size (the length constraint) is deprecated: use Length(min=..., max=...) "
-            "instead — same fields, same validation.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
 
 
 @dataclass(frozen=True)

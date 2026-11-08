@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-#pragma warning disable CS0618, MATEU002, MATEU003 // DashboardLayout / ContentLayout are deprecated but still rendered
+#pragma warning disable CS0618, MATEU002 // DashboardLayout is deprecated but still rendered
 
 /// <summary>A tree supplier whose every container nests an action-referencing component; each
 /// referenced id but one has a method behind it.</summary>
@@ -29,11 +29,14 @@ public class TreeActionsView : IComponentTreeSupplier
             new HorizontalLayout { Content = [new Mateu.Uidl.Map { MarkerActionId = "openMarker" }] },
             new Card { Content = new EntityHeader { Title = "Ana", Facts = [new Fact { Label = "Visits", Value = "3", ActionId = "openVisits" }, new Fact { Label = "Plain" }] } },
             new TabLayout { Tabs = [new TabPanel("Merge", new RecordMerge { MergeActionId = "mergeRecords" })] },
-            new ContentLayout
+            new ResponsiveGrid
             {
-                Main = [new HeroSection { Title = "Hi", Content = [new Button("Go", "heroGo")] }],
-                Aside = [new Button("Aside", "asideGo")],
-                Footer = [new Button("Footer", "footerGo")],
+                Content =
+                [
+                    new Slotted("main", new HeroSection { Title = "Hi", Content = [new Button("Go", "heroGo")] }),
+                    new Slotted("aside", new Button("Aside", "asideGo")),
+                    new Slotted("footer", new Button("Footer", "footerGo")),
+                ],
             },
             new FoldoutLayout
             {
@@ -81,7 +84,7 @@ public class TreeActionsView : IComponentTreeSupplier
     public void SwitchRecord() { }
 }
 
-#pragma warning restore CS0618, MATEU002, MATEU003
+#pragma warning restore CS0618, MATEU002
 
 /// <summary>
 /// A view advertises every action its component tree references — through every container a

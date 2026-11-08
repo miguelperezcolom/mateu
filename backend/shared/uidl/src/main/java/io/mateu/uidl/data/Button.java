@@ -184,15 +184,4 @@ public record Button(
     }
     return null;
   }
-
-  /**
-   * The action id this button dispatches (declared, else derived from the label).
-   *
-   * @deprecated use {@link #resolvedActionId()} instead — same value; a getter-shaped name next to
-   *     the record accessor {@link #actionId()} read as a second way to get the declared id.
-   */
-  @Deprecated(since = "3.0-alpha.412", forRemoval = true)
-  public String getActionId() {
-    return resolvedActionId();
-  }
 }

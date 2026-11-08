@@ -139,8 +139,7 @@ internal static class ActionGuard
         if (reason is not null) Deny($"action '{actionId}' on {type.FullName} denied by {reason}");
     }
 
-    /// <summary>Enforces a class-level [EyesOnly] — and the deprecated [Secured], which means
-    /// exactly [EyesOnly(Permissions = [permission])] — on a view type resolved from the wire.</summary>
+    /// <summary>Enforces a class-level [EyesOnly] on a view type resolved from the wire.</summary>
     internal static void EnsureViewVisible(Type type)
     {
         var id = IdentitySource.Value?.Invoke();
@@ -149,22 +148,13 @@ internal static class ActionGuard
     }
 
     /// <summary>Whether <paramref name="id"/> may see the view <paramref name="type"/>: its
-    /// class-level [EyesOnly] and its deprecated [Secured] (since 3.0-alpha.412 enforced with the
-    /// semantics of [EyesOnly(Permissions = [permission])]; before, nothing read it).</summary>
+    /// class-level [EyesOnly].</summary>
     internal static bool ViewGatesSatisfied(Type type, Identity? id, out string reason)
     {
         if (type.Find<EyesOnlyAttribute>() is { } gate
             && !Satisfies(gate.Roles, gate.Groups, gate.Scopes, gate.Permissions, id))
         {
             reason = "[EyesOnly]";
-            return false;
-        }
-#pragma warning disable CS0618, MATEU001 // [Secured] is deprecated, and still enforced
-        if (type.Find<SecuredAttribute>() is { } secured
-            && !Satisfies([], [], [], [secured.Permission], id))
-#pragma warning restore CS0618, MATEU001
-        {
-            reason = "[Secured]";
             return false;
         }
         reason = "";

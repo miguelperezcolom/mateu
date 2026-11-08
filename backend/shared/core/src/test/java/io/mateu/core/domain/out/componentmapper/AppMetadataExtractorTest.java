@@ -73,7 +73,7 @@ class AppMetadataExtractorTest {
 
   // ── getVariant: AUTO heuristic ─────────────────────────────────────────────
 
-  @App(AppVariant.HAMBURGUER_MENU)
+  @App(AppVariant.HAMBURGER_MENU)
   static class ExplicitVariantApp {}
 
   static class AutoVariantApp {}
@@ -82,7 +82,7 @@ class AppMetadataExtractorTest {
   void explicitVariantWinsOverHeuristic() {
     var variant =
         AppMetadataExtractor.getVariant(new ExplicitVariantApp(), List.of(new Menu("Solo uno")));
-    assertThat(variant).isEqualTo(AppVariant.HAMBURGUER_MENU);
+    assertThat(variant).isEqualTo(AppVariant.HAMBURGER_MENU);
   }
 
   @Test

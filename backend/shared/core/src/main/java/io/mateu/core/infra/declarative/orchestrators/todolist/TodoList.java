@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.todolist;
 
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Chip;
 import io.mateu.uidl.data.EmptyState;
@@ -104,6 +105,7 @@ public abstract class TodoList<Row> implements io.mateu.core.domain.RequestBound
   private transient HttpRequest currentRequest;
 
   /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Internal
   @Override
   public void bindRequest(HttpRequest httpRequest) {
     currentRequest = httpRequest;

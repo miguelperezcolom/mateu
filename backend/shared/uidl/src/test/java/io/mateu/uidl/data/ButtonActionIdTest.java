@@ -28,11 +28,4 @@ class ButtonActionIdTest {
   void neitherIdNorLabelResolvesToNull() {
     assertThat(Button.builder().build().resolvedActionId()).isNull();
   }
-
-  @Test
-  @SuppressWarnings("removal")
-  void theDeprecatedGetterReturnsTheSameValue() {
-    var button = Button.builder().label("Save draft").build();
-    assertThat(button.getActionId()).isEqualTo(button.resolvedActionId());
-  }
 }

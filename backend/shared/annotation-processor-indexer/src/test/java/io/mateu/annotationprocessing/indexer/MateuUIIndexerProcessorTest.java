@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import io.mateu.uidl.annotations.KeycloakSecured;
 import io.mateu.uidl.annotations.Link;
 import io.mateu.uidl.annotations.Meta;
 import io.mateu.uidl.annotations.Script;
@@ -27,8 +26,7 @@ public class MateuUIIndexerProcessorTest {
   // Helper
   // ---------------------------------------------------------------------------
 
-  private TestContext buildContext(
-      String className, String simpleName, String path, KeycloakSecured keycloak)
+  private TestContext buildContext(String className, String simpleName, String path)
       throws IOException {
     var processor = new MateuUIIndexerProcessor();
 
@@ -56,7 +54,6 @@ public class MateuUIIndexerProcessorTest {
     when(element.getSimpleName()).thenReturn(simpleName2);
     when(element.getAnnotation(any())).thenReturn(null);
     when(element.getAnnotation(UI.class)).thenReturn(uiAnnotation);
-    when(element.getAnnotation(KeycloakSecured.class)).thenReturn(keycloak);
     when(element.getAnnotationsByType(Script.class)).thenReturn(new Script[0]);
     when(element.getAnnotationsByType(Link.class)).thenReturn(new Link[0]);
     when(element.getAnnotationsByType(Meta.class)).thenReturn(new Meta[0]);
@@ -77,7 +74,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void processReturnsFalseSoFrameworkAPCanAlsoSeeAnnotation() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(false);
 
     boolean result = ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -87,7 +84,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void noIndexFileWrittenUntilProcessingOver() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(false);
 
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -97,7 +94,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void indexFileWrittenOnProcessingOver() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     // First round: accumulate entries
     when(ctx.roundEnv.processingOver()).thenReturn(false);
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -111,7 +108,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void writtenIndexContainsClassName() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(true);
 
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -122,7 +119,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void writtenIndexContainsPath() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(true);
 
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -132,7 +129,7 @@ public class MateuUIIndexerProcessorTest {
 
   @Test
   public void writtenIndexContainsFrontendPaths() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(true);
 
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
@@ -143,35 +140,13 @@ public class MateuUIIndexerProcessorTest {
   }
 
   @Test
-  public void writtenIndexContainsEmptyKeycloakFieldsWhenNotAnnotated() throws IOException {
-    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin", null);
+  public void writtenIndexCarriesNoKeycloakFields() throws IOException {
+    var ctx = buildContext("com.example.MyApp", "MyApp", "/admin");
     when(ctx.roundEnv.processingOver()).thenReturn(true);
 
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
 
-    String content = ctx.writer.toString();
-    assertThat(content).contains("keycloakUrl=\n");
-    assertThat(content).contains("keycloakRealm=\n");
-    assertThat(content).contains("keycloakClientId=\n");
-  }
-
-  @Test
-  public void writtenIndexContainsKeycloakFieldsWhenAnnotated() throws IOException {
-    var keycloak = mock(KeycloakSecured.class);
-    when(keycloak.url()).thenReturn("https://auth.example.com/auth");
-    when(keycloak.realm()).thenReturn("my-realm");
-    when(keycloak.clientId()).thenReturn("my-client");
-    when(keycloak.jsUrl()).thenReturn("https://esm.sh/keycloak-js@26.2.2");
-
-    var ctx = buildContext("com.example.SecuredApp", "SecuredApp", "/secure", keycloak);
-    when(ctx.roundEnv.processingOver()).thenReturn(true);
-
-    ctx.processor.process(ctx.annotations, ctx.roundEnv);
-
-    String content = ctx.writer.toString();
-    assertThat(content).contains("keycloakUrl=https://auth.example.com/auth");
-    assertThat(content).contains("keycloakRealm=my-realm");
-    assertThat(content).contains("keycloakClientId=my-client");
+    assertThat(ctx.writer.toString()).doesNotContain("keycloak");
   }
 
   @Test
@@ -190,8 +165,8 @@ public class MateuUIIndexerProcessorTest {
     // Build two elements
     var uiA = mockUI("/a");
     var uiB = mockUI("/b");
-    var elemA = mockElement("com.example.AppA", "AppA", uiA, null);
-    var elemB = mockElement("com.example.AppB", "AppB", uiB, null);
+    var elemA = mockElement("com.example.AppA", "AppA", uiA);
+    var elemB = mockElement("com.example.AppB", "AppB", uiB);
 
     var annotation = mock(TypeElement.class);
     var roundEnv = mock(RoundEnvironment.class);
@@ -238,8 +213,7 @@ public class MateuUIIndexerProcessorTest {
     return ui;
   }
 
-  private TypeElement mockElement(
-      String className, String simpleName, UI ui, KeycloakSecured keycloak) {
+  private TypeElement mockElement(String className, String simpleName, UI ui) {
     var element = mock(TypeElement.class);
     var qualifiedName = mock(Name.class);
     when(qualifiedName.toString()).thenReturn(className);
@@ -249,7 +223,6 @@ public class MateuUIIndexerProcessorTest {
     when(element.getSimpleName()).thenReturn(simpleName2);
     when(element.getAnnotation(any())).thenReturn(null);
     when(element.getAnnotation(UI.class)).thenReturn(ui);
-    when(element.getAnnotation(KeycloakSecured.class)).thenReturn(keycloak);
     when(element.getAnnotationsByType(Script.class)).thenReturn(new Script[0]);
     when(element.getAnnotationsByType(Link.class)).thenReturn(new Link[0]);
     when(element.getAnnotationsByType(Meta.class)).thenReturn(new Meta[0]);

@@ -2,7 +2,6 @@ package io.mateu.uidl.reflection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.mateu.uidl.annotations.GenericClass;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -24,9 +23,6 @@ class GenericClassProviderElementTest {
   static class Form<T> {
     List<Guest> guests;
     Map<String, Room> roomsByCode;
-
-    @GenericClass(clazz = Room.class)
-    List<Object> declaredRooms;
 
     List<T> generic;
     String plain;
@@ -96,17 +92,6 @@ class GenericClassProviderElementTest {
                 (java.lang.reflect.ParameterizedType) field("roomsByCode").getGenericType(),
                 Map.class,
                 "V"))
-        .isEqualTo(Room.class);
-  }
-
-  /** {@code @GenericClass} is the escape hatch when the declared type says nothing useful. */
-  @Test
-  void anExplicitGenericClassWinsOverTheDeclaredType() throws Exception {
-    assertThat(GenericClassProvider.getGenericClass(field("declaredRooms"), List.class, "E"))
-        .isEqualTo(Room.class);
-    assertThat(
-            GenericClassProvider.getGenericClass(
-                (java.lang.reflect.AnnotatedElement) field("declaredRooms"), List.class, "E"))
         .isEqualTo(Room.class);
   }
 

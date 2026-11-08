@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
+import io.mateu.uidl.annotations.Internal;
 import java.util.Map;
 import lombok.Builder;
 
@@ -83,6 +84,7 @@ public record RestDataSource(
    * template — and they are where an API key would be written: they are dropped. A direct one is
    * returned as it is (the browser makes that call). Not a getter (manifest Jackson gotcha).
    */
+  @Internal
   public RestDataSource forTheClient() {
     if (!proxy || (headers == null && body == null)) {
       return this;

@@ -75,7 +75,6 @@ Mateu.Uidl.ComponentEntry
 Mateu.Uidl.ComponentRef
 Mateu.Uidl.ConfirmDialog
 Mateu.Uidl.ConfirmOnNavigationIfDirtyAttribute
-Mateu.Uidl.ContentLayout
 Mateu.Uidl.ContentSlot
 Mateu.Uidl.ContentSlotAttribute
 Mateu.Uidl.CrudDisplay
@@ -344,7 +343,6 @@ Mateu.Uidl.SearchRequest
 Mateu.Uidl.SearchRequestExtensions
 Mateu.Uidl.SearchableAttribute
 Mateu.Uidl.SectionAttribute
-Mateu.Uidl.SecuredAttribute
 Mateu.Uidl.SelectedItem
 Mateu.Uidl.Separator
 Mateu.Uidl.SeparatorBeforeAttribute

@@ -263,7 +263,7 @@ Current rules:
 ### Key fields
 
 - `value()` — `@AutoLayout(false)` opts a class out when inference is enabled globally via the
-  `mateu.layout.inference.enabled` setting (formerly `mateu.layout.inference`, still accepted).
+  `mateu.layout.inference.enabled` setting.
 
 See [Layout inference](/ux-patterns/layout-inference/) for the full rules, thresholds and wire
 semantics.
@@ -547,33 +547,6 @@ String note;
 @DisabledUnless(roles = "approver")
 Object approve(HttpRequest req) { ... }
 ```
-
----
-
-## `@KeycloakSecured` (deprecated)
-
-Secures a UI using Keycloak. **Deprecated in 3.0-alpha.412**: identity comes from your host
-framework or a `PrincipalResolver` — see [Security](/java-user-manual/advanced/security/). It keeps
-working.
-
-```java
-@UI("")
-@KeycloakSecured(
-  url = "https://auth-server",
-  realm = "mateu",
-  clientId = "demo"
-)
-public class App {}
-```
-
-Prefer your framework's authentication for new apps.
-
-### Key fields
-
-- `url()`
-- `realm()`
-- `clientId()`
-- `jsUrl()`
 
 ---
 

@@ -248,7 +248,6 @@ final class YamlUidlMapperFactory {
         new NamedType(Checklist.class, "Checklist"),
         new NamedType(CommentThread.class, "CommentThread"),
         new NamedType(ComparisonCard.class, "ComparisonCard"),
-        new NamedType(ContentLayout.class, "ContentLayout"),
         new NamedType(DashboardLayout.class, "DashboardLayout"),
         new NamedType(ResponsiveGrid.class, "ResponsiveGrid"),
         new NamedType(Slotted.class, "Slotted"),

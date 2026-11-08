@@ -34,13 +34,10 @@ public class IndexedMountsCompileTest {
       public class Home {}
       """;
 
-  @SuppressWarnings("removal")
   private static final String UI_MODULE_SECURE =
       """
       package com.acme.ui;
       @io.mateu.uidl.annotations.UI(value = "/secure", frontendComponentPath = "/bundle/mateu.js")
-      @io.mateu.uidl.annotations.KeycloakSecured(
-          url = "https://auth.acme.com", realm = "acme", clientId = "console")
       public class Secure {}
       """;
 
@@ -124,17 +121,15 @@ public class IndexedMountsCompileTest {
   }
 
   @Test
-  public void anIndexedKeycloakMountBootsThroughKeycloakAndKeepsItsBundlePath() {
+  public void anIndexedMountKeepsItsBundlePath() {
     var app =
         Javac.compile(
             List.of(frameworkApSeeing(compileUiModule())),
             Map.of("com.acme.app.Application", APP_MODULE));
 
     assertThat(app.generatedSource("com.acme.ui.SecureController"))
-        .contains("url: 'https://auth.acme.com'")
-        .contains("realm: 'acme'")
-        .contains("clientId: 'console'")
-        .contains("<script src='https://esm.sh/keycloak-js@26.2.2'></script>");
+        .contains("/secure/bundle/mateu.js")
+        .doesNotContain("keycloak-js");
     assertThat(app.generatedSource("com.acme.ui.SecureMateuController"))
         .contains("@RequestMapping(\"/secure/mateu\")");
   }

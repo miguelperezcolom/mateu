@@ -9,7 +9,6 @@ import io.mateu.dtos.ModelViewContractDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
@@ -65,37 +64,6 @@ public class RunActionUseCase {
 
   public static void setResolvedPath(HttpRequest httpRequest, String path) {
     ComponentState.setResolvedPath(httpRequest, path);
-  }
-
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static io.mateu.dtos.ServerSideComponentDto wrap(
-      Component component,
-      Object modelView,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    return ComponentState.wrap(
-        component, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
-  }
-
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static io.mateu.dtos.ServerSideComponentDto wrap(
-      List<Component> components,
-      Object modelView,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    return ComponentState.wrap(
-        components, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
-  }
-
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static Object getState(Object modelView, HttpRequest httpRequest) {
-    return ComponentState.getState(modelView, httpRequest);
   }
 
   // ── Main entry point ──────────────────────────────────────────────────────
@@ -496,24 +464,6 @@ public class RunActionUseCase {
   /** What a proxied response's body becomes (see {@link RestProxyCalls#parseBody}). */
   static Object parseBody(String body) throws java.io.IOException {
     return RestProxyCalls.parseBody(body);
-  }
-
-  /**
-   * The only environment variables a {@code ${secret.X}} may fall back to.
-   *
-   * @deprecated use {@link SecretResolver#SECRET_ENV_PREFIX}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static final String SECRET_ENV_PREFIX = SecretResolver.SECRET_ENV_PREFIX;
-
-  /**
-   * The environment variable {@code ${secret.KEY}} falls back to.
-   *
-   * @deprecated use {@link SecretResolver#secretEnvName(String)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static String secretEnvName(String key) {
-    return SecretResolver.secretEnvName(key);
   }
 
   /** Built the first time a response carries a micro frontend to resolve. */

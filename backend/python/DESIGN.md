@@ -50,7 +50,7 @@ C# attributes don't exist on Python attributes, so:
   `Stereotype("…")`, `Multiline()`, `Password()`, `Money()`, `PlainText()`, `HeaderBadge(...)`,
   `Step(n)`, `Label("…")`.
 - **Class features** are decorators: `@ui`, `@title`, `@subtitle`, `@app`, `@compact`,
-  `@confirm_on_navigation_if_dirty`, `@plain_text`, `@emits`, `@subscribe_to`, `@secured`,
+  `@confirm_on_navigation_if_dirty`, `@plain_text`, `@emits`, `@subscribe_to`, `@eyes_only`,
   `@menu_group` (a menu folder's look: `display="cards"` opens it as a card panel — the analogue of
   Java's `@Menu(display = cards)` on a group field).
 - **Method features** are decorators: `@button`, `@menu_item`, `@kpi`, `@fab`, `@banner`,

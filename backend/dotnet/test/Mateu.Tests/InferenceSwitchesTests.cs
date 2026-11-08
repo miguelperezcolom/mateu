@@ -15,14 +15,14 @@ public class SwitchPlain { public string? Name { get; set; } }
 public class SwitchOptedOut { public string? Name { get; set; } }
 
 /// <summary>One naming scheme for the global inference switches (mirror of Java's
-/// InferenceSwitchesTest): "Mateu.LayoutInference.Enabled" / "Mateu.PageInference.Enabled", the old
-/// names kept as deprecated aliases. One sequential test: a switch, once set, stays set for the
-/// process, so the legacy names are exercised before the new ones exist.</summary>
+/// InferenceSwitchesTest): "Mateu.LayoutInference.Enabled" / "Mateu.PageInference.Enabled" (the
+/// alpha-era names were removed for 3.0). One sequential test: a switch, once set, stays set for
+/// the process.</summary>
 [Collection("InferenceSwitches")]
 public class InferenceSwitchesTests
 {
     [Fact]
-    public void Old_names_work_new_names_win_and_attributes_win_over_both()
+    public void Switches_decide_and_attributes_win_over_them()
     {
         try
         {
@@ -30,17 +30,18 @@ public class InferenceSwitchesTests
             Assert.False(InferenceSwitches.LayoutInferenceEnabled());
             Assert.True(InferenceSwitches.PageInferenceEnabled());
 
-            // the deprecated names keep working (page keeps its inverted polarity)
-            AppContext.SetSwitch(InferenceSwitches.LegacyLayout, true);
-            AppContext.SetSwitch(InferenceSwitches.LegacyPageDisabled, true);
-            Assert.True(InferenceSwitches.LayoutInferenceEnabled());
-            Assert.False(InferenceSwitches.PageInferenceEnabled());
-
-            // the new names win over the old ones
-            AppContext.SetSwitch(InferenceSwitches.Layout, false);
-            AppContext.SetSwitch(InferenceSwitches.Page, true);
+            // the alpha-era names are no longer read
+            AppContext.SetSwitch("Mateu.LayoutInference", true);
+            AppContext.SetSwitch("Mateu.PageInference.Disabled", true);
             Assert.False(InferenceSwitches.LayoutInferenceEnabled());
             Assert.True(InferenceSwitches.PageInferenceEnabled());
+
+            // the switches decide
+            AppContext.SetSwitch(InferenceSwitches.Layout, true);
+            AppContext.SetSwitch(InferenceSwitches.Page, false);
+            Assert.True(InferenceSwitches.LayoutInferenceEnabled());
+            Assert.False(InferenceSwitches.PageInferenceEnabled());
+            AppContext.SetSwitch(InferenceSwitches.Page, true);
 
             // an attribute on the class wins over the switch
             AppContext.SetSwitch(InferenceSwitches.Layout, true);
@@ -49,9 +50,9 @@ public class InferenceSwitchesTests
         }
         finally
         {
-            // back to the defaults, stated with the new names (which are consulted first)
-            AppContext.SetSwitch(InferenceSwitches.LegacyLayout, false);
-            AppContext.SetSwitch(InferenceSwitches.LegacyPageDisabled, false);
+            // back to the defaults
+            AppContext.SetSwitch("Mateu.LayoutInference", false);
+            AppContext.SetSwitch("Mateu.PageInference.Disabled", false);
             AppContext.SetSwitch(InferenceSwitches.Layout, false);
             AppContext.SetSwitch(InferenceSwitches.Page, true);
         }

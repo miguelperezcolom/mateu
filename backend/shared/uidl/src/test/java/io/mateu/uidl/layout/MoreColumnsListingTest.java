@@ -11,8 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the weight-based column layout selector against a 9-field listing (Row2) that mixes image
- * and html stereotypes.
+ * Tests the column weights of a 9-field listing (Row2) that mixes image and html stereotypes.
  *
  * <p>Row2 field breakdown (1u ≈ 76px):
  *
@@ -33,12 +32,10 @@ class MoreColumnsListingTest {
 
   private List<GridColumn> row2Columns;
   private WeightEstimator estimator;
-  private ColumnLayoutSelector selector;
 
   @BeforeEach
   void setUp() {
     estimator = new WeightEstimator();
-    selector = new ColumnLayoutSelector();
     row2Columns =
         List.of(
             GridColumn.builder()
@@ -65,38 +62,6 @@ class MoreColumnsListingTest {
   }
 
   @Test
-  void narrowViewportFallsToMasterDetail() {
-    // 640px / 76 ≈ 8.42u → r ≈ 2.55 → master-detail
-    ColumnLayoutSelector.Result result = selector.select(row2Columns, 640);
-
-    assertThat(result.layout()).isEqualTo(ColumnLayoutSelector.Layout.masterDetail);
-  }
-
-  @Test
-  void compactLineinMasterDetailShowsIdentifierAndTopPriorityFields() {
-    ColumnLayoutSelector.Result result = selector.select(row2Columns, 640);
-
-    assertThat(result.compactFieldIds()).containsExactly("name", "status", "balance");
-  }
-
-  @Test
-  void moderateViewportShowsTwoLineList() {
-    // 1280px / 76 ≈ 16.8u → r ≈ 1.28 → compact subset (name+status+balance = 6.5u) → two-line list
-    ColumnLayoutSelector.Result result = selector.select(row2Columns, 1280);
-
-    assertThat(result.layout()).isEqualTo(ColumnLayoutSelector.Layout.twoLineList);
-    assertThat(result.compactFieldIds()).containsExactly("name", "status", "balance");
-  }
-
-  @Test
-  void wideViewportShowsFullTable() {
-    // 1700px / 76 ≈ 22.4u → r ≈ 0.96 → table
-    ColumnLayoutSelector.Result result = selector.select(row2Columns, 1700);
-
-    assertThat(result.layout()).isEqualTo(ColumnLayoutSelector.Layout.table);
-  }
-
-  @Test
   void weightOverrideOnColumnIsRespected() {
     List<GridColumn> columns =
         List.of(
@@ -115,11 +80,5 @@ class MoreColumnsListingTest {
             .sum();
 
     assertThat(total).isEqualTo(1.0);
-  }
-
-  @Test
-  void emptyColumnListReturnsTable() {
-    ColumnLayoutSelector.Result result = selector.select(List.of(), 1024);
-    assertThat(result.layout()).isEqualTo(ColumnLayoutSelector.Layout.table);
   }
 }
