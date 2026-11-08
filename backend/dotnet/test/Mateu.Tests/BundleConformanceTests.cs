@@ -54,6 +54,26 @@ public class BundleConformanceTests
     public void Every_bundle_case_is_wired() =>
         Assert.Equal(Cases.OrderBy(c => c), Directory.GetDirectories(Corpus).Select(Path.GetFileName).OrderBy(c => c));
 
+    /// <summary>The bundle's <c>mateu/v3/manifest</c> for a YAML-only app (no [App] class): the root
+    /// mount's app shell presents it, as Java's MobileManifestFile. <c>mateuVersion</c> is dropped,
+    /// as in Java's golden (it is the running build's).</summary>
+    [Theory]
+    [MemberData(nameof(CaseNames))]
+    public void DotNet_writes_the_mobile_manifest_like_the_reference(string @case)
+    {
+        var specs = Path.Combine(Corpus, @case, "specs", "ui");
+        var handler = new SyncHandler(new MateuRegistry(typeof(Mateu.Uidl.Form).Assembly), specsDir: specs);
+        var mine = JsonNode.Parse(BundleWriter.MobileManifestJson(null, "Page title", handler.MountShell("")))!
+            .AsObject();
+        mine.Remove("mateuVersion");
+        var expected = JsonNode.Parse(File.ReadAllText(Path.Combine(Corpus, @case, "mobile-manifest.json")));
+        var diffs = new List<string>();
+        WireConformanceTests.Diff("$", expected, mine, diffs);
+        Assert.True(diffs.Count == 0, $"'{@case}' mobile manifest diverges:\n  " + string.Join("\n  ", diffs));
+    }
+
+    public static IEnumerable<object[]> CaseNames() => Cases.Select(c => new object[] { c });
+
     [Theory]
     [MemberData(nameof(Goldens))]
     public void DotNet_bundles_like_the_reference(string @case, bool specsOnly)

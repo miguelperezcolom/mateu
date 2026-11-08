@@ -155,7 +155,7 @@ internal static class MobileManifest
         return Release.IsMatch(v) ? v : null;
     }
 
-    private static string? RunningMateuVersion() =>
+    internal static string? RunningMateuVersion() =>
         typeof(MobileManifest).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
     private static string? Setting(string env) => Blank(Environment.GetEnvironmentVariable(env));

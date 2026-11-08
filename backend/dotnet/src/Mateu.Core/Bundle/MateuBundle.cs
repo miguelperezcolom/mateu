@@ -138,7 +138,9 @@ public static class MateuBundle
             ? exporter.Export(o.BaseUrl, o.Routes)
             : exporter.ExportAll(o.BaseUrl, staticOnly: true, includeParamRoutes: o.IncludeParamRoutes,
                 specsOnly: o.SpecsOnly, mock: o.Mock, environment: o.Environment);
-        BundleWriter.Write(o.Out, manifest, renderer, o.BaseUrl, o.Title, o.Pwa, registry.AppType);
+        // the root mount's YAML app shell presents a YAML app (Java's MobileManifestFile)
+        BundleWriter.Write(o.Out, manifest, renderer, o.BaseUrl, o.Title, o.Pwa, registry.AppType,
+            handler.MountShell(""));
         var ok = manifest.Entries.Count(e => e.Ok);
         foreach (var e in manifest.Entries.Where(e => !e.Ok))
             stderr.WriteLine($"mateu-bundle: skipped {e.Route} — {e.SkipReason}");

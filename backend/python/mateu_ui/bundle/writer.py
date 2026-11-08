@@ -123,11 +123,23 @@ def write_pwa(out: Path, index: str, base_url: str | None, manifest_json: str, e
     return pwa.with_head(index, links, app_type, version) or index
 
 
-def mobile_manifest_json(app_type, page_title: str | None) -> str:
+def presenter(app_type, shell: dict | None = None):
+    """What presents the bundled app (Java's ``MobileManifestFile`` / ``BundleMojo.shellOf``): the
+    root mount's ``type: AppShell`` when it has one (title, else pageTitle; logo, else favicon;
+    accent colour), else the app class."""
+    if shell is not None:
+        from mateu_ui.core import yaml_app_shell
+
+        return yaml_app_shell.manifest_source(shell)
+    return app_type
+
+
+def mobile_manifest_json(app_type, page_title: str | None, shell: dict | None = None) -> str:
     """The UI manifest of the bundled app (what a server answers at ``/mateu/v3/manifest``), plus
-    ``"bundle": "manifest.json"`` — the bundle the mobile app runs from."""
-    out = mobile_manifest.manifest(app_type)
-    if app_type is None and page_title:
+    ``"bundle": "manifest.json"`` — the bundle the mobile app runs from. The root mount's YAML app
+    shell presents it when there is one, else the app class, else just the page title."""
+    out = mobile_manifest.manifest(presenter(app_type, shell))
+    if shell is None and app_type is None and page_title:
         out["name"] = page_title
         out["shortName"] = page_title
     out["bundle"] = "manifest.json"
@@ -142,8 +154,11 @@ def write(
     page_title: str | None = None,
     pwa_enabled: bool = True,
     app_type=None,
+    shell: dict | None = None,
 ) -> Path:
-    """Writes the bundle into ``out_dir`` (created) — a self-contained static site."""
+    """Writes the bundle into ``out_dir`` (created) — a self-contained static site. ``shell`` is the
+    root mount's ``type: AppShell`` definition, when it has one: it presents the app to the mobile
+    app and the installable app, ahead of ``app_type`` (as Java's)."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     manifest_json = manifest.to_json()
@@ -151,11 +166,11 @@ def write(
     files = renderer if isinstance(renderer, ui_page.RendererFiles) else ui_page.RendererFiles.at(renderer)
     copy_static_app(files, out)
     index = stamp_index(files.index_template(), base_url, page_title)
-    index = write_pwa(out, index, base_url, manifest_json, pwa_enabled, app_type)
+    index = write_pwa(out, index, base_url, manifest_json, pwa_enabled, presenter(app_type, shell))
     (out / "index.html").write_text(index, encoding="utf-8")
     mobile = out / MOBILE_MANIFEST
     mobile.parent.mkdir(parents=True, exist_ok=True)
-    mobile.write_text(mobile_manifest_json(app_type, page_title), encoding="utf-8")
+    mobile.write_text(mobile_manifest_json(app_type, page_title, shell), encoding="utf-8")
     (out / "_redirects").write_text("/*    /index.html    200\n", encoding="utf-8")
     return out
 

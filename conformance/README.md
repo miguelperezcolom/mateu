@@ -40,7 +40,10 @@ that directory as its specs (Java through a classloader overlay on a Mateu boote
 alone, the ports by pointing their specs directory at it) and loads the `request.json` route. The
 first one, `definition-actions`, pins a definition-only page that declares `actions:`;
 `definition-triggers` one that declares `triggers:`, and `definition-proxied-listing` one whose
-listing rows and select options come from proxied catalogue entries.
+listing rows and select options come from proxied catalogue entries. `definition-path-params` pins a
+page under a `:param` route that seeds nothing else (its BARE layout: a path parameter is no seed)
+and `definition-path-params-seeded` the same page whose route also declares `defaultParams` (wrapped,
+its state carrying the path parameter too).
 
 ## The contract
 

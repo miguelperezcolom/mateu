@@ -1,5 +1,7 @@
 type: AppShell
 title: Bundle conformance
+logo: /images/bundle-logo.svg
+accentColor: "#0a7d5a"
 menu:
   - type: RouteLink
     label: Hello

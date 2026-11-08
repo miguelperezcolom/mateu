@@ -2028,6 +2028,8 @@ class WireConformanceTest {
           "definition-actions",
           "definition-triggers",
           "definition-proxied-listing",
+          "definition-path-params",
+          "definition-path-params-seeded",
           "inline-form",
           "inline-form-action");
 

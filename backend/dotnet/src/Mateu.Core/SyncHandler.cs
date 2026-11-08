@@ -233,14 +233,23 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // ReflectionUiIncrementMapper.mapToAppState).
         RouteEntry? routeEntry = null;
         Type? type = null;
+        var clientState = rq.ComponentState;
+        var routeSeeds = false;
         if (_routes.Match(rq.Route) is { } routeMatch)
         {
-            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, RequestQuery?.Invoke()) };
+            var query = RequestQuery?.Invoke();
+            // What makes a definition-only page's route SEED it (Java's seedBareLayout): a path
+            // parameter alone does not — the browser resolves ${state.x} from the route itself.
+            var e = routeMatch.Entry;
+            routeSeeds = e.Data is not null || e.AppData is not null || e.AppState is { Count: > 0 }
+                         || e.State is { Count: > 0 } || e.DefaultParams.Count > 0 || e.FixedParams.Count > 0
+                         || query is { Count: > 0 };
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, query) };
             routeEntry = routeMatch.Entry;
             if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);
         }
-        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry), rq, routeEntry);
+        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry, clientState, routeSeeds), rq, routeEntry);
     }
 
     /// <summary>The per-request context every step reads: the caller's identity (the gates
@@ -292,7 +301,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// either from the authored registry or from attributes. Split out so route-scope seeding can
     /// decorate its result once, at every exit. When <paramref name="routeEntry"/> declares Data the
     /// resolved view gets a __restdata__ action + OnLoad trigger injected (the @RestData load path).</summary>
-    private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry)
+    private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry,
+        IReadOnlyDictionary<string, object?> clientState, bool routeSeeds)
     {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
         var yamlSpec = PersonalSpec(rq.Route);
@@ -306,13 +316,22 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             // a `type: AppShell` definition bound to the route: the mount's app (YamlAppShell)
             if (yamlSpec.Shell is { } shell) return YamlShellResponse(shell, rq);
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
-                return yamlSpec.Layout is { } bare
-                    // the route's seeds (state:, fixed/default/path params, already folded into the
-                    // component state) are the page's state: a seeded bare page is wrapped so it
-                    // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
-                    ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
-                        routeEntry is not null ? rq.ComponentState : null, yamlSpec.TemplatePageType, yamlSpec, bare), rq)
-                    : Error($"Route not found: {rq.Route}");
+            {
+                if (yamlSpec.Layout is not { } bare) return Error($"Route not found: {rq.Route}");
+                // the route's seeds (state:, fixed/default params, a query string, already folded
+                // into the component state) are the page's state: a seeded bare page is wrapped so
+                // it carries them, as Java's SeededYamlPage does (they were dropped: ${state.x}
+                // blank). A path parameter ALONE is no seed: that page answers its bare layout, as
+                // Java's seedBareLayout does. Wrapped, the state carries every parameter (path ones
+                // too); with no route entry, the client's own state (Java's componentState).
+                var mapped = WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
+                    routeEntry is not null ? rq.ComponentState : clientState, yamlSpec.TemplatePageType, yamlSpec,
+                    bare, routeSeeds);
+                // the route's PATTERN names the window, never the concrete path's id
+                return FragmentResponse(DefinitionWindowTitle(bare,
+                    mapped is ServerSideComponentDto ? rq.ComponentState : clientState,
+                    routeEntry?.Route ?? rq.Route), mapped, rq);
+            }
             type = registry.TypeByName(yamlSpec.ModelView);
         }
         if (type is null) return Error($"Route not found: {rq.Route}");
@@ -649,7 +668,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         for (var i = segments.Length - 1; i >= 0; i--)
         {
             var segment = segments[i];
-            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{'))
+            // a concrete path's id ("6") never names the window
+            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{')
+                && !segment.All(char.IsAsciiDigit))
                 return Naming.HumanizeConstant(segment);
         }
         return route ?? "";
@@ -671,7 +692,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// <c>confirmOnNavigationIfDirty</c>.</para></summary>
     private static ComponentDto WithDeclaredPageType(
         ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null,
-        string? templatePageType = null, YamlSpecLoader.Spec? spec = null, IComponent? bare = null)
+        string? templatePageType = null, YamlSpecLoader.Spec? spec = null, IComponent? bare = null,
+        bool? routeSeeds = null)
     {
         var actions = (spec?.Actions ?? []).Select(a => a.Dto).ToList();
         if (bare is not null)
@@ -691,8 +713,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         var proxied = spec is not null
                       && YamlDeclaredActions.SourcesOf(spec.Actions, bare).Any(s => s.Source.Proxy);
         var triggers = spec?.Triggers ?? [];
-        if (pageType is null && (state is null || state.Count == 0) && actions.Count == 0 && triggers.Count == 0
-            && !proxied)
+        var seeds = routeSeeds ?? state is { Count: > 0 };
+        if (pageType is null && !seeds && actions.Count == 0 && triggers.Count == 0 && !proxied)
             return layout;
         if (proxied) actions.Add(new ActionDto("__restfetch__", ValidationRequired: false));
         // wrapped for its seeds: a page that fills a template is the template's kind of page, a

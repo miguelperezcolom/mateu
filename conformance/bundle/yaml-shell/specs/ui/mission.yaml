@@ -1,0 +1,5 @@
+type: Form
+title: Mission ${state.missionId}
+content:
+  - type: Text
+    text: "Mission ${state.missionId}"

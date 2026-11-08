@@ -1,0 +1,35 @@
+{
+  "commands" : [ {
+    "data" : "Missions",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "container" : "div",
+          "text" : "Mission ${state.missionId}",
+          "type" : "Text"
+        },
+        "type" : "ClientSide"
+      }, {
+        "metadata" : {
+          "colspan" : 1,
+          "dataType" : "string",
+          "fieldId" : "name",
+          "label" : "Name",
+          "stereotype" : "regular",
+          "type" : "FormField"
+        },
+        "type" : "ClientSide"
+      } ],
+      "metadata" : {
+        "title" : "Mission ${state.missionId}",
+        "type" : "Form"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

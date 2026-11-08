@@ -101,10 +101,19 @@ internal static class BundleWriter
 
     /// <summary>The UI manifest of the bundled app (what a server answers at <c>/mateu/v3/manifest</c>),
     /// plus <c>"bundle": "manifest.json"</c>.</summary>
-    public static string MobileManifestJson(Type? appType, string? pageTitle)
+    public static string MobileManifestJson(Type? appType, string? pageTitle) =>
+        MobileManifestJson(appType, pageTitle, null);
+
+    /// <summary>As <see cref="MobileManifestJson(Type?, string?)"/>, for a bundle whose root mount
+    /// may have a YAML app shell (<paramref name="shell"/>): Java's <c>MobileManifestFile</c> — the
+    /// shell presents the app when there is one (its title, else pageTitle; logo, else favicon;
+    /// accent colour), else the app class, else just the page title.</summary>
+    public static string MobileManifestJson(Type? appType, string? pageTitle, IDictionary<object, object>? shell)
     {
-        var manifest = JsonNode.Parse(MobileManifest.Json(appType))!.AsObject();
-        if (appType is null && !string.IsNullOrWhiteSpace(pageTitle))
+        var manifest = JsonNode.Parse(shell is not null
+            ? MobileManifest.Json(null, MobileManifest.RunningMateuVersion(), shell)
+            : MobileManifest.Json(appType))!.AsObject();
+        if (shell is null && appType is null && !string.IsNullOrWhiteSpace(pageTitle))
         {
             manifest["name"] = pageTitle;
             manifest["shortName"] = pageTitle;
@@ -115,18 +124,26 @@ internal static class BundleWriter
 
     /// <summary>Writes the bundle into <paramref name="outDir"/> (created) — a self-contained static site.</summary>
     public static void Write(string outDir, BundleManifest manifest, RendererFiles renderer, string? baseUrl,
-        string? pageTitle, bool pwa, Type? appType)
+        string? pageTitle, bool pwa, Type? appType) =>
+        Write(outDir, manifest, renderer, baseUrl, pageTitle, pwa, appType, null);
+
+    /// <summary>As the other overload, for a bundle whose root mount may have a YAML app shell
+    /// (<paramref name="shell"/>): the shell presents the app to the mobile app and the installable
+    /// app, ahead of the app class (Java's <c>MobileManifestFile</c> / <c>BundleMojo.shellOf</c>).</summary>
+    public static void Write(string outDir, BundleManifest manifest, RendererFiles renderer, string? baseUrl,
+        string? pageTitle, bool pwa, Type? appType, IDictionary<object, object>? shell)
     {
         Directory.CreateDirectory(outDir);
         var manifestJson = manifest.ToJson();
         File.WriteAllText(Path.Combine(outDir, "manifest.json"), manifestJson);
         CopyStaticApp(renderer, outDir);
         var index = StampIndex(renderer.IndexTemplate(), baseUrl, pageTitle);
-        index = WritePwa(outDir, index, baseUrl, manifestJson, pwa, MobileManifest.Derive(appType));
+        index = WritePwa(outDir, index, baseUrl, manifestJson, pwa,
+            shell is not null ? MobileManifest.Derive(null, shell) : MobileManifest.Derive(appType));
         File.WriteAllText(Path.Combine(outDir, "index.html"), index);
         var mobile = Path.Combine(outDir, MobileManifest.Path.TrimStart('/'));
         Directory.CreateDirectory(Path.GetDirectoryName(mobile)!);
-        File.WriteAllText(mobile, MobileManifestJson(appType, pageTitle));
+        File.WriteAllText(mobile, MobileManifestJson(appType, pageTitle, shell));
         File.WriteAllText(Path.Combine(outDir, "_redirects"), "/*    /index.html    200\n");
     }
 }

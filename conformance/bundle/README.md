@@ -10,7 +10,14 @@ conformance/bundle/
     specs/ui/…                  the declarations: a YAML mount every backend reads AS IT IS
     manifest.json               the normalised manifest, pre-rendered (includeParamRoutes on)
     manifest-specs-only.json    the normalised manifest in specs mode (raw definitions shipped)
+    mobile-manifest.json        the bundle's mateu/v3/manifest (what the Mateu mobile app reads),
+                                keys sorted, mateuVersion dropped (it is the running build's)
 ```
+
+`mobile-manifest.json` pins what presents a bundled YAML-only app: the root mount's
+`type: AppShell` — its `title:` (else `pageTitle:`), `logo:` (else `favicon:`) and `accentColor:` —
+ahead of any app class and of the page title, plus `"bundle": "manifest.json"` (Java's
+`MobileManifestFile`; the same source the installable app's web manifest is derived from).
 
 A case is a `specs/ui` directory rather than per-language fixtures, so the three exporters bundle
 literally the same input: Java reads it through a class loader serving `specs/ui/**` from the case
@@ -51,8 +58,7 @@ cd backend/shared/core && mvn test -Dtest=BundleConformanceTest -Dconformance.wr
 
 ## Known differences
 
-- **No `:param` route in `yaml-shell`.** A YAML definition-only page with path parameters renders
-  differently on Java (a bare client-side layout) and on the ports (wrapped in a server-side
-  component carrying the params as state, `SeededYamlPage`-style) — a WIRE divergence of seeded YAML
-  pages, not of the exporters, which all three bundle as templates the same way (covered by each
-  port's own exporter tests).
+None. `yaml-shell` carries a `:param` route (`missions/:missionId`, a definition-only page): the
+three exporters bundle it as a template, and its content load is the BARE layout — a path parameter
+alone is no seed (Java's `ActionInstanceCreator.seedBareLayout`; the wire cases
+`definition-path-params` / `-seeded` pin both sides of that rule).

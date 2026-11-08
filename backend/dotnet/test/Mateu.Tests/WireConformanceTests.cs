@@ -274,6 +274,8 @@ public class WireConformanceTests
         { "definition-actions", typeof(YamlCase) },
         { "definition-triggers", typeof(YamlCase) },
         { "definition-proxied-listing", typeof(YamlCase) },
+        { "definition-path-params", typeof(YamlCase) },
+        { "definition-path-params-seeded", typeof(YamlCase) },
         { "inline-form", typeof(Wire.InlineForm) },
         { "inline-form-action", typeof(Wire.InlineForm) },
     };
