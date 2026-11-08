@@ -15,14 +15,18 @@ import java.util.stream.Collectors;
 public class CrudAdapterHelper {
 
   public static <T> T toView(HttpRequest httpRequest, Class<T> viewClass) {
-    Map<String, Object> map = new HashMap<>(httpRequest.runActionRq().componentState());
-    if (httpRequest.runActionRq().parameters() != null) {
-      if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
-        map = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
-      }
-    }
+    var map = viewState(httpRequest);
     reduce("", map, viewClass);
     return getInstance(map, viewClass, httpRequest);
+  }
+
+  /** The values of the page an action came from: its own state when it bubbled, else the crud's. */
+  public static Map<String, Object> viewState(HttpRequest httpRequest) {
+    var parameters = httpRequest.runActionRq().parameters();
+    if (parameters != null && parameters.containsKey("initiatorState")) {
+      return (Map<String, Object>) parameters.get("initiatorState");
+    }
+    return new HashMap<>(httpRequest.runActionRq().componentState());
   }
 
   private static <T> T getInstance(
