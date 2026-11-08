@@ -48,7 +48,9 @@ public final class BuiltInTexts {
               Map.entry("Skip", "Omitir"),
               Map.entry("Today", "Hoy"),
               Map.entry("Reload", "Recargar"),
-              Map.entry("Overwrite", "Sobrescribir")));
+              Map.entry("Overwrite", "Sobrescribir"),
+              // the default text of @NotEmpty / @NotNull (ConstraintValidationMapper)
+              Map.entry("Cannot be empty", "No puede estar vacío")));
 
   public static String translate(String text, HttpRequest httpRequest) {
     if (text == null || text.isBlank()) {

@@ -286,7 +286,10 @@ final class PageButtonsBuilder {
               return Button.builder()
                   .actionId(method.getName())
                   // the FAB's own label first (it was ignored), then @Label, then the method
-                  .label(ann.label().isBlank() ? getLabelForMethod(method) : ann.label())
+                  .label(
+                      ann.label().isBlank()
+                          ? getLabelForMethod(method)
+                          : TranslatorContext.translate(ann.label()))
                   .iconOnLeft(ann.icon())
                   .buttonStyle(buttonStyle)
                   .build();
@@ -295,9 +298,11 @@ final class PageButtonsBuilder {
   }
 
   private static String getLabelForMethod(Method method) {
+    // translated like a field's label (FieldMetadataExtractor): ${i18n.x} on a @Button/@Toolbar
+    // method reached the wire raw
     if (MetaAnnotations.isPresent(method, Label.class)) {
-      return MetaAnnotations.find(method, Label.class).value();
+      return TranslatorContext.translate(MetaAnnotations.find(method, Label.class).value());
     }
-    return toUpperCaseFirst(method.getName());
+    return TranslatorContext.translate(toUpperCaseFirst(method.getName()));
   }
 }
