@@ -129,7 +129,10 @@ class AppMapperMixin(MixinBase):
         following_label = (getattr(cls, "__mateu_ai_following_label__", "") or "").strip() or None
         context_selectors = self.map_context_selectors(cls)
         context_actions = self.map_context_actions(cls)
-        notifications_enabled = issubclass(cls, NotificationsSupplier)
+        # a NotificationsSupplier, or @app(inbox=True): the bell over the server-side InboxStore
+        notifications_enabled = issubclass(cls, NotificationsSupplier) or bool(
+            getattr(cls, "__mateu_app_inbox__", False)
+        )
         global_search_enabled = issubclass(cls, GlobalSearchSupplier)
         command_center_enabled = bool(
             getattr(cls, "__mateu_app_command_center__", False)
@@ -206,6 +209,8 @@ class AppMapperMixin(MixinBase):
             shortcuts=self._app_shortcuts(cls, shell, mount),
             header_values=self._header_values(cls, shell),
             live_updates=self._live_updates(cls, shell),
+            # OS-level notifications (experimental): opt-in, mirrors AppDto.osNotifications
+            os_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False)),
             idle_session=self._idle_session(cls, shell, mount),
             # Live UI push (phase C): set by add_mateu when MCP push is on (mirrors AppDto.agentPush)
             agent_push=self.agent_push_enabled,

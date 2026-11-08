@@ -1877,6 +1877,113 @@
     ]
    ]
   },
+  "InMemoryInboxStore": {
+   "class": [
+    [
+     "max_per_principal",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_principals",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "add": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "dismiss": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "mark_read": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "InboxStore": {
+   "class": [],
+   "members": {
+    "add": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "dismiss": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "mark_read": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Inline": {
    "class": []
   },
@@ -4187,6 +4294,16 @@
     ],
     [
      "mobile_qr",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "os_notifications",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "inbox",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

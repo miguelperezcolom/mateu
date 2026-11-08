@@ -223,6 +223,11 @@ class SyncHandler(
         field_types: FieldTypeRegistry | None = None,
     ):
         self.registry = registry
+        #: Where the ``inbox`` messages of authenticated callers are stored (EXPERIMENTAL):
+        #: ``add_mateu(inbox_store=…)`` replaces Mateu's bounded in-memory default.
+        from mateu_ui.uidl.inbox_store import InMemoryInboxStore
+
+        self.inbox_store = InMemoryInboxStore()
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
@@ -367,6 +372,15 @@ class SyncHandler(
             task_id = (rq.parameters or {}).get("taskId")
             identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
             return progress.cancel(None if task_id is None else str(task_id), identity)
+        if rq.action_id == progress.TASKS_ACTION:
+            # a reloaded page asks which of the tasks it remembers are still the caller's
+            identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+            return progress.tasks((rq.parameters or {}).get("taskIds"), identity)
+        if rq.action_id == progress.RESUME_ACTION:
+            # over the sync endpoint a resume is a snapshot (the SSE endpoint streams it)
+            task_id = (rq.parameters or {}).get("taskId")
+            identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+            return progress.snapshot(None if task_id is None else str(task_id), identity)
         pending, token = mfe.begin_pending()
         try:
             increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
@@ -381,7 +395,20 @@ class SyncHandler(
         # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
         if pending[0] and self.microfrontends is not None:
             increment = self.microfrontends.resolve_sync(increment, request)
-        return increment
+        return self.store_inbox_messages(increment)
+
+    def store_inbox_messages(self, increment: UIIncrement) -> UIIncrement:
+        """The ``inbox`` messages of ``increment`` stored for the authenticated caller (an anonymous
+        caller's stay session-only) and published to the caller's other sessions; each message gets
+        the stored entry's id as its ``key``, so the session entry and the stored one are one."""
+        from .. import inbox
+
+        if increment is None or not increment.messages:
+            return increment
+        if not any(m.persistence == "inbox" for m in increment.messages):
+            return increment
+        identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+        return inbox.store_messages(increment, getattr(identity, "name", None), self.inbox_store)
 
     def _fragment_cache_candidates(self, rq: RunActionRq) -> list:
         """The routed view declaring a fragment cache policy, if any: its class for

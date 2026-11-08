@@ -195,6 +195,9 @@ class ProgressDto(Wire):
     close_after_seconds: int | None = None
     error: str | None = None
     result_actions: list[MessageActionDto] = Field(default_factory=list)
+    #: The server's estimate of the seconds left (running + determinate only, once honest —
+    #: conformance/progress/eta.json); None = no estimate (EXPERIMENTAL).
+    eta_seconds: int | None = None
 
 
 class AppNotificationDto(Wire):

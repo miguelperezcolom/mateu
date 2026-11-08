@@ -114,6 +114,10 @@ class AppMetadata(Wire):
     #: @app(live_updates=True): the browser keeps one app event stream (``_live-updates`` over
     #: the SSE endpoint) for header-value changes (mirrors AppDto.liveUpdates).
     live_updates: bool = False
+    #: @app(os_notifications=True): the app opts in to OS-level notifications (a new inbox entry, a
+    #: background task that finished, while the app is not in front; EXPERIMENTAL — mirrors
+    #: AppDto.osNotifications).
+    os_notifications: bool = False
     #: @app(idle_timeout_minutes=...): the idle-session warning; None = off (mirrors
     #: AppDto.idleSession).
     idle_session: "IdleSession | None" = None
