@@ -109,6 +109,13 @@ class ViewMapperMixin(MixinBase):
             if offered(f) and not hasattr(f, "__mateu_button__") and not hasattr(f, "__mateu_toolbar__")
         ]
         field_actions = [a for a in declared_actions if all(a.id != b.id for b in field_actions)] + field_actions
+        # the nested data objects' actions (nested-form-action-<field>-<method>) come first, as in
+        # Java's ActionMapper (addNestedFormsActions before everything else)
+        nested_actions = self.nested_form_actions(cls, instance)
+        if nested_actions:
+            field_actions = nested_actions + [
+                a for a in field_actions if all(a.id != b.id for b in nested_actions)
+            ]
         actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
         # @auto_save: the debounced save may name any action — Java's ActionMapper advertises the
         # "*" catch-all for an @AutoSave class, after the nested form actions

@@ -33,6 +33,7 @@ from mateu_ui.dtos import (
 from mateu_ui.uidl import (
     Version,
     Aside,
+    Inline,
     Multiline,
     PlainText,
     Required,
@@ -46,9 +47,11 @@ from .. import (
     labels_aside_inference,
     layout_inference,
 )
-from ..naming import camel_case
+from ..naming import camel_case, humanize
+from .. import nested_forms
 from ..reflection import (
     class_flag,
+    methods_with,
     view_fields,
 )
 from ..islands import EMBEDDED_MARKER
@@ -140,6 +143,11 @@ class LayoutMapperMixin(MixinBase):
                 ]
                 continue
             value = getattr(instance, f.name, None)
+            if value is not None and nested_forms.is_nested_form_field(f):
+                # a nested data object rides as a nested map (the fragment state also repeats it
+                # flattened under the prefixed ids — nested_forms.flatten_state)
+                initial_data[camel_case(f.name)] = self.form_initial_data(type(value), value)
+                continue
             if value is None or isinstance(
                 value, (str, int, float, bool, Decimal, date, datetime, time, Enum)
             ):
@@ -223,6 +231,7 @@ class LayoutMapperMixin(MixinBase):
                         children=[self.section_card(
                             t, self.map_fields(fs, instance, read_only),
                             labels_aside=aside, max_columns=max_columns, titled=True,
+                            triggers=self.inline_triggers(fs, instance),
                         )],
                         style=FOLDED_COLUMN_STYLE,
                     )
@@ -249,6 +258,9 @@ class LayoutMapperMixin(MixinBase):
                 max_columns=_section_columns(section_markers[i], max_columns),
                 titled=titled,
                 column_width=column_width,
+                # a multi-section form shows its inline nested objects' toolbar / buttons on the
+                # section (Java's SectionFormRenderer.renderSections); a single section does not
+                triggers=self.inline_triggers(fs, instance) if titled else None,
             )
             for i, (t, fs) in enumerate(sections)
         ]
@@ -409,6 +421,7 @@ class LayoutMapperMixin(MixinBase):
                 section_markers[i],
                 max_columns=_section_columns(section_markers[i], 2),
                 titled=True,
+                triggers=self.inline_triggers(fields, instance),
             )
 
         def column(cards) -> ClientSideComponent:
@@ -452,7 +465,9 @@ class LayoutMapperMixin(MixinBase):
         max_columns: int = 2,
         titled: bool = False,
         column_width: str | None = None,
+        triggers: "tuple[list, list] | None" = None,
     ) -> ClientSideComponent:
+        toolbar, footer = triggers if triggers is not None else ([], [])
         # Section(property_list=True): every data field becomes a read-only property row (label
         # left / value right, divider between rows), stacked full-width — so the body is a plain
         # vertical layout instead of the responsive form layout (mirrors Java's
@@ -475,20 +490,25 @@ class LayoutMapperMixin(MixinBase):
         # "View more" under the content (mirrors Java's SectionAffordances). The title row then
         # carries the section title itself, so the card is not titled again below.
         if section is not None and _has_affordances(section):
-            body = self._with_affordances(section, title, body)
+            body = self._with_affordances(section, title, body, toolbar, footer)
+            toolbar, footer = [], []
             titled = False
         # Section(frameless=True): no card wrapper, no padding — the content sits bare (mirrors
         # Java's @Section(frameless=true)).
         if section is not None and section.frameless:
             return ClientSideComponent(
                 metadata=DivMetadata(),
-                children=[body],
+                children=[
+                    *([self._title_row(title or "", toolbar)] if toolbar and title else []),
+                    body,
+                    *([_footer_row(footer)] if footer else []),
+                ],
                 style="flex: 1; min-width: 0; width:100%;" + (section.style or ""),
             )
         # A titled section (one of several stacked/zoned sections) carries its title as an <h3>
         # Text inside the Card, and the Card itself takes the flex style.
         if titled and title:
-            card = self._titled_section_card(title, body, section)
+            card = self._titled_section_card(title, body, section, toolbar, footer)
         else:
             card = self._section_card_wrapper(body, section)
         return _with_section_extras(card, section)
@@ -504,11 +524,13 @@ class LayoutMapperMixin(MixinBase):
         )
 
     def _with_affordances(
-        self, section: Section, title: str | None, body: ClientSideComponent
+        self, section: Section, title: str | None, body: ClientSideComponent,
+        toolbar: list | None = None, footer: list | None = None,
     ) -> ClientSideComponent:
         """The section body with its affordances: a title row (the title — possibly blank — plus
-        "Add" and "Edit", in that order) above it and a right-aligned "View more" under it."""
-        top = []
+        "Add" and "Edit", in that order) above it and a right-aligned "View more" under it. An
+        inline nested object's toolbar / buttons go first on those rows (Java's renderSections)."""
+        top = list(toolbar or [])
         if section.add_action:
             top.append(self._affordance_button("section-add", section.add_action, "Add"))
         if section.edit_action:
@@ -530,26 +552,87 @@ class LayoutMapperMixin(MixinBase):
                 style=" flex: 1; margin: 0;",
             ))
         children.append(body)
+        bottom = list(footer or [])
         if section.view_more_action:
+            bottom.append(self._affordance_button(
+                "section-view-more", section.view_more_action, "View more"))
+        if bottom:
             children.append(ClientSideComponent(
                 metadata=HorizontalLayoutMetadata(),
-                children=[self._affordance_button(
-                    "section-view-more", section.view_more_action, "View more")],
+                children=bottom,
                 style="justify-content: flex-end; width: 100%;",
             ))
         return ClientSideComponent(
             metadata=VerticalLayoutMetadata(), children=children, style="width: 100%;"
         )
 
-    def _titled_section_card(
-        self, title: str, body: ClientSideComponent, section: Section | None = None
-    ) -> ClientSideComponent:
-        # Card(mateu-section, flex style) → VerticalLayout → [Text h3 title, VerticalLayout(width
-        # 100%) → <body>] (mirrors Java's SectionFormRenderer when the section has a heading).
+    def _title_row(self, title: str, toolbar: list) -> ClientSideComponent:
+        """The section heading, alone or — with an inline nested object's toolbar — in a row with
+        its buttons (Java's SectionFormRenderer.buildTitleRow)."""
         heading = ClientSideComponent(
             metadata=TextMetadata(text=self.T(title), container="h3"),
             style=" flex: 1; margin: 0;",
         )
+        if not toolbar:
+            return heading
+        return ClientSideComponent(
+            metadata=HorizontalLayoutMetadata(spacing=True),
+            children=[heading, *toolbar],
+            style="align-items: center; width: 100%;",
+        )
+
+    def inline_triggers(self, fields, instance) -> tuple[list, list]:
+        """The ``@toolbar`` and ``@button`` methods of the ``Inline()`` nested objects among a
+        section's fields, as small buttons dispatching ``nested-form-action-<field>-<method>``
+        (Java's SectionFormRenderer.collectInlineTriggers)."""
+        toolbar: list = []
+        footer: list = []
+        if isinstance(instance, type):
+            return toolbar, footer
+        for f in fields:
+            if not (f.has(Inline) and nested_forms.is_nested_form_field(f)):
+                continue
+            if nested_forms.is_being_mapped(f.type) or isinstance(instance, f.type):
+                continue
+            value = nested_forms.nested_value(instance, f)
+            cls = type(value) if value is not None else f.type
+            prefix = (
+                nested_forms.NESTED_ACTION_PREFIX + nested_forms.field_prefix() + camel_case(f.name) + "-"
+            )
+            for name, fn in methods_with(cls, "__mateu_toolbar__"):
+                toolbar.append(self._section_button(prefix, name, fn, "__mateu_toolbar__"))
+            for name, fn in methods_with(cls, "__mateu_button__"):
+                if not hasattr(fn, "__mateu_toolbar__"):
+                    footer.append(self._section_button(prefix, name, fn, "__mateu_button__"))
+        return toolbar, footer
+
+    def _section_button(self, prefix: str, name: str, fn, marker_attr: str) -> ClientSideComponent:
+        marker = getattr(fn, marker_attr)
+        label = marker if isinstance(marker, str) else humanize(name)
+        style = getattr(fn, "__mateu_toolbar_style__", None) if marker_attr == "__mateu_toolbar__" else None
+        return ClientSideComponent(
+            metadata=ButtonMetadata(
+                label=self.T(label),
+                action_id=prefix + camel_case(name),
+                color="normal",
+                # secondary chrome next to the section title: small by default (Java's
+                # shrinkToSmallByDefault)
+                size="small",
+                shortcut=getattr(fn, "__mateu_shortcut__", None),
+                button_style=style if style and style != "none" else None,
+                disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
+            ),
+            children=[],
+        )
+
+    def _titled_section_card(
+        self, title: str, body: ClientSideComponent, section: Section | None = None,
+        toolbar: list | None = None, footer: list | None = None,
+    ) -> ClientSideComponent:
+        # Card(mateu-section, flex style) → VerticalLayout → [Text h3 title, VerticalLayout(width
+        # 100%) → <body>] (mirrors Java's SectionFormRenderer when the section has a heading).
+        # An inline nested object's toolbar shares the title row, its buttons follow the body.
+        heading = self._title_row(title, list(toolbar or []))
         inner = ClientSideComponent(
             metadata=VerticalLayoutMetadata(),
             children=[body],
@@ -557,7 +640,7 @@ class LayoutMapperMixin(MixinBase):
         )
         content = ClientSideComponent(
             metadata=VerticalLayoutMetadata(),
-            children=[heading, inner],
+            children=[heading, inner, *([_footer_row(footer)] if footer else [])],
             # Section(style=...) styles the card's content (Java: the Card's VerticalLayout)
             style=section.style if section is not None and section.style else None,
         )
@@ -694,3 +777,12 @@ def _with_section_extras(card: ClientSideComponent, section: Section | None) -> 
         "css_classes": ((card.css_classes or "mateu-section") + " mateu-section--sticky").strip(),
         "style": (card.style or "") + STICKY_SECTION_STYLE,
     })
+
+
+def _footer_row(buttons: list) -> ClientSideComponent:
+    """An inline nested object's ``@button``s, right-aligned under the section content."""
+    return ClientSideComponent(
+        metadata=HorizontalLayoutMetadata(spacing=False),
+        children=list(buttons),
+        style="justify-content: flex-end; width: 100%;",
+    )

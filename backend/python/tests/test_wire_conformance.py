@@ -1117,13 +1117,14 @@ class SupplierInfo:
     email: str = "sales@acme.test"
 
     @toolbar
+    @action
     @shortcut("ctrl+alt+v")
     def verify(self):
-        return Message(f"Verified {self.name}", MessageVariant.SUCCESS)
+        return Message(f"Verified {self.name}", MessageVariant.SUCCESS, duration=3000)
 
     @button
     def contact(self):
-        return Message(f"Contacting {self.email}", MessageVariant.SUCCESS)
+        return Message(f"Contacting {self.email}", MessageVariant.SUCCESS, duration=3000)
 
 
 class DeliveryInfo:
