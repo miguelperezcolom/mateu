@@ -3573,6 +3573,9 @@
       "properties" : {
         "type" : {
           "const" : "MasterDetailLayout"
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/OrientationDto"
         }
       },
       "required" : [ "type" ]
