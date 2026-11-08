@@ -60,4 +60,14 @@ public abstract class Wizard
     /// runs <see cref="OnNext"/>(current, resultStep) and lands on its result step. Null (default) =
     /// only on the last step.</summary>
     public virtual int? CompletionAvailableFromStep => null;
+
+    /// <summary>The completion of a <see cref="CompletionActionLabel"/> wizard as a STREAMED task
+    /// (Java: a <c>@WizardCompletionAction</c> returning a Flux, typically a LongTask): when
+    /// non-null, completing runs this task INSTEAD of <see cref="OnNext"/> — its progress streams
+    /// live (the completion action is advertised over SSE) and, once it is over, the wizard lands
+    /// on its result step, built then, so it shows whatever the work set while it ran. A task that
+    /// yields an error <see cref="Message"/> (or fails) leaves the wizard on the step instead.
+    /// Called on every completion, so answer null to complete the ordinary way. Null (default):
+    /// no stream. EXPERIMENTAL.</summary>
+    public virtual LongTaskRun? StreamedCompletion() => null;
 }
