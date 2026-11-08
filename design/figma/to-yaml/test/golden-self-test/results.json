@@ -1,0 +1,4017 @@
+[
+ {
+  "name": "Mateu/Field/TextField",
+  "cell": "Mateu/Field/TextField",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "placeholder": "selftest-placeholder",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/TextArea",
+  "cell": "Mateu/Field/TextArea",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "textarea",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Number",
+  "cell": "Mateu/Field/Number",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "number",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Integer",
+  "cell": "Mateu/Field/Integer",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "integer",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Checkbox",
+  "cell": "Mateu/Field/Checkbox [stereotype=checkbox]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "bool",
+   "stereotype": "checkbox",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Checkbox",
+  "cell": "Mateu/Field/Checkbox [stereotype=toggle]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "bool",
+   "stereotype": "toggle"
+  }
+ },
+ {
+  "name": "Mateu/Field/Date",
+  "cell": "Mateu/Field/Date [dataType=date]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "date",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Date",
+  "cell": "Mateu/Field/Date [dataType=dateTime]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "dateTime"
+  }
+ },
+ {
+  "name": "Mateu/Field/Date",
+  "cell": "Mateu/Field/Date [dataType=time]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "time"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=select]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "select",
+   "placeholder": "selftest-placeholder",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=combobox]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "combobox"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=searchable]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "searchable"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=treeSelect]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "treeSelect"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=listBox]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "listBox"
+  }
+ },
+ {
+  "name": "Mateu/Field/Select",
+  "cell": "Mateu/Field/Select [stereotype=multiSelect]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "multiSelect"
+  }
+ },
+ {
+  "name": "Mateu/Field/RadioGroup",
+  "cell": "Mateu/Field/RadioGroup",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "radio",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/PlainText",
+  "cell": "Mateu/Field/PlainText [dataType=string]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "stereotype": "plainText",
+   "readOnly": true,
+   "dataType": "string",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/PlainText",
+  "cell": "Mateu/Field/PlainText [dataType=money]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "stereotype": "plainText",
+   "readOnly": true,
+   "dataType": "money"
+  }
+ },
+ {
+  "name": "Mateu/Field/PropertyRow",
+  "cell": "Mateu/Field/PropertyRow",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "propertyRow": true,
+   "readOnly": true,
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Slider",
+  "cell": "Mateu/Field/Slider",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "integer",
+   "stereotype": "slider",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Stars",
+  "cell": "Mateu/Field/Stars",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "integer",
+   "stereotype": "stars",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/BadgeChip",
+  "cell": "Mateu/Field/BadgeChip",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "bool",
+   "stereotype": "badge",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Image",
+  "cell": "Mateu/Field/Image [stereotype=image]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "image",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/Image",
+  "cell": "Mateu/Field/Image [stereotype=uploadableImage]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "uploadableImage"
+  }
+ },
+ {
+  "name": "Mateu/Field/Image",
+  "cell": "Mateu/Field/Image [stereotype=signature]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "signature"
+  }
+ },
+ {
+  "name": "Mateu/Field/Image",
+  "cell": "Mateu/Field/Image [stereotype=camera]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "string",
+   "stereotype": "camera"
+  }
+ },
+ {
+  "name": "Mateu/Field/Grid",
+  "cell": "Mateu/Field/Grid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormField",
+   "dataType": "array",
+   "stereotype": "grid",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Field/CustomField",
+  "cell": "Mateu/Field/CustomField",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CustomField",
+   "content": {
+    "type": "HorizontalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Layout/Section",
+  "cell": "Mateu/Layout/Section [propertyList=false, frameless=false, sticky=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Card",
+   "cssClasses": "mateu-section",
+   "content": {
+    "type": "FormLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "title": {
+    "type": "Text",
+    "container": "h3",
+    "text": "selftest-title"
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Section",
+  "cell": "Mateu/Layout/Section [propertyList=true, frameless=false, sticky=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Card",
+   "cssClasses": "mateu-section",
+   "content": {
+    "type": "FormLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string",
+      "propertyRow": true,
+      "readOnly": true
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Section",
+  "cell": "Mateu/Layout/Section [propertyList=false, frameless=true, sticky=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Card",
+   "cssClasses": "mateu-section",
+   "content": {
+    "type": "FormLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Section",
+  "cell": "Mateu/Layout/Section [propertyList=false, frameless=false, sticky=true]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Card",
+   "cssClasses": "mateu-section",
+   "content": {
+    "type": "FormLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/ZonesRow",
+  "cell": "Mateu/Layout/ZonesRow",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "wrap": true,
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/Tabs",
+  "cell": "Mateu/Layout/Tabs",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "TabLayout",
+   "tabs": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/Accordion",
+  "cell": "Mateu/Layout/Accordion",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AccordionLayout",
+   "panels": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/Card",
+  "cell": "Mateu/Layout/Card",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Card",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "title": {
+    "type": "Text",
+    "container": "h3",
+    "text": "selftest-title"
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Separator",
+  "cell": "Mateu/Layout/Separator",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Separator"
+  }
+ },
+ {
+  "name": "Mateu/Layout/SplitView",
+  "cell": "Mateu/Layout/SplitView",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "SplitLayout",
+   "master": {
+    "type": "FormField",
+    "dataType": "string"
+   },
+   "detail": {
+    "type": "FormField",
+    "dataType": "string"
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/ContentLayout",
+  "cell": "Mateu/Layout/ContentLayout [asidePosition=end, asideSticky=true]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ContentLayout",
+   "main": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "aside": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "asidePosition": "end",
+   "asideSticky": true
+  }
+ },
+ {
+  "name": "Mateu/Layout/ContentLayout",
+  "cell": "Mateu/Layout/ContentLayout [asidePosition=start, asideSticky=true]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ContentLayout",
+   "main": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "aside": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "asidePosition": "start",
+   "asideSticky": true
+  }
+ },
+ {
+  "name": "Mateu/Layout/ContentLayout",
+  "cell": "Mateu/Layout/ContentLayout [asidePosition=end, asideSticky=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ContentLayout",
+   "main": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "aside": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "asidePosition": "end"
+  }
+ },
+ {
+  "name": "Mateu/Layout/VerticalLayout",
+  "cell": "Mateu/Layout/VerticalLayout [horizontalAlignment=START]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "VerticalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/VerticalLayout",
+  "cell": "Mateu/Layout/VerticalLayout [horizontalAlignment=CENTER]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "VerticalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "horizontalAlignment": "CENTER"
+  }
+ },
+ {
+  "name": "Mateu/Layout/VerticalLayout",
+  "cell": "Mateu/Layout/VerticalLayout [horizontalAlignment=END]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "VerticalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "horizontalAlignment": "END"
+  }
+ },
+ {
+  "name": "Mateu/Layout/VerticalLayout",
+  "cell": "Mateu/Layout/VerticalLayout [horizontalAlignment=STRETCH]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "VerticalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "horizontalAlignment": "STRETCH"
+  }
+ },
+ {
+  "name": "Mateu/Layout/HorizontalLayout",
+  "cell": "Mateu/Layout/HorizontalLayout [justification=START]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/HorizontalLayout",
+  "cell": "Mateu/Layout/HorizontalLayout [justification=CENTER]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "justification": "CENTER"
+  }
+ },
+ {
+  "name": "Mateu/Layout/HorizontalLayout",
+  "cell": "Mateu/Layout/HorizontalLayout [justification=END]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "justification": "END"
+  }
+ },
+ {
+  "name": "Mateu/Layout/HorizontalLayout",
+  "cell": "Mateu/Layout/HorizontalLayout [justification=BETWEEN]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "justification": "BETWEEN"
+  }
+ },
+ {
+  "name": "Mateu/Layout/FormLayout",
+  "cell": "Mateu/Layout/FormLayout",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/FormRow",
+  "cell": "Mateu/Layout/FormRow",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormRow",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/FormItem",
+  "cell": "Mateu/Layout/FormItem",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormItem",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/FormSection",
+  "cell": "Mateu/Layout/FormSection",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormSection",
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Layout/FormSubSection",
+  "cell": "Mateu/Layout/FormSubSection",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormSubSection",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Layout/Tab",
+  "cell": "Mateu/Layout/Tab",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Tab",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Layout/AccordionPanel",
+  "cell": "Mateu/Layout/AccordionPanel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AccordionPanel",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Layout/ResponsiveGrid",
+  "cell": "Mateu/Layout/ResponsiveGrid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ResponsiveGrid",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/Slotted",
+  "cell": "Mateu/Layout/Slotted",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Slotted",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/BoardLayout",
+  "cell": "Mateu/Layout/BoardLayout",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "BoardLayout",
+   "rows": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/BoardLayoutRow",
+  "cell": "Mateu/Layout/BoardLayoutRow",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "BoardLayoutRow",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/BoardLayoutItem",
+  "cell": "Mateu/Layout/BoardLayoutItem",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "BoardLayoutItem",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/CarouselLayout",
+  "cell": "Mateu/Layout/CarouselLayout",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CarouselLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/MasterDetailLayout",
+  "cell": "Mateu/Layout/MasterDetailLayout [orientation=horizontal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MasterDetailLayout",
+   "master": {
+    "type": "FormField",
+    "dataType": "string"
+   },
+   "detail": {
+    "type": "FormField",
+    "dataType": "string"
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/MasterDetailLayout",
+  "cell": "Mateu/Layout/MasterDetailLayout [orientation=vertical]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MasterDetailLayout",
+   "master": {
+    "type": "FormField",
+    "dataType": "string"
+   },
+   "detail": {
+    "type": "FormField",
+    "dataType": "string"
+   },
+   "orientation": "vertical"
+  }
+ },
+ {
+  "name": "Mateu/Layout/DashboardLayout",
+  "cell": "Mateu/Layout/DashboardLayout",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "DashboardLayout",
+   "items": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/DashboardPanel",
+  "cell": "Mateu/Layout/DashboardPanel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "DashboardPanel",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Layout/FoldoutLayout",
+  "cell": "Mateu/Layout/FoldoutLayout [orientation=vertical]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FoldoutLayout",
+   "overview": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "panels": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "headerTitle": "selftest-headerTitle"
+  }
+ },
+ {
+  "name": "Mateu/Layout/FoldoutLayout",
+  "cell": "Mateu/Layout/FoldoutLayout [orientation=horizontal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FoldoutLayout",
+   "overview": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "panels": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "orientation": "horizontal"
+  }
+ },
+ {
+  "name": "Mateu/Layout/FoldoutPanel",
+  "cell": "Mateu/Layout/FoldoutPanel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FoldoutPanel",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "summary": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Layout/Container",
+  "cell": "Mateu/Layout/Container",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Container",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Div",
+  "cell": "Mateu/Layout/Div",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Div",
+   "children": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Layout/FullWidth",
+  "cell": "Mateu/Layout/FullWidth",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FullWidth",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Scroller",
+  "cell": "Mateu/Layout/Scroller",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Scroller",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Layout/Details",
+  "cell": "Mateu/Layout/Details",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Details",
+   "summary": {
+    "type": "HorizontalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Display/Text",
+  "cell": "Mateu/Display/Text [size=xl]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Text",
+   "size": "xl",
+   "text": "selftest-text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Text",
+  "cell": "Mateu/Display/Text [size=l]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Text",
+   "size": "l"
+  }
+ },
+ {
+  "name": "Mateu/Display/Text",
+  "cell": "Mateu/Display/Text [size=m]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Text",
+  "cell": "Mateu/Display/Text [size=s]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Text",
+   "size": "s"
+  }
+ },
+ {
+  "name": "Mateu/Display/Text",
+  "cell": "Mateu/Display/Text [size=xs]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Text",
+   "size": "xs"
+  }
+ },
+ {
+  "name": "Mateu/Display/BulletedList",
+  "cell": "Mateu/Display/BulletedList",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "BulletedList",
+   "items": [
+    "selftest-Item3",
+    "selftest-Item2",
+    "selftest-Item1"
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/Notice",
+  "cell": "Mateu/Display/Notice [theme=info, slim=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notice",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "theme": "info",
+   "actionLabel": "selftest-actionLabel",
+   "text": "selftest-text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Notice",
+  "cell": "Mateu/Display/Notice [theme=success, slim=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notice",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "theme": "success"
+  }
+ },
+ {
+  "name": "Mateu/Display/Notice",
+  "cell": "Mateu/Display/Notice [theme=warning, slim=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notice",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "theme": "warning"
+  }
+ },
+ {
+  "name": "Mateu/Display/Notice",
+  "cell": "Mateu/Display/Notice [theme=danger, slim=false]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notice",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "theme": "danger"
+  }
+ },
+ {
+  "name": "Mateu/Display/Notice",
+  "cell": "Mateu/Display/Notice [theme=info, slim=true]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notice",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "theme": "info",
+   "slim": true
+  }
+ },
+ {
+  "name": "Mateu/Display/StatusList",
+  "cell": "Mateu/Display/StatusList",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "StatusList",
+   "items": [
+    {
+     "status": "selftest-Status1",
+     "description": "selftest-Desc1",
+     "title": "selftest-Title1"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/EntityHeader",
+  "cell": "Mateu/Display/EntityHeader",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "EntityHeader",
+   "metricCaption": "selftest-metricCaption",
+   "metricLabel": "selftest-metricLabel",
+   "metricValue": "selftest-metricValue",
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "badges": [
+    {
+     "label": "selftest-badges[0]"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/KPI",
+  "cell": "Mateu/Display/KPI",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "KPI",
+   "text": "selftest-value",
+   "title": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Display/MetricCard",
+  "cell": "Mateu/Display/MetricCard",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MetricCard",
+   "trendLabel": "selftest-trendLabel",
+   "value": "selftest-value",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/Scoreboard",
+  "cell": "Mateu/Display/Scoreboard",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Scoreboard",
+   "metrics": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/TaskProgress",
+  "cell": "Mateu/Display/TaskProgress",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "TaskProgress",
+   "actionLabel": "selftest-actionLabel",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Display/Meter",
+  "cell": "Mateu/Display/Meter",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Meter",
+   "caption": "selftest-caption",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Display/ProgressBar",
+  "cell": "Mateu/Display/ProgressBar",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ProgressBar",
+   "text": "selftest-text"
+  }
+ },
+ {
+  "name": "Mateu/Display/ProgressSteps",
+  "cell": "Mateu/Display/ProgressSteps",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ProgressSteps",
+   "steps": [
+    {
+     "title": "selftest-Step2"
+    },
+    {
+     "title": "selftest-Step3"
+    },
+    {
+     "title": "selftest-Step1"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/Banner",
+  "cell": "Mateu/Display/Banner [theme=info]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "theme": "INFO",
+   "description": "selftest-description",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/Banner",
+  "cell": "Mateu/Display/Banner [theme=success]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "theme": "SUCCESS"
+  }
+ },
+ {
+  "name": "Mateu/Display/Banner",
+  "cell": "Mateu/Display/Banner [theme=warning]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "theme": "WARNING"
+  }
+ },
+ {
+  "name": "Mateu/Display/Banner",
+  "cell": "Mateu/Display/Banner [theme=danger]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "theme": "DANGER"
+  }
+ },
+ {
+  "name": "Mateu/Display/CalloutCard",
+  "cell": "Mateu/Display/CalloutCard [theme=info]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CalloutCard",
+   "theme": "info",
+   "ctaLabel": "selftest-ctaLabel",
+   "description": "selftest-description",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/CalloutCard",
+  "cell": "Mateu/Display/CalloutCard [theme=success]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CalloutCard",
+   "theme": "success"
+  }
+ },
+ {
+  "name": "Mateu/Display/CalloutCard",
+  "cell": "Mateu/Display/CalloutCard [theme=warning]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CalloutCard",
+   "theme": "warning"
+  }
+ },
+ {
+  "name": "Mateu/Display/CalloutCard",
+  "cell": "Mateu/Display/CalloutCard [theme=danger]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CalloutCard",
+   "theme": "danger"
+  }
+ },
+ {
+  "name": "Mateu/Display/EmptyState",
+  "cell": "Mateu/Display/EmptyState",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "EmptyState",
+   "description": "selftest-description",
+   "title": "selftest-title",
+   "actionLabel": "selftest-actionLabel",
+   "icon": "selftest-icon"
+  }
+ },
+ {
+  "name": "Mateu/Display/Skeleton",
+  "cell": "Mateu/Display/Skeleton [variant=text]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Skeleton",
+   "variant": "text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Skeleton",
+  "cell": "Mateu/Display/Skeleton [variant=card]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Skeleton",
+   "variant": "card"
+  }
+ },
+ {
+  "name": "Mateu/Display/Skeleton",
+  "cell": "Mateu/Display/Skeleton [variant=grid]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Skeleton",
+   "variant": "grid"
+  }
+ },
+ {
+  "name": "Mateu/Display/Skeleton",
+  "cell": "Mateu/Display/Skeleton [variant=form]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Skeleton",
+   "variant": "form"
+  }
+ },
+ {
+  "name": "Mateu/Display/Timeline",
+  "cell": "Mateu/Display/Timeline",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Timeline",
+   "items": [
+    {
+     "timestamp": "selftest-Time1",
+     "title": "selftest-Title1"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/Kanban",
+  "cell": "Mateu/Display/Kanban",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Kanban"
+  }
+ },
+ {
+  "name": "Mateu/Display/Gantt",
+  "cell": "Mateu/Display/Gantt",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Gantt"
+  }
+ },
+ {
+  "name": "Mateu/Display/PlanningBoard",
+  "cell": "Mateu/Display/PlanningBoard",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "PlanningBoard"
+  }
+ },
+ {
+  "name": "Mateu/Display/MatrixGrid",
+  "cell": "Mateu/Display/MatrixGrid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MatrixGrid",
+   "rowHeaderLabel": "selftest-rowHeaderLabel"
+  }
+ },
+ {
+  "name": "Mateu/Display/ActionPanel",
+  "cell": "Mateu/Display/ActionPanel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ActionPanel",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Display/DropZone",
+  "cell": "Mateu/Display/DropZone",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "DropZone",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/Map",
+  "cell": "Mateu/Display/Map",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Map"
+  }
+ },
+ {
+  "name": "Mateu/Display/Calendar",
+  "cell": "Mateu/Display/Calendar",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Calendar"
+  }
+ },
+ {
+  "name": "Mateu/Display/Stat",
+  "cell": "Mateu/Display/Stat",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Stat",
+   "delta": "selftest-delta",
+   "value": "selftest-value",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Display/TrendChart",
+  "cell": "Mateu/Display/TrendChart",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "TrendChart",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/Heatmap",
+  "cell": "Mateu/Display/Heatmap",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Heatmap"
+  }
+ },
+ {
+  "name": "Mateu/Display/Funnel",
+  "cell": "Mateu/Display/Funnel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Funnel"
+  }
+ },
+ {
+  "name": "Mateu/Display/OrgChart",
+  "cell": "Mateu/Display/OrgChart",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "OrgChart"
+  }
+ },
+ {
+  "name": "Mateu/Display/FeatureGrid",
+  "cell": "Mateu/Display/FeatureGrid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FeatureGrid"
+  }
+ },
+ {
+  "name": "Mateu/Display/Testimonials",
+  "cell": "Mateu/Display/Testimonials",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Testimonials",
+   "items": [
+    {
+     "author": "selftest-Author",
+     "quote": "selftest-Quote"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/Faq",
+  "cell": "Mateu/Display/Faq",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Faq",
+   "items": [
+    {
+     "answer": "selftest-Answer",
+     "question": "selftest-Question"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/CommentThread",
+  "cell": "Mateu/Display/CommentThread",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CommentThread"
+  }
+ },
+ {
+  "name": "Mateu/Display/FileList",
+  "cell": "Mateu/Display/FileList",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FileList"
+  }
+ },
+ {
+  "name": "Mateu/Display/Checklist",
+  "cell": "Mateu/Display/Checklist",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Checklist",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/ComparisonCard",
+  "cell": "Mateu/Display/ComparisonCard",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ComparisonCard",
+   "delta": "selftest-delta",
+   "rightValue": "selftest-rightValue",
+   "leftValue": "selftest-leftValue"
+  }
+ },
+ {
+  "name": "Mateu/Display/HeroSection",
+  "cell": "Mateu/Display/HeroSection",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HeroSection",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/Avatar",
+  "cell": "Mateu/Display/Avatar",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Avatar",
+   "name": "selftest-name"
+  }
+ },
+ {
+  "name": "Mateu/Display/AvatarGroup",
+  "cell": "Mateu/Display/AvatarGroup",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AvatarGroup",
+   "avatars": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Display/Badge",
+  "cell": "Mateu/Display/Badge [color=normal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Badge",
+   "text": "selftest-text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Badge",
+  "cell": "Mateu/Display/Badge [color=success]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Badge",
+   "color": "success"
+  }
+ },
+ {
+  "name": "Mateu/Display/Badge",
+  "cell": "Mateu/Display/Badge [color=error]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Badge",
+   "color": "error"
+  }
+ },
+ {
+  "name": "Mateu/Display/Badge",
+  "cell": "Mateu/Display/Badge [color=warning]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Badge",
+   "color": "warning"
+  }
+ },
+ {
+  "name": "Mateu/Display/Badge",
+  "cell": "Mateu/Display/Badge [color=contrast]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Badge",
+   "color": "contrast"
+  }
+ },
+ {
+  "name": "Mateu/Display/Icon",
+  "cell": "Mateu/Display/Icon",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Icon"
+  }
+ },
+ {
+  "name": "Mateu/Display/Image",
+  "cell": "Mateu/Display/Image",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Image"
+  }
+ },
+ {
+  "name": "Mateu/Display/Markdown",
+  "cell": "Mateu/Display/Markdown",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Markdown",
+   "markdown": "selftest-markdown"
+  }
+ },
+ {
+  "name": "Mateu/Display/Chart",
+  "cell": "Mateu/Display/Chart [chartType=bar]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Chart",
+   "chartType": "bar"
+  }
+ },
+ {
+  "name": "Mateu/Display/Chart",
+  "cell": "Mateu/Display/Chart [chartType=line]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Chart",
+   "chartType": "line"
+  }
+ },
+ {
+  "name": "Mateu/Display/Chart",
+  "cell": "Mateu/Display/Chart [chartType=pie]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Chart",
+   "chartType": "pie"
+  }
+ },
+ {
+  "name": "Mateu/Display/Chart",
+  "cell": "Mateu/Display/Chart [chartType=doughnut]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Chart",
+   "chartType": "doughnut"
+  }
+ },
+ {
+  "name": "Mateu/Display/Breadcrumbs",
+  "cell": "Mateu/Display/Breadcrumbs",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Breadcrumbs",
+   "currentItemText": "selftest-currentItemText"
+  }
+ },
+ {
+  "name": "Mateu/Display/Anchor",
+  "cell": "Mateu/Display/Anchor",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Anchor",
+   "text": "selftest-text"
+  }
+ },
+ {
+  "name": "Mateu/Display/Notification",
+  "cell": "Mateu/Display/Notification",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Notification",
+   "text": "selftest-text",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/NotFound",
+  "cell": "Mateu/Display/NotFound",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "NotFound",
+   "message": "selftest-message",
+   "backLabel": "selftest-backLabel",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/OfferCard",
+  "cell": "Mateu/Display/OfferCard",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "OfferCard",
+   "subtitle": "selftest-subtitle",
+   "tag": "selftest-tag",
+   "title": "selftest-title",
+   "actionLabel": "selftest-actionLabel",
+   "priceLabel": "selftest-priceLabel"
+  }
+ },
+ {
+  "name": "Mateu/Display/PricingTable",
+  "cell": "Mateu/Display/PricingTable",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "PricingTable"
+  }
+ },
+ {
+  "name": "Mateu/Display/Ledger",
+  "cell": "Mateu/Display/Ledger",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Ledger",
+   "totalLabel": "selftest-totalLabel"
+  }
+ },
+ {
+  "name": "Mateu/Display/ProcessMonitor",
+  "cell": "Mateu/Display/ProcessMonitor",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ProcessMonitor"
+  }
+ },
+ {
+  "name": "Mateu/Display/RecordMerge",
+  "cell": "Mateu/Display/RecordMerge",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "RecordMerge",
+   "mergeLabel": "selftest-mergeLabel",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Display/ResourceGrid",
+  "cell": "Mateu/Display/ResourceGrid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ResourceGrid"
+  }
+ },
+ {
+  "name": "Mateu/Display/TaskQueue",
+  "cell": "Mateu/Display/TaskQueue",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "TaskQueue"
+  }
+ },
+ {
+  "name": "Mateu/Display/Bpmn",
+  "cell": "Mateu/Display/Bpmn",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Bpmn"
+  }
+ },
+ {
+  "name": "Mateu/Display/Workflow",
+  "cell": "Mateu/Display/Workflow",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Workflow"
+  }
+ },
+ {
+  "name": "Mateu/Display/FormEditor",
+  "cell": "Mateu/Display/FormEditor",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "FormEditor"
+  }
+ },
+ {
+  "name": "Mateu/Display/MessageList",
+  "cell": "Mateu/Display/MessageList",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MessageList"
+  }
+ },
+ {
+  "name": "Mateu/Display/MessageInput",
+  "cell": "Mateu/Display/MessageInput",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MessageInput"
+  }
+ },
+ {
+  "name": "Mateu/Display/Chat",
+  "cell": "Mateu/Display/Chat",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Chat"
+  }
+ },
+ {
+  "name": "Mateu/Display/AddOnPicker",
+  "cell": "Mateu/Display/AddOnPicker",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AddOnPicker",
+   "totalLabel": "selftest-totalLabel"
+  }
+ },
+ {
+  "name": "Mateu/Display/PaymentPicker",
+  "cell": "Mateu/Display/PaymentPicker",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "PaymentPicker",
+   "confirmLabel": "selftest-confirmLabel",
+   "contextValue": "selftest-contextValue",
+   "contextLabel": "selftest-contextLabel"
+  }
+ },
+ {
+  "name": "Mateu/Display/CookieConsent",
+  "cell": "Mateu/Display/CookieConsent",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "CookieConsent",
+   "dismiss": "selftest-dismiss",
+   "message": "selftest-message"
+  }
+ },
+ {
+  "name": "Mateu/Display/VirtualList",
+  "cell": "Mateu/Display/VirtualList",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "VirtualList"
+  }
+ },
+ {
+  "name": "Mateu/Display/Grid",
+  "cell": "Mateu/Display/Grid",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Grid",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Crud/Listing",
+  "cell": "Mateu/Crud/Listing [gridLayout=table]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Listing",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "gridLayout": "table",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Crud/Listing",
+  "cell": "Mateu/Crud/Listing [gridLayout=cards]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Listing",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "gridLayout": "cards"
+  }
+ },
+ {
+  "name": "Mateu/Crud/Listing",
+  "cell": "Mateu/Crud/Listing [gridLayout=list]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Listing",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "gridLayout": "list"
+  }
+ },
+ {
+  "name": "Mateu/Crud/Listing",
+  "cell": "Mateu/Crud/Listing [gridLayout=masterDetail]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Listing",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "gridLayout": "masterDetail"
+  }
+ },
+ {
+  "name": "Mateu/Crud/Listing",
+  "cell": "Mateu/Crud/Listing [gridLayout=tree]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Listing",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "gridLayout": "tree"
+  }
+ },
+ {
+  "name": "Mateu/Crud/FilterBar",
+  "cell": "Mateu/Crud/FilterBar",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Crud/GridColumn",
+  "cell": "Mateu/Crud/GridColumn",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "GridColumn",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Crud/GridGroupColumn",
+  "cell": "Mateu/Crud/GridGroupColumn",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "GridGroupColumn",
+   "columns": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Actions/Button",
+  "cell": "Mateu/Actions/Button [style=primary, size=m]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Button",
+   "buttonStyle": "primary",
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Actions/Button",
+  "cell": "Mateu/Actions/Button [style=secondary, size=m]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Button"
+  }
+ },
+ {
+  "name": "Mateu/Actions/Button",
+  "cell": "Mateu/Actions/Button [style=tertiary, size=m]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Button",
+   "buttonStyle": "tertiary"
+  }
+ },
+ {
+  "name": "Mateu/Actions/Button",
+  "cell": "Mateu/Actions/Button [style=primary, size=small]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Button",
+   "buttonStyle": "primary",
+   "size": "small"
+  }
+ },
+ {
+  "name": "Mateu/Actions/Toolbar",
+  "cell": "Mateu/Actions/Toolbar",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "HorizontalLayout",
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Actions/Fab",
+  "cell": "Mateu/Actions/Fab",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "icon": "selftest-icon"
+  }
+ },
+ {
+  "name": "Mateu/Actions/ButtonGroup",
+  "cell": "Mateu/Actions/ButtonGroup",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ButtonGroup",
+   "buttons": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "label": "selftest-label"
+  }
+ },
+ {
+  "name": "Mateu/Actions/MenuBar",
+  "cell": "Mateu/Actions/MenuBar",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "MenuBar"
+  }
+ },
+ {
+  "name": "Mateu/Actions/ContextMenu",
+  "cell": "Mateu/Actions/ContextMenu",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ContextMenu",
+   "wrapped": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "name": "Mateu/Page/Header",
+  "cell": "Mateu/Page/Header",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Page/Wizard",
+  "cell": "Mateu/Page/Wizard [progress=bar, layout=steps]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page/Wizard",
+  "cell": "Mateu/Page/Wizard [progress=steps, layout=steps]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page/Wizard",
+  "cell": "Mateu/Page/Wizard [progress=bar, layout=accumulative]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page/Wizard",
+  "cell": "Mateu/Page/Wizard [progress=bar, layout=accordion]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Shell/App",
+  "cell": "Mateu/Shell/App [variant=MENU_ON_TOP]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AppShell",
+   "variant": "MENU_ON_TOP",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Shell/App",
+  "cell": "Mateu/Shell/App [variant=TABS]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AppShell",
+   "variant": "TABS"
+  }
+ },
+ {
+  "name": "Mateu/Shell/App",
+  "cell": "Mateu/Shell/App [variant=HAMBURGUER_MENU]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AppShell",
+   "variant": "HAMBURGUER_MENU"
+  }
+ },
+ {
+  "name": "Mateu/Shell/App",
+  "cell": "Mateu/Shell/App [variant=TILES]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "AppShell",
+   "variant": "TILES"
+  }
+ },
+ {
+  "name": "Mateu/Shell/AppContextPicker",
+  "cell": "Mateu/Shell/AppContextPicker",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Smart Search",
+  "cell": "Mateu/Page Templates/Smart Search [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Smart Search",
+  "cell": "Mateu/Page Templates/Smart Search [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Smart Search",
+  "cell": "Mateu/Page Templates/Smart Search [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/To-do List",
+  "cell": "Mateu/Page Templates/To-do List [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/To-do List",
+  "cell": "Mateu/Page Templates/To-do List [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/To-do List",
+  "cell": "Mateu/Page Templates/To-do List [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Calendar",
+  "cell": "Mateu/Page Templates/Calendar [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Calendar",
+  "cell": "Mateu/Page Templates/Calendar [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Calendar",
+  "cell": "Mateu/Page Templates/Calendar [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Dashboard",
+  "cell": "Mateu/Page Templates/Dashboard [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Dashboard",
+  "cell": "Mateu/Page Templates/Dashboard [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Dashboard",
+  "cell": "Mateu/Page Templates/Dashboard [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Welcome",
+  "cell": "Mateu/Page Templates/Welcome [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Welcome",
+  "cell": "Mateu/Page Templates/Welcome [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Welcome",
+  "cell": "Mateu/Page Templates/Welcome [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Hero Search",
+  "cell": "Mateu/Page Templates/Hero Search [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Hero Search",
+  "cell": "Mateu/Page Templates/Hero Search [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Hero Search",
+  "cell": "Mateu/Page Templates/Hero Search [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Collection Detail",
+  "cell": "Mateu/Page Templates/Collection Detail [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Collection Detail",
+  "cell": "Mateu/Page Templates/Collection Detail [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Collection Detail",
+  "cell": "Mateu/Page Templates/Collection Detail [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/General Overview",
+  "cell": "Mateu/Page Templates/General Overview [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/General Overview",
+  "cell": "Mateu/Page Templates/General Overview [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/General Overview",
+  "cell": "Mateu/Page Templates/General Overview [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Item Overview",
+  "cell": "Mateu/Page Templates/Item Overview [pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Item Overview",
+  "cell": "Mateu/Page Templates/Item Overview [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Item Overview",
+  "cell": "Mateu/Page Templates/Item Overview [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Foldout",
+  "cell": "Mateu/Page Templates/Foldout [orientation=vertical, pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Foldout",
+  "cell": "Mateu/Page Templates/Foldout [orientation=horizontal, pageWidth=fixed]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Foldout",
+  "cell": "Mateu/Page Templates/Foldout [orientation=vertical, pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Foldout",
+  "cell": "Mateu/Page Templates/Foldout [orientation=vertical, pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Gantt Page",
+  "cell": "Mateu/Page Templates/Gantt Page [pageWidth=edgeToEdge]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Data Management",
+  "cell": "Mateu/Page Templates/Data Management [pageWidth=fullWidth]",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/Guided Process Drawer",
+  "cell": "Mateu/Page Templates/Guided Process Drawer",
+  "status": "noYaml",
+  "warnings": [],
+  "value": null
+ },
+ {
+  "name": "Mateu/Page Templates/ItemOverviewPage",
+  "cell": "Mateu/Page Templates/ItemOverviewPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "ItemOverviewPage",
+    "body": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ],
+    "footer": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=auto]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-ocean]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-ocean"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-pine]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-pine"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-lilac]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-lilac"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-teal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-teal"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-rose]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-rose"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-pebble]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-pebble"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-slate]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-slate"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-plum]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-plum"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/WelcomePage",
+  "cell": "Mateu/Page Templates/WelcomePage [backgroundColor=dark-sienna]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "WelcomePage",
+    "backgroundColor": "dark-sienna"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=auto]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-ocean]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-ocean"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-pine]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-pine"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-lilac]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-lilac"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-teal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-teal"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-rose]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-rose"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-pebble]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-pebble"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-slate]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-slate"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-plum]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-plum"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/HeroSearchPage",
+  "cell": "Mateu/Page Templates/HeroSearchPage [backgroundColor=dark-sienna]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "HeroSearchPage",
+    "backgroundColor": "dark-sienna"
+   },
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/DashboardLandingPage",
+  "cell": "Mateu/Page Templates/DashboardLandingPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "DashboardLandingPage",
+    "kpi": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/GeneralOverviewPage",
+  "cell": "Mateu/Page Templates/GeneralOverviewPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "GeneralOverviewPage",
+    "info": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/CollectionDetailPage",
+  "cell": "Mateu/Page Templates/CollectionDetailPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "CollectionDetailPage",
+    "list": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ],
+    "noSelection": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/FoldoutPage",
+  "cell": "Mateu/Page Templates/FoldoutPage [orientation=vertical]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "FoldoutPage",
+    "overview": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "overline": "selftest-overline",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/FoldoutPage",
+  "cell": "Mateu/Page Templates/FoldoutPage [orientation=horizontal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "FoldoutPage",
+    "overview": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ],
+    "orientation": "horizontal"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=auto]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-ocean]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-ocean"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-pine]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-pine"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-lilac]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-lilac"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-teal]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-teal"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-rose]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-rose"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-pebble]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-pebble"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-slate]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-slate"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-plum]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-plum"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/MultimediaContentPage",
+  "cell": "Mateu/Page Templates/MultimediaContentPage [backgroundColor=dark-sienna]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "MultimediaContentPage",
+    "backgroundColor": "dark-sienna"
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ]
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/AdvancedCreateEditPage",
+  "cell": "Mateu/Page Templates/AdvancedCreateEditPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "AdvancedCreateEditPage",
+    "detail": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "overline": "selftest-overline",
+   "title": "selftest-title",
+   "subtitle": "selftest-subtitle"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/GuidedProcessPage",
+  "cell": "Mateu/Page Templates/GuidedProcessPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "GuidedProcessPage",
+    "steps": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/DataManagementPage",
+  "cell": "Mateu/Page Templates/DataManagementPage",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Form",
+   "template": {
+    "type": "DataManagementPage",
+    "end": {
+     "type": "FormField",
+     "dataType": "string"
+    },
+    "bottom": {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   },
+   "toolbar": [
+    {
+     "type": "Button",
+     "buttonStyle": "primary"
+    }
+   ],
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "subtitle": "selftest-subtitle",
+   "title": "selftest-title",
+   "overline": "selftest-overline"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/GuidedProcessStep",
+  "cell": "Mateu/Page Templates/GuidedProcessStep",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "content": [
+    {
+     "type": "FormField",
+     "dataType": "string"
+    }
+   ],
+   "description": "selftest-description",
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Page Templates/DockedPanel",
+  "cell": "Mateu/Page Templates/DockedPanel",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "title": "selftest-title"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=end, size=s]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "end",
+   "size": "s",
+   "headerTitle": "selftest-headerTitle",
+   "subtitle": "selftest-subtitle"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=start, size=s]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "start",
+   "size": "s"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=bottom, size=s]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "bottom",
+   "size": "s"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=end, size=m]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "end",
+   "size": "m"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=end, size=l]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "end",
+   "size": "l"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Drawer",
+  "cell": "Mateu/Overlay/Drawer [position=end, size=xl]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Drawer",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "position": "end",
+   "size": "xl"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Dialog",
+  "cell": "Mateu/Overlay/Dialog",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Dialog",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "footer": {
+    "type": "HorizontalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "headerTitle": "selftest-headerTitle"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/ConfirmDialog",
+  "cell": "Mateu/Overlay/ConfirmDialog",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "ConfirmDialog",
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "confirmText": "selftest-confirmText",
+   "header": "selftest-header"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Popover",
+  "cell": "Mateu/Overlay/Popover [trigger=click]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Popover",
+   "wrapped": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "trigger": "click"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Popover",
+  "cell": "Mateu/Overlay/Popover [trigger=hover]",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Popover",
+   "wrapped": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "content": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "trigger": "hover"
+  }
+ },
+ {
+  "name": "Mateu/Overlay/Tooltip",
+  "cell": "Mateu/Overlay/Tooltip",
+  "status": "ok",
+  "warnings": [],
+  "value": {
+   "type": "Tooltip",
+   "wrapped": {
+    "type": "VerticalLayout",
+    "content": [
+     {
+      "type": "FormField",
+      "dataType": "string"
+     }
+    ]
+   },
+   "text": "selftest-text"
+  }
+ }
+]
