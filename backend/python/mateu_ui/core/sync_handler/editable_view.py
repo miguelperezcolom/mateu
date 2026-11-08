@@ -189,7 +189,9 @@ class EditableViewHandlerMixin(MixinBase):
             page_width=getattr(type(view), "__mateu_page_width__", None),
             page_type="form" if editing else "detail",
             confirm_on_navigation_if_dirty=editing,
-            validations=client_validations(self.mapper, model_type, model, read_only=read_only),
+            # the entity's constraints travel on the view page too, as Java's EditableView sends
+            # them (conformance case editable-view): the page itself is the read-only rendering
+            validations=client_validations(self.mapper, model_type, model),
         )
         host = model if isinstance(model, LookupLabelSupplier) else view
         return self.fragment_response(title, component, rq, self.lookup_labels(model_type, model, host))

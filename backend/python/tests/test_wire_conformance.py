@@ -30,7 +30,7 @@ from mateu_ui.dtos import Option  # noqa: E402
 from mateu_ui.uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
 from mateu_ui.uidl.components import Notice, StatusItem, StatusList  # noqa: E402
 from mateu_ui.uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
-from mateu_ui.uidl import Message, auto_save  # noqa: E402
+from mateu_ui.uidl import AutoEditableView, Message, auto_save, view_toolbar_button  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_ui.dtos import MenuItem  # noqa: E402
 from mateu_ui.uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
@@ -718,6 +718,33 @@ class ProductsCrud(Crud[Product]):
         pass
 
 
+@ui("/conformance/view-toolbar-button")
+@title("Products")
+class ProductsWithViewButton(ProductsCrud):
+    """The `crud` products with a record-view toolbar method (Java's @ViewToolbarButton)."""
+
+    @view_toolbar_button(confirmation_required=True)
+    def discontinue(self, product: Product):
+        return Message("Discontinued")
+
+
+class Profile:
+    name: Annotated[str, Required()] = "Ada"
+    city: str = "London"
+
+
+@ui("/conformance/editable-view")
+@title("Profile")
+class ProfileView(AutoEditableView[Profile]):
+    """A read view with an Edit toolbar flipping to the editor (Java's AutoEditableView)."""
+
+    def load(self) -> Profile:
+        return Profile()
+
+    def persist(self, entity: Profile) -> None:
+        pass
+
+
 class Book:
     id: str = ""
     title: str = ""
@@ -1126,13 +1153,13 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-new", "crud-edit", "crud-view"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -1190,7 +1217,7 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton)]
 
 
 def test_every_case_of_the_corpus_is_wired():
