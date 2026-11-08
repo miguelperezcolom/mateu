@@ -10,6 +10,24 @@ export function isPhoneWidth(windowWidth: number): boolean {
   return windowWidth > 0 && windowWidth < COMPACT_WIDTH;
 }
 
+/** A tablet is wide enough for two panes side by side (MasterDetailLayout, a board row). */
+export const SIDE_BY_SIDE_WIDTH = 768;
+
+/**
+ * How a MasterDetailLayout lays out its panes: beside each other from a tablet up, stacked on a
+ * phone — and ALWAYS stacked (the detail below the master) when its `orientation` is vertical,
+ * which used to be ignored.
+ */
+export function masterDetailDirection(orientation: unknown, windowWidth: number): 'row' | 'column' {
+  if (String(orientation ?? '').toLowerCase() === 'vertical') return 'column';
+  return windowWidth >= SIDE_BY_SIDE_WIDTH ? 'row' : 'column';
+}
+
+/** A wire Button keeps its natural width; inside a FullWidth it stretches across the row. */
+export function wireButtonAlignSelf(inFullWidth: boolean): 'flex-start' | 'stretch' {
+  return inFullWidth ? 'stretch' : 'flex-start';
+}
+
 /**
  * The columns a form row (FormLayout → FormRow) lays out in: ONE on a phone, whatever the section
  * declares (`@Section(columns = 4)` used to still show two fields side by side, each too narrow for

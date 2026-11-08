@@ -49,6 +49,7 @@ import { Icon as PaperIcon } from 'react-native-paper';
 import { materialIconOf } from '../ui/wireIcons';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { openExternal } from './openExternal';
+import { masterDetailDirection } from '../core/phoneLayout';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -447,9 +448,10 @@ export function MasterDetailRenderer({ component, state, data }: { component: un
   const d = (data as Dict) ?? {};
   const detail = (d['detailComponent'] as unknown) ?? kids[1];
   const hasDetail = !!d['hasDetail'] || !!kids[1];
-  const wide = width >= 768;
+  const direction = masterDetailDirection(meta(component)['orientation'], width);
+  const wide = direction === 'row';
   return (
-    <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12 }}>
+    <View style={{ flexDirection: direction, gap: 12 }}>
       <View style={wide ? styles.flex1 : undefined}>{!!kids[0] && <ComponentRenderer component={kids[0]} state={state} data={data} />}</View>
       <View style={wide ? styles.flex1 : undefined}>
         {hasDetail && detail ? (

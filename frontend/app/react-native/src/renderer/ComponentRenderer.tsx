@@ -4,6 +4,7 @@ import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
+import { wireButtonAlignSelf } from '../core/phoneLayout';
 import { useButtonPress } from './useButtonPress';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
@@ -111,7 +112,11 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
   );
 }
 
+/** Set by a FullWidth: the wire buttons it holds stretch across the row (wireButtonAlignSelf). */
+const FullWidthContext = React.createContext(false);
+
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
+  const inFullWidth = React.useContext(FullWidthContext);
   const controller = useViewController();
   const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
@@ -188,7 +193,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           color={metadata['color'] as string | undefined}
           disabled={disabled}
           onPress={onPress}
-          style={styles.wireButton}
+          style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
         />
       );
     }
@@ -230,8 +235,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <AccordionRenderer component={component} state={state} />;
     case 'SplitLayout':
       return <SplitRenderer component={component} state={state} />;
-    case 'Scroller':
+    // FULL WIDTH: what it holds spans the row — a button in it fills the row (it kept its natural width)
     case 'FullWidth':
+      return (
+        <FullWidthContext.Provider value>
+          <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+        </FullWidthContext.Provider>
+      );
+    case 'Scroller':
     case 'Container':
     case 'Div':
       return (
@@ -491,5 +502,4 @@ const styles = themed(() => StyleSheet.create({
   image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   imageRound: { width: 112, height: 112, borderRadius: 56, alignSelf: 'center', backgroundColor: theme.background },
   imagePhoto: { width: '100%', aspectRatio: 4 / 3, borderRadius: theme.radiusSm, backgroundColor: theme.background },
-  wireButton: { alignSelf: 'flex-start' },
 }));
