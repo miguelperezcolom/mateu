@@ -1,0 +1,13 @@
+id: form
+area: components
+group: fields
+title: Form (a page)
+covers: [component:Form]
+examples:
+  - title: A whole page, authored in YAML
+    route: x/components/form/booking
+  - title: "The same page in Java (fluent Form)"
+    description: "Press **Send confirmation** — the toolbar button runs its own handler."
+    java: io.mateu.explorer.examples.components.form.BookingPage
+pages:
+  - {route: x/components/form/booking, layout: explorer/components/form/booking-page.yaml}

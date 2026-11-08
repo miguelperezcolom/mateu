@@ -1,0 +1,29 @@
+# Two panes. A SplitLayout has a draggable splitter; a MasterDetailLayout is the list/detail
+# arrangement. Both take `master` and `detail`, and an `orientation`.
+content:
+  - type: SplitLayout
+    style: "height: 12rem;"
+    master:
+      type: VerticalLayout
+      padding: true
+      content:
+        - {type: Text, text: Rooms, container: h4}
+        - {type: BulletedList, items: ["101 — Standard", "102 — Deluxe", "201 — Junior suite"]}
+    detail:
+      type: VerticalLayout
+      padding: true
+      content:
+        - {type: Text, text: "Room 102 — Deluxe", container: h4}
+        - {type: Text, text: "Drag the splitter to resize the panes."}
+  - type: MasterDetailLayout
+    orientation: vertical
+    style: "height: 14rem;"
+    master:
+      type: StatusList
+      compact: true
+      items:
+        - {id: hk1, icon: "🛏", title: Room 103, description: Checked out at 10:20, status: Dirty, statusColor: warning}
+        - {id: hk2, icon: "🛏", title: Room 104, description: Cleaned by Marta, status: Inspected, statusColor: success}
+    detail:
+      type: Text
+      text: "The detail pane sits below the master here (orientation: vertical)."

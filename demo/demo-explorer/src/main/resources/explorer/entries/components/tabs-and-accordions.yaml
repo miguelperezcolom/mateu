@@ -1,0 +1,10 @@
+id: tabs-and-accordions
+area: components
+group: layout
+title: Tabs, accordions & carousel
+covers: [component:TabLayout, component:Tab, component:AccordionLayout, component:AccordionPanel, component:CarouselLayout]
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/tabs-and-accordions/tabs.yaml
+  - title: "In Java"
+    java: io.mateu.explorer.examples.components.tabs.FluentTabs

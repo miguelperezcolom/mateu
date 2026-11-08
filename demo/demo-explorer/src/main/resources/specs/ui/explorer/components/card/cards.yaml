@@ -1,0 +1,49 @@
+# A Card has slots — media, headerPrefix, title, subtitle, headerSuffix, content, footer — each any
+# component, and `variants` (outlined, elevated, horizontal, stretchMedia, coverMedia).
+# Details collapses its content under a summary; Tooltip explains what it wraps on hover/focus;
+# Popover opens a small floating panel next to what it wraps, on click (default) or hover.
+content:
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - type: Card
+        variants: [outlined]
+        style: "width: 18rem;"
+        media: {type: Image, src: /explorer/components/media-and-badges/bay.svg, alt: Sea view}
+        title: {type: Text, text: Deluxe sea view}
+        subtitle: {type: Text, text: "32 m² · king bed · balcony"}
+        headerSuffix: {type: Badge, text: "€ 380", color: success}
+        content: {type: Text, text: "Our most booked room: morning sun over the bay."}
+        footer: {type: Button, label: See availability, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
+      - type: Card
+        variants: [elevated]
+        style: "width: 18rem;"
+        headerPrefix: {type: Avatar, name: Marta Ruiz}
+        title: {type: Text, text: Marta Ruiz}
+        subtitle: {type: Text, text: Housekeeping supervisor}
+        content: {type: Text, text: "On shift until 16:00 · floors 1 to 3."}
+  - type: Card
+    variants: [outlined, horizontal]
+    media: {type: Image, src: /explorer/components/media-and-badges/guest.svg, alt: Guest portrait, style: "width: 6rem;"}
+    title: {type: Text, text: "A horizontal card"}
+    content: {type: Text, text: "Media on the left, the rest beside it."}
+  - type: Details
+    opened: false
+    summary: {type: Text, text: "Cancellation policy (click to expand)"}
+    content: {type: Text, text: "Free until 48 h before arrival; after that, the first night is charged."}
+  - type: HorizontalLayout
+    spacing: true
+    content:
+      - type: Tooltip
+        text: "Charged per person and night, collected at check-in"
+        wrapped: {type: Badge, text: "City tax  € 2.00 ⓘ"}
+      - type: Popover
+        wrapped: {type: Button, label: Opening hours}
+        content:
+          type: BulletedList
+          items: ["Reception — 24 h", "Restaurant — 13:00 to 23:00", "Pool — 9:00 to 19:00"]
+      - type: Popover
+        trigger: hover
+        wrapped: {type: Badge, text: "Hover me", color: contrast}
+        content: {type: Text, text: "A popover opened on hover."}

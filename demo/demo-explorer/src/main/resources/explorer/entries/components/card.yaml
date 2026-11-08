@@ -1,0 +1,10 @@
+id: card
+area: components
+group: display
+title: Card, Details, Tooltip & Popover
+covers: [component:Card, component:Details, component:Tooltip, component:Popover]
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/card/cards.yaml
+  - title: "In Java, with a button that runs"
+    java: io.mateu.explorer.examples.components.card.FluentCard

@@ -1,0 +1,11 @@
+id: headers
+area: components
+group: display
+title: Entity header & hero
+covers: [component:EntityHeader, component:HeroSection]
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/headers/headers.yaml
+  - title: "In Java, with actions"
+    description: "Press the phone icon after the number, or **Book the offer**."
+    java: io.mateu.explorer.examples.components.headers.FluentHeaders

@@ -1,0 +1,27 @@
+# Blocks for landing and marketing pages: a FeatureGrid (icon + title + description per card,
+# `columns`), Testimonials (quote, author, role, star rating), a Faq (collapsible answers;
+# `open` starts one expanded) and a CookieConsent banner (it remembers the dismissal in
+# the cookie `cookieName` — clear it to see the banner again).
+content:
+  - type: FeatureGrid
+    columns: 3
+    features:
+      - {icon: "🛏", title: 120 rooms, description: "Every one with a view of the bay or the gardens."}
+      - {icon: "🍽", title: Two restaurants, description: "Mediterranean à la carte and an all-day terrace."}
+      - {icon: "🚗", title: Free parking, description: "Underground, with EV chargers."}
+  - type: Testimonials
+    items:
+      - {quote: "The staff remembered our anniversary and left a cake in the room.", author: Elena Marín, role: "Stayed in October 2026", rating: 5}
+      - {quote: "Great breakfast, the room was a bit noisy on a Saturday night.", author: Jordi Vidal, role: "Business trip", rating: 4}
+  - type: Faq
+    items:
+      - {question: "What time is check-in?", answer: "From 14:00. Early check-in from 10:00 for € 30, subject to availability.", open: true}
+      - {question: "Do you accept pets?", answer: "Yes — dogs and cats up to 10 kg, € 15 per night."}
+      - {question: "Is there an airport shuttle?", answer: "Every 30 minutes from 6:00 to 23:00, free for guests."}
+  - type: CookieConsent
+    cookieName: explorer-cookie-demo
+    position: BottomRight
+    message: "We use cookies to remember your language and to count visits."
+    learnMore: Cookie policy
+    learnMoreLink: https://mateu.io
+    dismiss: Got it

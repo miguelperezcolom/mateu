@@ -1,0 +1,44 @@
+# ResponsiveGrid is the general layout foundation: `columns` are tracks (fill = share the rest,
+# hug = as wide as the content, fixed = a length), `stackBelow` collapses it to one column on
+# narrow screens. With `gridTemplateAreas`, Slotted children name the area they go to.
+# ContentLayout is the archetypes' uniform slot grammar: main + aside (+ footer).
+content:
+  - {type: Text, text: "Tracks: fixed 10rem · fill · hug", container: h4}
+  - type: ResponsiveGrid
+    gap: 1rem
+    stackBelow: 40rem
+    columns:
+      - {size: fixed, length: 10rem}
+      - {size: fill}
+      - {size: hug}
+    content:
+      - {type: Avatar, name: Lucía Fernández}
+      - {type: Text, text: "Lucía Fernández — returning guest, 7 stays since 2021, prefers a high floor."}
+      - {type: Badge, text: Gold member, color: success}
+  - {type: Text, text: "Named areas filled by Slotted", container: h4}
+  - type: ResponsiveGrid
+    gap: 1rem
+    stackBelow: 40rem
+    columns:
+      - {size: fill}
+      - {size: fixed, length: 16rem}
+    gridTemplateAreas: '"main aside"'
+    content:
+      # declared aside FIRST: the area, not the order, decides where it goes
+      - type: Slotted
+        slot: aside
+        content: {type: Notice, theme: info, text: "Aside: the folio balance is € 0.00"}
+      - type: Slotted
+        slot: main
+        content: {type: Text, text: "Main: the stay — 14 to 17 Nov 2026, room 102, two adults."}
+  - {type: Text, text: ContentLayout, container: h4}
+  - type: ContentLayout
+    asidePosition: end
+    asideWidth: 18rem
+    main:
+      - {type: Text, text: "Main slot — the content of the page."}
+      - {type: BulletedList, items: ["Airport transfer booked", "Dinner at 21:00, table for two"]}
+    aside:
+      - {type: CalloutCard, title: Upgrade available, description: "A junior suite is free for the same nights, € 60 more per night.", icon: "⭐", theme: info}
+    footer:
+      - {type: Text, text: "Footer slot — totals, legal text, links.", size: s}

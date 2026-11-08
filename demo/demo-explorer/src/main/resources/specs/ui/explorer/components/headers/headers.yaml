@@ -1,0 +1,31 @@
+# EntityHeader: a persistent banner for the record a flow works on — title, badges, subtitle,
+# facts and one highlighted metric. HeroSection: a big title/subtitle (with an overline), over a
+# tone or a background image, with components below it.
+content:
+  - type: EntityHeader
+    title: Lucía Fernández
+    subtitle: "Booking HB-20431 · Deluxe sea view · 14 → 17 Nov 2026"
+    badges:
+      - {label: Gold member, color: success}
+      - {label: Returning guest, color: contrast}
+    facts:
+      - {label: Room, value: "102"}
+      - {label: Adults, value: "2"}
+      - {label: Nationality, value: Spain}
+      - {label: Phone, value: "+34 600 123 456"}
+    metricLabel: Balance
+    metricValue: "€ 1,034.00"
+    metricCaption: Due at check-out
+  - type: HeroSection
+    overline: Winter 2026
+    title: Stay three nights, pay two
+    subtitle: Every weekend from December to February
+    tone: ocean
+    centered: true
+    content:
+      - {type: Button, label: See the offer, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
+  - type: HeroSection
+    title: Grand Hotel Mirador
+    subtitle: Over the bay since 1928
+    image: /explorer/components/media-and-badges/bay.svg
+    height: 14rem

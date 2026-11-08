@@ -1,0 +1,52 @@
+# The basic boxes. HorizontalLayout puts things side by side, VerticalLayout stacks them;
+# Container wraps ONE component (for a style), Div holds text or children, FullWidth stretches its
+# content across the row, Scroller gives overflowing content its own scrollbar and Separator draws
+# a divider line.
+content:
+  - {type: Text, text: "HorizontalLayout — spacing, centred vertically, wrapping on narrow screens", container: h4}
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    verticalAlignment: CENTER
+    content:
+      - {type: Badge, text: Check-in 14:00}
+      - {type: Badge, text: Check-out 11:00, color: contrast}
+      - {type: Button, label: Show map, actionable: {type: RouteLink, route: home}}
+  - {type: Text, text: "HorizontalLayout — flexGrows share the width 2:1", container: h4}
+  - type: HorizontalLayout
+    spacing: true
+    fullWidth: true
+    flexGrows: [2, 1]
+    content:
+      - {type: Container, style: "background: var(--lumo-contrast-5pct, #f3f3f3); padding: 1rem; border-radius: 8px;",
+         content: {type: Text, text: "Main column (2/3): the reservation details"}}
+      - {type: Container, style: "background: var(--lumo-primary-color-10pct, #e8f0fe); padding: 1rem; border-radius: 8px;",
+         content: {type: Text, text: "Side column (1/3): the folio"}}
+  - {type: Separator}
+  - {type: Text, text: "VerticalLayout — padding, items aligned to the END", container: h4}
+  - type: VerticalLayout
+    padding: true
+    spacing: true
+    fullWidth: true
+    horizontalAlignment: END
+    content:
+      - {type: Text, text: "Subtotal  € 1,180.00"}
+      - {type: Text, text: "City tax  € 24.00"}
+      - {type: Text, text: "Total  € 1,204.00", variants: [b]}
+  - {type: Separator}
+  - {type: Text, text: "Div — a block of text, or of children", container: h4}
+  - {type: Div, content: "A Div holding plain text — handy for a styled block.", style: "border-left: 4px solid var(--lumo-primary-color, #1676f3); padding: .5rem 1rem;"}
+  - type: Div
+    children:
+      - {type: Text, text: "…or holding children:", container: span}
+      - {type: Badge, text: Late check-out, color: success}
+  - {type: Text, text: "FullWidth — a button stretched across the row", container: h4}
+  - {type: FullWidth, content: {type: Button, label: Confirm the booking, buttonStyle: primary, actionable: {type: RouteLink, route: home}}}
+  - {type: Text, text: "Scroller — a long list in a 9rem viewport", container: h4}
+  - type: Scroller
+    style: "height: 9rem; border: 1px solid var(--lumo-contrast-10pct, #ddd); border-radius: 8px; padding: .5rem;"
+    content:
+      type: BulletedList
+      items: ["101 — Standard, occupied", "102 — Standard, clean", "103 — Deluxe, dirty", "104 — Deluxe, inspected",
+              "105 — Suite, out of order", "106 — Standard, clean", "107 — Deluxe, occupied", "108 — Suite, clean",
+              "109 — Standard, dirty", "110 — Deluxe, clean"]

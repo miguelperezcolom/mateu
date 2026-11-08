@@ -1,0 +1,41 @@
+# Two tile grids. A BoardLayout is made of rows whose items share the width (an item can span
+# several board columns); a DashboardLayout is a responsive grid of tiles — DashboardPanels with a
+# title, spanning columns/rows — `columns` fixes the count (0 = auto-fit).
+content:
+  - {type: Text, text: BoardLayout, container: h4}
+  - type: BoardLayout
+    rows:
+      - type: BoardLayoutRow
+        content:
+          - {type: BoardLayoutItem, boardCols: 2, content: {type: MetricCard, title: Occupancy, value: "87%", trend: up, trendLabel: "+4 pts"}}
+          - {type: BoardLayoutItem, content: {type: MetricCard, title: Arrivals, value: "42"}}
+          - {type: BoardLayoutItem, content: {type: MetricCard, title: Departures, value: "38"}}
+      - type: BoardLayoutRow
+        content:
+          - {type: BoardLayoutItem, content: {type: Notice, theme: warning, text: "3 rooms out of order"}}
+          - {type: BoardLayoutItem, content: {type: Notice, theme: success, text: "All payments reconciled"}}
+  - {type: Text, text: DashboardLayout, container: h4}
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - type: DashboardPanel
+        title: Revenue
+        subtitle: This month
+        colSpan: 2
+        content: {type: Stat, label: Room revenue, value: "184,320", unit: "€", delta: "+12%", trend: up, spark: [120, 135, 128, 150, 162, 171, 184]}
+      - type: DashboardPanel
+        title: Housekeeping
+        rowSpan: 2
+        content:
+          type: Checklist
+          title: Before 14:00
+          items:
+            - {id: h1, label: "Floor 1 — 12 rooms", done: true}
+            - {id: h2, label: "Floor 2 — 14 rooms", done: true}
+            - {id: h3, label: "Floor 3 — 9 rooms"}
+      - type: DashboardPanel
+        title: Guest rating
+        content: {type: Stat, label: Average, value: "4.6", unit: "/ 5", delta: "+0.1", trend: up}
+      - type: DashboardPanel
+        title: Complaints
+        content: {type: Stat, label: Open, value: "2", delta: "-3", trend: down}
