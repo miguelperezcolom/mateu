@@ -175,7 +175,21 @@ def fab(icon: str, label: str | None = None, order: int = 0):
     return deco
 
 
-def action_options(timeout_millis: int = 0, idempotent: bool = False):
+def action_options(
+    timeout_millis: int = 0,
+    idempotent: bool = False,
+    *,
+    background: bool = False,
+    sse: bool = False,
+    href: str | None = None,
+    js: str | None = None,
+    custom_event: str | None = None,
+    custom_event_detail: str | None = None,
+    confirmation_title: str | None = None,
+    confirmation_message: str | None = None,
+    confirmation_text: str | None = None,
+    confirmation_denial_text: str | None = None,
+):
     """Per-action transport knobs. Composes with ``@button``/``@toolbar``/``@fab`` on the same
     method — it says nothing about the UI, only how the CLIENT should call this action.
 
@@ -187,10 +201,29 @@ def action_options(timeout_millis: int = 0, idempotent: bool = False):
     retry it by itself after a transient network failure. Only for genuine reads or naturally
     idempotent writes — when a request times out the client does NOT know whether the server
     processed it, so marking a create idempotent risks a silent duplicate.
+
+    The keyword-only knobs are the rest of Java's ``@Action``: ``background`` (no busy veil / no
+    double-submit lock), ``sse`` (the client calls the streaming endpoint — needed when the action
+    returns a ``LongTask``), ``href`` (the button navigates there), ``js`` (client JavaScript, only
+    run when the page opts into RunJS), ``custom_event`` / ``custom_event_detail`` (a browser
+    custom event dispatched instead of a server call) and the ``confirmation_*`` texts of the
+    confirmation dialog (shown when the action requires confirmation).
     """
 
     def deco(fn):
         setattr(fn, "__mateu_action_options__", (timeout_millis, idempotent))
+        setattr(fn, "__mateu_action_extras__", {
+            "background": background,
+            "sse": sse,
+            "href": href,
+            "js": js,
+            "custom_event": custom_event,
+            "custom_event_detail": custom_event_detail,
+            "confirmation_title": confirmation_title,
+            "confirmation_message": confirmation_message,
+            "confirmation_text": confirmation_text,
+            "confirmation_denial_text": confirmation_denial_text,
+        })
         return fn
 
     return deco

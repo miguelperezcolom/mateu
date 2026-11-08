@@ -453,6 +453,7 @@ class ComponentMapperMixin(MixinBase):
                     slider_min=c.slider_min,
                     slider_max=c.slider_max,
                     step=c.step,
+                    css_classes=c.css_classes,
                 ),
                 c,
             )
@@ -965,6 +966,9 @@ class ComponentMapperMixin(MixinBase):
                 grid_layout=c.grid_layout or "auto",
                 compact=c.compact,
                 empty_state_message=c.empty_state_message,
+                row_route=c.row_route,
+                grid_style=c.grid_style,
+                **{flag: getattr(c, flag) for flag in _LISTING_FLAGS},
             )
             out = self._fluent_client(meta, c)
             out.id = c.id or "crud"
@@ -1129,6 +1133,10 @@ class ComponentMapperMixin(MixinBase):
                 no_padding=c.no_padding,
                 modeless=c.modeless,
                 close_button_on_header=c.close_button_on_header,
+                draggable=c.draggable,
+                resizable=c.resizable,
+                top=c.top,
+                left=c.left,
             )
             return self._fluent_client(meta, c)
         # Generic building blocks ported from Java (M-A5) — same shapes as Java's ElementMapper,
@@ -1538,3 +1546,7 @@ def _record_merge_metadata(c) -> RecordMergeMetadata:
         parameters=c.parameters,
         differences_only=c.differences_only,
     )
+
+
+#: The fluent listing's grid presentation flags, carried to CrudMetadata as they are.
+_LISTING_FLAGS = ("row_stripes", "column_borders", "wrap_cell_content", "no_border", "no_row_border", "all_rows_visible", "column_reordering_allowed")

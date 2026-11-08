@@ -243,7 +243,11 @@ class LayoutMapperMixin(MixinBase):
         cards = [
             self.section_card(
                 t, self.map_fields(fs, instance, read_only), section_markers[i],
-                labels_aside=aside, max_columns=max_columns, titled=titled,
+                labels_aside=aside,
+                # Section(columns=N): any explicit N >= 1 wins over the form's count (Java's
+                # SectionFormRenderer.sectionColumns)
+                max_columns=_section_columns(section_markers[i], max_columns),
+                titled=titled,
                 column_width=column_width,
             )
             for i, (t, fs) in enumerate(sections)
@@ -333,6 +337,9 @@ class LayoutMapperMixin(MixinBase):
             return False
         if len(sections) < layout_inference.TABS_MIN_SECTIONS:
             return False
+        # a sticky section is meant to stay on screen while the others scroll: never tabs
+        if any(_is_sticky(f.marker(Section)) for _, fs in sections for f in fs):
+            return False
         total = sum(self.field_weight(cls, f) for _, fs in sections for f in fs)
         return total >= layout_inference.TABS_WEIGHT_THRESHOLD
 
@@ -400,6 +407,7 @@ class LayoutMapperMixin(MixinBase):
                 title,
                 self.map_fields(fields, instance, read_only),
                 section_markers[i],
+                max_columns=_section_columns(section_markers[i], 2),
                 titled=True,
             )
 
@@ -475,13 +483,15 @@ class LayoutMapperMixin(MixinBase):
             return ClientSideComponent(
                 metadata=DivMetadata(),
                 children=[body],
-                style="flex: 1; min-width: 0; width:100%;",
+                style="flex: 1; min-width: 0; width:100%;" + (section.style or ""),
             )
         # A titled section (one of several stacked/zoned sections) carries its title as an <h3>
         # Text inside the Card, and the Card itself takes the flex style.
         if titled and title:
-            return self._titled_section_card(title, body)
-        return self._section_card_wrapper(body)
+            card = self._titled_section_card(title, body, section)
+        else:
+            card = self._section_card_wrapper(body, section)
+        return _with_section_extras(card, section)
 
     def _affordance_button(self, kind: str, method: str, label: str) -> ClientSideComponent:
         action_id = camel_case(method)
@@ -531,7 +541,9 @@ class LayoutMapperMixin(MixinBase):
             metadata=VerticalLayoutMetadata(), children=children, style="width: 100%;"
         )
 
-    def _titled_section_card(self, title: str, body: ClientSideComponent) -> ClientSideComponent:
+    def _titled_section_card(
+        self, title: str, body: ClientSideComponent, section: Section | None = None
+    ) -> ClientSideComponent:
         # Card(mateu-section, flex style) → VerticalLayout → [Text h3 title, VerticalLayout(width
         # 100%) → <body>] (mirrors Java's SectionFormRenderer when the section has a heading).
         heading = ClientSideComponent(
@@ -546,6 +558,8 @@ class LayoutMapperMixin(MixinBase):
         content = ClientSideComponent(
             metadata=VerticalLayoutMetadata(),
             children=[heading, inner],
+            # Section(style=...) styles the card's content (Java: the Card's VerticalLayout)
+            style=section.style if section is not None and section.style else None,
         )
         return ClientSideComponent(
             metadata=CardMetadata(content=content),
@@ -555,7 +569,9 @@ class LayoutMapperMixin(MixinBase):
         )
 
     @staticmethod
-    def _section_card_wrapper(body: ClientSideComponent) -> ClientSideComponent:
+    def _section_card_wrapper(
+        body: ClientSideComponent, section: Section | None = None
+    ) -> ClientSideComponent:
         # A @Section maps to an outlined Card carrying the "mateu-section" marker class; its body
         # is nested under metadata.content as Div → VerticalLayout → <body> (mirrors Java's
         # SectionFormRenderer / CardMapper). The section TITLE does not travel as a FormSection —
@@ -564,7 +580,7 @@ class LayoutMapperMixin(MixinBase):
         vlayout = ClientSideComponent(
             metadata=VerticalLayoutMetadata(),
             children=[body],
-            style="width: 100%;",
+            style="width: 100%;" + (section.style if section is not None and section.style else ""),
         )
         div = ClientSideComponent(
             metadata=DivMetadata(),
@@ -654,3 +670,27 @@ class LayoutMapperMixin(MixinBase):
         if pending:
             rows.append(self.client(FormRowMetadata(), None, pending))
         return rows
+
+
+#: Java's SectionFormRenderer.stickyStyle: a sticky section's card stays pinned while the form
+#: scrolls (the renderer stacks several under the page header).
+STICKY_SECTION_STYLE = "position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;"
+
+
+def _is_sticky(section: Section | None) -> bool:
+    return section is not None and section.sticky
+
+
+def _section_columns(section: Section | None, form_columns: int) -> int:
+    return section.columns if section is not None and section.columns >= 1 else form_columns
+
+
+def _with_section_extras(card: ClientSideComponent, section: Section | None) -> ClientSideComponent:
+    """Section(sticky=True): the ``mateu-section--sticky`` marker class next to ``mateu-section``
+    and the sticky style on the card (Java's sectionCssClasses / stickyStyle)."""
+    if section is None or not section.sticky:
+        return card
+    return card.model_copy(update={
+        "css_classes": ((card.css_classes or "mateu-section") + " mateu-section--sticky").strip(),
+        "style": (card.style or "") + STICKY_SECTION_STYLE,
+    })

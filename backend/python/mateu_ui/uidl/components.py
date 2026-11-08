@@ -272,6 +272,19 @@ class ListingComponent(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The route a row opens (``people/${row.id}``, relative to the mount): rows become
+    #: clickable records — Java's ``Listing.rowRoute``.
+    row_route: str | None = None
+    #: Grid presentation (Java's fluent Listing): zebra rows, column lines, wrapping cells, no
+    #: outer / row borders, every row shown, reorderable headers, the grid's own CSS.
+    row_stripes: bool = False
+    column_borders: bool = False
+    wrap_cell_content: bool = False
+    no_border: bool = False
+    no_row_border: bool = False
+    all_rows_visible: bool = False
+    column_reordering_allowed: bool = False
+    grid_style: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "columns", tuple(self.columns))
@@ -1999,6 +2012,13 @@ class Dialog(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The user can move it by its header / resize it from its edges (Java's Dialog.draggable /
+    #: resizable).
+    draggable: bool = False
+    resizable: bool = False
+    #: Where it opens (CSS lengths from the viewport's top / left edge); None = centred.
+    top: str | None = None
+    left: str | None = None
 
 
 @dataclass(frozen=True)

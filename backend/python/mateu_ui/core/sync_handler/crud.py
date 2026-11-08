@@ -36,6 +36,7 @@ from ..reflection import class_flag, view_fields
 from ..registry import normalize
 from ..export import FORMATS
 from ..mapper.crud import _capable
+from ..mapper.crud_modes import without_hidden_inputs
 from ._base import MixinBase
 from ._common import (
     RunActionRq,
@@ -409,7 +410,9 @@ class CrudHandlerMixin(MixinBase):
                         rq.action_id,
                         rq,
                     )
-        self.bind_state(entity, rq.component_state)
+        # a field the form does not render (HiddenInCreate / HiddenInEditor) takes no value from
+        # the client either — Java's ClientWritableFields
+        self.bind_state(entity, without_hidden_inputs(element, rq.component_state, id_ is None))
         if id_ is not None:
             setattr(entity, "id", id_)
         missing = self.required_missing(entity, element)

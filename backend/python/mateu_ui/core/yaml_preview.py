@@ -444,6 +444,15 @@ def _listing(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.
         grid_layout=_str(node.get("gridLayout")),
         compact=bool(node.get("compact", False)),
         empty_state_message=_str(node.get("emptyStateMessage")),
+        row_route=_str(node.get("rowRoute")),
+        grid_style=_str(node.get("gridStyle")),
+        row_stripes=bool(node.get("rowStripes", False)),
+        column_borders=bool(node.get("columnBorders", False)),
+        wrap_cell_content=bool(node.get("wrapCellContent", False)),
+        no_border=bool(node.get("noBorder", False)),
+        no_row_border=bool(node.get("noRowBorder", False)),
+        all_rows_visible=bool(node.get("allRowsVisible", False)),
+        column_reordering_allowed=bool(node.get("columnReorderingAllowed", False)),
     )
 
 

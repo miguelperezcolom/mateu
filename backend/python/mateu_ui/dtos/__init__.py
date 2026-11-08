@@ -209,6 +209,7 @@ from .more_components import (  # noqa: F401
 )
 from .records import (  # noqa: F401
     Action,
+    ConfirmationTextsRecord,
     Badge,
     Banner,
     Button,

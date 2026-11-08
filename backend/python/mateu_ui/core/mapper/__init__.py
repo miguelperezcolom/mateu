@@ -255,6 +255,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     with_action_options,
 )
 from ._base import MixinBase
+from .crud_modes import hidden_in_current_form
 from .app import AppMapperMixin
 from .view import ViewMapperMixin
 from .archetypes import ArchetypeMapperMixin
@@ -343,6 +344,9 @@ class ReflectionMapper(
             return False
         # HeaderBadge() fields are header chips, never form fields (Java's FormFieldFilter).
         if f.has(HeaderBadge):
+            return False
+        # HiddenInView()/HiddenInEditor()/HiddenInCreate() inside the crud record form they name
+        if hidden_in_current_form(f):
             return False
         return self._permitted(f)
 

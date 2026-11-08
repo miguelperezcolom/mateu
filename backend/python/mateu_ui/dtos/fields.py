@@ -93,6 +93,10 @@ class FormFieldMetadata(Wire):
     #: Grid fields: the row field shown as an expandable detail, and whether a button opens it.
     detail_path: str | None = None
     use_button_for_detail: bool = False
+    #: The field's CSS classes (mirrors FormFieldDto.cssClasses).
+    css_classes: str | None = None
+    #: A listing filter the smart search bar shows first (MainFilter(); FormFieldDto.mainFilter).
+    main_filter: bool = False
 
 
 class PairRecord(Wire):
@@ -227,6 +231,21 @@ class CrudMetadata(Wire):
     #: Shown in place of the results until the first search has run (the Redwood
     #: smart-filter-search ``dashboard`` slot); None = none (mirrors CrudlDto.preSearch).
     pre_search: "list[Component] | None" = None
+    #: Grid presentation (mirror CrudlDto's members of the same names): zebra rows, vertical
+    #: column lines, cells that wrap instead of truncating, no outer / row borders, every row
+    #: shown (no inner scroll), headers the user can drag to reorder.
+    row_stripes: bool = False
+    column_borders: bool = False
+    wrap_cell_content: bool = False
+    no_border: bool = False
+    no_row_border: bool = False
+    all_rows_visible: bool = False
+    column_reordering_allowed: bool = False
+    #: The grid's own CSS (mirrors CrudlDto.gridStyle).
+    grid_style: str | None = None
+    #: The route a row opens, with ``${row.x}`` templates (``people/${row.id}``) — a listing
+    #: without a view model's way into a record (mirrors CrudlDto.rowRoute).
+    row_route: str | None = None
 
 
 class ComponentEntryRecord(Wire):
