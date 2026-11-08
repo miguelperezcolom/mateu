@@ -584,10 +584,14 @@ class SearchHandlerMixin(MixinBase):
     @staticmethod
     def constraint_violations(entity, element) -> list[str]:
         """``"<label>: <message>"`` for every Min/Max/Size/Pattern constraint the entity breaks —
-        the server-side leg of the client-side validations (Required() is reported separately)."""
+        the server-side leg of the client-side validations (Required() is reported separately).
+        A field the crud record form being checked does not render (``HiddenInCreate()`` on a
+        create, ``HiddenInEditor()`` on an edit) is skipped: the client sent no validation for
+        it (Java's ServerConstraintCheck → PageFormBuilder.rendersAsInput)."""
+        fields = [f for f in view_fields(element) if not hidden_in_current_form(f)]
         return [
             f"{label}: {message}"
-            for label, message in violations(entity, element)
+            for label, message in violations(entity, element, fields)
             if message != "Cannot be empty"
         ]
 

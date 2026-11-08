@@ -2019,6 +2019,40 @@
     "save_and_next_label": []
    }
   },
+  "HeroSearchListing": {
+   "class": [
+    [
+     "selector",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "filters": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "grid_layout": [],
+    "hero_image": [],
+    "hero_subtitle": [],
+    "hero_title": [],
+    "search": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
   "HeroSearchPage": {
    "class": [
     [

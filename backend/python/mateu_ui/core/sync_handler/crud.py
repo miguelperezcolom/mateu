@@ -462,11 +462,13 @@ class CrudHandlerMixin(MixinBase):
             setattr(entity, "id", id_)
         # a required field the form does not render is not the user's to fill (Java's
         # ServerConstraintCheck skips @HiddenInCreate / @HiddenInEditor fields)
+        # and neither are its Min/Max/Length/Pattern constraints: the form sent no validation for
+        # it, so the server does not check it there either
         with crud_form_mode("new" if id_ is None else "edit"):
             missing = self.required_missing(entity, element)
+            broken = self.constraint_violations(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
-        broken = self.constraint_violations(entity, element)
         if broken:
             return self.error("; ".join(broken))
         if version is not None:
@@ -622,9 +624,16 @@ class CrudHandlerMixin(MixinBase):
         locked = {camel_case(f.name) for f in view_fields(element) if read_only or f.has(ReadOnly)}
         self.bind_state(entity, {k: v for k, v in row.items() if k not in locked})
         entity.id = stored.id if hasattr(stored, "id") else raw_id
-        missing = self.required_missing(entity, element)
+        # the row is the EDIT form's record: a HiddenInEditor() field is not the user's to fill,
+        # and the constraints the editor would check are checked here too (Java's
+        # FilteredAutoCrud.updateRow → ServerConstraintCheck)
+        with crud_form_mode("edit"):
+            missing = self.required_missing(entity, element)
+            broken = self.constraint_violations(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
+        if broken:
+            return self.error("; ".join(broken))
         # Optimistic locking (Version()): an inline-edit over someone else's save is rejected
         # with the same reload/overwrite dialog; Overwrite re-sends the SAME edited row (the
         # button's parameters merge into the action request), Reload re-runs the search

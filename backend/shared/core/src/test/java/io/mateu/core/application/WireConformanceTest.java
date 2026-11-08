@@ -727,6 +727,80 @@ class WireConformanceTest {
     }
   }
 
+  public record Seat(
+      String id,
+      String name,
+      @io.mateu.uidl.annotations.HiddenInCreate @Min(100) @Max(999) Integer code,
+      @io.mateu.uidl.annotations.HiddenInEditor @Min(1) @Max(9) Integer quota)
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New seat";
+    }
+  }
+
+  static final List<Seat> SEATS = List.of(new Seat("S-1", "Front", 101, 2));
+
+  /**
+   * A crud whose hidden-in fields carry constraints: a form that does not render a field sends no
+   * validation for it (and the server does not check it there) — {@code @HiddenInCreate code}'s
+   * bounds are on the edit form only, {@code @HiddenInEditor quota}'s bounds on the create form
+   * only.
+   */
+  @UI("/conformance/crud-hidden-constraints")
+  @Title("Seats")
+  public static class SeatsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Seat> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Seat> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<Seat> findById(String id) {
+          return SEATS.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Seat entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<Seat> findAll() {
+          return SEATS;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  /**
+   * A hero search page over a declarative listing with its own filters type: the centered hero over
+   * the listing, the filters type's fields as the facet bar, results as cards, starting empty.
+   */
+  @UI("/conformance/hero-search-filters")
+  @Title("Books")
+  public static class HeroBooks
+      extends io.mateu.core.infra.declarative.orchestrators.herosearch.HeroSearch<
+          BookFilters, Book> {
+    @Override
+    protected String heroTitle() {
+      return "Find a book";
+    }
+
+    @Override
+    protected String heroSubtitle() {
+      return "Search the catalogue";
+    }
+
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+  }
+
   /**
    * An action that opens a placed dialog: draggable, resizable, at a given top/left, with its size
    * — the members the ports never set before 3.0 GA.
@@ -1562,6 +1636,8 @@ class WireConformanceTest {
           java.util.Map.entry("dialog-placement", DialogPlacementPage.class),
           java.util.Map.entry("crud-hidden-in-edit", EmployeesCrud.class),
           java.util.Map.entry("crud-hidden-in-new", EmployeesCrud.class),
+          java.util.Map.entry("crud-hidden-constraints-edit", SeatsCrud.class),
+          java.util.Map.entry("crud-hidden-constraints-new", SeatsCrud.class),
           java.util.Map.entry("editable-view", ProfileView.class),
           java.util.Map.entry("editable-view-edit", ProfileView.class),
           java.util.Map.entry("view-toolbar-button", ProductsWithViewButton.class),
@@ -1636,9 +1712,12 @@ class WireConformanceTest {
           "crud-hidden-in",
           "crud-hidden-in-edit",
           "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
           "editable-view",
           "editable-view-edit",
-          "view-toolbar-button");
+          "view-toolbar-button",
+          "hero-search-filters");
 
   static TestMateu mateu;
 
@@ -1702,7 +1781,9 @@ class WireConformanceTest {
             SectionOptionsForm.class,
             EmployeesCrud.class,
             ProfileView.class,
-            ProductsWithViewButton.class);
+            ProductsWithViewButton.class,
+            SeatsCrud.class,
+            HeroBooks.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1874,6 +1955,8 @@ class WireConformanceTest {
           "crud-view",
           "crud-hidden-in-edit",
           "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
@@ -1944,6 +2027,8 @@ class WireConformanceTest {
           "crud-view",
           "crud-hidden-in-edit",
           "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
