@@ -30,7 +30,6 @@ class ExplorerFindingsLayoutSyncTest {
   @UI("/explorer-findings-host")
   public static class Host {}
 
-
   static TestMateu mateu;
 
   @BeforeAll
