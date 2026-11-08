@@ -104,9 +104,9 @@ Java (and C#/Python) implementation.
 
 ## Status and how to pick it up (2026-10-29)
 
-The library has **never been generated in a real Figma** — the plugin is verified only by
-`tsc`, esbuild and its unit tests (Figma cannot run headless), and no Mateu library is published
-yet. The goal is to generate it from scratch, review it and publish it. It needs **Figma Desktop
+The plugin is verified here only by `tsc`, esbuild and its unit tests (Figma cannot run
+headless); the owner generated the library in a real Figma on 2026-11-08 (before native slots and
+properties) — the self-test command is the in-Figma check of the current version. The goal is to generate it from scratch, review it and publish it. It needs **Figma Desktop
 on macOS or Windows**: the browser cannot import development plugins and there is no official
 Linux client.
 
@@ -120,10 +120,20 @@ Linux client.
 2. In Figma Desktop create an EMPTY design file (e.g. "Mateu UI Kit").
 3. *Main menu → Plugins → Development → Import plugin from manifest…* →
    `design/figma/plugin/manifest.json`.
-4. *Plugins → Development → Mateu Library Generator*. Expect one page per category
-   (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and the toast
-   `Mateu library generated: 160 components ✔`. If it fails, the error is in
-   *Plugins → Development → Show/Hide console*.
+4. *Plugins → Development → Mateu Library Generator → Generate the library*. Expect one page per
+   category (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and
+   the toast `Mateu library generated: 161 components, N properties, M native slots ✔`. If it
+   fails, the error is in *Plugins → Development → Show/Hide console*.
+4b. *Plugins → Development → Mateu Library Generator → Mateu Library Self-test* (the pure half is
+   `plugin/src/selftest.ts`, tested in `plugin/test/selftest.test.mjs`): a `Mateu · Self-test` page
+   with an instance of every entry (default variant + one per other axis value), a library instance
+   appended to every slot (Button for toolbar-like/preferred slots, TextField otherwise), every
+   TEXT/BOOLEAN property set and read back (text layer included), every variant axis flipped, and no
+   leftover `#config`; a results table at the top, a toast, and the JSON report in the console.
+   Download the LIBRARY file and run `cd to-yaml && npm run self-test -- library.json [--report
+   results.json]`: every instance of that page must convert alone with no warning. Commit it as
+   `to-yaml/test/fixtures/self-test.figma.json` (+ `test/golden-self-test/results.json` from
+   `--report`) and `test/self-test.test.mjs` pins it.
 5. Review every page. Things to look at on this first real run: text overflowing its sketch, variant
    sets laid out badly (the set uses horizontal wrap auto-layout), missing fonts, components whose
    sketch does not read as the Mateu component. Fix in `src/code.ts` (drawing) or `../contract.json`

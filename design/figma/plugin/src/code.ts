@@ -20,7 +20,12 @@
  */
 
 import contract from "../../contract.json";
-import { planEntry, EntryPlan, SlotPlan } from "./plan";
+import { planEntry } from "./plan";
+import type { EntryPlan, PropertyPlan, SlotPlan } from "./plan";
+import {
+  SELF_TEST_PAGE, aggregate, childForSlot, otherVariantValue, valueForProperty, variantCombosToTest, variantName,
+} from "./selftest";
+import type { Check, Report } from "./selftest";
 
 type Sketch = any;
 type Entry = any;
@@ -588,4 +593,235 @@ async function buildLibrary() {
   figma.closePlugin();
 }
 
-buildLibrary();
+// ── self-test ────────────────────────────────────────────────────────────────
+
+/**
+ * "Mateu Library Self-test": run in the library file after generating it. For every contract
+ * entry (its default variant and one more instance per other axis value) it makes an instance on
+ * the `Mateu · Self-test` page, drops a library instance into each slot, sets every property to a
+ * distinctive value and reads it back, flips every variant axis, and checks no `#config` was left.
+ * The results table sits at the top of the page; the full report is logged as JSON.
+ */
+async function runSelfTest() {
+  await figma.loadFontAsync(FONT_R);
+  await figma.loadFontAsync(FONT_B);
+  await figma.loadFontAsync(FONT_M);
+
+  // the library's components, by contract name
+  const library = new Map<string, ComponentNode | ComponentSetNode>();
+  for (const page of figma.root.children) {
+    if (!page.name.startsWith('Mateu · ') || page.name === SELF_TEST_PAGE) continue;
+    await page.loadAsync();
+    for (const node of page.children) {
+      if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') library.set(node.name, node);
+    }
+  }
+  if (library.size === 0) {
+    figma.notify('No Mateu library in this file: run "Mateu Library Generator" first', { error: true });
+    figma.closePlugin();
+    return;
+  }
+
+  let page = figma.root.children.find((p) => p.name === SELF_TEST_PAGE) as PageNode | undefined;
+  if (page) {
+    await page.loadAsync();
+    for (const child of [...page.children]) child.remove();
+  } else {
+    page = figma.createPage();
+    page.name = SELF_TEST_PAGE;
+  }
+  await figma.setCurrentPageAsync(page);
+
+  const grid = frameNode({ dir: 'HORIZONTAL', gap: 32, pad: 24, name: 'Self-test instances' });
+  grid.layoutWrap = 'WRAP';
+  grid.counterAxisSpacing = 32;
+  grid.resize(4800, 100);
+  grid.primaryAxisSizingMode = 'FIXED';
+  grid.counterAxisAlignItems = 'MIN';
+  page.appendChild(grid);
+
+  const checks: Check[] = [];
+  const instances: Record<string, number> = {};
+  const instanceOf = (name: string): InstanceNode | null => {
+    const node = library.get(name);
+    if (!node) return null;
+    return (node.type === 'COMPONENT_SET' ? node.defaultVariant : node).createInstance();
+  };
+
+  for (const entry of (contract as any).components as Entry[]) {
+    const node = library.get(entry.name);
+    instances[entry.name] = 0;
+    if (!node) {
+      checks.push({ entry: entry.name, variant: '', kind: 'config', target: 'component', ok: false, message: 'not in the library (re-run the generator)' });
+      continue;
+    }
+    const plan = planEntry(entry);
+    const combos = variantCombosToTest(entry.variants ?? {});
+    combos.forEach((combo, index) => {
+      const variant = variantName(combo);
+      const main = node.type === 'COMPONENT_SET'
+        ? node.children.find((c) => sameVariant((c as ComponentNode).variantProperties, combo)) as ComponentNode | undefined
+        : node;
+      if (!main) {
+        checks.push({ entry: entry.name, variant, kind: 'variant', target: variant, ok: false, message: 'no such variant in the set' });
+        return;
+      }
+      const instance = main.createInstance();
+      instances[entry.name]++;
+      const cell = frameNode({ dir: 'VERTICAL', gap: 6, name: `cell ${entry.name}${variant ? ` [${variant}]` : ''}` });
+      cell.appendChild(textNode(variant ? `${entry.name}  ·  ${variant}` : entry.name, { size: 11, bold: true, color: LUMO.secondary, name: '#label' }));
+      cell.appendChild(instance);
+      grid.appendChild(cell);
+
+      for (const slot of plan.slots) checkSlot(entry.name, variant, instance, slot, instanceOf, checks);
+      // properties and variants: once per entry, on the default variant's instance
+      if (index === 0) {
+        for (const p of plan.properties) checkProperty(entry.name, variant, instance, p, checks);
+        for (const [axis, values] of Object.entries(entry.variants ?? {}) as [string, string[]][]) {
+          checkVariant(entry.name, variant, instance, axis, values, checks);
+        }
+        if (Object.keys(entry.props ?? {}).length > 0) {
+          const leftover = findAll(instance, (n) => n.name === '#config');
+          checks.push({
+            entry: entry.name, variant, kind: 'config', target: '#config', ok: leftover.length === 0,
+            message: leftover.length ? `#config left (${(leftover[0] as TextNode).characters}): Figma refused those props as properties` : undefined,
+          });
+        }
+      }
+    });
+  }
+
+  const report = aggregate(checks, instances);
+  const table = resultsTable(report);
+  page.insertChild(0, table);
+  table.x = 0; table.y = 0;
+  grid.x = 0; grid.y = table.height + 80;
+
+  const t = report.totals;
+  const blocked = report.instanceSlotBlocked ? ` (${report.instanceSlotBlocked} slot appends blocked on instances by the API)` : '';
+  figma.notify(`Self-test: ${t.entries} entries, ${t.instances} instances — slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures${blocked}`, { timeout: 15000 });
+  console.log('Mateu library self-test', JSON.stringify(report));
+  figma.closePlugin();
+}
+
+function sameVariant(props: { [p: string]: string } | null, combo: Record<string, string>): boolean {
+  if (!props) return false;
+  return Object.entries(combo).every(([k, v]) => props[k] === v);
+}
+
+/** The instance's native slot for `slot`: a SLOT node named `slot:<name>` or linked to its property. */
+function slotNodeOf(instance: InstanceNode, slot: SlotPlan): SceneNode | null {
+  const frameName = `slot:${slot.name}`;
+  const found = findAll(instance, (n) => {
+    if ((n as any).type !== 'SLOT') return false;
+    const ref = ((n as any).componentPropertyReferences ?? {}).slotContentId as string | undefined;
+    return n.name === frameName || (!!ref && ref.replace(/#[^#]*$/, '') === slot.property);
+  });
+  return found[0] ?? null;
+}
+
+function checkSlot(entry: string, variant: string, instance: InstanceNode, slot: SlotPlan,
+                   instanceOf: (name: string) => InstanceNode | null, checks: Check[]) {
+  const childName = childForSlot(slot);
+  if (!childName) return;
+  const base = { entry, variant, kind: 'slot' as const, target: slot.name };
+  const target = slotNodeOf(instance, slot);
+  if (!target) {
+    const plain = findAll(instance, (n) => n.type === 'FRAME' && n.name === `slot:${slot.name}`).length > 0;
+    checks.push({ ...base, ok: false, message: plain ? 'a plain slot:<name> frame, not a native slot (generator fallback)' : 'no slot in the instance' });
+    return;
+  }
+  const child = instanceOf(childName);
+  if (!child) {
+    checks.push({ ...base, ok: false, message: `${childName} is not in the library` });
+    return;
+  }
+  try {
+    (target as unknown as ChildrenMixin).appendChild(child);
+    const inside = child.parent === (target as BaseNode);
+    const violations = ((target as any).limitViolations ?? []) as string[];
+    checks.push({ ...base, ok: inside && violations.length === 0,
+      message: !inside ? 'appended but not inside the slot' : violations.length ? `limit violations: ${violations.join(', ')}` : undefined });
+  } catch (e) {
+    child.remove();
+    checks.push({ ...base, ok: false, message: `append refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+function propertyKey(instance: InstanceNode, name: string): string | null {
+  for (const key of Object.keys(instance.componentProperties)) {
+    if (key.replace(/#[^#]*$/, '') === name && instance.componentProperties[key].type !== 'VARIANT') return key;
+  }
+  return null;
+}
+
+function checkProperty(entry: string, variant: string, instance: InstanceNode, p: PropertyPlan, checks: Check[]) {
+  const base = { entry, variant, kind: 'property' as const, target: p.name };
+  const key = propertyKey(instance, p.name);
+  if (!key) {
+    checks.push({ ...base, ok: false, message: 'not a property of the instance' });
+    return;
+  }
+  const value = valueForProperty(p);
+  try {
+    instance.setProperties({ [key]: value });
+    const read = instance.componentProperties[key]?.value;
+    let message: string | undefined = read === value ? undefined : `read back ${JSON.stringify(read)}`;
+    if (!message && p.layer) {
+      const layers = findAll(instance, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[];
+      if (layers.length === 0) message = `no "${p.layer}" text layer`;
+      else if (!layers.some((l) => l.characters === value)) message = `"${p.layer}" still shows ${JSON.stringify(layers[0].characters)}`;
+    }
+    // config props go back to their default (a typed param would not read "selftest-x");
+    // text props keep the distinctive value, visible on the page and in its REST JSON
+    if (!p.layer) instance.setProperties({ [key]: p.defaultValue });
+    checks.push({ ...base, ok: !message, message });
+  } catch (e) {
+    checks.push({ ...base, ok: false, message: `setProperties refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+function checkVariant(entry: string, variant: string, instance: InstanceNode, axis: string, values: string[], checks: Check[]) {
+  const current = (instance.variantProperties ?? {})[axis];
+  const other = otherVariantValue(values, current);
+  if (other === null) return;
+  const base = { entry, variant, kind: 'variant' as const, target: axis };
+  try {
+    instance.setProperties({ [axis]: other });
+    const read = (instance.variantProperties ?? {})[axis];
+    instance.setProperties({ [axis]: current });
+    checks.push({ ...base, ok: read === other, message: read === other ? undefined : `read back ${JSON.stringify(read)}` });
+  } catch (e) {
+    checks.push({ ...base, ok: false, message: `setProperties refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+/** The results table: one row per entry (instances, slots ok/total, properties ok/total, failures). */
+function resultsTable(report: Report): FrameNode {
+  const table = frameNode({ dir: 'VERTICAL', gap: 0, pad: 16, bg: LUMO.base, radius: LUMO.radiusM, stroke: LUMO.contrast20, name: '_Self-test results' });
+  const t = report.totals;
+  table.appendChild(textNode(`Mateu library self-test — ${t.entries} entries, ${t.instances} instances, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures`, { size: LUMO.sizeM, bold: true, name: '#title' }));
+  const widths = [340, 80, 110, 130, 900];
+  const row = (cells: string[], bold: boolean, failed: boolean) => {
+    const r = frameNode({ dir: 'HORIZONTAL', gap: 0, bg: failed ? LUMO.themes.danger.bg : undefined });
+    cells.forEach((c, i) => {
+      const cell = frameNode({ dir: 'HORIZONTAL', pad: 4 });
+      cell.resize(widths[i], 20);
+      cell.primaryAxisSizingMode = 'FIXED';
+      const text = textNode(c, { size: 11, bold, name: '#cell' });
+      if (i === 4) { text.textAutoResize = 'HEIGHT'; text.resize(widths[i] - 8, text.height); }
+      cell.appendChild(text);
+      r.appendChild(cell);
+    });
+    return r;
+  };
+  table.appendChild(row(['Entry', 'Instances', 'Slots', 'Properties', 'Failures'], true, false));
+  for (const e of report.entries) {
+    table.appendChild(row([e.entry, String(e.instances), `${e.slotsOk}/${e.slotsTotal}`, `${e.propsOk}/${e.propsTotal}`,
+      e.failures.join('\n')], false, e.failures.length > 0));
+  }
+  return table;
+}
+
+if (figma.command === 'selftest') runSelfTest();
+else buildLibrary();

@@ -15,6 +15,8 @@ export const SCHEMA_URL =
   'https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json'
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
+/** The page the plugin's self-test command draws in the library file. */
+export const SELF_TEST_PAGE = 'Mateu · Self-test'
 const SLOT = /^slot:(.+)$/
 const PARTIAL = /^partial:(.+)$/
 /** Layer types that only draw: never content, never a warning. */
@@ -121,6 +123,44 @@ export class FigmaToYaml {
     }
     for (const f of files) f.text = this.render(f)
     return { files, warnings: this.warnings }
+  }
+
+  /**
+   * Converts the `Mateu · Self-test` page the plugin's "Mateu Library Self-test" command draws in
+   * the LIBRARY file (a page every ordinary conversion skips): every instance on it, one by one.
+   * Returns `{page, results: [{name, cell, nodeId, status, value, warnings}]}` — status `ok` (a
+   * component, no warnings), `failed` (warnings), or `noYaml` (an entry the contract maps to no YAML,
+   * a Java archetype). `page` is null when the file has no self-test page.
+   */
+  selfTest(file, pageName = SELF_TEST_PAGE) {
+    this.file = file
+    this.partials = new Map()
+    const canvas = (file.document?.children ?? []).find((c) => c.type === 'CANVAS' && c.name === pageName)
+    if (!canvas) return { page: null, results: [] }
+    const results = []
+    const visit = (node, cell) => {
+      if (node.visible === false || node.name.startsWith('_') || node.name.startsWith('#')) return
+      if (node.type === 'INSTANCE') {
+        const entry = this.entryOf(node)
+        this.warnings = []
+        this.into = []
+        const name = entry?.name ?? this.componentName(node) ?? node.componentId
+        if (entry && !entry.yaml) {
+          results.push({ name, cell, nodeId: node.id, status: 'noYaml', value: null, warnings: [] })
+          return
+        }
+        const out = this.node(node)
+        const value = isObject(out) && out.into ? out.value : out
+        const warnings = this.warnings
+        const ok = !!entry && isObject(value) && warnings.length === 0
+        results.push({ name, cell, nodeId: node.id, status: ok ? 'ok' : 'failed', value: value ?? null, warnings: entry ? warnings : [`not a Mateu component`, ...warnings] })
+        return
+      }
+      for (const child of node.children ?? []) visit(child, node.name.startsWith('cell ') ? node.name.substring(5) : cell)
+    }
+    for (const node of canvas.children ?? []) visit(node, null)
+    this.warnings = []
+    return { page: canvas.name, results }
   }
 
   /**
