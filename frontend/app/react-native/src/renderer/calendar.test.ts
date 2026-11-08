@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   agenda, anchorOf, dayA11yLabel, dayInfo, dayParameters, eventA11yLabel, eventsOn, initialView, isDayActionable,
-  monthWeeks, parseIso, periodDates, periodTitle, switcherViews, timeRange, type CalendarMeta,
+  monthWeeks, parseIso, periodDates, periodTitle, switcherViews, timeRange, todayIso, type CalendarMeta,
 } from './calendar.ts';
 
 const meta: CalendarMeta = {
@@ -108,4 +108,9 @@ test('a month cell does not nest the event buttons inside the day button', async
   const dayBoxCall = month.slice(start, month.indexOf('))}', start));
   assert.ok(start >= 0 && dayBoxCall.length > 0, 'the month cell has a day button');
   assert.ok(!dayBoxCall.includes('eventChip('), 'no event chip inside the day button');
+});
+
+test('today is the device date as an ISO date, the cell the calendar marks', () => {
+  assert.equal(todayIso(new Date(2026, 10, 8, 23, 59)), '2026-11-08');
+  assert.equal(todayIso(new Date(2026, 0, 3, 0, 1)), '2026-01-03');
 });

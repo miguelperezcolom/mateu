@@ -16,8 +16,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
   The Move menu stays, for screen readers and for whoever prefers it.
+- **About Mateu on the phone app.** An ⓘ on the hub's bar shows the app version and build, the Mateu
+  release, and which code runs — the built-in bundle or an over-the-air update and when it was
+  published. "Check for updates" downloads the latest update and restarts on it at once.
 
 ### Changed
+
+- **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
+  was generated as its month and as "Today": it opens on the current month.
 
 - **A Collection Detail page shows one pane on a phone.** The list while nothing is selected, the
   selected record alone once a row is tapped (stacked, the list came back above the record). Tablets

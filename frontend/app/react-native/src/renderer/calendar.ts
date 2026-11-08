@@ -50,6 +50,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export const toIso = (d: Date): string => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86_400_000);
 
+/** Today's date on the device, as the wire's ISO date (the calendar marks that cell itself). */
+export const todayIso = (now: Date = new Date()): string =>
+  `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
 /** The anchor date: the wire's `month`, else today. */
 export const anchorOf = (meta: CalendarMeta, today: Date = new Date()): Date =>
   parseIso(meta.month) ?? new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));

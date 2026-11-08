@@ -14,6 +14,7 @@ import { DEMO_BASE_URL, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';
 import { ConfirmAddScreen, ConfirmImportScreen } from './ui/ConfirmScreens';
+import { AboutScreen } from './ui/AboutScreen';
 import { ExportScreen } from './ui/ExportScreen';
 import { HomeScreen } from './ui/HomeScreen';
 import { Switcher } from './ui/Switcher';
@@ -25,6 +26,7 @@ type Screen =
   | { name: 'confirm'; baseUrl: string; route?: string; probe?: boolean }
   | { name: 'import'; baseUrls: string[]; rejected: number }
   | { name: 'export' }
+  | { name: 'about' }
   | { name: 'ui' };
 
 interface OpenSession {
@@ -223,6 +225,7 @@ export function HubApp() {
             onRemove={(e) => void remove(e)}
             onMove={(e, d) => void uiStore.move(e.id, d)}
             onExport={() => setScreen({ name: 'export' })}
+            onAbout={() => setScreen({ name: 'about' })}
           />
         );
       case 'add':
@@ -258,6 +261,8 @@ export function HubApp() {
         );
       case 'export':
         return <ExportScreen baseUrls={uiStore.exportBaseUrls()} onClose={goHome} />;
+      case 'about':
+        return <AboutScreen onClose={goHome} />;
       default:
         return null;
     }
