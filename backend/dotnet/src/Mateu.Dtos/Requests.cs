@@ -23,6 +23,13 @@ public record ButtonDto(string Label, string ActionId)
     /// none.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Color { get; init; }
+    /// <summary>The button's size (Java's ButtonDto.size); omitted when none.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Size { get; init; }
+    /// <summary>Draws a separator before the button (Java's ButtonDto.separatorBefore); omitted
+    /// when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool SeparatorBefore { get; init; }
     // A bulk action (a [ListToolbarButton]): the renderer disables the button while no row is
     // selected. On the BUTTON so no renderer has to look the advertised action up by id (mirrors
     // Java's ButtonDto.rowsSelectedRequired). Omitted when false, so other buttons' wire is unchanged.

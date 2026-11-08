@@ -327,25 +327,12 @@ internal sealed partial class ReflectionMapper
         }
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
-        // [ListToolbarButton] methods: BULK list actions — a listing toolbar button dispatching
-        // action-on-row-<method> over the grid's selected rows; the action advertises the
-        // confirmation/selection-required flags the frontend enforces (mirrors Java's
-        // Crud.addButtonsToList + CrudActionsBuilder).
-        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
-                                 && Authorized(m.Find<EyesOnlyAttribute>())))
-        {
-            var bulk = m.Find<ListToolbarButtonAttribute>()!;
-            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
-            {
-                RowsSelectedRequired = bulk.RowsSelectedRequired,
-            });
-            actions.Add(new ActionDto(actionId, ValidationRequired: false,
-                ConfirmationRequired: bulk.ConfirmationRequired,
-                RowsSelectedRequired: bulk.RowsSelectedRequired,
-                Bubble: true));
-        }
+        // [ListToolbarButton] methods: BULK list actions — listing toolbar buttons dispatching
+        // action-on-row-<method> over the grid's selected rows, LEADING the toolbar (Java's
+        // Crud.addButtonsToList + CrudActionsBuilder, run before the built-in buttons).
+        var (bulkButtons, bulkActions) = BulkToolbar(viewType, "action-on-row-", bubble: true);
+        toolbar.InsertRange(0, bulkButtons);
+        actions.AddRange(bulkActions);
         var crudComponent = Client(new CrudMetadataDto(title, columns, toolbar)
         {
             Filters = MapCrudFilters(element),
@@ -442,22 +429,13 @@ internal sealed partial class ReflectionMapper
             actions.Add(new ActionDto("cancel-edit", ValidationRequired: false));
         }
         if (profile.CanView) actions.Add(new ActionDto("cancel-view", ValidationRequired: false));
-        // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source).
-        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
-                                 && Authorized(m.Find<EyesOnlyAttribute>())))
-        {
-            var bulk = m.Find<ListToolbarButtonAttribute>()!;
-            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
-            {
-                RowsSelectedRequired = bulk.RowsSelectedRequired,
-            });
-            actions.Add(new ActionDto(actionId, ValidationRequired: false,
-                ConfirmationRequired: bulk.ConfirmationRequired,
-                RowsSelectedRequired: bulk.RowsSelectedRequired,
-                Bubble: true));
-        }
+        // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source),
+        // LEADING the toolbar. A bridged listing (a CRUD) reaches them as action-on-row-<method>
+        // and lets them bubble (Java's CapabilityCrud → Crud.addButtonsToList); a plain one by
+        // the method's own name, right after search (Java's Listing.actions + PageListingBuilder).
+        var (bulkButtons, bulkActions) = BulkToolbar(viewType, bridged ? "action-on-row-" : "", bubble: bridged);
+        toolbar.InsertRange(0, bulkButtons);
+        actions.InsertRange(1, bulkActions);
         var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
         var crud = Client(new CrudMetadataDto(bridged ? title : null, columns, toolbar)
         {
@@ -476,7 +454,9 @@ internal sealed partial class ReflectionMapper
         var page = bridged
             ? Client(new PageMetadataDto(null, null, null, [], []), null, [crud])
                 with { Style = compact ? CompactStyle : CrudFullWidthStyle }
-            : Client(new PageMetadataDto(title, T(Naming.Humanize(viewType.Name)), null, [], [])
+            // the page header shows the title and the listing's bulk buttons on one line (Java's
+            // ReflectionPageMapper.listingPageToolbar)
+            : Client(new PageMetadataDto(title, T(Naming.Humanize(viewType.Name)), null, bulkButtons, [])
                 { PageType = PageTypeOf(viewType) }, null, [crud])
                 with { Style = compact ? CompactStyle : null };
         return new ServerSideComponentDto(

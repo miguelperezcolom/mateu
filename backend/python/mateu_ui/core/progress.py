@@ -193,6 +193,24 @@ def _close(work, run) -> None:
         hook()
 
 
+def then(increments: Iterator[UIIncrement], continuation: Callable[[], UIIncrement]) -> Iterator[UIIncrement]:
+    """``increments``, then — once they are over and none carried an error message (a failed
+    task carries one too) — the answer of ``continuation``. Closing this generator closes the
+    task's stream (the browser went away: the task is cancelled, nothing follows)."""
+    failed = False
+    try:
+        for increment in increments:
+            if any(m.variant == "error" for m in increment.messages):
+                failed = True
+            yield increment
+    finally:
+        close = getattr(increments, "close", None)
+        if close is not None:
+            close()
+    if not failed:
+        yield continuation()
+
+
 def drain(increments: Iterator[UIIncrement]) -> UIIncrement:
     """The sync endpoint's answer for a task: run it to the end and merge what it streamed (every
     command, message and fragment, in order)."""

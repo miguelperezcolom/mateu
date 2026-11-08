@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from mateu_ui.dtos import UICommand, UIIncrement
 from mateu_ui.uidl import Draftable, Message, Step, Wizard
+from mateu_ui.uidl.progress import LongTaskRun
 
 from ..reflection import view_fields
 from .. import action_guard
@@ -56,6 +57,14 @@ class WizardHandlerMixin(MixinBase):
             fn = getattr(wizard, completion[0])
             action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
             outcome = fn()
+            if isinstance(outcome, LongTaskRun):
+                # A streamed completion (a LongTask's progress) is not the answer, it is the way
+                # to it: once the task is over the wizard lands on its result step — built then,
+                # so it shows whatever the work set while it ran. A task that reports an error
+                # stays on the step (Java's WizardActionDispatcher).
+                return self._long_task(outcome, rq, then=lambda: self.fragment_response(
+                    self.title(type_), self.mapper.map_wizard(type_, wizard, route, total), rq
+                ))
             response = self.fragment_response(
                 self.title(type_), self.mapper.map_wizard(type_, wizard, route, total), rq
             )

@@ -5407,6 +5407,26 @@
      "button_style",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "button_color",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "button_size",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "order",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "separator_before",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },

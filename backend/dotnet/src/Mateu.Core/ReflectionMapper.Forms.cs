@@ -678,11 +678,53 @@ internal sealed partial class ReflectionMapper
         var label = toolbar.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
         return new ButtonDto(T(label), Naming.CamelCase(m.Name))
         {
-            ButtonStyle = string.IsNullOrWhiteSpace(toolbar.ButtonStyle) || toolbar.ButtonStyle == "none"
-                ? null : toolbar.ButtonStyle,
+            ButtonStyle = Unset(toolbar.ButtonStyle),
+            Color = Unset(toolbar.ButtonColor),
+            Size = Unset(toolbar.ButtonSize),
+            SeparatorBefore = toolbar.SeparatorBefore,
             Shortcut = m.Find<ShortcutAttribute>()?.Keys,
             Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
         };
+    }
+
+    /// <summary>A [Toolbar] appearance member: blank or "none" means unset, so the renderer keeps
+    /// its default (Java's ToolbarButtons.styleOf/colorOf/sizeOf).</summary>
+    private static string? Unset(string? value) =>
+        string.IsNullOrWhiteSpace(value) || value == "none" ? null : value;
+
+    /// <summary>The [ListToolbarButton] methods of <paramref name="type"/> as listing toolbar
+    /// buttons and their advertised actions (Java's ToolbarButtons.listToolbarButton /
+    /// toolbarAction): dressed by a [Toolbar] on the same method (style, colour, size, separator),
+    /// ordered by its Order (stable), behaving as an [ActionOptions] on it declares —
+    /// confirmation texts, transport knobs — with the placement's confirmation/selection flags
+    /// OR-ed in. Methods the caller may not see are left out (refused on invocation anyway).</summary>
+    private (List<ButtonDto> Buttons, List<ActionDto> Actions) BulkToolbar(Type type, string prefix, bool bubble)
+    {
+        var buttons = new List<ButtonDto>();
+        var actions = new List<ActionDto>();
+        foreach (var m in type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
+                                 && Authorized(m.Find<EyesOnlyAttribute>()))
+                     .OrderBy(m => m.Find<ToolbarAttribute>()?.Order ?? 0))
+        {
+            var bulk = m.Find<ListToolbarButtonAttribute>()!;
+            var look = m.Find<ToolbarAttribute>();
+            var actionId = prefix + Naming.CamelCase(m.Name);
+            buttons.Add(new ButtonDto(T(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name)), actionId)
+            {
+                ButtonStyle = Unset(look?.ButtonStyle),
+                Color = Unset(look?.ButtonColor),
+                Size = Unset(look?.ButtonSize),
+                SeparatorBefore = look?.SeparatorBefore ?? false,
+                RowsSelectedRequired = bulk.RowsSelectedRequired,
+            });
+            var action = new ActionDto(actionId, ValidationRequired: false,
+                ConfirmationRequired: bulk.ConfirmationRequired,
+                RowsSelectedRequired: bulk.RowsSelectedRequired,
+                Bubble: bubble);
+            actions.Add(m.Find<ActionOptionsAttribute>() is { } options ? ActionOptionsOf(action, options) : action);
+        }
+        return (buttons, actions);
     }
 
     private ButtonDto MapButton(MethodInfo m)

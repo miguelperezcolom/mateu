@@ -908,10 +908,16 @@ class FieldMapperMixin(MixinBase):
         marker = getattr(fn, "__mateu_toolbar__")
         label = marker if isinstance(marker, str) else humanize(name)
         style = getattr(fn, "__mateu_toolbar_style__", None)
+        look = getattr(fn, "__mateu_toolbar_look__", None)
+        color = getattr(look, "button_color", None)
+        size = getattr(look, "button_size", None)
         return Button(
             label=self.T(label),
             action_id=camel_case(name),
             button_style=style if style and style != "none" else None,
+            color=color if color and color != "none" else None,
+            size=size if size and size != "none" else None,
+            separator_before=bool(getattr(look, "separator_before", False)),
             shortcut=getattr(fn, "__mateu_shortcut__", None),
             disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
         )

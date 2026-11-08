@@ -13,7 +13,7 @@ internal sealed partial class SyncHandler
     /// any other caller gets the whole stream merged into one answer.</summary>
     public sealed class StreamSlot
     {
-        internal LongTaskRun? Run { get; set; }
+        internal IAsyncEnumerable<object>? Run { get; set; }
         internal RunActionRqDto? Request { get; set; }
 
         /// <summary>Whether the handled action answered a stream to continue.</summary>
@@ -32,7 +32,7 @@ internal sealed partial class SyncHandler
 
     /// <summary>A <see cref="LongTaskRun"/> answered by an action: parked in the open slot (the SSE
     /// leg streams it), or — no slot — noted so the sync leg runs it to the end.</summary>
-    private static UIIncrementDto ParkStream(LongTaskRun run, RunActionRqDto? rq)
+    private static UIIncrementDto ParkStream(IAsyncEnumerable<object> run, RunActionRqDto? rq)
     {
         var slot = Slot.Value;
         if (slot is null)
@@ -43,6 +43,24 @@ internal sealed partial class SyncHandler
         slot.Run = run;
         slot.Request = rq;
         return UIIncrementDto.Of();
+    }
+
+    /// <summary><paramref name="run"/>, then — once it is over and nothing it yielded was an error
+    /// <see cref="Message"/> — the answer of <paramref name="then"/>, built only then (it sees what
+    /// the work set). A failing run ends the stream before (ProgressTasks.Track stops on it).</summary>
+    private static async IAsyncEnumerable<object> Then(
+        IAsyncEnumerable<object> run, Func<UIIncrementDto> then,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var failed = false;
+        await foreach (var item in run.WithCancellation(cancellationToken))
+        {
+            if (item is Message { Variant: MessageVariant.Error }
+                || (item is UIIncrementDto increment && increment.Messages.Any(m => m.Variant == "error")))
+                failed = true;
+            yield return item;
+        }
+        if (!failed && !cancellationToken.IsCancellationRequested) yield return then();
     }
 
     /// <summary>The caller of this request, hashed (what owns a task).</summary>

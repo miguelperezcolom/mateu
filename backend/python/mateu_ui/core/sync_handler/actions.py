@@ -164,9 +164,14 @@ class ActionHandlerMixin(MixinBase):
                 args.append(None)
         return args
 
-    def _long_task(self, run, rq: RunActionRq | None) -> UIIncrement:
+    def _long_task(self, run, rq: RunActionRq | None, then=None) -> UIIncrement:
         """A LongTask an action returned: the first increment (the task, running) when an SSE
-        endpoint is collecting the rest of the stream, else the whole task run to the end."""
+        endpoint is collecting the rest of the stream, else the whole task run to the end.
+
+        ``then`` (a callable answering an increment) is what the stream leads to: it is called
+        once the task is over — lazily, so it sees whatever the work set while it ran — and its
+        answer streams last, unless the task reported an error (an error message, or a failure),
+        which leaves the screen where it was (Java's streamed wizard completion)."""
         from .. import error_boundary, progress
 
         identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
@@ -178,6 +183,8 @@ class ActionHandlerMixin(MixinBase):
                 error, rq.action_id if rq is not None else None
             ),
         )
+        if then is not None:
+            increments = progress.then(increments, then)
         holder = progress.pending_streams.get()
         if holder is None:
             return progress.drain(increments)

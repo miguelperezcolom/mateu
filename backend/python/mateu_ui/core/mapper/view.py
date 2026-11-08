@@ -68,6 +68,8 @@ class ViewMapperMixin(MixinBase):
 
         # @toolbar methods: the header toolbar (Java's @Toolbar); advertised before the buttons
         toolbar_methods = [(n, f) for n, f in methods_with(cls, "__mateu_toolbar__") if offered(f)]
+        # @toolbar(order=N) fixes the sequence (stable: equal orders keep declaration order)
+        toolbar_methods.sort(key=lambda m: getattr(getattr(m[1], "__mateu_toolbar_look__", None), "order", 0))
         toolbar = [self.map_toolbar_button(n, f) for n, f in toolbar_methods]
         page_button_methods = [
             (n, f)

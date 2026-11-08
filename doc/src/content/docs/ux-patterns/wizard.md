@@ -114,7 +114,28 @@ Flux<?> run() {
 }
 ```
 
-The result step is built once the stream is over, so whatever the work set on the wizard while it ran (here, the status of each procedure) is on the result screen. Streamed completions are Java-only: the .NET and Python ports have no `LongTask`.
+The result step is built once the stream is over, so whatever the work set on the wizard while it ran (here, the status of each procedure) is on the result screen.
+
+The .NET and Python ports stream a completion the same way. In Python the `@wizard_completion_action` method returns a `LongTask` run; annotate it `-> LongTaskRun` (or add `@action_options(sse=True)`) so the action is advertised over SSE. In .NET a wizard with a `CompletionActionLabel` overrides `StreamedCompletion()`; the task it returns replaces `OnNext` as the completion:
+
+```python
+@wizard_completion_action("Run end of day")
+def run(self) -> LongTaskRun:
+    def work(p):
+        if not self.cashiers_closed:
+            yield Message("Close the open cashiers first.", variant=MessageVariant.ERROR)
+            return
+        for i, procedure in enumerate(self.procedures, 1):
+            self.status = procedure.run()
+            yield p.step(procedure.name, done=i, total=len(self.procedures))
+
+    return LongTask.create("Running end of day").with_progress_bar().run(work)
+```
+
+```csharp
+public override LongTaskRun? StreamedCompletion() =>
+    LongTask.Create("Running end of day").WithProgressBar().Run(progress => Work(progress));
+```
 
 The wizard **title** is derived in order: `TitleSupplier.title()` → `@Title` annotation → class name (the dynamic supplier wins over the static annotation).
 

@@ -59,6 +59,8 @@ internal sealed partial class SyncHandler
                 return MapResult(w.Complete());
             case "next":
                 if (w.BeforeStepNavigate(step, step + 1) is { } nextVeto) return MapResult(nextVeto, rq);
+                if (resultStep && step == total - 1 && w.StreamedCompletion() is { } nextRun)
+                    return StreamCompletion(nextRun, type, w, route, total, rq);
                 w.OnNext(step, step + 1);
                 step++;
                 break;
@@ -75,6 +77,7 @@ internal sealed partial class SyncHandler
                 if (w.BeforeStepNavigate(step, completionTarget) is { } completeVeto)
                     return MapResult(completeVeto, rq);
                 if (!resultStep) return MapResult(w.Complete());
+                if (w.StreamedCompletion() is { } earlyRun) return StreamCompletion(earlyRun, type, w, route, total, rq);
                 w.OnNext(step, total);
                 step = total;
                 break;
@@ -100,6 +103,14 @@ internal sealed partial class SyncHandler
         }
         return FragmentResponse(w.WizardTitle ?? Title(type), _mapper.MapWizard(type, wizard, route, step), rq);
     }
+
+    /// <summary>A streamed completion (Java's WizardActionDispatcher on a Flux): the task's progress
+    /// is not the answer, it is the way to it — once it is over the wizard lands on its result
+    /// step, built then; a task reporting an error stays on the step.</summary>
+    private UIIncrementDto StreamCompletion(LongTaskRun run, Type type, Wizard w, string route, int total,
+        RunActionRqDto rq) =>
+        ParkStream(Then(run, () => FragmentResponse(w.WizardTitle ?? Title(type),
+            _mapper.MapWizard(type, w, route, total), rq)), rq);
 
     private static int? GoToStepTarget(RunActionRqDto rq)
     {
