@@ -1,0 +1,5 @@
+{
+  "route": "/conformance/crud-hidden-in/new",
+  "consumedRoute": "/conformance/crud-hidden-in",
+  "actionId": ""
+}
