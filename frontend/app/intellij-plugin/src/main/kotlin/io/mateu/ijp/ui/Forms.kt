@@ -63,7 +63,12 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
     val children = component.path("children")
     if (children.isArray) {
         for (child in children) {
-            if (child.path("metadata").text("type") == "FormRow") {
+            // an authored FormRow (fluent / YAML: the layout is not auto-responsive) keeps its fields
+            // on ONE line, a cell spanning every column; the reflective forms' rows (auto-responsive)
+            // are the grid's own lines and flow into it
+            if (child.path("metadata").text("type") == "FormRow" && !metadata.bool("autoResponsive")) {
+                flattened.add(child)
+            } else if (child.path("metadata").text("type") == "FormRow") {
                 val inner = child.path("children")
                 if (inner.isArray) for (f in inner) flattened.add(f)
             } else {
@@ -76,7 +81,8 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
     var col = 0
     var rowIdx = 0
     for (field in flattened) {
-        val span = field.path("metadata").int("colspan", 1).coerceIn(1, maxColumns)
+        val isRow = field.path("metadata").text("type") == "FormRow"
+        val span = if (isRow) maxColumns else field.path("metadata").int("colspan", 1).coerceIn(1, maxColumns)
         if (col + span > maxColumns) { col = 0; rowIdx++ }
         val gbc = GridBagConstraints().apply {
             gridx = col
@@ -87,7 +93,7 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
             anchor = GridBagConstraints.NORTHWEST
             insets = JBUI.insets(0, 0, JBGap, JBGap)
         }
-        panel.add(r.render(field, state, data), gbc)
+        panel.add(if (isRow) oneLineRow(r, field, state, data) else r.render(field, state, data), gbc)
         col += span
     }
     // Bottom filler so fields stay top-aligned when the grid is placed in a filling container.
@@ -100,6 +106,15 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
         },
     )
     return panel
+}
+
+/** An authored FormRow inside a form layout: its fields side by side, sharing the line equally. */
+private fun oneLineRow(r: ComponentRenderer, row: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val children = row.path("children").let { if (it.isArray) it.toList() else emptyList() }
+    return JPanel(java.awt.GridLayout(1, children.size.coerceAtLeast(1), JBUI.scale(JBGap), 0)).apply {
+        isOpaque = false
+        children.forEach { add(r.render(it, state, data)) }
+    }
 }
 
 /** FormRow → a horizontal row of its children (each field builds its own label + input). */
