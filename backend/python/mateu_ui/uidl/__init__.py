@@ -290,6 +290,13 @@ from .adapters import (  # noqa: F401
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
 from .request import ActionRequest  # noqa: F401
+from .editable_views import (  # noqa: F401
+    AutoEditableView,
+    DetailPart,
+    EditableView,
+    MasterDetailView,
+    NoSelection,
+)
 from .environments import Environment, SourceOverride  # noqa: F401
 from .field_types import (  # noqa: F401
     FieldType,
@@ -405,4 +412,7 @@ __all__ = [
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",
     "MicroFrontendResolutionListener", "RemoteCatalogSupplier", "RemoteDescriptor",
     "RemoteIdentityStrategy", "RemoteRegistry", "ResolutionOutcome",
+    # Editable views and master-detail views (Java's EditableView / AutoEditableView /
+    # MasterDetailView orchestrators)
+    "AutoEditableView", "DetailPart", "EditableView", "MasterDetailView", "NoSelection",
 ]

@@ -223,6 +223,12 @@ class DispatchMixin(MixinBase):
         if lst is not None:
             return self.handle_listing(*lst, rq)
 
+        # 2a'. An EditableView / MasterDetailView (by serverSideType or route prefix, so its
+        # /edit · /view · /__md/<key> sub-routes resolve) — Java's MultiView orchestrators.
+        orchestrated = self.resolve_orchestrated_view(rq)
+        if orchestrated is not None:
+            return self.handle_orchestrated_view(*orchestrated, rq)
+
         # The AUTHORED registry answers before the decorator-declared views — explicit beats
         # derived, the same precedence the layout and page inference already use. Its parameters are
         # folded into the component state here, at the single point every downstream step reads:

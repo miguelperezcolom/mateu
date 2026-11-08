@@ -129,6 +129,7 @@ from .contract import ContractHandlerMixin
 from .actions import ActionHandlerMixin
 from .helpers import ResponseHelpersMixin
 from .grid_field import GridFieldHandlerMixin
+from .editable_view import EditableViewHandlerMixin
 
 
 
@@ -206,6 +207,7 @@ class SyncHandler(
     ActionHandlerMixin,
     ResponseHelpersMixin,
     GridFieldHandlerMixin,
+    EditableViewHandlerMixin,
     MixinBase,
 ):
     def __init__(

@@ -352,6 +352,29 @@
     ]
    ]
   },
+  "AutoEditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "load": [],
+    "persist": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
+   }
+  },
   "BadgeInHeader": {
    "class": [
     [
@@ -938,6 +961,25 @@
     ]
    ]
   },
+  "DetailPart": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Disabled": {
    "class": []
   },
@@ -1139,6 +1181,21 @@
       true
      ]
     ]
+   }
+  },
+  "EditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
    }
   },
   "Emit": {
@@ -2284,6 +2341,15 @@
     "to_command": []
    }
   },
+  "MasterDetailView": {
+   "class": [],
+   "members": {
+    "header": [],
+    "load": [],
+    "no_selection": [],
+    "title": []
+   }
+  },
   "Max": {
    "class": [
     [
@@ -2638,6 +2704,9 @@
    "members": {
     "to_command": []
    }
+  },
+  "NoSelection": {
+   "class": []
   },
   "NotificationChange": {
    "class": [
