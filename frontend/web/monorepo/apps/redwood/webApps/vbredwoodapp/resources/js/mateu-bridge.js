@@ -612,6 +612,79 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return kind === 'dateTime' ? { ...options, hour: '2-digit', minute: '2-digit' } : options
   }
 
+  // A listing cell of a date / dateTime / time column: the row carries ISO text ("2026-11-05",
+  // "2026-11-05T10:15:30.000Z", "10:15:30"); it is written in the UI's locale with the web date
+  // fields' rule (apps/vaadin dateLocale.ts dateFormatSpec / formatDateParts): the locale's order,
+  // separator (. / - else /) and padding, the year always in four digits; a time as the locale's
+  // hour:minute. The ISO components are read LITERALLY — never shifted to another time zone.
+  const dateSpecs = new Map()
+
+  /** How `locale` writes a numeric date: {order, separator, padDay, padMonth} (en-US when unusable). */
+  function dateFormatSpecOf(locale) {
+    const key = String(locale || '')
+    if (dateSpecs.has(key)) return dateSpecs.get(key)
+    let spec = { order: ['month', 'day', 'year'], separator: '/', padDay: false, padMonth: false }
+    try {
+      const parts = new Intl.DateTimeFormat(key || undefined, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' })
+        .formatToParts(new Date(Date.UTC(2027, 0, 5)))
+      const order = parts.map((p) => p.type).filter((t) => t === 'day' || t === 'month' || t === 'year')
+      if (order.length === 3 && new Set(order).size === 3) {
+        const literal = ((parts.find((p) => p.type === 'literal') || {}).value || '').trim()
+        spec = {
+          order,
+          separator: /^[./-]$/.test(literal) ? literal : '/',
+          padDay: ((parts.find((p) => p.type === 'day') || {}).value || '').length > 1,
+          padMonth: ((parts.find((p) => p.type === 'month') || {}).value || '').length > 1,
+        }
+      }
+    } catch (e) {
+      // an unknown locale keeps the en-US spec
+    }
+    dateSpecs.set(key, spec)
+    return spec
+  }
+
+  const padTo = (n, width) => String(n).padStart(width, '0')
+  const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/
+  const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?/
+
+  function dateWritten(year, month, day, locale) {
+    const spec = dateFormatSpecOf(locale)
+    return spec.order.map((part) => (part === 'year' ? padTo(year, 4)
+      : part === 'month' ? padTo(month, spec.padMonth ? 2 : 1)
+        : padTo(day, spec.padDay ? 2 : 1))).join(spec.separator)
+  }
+
+  function timeWritten(hour, minute, locale) {
+    try {
+      return new Intl.DateTimeFormat(locale || undefined, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(2027, 0, 5, hour, minute)))
+    } catch (e) {
+      return padTo(hour, 2) + ':' + padTo(minute, 2)
+    }
+  }
+
+  /** A temporal value as `dataType` (date | dateTime | time) reads in `locale` (default: the date
+   *  locale); anything that is not that ISO text comes back as it is. */
+  function temporalText(value, dataType, locale) {
+    if (typeof value !== 'string') return value
+    const loc = locale || dateLocale()
+    const text = value.trim()
+    if (dataType === 'time') {
+      const t = ISO_TIME.exec(text)
+      return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? timeWritten(Number(t[1]), Number(t[2]), loc) : value
+    }
+    if (dataType !== 'date' && dataType !== 'dateTime') return value
+    const d = ISO_DATE.exec(text)
+    if (!d || Number(d[2]) < 1 || Number(d[2]) > 12 || Number(d[3]) < 1 || Number(d[3]) > 31) return value
+    const date = dateWritten(Number(d[1]), Number(d[2]), Number(d[3]), loc)
+    if (dataType === 'date') return date
+    const rest = text.slice(d[0].length)
+    if (!rest) return date
+    const t = /^[T ]/.test(rest) ? ISO_TIME.exec(rest.slice(1)) : null
+    return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? date + ' ' + timeWritten(Number(t[1]), Number(t[2]), loc) : value
+  }
+
   function intl(locale, options) {
     try { return new Intl.NumberFormat(locale, options) } catch (e) {
       try { return new Intl.NumberFormat(String(locale || '').replace(/_/g, '-'), options) } catch (e2) {
@@ -5846,8 +5919,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const raw = state[fieldId] != null ? state[fieldId]
             : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
           const lookupLabel = fromData(fieldId + '-label')
-          const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
-          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
+          // a lookup's label is already text; else money formatted, an option by its label, a status as a chip
+          const shown = lookupLabel != null && lookupLabel !== ''
+            ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
+            : readOnlyDisplayOf(m, raw, ctx.data)
+          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+          return
+        }
+        if (m.dataType === 'status') {
+          // a status FIELD (a YAML record page's `dataType: status`) is a chip under its label, the
+          // listing's: no layout widget draws it, and it used to vanish
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          const shown = readOnlyDisplayOf(m, raw, ctx.data)
+          atom({ isPropertyRow: true, stacked: true, label: interp(m.label || fieldId), value: shown.text || EMPTY_VALUE, valueClass: shown.badgeClass }, container)
           return
         }
         // editable FLUENT FormField (e.g. the charge search box of the check-out mode):
@@ -8876,6 +8960,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
     // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
     if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
+    // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
+    if (isTemporalColumn(c) && typeof value === 'string') return temporalText(value, c.dataType)
     const labels = c && c.valueLabels
     if (!labels || value == null || typeof value === 'object') return value
     const label = labels[String(value)]
@@ -8884,6 +8970,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** A column of amounts: an Amount (dataType money) or a number declared money (stereotype). */
   const isMoneyColumn = (c) => !!c && (c.dataType === 'money' || c.stereotype === 'money')
+
+  /** A column of dates, date-times or times (LocalDate / DateOnly / date… on the server). */
+  const isTemporalColumn = (c) => !!c && (c.dataType === 'date' || c.dataType === 'dateTime' || c.dataType === 'time')
 
   /** Whether a (non-status, non-editable) column reads its values through their labels. */
   const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
@@ -8896,7 +8985,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function labelColumn(c) {
-    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c))) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -10673,6 +10762,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function shownReadOnlyValueOf(md, value) {
     if (!md || md.stereotype !== 'password') return value
     return value == null || value === '' ? '' : PASSWORD_MASK
+  }
+
+  /**
+   * How a READ-ONLY value reads (a property row, a status field — the record page of a YAML
+   * definition, whose values come raw from a REST source): `{text, badgeClass}`. An amount (dataType
+   * or stereotype money) in the UI's locale (moneyText: "249.00", an Amount in its own currency);
+   * a value among the field's `options` by its option's LABEL; a status as a chip — a `{type,
+   * message}` as it comes, a plain word by the listing's tone rule (AVAILABLE → success) labelled by
+   * its option or humanised ("Out of stock"). `badgeClass` is '' unless it is a status.
+   */
+  function readOnlyDisplayOf(md, value, data) {
+    const f = md || {}
+    const options = (f.options && f.options.length) || (data && data[f.fieldId] && data[f.fieldId].content) ? optionsOf(f, data) : []
+    const optionLabel = (v) => {
+      const option = v == null || v === '' || typeof v === 'object' ? null : options.find((o) => o && o.value == v) // eslint-disable-line eqeqeq
+      return option ? String(option.label) : null
+    }
+    if (f.dataType === 'status') {
+      if (value == null || value === '') return { text: '', badgeClass: '' }
+      if (typeof value === 'object') {
+        const type = value.type || 'NONE'
+        return { text: String(value.message ?? value.label ?? ''), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+      }
+      const type = statusTypeOfValue(value, f.tones)
+      const label = optionLabel(value)
+      return { text: label != null ? label : String(humanizeConstant(String(value))), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+    }
+    if ((f.dataType === 'money' || f.stereotype === 'money') && value != null && value !== '') {
+      return { text: moneyText(value), badgeClass: '' }
+    }
+    const plain = plainValueOf(value)
+    const label = optionLabel(plain)
+    if (label != null) return { text: label, badgeClass: '' }
+    const shown = shownReadOnlyValueOf(f, plain)
+    return { text: shown == null ? '' : String(shown), badgeClass: '' }
   }
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }

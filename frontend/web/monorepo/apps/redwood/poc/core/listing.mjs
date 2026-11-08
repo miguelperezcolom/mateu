@@ -7,7 +7,7 @@ import { stableHashOf } from './overviews.mjs'
 import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
-import { chromeText, chromeLanguage, dateConverterOptions, moneyText } from '../i18n.mjs'
+import { chromeText, chromeLanguage, dateConverterOptions, moneyText, temporalText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
 /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -1041,6 +1041,8 @@ export function valueLabelOf(c, value) {
   if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
   // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
   if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
+  // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
+  if (isTemporalColumn(c) && typeof value === 'string') return temporalText(value, c.dataType)
   const labels = c && c.valueLabels
   if (!labels || value == null || typeof value === 'object') return value
   const label = labels[String(value)]
@@ -1049,6 +1051,9 @@ export function valueLabelOf(c, value) {
 
 /** A column of amounts: an Amount (dataType money) or a number declared money (stereotype). */
 const isMoneyColumn = (c) => !!c && (c.dataType === 'money' || c.stereotype === 'money')
+
+/** A column of dates, date-times or times (LocalDate / DateOnly / date… on the server). */
+const isTemporalColumn = (c) => !!c && (c.dataType === 'date' || c.dataType === 'dateTime' || c.dataType === 'time')
 
 /** Whether a (non-status, non-editable) column reads its values through their labels. */
 const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
@@ -1061,7 +1066,7 @@ export function alignOf(c) {
 }
 
 export function labelColumn(c) {
-  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c))) && !c.editable
+  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
     && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
 }
 

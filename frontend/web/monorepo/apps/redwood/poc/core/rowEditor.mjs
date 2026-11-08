@@ -1,8 +1,8 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, dateConverterOf, interpolate } from './content.mjs'
-import { ROW_LINES_FIELD, findByType, isBlank, listingOf, withoutDefaultSizing } from './listing.mjs'
-import { chromeText, chromeLanguage } from '../i18n.mjs'
+import { ROW_LINES_FIELD, STATUS_BADGE, findByType, humanizeConstant, isBlank, listingOf, statusTypeOfValue, withoutDefaultSizing } from './listing.mjs'
+import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
 import { evaluateExpression, evaluateTemplate, valueChangeActionOf } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
@@ -366,6 +366,41 @@ export const PASSWORD_MASK = '••••••••'
 export function shownReadOnlyValueOf(md, value) {
   if (!md || md.stereotype !== 'password') return value
   return value == null || value === '' ? '' : PASSWORD_MASK
+}
+
+/**
+ * How a READ-ONLY value reads (a property row, a status field — the record page of a YAML
+ * definition, whose values come raw from a REST source): `{text, badgeClass}`. An amount (dataType
+ * or stereotype money) in the UI's locale (moneyText: "249.00", an Amount in its own currency);
+ * a value among the field's `options` by its option's LABEL; a status as a chip — a `{type,
+ * message}` as it comes, a plain word by the listing's tone rule (AVAILABLE → success) labelled by
+ * its option or humanised ("Out of stock"). `badgeClass` is '' unless it is a status.
+ */
+export function readOnlyDisplayOf(md, value, data) {
+  const f = md || {}
+  const options = (f.options && f.options.length) || (data && data[f.fieldId] && data[f.fieldId].content) ? optionsOf(f, data) : []
+  const optionLabel = (v) => {
+    const option = v == null || v === '' || typeof v === 'object' ? null : options.find((o) => o && o.value == v) // eslint-disable-line eqeqeq
+    return option ? String(option.label) : null
+  }
+  if (f.dataType === 'status') {
+    if (value == null || value === '') return { text: '', badgeClass: '' }
+    if (typeof value === 'object') {
+      const type = value.type || 'NONE'
+      return { text: String(value.message ?? value.label ?? ''), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+    }
+    const type = statusTypeOfValue(value, f.tones)
+    const label = optionLabel(value)
+    return { text: label != null ? label : String(humanizeConstant(String(value))), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+  }
+  if ((f.dataType === 'money' || f.stereotype === 'money') && value != null && value !== '') {
+    return { text: moneyText(value), badgeClass: '' }
+  }
+  const plain = plainValueOf(value)
+  const label = optionLabel(plain)
+  if (label != null) return { text: label, badgeClass: '' }
+  const shown = shownReadOnlyValueOf(f, plain)
+  return { text: shown == null ? '' : String(shown), badgeClass: '' }
 }
 export const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
   isSelect: false, isLookup: false, lookupActionId: '', options: [] }

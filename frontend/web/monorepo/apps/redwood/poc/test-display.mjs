@@ -30,13 +30,13 @@ import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
-import { setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions } from './i18n.mjs'
-import { smartFilterValueMetadataOf } from './core/listing.mjs'
+import { setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions, temporalText } from './i18n.mjs'
+import { smartFilterValueMetadataOf, labelCellRows, valueLabelOf } from './core/listing.mjs'
 import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
   kanbanDropIndexOf, setPendingKanbanMove, addPendingKanbanMove, dropPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
 import { onLoadTriggers } from './core/reducer.mjs'
-import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf } from './core/rowEditor.mjs'
+import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf, readOnlyDisplayOf } from './core/rowEditor.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -1213,6 +1213,60 @@ test('a field\'s help (@Help → the wire\'s description) reaches every field wi
   assert.ok(page.split('<oj-bind-if test="[[ $current.data.isNestedList ]]">')[1].split('</oj-bind-for-each>')[0].includes('mateu-field-help'))
 })
 
+test('a read-only value reads like the listing: money formatted, an option by its label, a status as a chip', () => {
+  // a YAML record page: the values come raw from a REST source (249, AVAILABLE)
+  assert.deepEqual(readOnlyDisplayOf({ fieldId: 'price', dataType: 'string', stereotype: 'money' }, 249), { text: '249.00', badgeClass: '' })
+  assert.deepEqual(readOnlyDisplayOf({ fieldId: 'price', dataType: 'money' }, { value: 89.5 }), { text: '89.50', badgeClass: '' })
+  const options = [{ value: 'AVAILABLE', label: 'Available' }, { value: 'OUT_OF_STOCK', label: 'Out of stock' }]
+  assert.equal(readOnlyDisplayOf({ fieldId: 'status', dataType: 'string', options }, 'OUT_OF_STOCK').text, 'Out of stock')
+  assert.equal(readOnlyDisplayOf({ fieldId: 'status', dataType: 'string', options }, 'OTHER').text, 'OTHER')
+  const chip = readOnlyDisplayOf({ fieldId: 'status', dataType: 'status' }, 'AVAILABLE')
+  assert.deepEqual(chip, { text: 'Available', badgeClass: 'oj-badge oj-badge-success oj-badge-subtle' })
+  assert.equal(readOnlyDisplayOf({ fieldId: 'status', dataType: 'status', options }, 'OUT_OF_STOCK').text, 'Out of stock')
+  assert.deepEqual(readOnlyDisplayOf({ fieldId: 's', dataType: 'status' }, { type: 'DANGER', message: 'Late' }),
+    { text: 'Late', badgeClass: 'oj-badge oj-badge-danger oj-badge-subtle' })
+  assert.equal(readOnlyDisplayOf({ fieldId: 'pw', stereotype: 'password' }, 'secret').text, '••••••••')
+})
+
+test('a YAML record page: property rows and a status field read formatted (they showed 249 / AVAILABLE)', () => {
+  const field = (m) => node({ type: 'FormField', readOnly: true, ...m })
+  const tree = node({ type: 'VerticalLayout' }, [
+    field({ fieldId: 'price', label: 'Price', dataType: 'string', stereotype: 'money', propertyRow: true }),
+    field({ fieldId: 'kind', label: 'Kind', dataType: 'string', propertyRow: true, options: [{ value: 'K1', label: 'Kettle' }] }),
+    field({ fieldId: 'status', label: 'Status', dataType: 'status' }),
+  ])
+  const atoms = atomsOf(tree, { price: 249, kind: 'K1', status: 'AVAILABLE' })
+  const rows = atoms.filter((a) => a.isPropertyRow)
+  assert.deepEqual(rows.map((a) => [a.label, a.value, a.valueClass]), [
+    ['Price', '249.00', ''], ['Kind', 'Kettle', ''], ['Status', 'Available', 'oj-badge oj-badge-success oj-badge-subtle']])
+  assert.equal(rows[2].stacked, true)
+})
+
+test('date / dateTime / time listing cells read in the UI locale, the ISO components taken literally', () => {
+  assert.equal(temporalText('2026-11-05', 'date', 'en-US'), '11/5/2026')
+  assert.equal(temporalText('2026-11-05', 'date', 'es-ES'), '5/11/2026')
+  assert.equal(temporalText('2026-11-05', 'date', 'de-DE'), '5.11.2026')
+  assert.equal(temporalText('2026-11-05', 'date', 'en-GB'), '05/11/2026')
+  // never shifted to another time zone: the wall clock the row carries
+  assert.equal(temporalText('2026-11-05T23:15:30.123Z', 'dateTime', 'es-ES'), '5/11/2026 23:15')
+  assert.equal(temporalText('2026-11-05T09:05:00+05:00', 'dateTime', 'en-GB'), '05/11/2026 09:05')
+  assert.equal(temporalText('2026-11-05', 'dateTime', 'es-ES'), '5/11/2026')
+  assert.equal(temporalText('10:15:30', 'time', 'es-ES'), '10:15')
+  // not that ISO text, or not a temporal column: as it came
+  assert.equal(temporalText('soon', 'date', 'es-ES'), 'soon')
+  assert.equal(temporalText('2026-13-05', 'date', 'es-ES'), '2026-13-05')
+  assert.equal(temporalText('2026-11-05', 'string', 'es-ES'), '2026-11-05')
+  assert.equal(temporalText(null, 'date', 'es-ES'), null)
+  // the listing cell reads <id>__labelCell (the UI locale: English here); the row keeps the ISO value
+  const columns = [{ id: 'added', dataType: 'date' }, { id: 'at', dataType: 'time' }, { id: 'name', dataType: 'string' }]
+  const [row] = labelCellRows([{ added: '2026-11-05', at: '10:15:30', name: '2026-11-05' }], columns)
+  assert.equal(row.added, '2026-11-05')
+  assert.equal(row.added__labelCell, temporalText('2026-11-05', 'date'))
+  assert.match(row.added__labelCell, /2026/)
+  assert.notEqual(row.added__labelCell, '2026-11-05')
+  assert.equal(row.name__labelCell, undefined)
+  assert.equal(valueLabelOf({ dataType: 'dateTime' }, 'not a date'), 'not a date')
+})
 console.log(`\n${passed} display tests OK`)
 
 test('the collapsed subheader takes no line: no border width either, only its colour was cleared', () => {
