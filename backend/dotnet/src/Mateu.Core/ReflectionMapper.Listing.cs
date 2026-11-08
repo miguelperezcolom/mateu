@@ -816,11 +816,15 @@ internal sealed partial class ReflectionMapper
 
     /// <summary>A LISTING column's data type, as Java sends it (ColumnTypeMapper
     /// .getDataTypeForListingColumn): booleans "bool", whole numbers "integer", decimals "number",
-    /// everything else — text, enums, dates — "string".</summary>
+    /// DateOnly "date", DateTime/DateTimeOffset "dateTime", TimeOnly "time" (so the renderers write
+    /// them in the UI's locale), everything else — text, enums — "string".</summary>
     internal static string ListingColumnDataType(PropertyInfo c)
     {
         var t = Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType;
         if (t == typeof(bool)) return "bool";
+        if (t == typeof(DateOnly)) return "date";
+        if (t == typeof(DateTime) || t == typeof(DateTimeOffset)) return "dateTime";
+        if (t == typeof(TimeOnly)) return "time";
         return ListingDataType(c) ?? "string";
     }
 

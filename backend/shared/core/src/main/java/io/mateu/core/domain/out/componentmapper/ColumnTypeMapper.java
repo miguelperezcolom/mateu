@@ -73,6 +73,19 @@ final class ColumnTypeMapper {
         || type == java.math.BigDecimal.class) {
       return FieldDataType.number;
     }
+    // a date / date-time / time column says so, so the renderers write it in the UI's locale
+    // ("5/11/2026", not the ISO "2026-11-05" the row carries) — they used to guess from the value
+    if (type == java.time.LocalDate.class) {
+      return FieldDataType.date;
+    }
+    if (type == java.time.LocalDateTime.class
+        || type == java.time.OffsetDateTime.class
+        || type == java.time.ZonedDateTime.class) {
+      return FieldDataType.dateTime;
+    }
+    if (type == java.time.LocalTime.class) {
+      return FieldDataType.time;
+    }
     return coarse;
   }
 
