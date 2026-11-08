@@ -1,0 +1,8 @@
+# A second app in the Explorer's Spring Boot process, declared as DATA: a `type: UI` file is a
+# mount. It is served next to the @UI classes (the Explorer at "", the federated console at /fed).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /yaml-mount
+home: welcome
+routes:
+  - explorer/distributed/several-mounts/yaml-mount.routes.yaml

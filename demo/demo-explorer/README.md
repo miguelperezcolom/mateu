@@ -95,6 +95,65 @@ whole YAML page), `entries/behaviour/validation.yaml` (a Java view island + C#/P
 - An embedded archetype's composed heading shows the app title, not the view's `@Title`.
 - The menu nests paths: a leaf's route must start with its group's path (hence `/<area>/<group>/<id>`).
 
+## Run the distributed examples
+
+The *Distributed UIs* area needs other apps to federate, embed and call. They live in
+`remotes/` (their own Maven reactor, `remotes/pom.xml`), and their sources are copied into the
+Explorer's jar like the examples, so the Code tabs show them too.
+
+| Port (env) | What | Module |
+|---|---|---|
+| 8640 (`EXPLORER_PORT`) | the Explorer — also serves the mounts `/fed` (the federated console, Java) and `/yaml-mount` (YAML) | `.` |
+| 8641 (`JAVA_REMOTE_PORT`) | **Java remote**: the Inventory app shell (`/inventory`), the micro frontends (`/mf-*`), the content service (`/content-hub`), the identity echoes (`/id-*`), and the helpdesk UI module (`/helpdesk`) it mounts in-process | `remotes/java-remote` + `remotes/helpdesk-ui` |
+| 8642 (`YAML_REMOTE_PORT`) | **YAML-only remote**: the Orders domain (`/orders`), no UI code | `remotes/yaml-remote` |
+| 8643 (`STATIC_REMOTE_PORT`) | **static bundle**: the Help Center, plain files behind `remotes/serve-static.mjs` | `remotes/static-remote` |
+| 8644 (`PYTHON_REMOTE_PORT`) | **Python remote** (optional): Reports, FastAPI + `mateu-ui` | `remotes/python-remote` |
+
+```bash
+cd demo/demo-explorer/remotes
+./run.sh                 # builds the remotes and the Explorer, starts everything (Python only if its .venv exists)
+./run.sh stop
+# optional, once: the Python remote
+(cd python-remote && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+```
+
+Start order does not matter (a remote that is not up yet shows "… is not available right now. It
+will be retried."). `./run.sh --remotes-only` leaves the Explorer to you (`mvn spring-boot:run`).
+Other ports: set the env vars above — `run.sh` derives the urls the Explorer calls
+(`EXPLORER_JAVA_REMOTE_URL`, `EXPLORER_YAML_REMOTE_URL`, `EXPLORER_STATIC_REMOTE_URL`,
+`EXPLORER_PYTHON_REMOTE_URL`, read by `examples/distributed/Remotes.java`) and the origin the remotes
+allow (`EXPLORER_ORIGIN`, their `mateu.cors.allowed-origins`).
+
+**Verify:** `node remotes/probe.mjs` (same env vars; Playwright from the repo's `e2e/`, or
+`PLAYWRIGHT_FROM=<dir>`) drives every "Try it" of the area in a browser — 23 checks, incl. a restart of
+the Java remote with another `MATEU_BUILD_ID` (version skew) during which the content slots must
+paint their fallbacks. Checks marked *known Mateu bug* are reported but tolerated
+(`KNOWN_BUGS=strict` fails on them):
+
+- a fresh deep link / reload of a remote screen (`/fed/stock`) is loaded from the SHELL with the
+  remote app's `serverSideType` → 403 (clicking the menu works);
+- a leaf of a YAML-only remote (no `serverSideType`) is sent to the remote with the SHELL's
+  `serverSideType` (`appRenderer.chooseAppServerSideType`) → the remote answers 403;
+- a `RouteLink` on the non-root YAML mount pushes `/yaml-mountsecond` (no slash).
+
+Gotchas found building the area:
+
+- Adding a `type: UI` mount turns OFF the conventional root `specs/ui/routes.yaml` (RouteRegistry
+  loads it only when no mount is declared). The Explorer authors its routes in code, so nothing is
+  lost — but do not add a root `routes.yaml` expecting it to load.
+- `@Label` on a `MicroFrontend` FIELD is not drawn: compose captions yourself (`Links.caption`).
+- A screen embedded from an origin the app does not name is drawn through the untrusted strip: an
+  `Element`'s `import` is dropped (see the *Remote Element imports* entry).
+- A down remote's failed call raises the PAGE-level "No connection" toast / "Connection restored"
+  banner, not only an error inside its island; and an embedded page with the default chrome shows the
+  HOST's breadcrumb trail inside the island.
+- Browsers refuse some ports outright (`ERR_UNSAFE_PORT`, e.g. 9): the "down" remote is 127.0.0.1:59999.
+- Python: `add_mateu(app, *sources)` takes modules or classes; a LIST (`add_mateu(app, [A, B])`) is
+  silently ignored — every route then answers "Route not found". Pass `A, B` or the module.
+
+k8s: `deploy/demos/k8s/70-demo-explorer.yaml` carries a Deployment/Service/Ingress per remote
+(images from `deploy/demos/demo-explorer-remotes.Dockerfile`, one `--target` each). Prepared, not applied.
+
 ## Redwood
 
 `-Dmateu.renderer=mateu-redwood` serves the same app on the Redwood (VB) renderer (no console errors

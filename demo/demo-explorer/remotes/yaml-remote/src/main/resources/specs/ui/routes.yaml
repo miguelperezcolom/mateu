@@ -1,0 +1,13 @@
+# Routes are relative to the mount (/orders): `list` is /orders/list, `order/:id` /orders/order/o-1.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: ""
+    layout: orders-app.yaml
+  - route: list
+    layout: list.yaml
+  - route: order/:id
+    layout: order.yaml
+  # `about` is ALSO a route of the Java remote's Inventory app: a shell federating both warns once.
+  - route: about
+    layout: about.yaml

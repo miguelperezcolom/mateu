@@ -1,0 +1,31 @@
+id: remote-element-imports
+area: distributed
+group: federation
+title: Remote Element imports (CORS)
+covers: [distributed:remote-element-imports]
+description: |
+  A remote screen may draw a custom element whose module the remote itself serves:
+  `Element` with `import: /inventory-assets/remote-badge.js`. That url is **root-relative**, and the
+  screen is shown inside a shell of ANOTHER origin — so the renderer re-points it at the remote's
+  origin (the nearest enclosing `baseUrl`), never at the shell's.
+
+  An ES module import is a CORS request, and Mateu's CORS (`mateu.cors.allowed-origins`) covers only
+  Mateu's endpoints (`/mateu/**`): the remote opens the asset path itself — on Spring, a
+  `CorsRegistry` mapping (`ElementAssetsCors`).
+
+  Only a **trusted** screen may import code: one whose origin the app names (a `RemoteMenu`, see
+  *Credential scope*). A screen from any other origin is drawn through an untrusted strip that drops
+  an `Element`'s `import` and `on…` attributes.
+
+  **Try it:** open `/fed` → *Inventory* → *Custom element*: the badge prints the origin its module
+  was loaded from — the Java remote's, not the shell's. Below, the same screen embedded from the
+  Explorer's root app, which names no remote: the title and text render, the badge does not. Remove
+  the mapping in `ElementAssetsCors` and the console's import is blocked by CORS.
+examples:
+  - title: Trusted in the console, untrusted here
+    java: io.mateu.explorer.examples.distributed.remoteelementimports.RemoteElement
+code:
+  - {label: "Java · the remote screen", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/inventory/CustomElementPage.java}
+  - {label: "JS · the element's module", path: remotes/java-remote/src/main/resources/static/inventory-assets/remote-badge.js}
+  - {label: "Java · CORS for the asset path", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/ElementAssetsCors.java}
+  - {label: "application.properties · Mateu's CORS", path: remotes/java-remote/src/main/resources/application.properties}

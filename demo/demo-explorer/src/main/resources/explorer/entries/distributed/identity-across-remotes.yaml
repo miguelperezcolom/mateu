@@ -1,0 +1,26 @@
+id: identity-across-remotes
+area: distributed
+group: operations
+title: Identity across remotes
+covers: [distributed:identity-across-remotes]
+description: |
+  When the HOST'S SERVER calls a remote on the user's behalf (a SERVER micro frontend, a content
+  slot), the remote's **identity strategy** decides what it sends:
+
+  - `forward-authorization` (default) — the `Authorization` header the user's request brought;
+  - `none` — nothing: the remote is called anonymously;
+  - any `RemoteIdentityStrategy` bean, by name — token exchange, a service account… is the app's.
+
+  Mateu never mints nor verifies a token; each party (here, the remote) decides who the caller is
+  with its own framework's security. Every call also carries `X-Mateu-Correlation-Id`.
+
+  **Try it:** the three echoes below were resolved by the Explorer's server. Without a token,
+  `forward-authorization` forwards nothing; send one (e.g. `localStorage.__mateu_auth_token = 'demo-token'`
+  in the console, then reload) and only the first echo receives `Bearer …oken`. The custom one always
+  receives `X-Demo-User`.
+examples:
+  - title: One echo, three strategies
+    java: io.mateu.explorer.examples.distributed.identity.IdentityAcrossRemotes
+code:
+  - {label: "Java · remotes + the custom strategy", path: src/main/java/io/mateu/explorer/examples/distributed/DistributedRemotesConfig.java}
+  - {label: "Java · the echo", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/identity/IdentityEcho.java}
