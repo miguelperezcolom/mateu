@@ -64,6 +64,21 @@ const runHeaderAction = async (metadata: App, container: MateuApp, action: AppHe
     }
 }
 
+/**
+ * An APP-level @Fab (a method of the app class): dispatched on the app-level rail like a header
+ * action — the server runs it on the app instance (ActionInstanceCreator.isAppLevelAction). Sent as
+ * an action-requested from the shell it reached the PAGE's component, which does not claim an app
+ * method, and nothing was sent at all while a page was on screen.
+ */
+const runAppFab = async (metadata: App, container: MateuApp, actionId: string) => {
+    if (!actionId) return
+    try {
+        await dispatchAppHeaderAction(metadata, container, actionId)
+    } catch (e) {
+        notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, container)
+    }
+}
+
 const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     const actions = metadata.contextActions ?? []
@@ -862,7 +877,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
             ${metadata.fabs?.map((fab, idx) => html`
                 <button class="app-fab" style="${fabPosition(idx)}" ${onFabRail('shell', idx)} aria-label="${fab.label}"
-                    @click="${() => container.runAction(fab.actionId)}"
+                    @click="${() => { void runAppFab(metadata, container, fab.actionId) }}"
                     title="${fab.label}">
                     ${icon(fab.icon)}
                 </button>
