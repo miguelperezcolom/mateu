@@ -88,13 +88,17 @@ test('a file without the page says so (the ordinary conversion still skips it)',
 })
 
 const real = join(here, 'fixtures/self-test.figma.json')
+const RETIRED = ['Mateu/Layout/ContentLayout']
+
 test('the REAL self-test page downloaded from the library file (when committed)', { skip: !existsSync(real) && 'no fixtures/self-test.figma.json yet' }, () => {
-  const { results } = converter().selfTest(JSON.parse(readFileSync(real, 'utf8')))
+  // the fixture was downloaded from a kit that still had components Mateu has since removed
+  const current = (r) => !RETIRED.includes(r.name)
+  const results = converter().selfTest(JSON.parse(readFileSync(real, 'utf8'))).results.filter(current)
   const failed = results.filter((r) => r.status === 'failed')
   assert.deepEqual(failed.map((r) => `${r.name} [${r.cell}]: ${r.warnings.join('; ')}`), [])
   const golden = join(here, 'golden-self-test/results.json')
   if (existsSync(golden)) {
-    const expected = JSON.parse(readFileSync(golden, 'utf8'))
+    const expected = JSON.parse(readFileSync(golden, 'utf8')).filter(current)
     assert.deepEqual(results.map(({ name, cell, status, value, warnings }) => ({ name, cell, status, warnings, value })), expected)
   }
 })
