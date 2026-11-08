@@ -13,11 +13,19 @@ contract.json ──► plugin (this repo) ──► Figma library ──► des
   instances by this name.
 - `variants` — Figma VARIANT axes, named **exactly** like the Mateu annotation/record
   parameters (`theme`, `slim`, `propertyList`, `gridLayout`…).
-- `props` — non-visual config (fieldId, actionId…). The plugin materializes them as a subtle
-  text layer named `#config` whose content is `key=value; key2=value2` — designers fill the
-  values, the importer parses them.
+- `props` — non-visual config (fieldId, actionId…), typed TEXT or BOOLEAN. The plugin makes each
+  one a **component property** (edited in Figma's properties panel). Only a prop Figma refuses as
+  a property falls back to the older subtle `#config` text layer (`key=value; key2=value2`), which
+  the importers still read — as they do in files made with an older library.
 - `texts` — the named text layers whose (overridden) content maps to the given Mateu param
-  (`Title` → `title`, `Text` → `text`…).
+  (`Title` → `title`, `Text` → `text`…); each is a TEXT property bound to the layer. A sketch
+  primitive may name its layer apart from what it draws with `layer` (the Fab's `+` is `Icon`).
+
+What the plugin creates per entry besides the drawing is pure and tested: `plugin/src/plan.ts`
+(`plugin/test/plan.test.mjs`) — every NAMED slot a native Figma slot (SLOT property `slot:<name>`;
+`toolbar`/`buttons` prefer the Button), every prop a TEXT/BOOLEAN property named as the param, every
+text layer a TEXT property named as its param (or as the layer when ambiguous: `Title1`). For an
+entry with variants the properties live on the COMPONENT SET and every variant's layers reference them.
 - `sketch` — the compact draw spec the plugin renders (visual only, never read back).
 - `java` / `csharp` / `python` — the construct each component maps to, for the generators.
 - `yaml` — what the component becomes in a specs/ui file (`to-yaml/`): its YAML `type` (or a
@@ -44,22 +52,25 @@ a mapping reads are exactly the ones the sketch draws.
    component (or variant set) per catalog entry. Publish the file as a team library.
 
 Re-running the plugin **replaces** the generated pages — do it whenever `contract.json` grows
-(new Mateu components) and re-publish.
+(new Mateu components) or the plugin changes, and re-publish. Its final notification counts the
+properties and native slots created and any fallbacks (`#config`, plain slot frames); the plugin
+console logs the same as JSON.
 
 ## Designing screens (conventions the importer relies on)
 
 - Compose screens with **instances from the library only**; free-drawn shapes are ignored.
 - One top-level frame per screen; its name becomes the route/view name.
-- Rename nothing inside instances; **edit text layers** to set labels/titles/texts, and the
-  `#config` line to set ids (`fieldId=email`, `actionId=save`…).
+- Rename nothing inside instances; set labels/titles/texts and ids (`fieldId`, `actionId`,
+  `route`, `required`…) in the **properties panel**.
 - Use variants for the styled knobs (theme, slim, gridLayout, progress…) — they map 1:1 to the
   Mateu parameters.
-- Nesting: put field instances INSIDE a `Mateu/Layout/Section` instance's content area (or a
-  ZonesRow column) exactly like the generated code will nest them.
-- **Slots** are frames named `slot:<name>` (the plugin draws them, dashed, with a `#placeholder`
-  caption). Fill them in place, or — an ordinary instance takes no new layers — put a frame named
-  the same NEXT TO the page-template instance in the screen frame; other siblings are `content`.
-  The page toolbar is `slot:toolbar` (Button instances, the primary first).
+- Nesting: DRAG field instances INTO a `Mateu/Layout/Section` instance's content slot exactly like
+  the generated code will nest them.
+- **Slots** are native Figma slots drawn dashed with a `#placeholder` caption (never read): drag
+  instances into them. A frame named `slot:<name>` NEXT TO the page-template instance in the screen
+  frame fills it too; other siblings are `content`. The page toolbar is the `toolbar` slot (Button
+  instances, the primary first). With a library older than native slots, a Section whose content
+  slot is empty takes the layers that follow it (up to the next Section).
 - A screen with a `Mateu/Page Templates/<FormTemplate>` instance is a templated page; one without
   is a free page (a `Mateu/Page/Header` instance gives its title/subtitle/toolbar).
 - A frame named `partial:<ref>` is written once to `partials/<ref>.yaml` and referenced.

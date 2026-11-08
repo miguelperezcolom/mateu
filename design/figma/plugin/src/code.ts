@@ -8,8 +8,11 @@
  *
  * Every contract entry becomes a Figma COMPONENT (or a COMPONENT SET when it declares variant
  * axes), named exactly `Mateu/<Category>/<Name>` with variant properties named exactly like the
- * Mateu annotation/record parameters. Non-visual config (fieldId, actionId…) lives in a subtle
- * text layer named `#config` whose content is `key=value; key2=value2` — the importer parses it.
+ * Mateu annotation/record parameters. Non-visual config (fieldId, actionId, route, required…)
+ * and the editable texts (Label, Title…) are COMPONENT PROPERTIES, edited in Figma's properties
+ * panel; every named `slot` is a NATIVE slot, so designers drag library instances into it (see
+ * ./plan.ts). Only a prop Figma refuses as a property falls back to the old subtle `#config` text
+ * layer (`key=value; key2=value2`), which the importers still read.
  *
  * The drawing is data-driven: each entry carries a compact `sketch` (a list of primitives) that
  * the generic renderer below turns into auto-layout frames. Regenerating the library after the
@@ -17,6 +20,7 @@
  */
 
 import contract from "../../contract.json";
+import { planEntry, EntryPlan, SlotPlan } from "./plan";
 
 type Sketch = any;
 type Entry = any;
@@ -95,16 +99,16 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
   switch (item.t) {
     case 'title': {
       const size = item.sizeFromVariant ? sizeFor(ctx.variants[item.sizeFromVariant]) : (item.size ?? LUMO.sizeM);
-      return textNode(item.text ?? 'Título', { size, bold: true, color: item.color === 'primary' ? LUMO.primary : item.color, name: item.text });
+      return textNode(item.text ?? 'Título', { size, bold: true, color: item.color === 'primary' ? LUMO.primary : item.color, name: item.layer ?? item.text });
     }
     case 'label':
-      return textNode(item.text ?? 'Label', { size: LUMO.sizeXs + 1, color: LUMO.secondary, name: item.text });
+      return textNode(item.text ?? 'Label', { size: LUMO.sizeXs + 1, color: LUMO.secondary, name: item.layer ?? item.text });
     case 'value':
-      return textNode(item.text ?? 'Valor', { size: LUMO.sizeS, medium: true, name: item.text });
+      return textNode(item.text ?? 'Valor', { size: LUMO.sizeS, medium: true, name: item.layer ?? item.text });
     case 'text': {
       const size = item.sizeFromVariant ? sizeFor(ctx.variants[item.sizeFromVariant]) : (item.size ?? LUMO.sizeS);
       const color = item.inkFromTheme ? colors.ink : (item.color === 'secondary' ? LUMO.secondary : item.color === 'primary' ? LUMO.primary : item.color);
-      const t = textNode(item.text ?? 'Texto', { size, bold: item.bold, italic: item.italic, color, name: item.text });
+      const t = textNode(item.text ?? 'Texto', { size, bold: item.bold, italic: item.italic, color, name: item.layer ?? item.text });
       if (item.underline) t.textDecoration = 'UNDERLINE';
       return t;
     }
@@ -112,7 +116,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       const c = themeColors(item.theme);
       const f = frameNode({ dir: 'HORIZONTAL', pad: 4, gap: 4, bg: c.bg, radius: 999 });
       f.paddingLeft = f.paddingRight = 8;
-      f.appendChild(textNode(item.text ?? 'chip', { size: LUMO.sizeXs, medium: true, color: c.ink, name: item.text }));
+      f.appendChild(textNode(item.text ?? 'chip', { size: LUMO.sizeXs, medium: true, color: c.ink, name: item.layer ?? item.text }));
       return f;
     }
     case 'fieldbox': {
@@ -120,7 +124,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.resize(item.w ?? 180, Math.max(item.h ?? 32, 32));
       f.primaryAxisSizingMode = 'FIXED';
       f.counterAxisSizingMode = 'FIXED';
-      f.appendChild(textNode(item.text ?? '', { size: LUMO.sizeS, color: LUMO.secondary, name: item.text }));
+      f.appendChild(textNode(item.text ?? '', { size: LUMO.sizeS, color: LUMO.secondary, name: item.layer ?? item.text }));
       if (item.icon) f.appendChild(textNode(item.icon, { size: LUMO.sizeS, color: LUMO.secondary }));
       return f;
     }
@@ -139,7 +143,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.counterAxisSizingMode = 'FIXED';
       f.primaryAxisAlignItems = 'CENTER';
       if (item.hollow) { f.strokes = [solid(LUMO.contrast20)]; f.strokeWeight = 1; }
-      if (item.text) f.appendChild(textNode(item.text, { size: size * 0.55, bold: true, color: '#ffffff' }));
+      if (item.text) f.appendChild(textNode(item.text, { size: size * 0.55, bold: true, color: '#ffffff', name: item.layer ?? item.text }));
       return f;
     }
     case 'bullets': {
@@ -239,20 +243,22 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       const ink = secondary && !item.themeBadge ? LUMO.body : '#ffffff';
       const f = frameNode({ dir: 'HORIZONTAL', pad: 8, bg, radius: item.pill ? 999 : LUMO.radiusM, center: true });
       f.paddingLeft = f.paddingRight = 14;
-      f.appendChild(textNode(item.text ?? 'Botón', { size: LUMO.sizeS, medium: true, color: ink, name: item.text }));
+      f.appendChild(textNode(item.text ?? 'Botón', { size: LUMO.sizeS, medium: true, color: ink, name: item.layer ?? item.text }));
       f.name = 'button';
       return f;
     }
     case 'slot': {
       const f = frameNode({ dir: 'VERTICAL', bg: '#fafafa', radius: LUMO.radiusM, center: true, stroke: LUMO.contrast20 });
       f.resize(item.w ?? 380, item.h ?? 80);
-      f.primaryAxisSizingMode = 'FIXED';
+      // fixed width, but it GROWS with what is dropped into it (never clips the content)
+      f.primaryAxisSizingMode = 'AUTO';
       f.counterAxisSizingMode = 'FIXED';
+      f.minHeight = item.h ?? 80;
       f.primaryAxisAlignItems = 'CENTER';
       f.strokeWeight = 1;
       f.dashPattern = [4, 4];
-      // A named slot is the frame `slot:<name>` the YAML converter (design/figma/to-yaml) fills
-      // from; its placeholder caption is a `#`-named layer, which is never read back as content.
+      // A named slot is the frame `slot:<name>`, made a NATIVE slot by linkSlots (designers drag
+      // instances into it); its caption is a `#`-named layer, never read back as content.
       f.appendChild(textNode(item.label ?? item.name ?? 'contenido', { size: LUMO.sizeXs, color: LUMO.secondary, name: '#placeholder' }));
       f.name = item.name ? `slot:${item.name}` : 'slot';
       return f;
@@ -362,17 +368,162 @@ function buildComponent(entry: Entry, variants: Record<string, string>): Compone
   comp.counterAxisSizingMode = 'AUTO';
   const ctx = { variants };
   for (const item of entry.sketch ?? []) comp.appendChild(renderItem(item, ctx));
-  // non-visual config: a subtle `#config` text layer the importers (../to-yaml, modux) parse (key=value; …)
-  const props = Object.keys(entry.props ?? {});
-  if (props.length > 0) {
-    const cfg = textNode(props.map((p: string) => `${p}=`).join('; '), { size: 9, color: '#b0b0b0', name: '#config' });
-    comp.appendChild(cfg);
-  }
   const variantEntries = Object.entries(variants);
   comp.name = variantEntries.length > 0
     ? variantEntries.map(([k, v]) => `${k}=${v}`).join(', ')
     : entry.name;
   return comp;
+}
+
+// ── component properties & native slots ──────────────────────────────────────
+
+/** What the run did, reported when it ends (and what fell back to the old conventions). */
+const stats = { properties: 0, textBindings: 0, slots: 0, preferred: 0, configFallbacks: 0, slotFallbacks: 0 };
+/** Slots whose preferred values name components that may be built later in the run. */
+const pendingPreferred: { owner: ComponentNode | ComponentSetNode, propertyId: string, slot: SlotPlan }[] = [];
+/** Contract name → the built component (or component set), for preferred values. */
+const built = new Map<string, ComponentNode | ComponentSetNode>();
+
+function findAll(root: BaseNode, test: (n: SceneNode) => boolean): SceneNode[] {
+  const out: SceneNode[] = [];
+  const walk = (n: BaseNode) => {
+    for (const c of (n as ChildrenMixin).children ?? []) {
+      if (test(c)) out.push(c);
+      walk(c);
+    }
+  };
+  walk(root);
+  return out;
+}
+
+/**
+ * Adds the entry's properties and slots to `owner` — the component, or the COMPONENT SET for an
+ * entry with variants (Figma keeps non-variant properties on the set; each variant's layers then
+ * reference the set's property) — and binds the layers of every component in `variants`.
+ */
+function applyPlan(owner: ComponentNode | ComponentSetNode, variants: ComponentNode[], plan: EntryPlan) {
+  const fallback: string[] = [];
+  for (const p of plan.properties) {
+    let id: string;
+    try {
+      id = owner.addComponentProperty(p.name, p.type, p.defaultValue);
+    } catch (e) {
+      if (!p.layer) fallback.push(p.param); // a texts layer is still read off the layer itself
+      continue;
+    }
+    stats.properties++;
+    if (!p.layer) continue;
+    for (const comp of variants) {
+      for (const t of findAll(comp, (n) => n.type === 'TEXT' && n.name === p.layer)) {
+        try {
+          t.componentPropertyReferences = { characters: id };
+          stats.textBindings++;
+        } catch (e) { /* the layer keeps working as a plain text layer */ }
+      }
+    }
+    // the property's default is the layer's own text, so an untouched instance reads unchanged
+    const first = variants.map((c) => findAll(c, (n) => n.type === 'TEXT' && n.name === p.layer)[0]).find(Boolean) as TextNode | undefined;
+    if (first && first.characters !== p.defaultValue) {
+      try { owner.editComponentProperty(id, { defaultValue: first.characters }); } catch (e) { /* keep */ }
+    }
+  }
+  for (const slot of plan.slots) linkSlot(owner, variants, slot);
+  if (fallback.length > 0) {
+    stats.configFallbacks++;
+    for (const comp of variants) {
+      comp.appendChild(textNode(fallback.map((p) => `${p}=`).join('; '), { size: 9, color: '#b0b0b0', name: '#config' }));
+    }
+  }
+}
+
+/**
+ * Makes every variant's `slot:<name>` frame a native slot: one SLOT property on the owner, each
+ * frame linked to it (`componentPropertyReferences.slotContentId`). A component without variants
+ * that refuses the link gets a fresh `createSlot()` node in the frame's place instead. When neither
+ * works the frame stays a plain `slot:<name>` frame — the converters read it either way.
+ */
+function linkSlot(owner: ComponentNode | ComponentSetNode, variants: ComponentNode[], slot: SlotPlan) {
+  const frameName = `slot:${slot.name}`;
+  const options = { description: slot.description, slotSettings: slot.settings };
+  let id: string | null = null;
+  try {
+    id = owner.addComponentProperty(slot.property, 'SLOT', '', options);
+  } catch (e) { id = null; }
+  let linked = 0;
+  for (const comp of variants) {
+    for (const frame of findAll(comp, (n) => n.type === 'FRAME' && n.name === frameName) as FrameNode[]) {
+      if (id) {
+        try {
+          (frame as any).componentPropertyReferences = { slotContentId: id };
+          linked++;
+          continue;
+        } catch (e) { /* try createSlot below */ }
+      }
+      if (owner.type === 'COMPONENT' && replaceWithCreatedSlot(owner, frame, slot, id)) linked++;
+    }
+  }
+  if (linked === 0) {
+    stats.slotFallbacks++;
+    if (id) { try { owner.deleteComponentProperty(id); } catch (e) { /* keep */ } }
+    return;
+  }
+  stats.slots++;
+  const propertyId = id ?? slotPropertyOf(owner, slot.property);
+  if (slot.preferred.length > 0 && propertyId) pendingPreferred.push({ owner, propertyId, slot });
+}
+
+/** `createSlot()` (which also creates its own SLOT property), styled like the frame it replaces. */
+function replaceWithCreatedSlot(comp: ComponentNode, frame: FrameNode, slot: SlotPlan, unusedId: string | null): boolean {
+  try {
+    if (unusedId) { try { comp.deleteComponentProperty(unusedId); } catch (e) { /* keep */ } }
+    const node = comp.createSlot();
+    const parent = frame.parent as (BaseNode & ChildrenMixin);
+    parent.insertChild(parent.children.indexOf(frame), node);
+    node.name = frame.name;
+    node.layoutMode = frame.layoutMode;
+    node.resize(frame.width, frame.height);
+    node.primaryAxisSizingMode = frame.primaryAxisSizingMode;
+    node.counterAxisSizingMode = frame.counterAxisSizingMode;
+    node.minHeight = frame.minHeight;
+    node.primaryAxisAlignItems = frame.primaryAxisAlignItems;
+    node.counterAxisAlignItems = frame.counterAxisAlignItems;
+    node.fills = frame.fills;
+    node.strokes = frame.strokes;
+    node.strokeWeight = frame.strokeWeight;
+    node.dashPattern = frame.dashPattern;
+    node.cornerRadius = frame.cornerRadius;
+    for (const child of [...frame.children]) node.appendChild(child);
+    frame.remove();
+    const ref = ((node as any).componentPropertyReferences ?? {}).slotContentId as string | undefined;
+    if (ref) {
+      comp.editComponentProperty(ref, { name: slot.property, description: slot.description, slotSettings: slot.settings });
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function slotPropertyOf(owner: ComponentNode | ComponentSetNode, name: string): string | null {
+  for (const [key, def] of Object.entries(owner.componentPropertyDefinitions)) {
+    if (def.type === 'SLOT' && key.replace(/#.*$/, '') === name) return key;
+  }
+  return null;
+}
+
+/** Preferred values (Buttons first in a toolbar) once every component of the run exists. */
+function applyPreferredValues() {
+  for (const { owner, propertyId, slot } of pendingPreferred) {
+    const values = slot.preferred
+      .map((name) => built.get(name))
+      .filter((n): n is ComponentNode | ComponentSetNode => !!n)
+      .map((n) => ({ type: n.type, key: n.key } as InstanceSwapPreferredValue));
+    if (values.length === 0) continue;
+    try {
+      owner.editComponentProperty(propertyId, { preferredValues: values });
+      stats.preferred++;
+    } catch (e) { /* the slot still takes anything */ }
+  }
 }
 
 async function buildLibrary() {
@@ -407,6 +558,8 @@ async function buildLibrary() {
         const comp = buildComponent(entry, {});
         comp.x = 0; comp.y = y;
         page.appendChild(comp);
+        applyPlan(comp, [comp], planEntry(entry));
+        built.set(entry.name, comp);
         y += comp.height + 60;
       } else {
         const comps = combos.map(combo => buildComponent(entry, combo));
@@ -419,12 +572,19 @@ async function buildLibrary() {
         set.counterAxisSpacing = 24;
         set.paddingTop = set.paddingBottom = set.paddingLeft = set.paddingRight = 16;
         set.x = 0; set.y = y;
+        applyPlan(set, comps, planEntry(entry));
+        built.set(entry.name, set);
         y += set.height + 60;
       }
     }
   }
+  applyPreferredValues();
 
-  figma.notify(`Mateu library generated: ${(contract as any).components.length} components ✔`);
+  const fallbacks = stats.configFallbacks + stats.slotFallbacks > 0
+    ? ` — fallbacks: ${stats.configFallbacks} #config, ${stats.slotFallbacks} plain slot frames`
+    : '';
+  figma.notify(`Mateu library generated: ${(contract as any).components.length} components, ${stats.properties} properties, ${stats.slots} native slots ✔${fallbacks}`, { timeout: 10000 });
+  console.log('Mateu library generator', JSON.stringify(stats));
   figma.closePlugin();
 }
 

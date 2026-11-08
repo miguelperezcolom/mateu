@@ -1,5 +1,5 @@
 {
-  "$comment": "Mateu <-> Figma design contract. SINGLE SOURCE OF TRUTH for the design-to-code pipeline: the Figma plugin (design/figma/plugin) BUILDS the component library from this file; design/figma/to-yaml reads a Figma file (REST JSON) BACK through it and writes specs/ui YAML; modux's Figma importer maps instances to its own model for Java/C#/Python. Conventions: component names are 'Mateu/<Category>/<Name>'; 'variants' become Figma VARIANT axes (visual), 'props' are non-visual config written in the '#config' text layer (key=value; ...), 'texts' name the text layers whose content is a designer override that maps to the given param. 'yaml' is the YAML mapping (see yamlConventions.yaml); 'yamlNotDrawn' lists the YAML component types with no Figma counterpart, and why. 'sketch' is the compact draw spec the plugin renders (primitives: title, label, value, text, chip, fieldbox, hr, dot, bullets, bar, stepper, row, col, table, imagebox, button, tile, listrow, slot — a slot with a name is drawn as the frame 'slot:<name>').",
+  "$comment": "Mateu <-> Figma design contract. SINGLE SOURCE OF TRUTH for the design-to-code pipeline: the Figma plugin (design/figma/plugin) BUILDS the component library from this file; design/figma/to-yaml reads a Figma file (REST JSON) BACK through it and writes specs/ui YAML; modux's Figma importer maps instances to its own model for Java/C#/Python. Conventions: component names are 'Mateu/<Category>/<Name>'; 'variants' become Figma VARIANT axes (visual), 'props' are non-visual config the plugin makes COMPONENT PROPERTIES (TEXT or BOOLEAN, edited in Figma's properties panel; the old '#config' text layer, key=value; ..., is only a fallback and still read), 'texts' name the text layers whose content is a designer override that maps to the given param (each one a TEXT property bound to the layer). 'yaml' is the YAML mapping (see yamlConventions.yaml); 'yamlNotDrawn' lists the YAML component types with no Figma counterpart, and why. 'sketch' is the compact draw spec the plugin renders (primitives: title, label, value, text, chip, fieldbox, hr, dot, bullets, bar, stepper, row, col, table, imagebox, button, tile, listrow, slot — a slot with a name is drawn as the frame 'slot:<name>' and made a NATIVE Figma slot, so library instances are dragged into it; a primitive may name its text layer apart from its drawn text with 'layer'). See yamlConventions.slots/properties for how both are read back.",
   "version": 2,
   "namePrefix": "Mateu/",
   "lumo": {
@@ -4283,6 +4283,7 @@
         {
           "t": "dot",
           "text": "+",
+          "layer": "Icon",
           "size": 40,
           "color": "primary"
         }
@@ -4580,6 +4581,7 @@
             {
               "t": "fieldbox",
               "text": "Value ▾",
+              "layer": "Value",
               "w": 120
             }
           ]
@@ -6468,10 +6470,12 @@
   },
   "yamlConventions": {
     "page": "Every top-level frame of a page (Figma pages whose name starts with \"Mateu ·\" are the library and skipped; frames whose name starts with \"_\" are skipped) becomes one specs/ui file, named after the frame (slugified). A frame that is (or holds) an instance of a Mateu/Page Templates/<FormTemplate> component becomes a `type: Form` with that `template:`; any other frame is a FREE page (`type: Form`, its children = `content`). A top-level instance of Mateu/Shell/App becomes a `type: AppShell` file.",
-    "slots": "A slot is a frame named `slot:<name>`; its children fill it. Inside an instance (Figma slots, or a detached copy) or as a SIBLING of the page-template instance in the screen frame — siblings that are not slots go to `content`. The page toolbar is the `slot:toolbar` (Button instances, the primary first).",
-    "texts": "An entry's `texts` name the text layers read back; a layer whose content is still its own name (an unedited placeholder) is not read.",
-    "sections": "Figma cannot drop layers into an instance, so a Mateu/Layout/Section whose `slot:content` is left empty takes the layers that FOLLOW it in the same parent, up to the next Section (the @Section reading of a design). Other containers keep their siblings.",
-    "config": "The `#config` text layer holds `key=value; key2=value2` for the entry's `props`; empty values are not read.",
+    "slots": "Every NAMED `slot` of a sketch is a NATIVE Figma slot: the frame `slot:<name>` linked to a SLOT component property named `slot:<name>`, so designers drag library instances into it (a `toolbar`/`buttons` slot offers the Button first). Its children fill it, read from a child of type SLOT (named after its frame, else after the SLOT property it references, `componentPropertyReferences.slotContentId`) or from a frame named `slot:<name>` (a detached copy, an older library). A `slot:<name>` frame can also be a SIBLING of the page-template instance in the screen frame — siblings that are not slots go to `content`. The page toolbar is the `toolbar` slot (Button instances, the primary first). Unnamed slots are illustration, never read.",
+    "properties": "An entry's `props` are component properties (TEXT, or BOOLEAN as the contract types them) named as the param, set in Figma's properties panel; each `texts` layer is a TEXT property bound to the layer's characters, named as its param when unambiguous, else as the layer (`Title1`). An instance's `componentProperties` (keys `<name>#<id>`) are read FIRST: they win over `#config` and the text layers, so a property bound to a layer is one value. Empty values, BOOLEAN false and a text still showing its placeholder are not read; a property that is no param of the entry is a warning.",
+    "texts": "An entry's `texts` name the text layers read back (a sketch primitive may name its layer apart from its drawn text with `layer`); a layer whose content is still its placeholder (its own name, or that drawn text) is not read.",
+    "sections": "FALLBACK for instances placed with a library older than native slots (which take no new layers): a Mateu/Layout/Section whose `content` slot is left empty takes the layers that FOLLOW it in the same parent, up to the next Section (the @Section reading of a design). The library's `#placeholder` caption does not count as content. Other containers keep their siblings.",
+    "config": "FALLBACK (older libraries, or a prop Figma refused as a property): the `#config` text layer holds `key=value; key2=value2` for the entry's `props`; empty values are not read.",
+    "unknown": "A layer of a type with no Mateu reading (not a frame, text, slot, instance or plain shape) is reported as a warning, never dropped silently.",
     "variants": "An instance's VARIANT properties map to the params of the same name; a boolean `false` and a value listed in `yaml.defaults` are omitted.",
     "hidden": "Hidden layers and layers whose name starts with \"#\" are never content.",
     "frames": "A plain frame (not an instance) inside a page or slot is a layout: HorizontalLayout when its auto-layout is horizontal, else VerticalLayout — or the layout its name says (FormLayout, HorizontalLayout, VerticalLayout). A plain text layer is a Text (h2 from 24px, h3 from 18px).",
