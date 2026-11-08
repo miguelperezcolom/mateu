@@ -156,10 +156,13 @@ public final class AppMapper {
 
   private static FabDto toFabDto(Method method) {
     var ann = MetaAnnotations.find(method, Fab.class);
+    // the FAB's own label first (it was ignored), then @Label, then the method name
     var label =
-        MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Label.class)
-            ? MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class).value()
-            : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
+        !ann.label().isBlank()
+            ? ann.label()
+            : MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Label.class)
+                ? MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class).value()
+                : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
     return FabDto.builder()
         .id(method.getName())
         .label(label)

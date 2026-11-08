@@ -285,7 +285,8 @@ final class PageButtonsBuilder {
                       : io.mateu.uidl.data.ButtonStyle.primary;
               return Button.builder()
                   .actionId(method.getName())
-                  .label(getLabelForMethod(method))
+                  // the FAB's own label first (it was ignored), then @Label, then the method
+                  .label(ann.label().isBlank() ? getLabelForMethod(method) : ann.label())
                   .iconOnLeft(ann.icon())
                   .buttonStyle(buttonStyle)
                   .build();
