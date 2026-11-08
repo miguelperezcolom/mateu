@@ -110,8 +110,45 @@ internal sealed class RestSourceRegistry : ISpecsCache
     /// description), the request nested under <c>source:</c> as in Java.</summary>
     public static RestSourceCatalog AuthoredFrom(string dir)
     {
-        var path = Path.Combine(dir, FileName);
-        if (!File.Exists(path)) return RestSourceCatalog.Empty;
+        // sources.yaml AND every other YAML under the specs directory declaring `type: Sources`, like
+        // the other authored kinds (Java RestSourceRegistry.authoredFrom); names are global, so the
+        // same name in two files is an error naming both
+        if (!Directory.Exists(dir)) return RestSourceCatalog.Empty;
+        var files = new List<string>();
+        var conventional = Path.Combine(dir, FileName);
+        if (File.Exists(conventional)) files.Add(conventional);
+        foreach (var candidate in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
+                     .Where(p => p.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase)
+                                 || p.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+                     .Where(p => Path.GetFullPath(p) != Path.GetFullPath(conventional))
+                     .OrderBy(p => p, StringComparer.Ordinal))
+        {
+            object? head;
+            try { head = Yaml.Read<object?>(File.ReadAllText(candidate)); }
+            catch { continue; }
+            if (head is IDictionary<object, object> m && m.TryGetValue("type", out var t) && "Sources".Equals(t as string))
+                files.Add(candidate);
+        }
+        var entries = new List<RestSourceEntry>();
+        var fileOf = new Dictionary<string, string>();
+        foreach (var file in files)
+        foreach (var entry in ReadFile(dir, file).Sources)
+        {
+            if (fileOf.TryGetValue(entry.Name, out var previous))
+            {
+                var message = $"REST source '{entry.Name}' is declared twice: in {Path.GetRelativePath(dir, previous)} and in "
+                              + $"{Path.GetRelativePath(dir, file)}. Source names are global — rename one or remove the duplicate.";
+                MateuLogging.For("Mateu.RestSources").LogError("{Message}", message);
+                throw new InvalidOperationException(message);
+            }
+            fileOf[entry.Name] = file;
+            entries.Add(entry);
+        }
+        return new RestSourceCatalog(entries);
+    }
+
+    private static RestSourceCatalog ReadFile(string dir, string path)
+    {
         try
         {
             var root = Yaml.Read<object?>(File.ReadAllText(path));

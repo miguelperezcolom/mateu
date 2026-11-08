@@ -101,7 +101,41 @@ class RestSourceRegistry:
         return list(by_name.values())
 
     def authored(self) -> list[RestSourceEntry]:
-        path = self._file or (self._dir / FILE)
+        """``sources.yaml`` AND every other YAML under the specs directory declaring ``type:
+        Sources`` (Java ``RestSourceRegistry.authoredFrom``), like the other authored kinds. Names
+        are global: the same name in two files is an error naming both."""
+        if self._file is not None:
+            return self._read(self._file, self._file.parent)
+        conventional = self._dir / FILE
+        files = [conventional] if conventional.is_file() else []
+        if self._dir.is_dir():
+            for path in sorted(p for p in self._dir.rglob("*") if p.suffix in (".yaml", ".yml")):
+                if conventional.is_file() and path.resolve() == conventional.resolve():
+                    continue
+                try:
+                    head = yaml.safe_load(path.read_text(encoding="utf-8"))
+                except Exception:  # noqa: BLE001 - not this file kind
+                    continue
+                if isinstance(head, dict) and head.get("type") == "Sources":
+                    files.append(path)
+        out: list[RestSourceEntry] = []
+        file_of: dict[str, Path] = {}
+        for path in files:
+            for entry in self._read(path, self._dir):
+                if entry.name in file_of:
+                    message = (
+                        f"REST source '{entry.name}' is declared twice: in"
+                        f" {file_of[entry.name].relative_to(self._dir)} and in"
+                        f" {path.relative_to(self._dir)}. Source names are global — rename one or"
+                        " remove the duplicate."
+                    )
+                    log.error(message)
+                    raise ValueError(message)
+                file_of[entry.name] = path
+                out.append(entry)
+        return out
+
+    def _read(self, path: Path, specs_dir: Path) -> list[RestSourceEntry]:
         if not path.is_file():
             return []
         try:
@@ -114,7 +148,7 @@ class RestSourceRegistry:
             return []
         out = []
         for node in nodes:
-            entry = entry_of(node, path, path.parent)
+            entry = entry_of(node, path, specs_dir)
             if entry is not None:
                 out.append(entry)
         return out
