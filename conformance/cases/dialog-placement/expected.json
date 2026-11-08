@@ -1,0 +1,29 @@
+{
+  "fragments" : [ {
+    "action" : "Add",
+    "component" : {
+      "metadata" : {
+        "closeButtonOnHeader" : true,
+        "content" : {
+          "metadata" : {
+            "container" : "div",
+            "text" : "Free text",
+            "type" : "Text"
+          },
+          "type" : "ClientSide"
+        },
+        "draggable" : true,
+        "headerTitle" : "Notes",
+        "height" : "20rem",
+        "left" : "2rem",
+        "modeless" : true,
+        "resizable" : true,
+        "top" : "4rem",
+        "type" : "Dialog",
+        "width" : "30rem"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
