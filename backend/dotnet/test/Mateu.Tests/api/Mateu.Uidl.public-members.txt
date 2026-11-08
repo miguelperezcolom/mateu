@@ -1104,6 +1104,7 @@ Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Ma
 Mateu.Uidl.ListingComponent property System.Int32 PageSize { get;init; }
 Mateu.Uidl.ListingComponent property System.String EmptyStateMessage { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridLayout { get;init; }
+Mateu.Uidl.ListingComponent property System.String RowRoute { get;init; }
 Mateu.Uidl.ListingComponent property System.String Subtitle { get;init; }
 Mateu.Uidl.ListingComponent property System.String Title { get;init; }
 Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> From<TRow>(System.Collections.Generic.IEnumerable<TRow>)
