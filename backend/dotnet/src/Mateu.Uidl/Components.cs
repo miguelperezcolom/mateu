@@ -1393,6 +1393,26 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     /// <summary>The time budget of a server resolution, in ms (null = the remote's, else the
     /// default). EXPERIMENTAL.</summary>
     public int? TimeoutMs { get; init; }
+
+    /// <summary>Set, the micro frontend is EMBEDDED: a block of this page, not a page of its own —
+    /// its answers never name the window (title, favicon, history) and its header is drawn per the
+    /// chrome (<see cref="EmbeddedChrome.None"/> no page header, <see cref="EmbeddedChrome.Compact"/>
+    /// actions only, <see cref="EmbeddedChrome.Page"/> no breadcrumb). Null (the default) = a
+    /// top-level page, unchanged. EXPERIMENTAL. (Mirrors io.mateu.uidl.data.MicroFrontend.chrome.)</summary>
+    public EmbeddedChrome? Chrome { get; init; }
+}
+
+/// <summary>How an EMBEDDED <see cref="MicroFrontend"/> draws its page chrome (travels upper case:
+/// <c>NONE</c> | <c>COMPACT</c> | <c>PAGE</c>). EXPERIMENTAL. (C# analogue of
+/// io.mateu.uidl.data.EmbeddedChrome.)</summary>
+public enum EmbeddedChrome
+{
+    /// <summary>No page header at all.</summary>
+    None,
+    /// <summary>The header's actions only.</summary>
+    Compact,
+    /// <summary>The page header without its breadcrumb.</summary>
+    Page,
 }
 
 // ── Popover ────────────────────────────────────────────────────────────────────

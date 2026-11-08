@@ -195,6 +195,8 @@ public static class MateuExtensions
             ctx.Response.Headers.CacheControl = "no-cache";
             async Task Send(UIIncrementDto increment, CancellationToken token)
             {
+                // an embedded micro frontend's stream steps never name the window either
+                increment = EmbeddedWindowCommands.Strip(increment, rq);
                 await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
                 await ctx.Response.Body.FlushAsync(token);
             }

@@ -100,6 +100,7 @@ Mateu.Uidl.DrawerPosition
 Mateu.Uidl.DrawerSize
 Mateu.Uidl.DropZone
 Mateu.Uidl.Element
+Mateu.Uidl.EmbeddedChrome
 Mateu.Uidl.EmbeddedView
 Mateu.Uidl.Emit
 Mateu.Uidl.EmitsAttribute

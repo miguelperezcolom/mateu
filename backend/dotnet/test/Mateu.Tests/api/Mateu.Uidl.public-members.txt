@@ -546,6 +546,9 @@ Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<Syste
 Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> On { get;init; }
 Mateu.Uidl.Element property System.String Content { get;init; }
 Mateu.Uidl.Element property System.String Name { get;init; }
+Mateu.Uidl.EmbeddedChrome enum Compact
+Mateu.Uidl.EmbeddedChrome enum None
+Mateu.Uidl.EmbeddedChrome enum Page
 Mateu.Uidl.EmbeddedView ctor(System.Object)
 Mateu.Uidl.EmbeddedView property System.Object View { get;init; }
 Mateu.Uidl.Emit ctor(System.String, System.Object = null)
@@ -1252,6 +1255,7 @@ Mateu.Uidl.MetricTrend enum Down
 Mateu.Uidl.MetricTrend enum Neutral
 Mateu.Uidl.MetricTrend enum Up
 Mateu.Uidl.MicroFrontend ctor(System.String, System.String = "")
+Mateu.Uidl.MicroFrontend property Mateu.Uidl.EmbeddedChrome? Chrome { get;init; }
 Mateu.Uidl.MicroFrontend property Mateu.Uidl.Resolve Resolve { get;init; }
 Mateu.Uidl.MicroFrontend property System.Int32? TimeoutMs { get;init; }
 Mateu.Uidl.MicroFrontend property System.Object AppState { get;init; }

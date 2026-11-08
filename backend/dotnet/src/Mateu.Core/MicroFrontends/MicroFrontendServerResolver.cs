@@ -355,6 +355,8 @@ internal sealed class MicroFrontendServerResolver(
         AppState = AppStateOf(mf.AppState),
         ComponentState = new(),
         InitiatorComponentId = MicroFrontendIds.Of(mf),
+        // an embedded block asks as one: the remote answers without window commands
+        EmbeddedChrome = string.IsNullOrWhiteSpace(mf.Chrome) ? null : mf.Chrome,
     };
 
     private static Dictionary<string, object?> AppStateOf(object? value)

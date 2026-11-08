@@ -81,9 +81,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
-        return pending.Value
+        // — and an EMBEDDED micro frontend's answer never names the window (EmbeddedWindowCommands)
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? await ResolveMicroFrontendsAsync(increment, cancellationToken).ConfigureAwait(false)
-            : increment;
+            : increment, rq);
     }
 
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
@@ -99,9 +100,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     {
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
-        return pending.Value
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
-            : increment;
+            : increment, rq);
     }
 
     private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>

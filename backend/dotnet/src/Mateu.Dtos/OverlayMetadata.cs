@@ -56,6 +56,12 @@ public record MicroFrontendMetadataDto(string BaseUrl, string Route) : Component
     /// <summary>Server-only: how the host resolves it (never serialized).</summary>
     [JsonIgnore]
     public ServerResolutionDto? Server { get; init; }
+
+    /// <summary><c>NONE</c> | <c>COMPACT</c> | <c>PAGE</c> when it is EMBEDDED in this page (a block,
+    /// not a page: its answers carry no window commands); omitted for a top-level one, whose JSON is
+    /// unchanged. EXPERIMENTAL. (Mirrors io.mateu.dtos.MicroFrontendDto.chrome.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Chrome { get; init; }
 }
 
 /// <summary>Server-only resolution info of a micro frontend / content slot (never on the wire):
