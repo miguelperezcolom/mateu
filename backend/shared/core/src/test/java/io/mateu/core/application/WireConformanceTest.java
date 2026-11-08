@@ -572,6 +572,194 @@ class WireConformanceTest {
     }
   }
 
+  public static class Profile {
+    @NotEmpty public String name = "Ada";
+    public String city = "London";
+  }
+
+  /**
+   * An editable view: a read page with an Edit button that flips to the editor and back. Java's
+   * first load is a mediator, so the cases pin its two content loads (view and edit).
+   */
+  @UI("/conformance/editable-view")
+  @Title("Profile")
+  public static class ProfileView
+      extends io.mateu.core.infra.declarative.orchestrators.editableview.AutoEditableView<Profile> {
+    @Override
+    public Profile load(HttpRequest httpRequest) {
+      return new Profile();
+    }
+
+    @Override
+    public void persist(Profile entity, HttpRequest httpRequest) {}
+  }
+
+  /** A CRUD whose record view page leads its toolbar with a method of the crud. */
+  @UI("/conformance/view-toolbar-button")
+  @Title("Products")
+  public static class ProductsWithViewButton
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+
+    @io.mateu.uidl.annotations.ViewToolbarButton(confirmationRequired = true)
+    public Message discontinue(Product product) {
+      return Message.success("Discontinued");
+    }
+  }
+
+  /**
+   * The {@code @Action} knobs the ports gained for 3.0 GA: a streamed background action, a
+   * confirmation with its texts, a link, a client script and a custom event — each on the page's
+   * {@code actions}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/action-extras")
+  @Title("Action extras")
+  public static class ActionExtrasPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action(sse = true, background = true)
+    public Message stream() {
+      return Message.success("Done");
+    }
+
+    @io.mateu.uidl.annotations.Action(
+        confirmationRequired = true,
+        confirmationTitle = "Delete?",
+        confirmationMessage = "It cannot be undone",
+        confirmationText = "Delete",
+        confirmationDenialText = "Keep")
+    public Message remove() {
+      return Message.success("Deleted");
+    }
+
+    @io.mateu.uidl.annotations.Action(href = "https://mateu.io")
+    public void openDocs() {}
+
+    @io.mateu.uidl.annotations.Action(js = "console.log('hi')")
+    public void runScript() {}
+
+    @io.mateu.uidl.annotations.Action(customEventName = "order-picked")
+    public void pick() {}
+  }
+
+  /** An app shell's presentation knobs: a split content area, an accent, the Ask button's brand. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-branding")
+  @Title("Branded app")
+  @io.mateu.uidl.annotations.App(
+      layout = io.mateu.uidl.fluent.AppLayout.SPLIT,
+      accentColor = "#00796b",
+      askLabel = "Ask Mateu",
+      askIcon = "vaadin:question")
+  public static class BrandedApp {
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+  }
+
+  /**
+   * Section options: the first section pinned while the page scrolls, the second forced to one
+   * column (the form infers two from its eight fields) with a style on its content.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/section-options")
+  @Title("Section options")
+  public static class SectionOptionsForm {
+    @io.mateu.uidl.annotations.Section(value = "Guests", sticky = true)
+    public String lead;
+
+    public String second;
+    public String third;
+    public String fourth;
+
+    @io.mateu.uidl.annotations.Section(value = "Notes", columns = 1, style = "gap: 0;")
+    public String first;
+
+    public String other;
+    public String more;
+    public String last;
+  }
+
+  public record Employee(
+      String id,
+      @io.mateu.uidl.annotations.MainFilter String name,
+      @io.mateu.uidl.annotations.HiddenInList String notes,
+      @io.mateu.uidl.annotations.HiddenInView String salaryBand,
+      @io.mateu.uidl.annotations.HiddenInEditor String createdBy,
+      @io.mateu.uidl.annotations.HiddenInCreate String code)
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New employee";
+    }
+  }
+
+  static final List<Employee> EMPLOYEES =
+      List.of(
+          new Employee("E-1", "Ada", "Likes tea", "B2", "admin", "ADA"),
+          new Employee("E-2", "Grace", "Navy", "B3", "admin", "GRC"));
+
+  /**
+   * A crud whose entity hides fields per surface ({@code @HiddenInList/View/Editor/Create}) and
+   * names its main filter: the listing, and the edit and new forms.
+   */
+  @UI("/conformance/crud-hidden-in")
+  @Title("Employees")
+  public static class EmployeesCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Employee> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Employee> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<Employee> findById(String id) {
+          return EMPLOYEES.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Employee entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<Employee> findAll() {
+          return EMPLOYEES;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  /**
+   * An action that opens a placed dialog: draggable, resizable, at a given top/left, with its size
+   * — the members the ports never set before 3.0 GA.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/dialog-placement")
+  @Title("Dialog placement")
+  public static class DialogPlacementPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object openNotes() {
+      return io.mateu.uidl.data.Dialog.builder()
+          .headerTitle("Notes")
+          .content(new io.mateu.uidl.data.Text("Free text"))
+          .top("4rem")
+          .left("2rem")
+          .draggable(true)
+          .resizable(true)
+          .width("30rem")
+          .height("20rem")
+          .modeless(true)
+          .closeButtonOnHeader(true)
+          .build();
+    }
+  }
+
   /**
    * A class-level {@code @AutoSave}: every change runs the named action after the debounce — an
    * {@code AutoSave} trigger with its action id and debounce, and the action advertised (the client
@@ -588,6 +776,138 @@ class WireConformanceTest {
     @io.mateu.uidl.annotations.Action
     public Message persist() {
       return Message.success("Saved");
+    }
+  }
+
+  /**
+   * The last wire component types the ports lacked (3.0 GA parity): layouts (BoardLayout,
+   * CarouselLayout, Container, FullWidth, Scroller, FormItem, FormSubSection, MasterDetailLayout),
+   * navigation (ContextMenu, Directory, MenuBar), the fluent Grid with a column group, the chat and
+   * message pieces, a not-found page, a virtual list, the cookie banner and the two editors. Pins
+   * their member names and where their parts travel.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/more-components")
+  @Title("More components")
+  public static class MoreComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      var t = (java.util.function.Function<String, Component>) io.mateu.uidl.data.Text::new;
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.BoardLayout(
+              "board",
+              List.of(
+                  new io.mateu.uidl.data.BoardLayoutRow(
+                      List.of(
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Sales"), null, null, 2),
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Stock"), null, null, 1)),
+                      null,
+                      null)),
+              null,
+              null),
+          io.mateu.uidl.data.CarouselLayout.builder()
+              .id("carousel")
+              .content(List.of(t.apply("Slide 1"), t.apply("Slide 2")))
+              .auto(true)
+              .duration(4000)
+              .dots(true)
+              .loop(true)
+              .build(),
+          new io.mateu.uidl.data.Container(t.apply("Contained"), null, null),
+          new io.mateu.uidl.data.FullWidth(t.apply("Wide"), null, null),
+          new io.mateu.uidl.data.Scroller(t.apply("Scrolled"), "height: 10rem", null),
+          new io.mateu.uidl.data.FormItem("item", List.of(t.apply("Field")), null, null),
+          new io.mateu.uidl.data.FormSubSection("Address", List.of(t.apply("Street")), null, null),
+          new io.mateu.uidl.data.MasterDetailLayout(
+              "md",
+              t.apply("Master"),
+              t.apply("Detail"),
+              io.mateu.uidl.data.Orientation.horizontal,
+              null,
+              null,
+              null),
+          io.mateu.uidl.data.ContextMenu.builder()
+              .menu(List.of(new io.mateu.uidl.data.RouteLink("/orders", "Orders")))
+              .wrapped(t.apply("Right click me"))
+              .activateOnLeftClick(true)
+              .build(),
+          new io.mateu.uidl.data.Directory(
+              List.of(
+                  new io.mateu.uidl.data.Menu(
+                      "/sales",
+                      "Sales",
+                      List.of(new io.mateu.uidl.data.RouteLink("/sales/orders", "Orders")))),
+              null,
+              null),
+          io.mateu.uidl.fluent.MenuBar.builder()
+              .option(new io.mateu.uidl.data.RouteLink("/home", "Home"))
+              .option(new io.mateu.uidl.data.RouteLink("/help", "Help"))
+              .build(),
+          io.mateu.uidl.data.Grid.builder()
+              .id("grid")
+              .content(
+                  List.of(
+                      io.mateu.uidl.data.GridColumn.builder()
+                          .id("name")
+                          .label("Name")
+                          .dataType(io.mateu.uidl.data.FieldDataType.string)
+                          .build(),
+                      new io.mateu.uidl.data.GridGroupColumn(
+                          "occupancy",
+                          "Occupancy",
+                          null,
+                          null,
+                          List.of(
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("adults")
+                                  .label("Adults")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build(),
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("children")
+                                  .label("Children")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build()))))
+              .page(
+                  new io.mateu.uidl.data.Page<>(
+                      "",
+                      10,
+                      0,
+                      1,
+                      List.of(java.util.Map.of("name", "Ada", "adults", 2, "children", 1))))
+              .rowStripes(true)
+              .build(),
+          new io.mateu.uidl.data.Chat("/chat/sse", null, null, null),
+          new io.mateu.uidl.data.MessageList(
+              "messages",
+              List.of(new io.mateu.uidl.data.MessageListItem("Hello", "Ada")),
+              null,
+              null),
+          new io.mateu.uidl.data.MessageInput("input", "send", null, null),
+          io.mateu.uidl.data.NotFound.builder()
+              .title("Not here")
+              .message("That page does not exist")
+              .backRoute("/")
+              .backLabel("Home")
+              .build(),
+          new io.mateu.uidl.data.VirtualList(
+              new io.mateu.uidl.data.Page<>(
+                  "", 10, 0, 2, List.of(t.apply("Row 1"), t.apply("Row 2"))),
+              null,
+              null),
+          io.mateu.uidl.data.CookieConsent.builder()
+              .message("We use cookies")
+              .dismiss("OK")
+              .position(io.mateu.uidl.data.CookieConsentPosition.Bottom)
+              .build(),
+          new io.mateu.uidl.data.FormEditor("{}", null, null),
+          new io.mateu.uidl.data.Workflow("<bpmn/>", null, null));
     }
   }
 
@@ -1245,6 +1565,12 @@ class WireConformanceTest {
           java.util.Map.entry("crud-search", ProductsCrud.class),
           java.util.Map.entry("action-effects", ActionEffectsPage.class),
           java.util.Map.entry("drawer", DrawerPage.class),
+          java.util.Map.entry("dialog-placement", DialogPlacementPage.class),
+          java.util.Map.entry("crud-hidden-in-edit", EmployeesCrud.class),
+          java.util.Map.entry("crud-hidden-in-new", EmployeesCrud.class),
+          java.util.Map.entry("editable-view", ProfileView.class),
+          java.util.Map.entry("editable-view-edit", ProfileView.class),
+          java.util.Map.entry("view-toolbar-button", ProductsWithViewButton.class),
           java.util.Map.entry("rejected-save", RejectedSaveForm.class),
           java.util.Map.entry("error-boundary", FailingActionPage.class),
           java.util.Map.entry("wizard-step-2", SignUpWizard.class),
@@ -1307,7 +1633,18 @@ class WireConformanceTest {
           "field-hints",
           "page-toolbar",
           "form-columns",
-          "auto-save");
+          "more-components",
+          "auto-save",
+          "dialog-placement",
+          "action-extras",
+          "app-branding",
+          "section-options",
+          "crud-hidden-in",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   static TestMateu mateu;
 
@@ -1363,7 +1700,15 @@ class WireConformanceTest {
             FieldHintsPage.class,
             PageToolbarForm.class,
             FormColumnsForm.class,
-            AutoSaveForm.class);
+            MoreComponentsPage.class,
+            AutoSaveForm.class,
+            DialogPlacementPage.class,
+            ActionExtrasPage.class,
+            BrandedApp.class,
+            SectionOptionsForm.class,
+            EmployeesCrud.class,
+            ProfileView.class,
+            ProductsWithViewButton.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1517,7 +1862,8 @@ class WireConformanceTest {
       java.util.Map.of(
           "crud", ProductsCrud.class,
           "crud-grouped", SalesCrud.class,
-          "listing-navigable", NavigableBooks.class);
+          "listing-navigable", NavigableBooks.class,
+          "crud-hidden-in", EmployeesCrud.class);
 
   /**
    * Cases loaded by a plain sync whose component is a mediator all the same: the wizard advertises
@@ -1526,7 +1872,17 @@ class WireConformanceTest {
    * every side, exactly as for {@link #MEDIATED}; everything the wizard draws is pinned.
    */
   private static final Set<String> MEDIATOR_PROTOCOL_ONLY =
-      Set.of("wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view");
+      Set.of(
+          "wizard",
+          "wizard-step-2",
+          "crud-new",
+          "crud-edit",
+          "crud-view",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   private static JsonNode actual(String route) {
     var requested = REQUESTED.get(route);
@@ -1587,7 +1943,16 @@ class WireConformanceTest {
    * answers on is the mediator protocol; everything the form draws is pinned. Identical in the
    * three runners.
    */
-  static final Set<String> MEDIATED_FORMS = Set.of("crud-new", "crud-edit", "crud-view");
+  static final Set<String> MEDIATED_FORMS =
+      Set.of(
+          "crud-new",
+          "crud-edit",
+          "crud-view",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   static JsonNode withoutMediatedRoute(JsonNode increment) {
     for (var fragment : increment.path("fragments")) {
