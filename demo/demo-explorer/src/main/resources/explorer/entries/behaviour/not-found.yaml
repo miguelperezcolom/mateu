@@ -1,0 +1,14 @@
+id: not-found
+area: behaviour
+group: navigation
+title: Not-found pages
+covers: [behaviour:not-found]
+description: |
+  A route nothing answers draws Mateu's not-found page inside the app shell — the menu stays, so the
+  user can go on — with no code of yours. The same page is available as a component (`NotFound`)
+  for a record that does not exist; a declared route the caller may not open answers 403, not 404.
+
+  Try it: the frame opens `/x/behaviour/not-found/no-such-room`; use its menu to go anywhere else.
+examples:
+  - title: A route that does not exist
+    java: io.mateu.explorer.examples.behaviour.notfound.MissingPagePreview

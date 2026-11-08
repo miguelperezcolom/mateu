@@ -1,0 +1,19 @@
+id: unsaved-changes
+area: behaviour
+group: forms
+title: Unsaved-changes guard
+covers: [behaviour:unsaved-changes]
+description: |
+  `@ConfirmOnNavigationIfDirty` asks before leaving a form with unsaved edits — whatever the way out:
+  a menu click, browser back/forward, reload or closing the tab. An action settles it with
+  `UICommand.markAsClean()` (after a save) or raises it with `UICommand.markAsDirty()`. CRUD
+  create/edit views opt in by themselves.
+
+  Try it: change **Name**, then click another entry in the menu — you are asked first. Press
+  **Save** and leave again: no question.
+examples:
+  - title: A profile editor
+    java: io.mateu.explorer.examples.behaviour.unsavedchanges.ProfileEditor
+code:
+  - {label: "C#", path: src/main/ports/behaviour/unsaved-changes/ProfileEditor.cs}
+  - {label: Python, path: src/main/ports/behaviour/unsaved-changes/profile_editor.py}

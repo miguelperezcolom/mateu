@@ -1,0 +1,15 @@
+id: stereotype-ranges
+area: behaviour
+group: forms
+title: Ranges (date & number)
+covers: [behaviour:stereotype-ranges]
+description: |
+  A range is a **filter**: in a listing's filters record, a `DateRange` field renders a from–to date
+  picker, a `NumberRange` a min–max pair and a `Set` of an enum a multi-select. `search` receives
+  them typed, with `contains(…)` helpers; the bounds travel as `<field>_from` / `<field>_to`.
+
+  Try it: click the filter bar, choose **Price**, enter `100` to `200` and apply — only *Palm
+  Resort*, *Harbour View* and *Mountain Lodge* stay; remove the chip to get them all back.
+examples:
+  - title: Find a hotel
+    java: io.mateu.explorer.examples.behaviour.stereotyperanges.HotelFinder

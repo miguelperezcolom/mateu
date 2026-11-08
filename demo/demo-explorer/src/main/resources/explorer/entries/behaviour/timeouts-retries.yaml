@@ -1,0 +1,20 @@
+id: timeouts-retries
+area: behaviour
+group: actions
+title: Timeouts & idempotent retries
+covers: [behaviour:timeouts-retries]
+description: |
+  `@Action(timeoutMillis = …)` is how long the browser waits before giving up (60 s by default) —
+  a type-ahead wants seconds, an export minutes. `@Action(idempotent = true)` says a repeat cannot
+  apply the change twice, so after a transient failure (a timeout, a 5xx) the client retries it by
+  itself, at most twice with back-off. Reads are retried anyway; a write never is unless declared.
+  While a call is in flight its button is marked busy and cannot be sent twice.
+
+  Try it: press **Slow check** — after 1.5 s a plain-language error with **Retry** appears. Press
+  **Flaky check** — the first call times out, the client retries and the toast answers *call #2*.
+examples:
+  - title: Availability checks
+    java: io.mateu.explorer.examples.behaviour.timeoutsretries.AvailabilityCheck
+code:
+  - {label: "C#", path: src/main/ports/behaviour/timeouts-retries/AvailabilityCheck.cs}
+  - {label: Python, path: src/main/ports/behaviour/timeouts-retries/availability_check.py}

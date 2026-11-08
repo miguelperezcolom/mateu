@@ -1,0 +1,19 @@
+id: home-routes
+area: behaviour
+group: navigation
+title: Home routes
+covers: [behaviour:home-routes]
+description: |
+  An app opens on its **home**. A `HomeRouteSupplier` on the `@UI` class names it; a YAML mount
+  says `home: <route>`; with neither, the home is the **first navigable menu leaf** (and the mount
+  root of a shell-less YAML mount becomes a copy of its home route).
+
+  Try it: the first frame (no home declared) opens on *Rooms*; the second, whose app returns
+  `"guests"`, opens on *Guests* although it is the second entry.
+examples:
+  - title: Default vs declared home
+    java: io.mateu.explorer.examples.behaviour.homeroutes.HomePreviews
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/homeroutes/ConciergeApp.java}
+  - {label: "C#", path: src/main/ports/behaviour/home-routes/ConciergeApp.cs}
+  - {label: Python, path: src/main/ports/behaviour/home-routes/concierge_app.py}

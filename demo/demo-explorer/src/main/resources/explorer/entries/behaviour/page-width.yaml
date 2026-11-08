@@ -1,0 +1,33 @@
+id: page-width
+area: behaviour
+group: form-layout
+title: Page width & page types
+covers: [behaviour:page-width, behaviour:page-types]
+description: |
+  `@PageWidth` picks one of the three page resolutions of the Redwood templates: **FIXED** (content
+  up to 1392px, centred), **FULL_WIDTH** (24px margins growing to 96px) and **EDGE_TO_EDGE** (no
+  margins). Without it the width follows the **page type** — `@PageTemplate(PageType.X)`, or the
+  type inferred from the shape: collections and dashboards are full width, forms, processes and
+  landings fixed, full-bleed content (gantt, kanban, map, foldout) edge to edge — but a **form**
+  never bleeds: edge to edge on a form page becomes full width. The page carries `data-page-width`
+  and `data-page-type`.
+
+  Try it: open each page on its own and widen the window — the band keeps 1392px, fills with
+  margins, or touches both edges. The last one declares no width, only its type.
+examples:
+  - title: FIXED
+    route: x/behaviour/page-width/fixed
+  - title: FULL_WIDTH
+    route: x/behaviour/page-width/full
+  - title: EDGE_TO_EDGE
+    route: x/behaviour/page-width/edge
+  - title: "@PageTemplate(COLLECTION), no width declared"
+    route: x/behaviour/page-width/collection
+pages:
+  - {route: x/behaviour/page-width/fixed, viewModel: io.mateu.explorer.examples.behaviour.pagewidth.FixedWidthPage}
+  - {route: x/behaviour/page-width/full, viewModel: io.mateu.explorer.examples.behaviour.pagewidth.FullWidthPage}
+  - {route: x/behaviour/page-width/edge, viewModel: io.mateu.explorer.examples.behaviour.pagewidth.EdgeToEdgePage}
+  - {route: x/behaviour/page-width/collection, viewModel: io.mateu.explorer.examples.behaviour.pagewidth.CollectionTypedPage}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/page-width/FullWidthPage.cs}
+  - {label: Python, path: src/main/ports/behaviour/page-width/full_width_page.py}

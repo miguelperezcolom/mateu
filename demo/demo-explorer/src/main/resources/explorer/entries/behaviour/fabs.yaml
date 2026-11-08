@@ -1,0 +1,24 @@
+id: fabs
+area: behaviour
+group: actions
+title: Floating action buttons
+covers: [behaviour:fabs]
+description: |
+  `@Fab(icon, label, order)` turns a method into a floating action button. On the **app** class it
+  is present on every screen; on a **page** class only while that page shows. They stack
+  bottom-right (page FABs beside the app ones) and dispatch like any action.
+
+  Known gaps (3.0-beta.51): the `label` of `@Fab` is not used — the button is named from `@Label`
+  or the method name (*Call front desk*, *Report incident*); and an **app-level** FAB sends nothing
+  while a page is on screen (its click is dispatched on the page's component, which does not claim
+  it) — the phone below is drawn but inert.
+
+  Try it: in the framed app press the ✓ (*Mark clean*, a page FAB) — the toast confirms.
+examples:
+  - title: A housekeeping app
+    java: io.mateu.explorer.examples.behaviour.fabs.HousekeepingPreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/fabs/HousekeepingApp.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/fabs/RoomBoard.java}
+  - {label: "C#", path: src/main/ports/behaviour/fabs/RoomBoard.cs}
+  - {label: Python, path: src/main/ports/behaviour/fabs/room_board.py}

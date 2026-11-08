@@ -1,0 +1,18 @@
+id: stereotype-money
+area: behaviour
+group: forms
+title: Money fields
+covers: [behaviour:stereotype-money]
+description: |
+  `@Stereotype(FieldStereotype.money)` on a number shows it as an amount — thousands separator and
+  two decimals in the UI's locale — editable or, with `@PlainText`, as dense read-only text. An
+  `Amount` carries its own currency and locale and is money by itself.
+
+  Try it: type `98765.4` in **Subtotal**, tab out, and press **Show** — the server still receives
+  the plain number.
+examples:
+  - title: Invoice amounts
+    java: io.mateu.explorer.examples.behaviour.stereotypemoney.InvoiceTotals
+code:
+  - {label: "C#", path: src/main/ports/behaviour/stereotype-money/InvoiceTotals.cs}
+  - {label: Python, path: src/main/ports/behaviour/stereotype-money/invoice_totals.py}

@@ -1,0 +1,26 @@
+id: column-inference
+area: behaviour
+group: form-layout
+title: Column count & labels aside
+covers: [behaviour:column-inference, behaviour:labels-aside]
+description: |
+  With no declared count, a form is **one column up to 6 visible fields and two from 7 on** (a
+  grid counts as one, an `@Inline` sub-form counts its fields). `@FormLayout(columns = N)` or
+  `@Section(columns = N)` declare it.
+
+  Labels go **aside** (left of the field) only for a *declared* single column of 6+ short-labelled,
+  single-line fields — the dense back-office idiom; `@FormLayout(labelsAside = ASIDE | TOP)`
+  forces either.
+
+  Try it: compare the three forms — 5 fields in one column, 8 fields in two, and the declared single
+  column with its labels on the left.
+examples:
+  - title: 5 fields → 1 column
+    java: io.mateu.explorer.examples.behaviour.columninference.ShortForm
+  - title: 8 fields → 2 columns
+    java: io.mateu.explorer.examples.behaviour.columninference.LongForm
+  - title: "@FormLayout(columns = 1) → labels aside"
+    java: io.mateu.explorer.examples.behaviour.columninference.DenseForm
+code:
+  - {label: "C#", path: src/main/ports/behaviour/column-inference/DenseForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/column-inference/dense_form.py}

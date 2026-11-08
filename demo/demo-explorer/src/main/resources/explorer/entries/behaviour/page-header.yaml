@@ -1,0 +1,23 @@
+id: page-header
+area: behaviour
+group: form-layout
+title: The page header
+covers: [behaviour:page-header]
+description: |
+  Every page shares one header, declared on the class and its fields: `@Overline` (the quiet line
+  above the title), the title (`@Title` or a `TitleSupplier`), `@TitlePlaceholder` (shown dimmed
+  while the title is empty — a create-mode affordance), `@Subtitle`, `@BadgeInHeader` fields (status
+  chips), `@KPI` fields (label / value pairs) and `@Timestamp` (last updated). A supplier interface
+  (`OverlineSupplier`, `HeaderBadgesSupplier`…) wins over the annotation. Header-only fields stay out
+  of the form.
+
+  Try it: the header reads *New booking…* (the placeholder) because the guest is empty; open the
+  page on its own to see it full size.
+examples:
+  - title: A booking being created
+    route: x/behaviour/page-header/new-booking
+pages:
+  - {route: x/behaviour/page-header/new-booking, viewModel: io.mateu.explorer.examples.behaviour.pageheader.NewBookingPage}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/page-header/NewBookingPage.cs}
+  - {label: Python, path: src/main/ports/behaviour/page-header/new_booking_page.py}
