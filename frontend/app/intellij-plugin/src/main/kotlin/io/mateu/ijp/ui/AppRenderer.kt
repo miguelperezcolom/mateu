@@ -31,6 +31,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
         session.homeServerSideType = metadata.text("homeServerSideType")
+        // absolute when the server mounted a REMOTE screen as the home (a fresh deep link to it)
+        session.homeBaseUrl = metadata.text("homeBaseUrl").ifBlank { null }
         // The shell's flows (App.actions) + where they navigate from: a menu leaf naming one runs it.
         session.appActions = metadata.path("actions").takeIf { it.isArray }
         // The app's ACTION catalogue: an id the shell (or a view) does not declare resolves here.

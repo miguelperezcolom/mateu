@@ -720,10 +720,19 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
  * called anonymously.
  */
 internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSession {
-    val base = metadata.text("baseUrl").trimEnd('/')
-    if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     @Suppress("UNCHECKED_CAST")
     val appState = host.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
+    return remoteSession(host, metadata.text("baseUrl"), appState)
+}
+
+/**
+ * The session content of ANOTHER backend runs in (an island, a remote menu option, a remote screen
+ * mounted as the shell's home): the host's for the same backend, else its own with the host app's
+ * source catalogue and credential scope.
+ */
+internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<String, Any?> = emptyMap()): AppSession {
+    val base = baseUrl.orEmpty().trimEnd('/')
+    if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     host.credentials.declare(host.baseUrl, listOf(base))
     val tokens = if (host.credentials.mayCarryCredentials(base)) host.apiClient.tokenProvider
         else io.mateu.ijp.api.TokenProvider.NONE
