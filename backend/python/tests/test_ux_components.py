@@ -1764,3 +1764,31 @@ def test_org_chart_in_focus_carries_display_and_focus_on_the_wire():
     plain = json.loads(mapper.map_component(OrgChart(root=root)).model_dump_json(by_alias=True))
     assert plain["metadata"]["display"] is None
     assert plain["metadata"]["focus"] is None
+
+
+@ui("element-on-actions")
+class ElementOnActions(ComponentTreeSupplier):
+    """An Element whose `on:` names a handler of the view (Java: ElementOnActionsSyncTest)."""
+
+    def component(self):
+        from mateu_ui.uidl.components import Element, VerticalLayout
+
+        return VerticalLayout(
+            content=(
+                Element(
+                    name="button",
+                    on={"click": "elementClicked", "dblclick": "notHandledHere"},
+                    content="click me",
+                ),
+            )
+        )
+
+    def element_clicked(self):
+        return None
+
+
+def test_an_element_on_handler_with_a_method_is_advertised_and_one_without_is_not():
+    doc = render(ElementOnActions)
+    action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
+    assert "elementClicked" in action_ids
+    assert "notHandledHere" not in action_ids

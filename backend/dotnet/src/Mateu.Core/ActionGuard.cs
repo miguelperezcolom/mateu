@@ -238,6 +238,10 @@ internal static class ActionGuard
         var t = node.GetType();
         if (t.IsPrimitive || t.IsEnum) return;
         if (!t.IsValueType && !seen.Add(node)) return;
+        // an Element's `on` maps a DOM event to an action id of the view, like an ActionId
+        if (node is Element element)
+            foreach (var id in element.On.Values)
+                if (!string.IsNullOrWhiteSpace(id) && !ids.Contains(id)) ids.Add(id);
         if (node is IEnumerable items)
         {
             foreach (var item in items) Walk(item, ids, seen, depth + 1);
