@@ -559,7 +559,20 @@ public class ActionInstanceCreator {
         app ->
             appMenuResolver
                 .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
-                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand)));
+                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand))
+                // A route bound to a DEFINITION only has no class to find: the content load an
+                // app shell sends naming its own type (the fresh deep link's second request)
+                // answered "Page not found", while the same load with no type (an embedded page)
+                // rendered the definition. Only for an app the client named and a route it does
+                // not claim as a menu entry.
+                .switchIfEmpty(
+                    (Mono)
+                        Mono.defer(
+                            () ->
+                                isAuthoredDefinitionOnly(finalCommand.route())
+                                        && isApp(app.getClass(), finalCommand.route())
+                                    ? loadYamlPage(finalCommand)
+                                    : Mono.empty())));
   }
 
   /**
