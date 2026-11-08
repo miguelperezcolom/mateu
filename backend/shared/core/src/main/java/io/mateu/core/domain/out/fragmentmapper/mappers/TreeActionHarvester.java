@@ -139,6 +139,10 @@ public final class TreeActionHarvester {
       collect(client.children(), ids, visited);
       return;
     }
+    // an Element's `on:` maps a DOM event to an action id of the view, like an actionId does
+    if (node instanceof io.mateu.dtos.ElementDto element && element.on() != null) {
+      element.on().values().stream().filter(id -> id != null && !id.isBlank()).forEach(ids::add);
+    }
     var type = node.getClass();
     if (!type.isRecord() || !type.getPackageName().startsWith("io.mateu.dtos")) {
       return;

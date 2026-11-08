@@ -505,6 +505,8 @@ internal static class ComponentMapper
                 break;
             case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
+            // an Element's `on` maps a DOM event to an action id of the view, like an ActionId
+            case Element el: ids.AddRange(el.On.Values.Where(v => !string.IsNullOrWhiteSpace(v))); break;
             case EntityHeader eh:
                 foreach (var f in eh.Facts.Where(f => !string.IsNullOrWhiteSpace(f.ActionId))) ids.Add(f.ActionId!);
                 break;

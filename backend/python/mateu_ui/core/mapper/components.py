@@ -1444,6 +1444,9 @@ class ComponentMapperMixin(MixinBase):
                 return
             if type(node).__name__ == "ServerSideComponent":
                 return
+            # an Element's `on` maps a DOM event to an action id of the view, like an action_id
+            if type(node).__name__ == "Element" and isinstance(getattr(node, "on", None), dict):
+                out.extend(v for v in node.on.values() if isinstance(v, str) and v)
             package = ".".join((getattr(type(node), "__module__", "") or "").split(".")[:2])
             if package not in {"mateu_ui.uidl", "mateu_ui.dtos", "mateu_ui.core"}:
                 return
