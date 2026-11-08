@@ -1,0 +1,23 @@
+id: rest-actions
+area: behaviour
+group: data
+title: "Writing from YAML (restAction)"
+covers: [behaviour:rest-actions]
+description: |
+  A definition-only page (no view model) **writes** by declaring `actions:` beside its layout: an
+  action is a `restAction` against a catalogue source (method, headers, a body template whose
+  `${state.x}` values are JSON-escaped), run by the browser with no server round trip —
+  `validationRequired`, `successMessage` / `resultPath`, `successRoute` as you need. A write that needs
+  a key is a `proxy: true` source with `${secret.X}` (see "Proxied sources").
+
+  **Try it:** press **Save** with the note empty (refused: the field is required); type a note and
+  press **Save** — "Note saved", and the endpoint's answer (`resultPath: saved`, merged into the page
+  state) shows under the button; press Enter in the list's search box to re-read the list.
+examples:
+  - title: "Notes, written by a YAML page"
+    route: x/behaviour/rest-actions/notes
+pages:
+  - {route: x/behaviour/rest-actions/notes, layout: explorer/behaviour/rest-actions/notes.yaml}
+code:
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}
+  - {label: "Java · ExplorerDemoApi (the local endpoint)", path: src/main/java/io/mateu/explorer/examples/behaviour/restsources/ExplorerDemoApi.java}

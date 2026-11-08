@@ -1,0 +1,23 @@
+id: field-type-catalogue
+area: behaviour
+group: data
+title: "Field types catalogue"
+covers: [behaviour:field-type-catalogue]
+description: |
+  A **field type** names a domain concept once — `Climate`, `Population`, `Email` — in a `type: Types`
+  file (or `specs/ui/types.yaml`, or a `FieldTypeCatalogSupplier` bean); a `FormField` or `GridColumn`
+  references it with `fieldType:` and takes its attributes (label, dataType, stereotype, placeholder,
+  required, status `tones`…) as defaults — **what the field declares wins**. The YAML twin of a
+  semantic (composed) Java annotation.
+
+  **Try it:** the Climate column is a status badge toned per value and Population is right-aligned,
+  both from the catalogue; press **Check** with the fields empty: **E-mail** (required by its type) is
+  refused, **Backup e-mail** (`required: false` on the field) is not.
+examples:
+  - title: "Typed columns and fields"
+    route: x/behaviour/field-type-catalogue/page
+pages:
+  - {route: x/behaviour/field-type-catalogue/page, layout: explorer/behaviour/field-type-catalogue/page.yaml}
+code:
+  - {label: "YAML · types.yaml (the catalogue)", path: src/main/resources/specs/ui/explorer/behaviour/field-type-catalogue/types.yaml}
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}

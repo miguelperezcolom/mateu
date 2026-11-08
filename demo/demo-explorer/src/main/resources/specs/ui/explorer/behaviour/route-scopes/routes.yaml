@@ -1,0 +1,13 @@
+# A ROUTE carries more than a definition. Its scopes seed the page:
+#   state:     literal values merged into the page state (lowest precedence: the client's own win)
+#   appState:  literal values merged into the app state
+#   data:      a SOURCE (by name) fetched for the page — no literal data channel
+#   appData:   a source the app shell fetches once (only meaningful on a shell's routes)
+type: Routes
+basePath: ""
+routes:
+  - route: x/behaviour/route-scopes/planets/:id
+    layout: explorer/behaviour/route-scopes/planet.yaml
+    data: behaviour-planet                # GET /planets/${state.id} — :id is in the state already
+    state: {greeting: "Seeded by the route's state:"}
+    appState: {explorerTheme: "Seeded by the route's appState:"}

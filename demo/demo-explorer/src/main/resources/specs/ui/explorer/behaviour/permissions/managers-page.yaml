@@ -1,0 +1,6 @@
+# A page only managers may open: the ROUTE declares `access:` (routes.yaml next to this file);
+# anybody else gets a 403 for it, and a menu link to it is not offered.
+type: Form
+title: Managers only
+content:
+  - {type: Text, text: "You reached a route whose access is {roles: [manager]}."}

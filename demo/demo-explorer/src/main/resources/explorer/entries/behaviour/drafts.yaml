@@ -1,0 +1,17 @@
+id: drafts
+area: behaviour
+group: wizards
+title: "Wizard drafts and resume"
+covers: [behaviour:drafts]
+description: |
+  A wizard that implements `Draftable` gets **Save** and **Save and close** on every step:
+  `saveDraft` stores what was typed, `closeDraft` saves and leaves, and `resumeStep` tells Mateu on
+  which step a fresh visit resumes. (`display()` can switch the draft buttons off or disable them.)
+
+  **Try it:** type a purpose, **Next**, enter a hotel cost, press **Save** ("Draft saved on step
+  'costs'"); reload this page — the wizard reopens on the costs step with your values.
+examples:
+  - title: "Expense claim"
+    route: x/behaviour/drafts/claim
+pages:
+  - {route: x/behaviour/drafts/claim, viewModel: io.mateu.explorer.examples.behaviour.drafts.ClaimWizard}

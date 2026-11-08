@@ -1,0 +1,78 @@
+# THE REST SOURCE CATALOGUE of the Explorer — each endpoint named ONCE, referenced by `ref:` from any
+# screen. Mateu reads exactly this one file (specs/ui/sources.yaml), so it is SHARED by every entry:
+# add your sources as a block of your own, names prefixed by your area, and never edit another's.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+
+  # ── behaviour/data (ExplorerDemoApi — a small local endpoint, so it works offline) ────────────
+
+  - name: behaviour-planets
+    description: Planets, searched and paged by the endpoint
+    source:
+      url: /explorer-api/behaviour/planets?search=${state.searchText ?? ''}&page=${state.page ?? 0}&size=${state.size ?? 5}
+      itemsPath: items
+    totalPath: total            # the endpoint pages: the listing renders the page it is given
+    fields:
+      population: population.value   # a nested value read under a flat column id
+
+  - name: behaviour-planet
+    description: One planet by id (the route's :id lands in ${state.id})
+    source:
+      url: /explorer-api/behaviour/planets/${state.id}
+
+  - name: behaviour-notes
+    description: The notes written by the YAML page
+    source:
+      url: /explorer-api/behaviour/notes
+      itemsPath: items
+
+  - name: behaviour-note-create
+    description: Write a note
+    source:
+      url: /explorer-api/behaviour/notes
+      method: POST
+      headers: {Content-Type: application/json}
+      body: '{"text": "${state.noteText}"}'
+
+  - name: behaviour-ping
+    description: Answers pong (used by the action catalogue)
+    source:
+      url: /explorer-api/behaviour/ping
+
+  # PROXY: the browser asks the Mateu server, which calls the endpoint with the key resolved from
+  # ${secret.DEMO}. The headers (and so the secret) never leave the server. The proxy needs an
+  # absolute url (a relative one fails), and only a secret may name a proxied origin.
+  - name: behaviour-vault
+    description: A protected endpoint, called through the server
+    source:
+      url: ${secret.EXPLORER_ORIGIN}/explorer-api/behaviour/vault
+      proxy: true
+      headers: {X-Api-Key: "${secret.DEMO}"}
+      itemsPath: items
+
+  # The same endpoint DIRECT: the browser has no `secret` scope, so it cannot present the key.
+  - name: behaviour-vault-direct
+    description: The same endpoint called from the browser (refused)
+    source:
+      url: /explorer-api/behaviour/vault
+      headers: {X-Api-Key: "${secret.DEMO}"}
+      itemsPath: items
+
+  # Re-pointed by the explorer-pre environment (explorer/behaviour/environments/explorer-pre.yaml).
+  - name: behaviour-where
+    description: Tells which url answered
+    source:
+      url: /explorer-api/behaviour/where/authored
+      itemsPath: items
+
+  # An endpoint nobody has built yet — its SAMPLE answers in sample mode.
+  - name: behaviour-forecast
+    description: A forecast API still to be written
+    source:
+      url: /explorer-api/behaviour/forecast-not-built-yet
+      itemsPath: days
+    sample:
+      days:
+        - {day: Monday, sky: Sunny, max: 24}
+        - {day: Tuesday, sky: Cloudy, max: 19}
+        - {day: Wednesday, sky: Rain, max: 16}

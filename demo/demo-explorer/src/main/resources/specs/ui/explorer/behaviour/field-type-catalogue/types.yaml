@@ -1,0 +1,17 @@
+# A FIELD TYPE catalogue (any `type: Types` file under specs/ui is discovered): the app's domain
+# vocabulary, named once. A field or column takes a type's attributes as DEFAULTS; its own win.
+type: Types
+types:
+  - id: Climate
+    label: Climate
+    dataType: status
+    tones: {arid: warning, frozen: info, temperate: success, murky: neutral}
+  - id: Population
+    label: Population
+    dataType: integer
+    align: end
+  - id: Email
+    label: E-mail
+    stereotype: email
+    placeholder: name@example.com
+    required: true

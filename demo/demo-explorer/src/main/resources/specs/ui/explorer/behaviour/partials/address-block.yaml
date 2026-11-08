@@ -1,0 +1,6 @@
+# A PARTIAL: a reusable piece with no page — here three fields. Used twice by order.yaml; it SPLICES
+# into its parent (the form layout gets three more fields, not one wrapper).
+content:
+  - {type: FormField, id: street, label: Street, dataType: string}
+  - {type: FormField, id: city, label: City, dataType: string}
+  - {type: FormField, id: postcode, label: Postcode, dataType: string}

@@ -1,0 +1,25 @@
+id: session-expiry
+area: behaviour
+group: app
+title: "Session expiry (401 → retry)"
+covers: [behaviour:session-expiry]
+description: |
+  When a Mateu request answers **401**, the client does not fail the action: it raises
+  `mateu-session-expired` (or calls your `onSessionExpired` handler) and, once your re-auth flow calls
+  `retry()`, re-runs **the same request once**. The page never navigates, so what was typed survives.
+  With no handler the request simply fails (opt-in). A 403 is never a session problem.
+
+  Here the 401 comes from a demo filter (`DemoTokenGuard`) standing in for your security layer, and the
+  re-auth flow is `handler.js`, loaded by an `Element` with an `import`.
+
+  **Try it:** type something in **Notes**, press **1. Expire my session**, then **2. Save**: a dialog
+  asks you to sign in again (OK); the save then completes with what you typed.
+examples:
+  - title: "Expire, then save"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.sessionexpiry.SessionExpiryIsland
+code:
+  - {label: "Java · LongForm", path: src/main/java/io/mateu/explorer/examples/behaviour/sessionexpiry/LongForm.java}
+  - {label: "JS · handler.js (the re-auth flow)", path: src/main/resources/specs/ui/explorer/behaviour/session-expiry/handler.js}
+  - {label: "Java · DemoTokenGuard (demo 401)", path: src/main/java/io/mateu/explorer/examples/behaviour/sessionexpiry/DemoTokenGuard.java}
+  - {label: "Java · SessionExpiryDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/sessionexpiry/SessionExpiryDemoApp.java}

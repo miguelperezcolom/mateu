@@ -1,0 +1,8 @@
+# An ENVIRONMENT: where named sources live in one deployment. Active when the server runs with
+# MATEU_ENVIRONMENT=explorer-pre (or -Dmateu.environment=explorer-pre). Only baseUrl / url / headers /
+# proxy can change — never the shape of the response, and never a literal secret.
+type: Environment
+name: explorer-pre
+sources:
+  behaviour-where:
+    url: /explorer-api/behaviour/where/pre

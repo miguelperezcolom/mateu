@@ -1,0 +1,19 @@
+id: pending-indicator
+area: behaviour
+group: resilience-a11y
+title: "Pending indicator, no double submit, retries"
+covers: [behaviour:pending-indicator]
+description: |
+  While an action runs, the control you pressed is marked busy (`aria-busy`, a pulsing host) and a
+  second press sends **nothing** — reads are exempt, so type-ahead keeps working. After 600 ms a veil
+  says the server is working. Transport failures are classified (offline, timeout, server…) and shown
+  in plain words; a **read** (or an action marked `@Action(idempotent = true)`) that times out or gets a
+  5xx is retried automatically (twice, with backoff); a write never is — its error offers **Retry**.
+  `@Action(timeoutMillis)` sets the ceiling.
+
+  **Try it:** press **Slow save** twice quickly: the button pulses, and the message counts ONE more
+  save. Press **Flaky read**: the first attempt times out and is retried by itself ("Read OK…"). Press
+  **Write that times out**: a plain-language error with a **Retry** control.
+examples:
+  - title: "A slow, unreliable backend"
+    java: io.mateu.explorer.examples.behaviour.pendingindicator.SlowActions

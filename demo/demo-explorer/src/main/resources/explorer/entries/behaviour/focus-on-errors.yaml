@@ -1,0 +1,16 @@
+id: focus-on-errors
+area: behaviour
+group: resilience-a11y
+title: "Focus moves to the first invalid field"
+covers: [behaviour:focus-on-errors]
+description: |
+  A rejected submit marks each invalid field ON the control — so the design system wires
+  `aria-invalid` and `aria-describedby`, and a screen reader reads the error together with the field —
+  and moves the focus to the **first** rejected field. Before, a screen-reader user pressing Save heard
+  nothing at all.
+
+  **Try it:** press **Ship** with the form as it is: Recipient, Email and City turn red and the cursor
+  lands in **Recipient**; fill it and press **Ship** again — the focus jumps to **Email**.
+examples:
+  - title: "Shipping"
+    java: io.mateu.explorer.examples.behaviour.focusonerrors.ShippingForm

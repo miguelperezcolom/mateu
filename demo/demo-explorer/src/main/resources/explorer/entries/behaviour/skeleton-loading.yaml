@@ -1,0 +1,18 @@
+id: skeleton-loading
+area: behaviour
+group: resilience-a11y
+title: "Skeleton while a route loads"
+covers: [behaviour:skeleton-loading]
+description: |
+  A route that has **no content yet** shows a skeleton (after 400 ms, so fast loads never flash one)
+  until the server answers; a route that already shows something keeps it under the busy veil instead —
+  stale content keeps the context, a skeleton would throw it away.
+
+  **Try it:** reload this page and watch the box below: a skeleton for three seconds, then the page.
+examples:
+  - title: "A page that takes three seconds"
+    java: io.mateu.explorer.examples.behaviour.skeletonloading.SlowPageIsland
+pages:
+  - {route: x/behaviour/skeleton-loading/slow, viewModel: io.mateu.explorer.examples.behaviour.skeletonloading.SlowPage}
+code:
+  - {label: "Java · SlowPage", path: src/main/java/io/mateu/explorer/examples/behaviour/skeletonloading/SlowPage.java}

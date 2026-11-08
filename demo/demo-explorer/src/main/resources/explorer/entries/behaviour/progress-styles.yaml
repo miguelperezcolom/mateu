@@ -1,0 +1,21 @@
+id: progress-styles
+area: behaviour
+group: wizards
+title: "Wizard progress styles"
+covers: [behaviour:progress-styles]
+description: |
+  `@WizardProgress(BAR | STEPS | RAIL)` picks how a wizard shows where you are: a progress bar (the
+  default), connected step bullets (done / current / upcoming), or the Redwood guided-process rail —
+  a big `current | total` counter over the vertical list of steps. Steps that do not apply are left
+  out in every style; the result step shows everything done.
+
+  **Try it:** press **Next** in each of the three — the same wizard, three indicators.
+examples:
+  - title: "BAR (default)"
+    java: io.mateu.explorer.examples.behaviour.progressstyles.BarTrip
+  - title: "STEPS"
+    java: io.mateu.explorer.examples.behaviour.progressstyles.StepsTrip
+  - title: "RAIL"
+    java: io.mateu.explorer.examples.behaviour.progressstyles.RailTrip
+code:
+  - {label: "Java · TripWizard (the shared steps)", path: src/main/java/io/mateu/explorer/examples/behaviour/progressstyles/TripWizard.java}
