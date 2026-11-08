@@ -544,6 +544,25 @@ internal static class YamlComponentBuilder
         OnRowSelectionChangedActionId = Str(map, "onRowSelectionChangedActionId"),
         GridStyle = Str(map, "gridStyle"),
         ContentHeight = Str(map, "contentHeight"),
+        ListingType = Str(map, "listingType"),
+        Size = int.TryParse(Str(map, "size"), out var rows) ? rows : 0,
+        InitialPage = int.TryParse(Str(map, "initialPage"), out var first) ? first : 0,
+        Header = Maps(map, "header").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        Footer = Maps(map, "footer").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        PreSearch = Maps(map, "preSearch").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        DetailPath = Str(map, "detailPath"),
+        UseButtonForDetail = Bool(map, "useButtonForDetail"),
+        LazyColumnRendering = Bool(map, "lazyColumnRendering"),
+        VaadinGridCellBackground = Str(map, "vaadinGridCellBackground"),
+        VaadinGridCellPadding = Str(map, "vaadinGridCellPadding"),
+        // Java's fluent Listing: both default on when the YAML says nothing
+        SearchOnEnter = Bool(map, "searchOnEnter", true),
+        AutoFocusOnSearchText = Bool(map, "autoFocusOnSearchText", true),
+        FiltersLayout = Str(map, "filtersLayout"),
+        GroupBy = Str(map, "groupBy"),
+        RowStatusField = Str(map, "rowStatusField"),
+        DragType = Str(map, "dragType"),
+        RowsSelectionEnabled = Bool(map, "rowsSelectionEnabled"),
     };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>

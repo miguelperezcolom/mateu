@@ -1342,6 +1342,47 @@ public sealed record ListingComponent : ComponentBase
     public string? OnRowSelectionChangedActionId { get; init; }
     public string? GridStyle { get; init; }
     public string? ContentHeight { get; init; }
+
+    // The rest of Java's fluent Listing (3.0 GA parity).
+    /// <summary>table | card; null = table (Java's ListingType → the wire's crudlType).</summary>
+    public string? ListingType { get; init; }
+    /// <summary>Buttons above the rows (Java's Listing.toolbar).</summary>
+    public IReadOnlyList<Button> Toolbar { get; init; } = [];
+    /// <summary>The grid's height in rows; 0 = the renderer's own.</summary>
+    public int Size { get; init; }
+    /// <summary>The page shown first (0-based).</summary>
+    public int InitialPage { get; init; }
+    /// <summary>Components shown above / below the rows.</summary>
+    public IReadOnlyList<IComponent> Header { get; init; } = [];
+    public IReadOnlyList<IComponent> Footer { get; init; } = [];
+    /// <summary>Shown in place of the results until the first search has run (the Redwood
+    /// smart-filter-search dashboard slot); empty = none.</summary>
+    public IReadOnlyList<IComponent> PreSearch { get; init; } = [];
+    /// <summary>The row field that opens under the row instead of being a column, and whether a
+    /// button opens it.</summary>
+    public string? DetailPath { get; init; }
+    public bool UseButtonForDetail { get; init; }
+    /// <summary>Columns render only when scrolled into view.</summary>
+    public bool LazyColumnRendering { get; init; }
+    /// <summary>The grid cells' background and padding (CSS values).</summary>
+    public string? VaadinGridCellBackground { get; init; }
+    public string? VaadinGridCellPadding { get; init; }
+    /// <summary>The search runs on Enter (and debounced while typing); default on.</summary>
+    public bool SearchOnEnter { get; init; } = true;
+    /// <summary>The search box takes the focus on opening; default on.</summary>
+    public bool AutoFocusOnSearchText { get; init; } = true;
+    /// <summary>How the filters lay out; null = auto (the smart search bar).</summary>
+    public string? FiltersLayout { get; init; }
+    /// <summary>The row field the rows are grouped by; null = no grouping.</summary>
+    public string? GroupBy { get; init; }
+    /// <summary>Buttons on every group header row.</summary>
+    public IReadOnlyList<Button> GroupActions { get; init; } = [];
+    /// <summary>The row field whose value (success | warning | danger | info | neutral) tones the row.</summary>
+    public string? RowStatusField { get; init; }
+    /// <summary>Rows can be dragged onto a DropZone accepting this type; null = not draggable.</summary>
+    public string? DragType { get; init; }
+    /// <summary>Row selection checkboxes.</summary>
+    public bool RowsSelectionEnabled { get; init; }
 }
 
 /// <summary>An outlined card wrapping a component.</summary>

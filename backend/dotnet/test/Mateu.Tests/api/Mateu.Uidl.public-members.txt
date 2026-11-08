@@ -551,6 +551,12 @@ Mateu.Uidl.DeclaredRestSource ctor(Mateu.Uidl.RestSourceKind, System.String, Mat
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestDataSource Source { get;init; }
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestSourceKind Kind { get;init; }
 Mateu.Uidl.DeclaredRestSource property System.String Id { get;init; }
+Mateu.Uidl.DetailFormAttribute ctor()
+Mateu.Uidl.DetailFormAttribute property System.Int32 Columns { get;set; }
+Mateu.Uidl.DetailFormAttribute property System.String MinHeightWhenDetailVisible { get;set; }
+Mateu.Uidl.DetailFormAttribute property System.String Position { get;set; }
+Mateu.Uidl.DetailFormAttribute property System.String Style { get;set; }
+Mateu.Uidl.DetailFormAttribute property System.String Theme { get;set; }
 Mateu.Uidl.DetailPartAttribute ctor()
 Mateu.Uidl.DetailPartAttribute property System.Int32 Order { get;set; }
 Mateu.Uidl.DetailPartAttribute property System.String Key { get;set; }
@@ -559,6 +565,7 @@ Mateu.Uidl.Details ctor()
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Summary { get;init; }
 Mateu.Uidl.Details property System.Boolean Opened { get;init; }
+Mateu.Uidl.DetailsAttribute ctor()
 Mateu.Uidl.Dialog ctor()
 Mateu.Uidl.Dialog property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.Dialog property Mateu.Uidl.IComponent Footer { get;init; }
@@ -1265,28 +1272,48 @@ Mateu.Uidl.ListingColumn property System.String Width { get;init; }
 Mateu.Uidl.ListingComponent ctor()
 Mateu.Uidl.ListingComponent property Mateu.Uidl.RestDataSource RowsSource { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean AllRowsVisible { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean AutoFocusOnSearchText { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean ColumnBorders { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean ColumnReorderingAllowed { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean Compact { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean InfiniteScrolling { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean LazyColumnRendering { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean LazyLoading { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean MultipleRowSelectionEnabled { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean NoBorder { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean NoRowBorder { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean RowStripes { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean RowsSelectionEnabled { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean SearchOnEnter { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean Searchable { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean UseButtonForDetail { get;init; }
 Mateu.Uidl.ListingComponent property System.Boolean WrapCellContent { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> GroupActions { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> Toolbar { get;init; }
 Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FormField> Filters { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Header { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> PreSearch { get;init; }
 Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ListingColumn> Columns { get;init; }
+Mateu.Uidl.ListingComponent property System.Int32 InitialPage { get;init; }
 Mateu.Uidl.ListingComponent property System.Int32 PageSize { get;init; }
+Mateu.Uidl.ListingComponent property System.Int32 Size { get;init; }
 Mateu.Uidl.ListingComponent property System.String ContentHeight { get;init; }
+Mateu.Uidl.ListingComponent property System.String DetailPath { get;init; }
+Mateu.Uidl.ListingComponent property System.String DragType { get;init; }
 Mateu.Uidl.ListingComponent property System.String EmptyStateMessage { get;init; }
+Mateu.Uidl.ListingComponent property System.String FiltersLayout { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridLayout { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridStyle { get;init; }
+Mateu.Uidl.ListingComponent property System.String GroupBy { get;init; }
+Mateu.Uidl.ListingComponent property System.String ListingType { get;init; }
 Mateu.Uidl.ListingComponent property System.String OnRowSelectionChangedActionId { get;init; }
 Mateu.Uidl.ListingComponent property System.String RowRoute { get;init; }
+Mateu.Uidl.ListingComponent property System.String RowStatusField { get;init; }
 Mateu.Uidl.ListingComponent property System.String Subtitle { get;init; }
 Mateu.Uidl.ListingComponent property System.String Title { get;init; }
+Mateu.Uidl.ListingComponent property System.String VaadinGridCellBackground { get;init; }
+Mateu.Uidl.ListingComponent property System.String VaadinGridCellPadding { get;init; }
 Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> From<TRow>(System.Collections.Generic.IEnumerable<TRow>)
 Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> Of<TRow>(TRow[])
 Mateu.Uidl.ListingData<TRow> ctor(System.Collections.Generic.IReadOnlyList<TRow>, System.Int64? = null)

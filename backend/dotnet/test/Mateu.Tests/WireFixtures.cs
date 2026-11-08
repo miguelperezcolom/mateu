@@ -957,3 +957,59 @@ public class PageToolbarForm
     [Toolbar("Publish now", ButtonStyle = "primary")]
     public void Publish() { }
 }
+
+/// <summary>A grid field whose row type has a [Details] property and whose row editor is customised
+/// with [DetailForm] (grid-field-detail).</summary>
+[UI("conformance/grid-field-detail"), Title("Order lines")]
+public class GridFieldDetail
+{
+    [DetailForm(Position = "bottom", Columns = 1, Style = "padding: 1rem;", Theme = "compact",
+        MinHeightWhenDetailVisible = "20rem")]
+    public List<ConformanceLineRow> Lines { get; set; } = [new() { Product = "Desk", Notes = "Oak" }];
+}
+
+public class ConformanceLineRow
+{
+    public string Product { get; set; } = "";
+
+    [Details]
+    public string Notes { get; set; } = "";
+}
+
+/// <summary>Every option of the fluent listing the port did not carry before 3.0 GA, on one
+/// listing (fluent-crudl-options).</summary>
+[UI("conformance/fluent-crudl-options"), Title("Fluent listing options")]
+public class FluentCrudlOptionsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new ListingComponent
+    {
+        Id = "orders",
+        Title = "Orders",
+        ListingType = "card",
+        Columns = [new ListingColumn("customer", "Customer") { DataType = "string" }],
+        Toolbar = [new Button("Export", "export")],
+        Size = 3,
+        InitialPage = 2,
+        Header = [new Text("Head")],
+        Footer = [new Text("Foot")],
+        PreSearch = [new Text("Search to start")],
+        DetailPath = "notes",
+        UseButtonForDetail = true,
+        LazyColumnRendering = true,
+        LazyLoading = true,
+        InfiniteScrolling = true,
+        VaadinGridCellBackground = "#fafafa",
+        VaadinGridCellPadding = "4px",
+        OnRowSelectionChangedActionId = "rowsChanged",
+        ContentHeight = "20rem",
+        SearchOnEnter = false,
+        AutoFocusOnSearchText = false,
+        GroupBy = "status",
+        GroupActions = [new Button("Close group", "closeGroup")],
+        RowStatusField = "status",
+        DragType = "order",
+        RowsSelectionEnabled = true,
+    };
+
+    public string? Style => null;
+}

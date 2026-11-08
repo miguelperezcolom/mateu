@@ -713,6 +713,11 @@ internal sealed partial class ReflectionMapper
                 Width = "3rem",
             }));
         var onRow = p.Find<OnRowSelectedAttribute>();
+        var detailForm = p.Find<DetailFormAttribute>();
+        var detailPath = rowType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(r => r.GetCustomAttribute<DetailsAttribute>() is not null) is { } details
+            ? Naming.CamelCase(details.Name)
+            : null;
         const string gridStyle = "min-width: 10rem; width: 100%;";
         // The rows ride in the component state (initialData), not as a per-field initialValue —
         // the field-crud actions rewrite that state list.
@@ -731,9 +736,15 @@ internal sealed partial class ReflectionMapper
             RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,
             Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
             Style = gridStyle,
-            FormPosition = "right",
-            FormColumns = FormColumns(rowType),
-            MinHeightWhenDetailVisible = "16rem",
+            // [DetailForm] customises the row editor (Java's @DetailFormCustomisation + @MasterDetail)
+            FormPosition = detailForm?.Position ?? "right",
+            FormColumns = detailForm is { Columns: > 0 } ? detailForm.Columns : FormColumns(rowType),
+            FormStyle = detailForm?.Style,
+            FormTheme = detailForm?.Theme,
+            MinHeightWhenDetailVisible = detailForm?.MinHeightWhenDetailVisible ?? "16rem",
+            // the row type's [Details] property opens under the row, behind a button
+            DetailPath = detailPath,
+            UseButtonForDetail = detailPath is not null,
             SliderMax = 0,
         };
         return Client(meta, fieldId, []) with { Style = gridStyle };

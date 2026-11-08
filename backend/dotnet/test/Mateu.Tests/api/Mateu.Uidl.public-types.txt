@@ -102,8 +102,10 @@ Mateu.Uidl.DataManagement
 Mateu.Uidl.DataManagementPage
 Mateu.Uidl.DateRange
 Mateu.Uidl.DeclaredRestSource
+Mateu.Uidl.DetailFormAttribute
 Mateu.Uidl.DetailPartAttribute
 Mateu.Uidl.Details
+Mateu.Uidl.DetailsAttribute
 Mateu.Uidl.Dialog
 Mateu.Uidl.DirectoryMenu
 Mateu.Uidl.DisabledAttribute

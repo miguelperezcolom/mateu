@@ -250,6 +250,8 @@ public class WireConformanceTests
         { "editable-view", typeof(Wire.ProfileView) },
         { "editable-view-edit", typeof(Wire.ProfileView) },
         { "view-toolbar-button", typeof(Wire.ViewToolbarProductsCrud) },
+        { "grid-field-detail", typeof(Wire.GridFieldDetail) },
+        { "fluent-crudl-options", typeof(Wire.FluentCrudlOptionsPage) },
     };
 
     [Fact]

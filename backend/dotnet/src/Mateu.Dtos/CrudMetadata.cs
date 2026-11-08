@@ -25,6 +25,19 @@ public record CrudMetadataDto(
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public string? GridStyle { get; init; }
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public string? ContentHeight { get; init; }
 
+    /// <summary>The fluent listing's grid options (mirror CrudlDto.size, initialPage,
+    /// useButtonForDetail, lazyColumnRendering, vaadinGridCellBackground, vaadinGridCellPadding,
+    /// header, footer); omitted at their defaults.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int Size { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int InitialPage { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool UseButtonForDetail { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool LazyColumnRendering { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? VaadinGridCellBackground { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? VaadinGridCellPadding { get; init; }
+    /// <summary>Components shown above / below the rows.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public IReadOnlyList<ComponentDto>? Header { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public IReadOnlyList<ComponentDto>? Footer { get; init; }
+
     public string? Subtitle { get; init; }
     public bool Searchable { get; init; } = true;
     public bool CanEdit { get; init; }

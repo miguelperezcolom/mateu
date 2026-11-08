@@ -151,6 +151,28 @@ public sealed class TooltipAttribute(string value) : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class DisabledAttribute : Attribute;
 
+/// <summary>On a property of a grid's ROW type: the row's detail — what opens under the row, behind
+/// a button, instead of a column of its own. The grid carries the property's camelCase name as its
+/// <c>detailPath</c> and sets <c>useButtonForDetail</c>. (C# analogue of Java's @Details on a row
+/// field.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DetailsAttribute : Attribute;
+
+/// <summary>On a grid (list-of-rows) property: customises its row editor — where it opens
+/// (<c>right</c> | <c>left</c> | <c>top</c> | <c>bottom</c> | <c>modal</c> | <c>modalLeft</c> |
+/// <c>modalRight</c>), its column count (0 = the row type's own), its CSS and theme, and the min
+/// height the grid keeps while the editor shows. (C# analogue of Java's @DetailFormCustomisation +
+/// @MasterDetail; Python's DetailForm.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DetailFormAttribute : Attribute
+{
+    public string Position { get; set; } = "right";
+    public int Columns { get; set; }
+    public string Style { get; set; } = "";
+    public string Theme { get; set; } = "";
+    public string MinHeightWhenDetailVisible { get; set; } = "16rem";
+}
+
 /// <summary>On a grid (list-of-rows) property: runs the named method when the user selects
 /// (clicks) a row — the clicked row is injected into a method parameter typed as the row class.
 /// Works on read-only grids, so it is the way to build master/detail. Optional Shortcut (e.g.

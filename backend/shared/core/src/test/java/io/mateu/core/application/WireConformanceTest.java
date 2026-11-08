@@ -1128,6 +1128,93 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * A grid field whose row type has a @Details field (the content that opens under a row, behind a
+   * button) and whose row editor is customised: @DetailFormCustomisation (position, columns, style,
+   * theme) + @MasterDetail (the grid's min height while the editor shows).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/grid-field-detail")
+  @Title("Order lines")
+  public static class GridFieldDetail {
+    @io.mateu.uidl.annotations.DetailFormCustomisation(
+        position = io.mateu.uidl.data.FormPosition.bottom,
+        columns = 1,
+        style = "padding: 1rem;",
+        theme = "compact")
+    @io.mateu.uidl.annotations.MasterDetail(minHeightWhenDetailVisible = "20rem")
+    public List<LineRow> lines = new ArrayList<>(List.of(new LineRow("Desk", "Oak")));
+
+    public static class LineRow {
+      public String product = "";
+
+      @io.mateu.uidl.annotations.Details public String notes = "";
+
+      public LineRow() {}
+
+      public LineRow(String product, String notes) {
+        this.product = product;
+        this.notes = notes;
+      }
+    }
+  }
+
+  /**
+   * Every option of the fluent listing (Java's fluent {@code Listing}, the ports' {@code
+   * ListingComponent}) that the ports did not carry before 3.0 GA: page size and first page,
+   * header/footer/pre-search components, the toolbar and group actions, the row detail path and its
+   * button, lazy column rendering, lazy loading, infinite scrolling, the grid cell colours, the
+   * row-selection action, the content height, the listing type, the search switches, grouping, row
+   * tones, drag type and row selection.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/fluent-crudl-options")
+  @Title("Fluent listing options")
+  public static class FluentCrudlOptionsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.fluent.Listing.builder()
+          .id("orders")
+          .title("Orders")
+          .listingType(io.mateu.uidl.fluent.ListingType.card)
+          .column(
+              io.mateu.uidl.data.GridColumn.builder()
+                  .id("customer")
+                  .label("Customer")
+                  .dataType(io.mateu.uidl.data.FieldDataType.string)
+                  .build())
+          .toolbarItem(new io.mateu.uidl.data.Button("Export", "export"))
+          .size(3)
+          .initialPage(2)
+          .headerItem(new io.mateu.uidl.data.Text("Head"))
+          .footerItem(new io.mateu.uidl.data.Text("Foot"))
+          .preSearchItem(new io.mateu.uidl.data.Text("Search to start"))
+          .detailPath("notes")
+          .useButtonForDetail(true)
+          .lazyColumnRendering(true)
+          .lazyLoading(true)
+          .infiniteScrolling(true)
+          .vaadinGridCellBackground("#fafafa")
+          .vaadinGridCellPadding("4px")
+          .onRowSelectionChangedActionId("rowsChanged")
+          .contentHeight("20rem")
+          .searchOnEnter(false)
+          .autoFocusOnSearchText(false)
+          .groupBy("status")
+          .groupAction(new io.mateu.uidl.data.Button("Close group", "closeGroup"))
+          .rowStatusField("status")
+          .dragType("order")
+          .rowsSelectionEnabled(true)
+          .build();
+    }
+  }
+
   /** The StatusList front-office component: labelled status rows — a chip row and an action row. */
   @UI("/conformance/status-list")
   @Title("Status list")
@@ -1638,7 +1725,9 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "editable-view",
           "editable-view-edit",
-          "view-toolbar-button");
+          "view-toolbar-button",
+          "grid-field-detail",
+          "fluent-crudl-options");
 
   static TestMateu mateu;
 
@@ -1702,7 +1791,9 @@ class WireConformanceTest {
             SectionOptionsForm.class,
             EmployeesCrud.class,
             ProfileView.class,
-            ProductsWithViewButton.class);
+            ProductsWithViewButton.class,
+            GridFieldDetail.class,
+            FluentCrudlOptionsPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
