@@ -81,11 +81,7 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "label", caption,
                   "routes", paths));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -143,11 +139,7 @@ class UISourceFileGenerator {
       model.put("metas", extractMetas(e));
 
       Formatter formatter = new Formatter("index.ftl", model);
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -190,11 +182,7 @@ class UISourceFileGenerator {
       model.put("links", links);
       model.put("metas", metas);
       Formatter formatter = new Formatter("index.ftl", model);
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -221,11 +209,7 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "pageTitle", caption,
                   "path", path));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -252,11 +236,7 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "pageTitle", caption,
                   "path", path));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -302,4 +282,13 @@ class UISourceFileGenerator {
   }
 
   private UISourceFileGenerator() {}
+
+  /** Writes what the template renders; a template error is printed, as it always was. */
+  private static void print(PrintWriter out, Formatter formatter) throws IOException {
+    try {
+      out.println(formatter.apply());
+    } catch (TemplateException ex) {
+      ex.printStackTrace();
+    }
+  }
 }
