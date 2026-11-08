@@ -69,7 +69,7 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const actions = metadata.contextActions ?? []
     const liveValues = (metadata.headerValues?.length ?? 0) > 0
     if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled && !liveValues && !metadata.agentPush) return nothing
-    return html`${liveValues ? html`<mateu-header-values></mateu-header-values>` : nothing}${metadata.agentPush ? html`
+    return html`${liveValues ? html`<mateu-header-values .ids="${(metadata.headerValues ?? []).map(v => v.id)}"></mateu-header-values>` : nothing}${metadata.agentPush ? html`
         <mateu-agent-connect .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-agent-connect>` : nothing}${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
