@@ -1,8 +1,8 @@
 id: responsive-grid
 area: components
 group: layout
-title: Responsive grid & content layout
-covers: [component:ResponsiveGrid, component:Slotted, component:ContentLayout]
+title: Responsive grid & named areas
+covers: [component:ResponsiveGrid, component:Slotted]
 examples:
   - title: In YAML
     yaml: specs/ui/explorer/components/responsive-grid/grids.yaml
