@@ -43,6 +43,7 @@
   "calendarEvents": "{count} events",
   "hideUnpopulated": "Hide unpopulated",
   "mapUnavailable": "The map could not be loaded.",
+  "surfaceUnavailable": "This part of the page could not be loaded.",
   "menu": "Menu",
   "context": "Context",
   "workContext": "Working context",

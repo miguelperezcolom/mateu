@@ -5,12 +5,13 @@
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands } from './reduceContexts.mjs'
-import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
+import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
+import { chromeText } from './i18n.mjs'
 import { noteDocumentBase } from './files.mjs'
 import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
@@ -196,7 +197,7 @@ export function setMountWithoutApp(value) { mountWithoutApp = !!value }
  *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
  *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
  *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
-export const loadRoute = async (base, route, initiator = '', extra = {}) => {
+export const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
   // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
   if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
     extra = { ...extra, consumedRoute: '_empty' }
@@ -218,7 +219,7 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
     const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
     if (bundled) return bundled
   }
-  return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+  return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
 }
 
 /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -585,13 +586,23 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
     ...(sub.windowless ? { windowless: true } : {}) }
   // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
   // its actions and triggers still go to ITS baseUrl (outbound, below)
-  const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+  let answer
+  try {
+    answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
     ...extra,
     consumedRoute: sub.consumedRoute,
     serverSideType: sub.serverSideType,
     componentState: sub.componentState || {},
     ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
-  })
+  // a micro frontend's load is a block of the page: whatever happens to it reports in ITS box
+  // (loadSubresources), never in the page-wide error band
+  }, sub.windowless ? { quiet: true } : {})
+  } catch (error) {
+    // a micro frontend that fails says so INSIDE its own box (its load is quiet: no page band);
+    // any other subresource is reported by the error band (onSettle) and rethrown, as before
+    if (!sub.windowless || isStaleResponse(error)) throw error
+    return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
+  }
   let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
   next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
   for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
@@ -795,6 +806,25 @@ export async function loadSubresources(base, reg, blocks, extra = {}) {
     } catch (ignored) { /* the error band already reports it (onSettle) */ }
   }
   return next
+}
+
+/** The answer a micro frontend that could not be loaded paints in its own box: a danger Notice
+ *  with what went wrong (the classified failure's words, else the renderer's own). */
+export function surfaceFailureIncrement(id, error) {
+  const reason = error && error.failure && error.failure.message
+  const text = reason ? `${chromeText('surfaceUnavailable')} ${reason}` : chromeText('surfaceUnavailable')
+  return {
+    commands: [],
+    messages: [],
+    fragments: [{
+      targetComponentId: id,
+      action: 'Replace',
+      component: { type: 'ServerSide', id, serverSideType: '', actions: [], triggers: [], children: [
+        { type: 'ClientSide', id: `${id}-failure`, children: [], metadata: { type: 'Notice', theme: 'danger', text } },
+      ] },
+      state: {},
+    }],
+  }
 }
 
 /**

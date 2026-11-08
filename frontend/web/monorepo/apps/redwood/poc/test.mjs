@@ -7313,6 +7313,25 @@ atest('a MicroFrontend with no chrome sends no marker, and still never names or 
   } finally { globalThis.fetch = original }
 })
 
+atest('a MicroFrontend whose backend fails says so inside its own box, not in the page-wide error band', async () => {
+  const original = globalThis.fetch
+  const settled = []
+  setTransportHooks({ onSettle: (p) => settled.push(p) })
+  globalThis.fetch = async () => ({ ok: false, status: 500, headers: { get: () => null },
+    json: async () => ({}), text: async () => 'boom' })
+  try {
+    const sub = mfeOf({ baseUrl: '/_down', route: '/stock' })
+    const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
+    assert.ok(settled.every((p) => !p.failure), 'the page band hears no failure')
+    const box = reg.contexts[sub.id]
+    assert.ok(box, 'the island has a context of its own')
+    const notice = box.tree.children[0].metadata
+    assert.equal(notice.type, 'Notice')
+    assert.equal(notice.theme, 'danger')
+    assert.match(notice.text, /could not be loaded/)
+  } finally { globalThis.fetch = original; setTransportHooks(null) }
+})
+
 test('embedded MicroFrontend: NONE draws no title nor toolbar, COMPACT only the toolbar, PAGE both — never a breadcrumb', () => {
   const painted = (chrome) => {
     const sub = mfeOf({ baseUrl: '/r', route: '/tools', ...(chrome ? { chrome } : {}) })
