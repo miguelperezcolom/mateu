@@ -29,7 +29,7 @@ import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMe
 import { renderMicroFrontend } from './renderers/microFrontendRenderer'
 import { render } from 'lit'
 import { publishShellMenu } from './breadcrumbTrail'
-import { chromeOf, embeddingChromeOf, isSuppressedWindowCommand, ownEmbeddedChromeOf } from './embeddedChrome'
+import { chromeOf, embeddingChromeOf, isInsideMicroFrontend, isSuppressedWindowCommand, ownEmbeddedChromeOf } from './embeddedChrome'
 import { resetWindowTitleForTests } from './windowTitle'
 
 class TestRenderer extends BasicComponentRenderer {}
@@ -256,9 +256,54 @@ describe('the embedded page\'s header', () => {
             expect(root.querySelector('.breadcrumbs-bar')).toBeNull()
         } finally {
             publishShellMenu(shell, undefined, false)
+            shell.isConnected = false // gone: the next test's shell may publish its menu
             history.replaceState(null, '', '/')
         }
         const declared = await header('PAGE', page)
         expect(declared.querySelector('.breadcrumbs-bar')).toBeNull()
+    })
+
+    it('a REMOTE page in an island with the DEFAULT chrome draws no trail of the host either', async () => {
+        // found building the Mateu Explorer: the host's breadcrumb showed inside the embedded remote page
+        history.replaceState(null, '', '/extranet/almacen')
+        const shell = { isConnected: true }
+        publishShellMenu(shell, [
+            { label: 'Extranet', submenus: [{ label: 'Almacen', route: '/extranet/almacen' }] },
+        ] as never, false)
+        try {
+            const headerIn = async (island: boolean) => {
+                const { embed } = tree(undefined)
+                if (island) embed.setAttribute('micro-frontend', '')
+                const el = document.createElement('mateu-content-header') as MateuContentHeader & Record<string, any>
+                el.metadata = { type: ComponentMetadataType.Page, ...page, breadcrumbs: [] } as never
+                el.state = {}
+                el.data = {}
+                embed.shadowRoot!.appendChild(el)
+                await el.updateComplete
+                await el.updateComplete
+                return el.shadowRoot as ShadowRoot
+            }
+            // the same page outside an island gets the host's automatic trail…
+            expect((await headerIn(false)).querySelector('.breadcrumbs-bar')?.textContent).toContain('Extranet')
+            // …inside one, with no chrome declared, it does not
+            const root = await headerIn(true)
+            expect(root.querySelector('h2')?.textContent).toContain('Remote tools')
+            expect(root.querySelector('.breadcrumbs-bar')).toBeNull()
+        } finally {
+            publishShellMenu(shell, undefined, false)
+            history.replaceState(null, '', '/')
+        }
+    })
+
+    it('the micro frontend renderer marks every island, whatever its chrome', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+        render(renderMicroFrontend({ type: 'ClientSide', id: 'm', children: [],
+            metadata: { type: 'MicroFrontend', baseUrl: '/remote', route: '/r', consumedRoute: '', serverSideType: '',
+                appState: {}, actionId: '', style: '', cssClasses: '' } } as never), container)
+        expect(container.querySelector('mateu-ux')?.hasAttribute('micro-frontend')).toBe(true)
+        expect(container.querySelector('mateu-api-caller')?.hasAttribute('inline-failures')).toBe(true)
+        expect(isInsideMicroFrontend(container.querySelector('mateu-ux'))).toBe(true)
+        expect(isInsideMicroFrontend(container)).toBe(false)
     })
 })

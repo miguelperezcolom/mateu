@@ -36,6 +36,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   .appState="${metadata.appState}"
                   .preloaded="${metadata.resolved}"
                   embedded-chrome="${chromeOf(metadata.chrome) ?? nothing}"
+                  micro-frontend
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"
         ></mateu-ux>
