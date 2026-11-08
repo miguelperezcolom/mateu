@@ -1,9 +1,14 @@
-# Form page. Bind it to a route in routes.yaml (with a viewModel to handle `save`, or an
-# `actions:` entry carrying a restAction for a backend-less page).
+# Form page. Save and Cancel work as generated: Save checks the required fields and POSTs the form
+# to the endpoint below; until that API exists its `sample:` answers instead (sample mode — the
+# starters run in it, and the visual editor always does), so the user sees "Saved". Point `url` at
+# your API (or name a sources.yaml entry with `ref:`), or bind a viewModel in routes.yaml and
+# handle `save` there. See https://mateu.io/define/yaml/pages/
 type: Form
 title: __TITLE__
 pageType: form
 __PAGE_WIDTH__
+# a page that edits asks before a navigation discards what was typed
+confirmOnNavigationIfDirty: true
 content:
   - type: FormLayout
     content:
@@ -14,3 +19,18 @@ content:
 buttons:
   - {type: Button, label: Cancel, actionId: cancel, buttonStyle: secondary}
   - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        url: /api/form
+        method: POST
+        sample: {}
+      successMessage: Saved
+  # Cancel drops what was typed and goes back to the app's home page
+  - id: cancel
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: ""

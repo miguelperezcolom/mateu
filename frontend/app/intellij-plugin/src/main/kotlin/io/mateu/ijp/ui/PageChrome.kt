@@ -103,7 +103,7 @@ object PageChrome {
             }, 4)
         }
         if (title.isNotBlank() || switcher != null) {
-            val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0))
+            val titleRow = JPanel(FlushFlowLayout(JBUI.scale(12)))
             titleRow.isOpaque = false
             if (title.isNotBlank()) {
                 val l = JBLabel(plain(title))
@@ -127,7 +127,7 @@ object PageChrome {
         // Previous / next record (PageDto.peerNav): a side without a route is disabled.
         val peerNav = metadata.path("peerNav")
         if (peerNav.isObject) {
-            val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0))
+            val row = JPanel(FlushFlowLayout(JBUI.scale(8)))
             row.isOpaque = false
             for ((labelKey, routeKey, previous) in listOf(Triple("prevLabel", "prevRoute", true), Triple("nextLabel", "nextRoute", false))) {
                 val label = peerNav.text(labelKey)
@@ -144,14 +144,14 @@ object PageChrome {
         // @BadgeInHeader chips + KPI band under the title.
         val badges = metadata.arr("badges")
         if (badges.isNotEmpty()) {
-            val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0))
+            val row = JPanel(FlushFlowLayout(JBUI.scale(6)))
             row.isOpaque = false
             for (b in badges) row.add(headerBadge(b, exprCtx))
             header.addStacked(row, 6)
         }
         val kpis = metadata.arr("kpis")
         if (kpis.isNotEmpty()) {
-            val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(18), 0))
+            val row = JPanel(FlushFlowLayout(JBUI.scale(18)))
             row.isOpaque = false
             for (k in kpis) {
                 val cell = verticalPanel(0)

@@ -132,6 +132,19 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         return container
     }
 
+    // A READ-ONLY boolean (a record's view mode) is a value like any other (D-19): a quiet caption
+    // over "✓" / "—", the web's read-only layout. A disabled checkbox drew its label at ~2:1.
+    if (dataType in BOOL_TYPES && metadata.bool("readOnly") && !metadata.bool("disabled") &&
+        !io.mateu.ijp.state.Expressions.truthy(ruleAttrs["disabled"])) {
+        val caption = JBLabel(plain(label)).apply { foreground = ToneColors.secondaryText() }
+        caption.alignmentX = Component.LEFT_ALIGNMENT
+        val shown = ReadOnlyValues.booleanComponent(rawValue.asBoolean(false))
+        shown.alignmentX = Component.LEFT_ALIGNMENT
+        if (label.isNotBlank()) { container.add(caption); caption.labelling(shown) }
+        container.add(shown)
+        return container
+    }
+
     // Boolean → inline checkbox carrying its own label, no separate caption.
     if (dataType in BOOL_TYPES) {
         val cb = JBCheckBox(plain(label), rawValue.asBoolean(false))
@@ -604,12 +617,19 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
         override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
         override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
             val cell = rowList[rowIndex].path(cols[columnIndex].first)
-            return if (cols[columnIndex].third in BOOL_TYPES) cell.asBoolean(false) else cell.displayString()
+            // a date reads in the user's locale (D-15)
+            return if (cols[columnIndex].third in BOOL_TYPES) cell.asBoolean(false)
+                   else DateValues.cellText(cell.displayString(), cols[columnIndex].third)
         }
     }
     val table = JBTable(model).plainCells()
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(28)
+    // numbers to the end, formatted, with their header over them (D-16, the listing's rule)
+    cols.forEachIndexed { i, (_, _, type) ->
+        if (isNumericColumn(type, "")) table.columnModel.getColumn(i).cellRenderer = NumberCellRenderer(type == "money")
+    }
+    ColumnAlign.alignHeaders(table) { modelCol -> ColumnAlign.of(cols.getOrNull(modelCol)?.third ?: "") }
     // Speed search: type over the grid to jump to matching rows (guarded for the render probe).
     runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
 

@@ -50,7 +50,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 }
 
 internal fun buttonRow(r: ComponentRenderer, buttons: List<JsonNode>): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(JBGap)))
     row.isOpaque = false
     for (b in buttons) row.add(renderButton(r.ctx, b))
     return row
@@ -115,7 +115,7 @@ internal fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponen
  * (type over the open list to filter/jump), the platform idiom for a filterable combo.
  */
 internal fun renderRecordSwitcher(r: ComponentRenderer, switcher: PageSlots.Switcher): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(6)))
     row.isOpaque = false
     val hint = JBLabel(plain(switcher.label))
     hint.foreground = ToneColors.secondaryText()
