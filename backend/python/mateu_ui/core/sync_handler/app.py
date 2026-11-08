@@ -133,15 +133,72 @@ class AppHandlerMixin(MixinBase):
                 "the app class does not implement NotificationsSupplier — no inbox to serve"
             )
         supplier = cls()
+        parameters = rq.parameters or {}
+        # every id the panel sends back comes from the browser: the supplier is only handed ids of
+        # the CALLER's own list (what it answers for this request) and only the actions an entry
+        # offers — an app that looks entries up by id alone must not open another user's inbox
+        if rq.action_id == "_notifications-open":
+            # the entry's detail (a drawer, a dialog…) answered like any action's result
+            nid = self._str_param(parameters, "id")
+            entry = self._own_entry(supplier, nid, rq)
+            if entry is None or not getattr(entry, "has_detail", False):
+                return UIIncrement.of()
+            detail = supplier.notification_detail(nid, rq)
+            return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
+        answer: UIIncrement | None = None
         if rq.action_id == "_notifications-read":
-            supplier.mark_notifications_read(self._notification_read_ids(supplier, rq), rq)
+            supplier.mark_notifications_read(
+                self._own_ids(supplier, self._notification_read_ids(supplier, rq), rq), rq)
+        elif rq.action_id == "_notifications-dismiss":
+            ids = parameters.get("ids")
+            supplier.dismiss_notifications(
+                self._own_ids(
+                    supplier,
+                    [str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]),
+                    rq,
+                ),
+                rq,
+            )
+        elif rq.action_id == "_notifications-act":
+            nid = self._str_param(parameters, "id")
+            action_id = self._str_param(parameters, "actionId")
+            if nid is None or action_id is None:
+                return self.error("Which notification, and which action?")
+            entry = self._own_entry(supplier, nid, rq)
+            if entry is None or not any(
+                getattr(a, "action_id", None) == action_id for a in (getattr(entry, "actions", None) or [])
+            ):
+                from ..action_guard import deny
+
+                deny("_notifications-act: the caller's inbox has no entry offering that action")
+            result = supplier.on_notification_action(nid, action_id, rq)
+            answer = self.map_result(result, rq) if result is not None else None
         notifications = supplier.notifications(rq) or []
         data = {"_notifications": [self._notification_json(n) for n in notifications]}
-        return UIIncrement.of(
-            fragments=[
-                UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
-            ]
-        )
+        listed = UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
+        if answer is None:
+            return UIIncrement.of(fragments=[listed])
+        return answer.model_copy(update={"fragments": [*answer.fragments, listed]})
+
+    @staticmethod
+    def _own_entry(supplier, nid: str | None, rq: RunActionRq):
+        """The caller's own entry ``nid`` (in the list the supplier answers for this request)."""
+        if nid is None:
+            return None
+        return next((n for n in (supplier.notifications(rq) or []) if n is not None and n.id == nid), None)
+
+    @staticmethod
+    def _own_ids(supplier, ids: list[str], rq: RunActionRq) -> list[str]:
+        """``ids`` kept only when they are the caller's own entries."""
+        if not ids:
+            return ids
+        own = {n.id for n in (supplier.notifications(rq) or []) if n is not None}
+        return [i for i in ids if i in own]
+
+    @staticmethod
+    def _str_param(parameters: dict, key: str) -> str | None:
+        value = parameters.get(key)
+        return None if value is None else str(value)
 
     @staticmethod
     def _notification_read_ids(supplier, rq: RunActionRq) -> list[str]:
@@ -158,6 +215,8 @@ class AppHandlerMixin(MixinBase):
     def _notification_json(n) -> dict[str, Any]:
         """One inbox entry on the wire — {id, title, text, route, unread, when} (mirrors
         AppNotification's JSON shape)."""
+        if hasattr(n, "to_json"):
+            return n.to_json()
         return {
             "id": n.id, "title": n.title, "text": n.text,
             "route": n.route, "unread": n.unread, "when": n.when,

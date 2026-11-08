@@ -98,11 +98,26 @@ test('an app home falls back to the app type; search defaults fill only what is 
 
 test('messages as toasts: no text no toast, info default, undo with its label and parameters', () => {
   assert.equal(toastOf({ title: 'x' }), null);
-  assert.deepEqual(toastOf({ text: 'Hi' }), { title: null, text: 'Hi', variant: 'info', duration: undefined, undo: undefined });
+  assert.deepEqual(toastOf({ text: 'Hi' }), { title: null, text: 'Hi', variant: 'info', duration: undefined, undo: undefined, actions: [], persistence: 'toast', key: null });
+  // an older server: the legacy undo fields become the one action
   assert.deepEqual(toastOf({ text: 'Deleted', title: 'T', variant: 'warning', duration: 4000, undoActionId: 'restore', undoParameters: { id: 1 } }), {
     title: 'T', text: 'Deleted', variant: 'warning', duration: 4000, undo: { label: 'Undo', actionId: 'restore', parameters: { id: 1 } },
+    actions: [{ label: 'Undo', actionId: 'restore', parameters: { id: 1 }, route: null, style: 'undo' }], persistence: 'toast', key: null,
   });
   assert.deepEqual(toastOf({ text: 'D', duration: -1, undoActionId: 'r', undoLabel: 'Revert' })!.undo, { label: 'Revert', actionId: 'r', parameters: {} });
+});
+
+test('message semantics: actions win over the legacy undo, persistence, key; an older error is sticky', () => {
+  const t = toastOf({
+    text: 'Saved', persistence: 'inbox', key: 'k1', undoActionId: 'legacy',
+    actions: [{ label: 'Open', route: '/x' }, { style: 'undo', actionId: 'restore' }, { label: 'Nothing' }],
+  })!;
+  assert.deepEqual(t.actions.map((a) => a.label), ['Open', 'Undo'], 'an action with nowhere to go is dropped');
+  assert.equal(t.undo!.actionId, 'restore', 'not the legacy field');
+  assert.equal(t.persistence, 'inbox');
+  assert.equal(t.key, 'k1');
+  assert.equal(toastOf({ text: 'x', variant: 'error' })!.persistence, 'sticky');
+  assert.equal(toastOf({ text: 'x', variant: 'error', persistence: 'toast' })!.persistence, 'toast');
 });
 
 test('a route\'s query seeds a listing\'s search, under what the user set', () => {

@@ -3,6 +3,8 @@ import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { updateHeaderValue } from '@infra/ui/headerValues.ts'
+import { inboxStore, notificationChangesOf } from '@infra/notify/inboxStore.ts'
+import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progress.ts'
 
 /**
  * The APP EVENT STREAM of `@App(liveUpdates)`: header-value changes the server publishes to every
@@ -20,6 +22,8 @@ import { updateHeaderValue } from '@infra/ui/headerValues.ts'
  * purpose; the leader reconnects at once (with a back-off on errors).
  */
 export const LEADER_KEY = 'mateu-live-leader'
+/** How the leader tab hands a live inbox change to the other tabs of the browser. */
+export const INBOX_CHANGE_KEY = 'mateu-inbox-change'
 export const HEARTBEAT_MS = 5_000
 export const STALE_MS = 15_000
 
@@ -106,8 +110,18 @@ const connect = () => {
                 const line = event.trim()
                 if (!line.startsWith('data:')) continue
                 try {
-                    for (const change of headerChangesOf(JSON.parse(line.substring(5).trim()))) {
+                    const increment = JSON.parse(line.substring(5).trim())
+                    for (const change of headerChangesOf(increment)) {
                         updateHeaderValue(change.id, change.value)
+                    }
+                    // the inbox of this user changed (LiveNotifications.publish): the bell follows
+                    for (const change of notificationChangesOf(increment)) {
+                        inboxStore.applyChange(change)
+                        // and so do the other tabs (they hold no stream: storage tells them)
+                        safeLocalStorage.setJson(INBOX_CHANGE_KEY, { at: Date.now(), tab: tabId, change })
+                        // the write already fired their storage event: the entry (another user's,
+                        // on a shared machine after a sign-out) must not stay at rest in the browser
+                        safeLocalStorage.remove(INBOX_CHANGE_KEY)
                     }
                 } catch { /* a heartbeat or a malformed chunk: skip it */ }
             }
@@ -155,6 +169,14 @@ export const syncLiveUpdates = (app: App | undefined, baseUrl: string) => {
     if (!unloadHooked) {
         unloadHooked = true
         window.addEventListener('pagehide', release)
+        // an inbox change the leader tab received
+        window.addEventListener('storage', (e: StorageEvent) => {
+            if (e.key !== INBOX_CHANGE_KEY || !e.newValue) return
+            try {
+                const record = JSON.parse(e.newValue) as { tab?: string, change?: NotificationsChanged }
+                if (record.tab !== tabId && record.change) inboxStore.applyChange(record.change)
+            } catch { /* not ours */ }
+        })
     }
     tick()
 }

@@ -52,8 +52,40 @@ for (const [name, service] of [['HttpService', httpService], ['SSEService', sseS
                 messages: [{ text: 'Saved', variant: 'success', position: 'bottomEnd', duration: 2000,
                     undoLabel: 'Undo', undoActionId: 'undoSave', undoParameters: { id: 1 } }],
             }), initiator, '')
-            expect(toasts).toEqual([{ text: 'Saved', variant: 'success', position: 'bottomEnd', duration: 2000,
-                undoLabel: 'Undo', undoActionId: 'undoSave', undoParameters: { id: 1 } }])
+            expect(toasts).toHaveLength(1)
+            expect(toasts[0]).toMatchObject({ text: 'Saved', variant: 'success', position: 'bottomEnd', duration: 2000,
+                undoLabel: 'Undo', undoActionId: 'undoSave', undoParameters: { id: 1 } })
+            // the legacy undo becomes the toast's one action
+            expect(toasts[0].actions?.map((a) => a.label)).toEqual(['Undo'])
+        })
+
+        it('a Progress command goes to the task center, not to the components', async () => {
+            const { taskStore } = await import('@infra/progress/taskStore.ts')
+            taskStore.reset()
+            service.handleUIIncrement(increment({
+                commands: [{ type: 'Progress', data: { taskId: 't1', title: 'Import', state: 'running', blocking: false } },
+                    { type: 'NavigateTo', data: '/x' }],
+            }), initiator, '')
+            expect(taskStore.find('t1')?.progress.title).toBe('Import')
+            expect(bus.map((m) => m.command?.type)).toEqual(['NavigateTo'])
+        })
+
+        it('a command with no target is addressed to the component that ran the action', () => {
+            initiator.id = 'comp-7'
+            service.handleUIIncrement(increment({ commands: [{ type: 'NavigateTo', data: '/x' }] }), initiator, '')
+            expect(bus[0].command?.targetComponentId).toBe('comp-7')
+        })
+
+        it('an inbox message also lands in the inbox; actions and key reach the toast', async () => {
+            const { inboxStore } = await import('@infra/notify/inboxStore.ts')
+            inboxStore.reset()
+            service.handleUIIncrement(increment({
+                messages: [{ title: 'Import finished', text: '3 errors', variant: 'success', persistence: 'inbox',
+                    key: 'task-1', actions: [{ label: 'View', route: '/imports/1' }] }],
+            }), initiator, '')
+            expect(toasts[0]).toMatchObject({ title: 'Import finished', key: 'task-1', persistence: 'inbox' })
+            expect(toasts[0].actions?.map((a) => a.label)).toEqual(['View'])
+            expect(inboxStore.entries().map((e) => [e.id, e.title, e.text])).toEqual([['task-1', 'Import finished', '3 errors']])
         })
 
         it('delivers banners to the page, replace or append', () => {

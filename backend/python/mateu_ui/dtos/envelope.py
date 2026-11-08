@@ -19,7 +19,8 @@ if TYPE_CHECKING:
 
 # ── Top-level envelope ─────────────────────────────────────────────────────────
 class UICommand(Wire):
-    target_component_id: str
+    #: None for a command aimed at no component (a ``Progress``, a ``NotificationsChanged``).
+    target_component_id: str | None = None
     type: str
     data: Any | None = None
 
@@ -124,14 +125,101 @@ class Message(Wire):
     undo_label: str | None = None
     undo_action_id: str | None = None
     undo_parameters: dict[str, Any] | None = None
+    #: toast | sticky | inbox (mirrors MessageDto.persistence): declared, else an error is sticky
+    #: and anything else a toast (EXPERIMENTAL).
+    persistence: str | None = None
+    #: What the user can do from the message — the undo is one of them (style "undo").
+    actions: "list[MessageActionDto]" = Field(default_factory=list)
+    #: A message with the same key replaces the one on screen (and the inbox entry).
+    key: str | None = None
 
     @model_validator(mode="after")
     def _errors_stay(self) -> "Message":
         # An ERROR stays until dismissed (duration 0) in every backend and renderer (Java's
-        # MessageMapper, .NET's MessageDto); the rest keep the duration they were given.
-        if self.variant == "error" and self.duration != 0:
+        # MessageMapper, .NET's MessageDto); the rest keep the duration they were given. Same rule
+        # as Java's MessageMapper for the persistence and the undo listed among the actions.
+        if self.persistence is None:
+            object.__setattr__(self, "persistence", "sticky" if self.variant == "error" else "toast")
+        if self.persistence == "sticky" and self.duration != 0:
             object.__setattr__(self, "duration", 0)
+        if self.undo_action_id and not any(
+            a.action_id == self.undo_action_id for a in self.actions
+        ):
+            object.__setattr__(self, "actions", [*self.actions, MessageActionDto(
+                label=self.undo_label, action_id=self.undo_action_id,
+                parameters=self.undo_parameters, route=None, style="undo",
+            )])
         return self
+
+    @model_serializer(mode="wrap")
+    def _omit_absent(self, handler):
+        # like Java's NON-default members: an empty action list / no key is not on the wire
+        data = handler(self)
+        for key in ("key",):
+            if key in data and data[key] is None:
+                del data[key]
+        if "actions" in data and not data["actions"]:
+            del data["actions"]
+        return data
+
+
+class MessageActionDto(Wire):
+    """An action of a message, a finished task or an inbox entry (mirrors
+    ``io.mateu.dtos.MessageActionDto``): ``route`` navigates, else ``action_id`` (with
+    ``parameters``) runs; ``style`` is a hint — primary | secondary | danger | undo."""
+
+    label: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, Any] | None = None
+    route: str | None = None
+    style: str | None = None
+
+
+class ProgressDto(Wire):
+    """The whole current state of one long-running task — the data of a ``Progress`` command
+    (mirrors ``io.mateu.dtos.ProgressDto``). Each command is self-contained: renderers upsert by
+    ``task_id``. ``fraction`` None = indeterminate; ``state`` running | done | failed | cancelled."""
+
+    task_id: str
+    title: str | None = None
+    text: str | None = None
+    fraction: float | None = None
+    done: int | None = None
+    total: int | None = None
+    state: str = "running"
+    blocking: bool = True
+    backgroundable: bool = False
+    cancellable: bool = False
+    retryable: bool = False
+    started_at: int | None = None
+    close_after_seconds: int | None = None
+    error: str | None = None
+    result_actions: list[MessageActionDto] = Field(default_factory=list)
+
+
+class AppNotificationDto(Wire):
+    """One inbox entry as pushed by ``NotificationsChanged`` (mirrors
+    ``io.mateu.dtos.AppNotificationDto``)."""
+
+    id: str
+    title: str | None = None
+    text: str | None = None
+    route: str | None = None
+    unread: bool = True
+    when: str | None = None
+    category: str | None = None
+    variant: str | None = None
+    resolved: bool = False
+    actions: list[MessageActionDto] = Field(default_factory=list)
+    has_detail: bool = False
+
+
+class NotificationsChangedDto(Wire):
+    """The data of a ``NotificationsChanged`` command: an entry added or changed, one removed, or
+    — both None — "fetch the list again" (mirrors ``io.mateu.dtos.NotificationsChangedDto``)."""
+
+    notification: AppNotificationDto | None = None
+    removed_id: str | None = None
 
 
 class UIFragment(Wire):

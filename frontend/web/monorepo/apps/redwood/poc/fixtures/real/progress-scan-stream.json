@@ -1,0 +1,232 @@
+[
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Escaneando el documento",
+     "text": "Starting...",
+     "fraction": 0.0,
+     "done": null,
+     "total": null,
+     "state": "running",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": null,
+     "error": null,
+     "resultActions": []
+    }
+   }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ },
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Escaneando el documento",
+     "text": "Encendiendo el escáner…",
+     "fraction": 0.25,
+     "done": 1,
+     "total": 4,
+     "state": "running",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": null,
+     "error": null,
+     "resultActions": []
+    }
+   }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ },
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Escaneando el documento",
+     "text": "Leyendo el documento…",
+     "fraction": 0.5,
+     "done": 2,
+     "total": 4,
+     "state": "running",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": null,
+     "error": null,
+     "resultActions": []
+    }
+   }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ },
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Escaneando el documento",
+     "text": "Extrayendo los datos…",
+     "fraction": 0.75,
+     "done": 3,
+     "total": 4,
+     "state": "running",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": null,
+     "error": null,
+     "resultActions": []
+    }
+   }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ },
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Escaneando el documento",
+     "text": "Verificando la identidad…",
+     "fraction": 1.0,
+     "done": 4,
+     "total": 4,
+     "state": "running",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": null,
+     "error": null,
+     "resultActions": []
+    }
+   }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ },
+ {
+  "commands": [
+   {
+    "targetComponentId": null,
+    "type": "Progress",
+    "data": {
+     "taskId": "7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d",
+     "title": "Documento verificado",
+     "text": "Identidad leída y verificada",
+     "fraction": 1.0,
+     "done": 4,
+     "total": 4,
+     "state": "done",
+     "blocking": true,
+     "backgroundable": true,
+     "cancellable": true,
+     "retryable": false,
+     "startedAt": 1762600000000,
+     "closeAfterSeconds": 1,
+     "error": null,
+     "resultActions": [
+      {
+       "label": "Ver documento",
+       "actionId": null,
+       "parameters": null,
+       "route": "/documento",
+       "style": null
+      }
+     ]
+    }
+   },
+   {
+    "targetComponentId": null,
+    "type": "DispatchEvent",
+    "data": {
+     "eventName": "documento-escaneado",
+     "detail": null
+    }
+   }
+  ],
+  "messages": [
+   {
+    "variant": "success",
+    "position": null,
+    "title": "Documento verificado",
+    "text": "Identidad leída y verificada",
+    "duration": 5000,
+    "undoLabel": null,
+    "undoActionId": null,
+    "undoParameters": null,
+    "persistence": "inbox",
+    "actions": [
+     {
+      "label": "Ver documento",
+      "actionId": null,
+      "parameters": null,
+      "route": "/documento",
+      "style": null
+     }
+    ],
+    "key": "task-7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d"
+   }
+  ],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ }
+]

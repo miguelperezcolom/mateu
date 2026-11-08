@@ -206,18 +206,57 @@ export function toastOf(msg: Json): {
   variant: 'info' | 'warning' | 'error';
   duration: number | undefined;
   undo: { label: string; actionId: string; parameters: Json } | undefined;
+  /** Every action the message offers (Undo is one of them, style `undo`); the legacy `undo*`
+   *  fields only when the server sent no `actions` (an older server). */
+  actions: ToastAction[];
+  /** toast (goes away) | sticky (until dismissed) | inbox (a toast that also lands in the inbox). */
+  persistence: 'toast' | 'sticky' | 'inbox';
+  /** A message with the same key replaces the one on screen (and the inbox entry). */
+  key: string | null;
 } | null {
   const text = str(msg['text']);
   if (!text) return null;
   const undoActionId = str(msg['undoActionId']);
   const duration = Number(msg['duration']) || 0;
+  const variant = (str(msg['variant']) || 'info') as 'info' | 'warning' | 'error';
+  const declared = Array.isArray(msg['actions']) ? (msg['actions'] as Json[]).filter((a) => a && typeof a === 'object') : [];
+  const actions: ToastAction[] = declared.length
+    ? declared
+        .map((a) => ({
+          label: str(a['label']) || (str(a['style']) === 'undo' ? 'Undo' : ''),
+          actionId: str(a['actionId']) || null,
+          parameters: (a['parameters'] as Json) ?? {},
+          route: str(a['route']) || null,
+          style: str(a['style']) || null,
+        }))
+        .filter((a) => a.label && (a.actionId || a.route))
+    : undoActionId
+      ? [{ label: str(msg['undoLabel']) || 'Undo', actionId: undoActionId, parameters: (msg['undoParameters'] as Json) ?? {}, route: null, style: 'undo' }]
+      : [];
+  const undoAction = actions.find((a) => a.style === 'undo' && a.actionId);
+  const wirePersistence = str(msg['persistence']);
+  const persistence: 'toast' | 'sticky' | 'inbox' =
+    wirePersistence === 'sticky' || wirePersistence === 'inbox' || wirePersistence === 'toast'
+      ? wirePersistence
+      // an older server: an error, or a duration of 0, stays
+      : variant === 'error' ? 'sticky' : 'toast';
   return {
     title: str(msg['title']) || null,
     text,
-    variant: (str(msg['variant']) || 'info') as 'info' | 'warning' | 'error',
+    variant,
     duration: duration > 0 ? duration : undefined,
-    undo: undoActionId
-      ? { label: str(msg['undoLabel']) || 'Undo', actionId: undoActionId, parameters: (msg['undoParameters'] as Json) ?? {} }
-      : undefined,
+    undo: undoAction ? { label: undoAction.label, actionId: undoAction.actionId!, parameters: undoAction.parameters } : undefined,
+    actions,
+    persistence,
+    key: str(msg['key']) || null,
   };
+}
+
+/** An action of a message: `route` navigates, else `actionId` runs on the screen that got it. */
+export interface ToastAction {
+  label: string;
+  actionId: string | null;
+  parameters: Json;
+  route: string | null;
+  style: string | null;
 }

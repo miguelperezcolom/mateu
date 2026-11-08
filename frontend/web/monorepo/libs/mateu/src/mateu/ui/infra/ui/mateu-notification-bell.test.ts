@@ -15,6 +15,7 @@ import './mateu-notification-bell'
 import type { MateuNotificationBell } from './mateu-notification-bell'
 import { dirtyGuard } from './dirtyGuard'
 import { dispatchAppHeaderAction } from './renderers/appHeaderActions'
+import { inboxStore } from '@infra/notify/inboxStore.ts'
 
 /**
  * The notification inbox (`NotificationsSupplier` on the app class). The bell asks the APP for its
@@ -48,7 +49,7 @@ describe('mateu-notification-bell', () => {
     const $$ = (b: MateuNotificationBell, sel: string) => Array.from(b.shadowRoot!.querySelectorAll(sel)) as HTMLElement[]
     const flush = async (b: MateuNotificationBell) => { await new Promise(r => setTimeout(r, 0)); await b.updateComplete }
 
-    beforeEach(() => { events = []; listening = new AbortController(); runAction.mockReset() })
+    beforeEach(() => { events = []; listening = new AbortController(); runAction.mockReset(); inboxStore.reset() })
     afterEach(() => { listening.abort(); document.body.innerHTML = ''; document.documentElement.lang = ''; vi.restoreAllMocks() })
 
     it('fetches the inbox from the APP once it knows the app, and badges the unread count', async () => {
@@ -170,6 +171,75 @@ describe('mateu-notification-bell', () => {
         $(b2, '.bell-button').click()
         await flush(b2)
         expect($$(b2, '.entry')).toHaveLength(3)
+    })
+
+    it('filters (all / unread / resolved) and groups by category', async () => {
+        answer([
+            { id: 'a', title: 'Approve PO-1', unread: true, category: 'Approvals' },
+            { id: 'b', title: 'Import done', unread: false, category: 'Imports' },
+            { id: 'c', title: 'Approve PO-2', unread: false, resolved: true, category: 'Approvals' },
+        ])
+        const bell = await mount()
+        $(bell, '.bell-button').click()
+        await flush(bell)
+        expect($$(bell, '.group').map((g) => g.textContent)).toEqual(['Approvals', 'Imports'])
+        expect($$(bell, '.entry-title').map((t) => t.textContent)).toEqual(['Approve PO-1', 'Approve PO-2', 'Import done'])
+        const filter = (label: string) => $$(bell, '.filter').find((f) => f.textContent === label)!
+        filter('Unread').click()
+        await bell.updateComplete
+        expect($$(bell, '.entry-title').map((t) => t.textContent)).toEqual(['Approve PO-1'])
+        expect(filter('Unread').getAttribute('aria-pressed')).toBe('true')
+        filter('Resolved').click()
+        await bell.updateComplete
+        expect($$(bell, '.entry-title').map((t) => t.textContent)).toEqual(['Approve PO-2'])
+    })
+
+    it('an entry\'s actions run on the server (_notifications-act); its ✕ dismisses it', async () => {
+        answer([{ id: 'a', title: 'Approve PO-1', unread: true, actions: [{ label: 'Approve', actionId: 'approve' }, { label: 'Reject', actionId: 'reject', style: 'danger' }] }])
+        const bell = await mount()
+        $(bell, '.bell-button').click()
+        await flush(bell)
+        expect($$(bell, '.entry-action').map((b) => b.textContent?.trim())).toEqual(['Approve', 'Reject'])
+        $$(bell, '.entry-action')[0].click()
+        await flush(bell)
+        const act = sseRun.mock.calls.at(-1)!
+        expect(act[4]).toBe('_notifications-act')
+        expect(act[9]).toEqual({ id: 'a', actionId: 'approve' })
+        $(bell, '.dismiss').click()
+        await flush(bell)
+        expect(runAction.mock.calls.at(-1)![3]).toBe('_notifications-dismiss')
+        expect(runAction.mock.calls.at(-1)![8]).toEqual({ ids: ['a'] })
+    })
+
+    it('an entry with a detail asks the server for it (_notifications-open) on the on-screen component', async () => {
+        answer([{ id: 'd', title: 'Invoice disputed', unread: false, hasDetail: true }])
+        const bell = await mount()
+        $(bell, '.bell-button').click()
+        await flush(bell)
+        $$(bell, '.entry')[0].click()
+        await flush(bell)
+        const open = sseRun.mock.calls.at(-1)!
+        expect(open[4]).toBe('_notifications-open')
+        expect(open[9]).toEqual({ id: 'd' })
+        expect(events).toEqual([])
+    })
+
+    it('session entries (an inbox message, a live push) join the server list, deduplicated by id', async () => {
+        answer([{ id: 'a', title: 'Stored', unread: false }])
+        const bell = await mount()
+        inboxStore.addSessionEntry({ id: 'task-1', title: 'Import finished', unread: true, local: true })
+        inboxStore.applyChange({ notification: { id: 'a', title: 'Stored (changed)', unread: true } })
+        await bell.updateComplete
+        expect($(bell, '.badge').textContent).toBe('2')
+        $(bell, '.bell-button').click()
+        await flush(bell)
+        // the refetch on open is the source of truth again for what it lists; session-only entries stay
+        expect($$(bell, '.entry-title').map((t) => t.textContent)).toContain('Import finished')
+        // a live "refresh" asks the server again
+        const calls = runAction.mock.calls.length
+        inboxStore.applyChange({})
+        await flush(bell)
+        expect(runAction.mock.calls.length).toBe(calls + 1)
     })
 
     it('a click outside closes the panel', async () => {

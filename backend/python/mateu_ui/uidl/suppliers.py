@@ -90,8 +90,14 @@ class AppNotification:
     """One entry of the app shell's notification inbox (the header bell): a title, an optional
     detail text, an optional route the entry navigates to when clicked, the unread flag driving
     the bell's counter, and a human "when" caption. Serialized to the wire as
-    ``{id, title, text, route, unread, when}``. The Python analogue of
-    ``io.mateu.uidl.data.AppNotification``."""
+    ``{id, title, text, route, unread, when, category, variant, resolved, actions, hasDetail}``.
+
+    An entry can also say what it is about and what can be done from it (EXPERIMENTAL): a
+    ``category`` the inbox groups by, a ``variant`` (severity: success, info, warning, error,
+    contrast), ``actions`` (``MessageAction`` s run by :meth:`NotificationsSupplier.on_notification_action`,
+    which usually marks it ``resolved``) and ``has_detail`` when clicking it should ask
+    :meth:`NotificationsSupplier.notification_detail` instead of navigating to ``route``. The ``id``
+    deduplicates. The Python analogue of ``io.mateu.uidl.data.AppNotification``."""
 
     id: str
     title: str
@@ -99,21 +105,69 @@ class AppNotification:
     route: str | None = None
     unread: bool = True
     when: str | None = None
+    category: str | None = None
+    variant: str | None = None
+    resolved: bool = False
+    actions: list = dataclass_field(default_factory=list)
+    has_detail: bool = False
+
+    def to_json(self) -> dict:
+        """The entry on the wire (Java's AppNotification JSON shape)."""
+        variant = getattr(self.variant, "value", self.variant)
+        return {
+            "id": self.id, "title": self.title, "text": self.text,
+            "route": self.route, "unread": self.unread, "when": self.when,
+            "category": self.category, "variant": variant, "resolved": self.resolved,
+            "actions": [a.to_wire().model_dump(by_alias=True, mode="json") for a in self.actions],
+            "hasDetail": self.has_detail,
+        }
+
+    def to_wire(self):
+        """The entry as an ``AppNotificationDto`` (the NotificationsChanged push)."""
+        from mateu_ui.dtos import AppNotificationDto
+
+        return AppNotificationDto(
+            id=self.id, title=self.title, text=self.text, route=self.route, unread=self.unread,
+            when=self.when, category=self.category,
+            variant=getattr(self.variant, "value", self.variant), resolved=self.resolved,
+            actions=[a.to_wire() for a in self.actions], has_detail=self.has_detail,
+        )
 
 
 class NotificationsSupplier:
     """Implemented by the ``@app`` class to give the shell a NOTIFICATION INBOX: a bell on the
     header with the unread count, opening a panel that lists :class:`AppNotification` s. The list
     is fetched per request (the ``_notifications-list`` app-level action), so it can be per-user
-    — resolve the user from the request. Clicking an entry navigates to its route and marks it
-    read; the panel's "mark all read" calls :meth:`mark_notifications_read` with all the unread
-    ids. The Python analogue of Java's ``NotificationsSupplier``."""
+    — resolve the user from the request. Clicking an entry navigates to its route (or opens its
+    detail) and marks it read; the panel's "mark all read" calls :meth:`mark_notifications_read`
+    with all the unread ids. The panel groups by ``category``, filters (unread / all / resolved),
+    dismisses (:meth:`dismiss_notifications`) and runs entries' actions
+    (:meth:`on_notification_action`); ``LiveNotifications.publish`` pushes changes to open
+    sessions. Every id the panel sends back comes from the browser: check it belongs to the caller.
+    The Python analogue of Java's ``NotificationsSupplier``."""
 
     def notifications(self, request) -> list[AppNotification]:
         raise NotImplementedError
 
     def mark_notifications_read(self, ids: list[str], request) -> None:
         raise NotImplementedError
+
+    def on_notification_action(self, id: str, action_id: str, request):
+        """Runs one of an entry's actions (``_notifications-act``) — approve, reject, assign… and
+        mark it resolved. Its return is answered like any action's result; the refreshed list
+        follows. Not overridden: refused (EXPERIMENTAL)."""
+        from .messages import UserFacingException
+
+        raise UserFacingException("This notification has no actions")
+
+    def dismiss_notifications(self, ids: list[str], request) -> None:
+        """Removes entries from the caller's inbox (``_notifications-dismiss``). Not overridden:
+        nothing (EXPERIMENTAL)."""
+
+    def notification_detail(self, id: str, request):
+        """The detail of an entry with ``has_detail`` (``_notifications-open``): typically a
+        Drawer or a Dialog. None: nothing opens (EXPERIMENTAL)."""
+        return None
 
 
 @dataclass

@@ -118,9 +118,31 @@ public record MessageDto(
     string? UndoActionId = null,
     IReadOnlyDictionary<string, object?>? UndoParameters = null)
 {
-    /// <summary>An ERROR stays until dismissed (duration 0) — in every backend and renderer (Java's
-    /// MessageDto mapping, Python's error boundary); the rest keep the duration they were given.</summary>
-    public int Duration { get; init; } = Variant == "error" ? 0 : Duration;
+    private readonly int _duration = Duration;
+
+    /// <summary>A STICKY message (an ERROR, unless it says otherwise) stays until dismissed
+    /// (duration 0) — in every backend and renderer (Java's MessageDto mapping, Python's error
+    /// boundary); the rest keep the duration they were given.</summary>
+    public int Duration
+    {
+        get => Persistence == MessagePersistences.Sticky ? 0 : _duration;
+        init => _duration = value;
+    }
+
+    /// <summary>How long the message stays: toast | sticky | inbox (an error is sticky unless it
+    /// says otherwise). Position is only a HINT; this is the semantics. (Mirrors
+    /// io.mateu.dtos.MessageDto.persistence.) EXPERIMENTAL.</summary>
+    public string Persistence { get; init; } = Variant == "error" ? MessagePersistences.Sticky : MessagePersistences.Toast;
+
+    /// <summary>What the user can do from the message; an undo given by the legacy Undo* members is
+    /// one of them (style <c>undo</c>). (Mirrors io.mateu.dtos.MessageDto.actions.) EXPERIMENTAL.</summary>
+    public IReadOnlyList<MessageActionDto> Actions { get; init; } = UndoActionId is null
+        ? []
+        : [new MessageActionDto(UndoLabel, UndoActionId, UndoParameters, null, "undo")];
+
+    /// <summary>Deduplication key: a message with the same key replaces the one on screen (and the
+    /// inbox entry). (Mirrors io.mateu.dtos.MessageDto.key.) EXPERIMENTAL.</summary>
+    public string? Key { get; init; }
 }
 
 public record UIFragmentDto(
@@ -240,6 +262,10 @@ public record ActionDto(
     /// naturally idempotent writes: after a timeout the client cannot know whether the server
     /// processed the request.</summary>
     public bool Idempotent { get; init; }
+
+    /// <summary>The action answers a STREAM (a LongTask's progress): the client calls it over the
+    /// SSE endpoint (mirrors io.mateu.dtos.ActionDto.sse).</summary>
+    public bool Sse { get; init; }
 
     /// <summary>Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
     /// dispatching to the Mateu server ([RestAction]); null for normal actions (mirrors

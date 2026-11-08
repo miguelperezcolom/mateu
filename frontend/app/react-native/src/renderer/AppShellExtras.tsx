@@ -1,4 +1,5 @@
 import React from 'react';
+import { inboxChangeOf } from '../core/inbox';
 import { AppState, Modal, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
@@ -54,6 +55,12 @@ export function HeaderValuesView() {
  * back; the server ends the stream every few minutes on purpose and it is simply reopened. No
  * polling.
  */
+/** The data of each NotificationsChanged command an increment carries. */
+function inboxCommandsOf(increment: unknown): unknown[] {
+  const commands = (increment as { commands?: { type?: string; data?: unknown }[] } | null)?.commands ?? [];
+  return commands.filter((c) => c?.type === 'NotificationsChanged').map((c) => c.data ?? {});
+}
+
 export function useLiveUpdates(meta: ShellExtrasMeta) {
   const { session } = useAppContext();
   React.useEffect(() => {
@@ -93,6 +100,13 @@ export function useLiveUpdates(meta: ShellExtrasMeta) {
             for (const change of headerChangesOf(increment)) {
               const said = session.headerValues.update(change.id, change.value);
               if (said) announceLive(said, false);
+            }
+            // the inbox changed for this user (LiveNotifications.publish): the bell follows it
+            for (const command of inboxCommandsOf(increment)) {
+              const change = session.inbox.apply(inboxChangeOf(command));
+              if (change.kind === 'upsert' && change.item.unread && !change.item.resolved) {
+                session.notify(null, change.item.title, (change.item.variant === 'error' || change.item.variant === 'warning') ? change.item.variant : 'info');
+              }
             }
           }
         }

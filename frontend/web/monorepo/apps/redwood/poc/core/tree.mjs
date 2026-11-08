@@ -682,55 +682,6 @@ function withoutFirst(list, value) {
   return i < 0 ? list : list.slice(0, i).concat(list.slice(i + 1))
 }
 
-/** Watcher of a LongTask's progress dialog over the SSE stream: consumes the Add of the
- *  Dialog-with-ProgressBar and the state-only fragments targeted at its id; returns events
- *  {kind: open|progress, title?, text?, value?, rest} so the chain paints the
- *  oj-dialog — `rest` carries the increment's commands/messages (the last one brings them:
- *  the refresh dispatchEvent) WITHOUT the dialog fragment, ready to reduce. */
-export function longTaskWatcher() {
-  const hasProgressBar = (node) => {
-    if (!node || typeof node !== 'object') return false
-    if (node.metadata && node.metadata.type === 'ProgressBar') return true
-    for (const v of Object.values(node)) {
-      if (Array.isArray(v)) { if (v.some(hasProgressBar)) return true }
-      else if (v && typeof v === 'object' && hasProgressBar(v)) return true
-    }
-    return false
-  }
-  const w = { dialogId: null, closeAfter: null }
-  w.consume = (inc) => {
-    for (const fragment of inc.fragments || []) {
-      const md = fragment.component && fragment.component.metadata
-      if (fragment.action === 'Add' && md && md.type === 'Dialog' && hasProgressBar(fragment.component)) {
-        w.dialogId = md.id
-        const seed = md.initialData || {}
-        return {
-          kind: 'open',
-          title: seed.title,
-          text: seed.progressText,
-          value: seed.progressValue || 0,
-          rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
-        }
-      }
-    }
-    if (!w.dialogId) return null
-    const frs = inc.fragments || []
-    if (frs.length && frs.every((f) => !f.component && f.targetComponentId === w.dialogId)) {
-      const st = frs[0].state || {}
-      if (st._closeAfterMillis != null) w.closeAfter = st._closeAfterMillis
-      return {
-        kind: 'progress',
-        title: st.title,
-        text: st.progressText,
-        value: st.progressValue,
-        rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
-      }
-    }
-    return null
-  }
-  return w
-}
-
 /** RENDER helper: collects the texts (metadata.type Text) of a subtree. */
 export function collectTexts(node, out = []) {
   if (!node || typeof node !== 'object') return out

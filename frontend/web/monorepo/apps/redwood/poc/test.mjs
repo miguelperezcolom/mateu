@@ -58,7 +58,7 @@ import {
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, WELCOME_LOOKS, stableHashOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf, notFoundOf,
-  islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf, columnSizingOf, finishColumnSizing, isCompactColumn, estimateTextPx, withoutDefaultSizing,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
@@ -1362,26 +1362,8 @@ test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () =
   assert.ok(blocks.every((b) => b.blockClass))
 })
 
-// 30) A LongTask's progress dialog (host SSE: the 360's escanearPax): the watcher
-// consumes the Add of the Dialog-with-ProgressBar and the state-only ones addressed to its id; the last
-// increment brings _closeAfterMillis + the refresh commands in rest.
-test('longTaskWatcher: open → 4 progress → cierre con rest.commands (dispatchEvent)', () => {
-  const stream = fx('fo-sse-scan-stream')
-  const watcher = longTaskWatcher()
-  const events = stream.map((inc) => watcher.consume(inc))
-  assert.ok(events.every(Boolean), 'todos los increments del LongTask se consumen')
-  assert.equal(events[0].kind, 'open')
-  assert.match(events[0].title, /Escaneando el documento/)
-  assert.equal(events[0].value, 0)
-  assert.equal(events.filter((e) => e.kind === 'progress').length, 5)
-  assert.equal(events[1].value, 0.25)
-  assert.match(events[1].text, /Encendiendo el escáner/)
-  const last = events[events.length - 1]
-  assert.equal(last.title, 'Documento verificado')
-  assert.equal(watcher.closeAfter, 1000)
-  assert.equal(last.rest.commands.length, 1)
-  assert.equal(last.rest.fragments.length, 0) // the dialog's fragment is NOT reduced
-})
+// 30) A LongTask's progress no longer arrives as a Dialog: it is a Progress command the task center
+// (tasks.mjs) takes — pinned in test-progress.mjs.
 
 // 31) Native ITEM OVERVIEW: entity page with the NARROW zone first (key-data
 // panel + wide main) → oj-sp-item-overview-page; wide-first is still a

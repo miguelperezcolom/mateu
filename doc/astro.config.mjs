@@ -197,6 +197,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/live-header-values', label: 'Live Header Values' },
 										{ slug: 'ux-patterns/app-context', label: 'App Context Selector' },
 										{ slug: 'ux-patterns/global-search' },
+										{ slug: 'ux-patterns/messages', label: 'Messages (toasts)' },
 										{ slug: 'ux-patterns/notification-inbox' },
 										{ slug: 'ux-patterns/notifications' },
 										{ slug: 'ux-patterns/idle-session', label: 'Idle-Session Warning' },

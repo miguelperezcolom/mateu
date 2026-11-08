@@ -13,6 +13,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Progress is a task, shown the platform's way.** A `LongTask` no longer builds a dialog on the
+  server: it reports a task (`Progress` command: title, text, fraction or indeterminate, "12 of
+  300", state) and each renderer shows it natively — a modal progress for a blocking task, a task
+  center (several tasks at once, kept when the user leaves the screen) for a background one, and on
+  IntelliJ the platform's own background tasks. New, `@Experimental`: `.background()`,
+  `.backgroundable()`, `.cancellable()` / `.onCancel(…)` (Cancel stops the work; only the caller who
+  started the task can cancel it), `.retryable()` (a failed task offers Retry), `.resultAction(…)`
+  ("Open report"), `.notifyWhenDone()` (the outcome lands in the inbox) and `step(text, done,
+  total)`. A task that fails ends failed with the message the user sees. Existing `LongTask` code
+  keeps compiling and working.
+- **Messages say what they mean.** `Message` gains a persistence (`toast`, `sticky`, `inbox` — an
+  error is sticky), any number of `actions` (Undo is one of them) and a dedup `key`; `position` is
+  now only a hint for the web.
+- **An inbox you act on, pushed live.** `AppNotification` gains a category, a severity, actions,
+  a resolved state and a server-built detail; `NotificationsSupplier` gains `onNotificationAction`,
+  `dismissNotifications` and `notificationDetail`; the bell groups, filters (unread / all /
+  resolved) and dismisses. `LiveNotifications.publish(user, entry)` pushes a change to that user's
+  open sessions only (apps with `@App(liveUpdates = true)`). IntelliJ shows messages and inbox entries
+  as platform notifications. Java, .NET and Python.
+
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
   The Move menu stays, for screen readers and for whoever prefers it.

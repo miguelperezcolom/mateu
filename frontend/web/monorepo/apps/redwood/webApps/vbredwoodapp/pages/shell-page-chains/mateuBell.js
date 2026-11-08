@@ -1,4 +1,5 @@
-/* The inbox bell (the App's NotificationsSupplier): opening the popup (refreshing the list),
+/* The inbox bell (the App's NotificationsSupplier): opening the popup (refreshing the list and mounting
+ * the panel poc/inbox.mjs paints — its filters, categories, entry actions and dismiss run there),
  * opening an entry (marks it read and navigates to its route) and marking all read. All three talk to
  * the app-level actions _notifications-list / _notifications-read (notify.mjs). */
 
@@ -38,6 +39,8 @@ define([
         if (popup.isOpen()) { popup.close(); return; }
         if (popup.__mateuClosedAt && Date.now() - popup.__mateuClosedAt < 300) return;
         $application.variables.mateuNotifications = await bridge.fetchNotifications(base, sst, appState);
+        // the entries are painted by the bridge (poc/inbox.mjs): filters, categories, actions, dismiss
+        bridge.mountInboxPanel(document.getElementById('mateuBellPanel'), document);
         popup.open('#mateuBellButton');
         return;
       }

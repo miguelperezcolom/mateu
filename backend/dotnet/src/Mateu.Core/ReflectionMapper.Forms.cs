@@ -610,6 +610,8 @@ internal sealed partial class ReflectionMapper
     {
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .FirstOrDefault(m => Naming.CamelCase(m.Name) == actionId);
+        // a method answering a LongTask streams its progress: the client calls it over SSE
+        if (method?.ReturnType == typeof(LongTaskRun)) action = action with { Sse = true };
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
         return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };

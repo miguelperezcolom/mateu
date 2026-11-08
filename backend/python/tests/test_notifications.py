@@ -124,6 +124,13 @@ def test_b_the_list_action_returns_the_inbox_entries():
         "route": "/invoices/1",
         "unread": True,
         "when": "hace 2 min",
+        # the entry's category, severity, state, actions and detail (progress and notifications
+        # patterns; Java's AppNotification grew the same components)
+        "category": None,
+        "variant": None,
+        "resolved": False,
+        "actions": [],
+        "hasDetail": False,
     }
 
 

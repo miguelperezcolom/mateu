@@ -85,6 +85,22 @@ describe('the live-updates stream', () => {
         expect(fetchMock).toHaveBeenCalledTimes(1)
     })
 
+    it('a relayed inbox change is not left behind in localStorage (a shared machine, after sign-out)', async () => {
+        const setItem = vi.spyOn(Storage.prototype, 'setItem')
+        const fetchMock = vi.fn(() => Promise.resolve(sseResponse([
+            event([{ type: 'NotificationsChanged', data: { notification: { id: 'n1', title: 'Payslip ready for Ana' } } }]),
+        ], { hold: true })))
+        vi.stubGlobal('fetch', fetchMock)
+
+        live.syncLiveUpdates(app(), 'http://host/app')
+        await flush()
+
+        // the other tabs were told (a storage event is fired by the write)…
+        expect(setItem.mock.calls.some(([key]) => key === live.INBOX_CHANGE_KEY)).toBe(true)
+        // …and the entry's content does not stay at rest in the browser
+        expect(localStorage.getItem(live.INBOX_CHANGE_KEY)).toBeNull()
+    })
+
     it('an app without a root route streams on the _no_route path', async () => {
         const fetchMock = vi.fn(() => Promise.resolve(sseResponse([], { hold: true })))
         vi.stubGlobal('fetch', fetchMock)

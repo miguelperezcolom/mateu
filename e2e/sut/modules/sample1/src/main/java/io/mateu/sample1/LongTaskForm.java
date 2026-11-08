@@ -34,4 +34,18 @@ public class LongTaskForm {
                     .delayElements(Duration.ofMillis(400))
                     .map(i -> progress.step("Step " + i + " of 5", i / 5d)));
   }
+
+  /** A background task the user can cancel: it never ends on its own. */
+  @Button
+  @Label("Run in background")
+  @Action(validationRequired = false)
+  public Flux<?> runInBackground() {
+    return LongTask.create("Syncing catalogue")
+        .background()
+        .cancellable()
+        .run(
+            progress ->
+                Flux.interval(Duration.ofMillis(300))
+                    .map(i -> progress.step("Synced " + (i + 1) + " items", (int) (i + 1), 1000)));
+  }
 }

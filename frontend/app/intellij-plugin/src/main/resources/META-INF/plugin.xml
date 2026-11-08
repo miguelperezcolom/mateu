@@ -68,6 +68,14 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <programRunner implementation="io.mateu.ijp.live.MateuAppDebugRunner"/>
         <!-- an error stays until dismissed, in every renderer (owner, 2026-10-12) -->
         <notificationGroup id="Mateu errors" displayType="STICKY_BALLOON"/>
+        <!-- what a backend notice MEANS picks its group (io.mateu.ijp.plugin.MessageGroups):
+             a toast fades and is not kept; sticky stays; inbox entries live in the Notifications
+             tool window (the fetched list quietly, a live one with a balloon); task results. -->
+        <notificationGroup id="Mateu messages" displayType="BALLOON" isLogByDefault="false"/>
+        <notificationGroup id="Mateu sticky" displayType="STICKY_BALLOON"/>
+        <notificationGroup id="Mateu inbox" displayType="NONE"/>
+        <notificationGroup id="Mateu inbox (new)" displayType="BALLOON"/>
+        <notificationGroup id="Mateu tasks" displayType="BALLOON"/>
         <!-- File | New | Project… › Mateu: the shared project generator over the bundled starters
              (io.mateu.ijp.newproject; same data as the VS Code "Mateu: New Project" command). -->
         <newProjectWizard.generator implementation="io.mateu.ijp.newproject.MateuNewProjectWizard"/>

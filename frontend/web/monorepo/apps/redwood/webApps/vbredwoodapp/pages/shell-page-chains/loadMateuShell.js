@@ -104,6 +104,26 @@ define([
       bridge.setPlanningRangeSink(runPageAction);
       // toasts with «Undo» (Message.undoable): the action goes back to the content page
       bridge.setUndoSink(runPageAction);
+      // a route a toast action, a finished task or an inbox entry names: in-app navigation
+      const navigateToRoute = (route) => Actions.callChain(window.__mateuShellContext || context, {
+        chain: 'onMateuNavigate', params: { event: { detail: { route: bridge.routeUnderMount(route) || route } } },
+      });
+      bridge.setToastNavigateSink(navigateToRoute);
+      // PROGRESS (LongTask → Progress commands): the task center is document-wide (poc/tasks.mjs) —
+      // a blocking task's oj-dialog, the docked task list; Retry / a result action go back through the
+      // content page while it is still the screen that started the task
+      bridge.installTaskCenter(document);
+      bridge.setTaskActionSink(runPageAction);
+      bridge.setTaskNavigateSink(navigateToRoute);
+      bridge.setTaskViewClock(bridge.currentView);
+      // the INBOX panel (poc/inbox.mjs): an answer to paint (an entry's detail Drawer, an action's
+      // Message) goes to the content page as an ordinary increment; the badge follows the model
+      bridge.setInboxIncrementSink((increment) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuChatPreview', payload: { increment },
+      }));
+      bridge.setInboxNavigateSink(navigateToRoute);
+      bridge.setInboxSessionActionSink(runPageAction);
+      bridge.setInboxModelSink((model) => { $application.variables.mateuNotifications = model; });
       // periodic refresh (OnLoad with a delay + OnSuccess): the rounds go out the same way
       bridge.setPollingRunner(runPageAction);
       // keyboard shortcuts (@Action/@Tab shortcut) and access keys (@App(accessKeys))
@@ -325,6 +345,14 @@ define([
       // choice nor the OS preference applies (poc/theme.mjs)
       bridge.applyLightTheme();
       if (reg.shell && (reg.shell.notificationsEnabled || reg.shell.notificationsSource)) {
+        // where the inbox panel's actions go (the app's backend, the App type, the live appState);
+        // a source-fed inbox (type: AppShell) has no app-level actions to run
+        if (reg.shell.notificationsEnabled) {
+          bridge.setInboxContext({
+            base, serverSideType: $application.variables.mateuShellSST,
+            get appState() { return $application.variables.mateuAppState || {}; },
+          });
+        }
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
           .then((model) => { $application.variables.mateuNotifications = model; })
           .catch(() => { /* no inbox: the header stays without a bell */ });
