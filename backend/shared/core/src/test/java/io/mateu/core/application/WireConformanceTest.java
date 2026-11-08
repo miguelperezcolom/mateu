@@ -573,6 +573,25 @@ class WireConformanceTest {
   }
 
   /**
+   * A class-level {@code @AutoSave}: every change runs the named action after the debounce — an
+   * {@code AutoSave} trigger with its action id and debounce, and the action advertised (the client
+   * only sends what the component advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/auto-save")
+  @Title("Settings")
+  @io.mateu.uidl.annotations.AutoSave(debounceMillis = 500, action = "persist")
+  public static class AutoSaveForm {
+    public String nickname = "ada";
+    public boolean newsletter;
+
+    @io.mateu.uidl.annotations.Action
+    public Message persist() {
+      return Message.success("Saved");
+    }
+  }
+
+  /**
    * Every trigger kind a view can declare, ported to .NET ({@code [Trigger]}) and Python
    * ({@code @trigger}) in 3.0-alpha.426 (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
    * another action (chained actions), OnValueChange of one field, and a {@code @SubscribeTo} on the
@@ -1287,7 +1306,8 @@ class WireConformanceTest {
           "field-help",
           "field-hints",
           "page-toolbar",
-          "form-columns");
+          "form-columns",
+          "auto-save");
 
   static TestMateu mateu;
 
@@ -1342,7 +1362,8 @@ class WireConformanceTest {
             FieldHelpForm.class,
             FieldHintsPage.class,
             PageToolbarForm.class,
-            FormColumnsForm.class);
+            FormColumnsForm.class,
+            AutoSaveForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

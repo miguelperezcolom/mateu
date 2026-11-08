@@ -1,0 +1,108 @@
+{
+  "commands" : [ {
+    "data" : "Settings",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "*"
+      }, {
+        "id" : "persist"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "nickname",
+                        "label" : "Nickname",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "bool",
+                        "fieldId" : "newsletter",
+                        "label" : "Newsletter",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Auto save form",
+          "pageType" : "form",
+          "title" : "Settings",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "nickname" : "ada"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "triggers" : [ {
+        "actionId" : "persist",
+        "debounceMillis" : 500,
+        "type" : "AutoSave"
+      } ],
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "nickname" : "ada"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
