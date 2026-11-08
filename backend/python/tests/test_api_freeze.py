@@ -1,6 +1,6 @@
 """The pre-beta API freeze (design/api-freeze-review.md), Python side: the right spelling of the
-hamburger variant, the deprecation of the old one (a ``DeprecationWarning`` naming the
-replacement), the parity aliases, and ``__all__`` covering what the package exports."""
+hamburger variant (the alpha-era misspelling is gone since 3.0), the parity aliases, and
+``__all__`` covering what the package exports."""
 
 import sys
 import warnings
@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import mateu_ui.uidl  # noqa: E402
 from mateu_ui.core.mapper import ReflectionMapper  # noqa: E402
 from mateu_ui.uidl import AppVariant, app, menu_item, title, ui  # noqa: E402
-from mateu_ui.uidl.components import ContentLayout, DashboardLayout  # noqa: E402
+from mateu_ui.uidl.components import DashboardLayout  # noqa: E402
 
 
 @ui("freeze-home")
@@ -48,18 +48,6 @@ def test_a_plain_string_still_works():
     assert wire_variant(StringApp) == "HAMBURGER_MENU"
 
 
-def test_the_old_misspelling_warns_naming_the_replacement_and_keeps_working():
-    with pytest.warns(DeprecationWarning, match="AppVariant.HAMBURGER_MENU"):
-
-        @app("Old", variant="HAMBURGUER_MENU")
-        class OldApp:
-            @menu_item("Home")
-            def home(self) -> "FreezeHome":
-                return FreezeHome()
-
-    assert wire_variant(OldApp) == "HAMBURGER_MENU"
-
-
 def test_other_variants_travel_unchanged():
     assert AppVariant.to_wire(AppVariant.TILES) == "TILES"
     assert AppVariant.to_wire("") == ""
@@ -71,11 +59,23 @@ def test_other_variants_travel_unchanged():
             pass
 
 
-def test_the_deprecated_layouts_warn_naming_their_replacement():
+def test_the_deprecated_layout_warns_naming_its_replacement():
     with pytest.warns(DeprecationWarning, match="ResponsiveGrid"):
         DashboardLayout()
-    with pytest.warns(DeprecationWarning, match="ResponsiveGrid"):
-        ContentLayout()
+
+
+def test_the_alpha_era_deprecations_are_gone():
+    """Removed for 3.0 (deprecated in the alphas): the ``HAMBURGUER_MENU`` misspelling, the ``Size``
+    length constraint (→ ``Length``), ``@secured`` (→ ``@eyes_only``), ``components.Step``
+    (→ ``ProgressStep``) and ``ContentLayout`` (→ ``ResponsiveGrid``)."""
+    import mateu_ui.uidl.components as components
+
+    with pytest.raises(ValueError, match="is not one of"):
+        app("Old", variant="HAMBURGUER_MENU")
+    for name in ("Size", "secured"):
+        assert not hasattr(mateu_ui.uidl, name), name
+    for name in ("Step", "ContentLayout"):
+        assert not hasattr(components, name), name
 
 
 def test_parity_aliases_are_the_same_objects():
@@ -124,33 +124,6 @@ def test_every_public_component_is_in_all():
     )
     assert missing == [], f"public names missing from mateu_ui.uidl.components.__all__: {missing}"
     assert all(hasattr(components, n) for n in exported)
-
-
-def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
-    import warnings
-
-    from mateu_ui.core.validation import field_constraints  # noqa: F401  (Size is still a Length)
-    from mateu_ui.uidl import Length, Size
-
-    with pytest.warns(DeprecationWarning, match="use Length"):
-        old = Size(min=2, max=4)
-    assert isinstance(old, Length)
-    assert (old.min, old.max) == (2, 4)
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        Length(min=2, max=4)  # the replacement does not warn
-
-
-def test_secured_warns_naming_eyes_only():
-    from mateu_ui.uidl import secured
-
-    with pytest.warns(DeprecationWarning, match="eyes_only"):
-
-        @secured("admin")
-        class Guarded:
-            pass
-
-    assert Guarded.__mateu_secured__ == "admin"  # still accepted (and enforced: test_secured_enforced)
 
 
 # ── M-A7: the package shape ─────────────────────────────────────────────────────────────────
@@ -232,17 +205,14 @@ def test_an_action_parameter_typed_action_request_receives_the_request():
     assert inc.messages[0].text == "echo:7"
 
 
-def test_the_progress_step_clash_is_resolved_by_add_and_deprecate():
+def test_the_progress_step_clash_is_resolved():
     from mateu_ui.uidl import Step as WizardStepMarker
-    from mateu_ui.uidl.components import ProgressStep, Step
+    from mateu_ui.uidl.components import ProgressStep
 
     assert WizardStepMarker(2).step == 2  # the wizard marker keeps the top-level name
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         ProgressStep(id="s1", title="Cart")
-    with pytest.warns(DeprecationWarning, match="ProgressStep"):
-        old = Step(id="s1", title="Cart")
-    assert isinstance(old, ProgressStep)
 
 
 def test_bare_kpi_uses_the_method_name_and_keeps_the_method():

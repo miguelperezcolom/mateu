@@ -15,7 +15,6 @@ Use single-type imports: several names exist both as an annotation and as a reco
 | `@Title`, `@Subtitle`, `@Overline`, `@PageTitle` (browser tab) | titles |
 | `@Logo`, `@FavIcon` | branding |
 | `@Menu` | navigation entry (ViewModel, String route, `RouteLink`, `RemoteMenu`, nested) |
-| `@KeycloakSecured` | deprecated for removal — Mateu does not authenticate: use the host framework's security (Spring Security…) or a `PrincipalResolver` bean |
 
 ## Field editability & visibility
 | Annotation | Use |

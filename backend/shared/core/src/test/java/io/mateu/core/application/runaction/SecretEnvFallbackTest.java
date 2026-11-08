@@ -13,8 +13,8 @@ class SecretEnvFallbackTest {
 
   @Test
   void theEnvironmentNameCarriesThePrefix() {
-    assertThat(RunActionUseCase.secretEnvName("API_TOKEN")).isEqualTo("MATEU_SECRET_API_TOKEN");
-    assertThat(RunActionUseCase.secretEnvName("MATEU_SECRET_API_TOKEN"))
+    assertThat(SecretResolver.secretEnvName("API_TOKEN")).isEqualTo("MATEU_SECRET_API_TOKEN");
+    assertThat(SecretResolver.secretEnvName("MATEU_SECRET_API_TOKEN"))
         .isEqualTo("MATEU_SECRET_API_TOKEN");
   }
 

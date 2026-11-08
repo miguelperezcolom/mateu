@@ -9,6 +9,7 @@ import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.PageTemplate;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
@@ -227,6 +228,7 @@ public abstract class MultiView
    * ancestor that sent the action has a different id and route in every hosting shape (the crud as
    * its app's home, as a menu entry inside another app…), so neither can be derived from it.
    */
+  @Internal
   public ServerSideComponentDto wrapView(
       String viewName,
       Object modelView,

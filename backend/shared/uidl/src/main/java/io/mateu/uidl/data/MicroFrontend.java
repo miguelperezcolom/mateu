@@ -84,6 +84,7 @@ public record MicroFrontend(
   }
 
   /** Whether the host resolves it ({@link Resolve#SERVER}). */
+  @Experimental
   public boolean resolvedByServer() {
     return resolve == Resolve.SERVER;
   }

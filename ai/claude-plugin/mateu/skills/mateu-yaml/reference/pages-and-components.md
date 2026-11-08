@@ -168,7 +168,7 @@ https://mateu.io/java-ui-definition/components/ (the YAML keys are the Java reco
   `FormSection`, `FormSubSection`, `TabLayout` + `Tab`, `AccordionLayout` + `AccordionPanel`,
   `SplitLayout`, `MasterDetailLayout`, `BoardLayout` + `BoardLayoutRow` + `BoardLayoutItem`,
   `CarouselLayout`, `ResponsiveGrid`, `DashboardLayout` + `DashboardPanel`, `FoldoutLayout` +
-  `FoldoutPanel`, `ContentLayout`, `Container`, `Div`, `FullWidth`, `Scroller`, `Details`,
+  `FoldoutPanel`, `Container`, `Div`, `FullWidth`, `Scroller`, `Details`,
   `Slotted`, `Separator`
 - **Fields & data**: `FormField`, `CustomField`, `FormEditor`, `Grid` + `GridColumn` +
   `GridGroupColumn`, `VirtualList`, `Directory`

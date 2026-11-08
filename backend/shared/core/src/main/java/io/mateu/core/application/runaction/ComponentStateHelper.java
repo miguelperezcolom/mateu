@@ -1,12 +1,8 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.ComponentState;
-import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * Static helpers for building ServerSideComponentDto and extracting component/state metadata.
@@ -15,64 +11,6 @@ import java.util.List;
  * deprecated delegates; {@link #invoke} stays here (see why on it).
  */
 public class ComponentStateHelper {
-
-  /**
-   * @deprecated use {@link ComponentState#wrap(Component, Object, String, String, String, String,
-   *     HttpRequest)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static ServerSideComponentDto wrap(
-      Component component,
-      Object modelView,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    return ComponentState.wrap(
-        component, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
-  }
-
-  /**
-   * @deprecated use {@link ComponentState#wrap(List, Object, String, String, String, String,
-   *     HttpRequest)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static ServerSideComponentDto wrap(
-      List<Component> components,
-      Object modelView,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    return ComponentState.wrap(
-        components, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
-  }
-
-  /**
-   * @deprecated use {@link ComponentState#getState(Object, HttpRequest)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static Object getState(Object modelView, HttpRequest httpRequest) {
-    return ComponentState.getState(modelView, httpRequest);
-  }
-
-  /**
-   * @deprecated use {@link ComponentState#withoutRestricted(Object, HttpRequest)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static Object withoutRestricted(Object instance, HttpRequest httpRequest) {
-    return ComponentState.withoutRestricted(instance, httpRequest);
-  }
-
-  /**
-   * @deprecated use {@link ComponentState#getAppRoute(Object)}
-   */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
-  public static String getAppRoute(Object potentialApp) {
-    return ComponentState.getAppRoute(potentialApp);
-  }
 
   /**
    * Invokes {@code method} on {@code instance}, surfacing the exception the method threw rather

@@ -218,8 +218,8 @@ Everything above is the same uniform slot grammar the archetypes themselves comp
 The full Redwood page-template catalog is covered — the Overview, Detail and Transactional
 families, the drawers (General, Bottom, Create&Edit, Guided Process), the dense canvases (Data
 Management, Gantt page) and the composed **Advanced Create & Edit** — plus the extras Redwood
-doesn't name. All of it is the same uniform slot grammar (a canonical page header + `ContentLayout`
-main/aside/footer), so every template renders on Vaadin and the native renderers and has
+doesn't name. All of it is the same uniform slot grammar (a canonical page header + a
+`ResponsiveGrid` with main/aside/footer areas), so every template renders on Vaadin and the native renderers and has
 .NET/Python parity; on Redwood, check the template's row in [Page templates](/ux-patterns/page-templates/).
 
 What's left is polish, not coverage: deeper variants (a bottom + side drawer used *simultaneously*

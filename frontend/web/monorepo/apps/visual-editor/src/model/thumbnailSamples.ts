@@ -47,7 +47,6 @@ const SAMPLES: Record<string, Sample> = {
     Card: { type: 'Card', title: text('Acme Corp'), subtitle: text('Customer since 2019'), content: text('Key account · 12 open orders'), variants: ['outlined'] },
     CarouselLayout: { type: 'CarouselLayout', dots: true, nav: true, content: [card('Slide 1', 'Spring collection'), card('Slide 2', 'Summer sale')] },
     Container: { type: 'Container', content: card('Container', 'Any content') },
-    ContentLayout: { type: 'ContentLayout', main: [card('Main', 'The page content')], aside: [card('Aside', 'Related info')] },
     DashboardLayout: { type: 'DashboardLayout', columns: 2, items: [
         { type: 'DashboardPanel', title: 'Revenue', content: metric('This month', '€48k') },
         { type: 'DashboardPanel', title: 'Orders', content: metric('This month', '312') },

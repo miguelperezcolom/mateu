@@ -3160,25 +3160,6 @@
   "Signature": {
    "class": []
   },
-  "Size": {
-   "class": [
-    [
-     "min",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "max",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "message",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ]
-   ]
-  },
   "SizeMode": {
    "enum": [
     "FILL",
@@ -4409,15 +4390,6 @@
      "sample",
      "POSITIONAL_OR_KEYWORD",
      true
-    ]
-   ]
-  },
-  "secured": {
-   "function": [
-    [
-     "permission",
-     "POSITIONAL_OR_KEYWORD",
-     false
     ]
    ]
   },
@@ -5667,55 +5639,6 @@
     ],
     [
      "cancel_action_id",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "id",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "style",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "css_classes",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ]
-   ]
-  },
-  "ContentLayout": {
-   "class": [
-    [
-     "main",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "aside",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "footer",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "aside_position",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "aside_width",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "aside_sticky",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -9270,30 +9193,6 @@
     ],
     [
      "css_classes",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ]
-   ]
-  },
-  "Step": {
-   "class": [
-    [
-     "id",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "title",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "description",
-     "POSITIONAL_OR_KEYWORD",
-     true
-    ],
-    [
-     "status",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

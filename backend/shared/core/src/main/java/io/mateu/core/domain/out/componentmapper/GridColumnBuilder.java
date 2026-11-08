@@ -32,8 +32,7 @@ public class GridColumnBuilder {
             columnField ->
                 (!MetaAnnotations.isPresent(columnField, Hidden.class)
                         || !MetaAnnotations.find(columnField, Hidden.class).value().isEmpty())
-                    && !MetaAnnotations.isPresent(columnField, HiddenInList.class)
-                    && !List.class.isAssignableFrom(columnField.getType()))
+                    && !MetaAnnotations.isPresent(columnField, HiddenInList.class))
         .forEach(
             columnField -> {
               var rawWidth = getColumnWidth(columnField);

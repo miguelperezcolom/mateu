@@ -554,7 +554,7 @@
     }
   }, {
     "query" : "",
-    "expectedCount" : 126
+    "expectedCount" : 125
   } ],
   "componentSchemas" : [ {
     "type" : "Badge",

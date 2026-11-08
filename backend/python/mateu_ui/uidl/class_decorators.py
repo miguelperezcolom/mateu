@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
@@ -319,16 +318,9 @@ class AppVariant(str, Enum):
 
     @staticmethod
     def to_wire(variant: str) -> str:
-        """The value a variant travels under on the wire. Since 3.0-alpha.412 both
-        ``HAMBURGER_MENU`` and the old misspelling ``HAMBURGUER_MENU`` travel as
-        ``HAMBURGER_MENU`` (the renderers accept both), as Java's AppMapper does; anything else
-        travels unchanged."""
-        value = variant.value if isinstance(variant, AppVariant) else variant
-        return AppVariant.HAMBURGER_MENU.value if value == "HAMBURGUER_MENU" else value
-
-
-#: The misspelled variant still accepted by ``@app(variant=...)`` (with a DeprecationWarning).
-_DEPRECATED_VARIANTS = {"HAMBURGUER_MENU": AppVariant.HAMBURGER_MENU}
+        """The value a variant travels under on the wire: the member's value (a plain string
+        travels unchanged)."""
+        return variant.value if isinstance(variant, AppVariant) else variant
 
 
 def app(
@@ -349,8 +341,7 @@ def app(
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
     or an explicit :class:`AppVariant` (TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGER_MENU |
-    HAMBURGER_SECTIONS | TILES | RAIL), which always wins. The old misspelling
-    ``"HAMBURGUER_MENU"`` still works but is deprecated (it warns).
+    HAMBURGER_SECTIONS | TILES | RAIL), which always wins.
 
     ``command_center=True`` shows the always-present command-center FAB (the Ask-Oracle pattern):
     a floating button opening a full-screen palette that unifies navigation, global entity search
@@ -382,14 +373,6 @@ def app(
     ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``."""
 
     raw = variant.value if isinstance(variant, AppVariant) else variant
-    if raw in _DEPRECATED_VARIANTS:
-        warnings.warn(
-            f'@app(variant="{raw}") is deprecated: use AppVariant.{_DEPRECATED_VARIANTS[raw].name} '
-            "instead (the old misspelling still renders the same).",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        raw = _DEPRECATED_VARIANTS[raw].value
     raw = coerce_enum(raw, AppVariant, "@app(variant)").value
 
     def deco(cls: type) -> type:
@@ -732,29 +715,6 @@ def trigger(
     def deco(cls: type) -> type:
         # decorators apply bottom-up: prepend, so the declared order is the wire order
         setattr(cls, "__mateu_triggers__", [spec, *getattr(cls, "__mateu_triggers__", ())])
-        return cls
-
-    return deco
-
-
-def secured(permission: str) -> Callable[[type], type]:
-    """Restricts a view to callers holding ``permission``. Before 3.0-alpha.412 nothing read it, so
-    a view carrying it was open to everyone; it is now ENFORCED with exactly the semantics of
-    ``@eyes_only(permissions=[permission])`` — the view and its actions are refused (403) to a
-    caller without the permission or with no principal, and the menu entries leading to it are
-    hidden. Deprecated: use ``@eyes_only``, which also takes roles, groups and scopes."""
-    warnings.warn(
-        "@secured is enforced as @eyes_only(permissions=[...]): use "
-        "@eyes_only(permissions=[...]) on the class instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    from .security import EyesOnly
-
-    def deco(cls: type) -> type:
-        setattr(cls, "__mateu_secured__", permission)
-        # the gate the access checks read (mateu_ui.core.action_guard.class_gates)
-        setattr(cls, "__mateu_secured_gate__", EyesOnly(permissions=(permission,)))
         return cls
 
     return deco

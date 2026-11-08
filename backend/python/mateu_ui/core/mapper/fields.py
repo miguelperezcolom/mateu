@@ -29,7 +29,7 @@ from mateu_ui.dtos import (
     RestDataSource,
 )
 from mateu_ui.uidl import components as fluent
-from mateu_ui.uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Size, SliderMax, SliderMin
+from mateu_ui.uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
 from mateu_ui.uidl import ContentSlot as ContentSlotMarker
@@ -136,7 +136,7 @@ class FieldMapperMixin(MixinBase):
                     ",".join(
                         camel_case(c.name)
                         for c in view_fields(row_type)
-                        if any(c.has(m) for m in (Required, Min, Max, Size, Pattern))
+                        if any(c.has(m) for m in (Required, Min, Max, Length, Pattern))
                     )
                     if row_type is not None
                     else ""

@@ -55,7 +55,7 @@ class CodeApp(AppSupplier):
     def get_app(self) -> AppShell:
         return AppShell(
             title="Code App",
-            variant="HAMBURGUER_MENU",
+            variant="HAMBURGER_MENU",
             home_route="/codeapp/home",
             menu=[
                 MenuItem(label="Home", route="/codeapp/home", server_side_type=""),

@@ -2,17 +2,9 @@ package io.mateu.uidl.fluent;
 
 public enum AppVariant {
   /**
-   * The misspelling of {@link #HAMBURGER_MENU}, kept so existing declarations (Java and YAML) keep
-   * compiling and parsing. Both render the same; on the wire both travel as {@code HAMBURGER_MENU}
-   * (since 3.0-alpha.412; the renderers accept both spellings).
-   *
-   * @deprecated use {@link #HAMBURGER_MENU} instead.
-   */
-  @Deprecated(since = "3.0-alpha.410", forRemoval = true)
-  HAMBURGUER_MENU,
-  /**
-   * A hamburger button opening the whole menu in a drawer. The right spelling of the deprecated
-   * {@code HAMBURGUER_MENU}; it is also the wire value (since 3.0-alpha.412).
+   * A hamburger button opening the whole menu in a drawer. It is also the wire value (since
+   * 3.0-alpha.412; the old misspelling {@code HAMBURGUER_MENU} was removed in 3.0.0 — renderers
+   * still accept it on the wire).
    */
   HAMBURGER_MENU,
   /**

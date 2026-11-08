@@ -75,6 +75,52 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   built locally, the GitHub APK). It carried no update channel, so the updates each release publishes
   never reached it.
 
+### Removed
+
+3.0.0 removes the API deprecated during the alphas (`3.0-alpha.*`), as the deprecation policy
+allowed; what was deprecated during the betas stays until 4.0. Each removal is a reviewed exclusion
+of the API check (`backend/api-compat/japicmp-exclusions.properties`). The wire is unchanged: the
+renderers still accept every value a 3.x server ever sent.
+
+- **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings) → `HAMBURGER_MENU`.
+- **`@KeycloakSecured`** → your framework's authentication (an OIDC login / resource server), or a
+  `PrincipalResolver` bean. The annotation processors no longer read it or index it.
+- **`BadgeSupplier`** → `HeaderBadgesSupplier`.
+- **`Button.getActionId()`** → `Button.resolvedActionId()`.
+- **`ContentLayout`** (Java, .NET, Python, YAML `type: ContentLayout`) → a `ResponsiveGrid` with named
+  areas (`@Aside` already composes one). The wire type `ContentLayoutDto` stays.
+- **`@GenericClass`** → declare the field with its type argument (`List<MyDto>`).
+- **`@List`** (`io.mateu.uidl.annotations.List`) → `@BulletedList`.
+- **`ActionType`**, **`ActionPosition`**, **`ActionStereotype`**, **`ActionThemeVariant`** →
+  `@Toolbar` / `@Button` / `@Hidden`; `ButtonStyle` / `ButtonColor` / `ButtonVariant`.
+- **`Binding`**, **`BindingSource`**, **`ClientSideEvent`**, **`Destination`** → binding by convention,
+  `UICommand.dispatchEvent` + `@SubscribeTo`, `UICommand.navigateTo` (or return a `URI`).
+- **`ListAdapter`** → `Listing<Row>`.
+- **`io.mateu.uidl.layout.ColumnLayoutSelector`** → declare `gridLayout()`.
+- **The settings `mateu.layout.inference` and `mateu.page.inference.disabled`** (.NET switches
+  `Mateu.LayoutInference`, `Mateu.PageInference.Disabled`) → `mateu.layout.inference.enabled`,
+  `mateu.page.inference.enabled`. The old names are now ignored.
+- **Core: `JwtExtractor`** → `IdentityResolver`; **`application.runaction.DeclaredRestMethod`** →
+  `io.mateu.core.domain.DeclaredRestMethod`; the static `wrap` / `getState` / `withoutRestricted` /
+  `getAppRoute` of `ComponentStateHelper` and `RunActionUseCase` → `ComponentState`;
+  `RunActionUseCase.SECRET_ENV_PREFIX` / `secretEnvName` → `SecretResolver`.
+- **.NET `[Secured]`, Python `@secured`** → `EyesOnly(permissions = …)` on the class.
+- **Python `Size`** (the length constraint) → `Length`; **Python `components.Step`** → `ProgressStep`.
+
+Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template; deprecated,
+removable in 4.0) and the deprecated wire DTOs.
+
+### Experimental
+
+- **What joined the API after the freeze is experimental in 3.0.0.** The GA review marked the
+  additions of the betas that were not marked yet — Java: `@NoCrudNavigation`, `DetailContentSupplier`,
+  `@AI(followLabel, followingLabel)`, `Direction.parse`, `Image.alt`, `ProgressSteps.resultTitle`,
+  `MicroFrontend.resolvedByServer`, `RouteTable.Match.params(incoming, query)`,
+  `HttpRequest.getRemoteAddress`, `GeneralOverview.recordLabel`/`label` (and `@Internal` on plumbing:
+  `forTheClient`, the archetypes' `bindRequest`, `MultiView.wrapView`); .NET: the same features
+  through the port's doc-comment convention. The full list per backend is on the
+  [stability page](https://mateu.io/reference/stability-and-versioning/#added-after-the-freeze-experimental-in-300).
+
 ### Fixed
 
 - **The IntelliJ plugin installs on current IDEs again.** It was capped at the 2025.3 line, so the

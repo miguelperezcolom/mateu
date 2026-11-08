@@ -376,13 +376,6 @@ Mateu.Uidl.ConfirmDialog property System.String OpenedCondition { get;init; }
 Mateu.Uidl.ConfirmDialog property System.String RejectActionId { get;init; }
 Mateu.Uidl.ConfirmDialog property System.String RejectText { get;init; }
 Mateu.Uidl.ConfirmOnNavigationIfDirtyAttribute ctor()
-Mateu.Uidl.ContentLayout ctor()
-Mateu.Uidl.ContentLayout property System.Boolean AsideSticky { get;init; }
-Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Aside { get;init; }
-Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer { get;init; }
-Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Main { get;init; }
-Mateu.Uidl.ContentLayout property System.String AsidePosition { get;init; }
-Mateu.Uidl.ContentLayout property System.String AsideWidth { get;init; }
 Mateu.Uidl.ContentSlot ctor(System.String)
 Mateu.Uidl.ContentSlot property System.Boolean DegradeToClient { get;init; }
 Mateu.Uidl.ContentSlot property System.Int32? TimeoutMs { get;init; }
@@ -1642,8 +1635,6 @@ Mateu.Uidl.SectionAttribute property System.String Caption { get; }
 Mateu.Uidl.SectionAttribute property System.String EditAction { get;set; }
 Mateu.Uidl.SectionAttribute property System.String ViewMoreAction { get;set; }
 Mateu.Uidl.SectionAttribute property System.String Zone { get;set; }
-Mateu.Uidl.SecuredAttribute ctor(System.String)
-Mateu.Uidl.SecuredAttribute property System.String Permission { get; }
 Mateu.Uidl.SelectedItem ctor(System.Object, System.String)
 Mateu.Uidl.SelectedItem property System.Object Id { get;init; }
 Mateu.Uidl.SelectedItem property System.String Label { get;init; }

@@ -46,7 +46,7 @@ public record ResponsiveGrid(
      * name is listed here gets a sticky wrapper (top offset applied by the renderer); the sticky
      * region is a property of the TEMPLATE, not of the content dropped into it. Null/empty =
      * nothing sticky. This is what lets a two-region screen template replace the bespoke sticky
-     * ContentLayout.
+     * ContentLayout (removed in 3.0.0).
      */
     List<String> stickyAreas,
     /**

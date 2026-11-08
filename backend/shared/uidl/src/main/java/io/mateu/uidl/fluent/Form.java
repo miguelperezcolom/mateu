@@ -41,7 +41,7 @@ public record Form(
     @Experimental("YAML page header (3.0 beta)") String titlePlaceholder,
     /** The "last updated" line under the subtitle — the twin of a {@code @Timestamp} field. */
     @Experimental("YAML page header (3.0 beta)") String timestamp,
-    /** Header chips — the twin of {@code @BadgeInHeader} / {@code BadgeSupplier}. */
+    /** Header chips — the twin of {@code @BadgeInHeader} / {@code HeaderBadgesSupplier}. */
     @Experimental("YAML page header (3.0 beta)") @Singular("badge") List<Chip> badges,
     /** Header key facts (label/value) — the twin of {@code @KPI}. */
     @Experimental("YAML page header (3.0 beta)") @Singular("kpi") List<Fact> kpis,
