@@ -123,6 +123,10 @@ removable in 4.0) and the deprecated wire DTOs.
 
 ### Fixed
 
+- **The buttons of a record page work on a crud declared `Crud<Object, ...>`.** Since beta.42 the record was rebuilt
+  from the crud's view class; with `Object` there was no record, the method never ran, and the page went blank under
+  the title "Object". The record now comes from the crud's `view()`.
+
 - **The IntelliJ plugin installs on current IDEs again.** It was capped at the 2025.3 line, so the
   Marketplace marked it incompatible with IntelliJ IDEA 2026.1, 2026.2 and 2026.3. The cap is gone, and
   every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
