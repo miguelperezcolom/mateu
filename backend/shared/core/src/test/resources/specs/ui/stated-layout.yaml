@@ -1,0 +1,11 @@
+# A definition with no view model of its own: bound to one by the route (layout + viewModel).
+# Used by YamlLayoutStateSupplierSyncTest.
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormLayout
+      content:
+        - type: FormField
+          id: greeting
+          label: "Greeting"
+          dataType: string
