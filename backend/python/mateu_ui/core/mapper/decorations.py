@@ -176,6 +176,13 @@ class DecorationMapperMixin(MixinBase):
                     from_=from_ or None, condition=condition or None,
                 )
             )
+        # @auto_save: after the @trigger()s and @subscribe_to()s, as Java's TriggerMapper adds it
+        auto_save = getattr(cls, "__mateu_auto_save__", None)
+        if auto_save is not None:
+            debounce, action = auto_save
+            triggers.append(
+                {"type": "AutoSave", "actionId": camel_case(action), "debounceMillis": debounce}
+            )
         return triggers, getattr(cls, "__mateu_emits__", None)
 
 
@@ -189,6 +196,9 @@ def triggered_action_ids(cls) -> list[str]:
         if t.type in (TriggerType.on_success, TriggerType.on_error) and t.called_action:
             ids.append(camel_case(t.called_action))
     ids.extend(camel_case(a) for _e, a in getattr(cls, "__mateu_subscriptions__", ()) if a)
+    auto_save = getattr(cls, "__mateu_auto_save__", None)
+    if auto_save is not None and auto_save[1]:
+        ids.append(camel_case(auto_save[1]))
     return [i for i in dict.fromkeys(ids) if i]
 
 

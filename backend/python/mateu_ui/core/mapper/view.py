@@ -101,6 +101,10 @@ class ViewMapperMixin(MixinBase):
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
         field_actions = self.field_actions(cls)
         actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
+        # @auto_save: the debounced save may name any action — Java's ActionMapper advertises the
+        # "*" catch-all for an @AutoSave class, after the nested form actions
+        if getattr(cls, "__mateu_auto_save__", None) is not None:
+            actions = field_actions + [Action(id="*", validation_required=False)] + actions[len(field_actions):]
         # @Section(add_action / edit_action / view_more_action): the section affordance buttons
         # dispatch the named methods — advertised so the client sends them (Java's
         # SectionAffordances buttons are claimed by the page's component).

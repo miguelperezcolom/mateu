@@ -4326,6 +4326,20 @@
     ]
    ]
   },
+  "auto_save": {
+   "function": [
+    [
+     "debounce_millis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "banner": {
    "function": [
     [
