@@ -111,3 +111,7 @@ class DialogMetadata(Wire):
     height: str | None = None
     close_button_on_header: bool = True
     initial_data: Any | None = None
+    draggable: bool = False
+    resizable: bool = False
+    top: str | None = None
+    left: str | None = None

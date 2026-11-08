@@ -11,7 +11,7 @@ from .components import RuleRecord
 from .fields import RestDataSource
 
 if TYPE_CHECKING:
-    from .envelope import UICommand
+    from .envelope import CustomEventRecord, UICommand
 
 
 # ── Flat helper records (not part of the polymorphic unions) ────────────────────
@@ -244,6 +244,27 @@ class Action(Wire):
     #: round trip (an action-catalogue entry's steps); None for a normal server-dispatched action
     #: (mirrors io.mateu.dtos.ActionDto.commands).
     commands: "list[UICommand] | None" = None
+    #: Runs without the busy veil / double-submit lock (mirrors ActionDto.background).
+    background: bool = False
+    #: The client calls the streaming (SSE) endpoint — a LongTask answer (ActionDto.sse).
+    sse: bool = False
+    #: The confirmation dialog's texts; None = the renderer's own wording.
+    confirmation_texts: "ConfirmationTextsRecord | None" = None
+    #: A link: the client navigates there instead of calling the server (ActionDto.href).
+    href: str | None = None
+    #: Client JavaScript to run (only when the page opts into RunJS; ActionDto.js).
+    js: str | None = None
+    #: A browser custom event dispatched instead of a server call (ActionDto.customEvent).
+    custom_event: "CustomEventRecord | None" = None
+
+
+class ConfirmationTextsRecord(Wire):
+    """Mirrors ``io.mateu.dtos.ConfirmationTextsDto``."""
+
+    title: str | None = None
+    message: str | None = None
+    confirmation_text: str | None = None
+    denial_text: str | None = None
 
 
 class RestAction(Wire):

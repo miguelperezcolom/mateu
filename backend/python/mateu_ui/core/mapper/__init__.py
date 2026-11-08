@@ -255,10 +255,12 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     with_action_options,
 )
 from ._base import MixinBase
+from .crud_modes import hidden_in_current_form
 from .app import AppMapperMixin
 from .view import ViewMapperMixin
 from .archetypes import ArchetypeMapperMixin
 from .components import ComponentMapperMixin
+from .more_components import MoreComponentsMapperMixin
 from .decorations import DecorationMapperMixin
 from .wizard import WizardMapperMixin
 from .crud import CrudMapperMixin
@@ -273,6 +275,7 @@ class ReflectionMapper(
     ViewMapperMixin,
     ArchetypeMapperMixin,
     ComponentMapperMixin,
+    MoreComponentsMapperMixin,
     DecorationMapperMixin,
     WizardMapperMixin,
     CrudMapperMixin,
@@ -345,6 +348,9 @@ class ReflectionMapper(
             return False
         # a member the render in flight hides (a MasterDetailView's unselected detail parts)
         if is_hidden_member(f.name):
+            return False
+        # HiddenInView()/HiddenInEditor()/HiddenInCreate() inside the crud record form they name
+        if hidden_in_current_form(f):
             return False
         return self._permitted(f)
 

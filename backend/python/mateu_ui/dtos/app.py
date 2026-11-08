@@ -78,6 +78,13 @@ class AppMetadata(Wire):
     #: @app(mobile_qr=True) (experimental): the "Open on mobile" header action — a dialog with the
     #: QR that adds this UI to the Mateu mobile app. Mirrors AppDto.mobileQr.
     mobile_qr: bool = False
+    #: @app(accent_color=...): the app's brand colour (a CSS colour) — the native apps derive
+    #: their theme from it (mirrors AppDto.accentColor). None = the renderer's.
+    accent_color: str | None = None
+    #: @app(ask_label=..., ask_icon=...): the text / icon of the AI "ask" entry (mirrors
+    #: AppDto.askLabel / askIcon). None = the renderer's own.
+    ask_label: str | None = None
+    ask_icon: str | None = None
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.

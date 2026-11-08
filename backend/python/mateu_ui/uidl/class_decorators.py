@@ -337,6 +337,11 @@ def app(
     idle_warning_seconds: int = 60,
     idle_sign_out_url: str = "",
     mobile_qr: bool = False,
+    *,
+    layout: str = "SINGLE_SLOT",
+    accent_color: str = "",
+    ask_label: str = "",
+    ask_icon: str = "",
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
@@ -370,7 +375,14 @@ def app(
     (> 0) turns on the idle-session warning: after that idleness (any tab) a modal counts down
     ``idle_warning_seconds``; "Stay signed in" runs ``_keep-alive`` (``KeepAliveHandler``), "Sign
     out" goes to ``idle_sign_out_url`` (blank = the app's route). EXPERIMENTAL; mirror Java's
-    ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``."""
+    ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``.
+
+    ``layout``: "SINGLE_SLOT" (default) or "SPLIT" — the content area as two panes (Java's
+    ``@App(layout)``). ``accent_color`` (a CSS colour) is the app's brand colour, ``ask_label`` /
+    ``ask_icon`` the text and icon of the AI "ask" entry (Java's ``@App(accentColor, askLabel,
+    askIcon)``); blank = the renderer's own."""
+    if layout not in ("SINGLE_SLOT", "SPLIT"):
+        raise ValueError(f"@app(layout): {layout!r} is not SINGLE_SLOT or SPLIT")
 
     raw = variant.value if isinstance(variant, AppVariant) else variant
     raw = coerce_enum(raw, AppVariant, "@app(variant)").value
@@ -386,6 +398,12 @@ def app(
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         setattr(cls, "__mateu_app_live_updates__", live_updates)
         setattr(cls, "__mateu_app_idle__", (idle_timeout_minutes, idle_warning_seconds, idle_sign_out_url))
+        setattr(cls, "__mateu_app_presentation__", {
+            "layout": layout,
+            "accent_color": accent_color.strip() or None,
+            "ask_label": ask_label.strip() or None,
+            "ask_icon": ask_icon.strip() or None,
+        })
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
         # separate @ui on the same class; when both are set, @app(route) wins (see MateuRegistry).

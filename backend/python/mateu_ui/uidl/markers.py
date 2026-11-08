@@ -39,6 +39,15 @@ class Section:
     edit_action: str = ""
     add_action: str = ""
     view_more_action: str = ""
+    #: Pins the section's card (``position: sticky``) while the rest of the form scrolls; several
+    #: sticky sections stack under the page header (Java's @Section(sticky=true)).
+    sticky: bool = False
+    #: The section's own column count; 0 = the form's (declared or inferred). ``columns=1``
+    #: stacks this section's fields on a form whose other sections keep two columns (Java's
+    #: @Section(columns)).
+    columns: int = 0
+    #: Extra CSS for the section's content (Java's @Section(style)).
+    style: str = ""
 
 
 @dataclass(frozen=True)
@@ -381,3 +390,34 @@ class ContentSlot:
     #: Optional description for the content editors (the backoffice).
     description: str = ""
     degrade_to_client: bool = False
+
+
+# -- Listing / CRUD visibility markers (Java's @MainFilter, @HiddenInList/View/Editor/Create) --
+
+
+@dataclass(frozen=True)
+class MainFilter:
+    """On a field of a listing's filters class (or a Crud entity): the filter the smart search bar
+    shows first, prominently (Java's ``@MainFilter``)."""
+
+
+@dataclass(frozen=True)
+class HiddenInList:
+    """On a Crud entity field: no column for it in the listing (nor in its exports). Java's
+    ``@HiddenInList``."""
+
+
+@dataclass(frozen=True)
+class HiddenInView:
+    """On a Crud entity field: not shown on the record's read-only view. Java's ``@HiddenInView``."""
+
+
+@dataclass(frozen=True)
+class HiddenInEditor:
+    """On a Crud entity field: no input for it on the EDIT form. Java's ``@HiddenInEditor``."""
+
+
+@dataclass(frozen=True)
+class HiddenInCreate:
+    """On a Crud entity field: no input for it on the CREATE form (an id the store assigns, ...).
+    Java's ``@HiddenInCreate``."""

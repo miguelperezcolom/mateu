@@ -387,6 +387,73 @@ class AutoSaveForm:
         return Message("Saved")
 
 
+@ui("/conformance/more-components")
+@title("More components")
+class MoreComponentsPage(ComponentTreeSupplier):
+    """The last wire component types that were Java-only, in one component tree."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_ui.uidl import PageResult
+        from mateu_ui.uidl import components as fl
+
+        def t(text):
+            return fl.Text(text=text)
+
+        return fl.VerticalLayout(content=(
+            fl.BoardLayout(id="board", rows=(fl.BoardLayoutRow(content=(
+                fl.BoardLayoutItem(content=t("Sales"), board_cols=2),
+                fl.BoardLayoutItem(content=t("Stock"), board_cols=1),
+            )),)),
+            fl.CarouselLayout(
+                id="carousel", content=(t("Slide 1"), t("Slide 2")), auto=True, duration=4000,
+                dots=True, loop=True,
+            ),
+            fl.Container(content=t("Contained")),
+            fl.FullWidth(content=t("Wide")),
+            fl.Scroller(content=t("Scrolled"), style="height: 10rem"),
+            fl.FormItem(id="item", content=(t("Field"),)),
+            fl.FormSubSection(title="Address", content=(t("Street"),)),
+            fl.MasterDetailLayout(
+                id="md", master=t("Master"), detail=t("Detail"),
+                orientation=fl.Orientation.horizontal, variant=None,
+            ),
+            fl.ContextMenu(
+                menu=(fl.MenuEntry(label="Orders", path="/orders"),),
+                wrapped=t("Right click me"), activate_on_left_click=True,
+            ),
+            fl.Directory(menu=(fl.MenuEntry(
+                label="Sales", path="/sales",
+                submenu=(fl.MenuEntry(label="Orders", path="/sales/orders"),),
+            ),)),
+            fl.MenuBar(options=(
+                fl.MenuEntry(label="Home", path="/home"), fl.MenuEntry(label="Help", path="/help"),
+            )),
+            fl.Grid(
+                id="grid",
+                content=(
+                    fl.GridColumn(id="name", label="Name", data_type="string"),
+                    fl.GridGroupColumn(id="occupancy", label="Occupancy", columns=(
+                        fl.GridColumn(id="adults", label="Adults", data_type="integer"),
+                        fl.GridColumn(id="children", label="Children", data_type="integer"),
+                    )),
+                ),
+                page=PageResult(content=[{"name": "Ada", "adults": 2, "children": 1}], total_elements=1),
+                row_stripes=True,
+            ),
+            fl.Chat(sse_url="/chat/sse"),
+            fl.MessageList(id="messages", items=(fl.MessageListItem(text="Hello", user_name="Ada"),)),
+            fl.MessageInput(id="input", action_id="send"),
+            fl.NotFound(title="Not here", message="That page does not exist", back_route="/", back_label="Home"),
+            fl.VirtualList(page=PageResult(content=[t("Row 1"), t("Row 2")], total_elements=2)),
+            fl.CookieConsent(message="We use cookies", dismiss="OK", position=fl.CookieConsentPosition.Bottom),
+            fl.FormEditor(value="{}"),
+            fl.Workflow(value="<bpmn/>"),
+        ))
+
+
 @ui("/conformance/triggers")
 @title("Triggers")
 @trigger(TriggerType.on_load, "refresh", timeout_millis=5000, times=0, background=True)
@@ -794,7 +861,7 @@ class RestSourceForm:
 # ── Second requests: what an ACTION answers, not what a first load draws ──────────────────────
 
 from mateu_ui.uidl import MessageVariant, action  # noqa: E402
-from mateu_ui.uidl.components import Drawer, DrawerPosition  # noqa: E402
+from mateu_ui.uidl.components import Dialog, Drawer, DrawerPosition  # noqa: E402
 
 
 @ui("/conformance/action-effects")
@@ -827,6 +894,131 @@ class DrawerPage:
             header_title="Details", subtitle="Read only",
             content=Text("Nothing to edit here"), position=DrawerPosition.end,
         )
+
+
+@ui("/conformance/dialog-placement")
+@title("Dialog placement")
+class DialogPlacementPage:
+    """An action opening a modeless dialog placed at top/left, draggable and resizable."""
+
+    name: str = "Ada"
+
+    @action
+    def open_notes(self):
+        return Dialog(
+            header_title="Notes", content=Text("Free text"), top="4rem", left="2rem",
+            draggable=True, resizable=True, width="30rem", height="20rem", modeless=True,
+            close_button_on_header=True,
+        )
+
+
+from mateu_ui.uidl import Crud, HiddenInCreate, HiddenInEditor, HiddenInList, HiddenInView, MainFilter, action_options  # noqa: E402
+
+
+@ui("/conformance/action-extras")
+@title("Action extras")
+class ActionExtrasPage:
+    """The rest of Java's @Action: a streamed background action, a confirmation with its texts, a
+    link, a client script and a custom event."""
+
+    name: str = "Ada"
+
+    # Declared in the order Java's golden lists them: Java advertises @Action methods in the
+    # JVM's getDeclaredMethods order (unspecified, not the source order), this port in
+    # declaration order — so the fixture is written in the order the reference produced.
+    @action
+    @action_options(
+        confirmation_required=True, confirmation_title="Delete?",
+        confirmation_message="It cannot be undone", confirmation_text="Delete",
+        confirmation_denial_text="Keep",
+    )
+    def remove(self):
+        return Message("Deleted")
+
+    @action
+    @action_options(sse=True, background=True)
+    def stream(self):
+        return Message("Done")
+
+    @action
+    @action_options(custom_event="order-picked")
+    def pick(self):
+        return None
+
+    @action
+    @action_options(href="https://mateu.io")
+    def open_docs(self):
+        return None
+
+    @action
+    @action_options(js="console.log('hi')")
+    def run_script(self):
+        return None
+
+@ui("/conformance/app-branding")
+@app("Branded app", layout="SPLIT", accent_color="#00796b", ask_label="Ask Mateu", ask_icon="vaadin:question")
+class BrandedApp:
+    """An app shell's presentation knobs: a split content area, an accent, the Ask button's brand."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+
+@ui("/conformance/section-options")
+@title("Section options")
+class SectionOptionsForm:
+    """The first section pinned while the page scrolls, the second forced to one column with a
+    style on its content."""
+
+    lead: Annotated[str | None, Section("Guests", sticky=True)] = None
+    second: str | None = None
+    third: str | None = None
+    fourth: str | None = None
+    first: Annotated[str | None, Section("Notes", columns=1, style="gap: 0;")] = None
+    other: str | None = None
+    more: str | None = None
+    last: str | None = None
+
+
+class Employee:
+    id: str = ""
+    name: Annotated[str, MainFilter()] = ""
+    notes: Annotated[str, HiddenInList()] = ""
+    salary_band: Annotated[str, HiddenInView()] = ""
+    created_by: Annotated[str, HiddenInEditor()] = ""
+    code: Annotated[str, HiddenInCreate()] = ""
+
+    def __init__(self, id="", name="", notes="", salary_band="", created_by="", code=""):
+        self.id, self.name, self.notes = id, name, notes
+        self.salary_band, self.created_by, self.code = salary_band, created_by, code
+
+    def __str__(self):
+        return self.name if self.name and self.name.strip() else "New employee"
+
+
+EMPLOYEES = [
+    Employee("E-1", "Ada", "Likes tea", "B2", "admin", "ADA"),
+    Employee("E-2", "Grace", "Navy", "B3", "admin", "GRC"),
+]
+
+
+@ui("/conformance/crud-hidden-in")
+@title("Employees")
+class EmployeesCrud(Crud[Employee]):
+    """A crud whose entity hides fields per surface and names its main filter."""
+
+    def fetch(self, search):
+        return list(EMPLOYEES)
+
+    def get(self, id):
+        return next((e for e in EMPLOYEES if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
 
 
 @ui("/conformance/rejected-save")
@@ -934,13 +1126,13 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-new", "crud-edit", "crud-view"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-new", "crud-edit", "crud-view"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -998,16 +1190,12 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():
     # a case directory missing here would be a spec this port silently never checks
-    assert {d.name for d in CORPUS.iterdir() if d.is_dir()} - NOT_YET_WIRED == {case for case, _ in CASES}
-
-
-#: Cases whose Python fixture lands with another branch (the components branch owns them).
-NOT_YET_WIRED = {"more-components", "dialog-placement"}
+    assert {d.name for d in CORPUS.iterdir() if d.is_dir()} == {case for case, _ in CASES}
 
 
 @pytest.mark.parametrize("case,view", CASES)

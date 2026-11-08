@@ -28,6 +28,8 @@ from mateu_ui.dtos import (
 )
 from mateu_ui.uidl import (
     Aggregate,
+    HiddenInList,
+    MainFilter,
     ComponentTreeSupplier,
     Creatable,
     DateRange,
@@ -73,6 +75,7 @@ from mateu_ui.uidl.export import ExportColumn
 from ..export import FORMATS
 from ..titles import record_title, titled_by_data
 from ._base import MixinBase
+from .crud_modes import crud_form_mode
 from ._common import (
     COMPACT_STYLE,
     _id,
@@ -140,7 +143,8 @@ class CrudMapperMixin(MixinBase):
         inline = getattr(cls, "__mateu_inline_editing__", False)
         columns: list[GridColumn] = []
         for f in view_fields(element):
-            if not self.visible(f):
+            # HiddenInList(): the entity field has no listing column (Java's ListingColumnBuilder)
+            if not self.visible(f) or f.has(HiddenInList):
                 continue
             editable = inline and not f.has(ReadOnly)
             columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
@@ -359,7 +363,7 @@ class CrudMapperMixin(MixinBase):
         return [
             ExportColumn(f.name, f.marker(Label).value if f.has(Label) else humanize(f.name))
             for f in view_fields(element)
-            if self.visible(f)
+            if self.visible(f) and not f.has(HiddenInList)
         ]
 
     @staticmethod
@@ -592,7 +596,9 @@ class CrudMapperMixin(MixinBase):
             else:
                 out.append(FormFieldMetadata(field_id=fid, data_type=self.infer_data_type(t, f), label=label))
         # a filter is not a radio group: Java sends no optionsColumns on the smart search bar
-        return [field.model_copy(update={"options_columns": 0}) for field in out]
+        return _with_main_filters(
+            filters_type, [field.model_copy(update={"options_columns": 0}) for field in out]
+        )
 
     def crud_filters(self, element) -> list[FormFieldMetadata]:
         """The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
@@ -625,9 +631,21 @@ class CrudMapperMixin(MixinBase):
                     options_columns=0,
                 )
             )
-        return out
+        return _with_main_filters(element, out)
 
     def map_entity_form(
+        self, crud_type, element, entity, mode: str, route: str,
+        can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
+        save_and_next: Button | None = None,
+    ) -> ServerSideComponent:
+        # HiddenInView() / HiddenInEditor() / HiddenInCreate() drop their fields from this form
+        with crud_form_mode(mode):
+            return self._map_entity_form(
+                crud_type, element, entity, mode, route, can_edit, can_create, save_action_id,
+                save_and_next,
+            )
+
+    def _map_entity_form(
         self, crud_type, element, entity, mode: str, route: str,
         can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
         save_and_next: Button | None = None,
@@ -863,3 +881,14 @@ def listing_column(meta: GridColumnMeta, t, grouped: bool = False) -> GridColumn
         "align": align,
         "weight": column_weight(t, meta.stereotype),
     })
+
+
+def _with_main_filters(filters_type, filters: list) -> list:
+    """MainFilter() on a filter field: the smart search bar shows it first (Java's
+    PageListingBuilder: FormField.mainFilter)."""
+    main = {camel_case(f.name) for f in view_fields(filters_type) if f.has(MainFilter)}
+    if not main:
+        return filters
+    return [
+        f.model_copy(update={"main_filter": True}) if f.field_id in main else f for f in filters
+    ]

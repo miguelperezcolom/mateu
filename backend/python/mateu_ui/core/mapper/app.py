@@ -187,6 +187,8 @@ class AppMapperMixin(MixinBase):
             theme_toggle=bool(getattr(cls, "__mateu_app_theme_toggle__", False)),
             # "Open on mobile" (experimental): opt-in, mirrors AppDto.mobileQr.
             mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
+            # @app(layout, accent_color, ask_label, ask_icon) (mirror AppDto's members)
+            **_app_presentation(cls),
             # The UI language: what the translator says, else the request's Accept-Language — the
             # chrome follows the browser, as on Java (DefaultTranslator.locale; mirrors AppDto.locale).
             locale=self._locale() or _accept_language(),
@@ -626,3 +628,17 @@ def _accept_language() -> str | None:
     from ..translations import accept_language
 
     return accept_language()
+
+
+def _app_presentation(cls) -> dict:
+    """What ``@app(layout=, accent_color=, ask_label=, ask_icon=)`` puts on the wire; nothing for
+    an app that declares none of it."""
+    declared = getattr(cls, "__mateu_app_presentation__", None)
+    if not declared:
+        return {}
+    return {
+        "layout": declared["layout"],
+        "accent_color": declared["accent_color"],
+        "ask_label": declared["ask_label"],
+        "ask_icon": declared["ask_icon"],
+    }
