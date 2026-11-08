@@ -1,0 +1,10 @@
+# A partial that cannot be read: `columns` is a list of GridTracks, not a string. Pinned by
+# BrokenPartialSyncTest — it must say so (file, path, reason), never render as nothing in silence.
+content:
+  - type: Text
+    text: "Before the grid"
+  - type: ResponsiveGrid
+    columns: "1fr 1fr"
+    content:
+      - {type: Text, text: "Left"}
+      - {type: Text, text: "Right"}

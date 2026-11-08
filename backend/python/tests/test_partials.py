@@ -106,3 +106,18 @@ def test_a_partial_is_named_by_its_short_name_or_by_an_explicit_path_in_either_s
     ):
         tree = build_from_yaml(f"type: VerticalLayout\ncontent:\n  - type: Partial\n    ref: {ref}\n", partials())
         assert [describe(c) for c in tree.content] == ["Prices include VAT."], ref
+
+
+def test_a_partial_that_cannot_be_read_says_which_file_and_why(tmp_path, caplog):
+    # It used to vanish without a word (Java: BrokenPartialSyncTest).
+    (tmp_path / "partials").mkdir()
+    (tmp_path / "partials" / "broken.yaml").write_text("content:\n  - type: Text\n    text: [unclosed\n")
+    with caplog.at_level("WARNING", logger="mateu_ui.partials"):
+        tree = build_from_yaml(
+            "type: VerticalLayout\ncontent:\n  - type: Text\n    text: still here\n"
+            "  - type: Partial\n    ref: broken\n",
+            PartialRegistry(str(tmp_path)),
+        )
+
+    assert [describe(c) for c in tree.content] == ["still here"]
+    assert any("partials/broken.yaml" in r.getMessage() for r in caplog.records)

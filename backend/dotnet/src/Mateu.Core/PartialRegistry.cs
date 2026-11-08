@@ -108,8 +108,12 @@ public sealed class PartialRegistry : ISpecsCache
                 return seq.ToList();
             return [root];
         }
-        catch
+        catch (Exception e)
         {
+            // a partial that cannot be read is left out — but said, with its file and the reason
+            Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(MateuLogging.For("Mateu.Partials"),
+                "Could not read the partial '{Ref}': {Path}: {Reason}. It is left out of the page.",
+                reference, relative, e.Message);
             return None;
         }
     }
