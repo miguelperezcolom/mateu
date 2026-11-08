@@ -9,9 +9,13 @@ namespace Mateu.Core;
 internal sealed partial class ReflectionMapper
 {
     /// <summary>Client-side field validations from the bean-validation constraints (mirrors Java's
-    /// ConstraintValidationMapper): [Required] → the field must be truthy ("Cannot be empty");
-    /// [Range(min,max)] → two bounds ("Must be at least/at most N"). Emitted in field-declaration
-    /// order.</summary>
+    /// ConstraintValidationMapper condition for condition and message for message), per field in
+    /// Java's order: the length bounds ([StringLength] / [MinLength] / [MaxLength] = Java's @Size, one
+    /// entry per declared bound, "Size must be between MIN and MAX"), [Range] (= @Min/@Max, "Must be
+    /// at least/at most N"), [RegularExpression] (= @Pattern, "Invalid format"), then [Required]
+    /// ("Cannot be empty"). An absent value satisfies every bound but the required one (Bean
+    /// Validation's reading). A [Hidden("expr")] field's constraints are relaxed while it is hidden,
+    /// as Java's ValidationMapper does. Emitted in field-declaration order.</summary>
     private static List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
     {
         var validations = new List<ValidationDto>();
@@ -20,12 +24,20 @@ internal sealed partial class ReflectionMapper
         {
             var fieldId = Naming.CamelCase(p.Name);
             var reference = $"state['{fieldId}']";
+            var field = new List<ValidationDto>();
             // An absent value satisfies a bound (Bean Validation's reading — requiring it is
             // [Required]'s job), so an optional ranged field left empty passes.
             var absent = $"{reference} == null || {reference} === ''";
-            if (p.GetCustomAttributes(inherit: true)
-                    .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute))
-                validations.Add(new ValidationDto(RequiredCondition(reference), fieldId, "Cannot be empty"));
+            // a length bound HOLDS when the value is valid; an absent value and one with no length
+            // (a number) pass — Java's ConstraintValidationMapper.sized, character for character
+            var sized = $"{reference} == null || {reference} === '' || {reference}.length === undefined || {reference}.length";
+            foreach (var bound in LengthBounds(p))
+            {
+                if (bound.Min > 0)
+                    field.Add(new ValidationDto($"{sized} >= {bound.Min}", fieldId, bound.Message));
+                if (bound.Max is { } maxLength)
+                    field.Add(new ValidationDto($"{sized} <= {maxLength}", fieldId, bound.Message));
+            }
             if (p.GetCustomAttributes(inherit: true)
                     .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range)
             {
@@ -34,14 +46,87 @@ internal sealed partial class ReflectionMapper
                 // "<= 1,7976931348623157E+308" — not an expression — and Save never left the browser.
                 // An open bound (±MaxValue, ±∞) constrains nothing and is not sent.
                 if (Bound(range.Minimum) is { } min)
-                    validations.Add(new ValidationDto(
+                    field.Add(new ValidationDto(
                         $"{absent} || {reference} >= {min}", fieldId, $"Must be at least {min}"));
                 if (Bound(range.Maximum) is { } max)
-                    validations.Add(new ValidationDto(
+                    field.Add(new ValidationDto(
                         $"{absent} || {reference} <= {max}", fieldId, $"Must be at most {max}"));
             }
+            if (PatternOf(p) is { } pattern)
+                field.Add(new ValidationDto(
+                    $"{absent} || /{pattern.Regexp}/.test({reference})", fieldId, pattern.Message));
+            if (p.GetCustomAttributes(inherit: true)
+                    .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute))
+                field.Add(new ValidationDto(RequiredCondition(reference), fieldId, "Cannot be empty"));
+            if (p.Find<HiddenAttribute>()?.Value is { } hidden && !string.IsNullOrWhiteSpace(hidden))
+                field = field.Select(v => v with { Condition = $"({hidden}) || ({v.Condition})" }).ToList();
+            validations.AddRange(field);
         }
         return validations;
+    }
+
+    /// <summary>Java's <c>Integer.MAX_VALUE</c>: what an open maximum reads as in a length message
+    /// ("Size must be between 3 and 2147483647"), so the three servers say the same.</summary>
+    private const int OpenLength = int.MaxValue;
+
+    /// <summary>A declared length bound: [StringLength(max, MinimumLength = min)], [MinLength(min)],
+    /// [MaxLength(max)] — Java's @Size(min, max). <c>Max</c> is null for an open maximum.</summary>
+    private sealed record LengthBound(int Min, int? Max, string Message);
+
+    private static List<LengthBound> LengthBounds(PropertyInfo p)
+    {
+        var bounds = new List<LengthBound>();
+        foreach (var a in p.GetCustomAttributes(inherit: true))
+        {
+            int min;
+            int? max;
+            switch (a)
+            {
+                case StringLengthAttribute s:
+                    (min, max) = (s.MinimumLength, s.MaximumLength);
+                    break;
+                case MinLengthAttribute m:
+                    (min, max) = (m.Length, null);
+                    break;
+                // [MaxLength] without a length (-1) is the database's "as long as it gets": no bound
+                case MaxLengthAttribute m:
+                    (min, max) = (0, m.Length < 0 ? null : m.Length);
+                    break;
+                default:
+                    continue;
+            }
+            min = Math.Max(min, 0);
+            if (max is OpenLength) max = null;
+            if (min == 0 && max is null) continue;
+            bounds.Add(new LengthBound(min, max,
+                MessageOf((ValidationAttribute)a, p, $"Size must be between {min} and {max ?? OpenLength}")));
+        }
+        return bounds;
+    }
+
+    /// <summary>A declared [RegularExpression] (Java's @Pattern): the regexp as written — the
+    /// browser evaluates it with RegExp.test too, so it must be JavaScript-compatible — and its
+    /// message ("Invalid format" by default).</summary>
+    private sealed record PatternConstraint(string Regexp, string Message);
+
+    private static PatternConstraint? PatternOf(PropertyInfo p) =>
+        p.GetCustomAttributes(inherit: true).OfType<RegularExpressionAttribute>().FirstOrDefault() is { } r
+            ? new PatternConstraint(r.Pattern, MessageOf(r, p, "Invalid format"))
+            : null;
+
+    /// <summary>A constraint's message: its ErrorMessage when declared (formatted the .NET way,
+    /// <c>{0}</c> = the field's label), else Java's default text.</summary>
+    private static string MessageOf(ValidationAttribute attribute, PropertyInfo p, string fallback)
+    {
+        if (string.IsNullOrEmpty(attribute.ErrorMessage)) return fallback;
+        try
+        {
+            return attribute.FormatErrorMessage(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
+        }
+        catch (FormatException)
+        {
+            return attribute.ErrorMessage;
+        }
     }
 
     /// <summary>A required field holds a value: not null, not a cleared input, not an empty list —
@@ -57,29 +142,78 @@ internal sealed partial class ReflectionMapper
     /// client — same properties, same messages: "• Label: message" per broken one, empty when the
     /// instance is valid. Run before a [Button] action (advertised validationRequired), because the
     /// browser is not to be trusted, nor the only client.</summary>
-    internal List<string> Violations(Type type, object instance)
+    internal List<string> Violations(Type type, object instance) =>
+        BrokenConstraints(type, instance)
+            .Select(b => $"• {T(b.Property.Find<LabelAttribute>()?.Value ?? Naming.Humanize(b.Property.Name))}: {T(b.Message)}")
+            .ToList();
+
+    /// <summary>"Label: message" for every length / range / pattern constraint a CRUD record breaks,
+    /// over the properties its form renders (<paramref name="mode"/> "new" | "edit": a
+    /// [HiddenInCreate] / [HiddenInEditor] field sent no validation, so it is not checked) — the
+    /// server-side leg of a crud save and of an inline-edited row (Java's FilteredAutoCrud.save /
+    /// updateRow → ServerConstraintCheck). [Required] is reported separately by the caller.</summary>
+    internal List<string> CrudConstraintViolations(Type element, object entity, string mode) =>
+        BrokenConstraints(element, entity, p => !HiddenInForm(p, mode), includeRequired: false)
+            .Select(b => $"{T(b.Property.Find<LabelAttribute>()?.Value ?? Naming.Humanize(b.Property.Name))}: {T(b.Message)}")
+            .ToList();
+
+    /// <summary>The constraints the instance breaks, in Java's ServerConstraintCheck order per field
+    /// (required, length, range, pattern). A [Hidden("expr")] field is the browser's to judge and is
+    /// skipped; an absent optional value (null, or a blank input) satisfies every bound.</summary>
+    private static List<(PropertyInfo Property, string Message)> BrokenConstraints(Type type, object instance,
+        Func<PropertyInfo, bool>? include = null, bool includeRequired = true)
     {
-        var broken = new List<string>();
+        var broken = new List<(PropertyInfo, string)>();
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
         {
+            if (include is not null && !include(p)) continue;
+            if (p.Find<HiddenAttribute>()?.Value is { } hidden && !string.IsNullOrWhiteSpace(hidden)) continue;
             var value = p.GetValue(instance);
-            var label = T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
             var absent = value is null || value is string { Length: 0 }
                          || (value is System.Collections.ICollection { Count: 0 });
-            if (p.GetCustomAttributes(inherit: true)
-                    .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute) && absent)
-                broken.Add($"• {label}: {T("Cannot be empty")}");
-            if (!absent && p.GetCustomAttributes(inherit: true)
-                    .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range
-                && value is IConvertible)
+            if (includeRequired && absent && p.GetCustomAttributes(inherit: true)
+                    .Any(a => a is RequiredAttribute))
+                broken.Add((p, "Cannot be empty"));
+            // what the client calls absent: null or a cleared input (an empty list still has a length)
+            if (value is null || value is string { Length: 0 }) continue;
+            var length = value switch
             {
-                var number = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
-                var invariant = System.Globalization.CultureInfo.InvariantCulture;
+                string text => text.Length,
+                Array array => array.Length,
+                System.Collections.ICollection collection => collection.Count,
+                _ => -1,
+            };
+            if (length >= 0)
+                foreach (var bound in LengthBounds(p))
+                    if ((bound.Min > 0 && length < bound.Min) || (bound.Max is { } maxLength && length > maxLength))
+                        broken.Add((p, bound.Message));
+            if (!absent && value is IConvertible
+                && p.GetCustomAttributes(inherit: true).OfType<RangeAttribute>().FirstOrDefault() is { } range)
+            {
+                var number = Convert.ToDouble(value, invariant);
                 // the same literals the client got (Bound): an open bound constrains nothing
                 if (Bound(range.Minimum) is { } min && number < double.Parse(min, invariant))
-                    broken.Add($"• {label}: {T($"Must be at least {min}")}");
+                    broken.Add((p, $"Must be at least {min}"));
                 if (Bound(range.Maximum) is { } max && number > double.Parse(max, invariant))
-                    broken.Add($"• {label}: {T($"Must be at most {max}")}");
+                    broken.Add((p, $"Must be at most {max}"));
+            }
+            // a FIND, not a full match: the client tests the same regexp with JS RegExp.test (Java's
+            // ServerConstraintCheck uses Matcher.find for the same reason); a regexp that runs away
+            // counts as not matching rather than holding the request
+            if (value is string text2 && PatternOf(p) is { } pattern)
+            {
+                bool matches;
+                try
+                {
+                    matches = System.Text.RegularExpressions.Regex.IsMatch(text2, pattern.Regexp,
+                        System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
+                }
+                catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+                {
+                    matches = false;
+                }
+                if (!matches) broken.Add((p, pattern.Message));
             }
         }
         return broken;

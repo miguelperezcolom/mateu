@@ -230,3 +230,22 @@ def test_the_server_refuses_a_button_when_a_constraint_is_broken():
     assert "• Nights: Must be at most 10" in message["text"]
     assert "• Rooms: Must be at least 1" in message["text"]
     assert "Nick" not in message["text"]
+
+
+@ui("val-open-length")
+@title("Open length")
+class OpenLength:
+    nickname: Annotated[str, Length(min=2)] = ""
+
+
+def test_an_open_maximum_reads_as_javas_integer_max_value():
+    # Java's @Size(min = 2): max defaults to Integer.MAX_VALUE — no `<=` entry, and the message
+    # names it (it said "∞" here, a wire difference from Java and .NET)
+    assert entries(OpenLength) == [
+        (
+            "nickname",
+            "state['nickname'] == null || state['nickname'] === '' || state['nickname'].length === undefined"
+            " || state['nickname'].length >= 2",
+            "Size must be between 2 and 2147483647",
+        )
+    ]

@@ -61,6 +61,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -426,6 +428,35 @@ class WireConformanceTest {
     @Min(18)
     @Max(99)
     public int age = 36;
+  }
+
+  /**
+   * Text constraints on the wire: {@code @Size} (min and/or max, each bound its own entry, an open
+   * max printed as Integer.MAX_VALUE in the message) and {@code @Pattern} (the regexp verbatim
+   * inside a JS literal), default and custom messages, after a required check — and a
+   * {@code @Hidden("expression")} field whose constraint is relaxed while it is hidden.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-text")
+  @Title("Validated text")
+  public static class ValidatedTextForm {
+    @NotEmpty
+    @Size(min = 3, max = 8)
+    @Pattern(regexp = "^[A-Z]+$")
+    public String code = "ABC";
+
+    @Size(min = 2)
+    public String nickname = "";
+
+    @Size(max = 140)
+    public String bio = "";
+
+    @Size(max = 10, message = "Too long")
+    public String tag = "";
+
+    @Pattern(regexp = "^[0-9]{5}$", message = "Five digits")
+    @Hidden("state['code'] === ''")
+    public String zip = "";
   }
 
   /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
@@ -1664,6 +1695,7 @@ class WireConformanceTest {
           "dashboard",
           "app-in-code",
           "validation",
+          "validation-text",
           "stereotypes",
           "lookup",
           "tree-select",
@@ -1739,6 +1771,7 @@ class WireConformanceTest {
             DashboardPage.class,
             AppInCode.class,
             ValidatedForm.class,
+            ValidatedTextForm.class,
             Stereotypes.class,
             LookupForm.class,
             TreeSelectForm.class,

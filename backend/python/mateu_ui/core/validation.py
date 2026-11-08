@@ -31,6 +31,11 @@ from .naming import camel_case, humanize
 from .reflection import class_flag, view_fields
 
 
+#: What an open maximum reads as in a length message — Java's ``Integer.MAX_VALUE``, the default of
+#: ``@Size(max)`` — so the three servers say "Size must be between 2 and 2147483647" alike.
+OPEN_LENGTH = 2147483647
+
+
 def _num(value: float) -> str:
     """A bound as Java prints its ``long``: ``18``, not ``18.0``."""
     return str(int(value)) if float(value).is_integer() else str(value)
@@ -44,7 +49,7 @@ def field_constraints(f) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []
     size = f.marker(Length)
     if size is not None:
-        upper = size.max if size.max is not None else "∞"
+        upper = size.max if size.max is not None else OPEN_LENGTH
         default = f"Size must be between {size.min} and {upper}"
         # a condition HOLDS when the value is valid (it read `x && x.length < min`, true for a value
         # too SHORT); an absent value and one with no length pass, as on the server — Java's
@@ -52,7 +57,7 @@ def field_constraints(f) -> list[tuple[str, str]]:
         sized = f"{ref} == null || {ref} === '' || {ref}.length === undefined || {ref}.length"
         if size.min > 0:
             out.append((f"{sized} >= {size.min}", size.message or default))
-        if size.max is not None:
+        if size.max is not None and size.max < OPEN_LENGTH:
             out.append((f"{sized} <= {size.max}", size.message or default))
     # Bean Validation reads an absent value as valid for Min / Max / Pattern (requiring it is the
     # not-empty constraint's job), so an optional bounded field left empty passes.
@@ -149,7 +154,7 @@ def field_violations(f, value: Any) -> list[str]:
     if size is not None and hasattr(value, "__len__"):
         n = len(value)
         if n < size.min or (size.max is not None and n > size.max):
-            upper = size.max if size.max is not None else "∞"
+            upper = size.max if size.max is not None else OPEN_LENGTH
             problems.append(size.message or f"Size must be between {size.min} and {upper}")
     numeric = isinstance(value, (int, float)) and not isinstance(value, bool)
     if not numeric:

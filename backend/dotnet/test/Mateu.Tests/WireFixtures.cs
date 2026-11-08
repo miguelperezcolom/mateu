@@ -3,6 +3,10 @@ using Mateu.Dtos;
 using Mateu.Uidl;
 using Range = System.ComponentModel.DataAnnotations.RangeAttribute;
 using Required = System.ComponentModel.DataAnnotations.RequiredAttribute;
+using StringLength = System.ComponentModel.DataAnnotations.StringLengthAttribute;
+using MinLength = System.ComponentModel.DataAnnotations.MinLengthAttribute;
+using MaxLength = System.ComponentModel.DataAnnotations.MaxLengthAttribute;
+using RegularExpression = System.ComponentModel.DataAnnotations.RegularExpressionAttribute;
 
 namespace Mateu.Tests.Wire;
 
@@ -211,6 +215,25 @@ public class ValidatedForm
     [Required] public string? Email { get; set; } = "ada@example.com";
 
     [Range(18, 99)] public int Age { get; set; } = 36;
+}
+
+// Text constraints: the standard length/pattern attributes emit Java's @Size/@Pattern validations
+// ([StringLength] = @Size(min, max), [MinLength] = @Size(min), [MaxLength] = @Size(max),
+// [RegularExpression] = @Pattern), and a [Hidden("expr")] field's constraint is relaxed while hidden.
+[UI("conformance/validation-text"), Title("Validated text")]
+public class ValidatedTextForm
+{
+    [Required, StringLength(8, MinimumLength = 3), RegularExpression("^[A-Z]+$")]
+    public string? Code { get; set; } = "ABC";
+
+    [MinLength(2)] public string? Nickname { get; set; } = "";
+
+    [MaxLength(140)] public string? Bio { get; set; } = "";
+
+    [StringLength(10, ErrorMessage = "Too long")] public string? Tag { get; set; } = "";
+
+    [RegularExpression("^[0-9]{5}$", ErrorMessage = "Five digits"), Hidden("state['code'] === ''")]
+    public string? Zip { get; set; } = "";
 }
 
 // The stereotype vocabulary: slider/stars on ints, password/textarea on strings.
