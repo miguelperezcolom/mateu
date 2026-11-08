@@ -53,6 +53,32 @@ public final class ComponentToFragmentDtoMapper {
   /** Component types already reported as unrenderable, so the warning is logged once each. */
   private static final Set<String> warnedUnrenderableComponents = ConcurrentHashMap.newKeySet();
 
+  /**
+   * The archetype bridge page-level inference substitutes for a plain class (the same rule {@code
+   * ReflectionUiIncrementMapper} applies to a routed one), or null when it composes nothing.
+   */
+  static Component inferredPage(Object view) {
+    if (io.mateu.core.domain.out.componentmapper.PageInference.composesDashboard(view.getClass())) {
+      return new io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard(view);
+    }
+    if (io.mateu.core.domain.out.componentmapper.PageInference.composesWelcome(view.getClass())) {
+      return new io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome(view);
+    }
+    return null;
+  }
+
+  /**
+   * The data an embedded view renders with, as its page's fragment would carry it; null if none.
+   */
+  static Object islandData(Object view, HttpRequest httpRequest) {
+    Object data =
+        view instanceof io.mateu.uidl.interfaces.DataSupplier dataSupplier
+            ? dataSupplier.data(httpRequest)
+            : io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.createData(
+                view, httpRequest);
+    return data instanceof java.util.Map<?, ?> map && map.isEmpty() ? null : data;
+  }
+
   private static void warnIfGuidedProcessDrawerTooLong(Object view) {
     if (!(view instanceof Wizard wizard)) {
       return;
@@ -248,6 +274,14 @@ public final class ComponentToFragmentDtoMapper {
             consumedRoute,
             initiatorComponentId,
             httpRequest);
+      }
+      // page-level inference (@AutoPage) composes the class as it does on a page of its own: a
+      // plain class of metric cards is a dashboard island, and its cards' actions are advertised
+      // (reflected as a form, the cards were fields and a click on one sent nothing)
+      var inferred = inferredPage(view);
+      if (inferred != null) {
+        return mapComponentToDto(
+            null, inferred, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
       warnIfGuidedProcessDrawerTooLong(view);
       // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
