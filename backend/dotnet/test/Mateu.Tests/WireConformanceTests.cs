@@ -156,14 +156,15 @@ public class WireConformanceTests
         ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
          "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new",
-         "editable-view", "editable-view-edit", "view-toolbar-button"];
+         "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
     /// every side (Java's <c>MEDIATED_FORMS</c>).</summary>
     private static readonly HashSet<string> MediatedForms =
         ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new",
-         "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "editable-view", "editable-view-edit", "view-toolbar-button"];
+         "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "editable-view", "editable-view-edit", "view-toolbar-button",
+         "crud-nested-form"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     private static JsonNode WithoutMediatorProtocol(JsonNode increment)
@@ -174,7 +175,16 @@ public class WireConformanceTests
                 fragment.Remove("state");
                 if (fragment["component"] is JsonObject component)
                 {
-                    component.Remove("actions");
+                    // the mediator's own actions (create/save, their bubbling) are protocol; a nested
+                    // data object's actions are the FORM's — the record form advertises what its
+                    // sub-forms dispatch (Java's withoutMediatorProtocol)
+                    if (component["actions"] is JsonArray actions)
+                    {
+                        foreach (var a in actions.Where(a =>
+                                     !((a as JsonObject)?["id"]?.GetValue<string>() ?? "").StartsWith("nested-form-action-")).ToList())
+                            actions.Remove(a);
+                        if (actions.Count == 0) component.Remove("actions");
+                    }
                     component.Remove("initialData");
                     // the mediator's own refresh subscriptions ("mateu-crud:*" events); .NET
                     // re-renders the listing in place
@@ -278,6 +288,8 @@ public class WireConformanceTests
         { "definition-path-params-seeded", typeof(YamlCase) },
         { "inline-form", typeof(Wire.InlineForm) },
         { "inline-form-action", typeof(Wire.InlineForm) },
+        { "crud-nested-form", typeof(Wire.PurchaseOrdersCrud) },
+        { "crud-nested-form-action", typeof(Wire.PurchaseOrder) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

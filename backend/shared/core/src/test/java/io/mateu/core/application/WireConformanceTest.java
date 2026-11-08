@@ -1918,6 +1918,68 @@ class WireConformanceTest {
   }
 
   /**
+   * A crud entity holding a plain nested data object ({@link SupplierInfo}, no {@code @Inline}):
+   * its record form draws the object as a sub-form whose {@code @Toolbar}/{@code @Button} methods
+   * are dispatched as {@code nested-form-action-supplier-<method>}. The form is the ENTITY's
+   * server-side component: it advertises those actions and runs them on the nested object hydrated
+   * from the flattened state.
+   */
+  @SuppressWarnings("unused")
+  public static class PurchaseOrder implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String reference;
+    public SupplierInfo supplier = new SupplierInfo();
+
+    public PurchaseOrder() {}
+
+    PurchaseOrder(String id, String reference) {
+      this.id = id;
+      this.reference = reference;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return reference;
+    }
+  }
+
+  static final List<PurchaseOrder> PURCHASE_ORDERS =
+      List.of(new PurchaseOrder("PO-1", "Q3 restock"));
+
+  @UI("/conformance/crud-nested")
+  @Title("Purchase orders")
+  public static class PurchaseOrdersCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<PurchaseOrder> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<PurchaseOrder> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<PurchaseOrder> findById(String id) {
+          return PURCHASE_ORDERS.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(PurchaseOrder entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<PurchaseOrder> findAll() {
+          return PURCHASE_ORDERS;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  /**
    * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
    * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
    * request to the case's fixture type instead of the first load. Identical in the three runners.
@@ -1943,7 +2005,10 @@ class WireConformanceTest {
           java.util.Map.entry("crud-edit", ProductsCrud.class),
           java.util.Map.entry("crud-view", ProductsCrud.class),
           java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
-          java.util.Map.entry("inline-form-action", InlineForm.class));
+          java.util.Map.entry("inline-form-action", InlineForm.class),
+          java.util.Map.entry("crud-nested-form", PurchaseOrdersCrud.class),
+          // the record form's own component: its serverSideType is the ENTITY
+          java.util.Map.entry("crud-nested-form-action", PurchaseOrder.class));
 
   private static final List<String> CASES =
       List.of(
@@ -2031,7 +2096,9 @@ class WireConformanceTest {
           "definition-path-params",
           "definition-path-params-seeded",
           "inline-form",
-          "inline-form-action");
+          "inline-form-action",
+          "crud-nested-form",
+          "crud-nested-form-action");
 
   static TestMateu mateu;
 
@@ -2117,7 +2184,8 @@ class WireConformanceTest {
             HeroBooks.class,
             PageNoBreadcrumbs.class,
             PageBreadcrumbs.class,
-            InlineForm.class);
+            InlineForm.class,
+            PurchaseOrdersCrud.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -2291,6 +2359,7 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "crud-hidden-constraints-edit",
           "crud-hidden-constraints-new",
+          "crud-nested-form",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
@@ -2426,6 +2495,7 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "crud-hidden-constraints-edit",
           "crud-hidden-constraints-new",
+          "crud-nested-form",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
@@ -2444,7 +2514,16 @@ class WireConformanceTest {
     for (var fragment : increment.path("fragments")) {
       ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
       if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
-        c.remove("actions");
+        // the mediator's own actions (create/save, their bubbling) are protocol; a nested data
+        // object's actions are the FORM's — the record form advertises what its sub-forms dispatch
+        if (c.get("actions") instanceof com.fasterxml.jackson.databind.node.ArrayNode actions) {
+          for (int i = actions.size() - 1; i >= 0; i--) {
+            if (!actions.get(i).path("id").asText("").startsWith("nested-form-action-")) {
+              actions.remove(i);
+            }
+          }
+          if (actions.isEmpty()) c.remove("actions");
+        }
         c.remove("initialData");
         // the mediator's own refresh subscriptions ("mateu-crud:*" events — a delete or a drawer
         // save tells the listing to search again); the ports re-render the listing in place

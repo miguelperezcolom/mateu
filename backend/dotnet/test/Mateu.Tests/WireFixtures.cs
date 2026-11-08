@@ -1181,6 +1181,29 @@ public class DeliveryInfo
     public int Days { get; set; } = 3;
 }
 
+/// <summary>A crud entity holding a plain nested data object (crud-nested-form, -action): its record
+/// form draws it as a sub-form and ADVERTISES its nested-form-action-supplier-&lt;method&gt; actions,
+/// which run on the nested object hydrated from the flattened state (Java's).</summary>
+public class PurchaseOrder
+{
+    public string Id { get; set; } = "";
+    public string? Reference { get; set; }
+    public SupplierInfo Supplier { get; set; } = new();
+
+    public override string ToString() => Reference ?? "";
+}
+
+[UI("conformance/crud-nested"), Title("Purchase orders")]
+public class PurchaseOrdersCrud : Crud<PurchaseOrder>
+{
+    private static readonly List<PurchaseOrder> Store = [new() { Id = "PO-1", Reference = "Q3 restock" }];
+
+    public override IEnumerable<PurchaseOrder> Fetch(string? search) => Store;
+    public override PurchaseOrder? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(PurchaseOrder order) { }
+    public override void Delete(string id) { }
+}
+
 /// <summary>Nested data objects in a form: one [Inline], one as a sub-form.</summary>
 [UI("conformance/inline-form"), Title("Inline form")]
 public class InlineForm

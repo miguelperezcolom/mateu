@@ -30,7 +30,7 @@ from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl.export import ListingExport
 from mateu_ui.uidl.messages import Message, UserFacingException
 
-from .. import action_guard
+from .. import action_guard, nested_forms
 from ..naming import camel_case
 from ..reflection import class_flag, view_fields
 from ..registry import normalize
@@ -188,6 +188,20 @@ class CrudHandlerMixin(MixinBase):
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit", rq
                 )
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
+        if aid and aid.startswith(nested_forms.NESTED_ACTION_PREFIX):
+            # a nested data object of the ENTITY (its record form's sub-form): Java's record form
+            # is the entity's own server-side component, so the method runs on the entity's nested
+            # object hydrated from the form's flattened state (RunMethodActionRunner). A detached
+            # copy: an in-memory get() may hand out the stored instance, and an action persists
+            # nothing.
+            import copy
+
+            entity = copy.deepcopy(self.get_or_new(crud, element, id_)) if id_ is not None else element()
+            self.bind_state(
+                entity, without_hidden_inputs(element, rq.component_state or {}, id_ is None)
+            )
+            with crud_form_mode("new" if id_ is None else "edit"):
+                return self._run_nested_action(element, entity, rq)
         if aid and aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
         if aid and aid.startswith("action-on-view-"):

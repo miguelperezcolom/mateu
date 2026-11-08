@@ -58,7 +58,9 @@ internal sealed partial class ReflectionMapper
             // mediator above the form for them to bubble to, as in Java), and the web client only
             // SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
             // Saving validates the form on the client first.
-            [.. FieldActions(element), .. toolbar.Where(b => !b.ActionId!.StartsWith(ActionOnViewPrefix))
+            // the entity's nested data objects' actions (nested-form-action-<field>-<method>) lead,
+            // as Java's ActionMapper advertises them on the entity's record form
+            [.. NestedFormActions(element), .. FieldActions(element), .. toolbar.Where(b => !b.ActionId!.StartsWith(ActionOnViewPrefix))
                 .Select(b => new ActionDto(b.ActionId!, ValidationRequired: b.ActionId is "create" or "save")),
                 .. mode == "view" ? ViewToolbarActions(crudType) : []],
             [], "width: 100%;", null, null)

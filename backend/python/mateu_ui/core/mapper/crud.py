@@ -744,6 +744,9 @@ class CrudMapperMixin(MixinBase):
             # SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
             # Saving validates the form on the client first.
             actions=[
+                # the entity's nested data objects' actions (nested-form-action-<field>-<method>)
+                # lead, as Java's ActionMapper advertises them on the entity's record form
+                *self.nested_form_actions(element, entity),
                 *self.field_actions(element),
                 *view_actions,
                 *(
