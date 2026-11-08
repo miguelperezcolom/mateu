@@ -32,6 +32,7 @@ import com.intellij.util.ui.FormBuilder
 import io.mateu.ijp.newfile.MateuNewFiles
 import io.mateu.ijp.newfile.MateuRoutes
 import io.mateu.ijp.newfile.SpecsWorkspace
+import io.mateu.ijp.ui.plain
 import java.io.File
 import javax.swing.JComponent
 
@@ -217,7 +218,7 @@ class ImportFromFigmaDialog(project: Project, private val out: String) : DialogW
         .addLabeledComponent("Frames:", framesField)
         .addTooltip("Comma-separated names or slugs; empty = all")
         .addComponent(forceBox)
-        .addComponent(JBLabel("Pages are written to $out").apply { foreground = com.intellij.util.ui.UIUtil.getContextHelpForeground() })
+        .addComponent(JBLabel(plain("Pages are written to $out")).apply { foreground = com.intellij.util.ui.UIUtil.getContextHelpForeground() })
         .panel
 
     override fun getPreferredFocusedComponent(): JComponent = url
