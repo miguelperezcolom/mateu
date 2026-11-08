@@ -34,8 +34,31 @@ export function childForSlot(slot: SlotPlan): string | null {
 }
 
 /** A distinctive value to set, and to read back. */
-export function valueForProperty(p: PropertyPlan): string | boolean {
+export function valueForProperty(p: Pick<PropertyPlan, 'name' | 'type' | 'defaultValue'>): string | boolean {
   return p.type === 'BOOLEAN' ? !(p.defaultValue as boolean) : `selftest-${p.name}`;
+}
+
+/** A component property definition, as `componentPropertyDefinitions` gives it. */
+export interface PropertyDefinition {
+  type: string;
+  defaultValue?: string | boolean;
+}
+
+/**
+ * Why Figma would leave a built component out of a published library (empty = publishable): a
+ * TEXT/BOOLEAN/SLOT/INSTANCE_SWAP property no layer references, or a TEXT one defaulting to empty.
+ * `referenced` = the property keys found in the `componentPropertyReferences` of the component's
+ * layers (every variant's, for a set). VARIANT properties are the variants themselves.
+ */
+export function publishProblems(defs: Record<string, PropertyDefinition>, referenced: Set<string>): string[] {
+  const out: string[] = [];
+  for (const [key, def] of Object.entries(defs)) {
+    if (def.type === 'VARIANT') continue;
+    const name = key.replace(/#[^#]*$/, '');
+    if (!referenced.has(key)) out.push(`${def.type} property "${name}" is bound to no layer`);
+    if (def.type === 'TEXT' && String(def.defaultValue ?? '').trim() === '') out.push(`TEXT property "${name}" has an empty default`);
+  }
+  return out;
 }
 
 /** A variant value other than the instance's current one, or null when the axis has one value. */
@@ -43,7 +66,7 @@ export function otherVariantValue(values: string[], current: string): string | n
   return values.find((v) => v !== current) ?? null;
 }
 
-export type CheckKind = 'slot' | 'property' | 'variant' | 'config';
+export type CheckKind = 'slot' | 'property' | 'variant' | 'config' | 'publish';
 
 export interface Check {
   entry: string;
@@ -63,12 +86,14 @@ export interface EntryResult {
   slotsTotal: number;
   propsOk: number;
   propsTotal: number;
+  /** Whether Figma will publish it (false when a property is unbound or a TEXT default empty). */
+  publishable: boolean;
   failures: string[];
 }
 
 export interface Report {
   entries: EntryResult[];
-  totals: { entries: number; instances: number; checks: number; failed: number; slotsOk: number; slotsTotal: number; propsOk: number; propsTotal: number };
+  totals: { entries: number; instances: number; checks: number; failed: number; slotsOk: number; slotsTotal: number; propsOk: number; propsTotal: number; publishable: number; unpublishable: number };
   /** Slot appends refused because the slot belongs to an instance — an API limitation, not a library bug. */
   instanceSlotBlocked: number;
 }
@@ -83,7 +108,7 @@ export function aggregate(checks: Check[], instancesPerEntry: Record<string, num
   const row = (entry: string) => {
     let r = byEntry.get(entry);
     if (!r) {
-      r = { entry, instances: instancesPerEntry[entry] ?? 0, slotsOk: 0, slotsTotal: 0, propsOk: 0, propsTotal: 0, failures: [] };
+      r = { entry, instances: instancesPerEntry[entry] ?? 0, slotsOk: 0, slotsTotal: 0, propsOk: 0, propsTotal: 0, publishable: true, failures: [] };
       byEntry.set(entry, r);
     }
     return r;
@@ -96,6 +121,8 @@ export function aggregate(checks: Check[], instancesPerEntry: Record<string, num
     if (c.kind === 'slot') {
       r.slotsTotal++;
       if (c.ok) r.slotsOk++;
+    } else if (c.kind === 'publish') {
+      if (!c.ok) r.publishable = false;
     } else {
       r.propsTotal++;
       if (c.ok) r.propsOk++;
@@ -120,6 +147,8 @@ export function aggregate(checks: Check[], instancesPerEntry: Record<string, num
       slotsTotal: sum((r) => r.slotsTotal),
       propsOk: sum((r) => r.propsOk),
       propsTotal: sum((r) => r.propsTotal),
+      publishable: entries.filter((r) => r.publishable).length,
+      unpublishable: entries.filter((r) => !r.publishable).length,
     },
     instanceSlotBlocked: blocked,
   };

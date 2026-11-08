@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { planEntry, namedSlots, BUTTON } from '../src/plan.ts'
+import { planEntry, planPublishProblems, namedSlots, BUTTON, PROP_LAYER, FLAG_LAYER } from '../src/plan.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const contract = JSON.parse(readFileSync(join(here, '../../contract.json'), 'utf8'))
@@ -88,7 +88,7 @@ test('every entry: unique property names, no clash with its variant axes, one pr
 test('every texts layer is a layer the sketch draws, so its property binds to something', () => {
   for (const e of contract.components) {
     const layers = textLayers(e.sketch)
-    for (const p of planEntry(e).properties.filter((x) => x.layer)) {
+    for (const p of planEntry(e).properties.filter((x) => !x.marker)) {
       assert.ok(layers.has(p.layer), `${e.name}: no text layer "${p.layer}" in its sketch`)
     }
   }
@@ -102,10 +102,39 @@ test('only NAMED slots become native; unnamed sample slots stay illustration', (
 test('the catalogue totals (reported in the PR)', () => {
   const plans = contract.components.map(planEntry)
   const slots = plans.reduce((n, p) => n + p.slots.length, 0)
-  const props = plans.reduce((n, p) => n + p.properties.filter((x) => !x.layer).length, 0)
-  const texts = plans.reduce((n, p) => n + p.properties.filter((x) => x.layer).length, 0)
+  const props = plans.reduce((n, p) => n + p.properties.filter((x) => x.marker).length, 0)
+  const texts = plans.reduce((n, p) => n + p.properties.filter((x) => !x.marker).length, 0)
   assert.ok(slots >= 90, `slots ${slots}`)
   assert.ok(props >= 150, `props ${props}`)
   assert.ok(texts >= 150, `texts ${texts}`)
   console.log(`# ${contract.components.length} entries → ${slots} native slots, ${props} config properties, ${texts} text properties`)
+})
+
+// Figma leaves a component out of a published library when one of its properties drives no layer
+// or a TEXT one defaults to empty (the owner's file: 88 of 161 published). Over the whole contract:
+test('publishable: every property of every entry drives a layer, and no TEXT default is empty', () => {
+  const problems = contract.components.flatMap((e) => planPublishProblems(planEntry(e)).map((m) => `${e.name}: ${m}`))
+  assert.deepEqual(problems, [])
+  for (const e of contract.components) {
+    for (const p of planEntry(e).properties) {
+      if (p.type === 'BOOLEAN') {
+        assert.equal(p.layer, FLAG_LAYER + p.param, `${e.name}: ${p.name}`)
+        assert.equal(p.binds, 'visible')
+        assert.equal(p.defaultValue, false)
+      } else if (p.marker) {
+        assert.equal(p.layer, PROP_LAYER + p.param, `${e.name}: ${p.name}`)
+        assert.equal(p.defaultValue, p.param, 'a config TEXT defaults to its own name (read as unset)')
+      } else {
+        assert.ok(String(p.defaultValue).trim() !== '', `${e.name}: ${p.name} has an empty default`)
+      }
+    }
+  }
+})
+
+test('the publish checker flags an unbound property and an empty TEXT default', () => {
+  const problems = planPublishProblems({ slots: [], properties: [
+    { name: 'a', type: 'TEXT', param: 'a', layer: '', binds: 'characters', marker: true, defaultValue: '' },
+    { name: 'b', type: 'BOOLEAN', param: 'b', layer: '#flag:b', binds: 'characters', marker: true, defaultValue: false },
+  ] })
+  assert.deepEqual(problems, ['a: bound to no layer', 'a: empty TEXT default', "b: a BOOLEAN must drive a layer's visibility"])
 })

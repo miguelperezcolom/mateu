@@ -11,8 +11,10 @@
  * Mateu annotation/record parameters. Non-visual config (fieldId, actionId, route, required…)
  * and the editable texts (Label, Title…) are COMPONENT PROPERTIES, edited in Figma's properties
  * panel; every named `slot` is a NATIVE slot, so designers drag library instances into it (see
- * ./plan.ts). Only a prop Figma refuses as a property falls back to the old subtle `#config` text
- * layer (`key=value; key2=value2`), which the importers still read.
+ * ./plan.ts). Every property drives a layer — a config prop its own muted `#prop:`/`#flag:` marker
+ * in the component's `#props`/`#flags` rows — because Figma does not publish a component with an
+ * unbound property. Only a prop Figma refuses as a property falls back to the old subtle `#config`
+ * text layer (`key=value; key2=value2`), which the importers still read.
  *
  * The drawing is data-driven: each entry carries a compact `sketch` (a list of primitives) that
  * the generic renderer below turns into auto-layout frames. Regenerating the library after the
@@ -20,10 +22,10 @@
  */
 
 import contract from "../../contract.json";
-import { planEntry } from "./plan";
+import { FLAGS_ROW, PROPS_ROW, planEntry } from "./plan";
 import type { EntryPlan, PropertyPlan, SlotPlan } from "./plan";
 import {
-  SELF_TEST_PAGE, aggregate, childForSlot, otherVariantValue, valueForProperty, variantCombosToTest, variantName,
+  SELF_TEST_PAGE, aggregate, childForSlot, otherVariantValue, publishProblems, valueForProperty, variantCombosToTest, variantName,
 } from "./selftest";
 import type { Check, Report } from "./selftest";
 
@@ -408,36 +410,87 @@ function findAll(root: BaseNode, test: (n: SceneNode) => boolean): SceneNode[] {
  */
 function applyPlan(owner: ComponentNode | ComponentSetNode, variants: ComponentNode[], plan: EntryPlan) {
   const fallback: string[] = [];
+  for (const comp of variants) addMarkerRows(comp, plan.properties);
   for (const p of plan.properties) {
     let id: string;
     try {
       id = owner.addComponentProperty(p.name, p.type, p.defaultValue);
     } catch (e) {
-      if (!p.layer) fallback.push(p.param); // a texts layer is still read off the layer itself
+      dropMarkers(variants, p);
+      if (p.marker) fallback.push(p.param); // a texts layer is still read off the layer itself
       continue;
     }
-    stats.properties++;
-    if (!p.layer) continue;
+    let bound = 0;
     for (const comp of variants) {
-      for (const t of findAll(comp, (n) => n.type === 'TEXT' && n.name === p.layer)) {
+      for (const t of findAll(comp, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[]) {
         try {
-          t.componentPropertyReferences = { characters: id };
-          stats.textBindings++;
+          t.componentPropertyReferences = p.binds === 'visible' ? { visible: id } : { characters: id };
+          bound++;
         } catch (e) { /* the layer keeps working as a plain text layer */ }
       }
     }
-    // the property's default is the layer's own text, so an untouched instance reads unchanged
-    const first = variants.map((c) => findAll(c, (n) => n.type === 'TEXT' && n.name === p.layer)[0]).find(Boolean) as TextNode | undefined;
-    if (first && first.characters !== p.defaultValue) {
+    if (bound === 0) {
+      // Figma does not publish a component carrying a property bound to nothing: drop it
+      try { owner.deleteComponentProperty(id); } catch (e) { /* keep */ }
+      dropMarkers(variants, p);
+      if (p.marker) fallback.push(p.param);
+      continue;
+    }
+    stats.properties++;
+    stats.textBindings += bound;
+    if (p.marker) continue;
+    // a drawn text's default is the layer's own text, so an untouched instance reads unchanged;
+    // never an empty default (Figma does not publish that either)
+    const layers: TextNode[] = [];
+    for (const c of variants) layers.push(...(findAll(c, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[]));
+    const first = layers[0];
+    if (first && first.characters.trim() !== '' && first.characters !== p.defaultValue) {
       try { owner.editComponentProperty(id, { defaultValue: first.characters }); } catch (e) { /* keep */ }
+    } else if (first && first.characters.trim() === '') {
+      for (const t of layers) { try { t.characters = String(p.defaultValue); } catch (e) { /* keep */ } }
     }
   }
   for (const slot of plan.slots) linkSlot(owner, variants, slot);
+  for (const comp of variants) removeEmptyMarkerRows(comp);
   if (fallback.length > 0) {
     stats.configFallbacks++;
     for (const comp of variants) {
-      comp.appendChild(textNode(fallback.map((p) => `${p}=`).join('; '), { size: 9, color: '#b0b0b0', name: '#config' }));
+      comp.appendChild(textNode(fallback.map((p) => `${p}=`).join('; '), { size: 9, color: MARKER_INK, name: '#config' }));
     }
+  }
+}
+
+const MARKER_INK = '#b0b0b0';
+
+/**
+ * The compact rows at the bottom of a component holding the config props' marker layers: `#props`
+ * (one muted `#prop:<prop>` text per TEXT prop, showing its value — its name until set) and
+ * `#flags` (one `#flag:<prop>` text per BOOLEAN prop, shown only while it is on). They exist so
+ * every property drives a layer — the condition for Figma to publish the component.
+ */
+function addMarkerRows(comp: ComponentNode, properties: PropertyPlan[]) {
+  const row = (name: string, items: PropertyPlan[], visible: boolean) => {
+    if (items.length === 0) return;
+    const f = frameNode({ dir: 'HORIZONTAL', gap: 6, name });
+    for (const p of items) {
+      const t = textNode(p.param, { size: 9, color: MARKER_INK, name: p.layer });
+      t.visible = visible;
+      f.appendChild(t);
+    }
+    comp.appendChild(f);
+  };
+  row(PROPS_ROW, properties.filter((p) => p.marker && p.type === 'TEXT'), true);
+  row(FLAGS_ROW, properties.filter((p) => p.marker && p.type === 'BOOLEAN'), false);
+}
+
+function dropMarkers(variants: ComponentNode[], p: PropertyPlan) {
+  if (!p.marker) return;
+  for (const comp of variants) for (const n of findAll(comp, (x) => x.name === p.layer)) n.remove();
+}
+
+function removeEmptyMarkerRows(comp: ComponentNode) {
+  for (const n of findAll(comp, (x) => (x.name === PROPS_ROW || x.name === FLAGS_ROW) && x.type === 'FRAME')) {
+    if ((n as FrameNode).children.length === 0) n.remove();
   }
 }
 
@@ -656,6 +709,7 @@ async function runSelfTest() {
       continue;
     }
     const plan = planEntry(entry);
+    checkPublishable(entry.name, node, checks);
     const combos = variantCombosToTest(entry.variants ?? {});
     combos.forEach((combo, index) => {
       const variant = variantName(combo);
@@ -699,7 +753,7 @@ async function runSelfTest() {
 
   const t = report.totals;
   const blocked = report.instanceSlotBlocked ? ` (${report.instanceSlotBlocked} slot appends blocked on instances by the API)` : '';
-  figma.notify(`Self-test: ${t.entries} entries, ${t.instances} instances — slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures${blocked}`, { timeout: 15000 });
+  figma.notify(`Self-test: ${t.entries} entries, ${t.instances} instances — publishable ${t.publishable}/${t.entries}, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures${blocked}`, { timeout: 15000 });
   console.log('Mateu library self-test', JSON.stringify(report));
   figma.closePlugin();
 }
@@ -767,18 +821,37 @@ function checkProperty(entry: string, variant: string, instance: InstanceNode, p
     instance.setProperties({ [key]: value });
     const read = instance.componentProperties[key]?.value;
     let message: string | undefined = read === value ? undefined : `read back ${JSON.stringify(read)}`;
-    if (!message && p.layer) {
+    if (!message) {
       const layers = findAll(instance, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[];
       if (layers.length === 0) message = `no "${p.layer}" text layer`;
-      else if (!layers.some((l) => l.characters === value)) message = `"${p.layer}" still shows ${JSON.stringify(layers[0].characters)}`;
+      else if (p.binds === 'visible' && !layers.some((l) => l.visible === value)) message = `"${p.layer}" visibility did not follow`;
+      else if (p.binds === 'characters' && !layers.some((l) => l.characters === value)) message = `"${p.layer}" still shows ${JSON.stringify(layers[0].characters)}`;
     }
     // config props go back to their default (a typed param would not read "selftest-x");
     // text props keep the distinctive value, visible on the page and in its REST JSON
-    if (!p.layer) instance.setProperties({ [key]: p.defaultValue });
+    if (p.marker) instance.setProperties({ [key]: p.defaultValue });
     checks.push({ ...base, ok: !message, message });
   } catch (e) {
     checks.push({ ...base, ok: false, message: `setProperties refused: ${String((e as Error)?.message ?? e)}` });
   }
+}
+
+/**
+ * Whether Figma will PUBLISH the component: every non-variant property is referenced by a layer
+ * (characters / visible / mainComponent / slotContentId) and no TEXT default is empty. In-file
+ * instances work either way — this is what the instance checks cannot see.
+ */
+function checkPublishable(entry: string, node: ComponentNode | ComponentSetNode, checks: Check[]) {
+  const referenced = new Set<string>();
+  const collect = (n: BaseNode) => {
+    const refs = (n as any).componentPropertyReferences as Record<string, string> | null | undefined;
+    for (const v of Object.values(refs ?? {})) if (v) referenced.add(v);
+    for (const c of (n as ChildrenMixin).children ?? []) collect(c);
+  };
+  collect(node);
+  const problems = publishProblems(node.componentPropertyDefinitions as any, referenced);
+  checks.push({ entry, variant: '', kind: 'publish', target: 'library', ok: problems.length === 0,
+    message: problems.length ? `not publishable: ${problems.join('; ')}` : undefined });
 }
 
 function checkVariant(entry: string, variant: string, instance: InstanceNode, axis: string, values: string[], checks: Check[]) {
@@ -800,8 +873,8 @@ function checkVariant(entry: string, variant: string, instance: InstanceNode, ax
 function resultsTable(report: Report): FrameNode {
   const table = frameNode({ dir: 'VERTICAL', gap: 0, pad: 16, bg: LUMO.base, radius: LUMO.radiusM, stroke: LUMO.contrast20, name: '_Self-test results' });
   const t = report.totals;
-  table.appendChild(textNode(`Mateu library self-test — ${t.entries} entries, ${t.instances} instances, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures`, { size: LUMO.sizeM, bold: true, name: '#title' }));
-  const widths = [340, 80, 110, 130, 900];
+  table.appendChild(textNode(`Mateu library self-test — ${t.entries} entries, ${t.instances} instances, publishable ${t.publishable}/${t.entries}, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures`, { size: LUMO.sizeM, bold: true, name: '#title' }));
+  const widths = [340, 80, 80, 110, 130, 900];
   const row = (cells: string[], bold: boolean, failed: boolean) => {
     const r = frameNode({ dir: 'HORIZONTAL', gap: 0, bg: failed ? LUMO.themes.danger.bg : undefined });
     cells.forEach((c, i) => {
@@ -809,15 +882,15 @@ function resultsTable(report: Report): FrameNode {
       cell.resize(widths[i], 20);
       cell.primaryAxisSizingMode = 'FIXED';
       const text = textNode(c, { size: 11, bold, name: '#cell' });
-      if (i === 4) { text.textAutoResize = 'HEIGHT'; text.resize(widths[i] - 8, text.height); }
+      if (i === 5) { text.textAutoResize = 'HEIGHT'; text.resize(widths[i] - 8, text.height); }
       cell.appendChild(text);
       r.appendChild(cell);
     });
     return r;
   };
-  table.appendChild(row(['Entry', 'Instances', 'Slots', 'Properties', 'Failures'], true, false));
+  table.appendChild(row(['Entry', 'Instances', 'Publish', 'Slots', 'Properties', 'Failures'], true, false));
   for (const e of report.entries) {
-    table.appendChild(row([e.entry, String(e.instances), `${e.slotsOk}/${e.slotsTotal}`, `${e.propsOk}/${e.propsTotal}`,
+    table.appendChild(row([e.entry, String(e.instances), e.publishable ? 'yes' : 'NO', `${e.slotsOk}/${e.slotsTotal}`, `${e.propsOk}/${e.propsTotal}`,
       e.failures.join('\n')], false, e.failures.length > 0));
   }
   return table;

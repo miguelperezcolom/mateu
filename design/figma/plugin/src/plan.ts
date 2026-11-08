@@ -9,6 +9,15 @@
  *   in Figma's properties panel instead of the old `#config` text layer.
  * - every `texts` layer → a TEXT property bound to the layer's characters.
  *
+ * EVERY property is bound to a layer, and no TEXT property defaults to empty: Figma silently
+ * leaves a component out of a published library when one of its properties is bound to nothing
+ * (found on the owner's file: 73 of 161 components unpublished, each with an unbound BOOLEAN or an
+ * unbound, empty TEXT config prop). So a config prop gets a small marker layer of its own:
+ * a BOOLEAN drives the `visible` of `#flag:<prop>` (a muted text showing the prop's name, hidden
+ * by default) in the component's `#flags` row; a TEXT drives the `characters` of `#prop:<prop>`
+ * in its `#props` row and defaults to the prop's NAME (`fieldId`) — which the converters read as
+ * UNSET, like an untouched placeholder.
+ *
  * Property names are what the designer reads in the panel and what the converters
  * (design/figma/to-yaml, modux) map back: a `props` key is named as the param; a `texts` layer is
  * named as its param when that is unambiguous, else as the layer itself (`Title1` → `item.title`
@@ -23,10 +32,19 @@ export interface PropertyPlan {
   type: PropertyType
   /** The contract param it carries. */
   param: string
-  /** The text layer it is bound to (its `characters`), for a `texts` property. */
-  layer?: string
+  /** The layer it is bound to: a `texts` layer, or its own `#prop:`/`#flag:` marker layer. */
+  layer: string
+  /** What of the layer it drives: its text (TEXT) or its visibility (BOOLEAN). */
+  binds: 'characters' | 'visible'
+  /** A config prop with its own marker layer (`#prop:` / `#flag:`), not a drawn text. */
+  marker: boolean
   defaultValue: string | boolean
 }
+
+export const PROP_LAYER = '#prop:'
+export const FLAG_LAYER = '#flag:'
+export const PROPS_ROW = '#props'
+export const FLAGS_ROW = '#flags'
 
 export interface SlotPlan {
   /** The slot's name in the contract (`content`, `toolbar`…); the frame is `slot:<name>`. */
@@ -80,7 +98,9 @@ export function planEntry(entry: any): EntryPlan {
 
   for (const [key, type] of Object.entries(entry.props ?? {})) {
     if (taken.has(key)) continue // a variant axis already carries it
-    add({ name: key, type: type === 'BOOLEAN' ? 'BOOLEAN' : 'TEXT', param: key, defaultValue: type === 'BOOLEAN' ? false : '' })
+    add(type === 'BOOLEAN'
+      ? { name: key, type: 'BOOLEAN', param: key, layer: FLAG_LAYER + key, binds: 'visible', marker: true, defaultValue: false }
+      : { name: key, type: 'TEXT', param: key, layer: PROP_LAYER + key, binds: 'characters', marker: true, defaultValue: key })
   }
 
   const texts = Object.entries(entry.texts ?? {}) as [string, string][]
@@ -90,7 +110,7 @@ export function planEntry(entry: any): EntryPlan {
     const byParam = perParam.get(param) === 1 && !param.startsWith('item.') && !taken.has(param)
     const name = byParam ? param : layer
     if (taken.has(name)) continue
-    add({ name, type: 'TEXT', param, layer, defaultValue: layer })
+    add({ name, type: 'TEXT', param, layer, binds: 'characters', marker: false, defaultValue: layer })
   }
 
   const slots: SlotPlan[] = []
@@ -111,4 +131,19 @@ export function planEntry(entry: any): EntryPlan {
     })
   }
   return { properties, slots }
+}
+
+/**
+ * Why a planned component would not be published (empty = publishable): a property with no
+ * layer, a BOOLEAN not driving a visibility, a TEXT defaulting to empty.
+ */
+export function planPublishProblems(plan: EntryPlan): string[] {
+  const out: string[] = []
+  for (const p of plan.properties) {
+    if (!p.layer) out.push(`${p.name}: bound to no layer`)
+    if (p.type === 'BOOLEAN' && p.binds !== 'visible') out.push(`${p.name}: a BOOLEAN must drive a layer's visibility`)
+    if (p.type === 'TEXT' && p.binds !== 'characters') out.push(`${p.name}: a TEXT must drive a layer's characters`)
+    if (p.type === 'TEXT' && String(p.defaultValue).trim() === '') out.push(`${p.name}: empty TEXT default`)
+  }
+  return out
 }

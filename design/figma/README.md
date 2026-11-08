@@ -26,6 +26,13 @@ What the plugin creates per entry besides the drawing is pure and tested: `plugi
 `toolbar`/`buttons` prefer the Button), every prop a TEXT/BOOLEAN property named as the param, every
 text layer a TEXT property named as its param (or as the layer when ambiguous: `Title1`). For an
 entry with variants the properties live on the COMPONENT SET and every variant's layers reference them.
+**Every property drives a layer and no TEXT default is empty** — Figma does not publish a component
+otherwise (the owner's first publish: 88 of 161; every skipped one had an unbound BOOLEAN or an
+unbound, empty TEXT config prop). So a TEXT prop drives the characters of a muted `#prop:<prop>`
+layer (row `#props`) and defaults to its own NAME (`fieldId`), which the converter reads as unset
+(as it still reads an empty value from older files); a BOOLEAN prop drives the visibility of
+`#flag:<prop>` (row `#flags`, hidden by default). `planPublishProblems` pins it over the whole
+contract; the self-test checks the built components (`publishProblems`).
 - `sketch` — the compact draw spec the plugin renders (visual only, never read back).
 - `java` / `csharp` / `python` — the construct each component maps to, for the generators.
 - `yaml` — what the component becomes in a specs/ui file (`to-yaml/`): its YAML `type` (or a
@@ -128,8 +135,9 @@ Linux client.
    `plugin/src/selftest.ts`, tested in `plugin/test/selftest.test.mjs`): a `Mateu · Self-test` page
    with an instance of every entry (default variant + one per other axis value), a library instance
    appended to every slot (Button for toolbar-like/preferred slots, TextField otherwise), every
-   TEXT/BOOLEAN property set and read back (text layer included), every variant axis flipped, and no
-   leftover `#config`; a results table at the top, a toast, and the JSON report in the console.
+   TEXT/BOOLEAN property set and read back (text layer / marker visibility included), every variant
+   axis flipped, no leftover `#config`, and every component PUBLISHABLE (every property referenced by
+   a layer, no empty TEXT default — the one thing in-file instances cannot reveal); a results table at the top, a toast, and the JSON report in the console.
    Download the LIBRARY file and run `cd to-yaml && npm run self-test -- library.json [--report
    results.json]`: every instance of that page must convert alone with no warning. Commit it as
    `to-yaml/test/fixtures/self-test.figma.json` (+ `test/golden-self-test/results.json` from

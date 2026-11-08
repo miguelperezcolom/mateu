@@ -237,7 +237,11 @@ export class FigmaToYaml {
     return out
   }
 
-  /** The instance's own layers: everything but nested Mateu instances and slots. */
+  /**
+   * The instance's own layers: everything but nested Mateu instances and slots. The library's
+   * `#`-named layers (`#props`/`#prop:<p>`, `#flags`/`#flag:<p>`, `#placeholder`) are listed too,
+   * but every reader skips them: they mirror component properties, never content.
+   */
   ownLayers(node, out = []) {
     for (const child of node.children ?? []) {
       if (child.visible === false) continue
@@ -305,7 +309,10 @@ export class FigmaToYaml {
         continue
       }
       const value = String(prop.value ?? '')
+      // unset: empty (a library made before every property was bound to a layer), or — since then —
+      // a config property still showing its own name, the default its `#prop:` marker layer starts with
       if (value.trim() === '') continue
+      if (!target.layer && value === name) continue
       // an untouched text property still shows the layer's placeholder
       if (target.layer && Contract.placeholders(entry, target.layer).has(value)) {
         seen.add(`${target.param}#${target.index}`)

@@ -24,7 +24,7 @@
         "componentProperties": {
          "avatar.src#41:1": {
           "type": "TEXT",
-          "value": ""
+          "value": "avatar.src"
          },
          "avatar.initials#41:2": {
           "type": "TEXT",
@@ -32,7 +32,7 @@
          },
          "photo.src#41:3": {
           "type": "TEXT",
-          "value": ""
+          "value": "photo.src"
          },
          "overline#41:4": {
           "type": "TEXT",
@@ -152,6 +152,32 @@
               "componentPropertyReferences": {
                "characters": "label#21:3"
               }
+             },
+             {
+              "type": "FRAME",
+              "id": "9:6-props",
+              "name": "#props",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "type": "TEXT",
+                "id": "9:6-p-actionId",
+                "name": "#prop:actionId",
+                "characters": "backToList",
+                "componentPropertyReferences": {
+                 "characters": "actionId#21:1"
+                }
+               },
+               {
+                "type": "TEXT",
+                "id": "9:6-p-route",
+                "name": "#prop:route",
+                "characters": "orders",
+                "componentPropertyReferences": {
+                 "characters": "route#21:2"
+                }
+               }
+              ]
              }
             ]
            },
@@ -171,7 +197,7 @@
              },
              "actionId#21:1": {
               "type": "TEXT",
-              "value": ""
+              "value": "actionId"
              },
              "route#21:2": {
               "type": "TEXT",
@@ -195,6 +221,32 @@
               "componentPropertyReferences": {
                "characters": "label#21:3"
               }
+             },
+             {
+              "type": "FRAME",
+              "id": "9:8-props",
+              "name": "#props",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "type": "TEXT",
+                "id": "9:8-p-actionId",
+                "name": "#prop:actionId",
+                "characters": "actionId",
+                "componentPropertyReferences": {
+                 "characters": "actionId#21:1"
+                }
+               },
+               {
+                "type": "TEXT",
+                "id": "9:8-p-route",
+                "name": "#prop:route",
+                "characters": "orders/${state.id}/edit",
+                "componentPropertyReferences": {
+                 "characters": "route#21:2"
+                }
+               }
+              ]
              }
             ]
            }
@@ -282,6 +334,51 @@
                     }
                    }
                   ]
+                 },
+                 {
+                  "type": "FRAME",
+                  "id": "9:13-props",
+                  "name": "#props",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-p-fieldId",
+                    "name": "#prop:fieldId",
+                    "characters": "customer",
+                    "componentPropertyReferences": {
+                     "characters": "fieldId#11:1"
+                    }
+                   }
+                  ]
+                 },
+                 {
+                  "type": "FRAME",
+                  "id": "9:13-flags",
+                  "name": "#flags",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-f-required",
+                    "name": "#flag:required",
+                    "characters": "required",
+                    "visible": true,
+                    "componentPropertyReferences": {
+                     "visible": "required#11:2"
+                    }
+                   },
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-f-readOnly",
+                    "name": "#flag:readOnly",
+                    "characters": "readOnly",
+                    "visible": false,
+                    "componentPropertyReferences": {
+                     "visible": "readOnly#11:3"
+                    }
+                   }
+                  ]
                  }
                 ]
                }
@@ -328,11 +425,11 @@
                },
                "zone#31:1": {
                 "type": "TEXT",
-                "value": ""
+                "value": "zone"
                },
                "columns#31:2": {
                 "type": "TEXT",
-                "value": ""
+                "value": "columns"
                },
                "title#31:3": {
                 "type": "TEXT",
@@ -427,6 +524,51 @@
                       }
                      }
                     ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:19-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "product",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:19-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
                    }
                   ]
                  },
@@ -491,8 +633,79 @@
                       }
                      }
                     ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:23-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "quantity",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:23-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": true,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
                    }
                   ]
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:28-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:28-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:28-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
+                  }
                  }
                 ]
                }
@@ -518,11 +731,11 @@
                },
                "zone#31:1": {
                 "type": "TEXT",
-                "value": ""
+                "value": "zone"
                },
                "columns#31:2": {
                 "type": "TEXT",
-                "value": ""
+                "value": "columns"
                },
                "title#31:3": {
                 "type": "TEXT",
@@ -617,8 +830,79 @@
                       }
                      }
                     ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:30-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "address",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:30-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
                    }
                   ]
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:35-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:35-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:35-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
+                  }
                  }
                 ]
                }
@@ -644,11 +928,11 @@
                },
                "zone#31:1": {
                 "type": "TEXT",
-                "value": ""
+                "value": "zone"
                },
                "columns#31:2": {
                 "type": "TEXT",
-                "value": ""
+                "value": "columns"
                },
                "title#31:3": {
                 "type": "TEXT",
@@ -686,6 +970,32 @@
                   "style": {
                    "fontFamily": "Inter",
                    "fontSize": 11
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:39-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:39-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:39-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
                   }
                  }
                 ]
@@ -753,10 +1063,90 @@
                   }
                  }
                 ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:41-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-p-fieldId",
+                  "name": "#prop:fieldId",
+                  "characters": "note",
+                  "componentPropertyReferences": {
+                   "characters": "fieldId#11:1"
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:41-flags",
+                "name": "#flags",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-f-required",
+                  "name": "#flag:required",
+                  "characters": "required",
+                  "visible": false,
+                  "componentPropertyReferences": {
+                   "visible": "required#11:2"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-f-readOnly",
+                  "name": "#flag:readOnly",
+                  "characters": "readOnly",
+                  "visible": false,
+                  "componentPropertyReferences": {
+                   "visible": "readOnly#11:3"
+                  }
+                 }
+                ]
                }
               ]
              }
             ]
+           }
+          ]
+         },
+         {
+          "type": "FRAME",
+          "id": "9:2-props",
+          "name": "#props",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "type": "TEXT",
+            "id": "9:2-p-avatar.src",
+            "name": "#prop:avatar.src",
+            "characters": "avatar.src",
+            "componentPropertyReferences": {
+             "characters": "avatar.src#41:1"
+            }
+           },
+           {
+            "type": "TEXT",
+            "id": "9:2-p-avatar.initials",
+            "name": "#prop:avatar.initials",
+            "characters": "${state.initials}",
+            "componentPropertyReferences": {
+             "characters": "avatar.initials#41:2"
+            }
+           },
+           {
+            "type": "TEXT",
+            "id": "9:2-p-photo.src",
+            "name": "#prop:photo.src",
+            "characters": "photo.src",
+            "componentPropertyReferences": {
+             "characters": "photo.src#41:3"
+            }
            }
           ]
          }

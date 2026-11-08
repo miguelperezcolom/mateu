@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { planEntry, BUTTON } from '../src/plan.ts'
 import {
-  aggregate, childForSlot, isInstanceSlotBlock, otherVariantValue, plannedChecks, TEXT_FIELD,
+  aggregate, childForSlot, isInstanceSlotBlock, otherVariantValue, plannedChecks, publishProblems, TEXT_FIELD,
   valueForProperty, variantCombosToTest, variantName,
 } from '../src/selftest.ts'
 
@@ -77,4 +77,23 @@ test('over the whole contract: every entry gets checks, and the run is a known s
   assert.ok(slots >= 90, `slot checks ${slots}`)
   assert.ok(props >= 340, `property checks ${props}`)
   console.log(`# self-test plan: ${instances} instances, ${slots} slot checks, ${props} property/variant checks`)
+})
+
+test('publishability of a built component: unbound properties and empty TEXT defaults are named', () => {
+  const defs = {
+    'style': { type: 'VARIANT', defaultValue: 'primary' },
+    'label#1:1': { type: 'TEXT', defaultValue: 'Label' },
+    'fieldId#1:2': { type: 'TEXT', defaultValue: '' },
+    'required#1:3': { type: 'BOOLEAN', defaultValue: false },
+    'slot:content#1:4': { type: 'SLOT', defaultValue: '' },
+  }
+  assert.deepEqual(publishProblems(defs, new Set(['label#1:1', 'fieldId#1:2', 'slot:content#1:4'])), [
+    'TEXT property "fieldId" has an empty default',
+    'BOOLEAN property "required" is bound to no layer',
+  ])
+  assert.deepEqual(publishProblems({ 'label#1:1': { type: 'TEXT', defaultValue: 'Label' } }, new Set(['label#1:1'])), [])
+  const report = aggregate([{ entry: 'A', variant: '', kind: 'publish', target: 'library', ok: false, message: 'x' }], { A: 1, B: 1 })
+  assert.equal(report.totals.unpublishable, 1)
+  assert.equal(report.totals.publishable, 1)
+  assert.match(report.entries[0].failures[0], /^publish library/)
 })

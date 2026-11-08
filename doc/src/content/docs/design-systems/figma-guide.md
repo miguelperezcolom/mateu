@@ -46,13 +46,21 @@ it only in the dedicated library file, never in a file with screens.
 
 5. Optional but recommended: run *Plugins › Development › Mateu Library Generator › Mateu Library
    Self-test*. It adds a `Mateu · Self-test` page that tries every component — every slot takes a
-   child, every property is editable, every variant switches — and draws a table of the results at
-   the top. Any row in red is something to report.
+   child, every property is editable, every variant switches, every component is **publishable** —
+   and draws a table of the results at the top. Any row in red is something to report.
+
+At the bottom of many components you will see one or two rows of small grey text: the **props
+row** (`fieldId`, `actionId`, `route`…, each showing its value — its own name until you set it) and
+the **flags row** (`required`, `readOnly`…, each shown only while it is on). They mirror the
+component's properties: Figma only publishes a component whose properties all drive a layer, so
+every property has one. They are never read as content; leave them as they are.
 
 ## 2. Publish the library
 
 1. Move the library file into a **team project** and *Assets › Publish library*. Publishing a team
-   library needs a Figma **Professional, Organization or Education** plan.
+   library needs a Figma **Professional, Organization or Education** plan. The publish dialog must
+   list **all ~161 components** (standalone components plus variant sets); if it lists fewer, see
+   [If something does not look right](#if-something-does-not-look-right).
 2. In each design file: *Assets › Libraries* and **enable** "Mateu library".
 
 On the free **Starter** plan there are no team libraries. Design in the library file itself, on a
@@ -172,6 +180,11 @@ design cannot say — the REST sources that feed a listing, the routes, actions 
 
 ## If something does not look right
 
+- **Publish (or *Assets*) shows fewer components than the library has**: Figma silently skips a
+  component with a property bound to no layer, or a text property with an empty default. A library
+  generated before the props/flags rows has that problem (it published 88 of 161). Rebuild the
+  plugin, re-run *Generate the library*, then run the **Self-test**: its *Publish* column must say
+  `yes` for every row, and the toast counts `publishable N/N`. A `NO` names the property at fault.
 - **A warning names a layer**: the layer's name and node id are in the message; find it in Figma
   with the node id in the URL (`?node-id=`).
 - **A component cannot take children or a property does not appear**: re-run *Generate the library*
