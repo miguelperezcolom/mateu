@@ -244,6 +244,7 @@ public class WireConformanceTests
         { "dialog-placement", typeof(Wire.DialogPlacementPage) },
         { "action-extras", typeof(Wire.ActionExtrasPage) },
         { "app-branding", typeof(Wire.BrandedApp) },
+        { "app-back-link", typeof(Wire.BackLinkApp) },
         { "section-options", typeof(Wire.SectionOptionsForm) },
         { "crud-hidden-in", typeof(Wire.EmployeesCrud) },
         { "crud-hidden-in-edit", typeof(Wire.EmployeesCrud) },

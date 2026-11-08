@@ -101,6 +101,12 @@ public record AppMetadataDto(
     public string? AskIcon { get; init; }
     public bool NoBreadcrumbs { get; init; }
 
+    /// <summary>[App(BackLink = Parent)]: the route of the "← Parent" link (the nearest route above
+    /// the app that resolves to a screen) and its label (that screen's title); null when there is no
+    /// such route. (Mirrors io.mateu.dtos.AppDto.backRoute / backLabel.)</summary>
+    public string? BackRoute { get; init; }
+    public string? BackLabel { get; init; }
+
     /// <summary>App-level floating action buttons ([Fab] methods of the app class), stacked above
     /// the AI FAB on every screen (mirrors AppDto.fabs).</summary>
     public IReadOnlyList<FabDto> Fabs { get; init; } = [];
@@ -265,6 +271,15 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
 
     /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
     public bool Explode { get; init; }
+
+    /// <summary>A remote section only: the route prefix the remote's screens live under, as far as
+    /// the shell can tell before the remote answers — its own path, without the groups the shell
+    /// nests it in. (Mirrors io.mateu.dtos.MenuOptionDto.routePrefix.)</summary>
+    public string? RoutePrefix { get; init; }
+
+    /// <summary>A remote section only: true when the shell DECLARED the label, which then wins over
+    /// the one the remote answers with. (Mirrors io.mateu.dtos.MenuOptionDto.shellLabel.)</summary>
+    public bool ShellLabel { get; init; }
 
     /// <summary>Client-side rules this menu entry RUNS when clicked instead of navigating — a menu
     /// method typed Rule / IReadOnlyList&lt;Rule&gt; is a rule leaf, not a route. Empty on a normal

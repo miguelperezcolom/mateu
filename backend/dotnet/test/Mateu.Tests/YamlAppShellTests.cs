@@ -50,6 +50,7 @@ public class YamlAppShellTests(ITestOutputHelper output)
         { "shell-flows", "app-shell" },
         { "shell-extras", "app-shell-extras" },
         { "card-menus", "app-shell-card-menus" },
+        { "shell-back-link", "app-shell-back-link" },
     };
 
     [Theory, MemberData(nameof(Goldens))]

@@ -538,6 +538,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                 },
             };
         app = WithCatalogues(app);
+        app = WithBackLink(app, ReflectionMapper.BackLinkParent(appType));
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount

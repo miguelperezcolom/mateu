@@ -144,6 +144,7 @@ from .placement import (  # noqa: F401
 )
 from .class_decorators import (  # noqa: F401
     AppVariant,
+    BackLink,
     LabelsAsideMode,
     PageBanner,
     PageBanners,
@@ -444,6 +445,8 @@ __all__ = [
     "DetailContentSupplier",
     # parity with the Java / .NET names
     "AppVariant", "BadgeInHeader", "PageWidthStyle",
+    # @app(back_link) / AppShell.back_link / a YAML shell's backLink
+    "BackLink",
     # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
     "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
     "LiveHeaderValues",

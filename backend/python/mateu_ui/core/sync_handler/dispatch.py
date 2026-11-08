@@ -281,8 +281,11 @@ class DispatchMixin(MixinBase):
                 if root is not None and isinstance(root.layout, yaml_app_shell.YamlAppShell):
                     return self.fragment_response(
                         "",
-                        yaml_app_shell.app_component(
-                            self.mapper, root.layout, mount, mount_home, home_route=relative
+                        self.with_back_link(
+                            yaml_app_shell.app_component(
+                                self.mapper, root.layout, mount, mount_home, home_route=relative
+                            ),
+                            yaml_app_shell.back_link_parent(root.layout.node),
                         ),
                         rq,
                         with_title_command=False,
@@ -299,7 +302,10 @@ class DispatchMixin(MixinBase):
                 mount, mount_home = yaml_app_shell.mount_of(self.routes, rq.route)
                 return self.fragment_response(
                     "",
-                    yaml_app_shell.app_component(self.mapper, yaml_spec.layout, mount, mount_home),
+                    self.with_back_link(
+                        yaml_app_shell.app_component(self.mapper, yaml_spec.layout, mount, mount_home),
+                        yaml_app_shell.back_link_parent(yaml_spec.layout.node),
+                    ),
                     rq,
                     with_title_command=False,
                 )

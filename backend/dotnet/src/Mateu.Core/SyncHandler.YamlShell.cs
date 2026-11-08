@@ -14,9 +14,25 @@ internal sealed partial class SyncHandler
     {
         var shellRoute = RouteRegistry.Normalize(rq.Route);
         var app = YamlAppShell.Map(shell, shellRoute, _routes.MountHomeOf(shellRoute), null, _fieldTypes);
+        app = WithBackLink(WithCatalogues(app), YamlAppShell.BackLinkParent(shell));
         return UIIncrementDto.Of(
             commands: [],
-            fragments: [new UIFragmentDto(Target(rq), WithCatalogues(app), null, null, "Replace", null)]);
+            fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);
+    }
+
+    /// <summary>The <c>type: AppShell</c> definition bound to the root of the mount at
+    /// <paramref name="baseUrl"/>, or null — what presents a YAML mount to the mobile app and the
+    /// installable app (MobileManifest / Pwa), as Java's YamlMounts.manifestJson does.</summary>
+    public IDictionary<object, object>? MountShell(string? baseUrl)
+    {
+        try
+        {
+            return _yaml.LoadSpec(baseUrl ?? "")?.Shell ?? _yaml.LoadSpec("")?.Shell;
+        }
+        catch (Exception)
+        {
+            return null; // a manifest is never refused over an unreadable definition
+        }
     }
 
     /// <summary>The catalogues ride the APP metadata (app-wide configuration, not per response); a

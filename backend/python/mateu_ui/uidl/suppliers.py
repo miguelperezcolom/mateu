@@ -219,6 +219,9 @@ class AppShell:
     idle_timeout_minutes: int | None = None
     idle_warning_seconds: int | None = None
     idle_sign_out_url: str | None = None
+    #: The way back up from this app (twin of ``@app(back_link)``: ``"PARENT"`` / ``BackLink.PARENT``
+    #: draws one "← Parent" link instead of the breadcrumb trail); None = the decorator decides.
+    back_link: str | None = None
 
 
 class MenuSupplier:
