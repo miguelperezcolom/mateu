@@ -28,7 +28,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml, slugify } from '../to-yaml/src/convert.mjs'
-import { loadContract, loadSchema } from '../to-yaml/src/schema.mjs'
+import { loadContract, loadSchema } from '../to-yaml/src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 export const MIN_NODE_MAJOR = 20
