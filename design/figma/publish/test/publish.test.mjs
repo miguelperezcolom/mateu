@@ -116,28 +116,33 @@ const recorder = (answer) => {
   return { calls, f }
 }
 
-test('Netlify: creates the site, uploads the zip, waits until it is ready', async () => {
-  const { calls, f } = recorder((url) => {
-    if (url.endsWith('/sites')) return [201, { id: 's1' }]
-    if (url.endsWith('/sites/s1/deploys')) return [200, { id: 'd1', state: 'uploaded' }]
-    return [200, { id: 'd1', state: 'ready', ssl_url: 'https://x.netlify.app' }]
-  })
-  const out = await publishNetlify({ token: 'T', siteName: 'x', zipBytes: Uint8Array.of(1), fetch: f, pollMs: 0 })
+const netlifyAnswers = (url, init) => {
+  if (url.endsWith('/sites')) return [201, { id: 's1' }]
+  if (url.endsWith('/deploys')) return [200, { id: 'd1', state: 'prepared', required: JSON.parse(init.body).files['/a.js'] ? [JSON.parse(init.body).files['/a.js']] : [] }]
+  if (init.method === 'PUT') return [200, {}]
+  return [200, { id: 'd1', state: 'ready', ssl_url: 'https://x.netlify.app' }]
+}
+
+test('Netlify: creates the site, sends the digests, uploads only what it asks for, waits', async () => {
+  const { calls, f } = recorder(netlifyAnswers)
+  const files = new Map([['a.js', 'x'], ['assets/b c.js', 'x'], ['index.html', 'y']])
+  const out = await publishNetlify({ token: 'T', siteName: 'x', files, fetch: f, pollMs: 0 })
   assert.deepEqual(out, { url: 'https://x.netlify.app', siteId: 's1' })
-  assert.equal(calls[1].headers['Content-Type'], 'application/zip')
-  assert.ok(calls.every((c) => c.headers.Authorization === 'Bearer T' && !c.url.includes('T?')))
+  assert.deepEqual(Object.keys(JSON.parse(calls[1].body).files), ['/a.js', '/assets/b c.js', '/index.html'])
+  assert.equal(JSON.parse(calls[1].body).files['/a.js'], '11f6ad8ec52a2984abaafd7c3b516503785c2072')
+  assert.deepEqual(calls.filter((c) => c.method === 'PUT').map((c) => c.url.replace(/.*\/deploys/, '')), ['/d1/files/a.js'])
+  assert.ok(calls.every((c) => c.headers.Authorization === 'Bearer T'))
 })
 
 test('Netlify: the next publish updates the same site', async () => {
-  const { calls, f } = recorder(() => [200, { id: 'd', state: 'ready', url: 'http://u' }])
-  await publishNetlify({ token: 'T', siteId: 's9', zipBytes: Uint8Array.of(1), fetch: f, pollMs: 0 })
-  assert.equal(calls.length, 1)
+  const { calls, f } = recorder(netlifyAnswers)
+  await publishNetlify({ token: 'T', siteId: 's9', files: new Map([['index.html', 'y']]), fetch: f, pollMs: 0 })
   assert.match(calls[0].url, /sites\/s9\/deploys$/)
 })
 
 test('Netlify: a failure says what failed', async () => {
   const { f } = recorder(() => [401, { message: 'Access Denied' }])
-  await assert.rejects(publishNetlify({ token: 'T', zipBytes: Uint8Array.of(1), fetch: f }), /creating the site: 401/)
+  await assert.rejects(publishNetlify({ token: 'T', files: new Map(), fetch: f }), /creating the site: 401/)
 })
 
 test('Cloudflare: project, token, only the missing files, then the manifest', async () => {

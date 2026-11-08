@@ -1,6 +1,7 @@
 // Publishing a built site. Both functions take the `fetch` to use, so they are tested against a
 // recording double, and tell progress through `log`. Tokens are only ever sent as Authorization.
 import { blake3 } from '@noble/hashes/blake3'
+import { sha1 } from '@noble/hashes/legacy'
 
 const hex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 const toBytes = (v) => (typeof v === 'string' ? new TextEncoder().encode(v) : v)
@@ -20,11 +21,11 @@ async function json(res, what) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 /**
- * Netlify: creates the site the first time (no `siteId`), then deploys the zip. Netlify's API
- * answers CORS for any origin, so a plugin calls it directly.
- * Returns `{url, siteId}`: keep the id, the next publish updates the same site.
+ * Netlify: creates the site the first time (no `siteId`), then deploys file by file. NOT the zip
+ * endpoint: it answers with its CORS header twice (`*, *`), so the deploy happens and a browser
+ * refuses to read the answer. Returns `{url, siteId}`: keep the id, the next publish updates the site.
  */
-export async function publishNetlify({ token, siteId, siteName, zipBytes, fetch: f = fetch, log = () => {}, pollMs = 1500, api = 'https://api.netlify.com/api/v1' }) {
+export async function publishNetlify({ token, siteId, siteName, files, fetch: f = fetch, log = () => {}, pollMs = 1500, api = 'https://api.netlify.com/api/v1' }) {
   const auth = { Authorization: `Bearer ${token}` }
   let id = siteId
   if (!id) {
@@ -32,8 +33,26 @@ export async function publishNetlify({ token, siteId, siteName, zipBytes, fetch:
     const site = await json(await f(`${api}/sites`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify(siteName ? { name: siteName } : {}) }), 'Netlify, creating the site')
     id = site.id
   }
-  log('Uploading…')
-  let deploy = await json(await f(`${api}/sites/${id}/deploys`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/zip' }, body: zipBytes }), 'Netlify, uploading')
+  const digests = {}
+  const bySha = new Map()
+  for (const [path, value] of files) {
+    const bytes = toBytes(value)
+    const sha = hex(sha1(bytes))
+    digests['/' + path] = sha
+    if (!bySha.has(sha)) bySha.set(sha, { path, bytes })
+  }
+  log('Preparing the deploy…')
+  let deploy = await json(await f(`${api}/sites/${id}/deploys`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: digests }) }), 'Netlify, preparing the deploy')
+  const required = deploy.required ?? []
+  let done = 0
+  for (const sha of required) {
+    const file = bySha.get(sha)
+    if (!file) throw new Error(`Netlify asked for a file this site does not have (${sha})`)
+    log(`Uploading ${++done}/${required.length}…`)
+    const encoded = file.path.split('/').map(encodeURIComponent).join('/')
+    const res = await f(`${api}/deploys/${deploy.id}/files/${encoded}`, { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/octet-stream' }, body: file.bytes })
+    await json(res, `Netlify, uploading ${file.path}`)
+  }
   for (let i = 0; i < 60 && !['ready', 'error'].includes(deploy.state); i++) {
     await sleep(pollMs)
     log('Netlify is processing it…')

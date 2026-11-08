@@ -99,7 +99,7 @@ async function publish(button, status) {
     let result
     if (secrets.host === 'netlify') {
       if (!secrets.netlifyToken) throw new Error('The Netlify token is missing.')
-      result = await publishNetlify({ token: secrets.netlifyToken, siteId: secrets.netlifySiteId, siteName: secrets.netlifySite || undefined, zipBytes: zip(site), log })
+      result = await publishNetlify({ token: secrets.netlifyToken, siteId: secrets.netlifySiteId, siteName: secrets.netlifySite || undefined, files: site, log })
       secrets.netlifySiteId = result.siteId
       save()
     } else if (secrets.host === 'cloudflare') {

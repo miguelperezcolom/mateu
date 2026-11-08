@@ -115,7 +115,7 @@ output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGold
 A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
 reads the document in the REST shape the converter takes; `src/site.mjs` writes the `specsOnly`
 manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
-`src/hosts.mjs` talks to Netlify (direct, it answers CORS for any origin) and Cloudflare Pages
+`src/hosts.mjs` talks to Netlify (direct, file by file: its zip endpoint answers CORS twice and a browser cannot read it) and Cloudflare Pages
 (through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
 tag in `src/renderer.json`: bump it after a release. `bin/build-site.mjs` makes the same site with no
 Figma around. Guide: `design-systems/figma-guide.md`, section 6.
