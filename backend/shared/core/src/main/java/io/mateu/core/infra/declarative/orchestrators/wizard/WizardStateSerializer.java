@@ -37,6 +37,11 @@ final class WizardStateSerializer {
     getAllFields(instance.getClass()).stream()
         .filter(field -> isNonDataHolder(field))
         .forEach(field -> map.remove(field.getName()));
+    var ownFieldNames =
+        getAllFields(instance.getClass()).stream()
+            .filter(field -> !Modifier.isStatic(field.getModifiers()))
+            .map(java.lang.reflect.Field::getName)
+            .collect(Collectors.toSet());
     getAllFields(instance.getClass()).stream()
         .filter(
             field ->
@@ -67,7 +72,17 @@ final class WizardStateSerializer {
                   // step's rehydration and reset it to its field initializers — which is why
                   // cross-step wizard values died on every action.
                   map.put(field.getName(), nestedMap);
-                  map.putAll(nestedMap);
+                  // Flattened for the forms that read a nested field by its plain name — but never
+                  // over one of the OWNER's own fields: a step field named like a field inside its
+                  // step (`ArtworkStep artwork` holding `String artwork`) had its nested map
+                  // replaced by that String, so the step could not be rebuilt and its other
+                  // values (and the branching that reads them) were silently lost.
+                  nestedMap.forEach(
+                      (key, nestedValue) -> {
+                        if (!ownFieldNames.contains(key)) {
+                          map.put(key, nestedValue);
+                        }
+                      });
                 }
               }
             });
