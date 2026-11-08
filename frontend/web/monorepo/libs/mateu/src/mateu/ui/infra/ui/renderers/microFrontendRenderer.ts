@@ -27,7 +27,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
     const metadata = component.metadata as MicroFrontend
 
     return html`
-        <mateu-api-caller>
+        <mateu-api-caller inline-failures>
         <mateu-ux baseUrl="${metadata.baseUrl}"
                   route="${metadata.route}"
                   consumedRoute="${metadata.consumedRoute}"

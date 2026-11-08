@@ -1,5 +1,5 @@
-import { customElement, state } from "lit/decorators.js";
-import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { css, html, LitElement, nothing } from "lit";
 import { notify } from "@application/Notifier.ts";
 import { classifyRequestFailure, offersManualRetry, RequestFailure } from "@infra/http/requestPolicy.ts";
 import { connectivity } from "@infra/http/connectivity.ts";
@@ -36,11 +36,23 @@ export class MateuApiCaller extends LitElement {
     @state()
     localFeedback = false
 
+    /**
+     * An ISLAND's caller (a micro frontend): a failure is told inside its own box, not as a
+     * page-wide toast. The page around it works; a remote that is down is news about that box only.
+     */
+    @property({ type: Boolean, attribute: 'inline-failures' })
+    inlineFailures = false
+
+    /** The failure shown in the box (inline-failures), until the next request of the box. */
+    @state()
+    inlineFailure: { message: string, retry?: () => void } | undefined
+
     fetchStarted: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
         this.localFeedback = anyPending()
         this.loading = true
+        this.inlineFailure = undefined
     }
 
     fetchFinished: EventListenerOrEventListenerObject = (e: Event) => {
@@ -67,6 +79,12 @@ export class MateuApiCaller extends LitElement {
         // here is the case where repeating was OUR call to make and we declined to make it —
         // so the decision goes to the user, who knows whether they can afford a duplicate.
         const retry = offersManualRetry(failure) ? detail.retry as (() => void) | undefined : undefined
+        if (this.inlineFailures && !failure.reload) {
+            // no answer from the island's server is not "No connection": the page's own backend is fine
+            const message = failure.kind === 'offline' ? chromeText('failRemoteUnreachable') : failure.message
+            this.inlineFailure = { message, retry }
+            return
+        }
         if (failure.reload) {
             // a stale screen (buildWatch.ts): retrying answers the same; reloading fixes it
             notify({
@@ -83,6 +101,12 @@ export class MateuApiCaller extends LitElement {
             position: 'bottomEnd',
             ...(retry ? { actionLabel: chromeText('retry'), onAction: retry } : {}),
         }, this)
+    }
+
+    private retryInline = () => {
+        const retry = this.inlineFailure?.retry
+        this.inlineFailure = undefined
+        retry?.()
     }
 
     connectedCallback() {
@@ -106,6 +130,10 @@ export class MateuApiCaller extends LitElement {
         return html`<div class="loader-container">
             <div style="display: flex; flex-direction: column;">
                 <slot></slot>
+                ${this.inlineFailure ? html`<div class="inline-failure" role="alert">
+                    <span>${this.inlineFailure.message}</span>
+                    ${this.inlineFailure.retry ? html`<button type="button" @click="${this.retryInline}">${chromeText('retry')}</button>` : nothing}
+                </div>` : nothing}
                 <div class="loader-frame ${this.loading?(this.localFeedback?'delayed-show late':'delayed-show'):''}" style="${this.loading?'pointer-events: all;':'display: none;'}"><div class="loader"></div></div>
             </div>
         </div>`
@@ -117,6 +145,27 @@ export class MateuApiCaller extends LitElement {
 
         .loader-container {
             position: relative; /* clave */
+        }
+
+        .inline-failure {
+            display: flex;
+            align-items: center;
+            gap: var(--lumo-space-s, .5rem);
+            padding: var(--lumo-space-s, .5rem) var(--lumo-space-m, 1rem);
+            border-radius: var(--lumo-border-radius-m, 6px);
+            background: var(--lumo-error-color-10pct, #fdecec);
+            color: var(--lumo-error-text-color, #b3261e);
+            font-size: var(--lumo-font-size-s, .875rem);
+        }
+
+        .inline-failure button {
+            font: inherit;
+            color: inherit;
+            background: none;
+            border: 1px solid currentColor;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            padding: 0 var(--lumo-space-s, .5rem);
+            cursor: pointer;
         }
 
         .loader-frame {
