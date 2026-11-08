@@ -1,0 +1,20 @@
+id: idle-session
+area: behaviour
+group: app
+title: "Idle-session warning"
+covers: [behaviour:idle-session]
+description: |
+  `@App(idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)`: after that long without activity in
+  any tab of the app, an alert dialog counts the last seconds down. **Stay signed in** keeps the
+  server session alive (a keep-alive call); letting it run out fires a cancelable
+  `mateu-idle-sign-out` event and then sends the browser to `idleSignOutUrl`.
+
+  **Try it:** open the demo app on its own (the link) and leave mouse and keyboard alone for about ten
+  seconds (the demo uses a one-minute timeout with a 50-second warning). Press **Stay signed in** — or
+  wait it out and land back here.
+examples:
+  - title: "One minute, warned for the last 50 seconds"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.idlesession.IdleIsland
+code:
+  - {label: "Java · IdleDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/idlesession/IdleDemoApp.java}

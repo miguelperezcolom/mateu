@@ -1,0 +1,19 @@
+# The same record as PayrollRecord.java, as DATA: the YAML keys are read by the very evaluator that
+# reads the annotations, on the server, for every request.
+type: Form
+title: Payroll record (YAML)
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: employeeName, label: Employee, dataType: string}
+      - {type: FormField, id: department, label: "Department (editable by managers)", dataType: string, readOnlyUnless: {roles: [manager]}}
+      - {type: FormField, id: notes, label: "Internal notes (staff only)", dataType: string, eyesOnly: {roles: [staff, manager]}}
+      - {type: FormField, id: salary, label: "Salary (managers only)", dataType: integer, eyesOnly: {roles: [manager]}}
+  - type: Notice
+    theme: success
+    text: "Managers see this notice."
+    eyesOnly: {roles: [manager]}
+  - type: Button
+    label: "Approve payroll (managers)"
+    disabledUnless: {roles: [manager]}
+    actionable: {type: RouteLink, route: /behaviour/app/permissions, label: Approve}

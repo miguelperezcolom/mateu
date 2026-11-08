@@ -1,0 +1,28 @@
+id: sample-data
+area: behaviour
+group: data
+title: "Sample data mode"
+covers: [behaviour:sample-data]
+description: |
+  A source can carry **sample data** — the response its endpoint would return (`sample:` inline, or
+  `sampleFile:`) — so a screen shows realistic rows before the API exists. The sample is used **only
+  in sample mode**: always in the visual editor, in a bundle built with `-Dmateu.bundle.mock=true`, and
+  in a running app only when it opts in with `-Dmateu.sources.mock=true` / `MATEU_SOURCES_MOCK=true`.
+  Anywhere else the endpoint is called and the samples do not even travel. In sample mode a read
+  answers the sample and a write succeeds without persisting.
+
+  **Try it:** here (normal mode) the listing calls an endpoint nobody has built yet — it answers
+  404 and the listing stays empty. Start the Explorer in sample mode —
+  `MATEU_SOURCES_MOCK=true mvn spring-boot:run` — and the same page shows the three forecast days
+  from the sample, with no request to the endpoint. (Sample mode is a switch of the whole server,
+  which is why it cannot be flipped from this page.)
+
+  > **Known issue (3.0-beta.51):** the failed first load (the 404) is silent — no error is shown,
+  > although a failed call is documented to show what the service said. Reported.
+examples:
+  - title: "An endpoint still to be built"
+    route: x/behaviour/sample-data/forecast
+pages:
+  - {route: x/behaviour/sample-data/forecast, layout: explorer/behaviour/sample-data/forecast.yaml}
+code:
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}

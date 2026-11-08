@@ -1,0 +1,18 @@
+id: live-regions
+area: behaviour
+group: resilience-a11y
+title: "Live-region announcements"
+covers: [behaviour:live-regions]
+description: |
+  Two live regions (polite and assertive) exist from boot — a region created in the same tick it is
+  filled is often never read. Through them a screen reader hears each **navigation** (the new window
+  title), every **error toast** (assertive, `role="alert"`), and whatever an action sends with
+  `UICommand.announce(text)` / `announceAssertive(text)` — which shows nothing on screen.
+
+  **Try it with a screen reader:** turn on VoiceOver (macOS: ⌘F5), NVDA or Narrator, then press
+  **Announce saved** (heard when the reader is idle), **Announce urgent** (interrupts) and **Show an
+  error** (an alert). Without one: inspect the page and watch the two `aria-live` regions at the end of
+  `<body>` change their text.
+examples:
+  - title: "Announcements"
+    java: io.mateu.explorer.examples.behaviour.liveregions.Announcements

@@ -1,0 +1,27 @@
+id: app-context
+area: behaviour
+group: app
+title: "App context selectors"
+covers: [behaviour:app-context]
+description: |
+  A field of the app class annotated `@AppContext` becomes a compact selector on the APP HEADER that
+  fixes a value for every screen — the active hotel, company or fiscal year. Options come from the
+  field's type: an **enum** (its constants), or a **`LookupOptionsSupplier`** (more than seven options
+  → a searchable panel that filters what it loaded and, debounced, asks the server for the rest).
+
+  The value is kept by the browser and sent with **every** request; any screen reads it with
+  `httpRequest.appContext("<field>")`. Changing it reloads the screen (and the other tabs) against
+  the new context.
+
+  **Try it:** in the embedded app pick a **Year**, then open **Hotel**, type `lis` (the server
+  answers the search) and pick one. The screen shows both values, read on the server; **Ask the
+  server** echoes what the request carried.
+examples:
+  - title: "Hotel + year selectors"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.appcontext.AppContextIsland
+code:
+  - {label: "Java · AppContextDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/appcontext/AppContextDemoApp.java}
+  - {label: "Java · Hotels (searchable)", path: src/main/java/io/mateu/explorer/examples/behaviour/appcontext/Hotels.java}
+  - {label: "Java · FiscalYear", path: src/main/java/io/mateu/explorer/examples/behaviour/appcontext/FiscalYear.java}
+  - {label: "Java · BookingsToday", path: src/main/java/io/mateu/explorer/examples/behaviour/appcontext/BookingsToday.java}

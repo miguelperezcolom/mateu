@@ -1,0 +1,25 @@
+# A definition-only page that WRITES: `actions:` beside the layout. The Save button names the action;
+# the action is a restAction against a catalogue source (a POST) — run by the browser, no server code.
+type: Form
+title: Notes
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: noteText, label: Note, dataType: string, required: true}
+  - {type: Button, label: Save, actionId: saveNote, buttonStyle: primary}
+  - {type: Text, text: "Last saved: ${state.lastNote ?? '(nothing yet)'}"}
+  - type: Listing
+    title: Saved notes (search to re-read)
+    searchable: true
+    rowsSource: {ref: behaviour-notes}
+    columns:
+      - {type: GridColumn, id: id, label: "#", identifier: true}
+      - {type: GridColumn, id: text, label: Note}
+      - {type: GridColumn, id: at, label: At}
+actions:
+  - id: saveNote
+    validationRequired: true          # the required field is checked first
+    restAction:
+      source: {ref: behaviour-note-create}
+      successMessage: Note saved
+      resultPath: saved               # merge the object the endpoint answers at `saved` into the state

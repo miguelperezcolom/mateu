@@ -1,0 +1,18 @@
+id: app-shortcuts
+area: behaviour
+group: app
+title: "App shortcuts & quick launch"
+covers: [behaviour:app-shortcuts]
+description: |
+  `@AppShortcut(key, route | actionId, label, code)` (repeatable) binds an app-wide key from any
+  screen; **?** lists them; `code` is a quick-launch code for the command center. A screen's own
+  shortcut wins over the app's.
+
+  **Try it:** click inside the embedded app, press **Alt+2** (→ Departures), **Alt+1** (→ Arrivals),
+  **Alt+S** (runs Sync) and **?** for the list. In the command center (round button) type `DEP`.
+examples:
+  - title: "Alt+1, Alt+2, Alt+S, ?"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.appshortcuts.ShortcutsIsland
+code:
+  - {label: "Java · ShortcutsDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/appshortcuts/ShortcutsDemoApp.java}

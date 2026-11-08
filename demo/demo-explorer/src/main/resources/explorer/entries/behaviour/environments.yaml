@@ -1,0 +1,24 @@
+id: environments
+area: behaviour
+group: data
+title: "Environments overlay"
+covers: [behaviour:environments]
+description: |
+  An **environment** file says where named sources live in one deployment — `pre`, `pro`, a laptop —
+  without editing `sources.yaml`: it may change `baseUrl`, `url`, `headers` and `proxy` of a source
+  (never the response shape, never a literal secret). The active one is chosen when the server starts:
+  `MATEU_ENVIRONMENT=<name>` or `-Dmateu.environment=<name>` (for a bundle,
+  `-Dmateu.bundle.environment`); the overlay reaches the wire, the proxy and the bundle manifest alike.
+
+  **Try it:** here the listing says it was served by "the url authored in sources.yaml". Start the
+  Explorer with `MATEU_ENVIRONMENT=explorer-pre mvn spring-boot:run` and the same page says "the url of
+  the explorer-pre environment overlay" — same screens, re-pointed endpoint.
+examples:
+  - title: "Who answered?"
+    route: x/behaviour/environments/where
+pages:
+  - {route: x/behaviour/environments/where, layout: explorer/behaviour/environments/where.yaml}
+code:
+  - {label: "YAML · explorer-pre.yaml (the environment)", path: src/main/resources/specs/ui/explorer/behaviour/environments/explorer-pre.yaml}
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}
+  - {label: "Java · ExplorerDemoApi (the local endpoint)", path: src/main/java/io/mateu/explorer/examples/behaviour/restsources/ExplorerDemoApi.java}

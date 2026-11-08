@@ -1,0 +1,22 @@
+id: skip-link
+area: behaviour
+group: resilience-a11y
+title: "Skip link and main landmark"
+covers: [behaviour:skip-link]
+description: |
+  Every Mateu page — this one too — gets a **Skip to content** link as its first tab stop (hidden until
+  focused, by transform, never `display:none`, which would make it unfocusable) and a `role="main"`
+  landmark on the content. Activating the link moves the focus into the content, past the menu. On a
+  route change the focus moves to the new page's heading (never on the first load, and never out of a
+  field being edited).
+
+  **Try it:** click the browser's address bar, press **Tab** once: "Skip to content" appears top-left;
+  press **Enter** and **Tab** again — you are in the content, not the menu. A screen reader's landmarks
+  list (VoiceOver: ⌃⌥U) shows "main".
+
+  > **Known issue (3.0-beta.51, Vaadin, this HAMBURGER_SECTIONS shell):** after **Enter** on the skip
+  > link the focus lands on the page's root element, and the next **Tab** goes to the header's
+  > "Sections" button instead of the content. Reported.
+examples:
+  - title: "Content after the menu"
+    java: io.mateu.explorer.examples.behaviour.skiplink.Landmarks

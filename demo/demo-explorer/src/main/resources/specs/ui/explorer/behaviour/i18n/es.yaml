@@ -1,0 +1,12 @@
+type: Translations
+locale: es
+messages:
+  explorer:
+    i18n:
+      appTitle: Demo de traducciones
+      title: Saluda
+      name: Tu nombre
+      greet: Salúdame
+      yamlTitle: Una página escrita en YAML
+      intro: "Cada texto de esta página es una clave i18n, resuelta en el servidor en el idioma de la petición."
+      save: Guardar

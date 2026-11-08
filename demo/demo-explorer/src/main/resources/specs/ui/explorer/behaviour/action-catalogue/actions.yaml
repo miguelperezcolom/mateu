@@ -1,0 +1,17 @@
+# An ACTION CATALOGUE file (any `type: Actions` file under specs/ui is discovered): client-runnable
+# actions named once — a REST call or a flow of steps — run by id from any page or the shell menu.
+type: Actions
+actions:
+  - id: behaviourPing
+    description: Ask the demo API for a pong
+    restAction:
+      source: {ref: behaviour-ping}
+      successMessage: Pong!
+      resultPath: result          # the object at `result` is merged into the page state
+
+  - id: behaviourGoHome
+    description: Leave for the Explorer home
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: /home
