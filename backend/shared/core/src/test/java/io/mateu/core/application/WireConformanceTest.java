@@ -654,6 +654,27 @@ class WireConformanceTest {
   }
 
   /**
+   * A record master's way back up (the OCI-console style): {@code @App(backLink = PARENT)} draws a
+   * single "← Records" link to the nearest route above that resolves to a screen — labelled with
+   * that screen's title, resolved server-side — and no breadcrumb trail.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-back-link")
+  @Title("Record")
+  @io.mateu.uidl.annotations.App(backLink = io.mateu.uidl.annotations.BackLink.PARENT)
+  public static class BackLinkApp {
+    @io.mateu.uidl.annotations.Menu public String overview = "/a";
+  }
+
+  /** The screen above the back-link app: its title labels the app's "← Parent" link. */
+  @SuppressWarnings("unused")
+  @UI("/conformance")
+  @Title("Records")
+  public static class BackLinkParent {
+    public String name;
+  }
+
+  /**
    * Section options: the first section pinned while the page scrolls, the second forced to one
    * column (the form infers two from its eight fields) with a style on its content.
    */
@@ -1632,6 +1653,7 @@ class WireConformanceTest {
           "dialog-placement",
           "action-extras",
           "app-branding",
+          "app-back-link",
           "section-options",
           "crud-hidden-in",
           "crud-hidden-in-edit",
@@ -1699,6 +1721,8 @@ class WireConformanceTest {
             DialogPlacementPage.class,
             ActionExtrasPage.class,
             BrandedApp.class,
+            BackLinkApp.class,
+            BackLinkParent.class,
             SectionOptionsForm.class,
             EmployeesCrud.class,
             ProfileView.class,

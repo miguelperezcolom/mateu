@@ -17,14 +17,33 @@ namespace Mateu.Core;
 /// <c>commandCenter</c>, <c>chromeless</c>, <c>accessKeys</c>, <c>mobileQr</c>) are off unless
 /// declared — there is no class to fall back to. <c>access:</c> on menu items and actions is applied
 /// per caller BEFORE this runs (YamlSpecLoader / YamlAccess), as for a page.</para>
-/// <para>Not carried (as in Java: app-level FABs); not ported yet: <c>backLink</c> and
-/// <c>pageTitle</c>.</para>
+/// <para><c>backLink: PARENT</c> replaces the breadcrumb trail with ONE "← Parent" link (resolved
+/// by the sync handler, like an [App(BackLink)] class's); <c>pageTitle:</c> is the installed app's
+/// name when the shell has no <c>title:</c> (the UI manifest, <see cref="MobileManifest"/>) — it is
+/// not part of the shell's wire, as in Java. Not carried (as in Java): app-level FABs.</para>
 /// </remarks>
 internal static class YamlAppShell
 {
     /// <summary>Whether a deserialised definition is an app shell.</summary>
     public static bool IsShell(object? root) =>
         root is IDictionary<object, object> map && Str(map, "type") == "AppShell";
+
+    /// <summary>Whether the shell declares <c>backLink: PARENT</c> (Java's YamlAppLoader reads the
+    /// BackLink enum; anything else is the default, BREADCRUMBS).</summary>
+    public static bool BackLinkParent(IDictionary<object, object> root) =>
+        string.Equals(Str(root, "backLink")?.Trim(), "PARENT", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The name the shell gives the installed app: its <c>title:</c>, else its
+    /// <c>pageTitle:</c> (Java's MobileManifest.sourceOf(AppShell)); null for neither.</summary>
+    public static string? NameOf(IDictionary<object, object> root) =>
+        Blank(Str(root, "title")) ?? Blank(Str(root, "pageTitle"));
+
+    /// <summary>The icon the shell gives the installed app: its logo, else its favicon.</summary>
+    public static string? IconOf(IDictionary<object, object> root) =>
+        Blank(Str(root, "logo")) ?? Blank(Str(root, "favicon"));
+
+    /// <summary>The shell's accent colour (the installed app's theme colour).</summary>
+    public static string? AccentOf(IDictionary<object, object> root) => Blank(Str(root, "accentColor"));
 
     /// <summary>The wire App of the shell bound to <paramref name="shellRoute"/> (the mount root it
     /// serves: its routes are prefixed with it). <paramref name="mountHome"/> is the mount
@@ -119,8 +138,9 @@ internal static class YamlAppShell
             var path = PathOf(appRoute, prefix, option, type);
             var remote = type == "RemoteMenu";
             var declaredPath = Blank(Str(option, "path"));
+            var shellLabel = remote && Blank(Str(option, "label")) is not null;
             var item = new MenuItemDto(
-                remote ? Str(option, "label") ?? LastSegment(declaredPath ?? path) : Str(option, "label") ?? "",
+                remote ? (shellLabel ? Str(option, "label")! : LastSegment(declaredPath ?? path)) : Str(option, "label") ?? "",
                 remote ? Str(option, "route") ?? "" : appRoute + path,
                 Str(option, "serverSideType") ?? "")
             {
@@ -132,6 +152,10 @@ internal static class YamlAppShell
                 Remote = remote,
                 BaseUrl = remote ? Str(option, "baseUrl") : null,
                 Explode = remote && Bool(option, "explode"),
+                // a remote section: where its screens live (its OWN path, not its group's) and
+                // whether the shell named it (Java's AppMenuDtoBuilder.remoteRoutePrefix / shellLabel)
+                RoutePrefix = remote ? ReflectionMapper.RemoteRoutePrefix(declaredPath ?? path) : null,
+                ShellLabel = shellLabel,
                 Icon = Str(option, "icon") ?? (presentation is null ? null : Str(presentation, "icon")),
                 Display = presentation is not null && string.Equals(Str(presentation, "display"), "cards", StringComparison.OrdinalIgnoreCase)
                     ? "cards" : null,
@@ -275,10 +299,12 @@ internal static class YamlAppShell
         return p + "/" + s;
     }
 
+    /// <summary>A remote section's label when the shell names none: its path's last segment,
+    /// humanized (Java's AppMenuDtoBuilder.remoteLabel → Humanizer.toUpperCaseFirst).</summary>
     private static string LastSegment(string path)
     {
         var segment = path[(path.LastIndexOf('/') + 1)..];
-        return segment.Length == 0 ? "" : char.ToUpperInvariant(segment[0]) + segment[1..];
+        return segment.Length == 0 ? "" : Naming.HumanizeConstant(segment);
     }
 
     private static IEnumerable<object> Seq(IDictionary<object, object> map, string key) =>

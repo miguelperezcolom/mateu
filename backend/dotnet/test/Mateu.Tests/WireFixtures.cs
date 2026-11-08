@@ -701,6 +701,23 @@ public class BrandedApp
     public void Home() { }
 }
 
+/// <summary>A record master's way back up (app-back-link): one "← Records" link to the screen above
+/// the app instead of the breadcrumb trail. A [MenuItem] named Overview stands in for Java's
+/// `@Menu String overview` leaf.</summary>
+[UI("conformance/app-back-link"), App("Record", BackLink = BackLink.Parent), Title("Record")]
+public class BackLinkApp
+{
+    [MenuItem("Overview")]
+    public void Overview() { }
+}
+
+/// <summary>The screen above the back-link app (app-back-link): its title labels the link.</summary>
+[UI("conformance"), Title("Records")]
+public class BackLinkParent
+{
+    public string? Name { get; set; }
+}
+
 /// <summary>Section options (section-options): the first section pinned, the second forced to one
 /// column with a style on its content.</summary>
 [UI("conformance/section-options"), Title("Section options")]

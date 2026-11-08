@@ -1,4 +1,5 @@
 Mateu.Core.AppShell ctor(System.String = null, System.Collections.Generic.IReadOnlyList<Mateu.Dtos.MenuItemDto> = null)
+Mateu.Core.AppShell property Mateu.Uidl.BackLink? BackLink { get;init; }
 Mateu.Core.AppShell property System.Collections.Generic.IReadOnlyList<Mateu.Dtos.MenuItemDto> Menu { get;init; }
 Mateu.Core.AppShell property System.String HomeRoute { get;init; }
 Mateu.Core.AppShell property System.String Subtitle { get;init; }
@@ -115,6 +116,7 @@ Mateu.Uidl.Announce ctor(System.String, System.Boolean = False)
 Mateu.Uidl.Announce property System.Boolean Assertive { get;init; }
 Mateu.Uidl.Announce property System.String Text { get;init; }
 Mateu.Uidl.AppAttribute ctor(System.String)
+Mateu.Uidl.AppAttribute property Mateu.Uidl.BackLink BackLink { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean AccessKeys { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean Chromeless { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean CommandCenter { get;set; }
@@ -198,6 +200,8 @@ Mateu.Uidl.Avatar property System.String Name { get;init; }
 Mateu.Uidl.AvatarGroup ctor()
 Mateu.Uidl.AvatarGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Avatar> Avatars { get;init; }
 Mateu.Uidl.AvatarGroup property System.Int32 MaxItemsVisible { get;init; }
+Mateu.Uidl.BackLink enum Breadcrumbs
+Mateu.Uidl.BackLink enum Parent
 Mateu.Uidl.Badge ctor()
 Mateu.Uidl.Badge property System.Boolean Pill { get;init; }
 Mateu.Uidl.Badge property System.Boolean Primary { get;init; }
@@ -1788,6 +1792,7 @@ Mateu.Uidl.RemoteMenuAttribute ctor(System.String, System.String)
 Mateu.Uidl.RemoteMenuAttribute property System.Boolean Explode { get;set; }
 Mateu.Uidl.RemoteMenuAttribute property System.String BaseUrl { get; }
 Mateu.Uidl.RemoteMenuAttribute property System.String Label { get; }
+Mateu.Uidl.RemoteMenuAttribute property System.String Path { get;set; }
 Mateu.Uidl.RemoteMenuAttribute property System.String Route { get;set; }
 Mateu.Uidl.Resolve enum Client
 Mateu.Uidl.Resolve enum Server

@@ -147,4 +147,8 @@ public sealed record AppShell(string? Title = null, IReadOnlyList<MenuItemDto>? 
     public string? Subtitle { get; init; }
     public string? Variant { get; init; }
     public string? HomeRoute { get; init; }
+
+    /// <summary>The way back up from this app — the twin of <c>[App(BackLink)]</c>; null = the
+    /// attribute decides.</summary>
+    public Mateu.Uidl.BackLink? BackLink { get; init; }
 }

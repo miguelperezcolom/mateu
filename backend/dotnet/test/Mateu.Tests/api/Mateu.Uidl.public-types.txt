@@ -35,6 +35,7 @@ Mateu.Uidl.AutoPageAttribute
 Mateu.Uidl.AutoSaveAttribute
 Mateu.Uidl.Avatar
 Mateu.Uidl.AvatarGroup
+Mateu.Uidl.BackLink
 Mateu.Uidl.Badge
 Mateu.Uidl.BannerAttribute
 Mateu.Uidl.BannerTheme

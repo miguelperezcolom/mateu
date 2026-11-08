@@ -1,0 +1,6 @@
+# Fixture for YamlAppShellBackLinkSyncTest: a record master's shell authored as data, offering ONE
+# "← Records" link instead of the breadcrumb trail, with its own browser-tab title.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

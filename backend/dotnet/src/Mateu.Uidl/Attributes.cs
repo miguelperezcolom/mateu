@@ -407,6 +407,25 @@ public sealed class AppAttribute(string title) : Attribute
     public string Style { get; set; } = "";
 
     public string CssClasses { get; set; } = "";
+
+    /// <summary>How the app offers the way back up: <see cref="Uidl.BackLink.Breadcrumbs"/> (the
+    /// default, the automatic trail) or <see cref="Uidl.BackLink.Parent"/> — ONE "← Parent" link to
+    /// the nearest route above the app's that resolves to a screen, labelled with that screen's
+    /// [Title] (else its last segment humanized), and no breadcrumb trail: the OCI-console style
+    /// for a record master opened from a listing. (C# analogue of Java's @App(backLink).)</summary>
+    public BackLink BackLink { get; set; } = BackLink.Breadcrumbs;
+}
+
+/// <summary>How a screen offers the way back up (<c>[App(BackLink = …)]</c>, <c>AppShell.BackLink</c>,
+/// a YAML shell's <c>backLink:</c>). The C# mirror of Java's <c>BackLink</c> enum.</summary>
+public enum BackLink
+{
+    /// <summary>The automatic breadcrumb trail (the default).</summary>
+    Breadcrumbs,
+
+    /// <summary>A "← Parent" link to the nearest route above this one that resolves to a screen,
+    /// labelled with that screen's title; the pages inside this app show no breadcrumb trail.</summary>
+    Parent,
 }
 
 /// <summary>The app header's logo (a URL). (C# analogue of Java's @Logo.)</summary>
@@ -556,6 +575,12 @@ public sealed class RemoteMenuAttribute(string label, string baseUrl) : Attribut
 
     /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
     public bool Explode { get; set; }
+
+    /// <summary>The section's own path in this shell (Java's <c>@Menu</c> field name, e.g.
+    /// <c>"/workflow"</c>): the route prefix the remote's screens live under, sent as the option's
+    /// <c>routePrefix</c> so the renderer knows the active section and the first breadcrumb before the
+    /// remote answers. Blank (the default) = no prefix is claimed.</summary>
+    public string Path { get; set; } = "";
 }
 
 /// <summary>Groups the following fields under a titled section (card) in a form.</summary>
