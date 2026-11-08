@@ -132,22 +132,17 @@ uses a file picker for photo capture and searches only the loaded options of a s
 
 In 3.0 the .NET and Python servers are **supported with documented gaps**
 ([what that means](/reference/support-policy/#how-mature-each-part-is-in-30)). They emit the same
-wire as Java for the features they support. The gaps documented before 3.0 GA — the editable-view
-orchestrators, class-level `@AutoSave`, `@ViewToolbarButton`, `type: AppShell` and `template:` in
-YAML, `Dialog` placement, `@MainFilter` / `@HiddenIn*` / `@Section(sticky, columns, style)`, the
-24 Java-only component types, Python's class-level `read_only_unless` — are closed
-([what the ports closed](/reference/parity/#what-the-ports-closed-for-30-ga)). These are still
-**not ported**; an app that needs them must be written in Java for now:
-
-- the static-bundle exporter (`mateu-bundle:bundle` is a Java build plugin). **Workaround:** author
-  a UI that ships as a static bundle in YAML, which needs no backend;
-- `@App(backLink)` — the shell's "back to the parent screen" link;
-- .NET only: a page definition's `actions:` in YAML — declare the actions on a view model;
-- Python only: `HeroSearch` with a separate filters type — its facets are the row's fields.
+wire as Java for the features they support, held to the conformance corpus with empty
+allow-lists. The gaps documented before 3.0 GA — the static-bundle exporter, `@App(backLink)`, a
+YAML definition's `actions:`, `HeroSearch` with a separate filters type, `@Inline` nested forms, .NET
+length/pattern validation, the fluent listing's grid options, page breadcrumbs and the rest — are
+closed ([what the ports closed](/reference/parity/#what-the-ports-closed-for-30-ga)). What a port
+still cannot declare is listed in [What is still Java-only](/reference/parity/#what-is-still-java-only);
+the port idioms (the same screen reached another way) are in
+[Port idioms](/reference/parity/#port-idioms-same-wire-different-declaration).
 
 Listing filters (ranges, multi-select) are applied in memory in both ports by default; override
-`find` (it receives the typed criteria) to push them to your database. The complete list is
-[What is still Java-only](/reference/parity/#what-is-still-java-only).
+`find` (it receives the typed criteria) to push them to your database.
 
 ### .NET 8 leaves Microsoft support on 2026-11-10
 
