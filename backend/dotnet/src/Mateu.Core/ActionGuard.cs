@@ -66,11 +66,12 @@ internal static class ActionGuard
     }
 
     /// <summary>Whether the wire may WRITE this property: an [EyesOnly] field the caller cannot see
-    /// or a [ReadOnlyUnless] field (or class) the caller cannot edit is dropped, keeping the
+    /// or a [ReadOnlyUnless]/[DisabledUnless] field (or class) the caller cannot edit is dropped, keeping the
     /// server-side value (mirrors Java's Hydrater).</summary>
     internal static bool MayWrite(PropertyInfo p) =>
         Authorized(p.Find<EyesOnlyAttribute>())
         && Authorized(p.Find<ReadOnlyUnlessAttribute>())
+        && Authorized(p.Find<DisabledUnlessAttribute>())
         && (p.DeclaringType is not { } owner || Authorized(owner.Find<ReadOnlyUnlessAttribute>()));
 
     private static bool IsFramework(Type? type) => type is not null && FrameworkAssemblies.Contains(type.Assembly);

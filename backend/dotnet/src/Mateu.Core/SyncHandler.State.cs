@@ -61,12 +61,19 @@ internal sealed partial class SyncHandler
 
     private static void BindState(object instance, IDictionary<string, object?> state)
     {
+        // A view drawing its own tree may reference business components (components.yaml): the
+        // fields they hide or lock for the caller are not writable either. Nothing records which ones
+        // a tree renders before it is mapped, so every restricted composition counts (fail closed).
+        var locked = instance is IComponentTreeSupplier
+            ? MateuCatalogs.LockedBy(MateuCatalogs.RestrictedNames())
+            : (IReadOnlySet<string>)new HashSet<string>();
         foreach (var p in ReflectionMapper.EditableProperties(instance.GetType()))
         {
             // Mass-assignment guard: a field hidden ([EyesOnly]) or locked ([ReadOnlyUnless]) for
             // this caller is never written from the wire — it keeps its server-side value.
             if (!ActionGuard.MayWrite(p)) continue;
             var key = Naming.CamelCase(p.Name);
+            if (locked.Contains(key)) continue;
             if (!state.TryGetValue(key, out var raw) || raw is null) continue;
             if (IsCleared(raw, p.PropertyType))
             {
