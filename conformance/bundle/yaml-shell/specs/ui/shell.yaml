@@ -1,0 +1,9 @@
+type: AppShell
+title: Bundle conformance
+menu:
+  - type: RouteLink
+    label: Hello
+    route: hello
+  - type: RouteLink
+    label: About
+    route: about

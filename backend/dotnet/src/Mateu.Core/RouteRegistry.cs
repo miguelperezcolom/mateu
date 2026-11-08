@@ -286,6 +286,19 @@ internal sealed class RouteRegistry : ISpecsCache
         return ScanMounts().FirstOrDefault(m => m.BasePath == normalized)?.Home;
     }
 
+    /// <summary>The base path of the <c>type: UI</c> mount <paramref name="route"/> belongs to (the
+    /// longest base path it sits under), or null when no descriptor claims it (Python's
+    /// <c>yaml_app_shell.mount_of</c>).</summary>
+    public string? MountOf(string? route)
+    {
+        var path = Normalize(route);
+        return ScanMounts()
+            .Where(m => m.BasePath.Length == 0 || path == m.BasePath || path.StartsWith(m.BasePath + "/", StringComparison.Ordinal))
+            .OrderByDescending(m => m.BasePath.Length)
+            .Select(m => m.BasePath)
+            .FirstOrDefault();
+    }
+
     /// <summary>A DSL mount discovered by content: a base path and the route files that make it up.</summary>
     private sealed record MountDescriptor(
         string BasePath, IReadOnlyList<string> RouteFiles, string? Home = null, string? File = null);

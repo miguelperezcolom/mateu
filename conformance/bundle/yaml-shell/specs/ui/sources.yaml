@@ -1,0 +1,6 @@
+sources:
+  - name: countries
+    description: ISO country codes
+    source:
+      url: https://api.example.com/countries
+      itemsPath: items

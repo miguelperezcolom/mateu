@@ -194,6 +194,27 @@ async def authenticate(request, call_next):
   `appState["audience"]`; any caller can send any value. Use it to tailor a screen to a persona, and
   `EyesOnly` (identity) for anything that must stay hidden.
 
+## Static bundle: `python -m mateu_ui.bundle`
+
+The UI can also ship as plain files to a CDN, with no Python process behind it — the same static
+bundle Java's `mateu-bundle:bundle` writes ([deploy/static-ui](https://mateu.io/deploy/static-ui/)).
+Every route is rendered IN PROCESS through this port's own `SyncHandler` (no server is started):
+
+```bash
+python -m mateu_ui.bundle my_app.views --ui mateu-vaadin.jar --out dist --static
+python -m http.server 8000 --directory dist            # any static host; deep links need its SPA fallback
+```
+
+The sources are what `add_mateu(app, …)` takes (modules or `module:Class`; none for a YAML-only app
+with `--specs specs/ui`). Options: `--specs`, `--base-url`, `--title`, `--static` (fail when a route
+still needs a server — a `@button` without `@rest_action`, a `Listing` without `@rest_listing`, a
+`Crud`, a proxied source, `${secret.…}` in a direct one, `@eyes_only`), `--specs-only` (ship
+expandable YAML definitions raw for the browser's expander), `--include-param-routes`,
+`--environment`, `--mock`, `--route` (repeatable), `--no-pwa`, `--fail-on-empty`,
+`--fail-on-skipped`. Programmatic: `mateu_ui.bundle.BundleExporter(handler).export_all(…)` +
+`mateu_ui.bundle.writer.write(…)`. Sample: `samples/static_bundle`. Pinned against Java's output by
+`tests/test_bundle_conformance.py` (`conformance/bundle`).
+
 ## Define views
 
 ```python

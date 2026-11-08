@@ -49,7 +49,7 @@ internal static class YamlAppShell
     /// serves: its routes are prefixed with it). <paramref name="mountHome"/> is the mount
     /// descriptor's <c>home:</c> — the shell lands there when it declares no <c>homeRoute:</c>.</summary>
     public static ClientSideComponentDto Map(IDictionary<object, object> root, string shellRoute, string? mountHome,
-        string? requestBaseUrl, FieldTypeRegistry? types = null)
+        string? requestBaseUrl, FieldTypeRegistry? types = null, string? aimedAt = null)
     {
         var trimmed = shellRoute.Trim('/');
         var appRoute = trimmed.Length == 0 ? "" : "/" + trimmed;
@@ -64,7 +64,8 @@ internal static class YamlAppShell
         {
             Subtitle = Str(root, "subtitle"),
             Layout = Str(root, "layout")?.Trim() is "SPLIT" ? "SPLIT" : "SINGLE_SLOT",
-            HomeRoute = HomeRouteOf(root, mountHome),
+            // a fresh deep link aims the shell at the requested route (Java's wrapsInAppShell)
+            HomeRoute = aimedAt ?? HomeRouteOf(root, mountHome),
             HomeConsumedRoute = appRoute,
             HomeBaseUrl = requestBaseUrl ?? "",
             RootRoute = appRoute,

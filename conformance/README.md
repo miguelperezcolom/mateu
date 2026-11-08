@@ -22,6 +22,10 @@ conformance/
       request.json    optional: pin a SECOND request instead of the first load
 ```
 
+Beside it, `conformance/bundle/` pins the static-bundle EXPORTERS (Java's `mateu-bundle:bundle`,
+`python -m mateu_ui.bundle`, `dotnet mateu-bundle`): one normalised `manifest.json` per case — see
+its README.
+
 A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
 optional) is rendered by sending that request to the case's fixture type — how an interaction step
 (the shell's content load, an action) is pinned, not only the first render. The second-request

@@ -17,8 +17,10 @@ import logging
 import os
 import re
 import threading
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import yaml
 
@@ -32,6 +34,21 @@ log = logging.getLogger("mateu.i18n")
 EXPRESSION = re.compile(r"\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.\-]*)\s*}")
 
 CONVENTIONAL_DIR = "translations"
+
+#: True while ``${i18n.…}`` must stay AS WRITTEN (Java's ``TranslationRegistry.RAW_ATTRIBUTE``): a
+#: screen pre-rendered into a static bundle serves every visitor, so the browser resolves it for
+#: each one's locale from the catalogue the bundle ships (``mateu_ui.bundle``).
+_RAW: ContextVar[bool] = ContextVar("mateu_i18n_raw", default=False)
+
+
+@contextmanager
+def raw_expressions() -> Iterator[None]:
+    """Within the block, ``${i18n.…}`` expressions are left unresolved (bundle export)."""
+    token = _RAW.set(True)
+    try:
+        yield
+    finally:
+        _RAW.reset(token)
 
 
 def normalize(locale: str | None) -> str:
@@ -195,7 +212,7 @@ class TranslationRegistry:
 
     def interpolate(self, text: str | None, locale: str | None) -> str | None:
         """``${i18n.key}`` expressions in ``text`` resolved for ``locale``."""
-        if text is None or "i18n." not in text:
+        if text is None or "i18n." not in text or _RAW.get():
             return text
 
         def replace(m: re.Match) -> str:
