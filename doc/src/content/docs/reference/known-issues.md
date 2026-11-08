@@ -130,7 +130,9 @@ uses a file picker for photo capture and searches only the loaded options of a s
 
 ## .NET and Python servers
 
-The .NET and Python servers emit the same wire as Java for the features they support. These Java
+In 3.0 the .NET and Python servers are **supported with documented gaps**
+([what that means](/reference/support-policy/#how-mature-each-part-is-in-30)). They emit the same
+wire as Java for the features they support. These Java
 features are **not ported yet**; an app that needs them must be written in Java for now:
 
 - the editable-view orchestrators — `EditableView`, `AutoEditableView`, `MasterDetailView` (a read
@@ -151,7 +153,7 @@ them to your database. The complete list is [What is still Java-only](/reference
 
 The .NET packages target `net8.0` and `net10.0`. Microsoft ends support for .NET 8 on
 10 November 2026; Mateu keeps the `net8.0` target for the 3.0 line, but security updates of the
-runtime itself stop then.
+runtime itself stop then. **3.1 drops `net8.0`.**
 
 **Workaround:** move the app to .NET 10 (LTS).
 
@@ -161,5 +163,12 @@ runtime itself stop then.
   Boot 4 only. Upgrade to Boot 4 (see [Prerequisites](/java-create-your-project/prerequisites/)).
 - **The IntelliJ plugin supports IDE builds 2025.2 and 2025.3** (`252`–`253.*`). Newer IDE lines are
   enabled once the plugin verifier passes on them.
-- **The Figma pipeline and the visual editor are previews**: they are not covered by the stability
-  promise (see [Stability & versioning](/reference/stability-and-versioning/)).
+- **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
+  covered by the stability promise (see
+  [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
+- **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
+  ("Windows protected your PC"). **Workaround:** check the download against the release page, then
+  **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).
+- **The `mateu-vaadin` package on npm is not maintained** (`0.0.15`, from before the 3.0 betas).
+  **Workaround:** load the renderer from a Mateu app (`/assets/mateu-vaadin.js`), as in
+  [Embedded UI](/java-user-manual/use-cases/embedded-ui/).

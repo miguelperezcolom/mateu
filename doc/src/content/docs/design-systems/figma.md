@@ -3,9 +3,11 @@ title: "Figma design-to-code"
 description: "Design screens in Figma with the Mateu component library — every component and page template — and generate specs/ui YAML (or Java/C#/Python through modux) from them."
 ---
 
-**Status:** 🚧 In progress — the contract, the library generator plugin and the Figma → YAML
-converter exist and are tested; the library has not been generated in a real Figma and published
-yet (see "Generating the library").
+**Status:** 🚧 **Preview** in Mateu 3.0 — not covered by the 3.0 stability promise
+([how mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)). The contract,
+the library generator plugin and the Figma → YAML converter exist and are tested; the library has not
+been generated in a real Figma and published yet (see "Generating the library"), and the contract and
+the converter's output may still change in any release.
 
 ## The idea
 

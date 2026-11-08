@@ -103,8 +103,10 @@ jobs:
         working-directory: doc
       # The daily run and manual runs only (see the header): a push to master is built and checked,
       # and reaches mateu.io the next morning — or now, with Actions › Docs › Run workflow.
+      # Master only: the release workflow dispatches this workflow on its examples-bump branch to give
+      # that PR its `docs-ok` check, and a branch must never be deployed to production.
       - name: Deploy to Netlify (production)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

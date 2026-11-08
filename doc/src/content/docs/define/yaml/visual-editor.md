@@ -9,6 +9,13 @@ standalone browser, an **IntelliJ** tab (embedded via JCEF), and a **VSCode** cu
 experience is identical wherever you author. Behaviour and data stay in Java view models; the editor
 edits the **shape** of the UI: its files and how they reference each other.
 
+:::caution[Preview in 3.0]
+The visual editor is a **preview** in Mateu 3.0: its canvas, panels and commands may change in any
+release and are not covered by the 3.0 stability promise
+([how mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)). The YAML it
+writes is ordinary, stable `specs/ui/**` YAML — keep it in version control and review its diffs.
+:::
+
 :::note[Reference pickers]
 When the editor can see the whole mount (the IntelliJ and VSCode hosts enumerate `specs/ui/**`
 automatically), every cross-file reference is a **picker** — chosen from a list of what exists, while
