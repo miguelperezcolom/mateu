@@ -5,6 +5,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/ContextMenu";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { isMenuGroup, selectContentMenuOption } from "@infra/ui/contentMenus.ts";
 
 /*
  * Design-system-neutral menu renderers — a plain button strip / native <details> dropdowns, no
@@ -16,7 +17,7 @@ const renderOption = (container: LitElement, option: MenuOption, baseUrl: string
     if (option.separator) {
         return html`<span style="align-self: stretch; width: 1px; background: var(--lumo-contrast-20pct, rgba(0,0,0,.2));"></span>`
     }
-    if (option.submenus) {
+    if (isMenuGroup(option)) {
         return html`
             <details style="position: relative;">
                 <summary style="cursor: pointer; list-style: none; padding: .35rem .7rem; border-radius: var(--lumo-border-radius-m, 6px);">
@@ -32,6 +33,9 @@ const renderOption = (container: LitElement, option: MenuOption, baseUrl: string
     }
     return html`
         <span class="${option.className ?? ''}"
+              role="menuitem" tabindex="${option.disabled ? -1 : 0}"
+              @click="${(e: Event) => selectContentMenuOption(e.currentTarget as HTMLElement, option)}"
+              @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectContentMenuOption(e.currentTarget as HTMLElement, option) } }}"
               style="cursor: ${option.disabled ? 'default' : 'pointer'}; opacity: ${option.disabled ? .5 : 1};
                      padding: .35rem .7rem; border-radius: var(--lumo-border-radius-m, 6px);
                      ${option.selected ? 'background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12));' : ''}">
