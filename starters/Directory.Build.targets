@@ -1,0 +1,15 @@
+<Project>
+  <!-- Inside the Mateu repository the .NET starter builds against Mateu.NET's SOURCES, so CI checks
+       it against this commit; copied out of the repository (or generated) this file is not there and
+       the starter uses the NuGet packages its csproj names. `-p:MateuFromSources=false` builds the
+       in-repo starter against NuGet too. -->
+  <PropertyGroup>
+    <MateuDotnetSources>$(MSBuildThisFileDirectory)../backend/dotnet/src</MateuDotnetSources>
+    <MateuFromSources Condition="'$(MateuFromSources)' == '' and Exists('$(MateuDotnetSources)/Mateu.AspNetCore/Mateu.AspNetCore.csproj')">true</MateuFromSources>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(MateuFromSources)' == 'true'">
+    <PackageReference Remove="Mateu.AspNetCore;Mateu.Uidl" />
+    <ProjectReference Include="$(MateuDotnetSources)/Mateu.AspNetCore/Mateu.AspNetCore.csproj" />
+    <ProjectReference Include="$(MateuDotnetSources)/Mateu.Uidl/Mateu.Uidl.csproj" />
+  </ItemGroup>
+</Project>
