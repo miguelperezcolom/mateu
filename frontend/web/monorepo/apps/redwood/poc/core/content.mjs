@@ -375,6 +375,20 @@ export function dateConverterOf(kind) {
   return dateConverters.get(key)
 }
 
+/** A board row's items as twelfths of the oj-flex row, by their weights (boardCols), adding up to
+ *  12 (largest remainder; each at least 1) — a sum short of 12 would let the next row join this line. */
+export function boardTwelfthsOf(weights) {
+  const ws = weights.map((w) => (w > 0 ? w : 1)).slice(0, 12)
+  const total = ws.reduce((a, b) => a + b, 0)
+  const exact = ws.map((w) => (w * 12) / total)
+  const out = exact.map((x) => Math.max(1, Math.floor(x)))
+  let left = 12 - out.reduce((a, b) => a + b, 0)
+  const order = exact.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)
+  for (let k = 0; left > 0; k = (k + 1) % order.length) { out[order[k]]++; left-- }
+  for (let i = out.length - 1; left < 0 && i >= 0; i--) if (out[i] > 1) { out[i]--; left++ }
+  return out
+}
+
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
   // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -689,7 +703,37 @@ export function islandContentOf(ctx, opts = {}) {
       const walkLayout = (n) => {
         if (!n || typeof n !== 'object') return
         const md = n.metadata
-        if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+        // a FormItem (the components of ONE field) is transparent: its fields join the layout — it
+        // used to cut the layout, its field drawn loose outside the oj-form-layout
+        if (md && md.type === 'FormItem') { kidsOf(n).forEach(walkLayout); return }
+        // a FormRow of an AUTO-RESPONSIVE layout (the server's reflective forms: one row per line of
+        // its columns) is the layout's own grid — its fields flow into the one oj-form-layout
+        if (md && md.type === 'FormRow' && m.autoResponsive) { kidsOf(n).forEach(walkLayout); return }
+        // an authored FormRow (fluent / YAML) keeps its fields on ONE line: a form layout of its own
+        // with a column per field (flattened, they flowed into the columns like any other field)
+        if (md && md.type === 'FormRow') {
+          const rowKids = kidsOf(n)
+          const fieldCount = rowKids.filter((k) => k && k.metadata && k.metadata.type === 'FormField').length
+          layout = null
+          if (fieldCount) {
+            const rowColumns = Math.min(4, fieldCount)
+            layout = { isFormLayout: true, columns: rowColumns, fields: [] }
+            layouts.push(layout)
+            atom(layout, container)
+          }
+          const own = layout
+          for (const k of rowKids) {
+            const kmd = k && k.metadata
+            const field = kmd && kmd.type === 'FormField' && own ? layoutFieldOf(kmd, state, ctx.data, own.columns) : null
+            if (field) {
+              if (editorNodeIds && k.id) field.nodeId = String(k.id)
+              own.fields.push(field)
+            } else if (k) visit(k, container)
+          }
+          // what follows the row starts a layout of its own again
+          layout = null
+          return
+        }
         const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
         if (field) {
           if (editorNodeIds && n.id) field.nodeId = String(n.id)
@@ -980,6 +1024,35 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'DashboardPanel') {
       visitDashboardPanel(node, null)
+      return
+    }
+    // BOARD (BoardLayout of BoardLayoutRows of BoardLayoutItems): each row's items share the row by
+    // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
+    // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
+    // another block there are no columns to share out: stacked, in order.
+    if (t === 'BoardLayout' && !container) {
+      const rows = kidsOf(node).filter(Boolean)
+      const before = blocks.length
+      let ok = true
+      for (const row of rows) {
+        const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+        if (!items.length) continue
+        const cols = boardTwelfthsOf(items.map((it) => Number(it.metadata && it.metadata.boardCols) || 1))
+        if (!projectSized(items, items.map((_, i) => 'oj-flex-item oj-sm-12 oj-md-' + (cols[i] || 12) + ' oj-sm-padding-4x-end'),
+          items.map(() => ({ fromColumns: true })))) { ok = false; break }
+      }
+      if (ok) return
+      blocks.splice(before)
+    }
+    // FULL WIDTH: what it holds spans the row — its buttons fill it (a plain button bar keeps its
+    // natural width, right-aligned)
+    if (t === 'FullWidth') {
+      const scratch = { items: [] }
+      for (const child of kidsOf(node)) visit(child, scratch)
+      for (const a of scratch.items) {
+        if (a && a.isButtons) a.fullWidth = true
+        atom(a, container)
+      }
       return
     }
     if (t === 'Scoreboard') {
@@ -1609,7 +1682,7 @@ export function islandContentOf(ctx, opts = {}) {
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
       const button = buttonOf(m)
       if (editorNodeIds && node.id) button.nodeId = String(node.id)
-      if (last && last.isButtons) last.buttons.push(button)
+      if (last && last.isButtons && !last.fullWidth) last.buttons.push(button)
       else atom({ isButtons: true, buttons: [button] }, container)
       return
     }

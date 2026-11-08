@@ -1206,7 +1206,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -3194,7 +3194,7 @@
            header stays hidden (app.css). Bound to the live CONTENT's header (mateuFoldoutContent,
            seeded before the structure): it may change between two records of the same foldout
            without re-stamping the layout. -->
-      <oj-sp-foldout-layout id="mateuFoldoutEl"
+      <oj-sp-foldout-layout id="mateuFoldoutEl" :style="[[ $application.variables.mateuFoldout.hostStyle || {} ]]"
         :class="[[ { 'mateu-foldout-has-nav': !!$application.variables.mateuFoldoutContent.header.hasNavigation, 'mateu-foldout-overview-top': !!$application.variables.mateuFoldout.overviewOnTop } ]]"
         display-options.go-to-parent="[[ !!$application.variables.mateuFoldoutContent.header.goToParent ]]"
         display-options.bidirectional-navigation="[[ !!$application.variables.mateuFoldoutContent.header.bidirectional ]]"
@@ -3870,7 +3870,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -5886,7 +5886,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -7935,7 +7935,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -9951,7 +9951,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -12028,7 +12028,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -14098,7 +14098,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -16120,7 +16120,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -18153,7 +18153,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -20208,7 +20208,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -22235,7 +22235,7 @@
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
-                        <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                           <oj-bind-for-each data="[[ $current.data.buttons ]]">
                             <template>
                               <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -24280,7 +24280,7 @@
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
-                        <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                           <oj-bind-for-each data="[[ $current.data.buttons ]]">
                             <template>
                               <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -26312,7 +26312,7 @@
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
-                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                            <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                               <oj-bind-for-each data="[[ $current.data.buttons ]]">
                                 <template>
                                   <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -28599,7 +28599,7 @@
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
-                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                              <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                                 <oj-bind-for-each data="[[ $current.data.buttons ]]">
                                   <template>
                                     <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -30631,7 +30631,7 @@
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
-                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                              <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                                 <oj-bind-for-each data="[[ $current.data.buttons ]]">
                                   <template>
                                     <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -32688,7 +32688,7 @@
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
-                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                              <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                                 <oj-bind-for-each data="[[ $current.data.buttons ]]">
                                   <template>
                                     <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -34967,7 +34967,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -36988,7 +36988,7 @@
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
-                        <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                           <oj-bind-for-each data="[[ $current.data.buttons ]]">
                             <template>
                               <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -39009,7 +39009,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -41055,7 +41055,7 @@
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
-                <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                   <oj-bind-for-each data="[[ $current.data.buttons ]]">
                     <template>
                       <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -43087,7 +43087,7 @@
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
-                <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                   <oj-bind-for-each data="[[ $current.data.buttons ]]">
                     <template>
                       <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -45133,7 +45133,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -47511,7 +47511,7 @@
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
-                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                          <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                             <oj-bind-for-each data="[[ $current.data.buttons ]]">
                               <template>
                                 <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -49945,7 +49945,7 @@
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
-                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                          <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                             <oj-bind-for-each data="[[ $current.data.buttons ]]">
                               <template>
                                 <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -52365,7 +52365,7 @@
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
-                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                          <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                             <oj-bind-for-each data="[[ $current.data.buttons ]]">
                               <template>
                                 <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -54764,7 +54764,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -56778,7 +56778,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -59622,7 +59622,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -61636,7 +61636,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -63729,7 +63729,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -65745,7 +65745,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -67775,7 +67775,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -69791,7 +69791,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -71873,7 +71873,7 @@
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
-                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                            <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                               <oj-bind-for-each data="[[ $current.data.buttons ]]">
                                 <template>
                                   <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -74169,7 +74169,7 @@
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
-                    <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                    <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                       <oj-bind-for-each data="[[ $current.data.buttons ]]">
                         <template>
                           <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -76203,7 +76203,7 @@
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
-                    <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                    <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                       <oj-bind-for-each data="[[ $current.data.buttons ]]">
                         <template>
                           <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -78219,7 +78219,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -80235,7 +80235,7 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"

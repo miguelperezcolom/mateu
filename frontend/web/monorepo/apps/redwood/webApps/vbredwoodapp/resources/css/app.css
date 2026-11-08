@@ -2226,3 +2226,12 @@ oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color:
   border-radius: 4px;
 }
 
+
+/* FullWidth: its buttons fill the row (a plain button bar keeps their natural width) */
+.mateu-buttons-full > oj-button {
+  flex: 1 1 0;
+  margin-inline-start: 0;
+}
+.mateu-buttons-full > oj-button + oj-button {
+  margin-inline-start: var(--oj-core-spacing-1x, 4px);
+}
