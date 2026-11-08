@@ -876,6 +876,10 @@ class FormField(Component):
     css_classes: str | None = None
     #: How many columns a radio/checkbox option group spreads over (0 = the renderer's own).
     options_columns: int = 1
+    #: Where a select's options come from: a REST source (a catalogue ``ref`` or an inline
+    #: endpoint) the renderer fetches — through the server (``__restfetch__``, by the field's id)
+    #: when the source is proxied (Java's FormField.optionsSource).
+    options_source: object | None = None
 
 
 @dataclass(frozen=True)

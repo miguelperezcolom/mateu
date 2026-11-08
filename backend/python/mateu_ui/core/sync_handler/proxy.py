@@ -123,18 +123,19 @@ class ProxyHandlerMixin(MixinBase):
         a transport error) answers app_data._restfetchError ``{status, message}`` instead."""
         json_obj: Any = {}
         cls = self.registry.resolve(rq.server_side_type, rq.route)
-        if cls is None and rq.parameters.get("_sourceKind") == "action":
-            # a definition-only page (no class): the source is the one its OWN `actions:` declares
-            # for that id, resolved against the server's catalogue (Java's SeededYamlPage as a
-            # RestSourceSupplier) — the only channel that injects ${secret.X} for such a page
-            declared = self._definition_action_source(rq)
+        if cls is None:
+            # a definition-only page (no class): the source is the one its OWN `actions:` — or its
+            # layout's listings / selects — declare for that kind and id, resolved against the
+            # server's catalogue (Java's SeededYamlPage as a RestSourceSupplier) — the only channel
+            # that injects ${secret.X} for such a page
+            declared = self._definition_source(rq)
             if declared is not None:
                 if not declared.proxy and declared.url:
                     from ..action_guard import MateuForbiddenException
 
                     raise MateuForbiddenException(
-                        f"Forbidden: __restfetch__ action/{rq.parameters.get('_sourceId')}"
-                        " is not a proxied source"
+                        f"Forbidden: __restfetch__ {rq.parameters.get('_sourceKind')}/"
+                        f"{rq.parameters.get('_sourceId')} is not a proxied source"
                     )
                 if sample_sources.enabled() and declared.sample is not None:
                     method = (declared.method or "GET").strip().upper()
@@ -192,22 +193,22 @@ class ProxyHandlerMixin(MixinBase):
                     return _restfetch_error(e.status, e.detail)
         return UIIncrement(app_data={"_restfetch": json_obj})
 
-    def _definition_action_source(self, rq: RunActionRq):
-        """The resolved source of the definition-only page's declared action ``_sourceId``, or None
-        when the route has no such page/action (or the caller is refused it)."""
+    def _definition_source(self, rq: RunActionRq):
+        """The resolved source the definition-only page declares for ``_sourceKind``/``_sourceId``
+        (an action of its ``actions:``, a listing's rows, a select's options), or None when the route
+        has no such page/source (or the caller is refused that action)."""
         from ..translations import locale_of
+        from ..yaml_spec_loader import definition_sources, source_for
 
         spec = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
         if spec is None or spec.model_view:
             return None
+        kind = rq.parameters.get("_sourceKind")
         source_id = str(rq.parameters.get("_sourceId") or "")
-        if source_id in spec.refused_actions:
+        if kind == "action" and source_id in spec.refused_actions:
             return None
-        action = next((a for a in spec.actions if a.id == source_id), None)
-        if action is None or action.source is None:
-            return None
-        declared = action.source
-        return self.rest_sources.resolve(declared) if self.rest_sources is not None else declared
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else None
+        return source_for(definition_sources(spec, resolve), kind, source_id)
 
     def _for_each_selected_row(self, source, state: dict) -> UIIncrement:
         """Bulk (``forEachSelectedRow``): the loop runs HERE, once per selected listing row, each row

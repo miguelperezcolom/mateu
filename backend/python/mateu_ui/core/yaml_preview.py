@@ -235,6 +235,7 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             slider_min=_int(node.get("sliderMin")),
             slider_max=_int(node.get("sliderMax")),
             options_columns=_int(node.get("optionsColumns")),
+            options_source=_rest_source_of(node, "optionsSource"),
         )
     if kind == "Button":
         return _button(node)
@@ -484,10 +485,14 @@ def _rest_source_of(node: dict, key: str):
         return RestDataSource(ref=raw.strip())
     if not isinstance(raw, dict):
         return None
+    headers = raw.get("headers")
     return RestDataSource(
         ref=str(raw.get("ref") or "").strip(),
         url=str(raw.get("url") or ""),
         method=str(raw.get("method") or "GET"),
+        # the server's copy keeps them (a proxied call injects ${secret.X} into them); a proxied
+        # source's headers never reach the client (the wire serializer drops them)
+        headers={str(k): str(v) for k, v in headers.items()} if isinstance(headers, dict) else {},
         body=str(raw.get("body") or ""),
         items_path=str(raw.get("itemsPath") or raw.get("items_path") or ""),
         value_path=str(raw.get("valuePath") or raw.get("value_path") or "value"),

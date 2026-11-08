@@ -30,6 +30,17 @@ public class YamlDefinitionTriggersAndSourcesTests
                 layout: about.yaml
               - route: catalogue
                 layout: catalogue.yaml
+              - route: person
+                layout: person.yaml
+            """);
+        File.WriteAllText(Path.Combine(dir, "person.yaml"), """
+            type: Form
+            title: Leia
+            template: {type: ItemOverviewPage}
+            content:
+              - {type: Text, text: Hello}
+            triggers:
+              - {type: OnLoadTrigger, actionId: preload}
             """);
         File.WriteAllText(Path.Combine(dir, "catalogue.yaml"), """
             type: Listing
@@ -147,6 +158,13 @@ public class YamlDefinitionTriggersAndSourcesTests
         var json = JsonSerializer.Serialize(page, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         Assert.DoesNotContain("API_KEY", json);
         Assert.DoesNotContain("X-Api-Key", json);
+    }
+
+    [Fact]
+    public void A_wrapped_page_that_fills_a_template_is_the_templates_kind_of_page()
+    {
+        // Java's SeededYamlPage.declaredPageType: the template's kind, not the form default
+        Assert.Equal("detail", Load("/person").PageType);
     }
 
     [Fact]

@@ -481,6 +481,7 @@ class ComponentMapperMixin(MixinBase):
                     step=c.step,
                     options_columns=c.options_columns,
                     css_classes=c.css_classes,
+                    options_source=self._fluent_rest_source(c.options_source),
                 ),
                 c,
             )

@@ -532,8 +532,13 @@ class DispatchMixin(MixinBase):
             actions += [
                 to_dto(e) for e in self.action_catalog.referenced_by(named, owned, self.mapper.authorized)
             ]
-        resolve = self.rest_sources.resolve if self.rest_sources is not None else (lambda s: s)
-        if any(a.source is not None and (resolve(a.source) or a.source).proxy for a in declared):
+        # a proxied call — a declared action's, or a listing's rows / a select's options read off a
+        # keyed catalogue entry — is the server's to make through __restfetch__, which only a
+        # server-side page answers (Java's SeededYamlPage as a RestSourceSupplier)
+        from ..yaml_spec_loader import definition_sources
+
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else None
+        if any(getattr(d.source, "proxy", False) for d in definition_sources(spec, resolve)):
             actions.append(Action(id="__restfetch__", validation_required=False))
         return actions
 
@@ -560,7 +565,8 @@ def _with_declared_page_type(
     for a server that has no behaviour behind it (Java's SeededYamlPage.actions) — with the client
     validations of its required fields and the Form's ``confirmOnNavigationIfDirty``, as Java's.
     Neither → unchanged."""
-    if not page_type and not state and not actions:
+    triggers = list(spec.triggers) if spec is not None else []
+    if not page_type and not state and not actions and not triggers:
         return layout
     import re
 
@@ -570,11 +576,19 @@ def _with_declared_page_type(
 
     bare = spec.layout if spec is not None else None
     if not page_type:
-        # wrapped for its seeds: a listing is a collection, anything else a form (Java's
-        # PageTypeResolver default)
-        from mateu_ui.uidl.components import ListingComponent
+        # wrapped for its seeds: a page that fills a template is the template's kind of page, a
+        # listing is a collection, anything else a form (Java's SeededYamlPage.declaredPageType +
+        # the PageTypeResolver default)
+        from mateu_ui.uidl.components import Form, ListingComponent
 
-        page_type = "collection" if isinstance(bare, ListingComponent) else "form"
+        from .. import page_templates
+
+        of_template = (
+            page_templates.page_type_of(bare.template)
+            if isinstance(bare, Form) and getattr(bare, "template", None) is not None
+            else None
+        )
+        page_type = of_template or ("collection" if isinstance(bare, ListingComponent) else "form")
     route = (rq.route or "").split("?")[0].strip("/")
     return ServerSideComponent(
         id="page_" + re.sub(r"[^A-Za-z0-9_-]", "_", route or "root"),
@@ -584,6 +598,7 @@ def _with_declared_page_type(
         initial_data=dict(state or {}),
         page_type=page_type,
         actions=list(actions),
+        triggers=triggers,
         # ComponentTreeSupplier.style()'s default: the page's reading measure
         style="max-width:900px;margin: auto;",
         validations=required_field_validations(bare),
