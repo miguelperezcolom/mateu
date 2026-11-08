@@ -503,6 +503,44 @@ public class ProgressAndNotificationsTests
         await app.StopAsync();
     }
 
+    [Fact]
+    public async Task Over_http_a_failing_task_ends_failed_and_a_closed_stream_cancels_its_task()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddMateu(typeof(ProgressAndNotificationsTests).Assembly);
+        await using var app = builder.Build();
+        app.MapMateu();
+        await app.StartAsync();
+        var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
+        using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
+        HttpRequestMessage Sse(string actionId) => new(HttpMethod.Post, "/mateu/v3/sse/progress-jobs")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { serverSideType = typeof(ProgressJobs).FullName, route = "/progress-jobs", actionId }),
+                System.Text.Encoding.UTF8, "application/json"),
+        };
+
+        // a run that throws: its stream ends with the task failed, the error said as written
+        var body = await (await http.SendAsync(Sse("broken"))).Content.ReadAsStringAsync();
+        Assert.Contains("\"state\":\"failed\"", body);
+        Assert.Contains("Row 2 is invalid", body);
+
+        // the browser goes away mid-run: the stream closes and the task is cancelled with it
+        ProgressJobs.CancelledHook = false;
+        using (var abort = new CancellationTokenSource())
+        {
+            var response = await http.SendAsync(Sse("endless"), HttpCompletionOption.ResponseHeadersRead, abort.Token);
+            var reader = new StreamReader(await response.Content.ReadAsStreamAsync(abort.Token));
+            Assert.StartsWith("data:", await NextData(reader));
+            abort.Cancel();
+            response.Dispose();
+        }
+        for (var i = 0; i < 100 && !ProgressJobs.CancelledHook; i++) await Task.Delay(50);
+        Assert.True(ProgressJobs.CancelledHook);
+        await app.StopAsync();
+    }
+
     private static async Task<string> NextData(StreamReader reader)
     {
         string? line;
