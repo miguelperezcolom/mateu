@@ -31,6 +31,8 @@ internal sealed partial class ReflectionMapper
             "edit" => [new("Cancel", "cancel-edit") { ButtonStyle = "tertiary" }, new("Save", "save") { ButtonStyle = "primary" }],
             _ /* new */ => [new("Cancel", "cancel-new") { ButtonStyle = "tertiary" }, new("Save", "create") { ButtonStyle = "primary" }],
         });
+        // The crud's [ViewToolbarButton] methods lead the view page's toolbar (Java's ViewToolbarBuilder)
+        if (mode == "view") toolbar.InsertRange(0, ViewToolbarButtons(crudType));
         // The edit drawer's "Save and next" (CrudDisplay.SaveAndNext, the Redwood
         // spPrimaryActionAndNext): saves and moves the drawer on to the next row — beside Save
         // (mirrors Java's CrudFormComponentBuilder).
@@ -56,8 +58,9 @@ internal sealed partial class ReflectionMapper
             // mediator above the form for them to bubble to, as in Java), and the web client only
             // SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
             // Saving validates the form on the client first.
-            [.. FieldActions(element), .. toolbar.Select(b => new ActionDto(b.ActionId!,
-                ValidationRequired: b.ActionId is "create" or "save"))],
+            [.. FieldActions(element), .. toolbar.Where(b => !b.ActionId!.StartsWith(ActionOnViewPrefix))
+                .Select(b => new ActionDto(b.ActionId!, ValidationRequired: b.ActionId is "create" or "save")),
+                .. mode == "view" ? ViewToolbarActions(crudType) : []],
             [], "width: 100%;", null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
@@ -722,6 +725,8 @@ internal sealed partial class ReflectionMapper
             if (p.Find<SeparatorBeforeAttribute>() != null)
                 fields.Add(Client(new SeparatorMetadataDto(
                     new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
+            // a property holding a fluent component with nothing in it renders nothing (never a field)
+            if (IsComponentProperty(p) && p.GetValue(instance) is null) continue;
             fields.Add(IsIslandProperty(p)
                 ? MapIslandField(p, instance, FormColumns(p.DeclaringType)) ?? MapField(p, instance, readOnly)
                 : MapField(p, instance, readOnly));

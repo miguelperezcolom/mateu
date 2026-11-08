@@ -52,6 +52,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
     /// [Audience] projects it out as well.</summary>
     private bool Visible(MemberInfo member) =>
         Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
+        // a MasterDetailView's non-selected detail parts (ReflectionMapper.EditableViews.cs)
+        && !HiddenParts(member)
         // [Timestamp] properties render as the header "last updated" text, never as form fields.
         && member.Find<Mateu.Uidl.TimestampAttribute>() == null
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
@@ -103,6 +105,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
                 From = string.IsNullOrWhiteSpace(s.From) ? null : s.From,
                 Condition = string.IsNullOrWhiteSpace(s.Condition) ? null : s.Condition,
             }));
+        // [AutoSave]: the debounced save-as-you-type trigger, after the subscriptions (Java's order)
+        if (AutoSaveOf(type) is { } autoSave)
+            triggers.Add(AutoSaveTrigger(autoSave.Action, autoSave.DebounceMillis));
         return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
 
@@ -128,8 +133,17 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             .SelectMany(t => t.Type is TriggerType.OnSuccess or TriggerType.OnError
                 ? new[] { t.ActionId, t.CalledActionId } : new[] { t.ActionId })
             .Concat(type.GetCustomAttributes<SubscribeToAttribute>().Select(s => s.Action))
+            .Concat(AutoSaveOf(type) is { } autoSave ? [autoSave.Action] : [])
             .Where(a => !string.IsNullOrEmpty(a))
             .Distinct();
+
+    /// <summary>The class's [AutoSave] (directly or through a composed attribute), else null.</summary>
+    internal static AutoSaveAttribute? AutoSaveOf(Type type) => type.Find<AutoSaveAttribute>();
+
+    /// <summary>The AutoSave trigger on the wire: <c>{type: "AutoSave", actionId, debounceMillis}</c>
+    /// (mirrors Java's AutoSaveTriggerDto; debounceMillis always travels — 0 means no debounce).</summary>
+    internal static object AutoSaveTrigger(string actionId, int debounceMillis) =>
+        new { type = "AutoSave", actionId, debounceMillis };
 
     public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null,
         bool embedded = false, bool inline = false)
@@ -369,6 +383,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         foreach (var id in TriggeredActionIds(type))
             if (actions.All(a => a.Id != id) && ActionGuard.HandlesTreeAction(type, id))
                 actions.Add(new ActionDto(id, ValidationRequired: false));
+        // [AutoSave]: the debounced save may follow any change, so the component claims every
+        // action ("*", first — Java's ActionMapper adds it for an @AutoSave class)
+        if (AutoSaveOf(type) is not null && actions.All(a => a.Id != "*"))
+            actions.Insert(0, new ActionDto("*", ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });

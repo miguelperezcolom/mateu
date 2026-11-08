@@ -235,6 +235,7 @@ public class WireConformanceTests
         { "field-hints", typeof(Wire.FieldHintsPage) },
         { "page-toolbar", typeof(Wire.PageToolbarForm) },
         { "form-columns", typeof(Wire.FormColumnsForm) },
+        { "auto-save", typeof(Wire.AutoSaveForm) },
     };
 
     [Fact]

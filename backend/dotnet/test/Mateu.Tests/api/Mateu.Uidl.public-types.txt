@@ -29,8 +29,10 @@ Mateu.Uidl.AppVariant
 Mateu.Uidl.ArchetypeComposers
 Mateu.Uidl.AsideAttribute
 Mateu.Uidl.AudienceAttribute
+Mateu.Uidl.AutoEditableView`1
 Mateu.Uidl.AutoLayoutAttribute
 Mateu.Uidl.AutoPageAttribute
+Mateu.Uidl.AutoSaveAttribute
 Mateu.Uidl.Avatar
 Mateu.Uidl.AvatarGroup
 Mateu.Uidl.Badge
@@ -91,6 +93,7 @@ Mateu.Uidl.DataManagement
 Mateu.Uidl.DataManagementPage
 Mateu.Uidl.DateRange
 Mateu.Uidl.DeclaredRestSource
+Mateu.Uidl.DetailPartAttribute
 Mateu.Uidl.Details
 Mateu.Uidl.Dialog
 Mateu.Uidl.DisabledAttribute
@@ -103,7 +106,9 @@ Mateu.Uidl.Drawer
 Mateu.Uidl.DrawerPosition
 Mateu.Uidl.DrawerSize
 Mateu.Uidl.DropZone
+Mateu.Uidl.EditableView`2
 Mateu.Uidl.Element
+Mateu.Uidl.EmbeddedChrome
 Mateu.Uidl.EmbeddedView
 Mateu.Uidl.Emit
 Mateu.Uidl.EmitsAttribute
@@ -165,6 +170,7 @@ Mateu.Uidl.Heatmap
 Mateu.Uidl.HelpAttribute
 Mateu.Uidl.HeroSearchPage
 Mateu.Uidl.HeroSearch`1
+Mateu.Uidl.HeroSearch`2
 Mateu.Uidl.HeroSection
 Mateu.Uidl.HeroTone
 Mateu.Uidl.HiddenAttribute
@@ -184,6 +190,7 @@ Mateu.Uidl.IDataManagement
 Mateu.Uidl.IDeletable`1
 Mateu.Uidl.IDetailContentSupplier
 Mateu.Uidl.IDraftable
+Mateu.Uidl.IEditableView
 Mateu.Uidl.IEditable`2
 Mateu.Uidl.IFieldTypeCatalogSupplier
 Mateu.Uidl.IFilterable`1
@@ -201,6 +208,7 @@ Mateu.Uidl.ILinkSupplier
 Mateu.Uidl.IListingExporter
 Mateu.Uidl.IListing`1
 Mateu.Uidl.ILookupLabelSupplier
+Mateu.Uidl.IMasterDetailView
 Mateu.Uidl.IMicroFrontendResolutionListener
 Mateu.Uidl.INavigable`2
 Mateu.Uidl.INotificationsSupplier
@@ -262,6 +270,7 @@ Mateu.Uidl.MapMarker
 Mateu.Uidl.MarkClean
 Mateu.Uidl.MarkDirty
 Mateu.Uidl.Markdown
+Mateu.Uidl.MasterDetailView
 Mateu.Uidl.MateuEnvironment
 Mateu.Uidl.MatrixCell
 Mateu.Uidl.MatrixColumn
@@ -289,6 +298,7 @@ Mateu.Uidl.MultilineAttribute
 Mateu.Uidl.MultimediaContentPage
 Mateu.Uidl.NavLink
 Mateu.Uidl.Navigate
+Mateu.Uidl.NoSelection
 Mateu.Uidl.Notice
 Mateu.Uidl.Notification
 Mateu.Uidl.NumberRange
@@ -423,6 +433,7 @@ Mateu.Uidl.UseRadioButtonsAttribute
 Mateu.Uidl.UserFacingException
 Mateu.Uidl.VersionAttribute
 Mateu.Uidl.VerticalLayout
+Mateu.Uidl.ViewToolbarButtonAttribute
 Mateu.Uidl.Welcome
 Mateu.Uidl.WelcomeBannerAttribute
 Mateu.Uidl.WelcomePage

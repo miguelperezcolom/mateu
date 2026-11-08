@@ -81,9 +81,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
-        return pending.Value
+        // — and an EMBEDDED micro frontend's answer never names the window (EmbeddedWindowCommands)
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? await ResolveMicroFrontendsAsync(increment, cancellationToken).ConfigureAwait(false)
-            : increment;
+            : increment, rq);
     }
 
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
@@ -99,9 +100,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     {
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
-        return pending.Value
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
-            : increment;
+            : increment, rq);
     }
 
     private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>
@@ -209,6 +210,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // without interaction capabilities fall through to their own path below.
         if (ResolveCapability(rq) is { } cap)
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
+
+        // 2a'. An editable view (EditableView / AutoEditableView: view ⇄ /edit) or a master-detail
+        // view (button bar of detail parts) — Java's MultiView orchestrators of the same names.
+        if (ResolveOrchestratedView(rq) is { } orchestrated)
+            return HandleOrchestratedView(orchestrated.Type, orchestrated.BaseRoute, rq);
 
         // The AUTHORED registry answers before the attribute-declared views — explicit beats
         // derived, the same precedence the layout and page inference already use. Its parameters are

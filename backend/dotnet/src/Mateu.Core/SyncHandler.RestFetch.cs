@@ -16,6 +16,11 @@ internal sealed partial class SyncHandler
     /// so the renderer shows an error rather than toasting "Saved" over a write that never happened.</summary>
     private async Task<UIIncrementDto> RestFetchResponseAsync(RunActionRqDto rq, CancellationToken cancellationToken)
     {
+        // the route's parameters over the state on this leg too — FIXED ones win over whatever the
+        // client sent, as on the route load (a pin enforced only in the browser would be a suggestion;
+        // mirrors Java's RouteSegmentUtils applied to the proxied fetch)
+        if (_routes.Match(rq.Route) is { } routeMatch)
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, RequestQuery?.Invoke()) };
         object? json = new Dictionary<string, object?>();
         if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
         {

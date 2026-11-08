@@ -161,10 +161,19 @@ Mateu.Uidl.AsideAttribute property System.String Position { get;init; }
 Mateu.Uidl.AsideAttribute property System.String Width { get;init; }
 Mateu.Uidl.AudienceAttribute ctor(System.String[])
 Mateu.Uidl.AudienceAttribute property System.String[] Audiences { get; }
+Mateu.Uidl.AutoEditableView<T> abstract method System.Void Persist(T)
+Mateu.Uidl.AutoEditableView<T> abstract method T Load()
+Mateu.Uidl.AutoEditableView<T> ctor()
+Mateu.Uidl.AutoEditableView<T> virtual method System.Void Save(T)
+Mateu.Uidl.AutoEditableView<T> virtual method T Editor()
+Mateu.Uidl.AutoEditableView<T> virtual method T View()
 Mateu.Uidl.AutoLayoutAttribute ctor(System.Boolean = True)
 Mateu.Uidl.AutoLayoutAttribute property System.Boolean Value { get; }
 Mateu.Uidl.AutoPageAttribute ctor(System.Boolean = True)
 Mateu.Uidl.AutoPageAttribute property System.Boolean Value { get; }
+Mateu.Uidl.AutoSaveAttribute ctor()
+Mateu.Uidl.AutoSaveAttribute property System.Int32 DebounceMillis { get;set; }
+Mateu.Uidl.AutoSaveAttribute property System.String Action { get;set; }
 Mateu.Uidl.Avatar ctor()
 Mateu.Uidl.Avatar property System.String Abbreviation { get;init; }
 Mateu.Uidl.Avatar property System.String Image { get;init; }
@@ -414,6 +423,7 @@ Mateu.Uidl.Crud<T> property System.String SaveAndNextLabel { get; }
 Mateu.Uidl.Crud<T> static method System.String IdOf(T)
 Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.ListingData<T> Search(Mateu.Uidl.SearchRequest)
 Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.PageResult<T> Find(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, Mateu.Uidl.Pageable)
+Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.PageResult<T> Find(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FilterCriterion>, Mateu.Uidl.Pageable)
 Mateu.Uidl.Crud<T> virtual method System.String NextIdAfter(System.String)
 Mateu.Uidl.Crud<T> virtual method System.Void Delete(System.String)
 Mateu.Uidl.Crud<T> virtual method System.Void DeleteAllById(System.Collections.Generic.IReadOnlyList<System.String>)
@@ -478,6 +488,10 @@ Mateu.Uidl.DeclaredRestSource ctor(Mateu.Uidl.RestSourceKind, System.String, Mat
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestDataSource Source { get;init; }
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestSourceKind Kind { get;init; }
 Mateu.Uidl.DeclaredRestSource property System.String Id { get;init; }
+Mateu.Uidl.DetailPartAttribute ctor()
+Mateu.Uidl.DetailPartAttribute property System.Int32 Order { get;set; }
+Mateu.Uidl.DetailPartAttribute property System.String Key { get;set; }
+Mateu.Uidl.DetailPartAttribute property System.String Label { get;set; }
 Mateu.Uidl.Details ctor()
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Summary { get;init; }
@@ -550,12 +564,20 @@ Mateu.Uidl.DropZone property System.String Accept { get;init; }
 Mateu.Uidl.DropZone property System.String ActionId { get;init; }
 Mateu.Uidl.DropZone property System.String Subtitle { get;init; }
 Mateu.Uidl.DropZone property System.String Title { get;init; }
+Mateu.Uidl.EditableView<TView,TEditor> abstract method System.Void Save(TEditor)
+Mateu.Uidl.EditableView<TView,TEditor> abstract method TEditor Editor()
+Mateu.Uidl.EditableView<TView,TEditor> abstract method TView View()
+Mateu.Uidl.EditableView<TView,TEditor> ctor()
+Mateu.Uidl.EditableView<TView,TEditor> property System.Boolean ReadOnly { get; }
 Mateu.Uidl.Element ctor(System.String)
 Mateu.Uidl.Element property System.Boolean Html { get;init; }
 Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Attributes { get;init; }
 Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> On { get;init; }
 Mateu.Uidl.Element property System.String Content { get;init; }
 Mateu.Uidl.Element property System.String Name { get;init; }
+Mateu.Uidl.EmbeddedChrome enum Compact
+Mateu.Uidl.EmbeddedChrome enum None
+Mateu.Uidl.EmbeddedChrome enum Page
 Mateu.Uidl.EmbeddedView ctor(System.Object)
 Mateu.Uidl.EmbeddedView property System.Object View { get;init; }
 Mateu.Uidl.Emit ctor(System.String, System.Object = null)
@@ -795,6 +817,7 @@ Mateu.Uidl.GeneralOverview<TRow> property Mateu.Uidl.GeneralOverviewDisplay Disp
 Mateu.Uidl.GeneralOverview<TRow> property System.Int32 RefreshDebounceMillis { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String InfoWidth { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String Record { get;set; }
+Mateu.Uidl.GeneralOverview<TRow> property System.String RecordLabel { get; }
 Mateu.Uidl.GeneralOverview<TRow> property System.String RefreshActionId { get; }
 Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent EmptyOverview()
 Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent Info(TRow)
@@ -860,6 +883,11 @@ Mateu.Uidl.HeroSearch<T> virtual method System.String HeroSubtitle()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroTitle()
 Mateu.Uidl.HeroSearchPage ctor()
 Mateu.Uidl.HeroSearchPage property System.String BackgroundColor { get;init; }
+Mateu.Uidl.HeroSearch<TFilters,TRow> ctor()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String GridLayout()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroImage()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroSubtitle()
+Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroTitle()
 Mateu.Uidl.HeroSection ctor()
 Mateu.Uidl.HeroSection property Mateu.Uidl.HeroTone Tone { get;init; }
 Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }
@@ -920,6 +948,10 @@ Mateu.Uidl.IDraftable virtual method System.Int32? ResumeStep()
 Mateu.Uidl.IDraftable virtual method System.Object CloseDraft()
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TEditor Edit(TId)
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TId Save(TEditor)
+Mateu.Uidl.IEditableView abstract method System.Object LoadEditor()
+Mateu.Uidl.IEditableView abstract method System.Object LoadView()
+Mateu.Uidl.IEditableView abstract method System.Void SaveEditor(System.Object)
+Mateu.Uidl.IEditableView property System.Boolean ReadOnly { get; }
 Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
 Mateu.Uidl.IFragmentCachePolicySupplier abstract method Mateu.Uidl.FragmentCachePolicy CachePolicy(Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.IFragmentCacheStore abstract method System.String Get(System.String)
@@ -939,6 +971,10 @@ Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Ma
 Mateu.Uidl.IListingExporter abstract method Mateu.Uidl.ExportedFile Export(Mateu.Uidl.ListingExport)
 Mateu.Uidl.IListingExporter property Mateu.Uidl.ExportFormat Format { get; }
 Mateu.Uidl.ILookupLabelSupplier abstract method System.String Label(System.String, System.Object)
+Mateu.Uidl.IMasterDetailView abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> PageHeader()
+Mateu.Uidl.IMasterDetailView abstract method System.String PageTitle()
+Mateu.Uidl.IMasterDetailView abstract method System.Void LoadParts()
+Mateu.Uidl.IMasterDetailView property Mateu.Uidl.NoSelection WhenNothingSelected { get; }
 Mateu.Uidl.IMicroFrontendResolutionListener abstract method System.Void OnResolution(Mateu.Uidl.MicroFrontendResolutionEvent)
 Mateu.Uidl.INavigable<TDetail,TId> abstract method TDetail View(TId)
 Mateu.Uidl.INotificationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> Notifications()
@@ -1174,6 +1210,11 @@ Mateu.Uidl.MarkClean ctor()
 Mateu.Uidl.MarkDirty ctor()
 Mateu.Uidl.Markdown ctor()
 Mateu.Uidl.Markdown property System.String MarkdownText { get;init; }
+Mateu.Uidl.MasterDetailView abstract method System.Void Load()
+Mateu.Uidl.MasterDetailView ctor()
+Mateu.Uidl.MasterDetailView property Mateu.Uidl.NoSelection NoSelection { get; }
+Mateu.Uidl.MasterDetailView virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Header()
+Mateu.Uidl.MasterDetailView virtual method System.String Title()
 Mateu.Uidl.MateuEnvironment ctor(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride>)
 Mateu.Uidl.MateuEnvironment property System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride> Sources { get;init; }
 Mateu.Uidl.MateuEnvironment property System.String Name { get;init; }
@@ -1284,6 +1325,7 @@ Mateu.Uidl.MetricTrend enum Down
 Mateu.Uidl.MetricTrend enum Neutral
 Mateu.Uidl.MetricTrend enum Up
 Mateu.Uidl.MicroFrontend ctor(System.String, System.String = "")
+Mateu.Uidl.MicroFrontend property Mateu.Uidl.EmbeddedChrome? Chrome { get;init; }
 Mateu.Uidl.MicroFrontend property Mateu.Uidl.Resolve Resolve { get;init; }
 Mateu.Uidl.MicroFrontend property System.Int32? TimeoutMs { get;init; }
 Mateu.Uidl.MicroFrontend property System.Object AppState { get;init; }
@@ -1325,6 +1367,8 @@ Mateu.Uidl.NavLink property System.String Target { get;init; }
 Mateu.Uidl.NavLink property System.String Title { get;init; }
 Mateu.Uidl.Navigate ctor(System.String)
 Mateu.Uidl.Navigate property System.String Route { get;init; }
+Mateu.Uidl.NoSelection enum Empty
+Mateu.Uidl.NoSelection enum First
 Mateu.Uidl.Notice ctor(System.String)
 Mateu.Uidl.Notice property System.Boolean FullWidth { get;init; }
 Mateu.Uidl.Notice property System.Boolean InlineContent { get;init; }
@@ -1945,6 +1989,8 @@ Mateu.Uidl.VersionAttribute ctor()
 Mateu.Uidl.VerticalLayout ctor()
 Mateu.Uidl.VerticalLayout property System.Boolean Spacing { get;init; }
 Mateu.Uidl.VerticalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.ViewToolbarButtonAttribute ctor()
+Mateu.Uidl.ViewToolbarButtonAttribute property System.Boolean ConfirmationRequired { get;set; }
 Mateu.Uidl.Welcome ctor()
 Mateu.Uidl.Welcome method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.Welcome property Mateu.Uidl.HeroTone HeroTone { get; }

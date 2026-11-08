@@ -21,6 +21,16 @@ public class FormColumnsForm
     public string? Notes { get; set; } = "Analyst";
 }
 
+// A class-level [AutoSave]: every change runs the named action after the debounce.
+[UI("conformance/auto-save"), Title("Settings"), AutoSave(DebounceMillis = 500, Action = "persist")]
+public class AutoSaveForm
+{
+    public string? Nickname { get; set; } = "ada";
+    public bool Newsletter { get; set; }
+
+    [Action] public Message Persist() => new("Saved");
+}
+
 [UI("conformance/simple-form"), Title("Simple form"), Subtitle("Every basic field kind")]
 public class SimpleForm
 {
