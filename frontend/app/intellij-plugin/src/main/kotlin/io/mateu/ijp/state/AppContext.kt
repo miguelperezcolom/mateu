@@ -489,6 +489,7 @@ class AppContext(val session: AppSession) {
             // a LongTask: each increment is applied as it arrives — its Progress commands feed the
             // session's task center (platform tasks), which outlives this view
             val taskIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+            val streamRoute = currentRoute
             val retry: () -> Unit = { runAction(actionId, parameters, silent) }
             background(
                 work = {
@@ -496,7 +497,10 @@ class AppContext(val session: AppSession) {
                         currentRoute, currentConsumedRoute, actionId, serverSideType,
                         currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
                     ) { increment ->
-                        ProgressTasks.commandsOf(increment).forEach { taskIds.add(it.taskId) }
+                        val reported = ProgressTasks.commandsOf(increment)
+                        reported.forEach { taskIds.add(it.taskId) }
+                        // remembered for the IDE session: a reload or a broken stream picks it up again
+                        session.observeTasks(reported, streamRoute, serverSideType)
                         SwingUtilities.invokeLater {
                             streamRetry = retry
                             try { applyIncrement(increment) } finally { streamRetry = null }
@@ -505,12 +509,13 @@ class AppContext(val session: AppSession) {
                     com.fasterxml.jackson.databind.node.NullNode.instance
                 },
                 onOk = {
-                    session.tasks.streamEnded(taskIds)
+                    // a task the stream left running is resumed (the server keeps it for a grace period)
+                    session.streamEnded(taskIds)
                     polling.actionSucceeded(generation, actionId)
                     onDone?.invoke(true)
                 },
                 onErr = {
-                    session.tasks.streamEnded(taskIds)
+                    session.streamEnded(taskIds)
                     if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
                     else showError("Action failed: ${it.message}")
                     onDone?.invoke(false)
@@ -787,6 +792,8 @@ class AppContext(val session: AppSession) {
         // context, the initiator component whose action produced the message.
         for (spec in MessageSpecs.messagesOf(increment)) {
             if (spec.text.isBlank()) continue
+            // an inbox message while the IDE is not in front: the OS too (@App(osNotifications))
+            session.osNotice(OsNotices.Event.InboxMessage(spec))
             val presenter = session.messagePresenter
             if (presenter != null && !silentErrors) {
                 SwingUtilities.invokeLater { presenter(spec) { action -> runNoticeAction(action) } }
