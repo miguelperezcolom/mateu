@@ -553,6 +553,53 @@ public static class Books
     ];
 }
 
+// The Products crud with two BULK listing buttons: one dressed by [Toolbar] and confirmed with
+// the [ActionOptions] texts, one needing no selection — declared in the reverse of their Order
+// (Java's @ListToolbarButton + @Toolbar + @Action).
+[UI("conformance/bulk-actions"), Title("Products")]
+public class BulkProductsCrud : Crud<Product>
+{
+    private static readonly List<Product> Store =
+    [
+        new() { Id = "P-001", Name = "Espresso machine", Price = 249.0, Status = ProductStatus.Available },
+        new() { Id = "P-002", Name = "Coffee grinder", Price = 89.5, Status = ProductStatus.Available },
+        new() { Id = "P-003", Name = "Milk frother", Price = 39.9, Status = ProductStatus.OutOfStock },
+    ];
+
+    public override IEnumerable<Product> Fetch(string? search) => Store;
+    public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
+    public override void Save(Product product) { }
+    public override void Delete(string id) { }
+
+    [ListToolbarButton(confirmationRequired: true)]
+    [Toolbar(ButtonStyle = "secondary", ButtonColor = "error", ButtonSize = "small", Order = 10)]
+    [ActionOptions(ConfirmationTitle = "Discontinue products",
+        ConfirmationMessage = "The selected products leave the catalogue.",
+        ConfirmationText = "Discontinue them", ConfirmationDenialText = "Keep them")]
+    [Label("Discontinue")]
+    public Message Discontinue(List<Product> selection) => new($"{selection.Count} discontinued");
+
+    [ListToolbarButton(rowsSelectedRequired: false)]
+    [Toolbar(Order = 1)]
+    [Label("Refresh prices")]
+    public Message RefreshPrices() => new("Prices refreshed");
+}
+
+// A read-only listing (no interaction capability) with the dressed and confirmed bulk button.
+[UI("conformance/bulk-actions-listing"), Title("Books")]
+public class BulkBooks : IListing<Book>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+
+    [ListToolbarButton(confirmationRequired: true)]
+    [Toolbar(ButtonStyle = "secondary", ButtonColor = "error", ButtonSize = "small", Order = 10)]
+    [ActionOptions(ConfirmationTitle = "Withdraw books",
+        ConfirmationMessage = "The selected books leave the shelves.",
+        ConfirmationText = "Withdraw them", ConfirmationDenialText = "Keep them")]
+    [Label("Withdraw")]
+    public Message Withdraw(List<Book> selection) => new($"{selection.Count} withdrawn");
+}
+
 // A read-only listing that declares a search box and a filters type — nothing else.
 [UI("conformance/listing-filters"), Title("Books")]
 public class FilteredBooks : IListing<Book>, Mateu.Uidl.ISearchable, IFilterable<BookFilters>

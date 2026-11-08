@@ -23,6 +23,10 @@ class Button(Wire):
     button_style: str | None = None
     #: The button's colour theme (e.g. "error" on a crud's Delete) — mirrors ButtonDto.color.
     color: str | None = None
+    #: The button's size (small | large…; None = the default) — mirrors ButtonDto.size.
+    size: str | None = None
+    #: Draws a separator before the button — mirrors ButtonDto.separatorBefore.
+    separator_before: bool = False
     shortcut: str | None = None
     # a bulk action (@list_toolbar_button): the renderer disables the button while no row is
     # selected — on the BUTTON so no renderer has to look the advertised action up by id

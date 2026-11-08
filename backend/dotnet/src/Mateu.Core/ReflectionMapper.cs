@@ -163,7 +163,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
         bool Offered(MethodInfo m) => ForCurrentAudience(m) && Authorized(m.Find<EyesOnlyAttribute>());
         // [Toolbar] methods: the header toolbar (Java's @Toolbar); advertised before the buttons
-        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m)).ToList();
+        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m))
+            .OrderBy(m => m.Find<ToolbarAttribute>()!.Order).ToList();
         var toolbar = toolbarMethods.Select(MapToolbarButton).ToList();
         var buttonMethods = toolbarMethods
             .Concat(declaredMethods.Where(m => m.Find<ButtonAttribute>() != null && m.Find<ToolbarAttribute>() == null && Offered(m)))

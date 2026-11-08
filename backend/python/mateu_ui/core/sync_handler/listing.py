@@ -122,9 +122,13 @@ class ListingHandlerMixin(MixinBase):
         # A selector dialog's row pick: write (id, label) back into the host field.
         if aid == "action-on-row-select" and issubclass(cls, Selector):
             return self.selector_row_selected(view, row_type, rq)
-        # A @list_toolbar_button bulk method declared on the listing itself.
+        # A @list_toolbar_button bulk method declared on the listing itself: a plain listing
+        # dispatches it by the method's own name (Java's Listing.actions), a bridged one — and
+        # any listing, through the open wildcard — as action-on-row-<method>.
         if aid and aid.startswith("action-on-row-"):
-            return self.listing_bulk_action(view, cls, row_type, rq)
+            return self.listing_bulk_action(view, cls, row_type, rq, aid[len("action-on-row-"):])
+        if aid and hasattr(action_guard.resolve_row_action(cls, aid), action_guard.ROW_ACTION_MARKER):
+            return self.listing_bulk_action(view, cls, row_type, rq, aid)
 
         if navigable and aid == "view":
             row_id = self._row_id(rq)
@@ -246,12 +250,12 @@ class ListingHandlerMixin(MixinBase):
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],
         )
 
-    def listing_bulk_action(self, view, cls, row_type, rq: RunActionRq) -> UIIncrement:
+    def listing_bulk_action(self, view, cls, row_type, rq: RunActionRq, name: str) -> UIIncrement:
         """A @list_toolbar_button bulk action on a capability listing: runs the named method
         with the grid's selected rows rebuilt as typed Row objects; a None result re-runs the
         search so the listing reflects the changes."""
         # Only a @list_toolbar_button method is a bulk row action (security: the id is wire input).
-        fn = action_guard.resolve_row_action(cls, (rq.action_id or "")[len("action-on-row-"):])
+        fn = action_guard.resolve_row_action(cls, name)
         if fn is None:
             action_guard.no_such_action(cls, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)

@@ -156,7 +156,7 @@ public class WireConformanceTests
         ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
          "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new",
-         "editable-view", "editable-view-edit", "view-toolbar-button"];
+         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
@@ -276,6 +276,8 @@ public class WireConformanceTests
         { "definition-proxied-listing", typeof(YamlCase) },
         { "inline-form", typeof(Wire.InlineForm) },
         { "inline-form-action", typeof(Wire.InlineForm) },
+        { "bulk-actions", typeof(Wire.BulkProductsCrud) },
+        { "bulk-actions-listing", typeof(Wire.BulkBooks) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

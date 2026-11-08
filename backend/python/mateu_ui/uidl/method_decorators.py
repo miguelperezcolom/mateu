@@ -32,12 +32,26 @@ def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
 
 
-def toolbar(arg=None, *, button_style: str | None = None):
+def toolbar(
+    arg=None,
+    *,
+    button_style: str | None = None,
+    button_color: str | None = None,
+    button_size: str | None = None,
+    order: int = 0,
+    separator_before: bool = False,
+):
     """A method exposed as a button on the page header's TOOLBAR (Java's ``@Toolbar``): labelled
     by the decorator's argument, else the humanized method name; styled ``button_style``
-    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default). Advertised
-    as an action like a ``@button``, with client and server validation. Supports ``@toolbar``,
-    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``."""
+    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default),
+    ``button_color`` (normal | success | error | contrast… None = the default colour) and
+    ``button_size`` (small | large… None = the default size), with ``separator_before`` drawing a
+    separator before it and ``order`` placing it among its siblings (ascending). Advertised as an
+    action like a ``@button``, with client and server validation. Supports ``@toolbar``,
+    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``.
+
+    Beside ``@list_toolbar_button`` it only DRESSES the bulk button (Java's ``@Toolbar`` next to
+    ``@ListToolbarButton``): the button stays on the listing toolbar."""
     if callable(arg) and not isinstance(arg, str):  # used bare: arg is the method
         setattr(arg, "__mateu_toolbar__", True)
         return arg
@@ -45,9 +59,23 @@ def toolbar(arg=None, *, button_style: str | None = None):
     def deco(fn):
         setattr(fn, "__mateu_toolbar__", arg or True)
         setattr(fn, "__mateu_toolbar_style__", button_style)
+        setattr(fn, "__mateu_toolbar_look__", ToolbarLook(
+            button_color=button_color, button_size=button_size, order=order,
+            separator_before=separator_before,
+        ))
         return fn
 
     return deco
+
+
+@dataclass(frozen=True)
+class ToolbarLook:
+    """The rest of a ``@toolbar``'s appearance besides its style (Java's ``@Toolbar``)."""
+
+    button_color: str | None = None
+    button_size: str | None = None
+    order: int = 0
+    separator_before: bool = False
 
 
 def action(arg=None):

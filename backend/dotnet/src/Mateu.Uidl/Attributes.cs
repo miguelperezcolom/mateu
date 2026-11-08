@@ -177,13 +177,26 @@ public sealed class ButtonAttribute(string? label = null) : Attribute
 /// <summary>A method exposed as a button on the page header's TOOLBAR (Java's <c>@Toolbar</c>):
 /// labelled <see cref="Label"/>, else its [Label], else the humanized method name; styled
 /// <see cref="ButtonStyle"/> (primary | secondary | tertiary | tertiaryInline; null = the
-/// renderer's default). Advertised as an action like a [Button], with client and server
-/// validation.</summary>
+/// renderer's default), coloured <see cref="ButtonColor"/> (normal | success | error | contrast…),
+/// sized <see cref="ButtonSize"/> (small | large…), with <see cref="SeparatorBefore"/> drawing a
+/// separator before it and <see cref="Order"/> placing it among its siblings (ascending).
+/// Advertised as an action like a [Button], with client and server validation. Beside
+/// [ListToolbarButton] it only DRESSES the bulk button (Java's @Toolbar next to
+/// @ListToolbarButton): the button stays on the listing toolbar.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ToolbarAttribute(string? label = null) : Attribute
 {
     public string? Label { get; } = label;
     public string? ButtonStyle { get; init; }
+    /// <summary>The colour role; null or "none" = the default colour (Java's buttonColor).</summary>
+    public string? ButtonColor { get; init; }
+    /// <summary>The size; null or "none" = the default size (Java's buttonSize).</summary>
+    public string? ButtonSize { get; init; }
+    /// <summary>Draws a separator before this button (Java's separatorBefore).</summary>
+    public bool SeparatorBefore { get; init; }
+    /// <summary>Position among its siblings, ascending — reflection does not keep declaration
+    /// order (Java's order).</summary>
+    public int Order { get; init; }
 }
 
 /// <summary>Declares a method as a server-side ACTION without rendering a button for it: the

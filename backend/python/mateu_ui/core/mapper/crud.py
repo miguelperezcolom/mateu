@@ -87,6 +87,7 @@ from ._common import (
     enum_set_element_type,
     is_enum,
     listing_types,
+    with_action_options,
 )
 
 
@@ -184,28 +185,11 @@ class CrudMapperMixin(MixinBase):
         exports = self.export_action_ids(cls, instance)
         for i, aid in enumerate(exports):
             toolbar.insert(i, Button(label=FORMATS[aid][1].button_label, action_id=aid))
-        # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
-        # action-on-row-<method> over the grid's selected rows; the action advertises the
-        # confirmation/selection-required flags the frontend enforces (mirrors Java's
-        # Crud.addButtonsToList + CrudActionsBuilder).
-        bulk_actions = []
-        for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
-            if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
-                continue  # refused on invocation, and not advertised to this caller either
-            marker = getattr(fn, "__mateu_list_toolbar_button__")
-            action_id = "action-on-row-" + camel_case(name)
-            toolbar.append(Button(
-                label=self.T(marker.label or humanize(name)),
-                action_id=action_id,
-                rows_selected_required=marker.rows_selected_required,
-            ))
-            bulk_actions.append(Action(
-                id=action_id,
-                validation_required=False,
-                confirmation_required=marker.confirmation_required,
-                rows_selected_required=marker.rows_selected_required,
-                bubble=True,
-            ))
+        # @list_toolbar_button methods: BULK list actions — listing toolbar buttons dispatching
+        # action-on-row-<method> over the grid's selected rows, LEADING the toolbar (Java's
+        # Crud.addButtonsToList + CrudActionsBuilder, run before the built-in buttons).
+        bulk_buttons, bulk_actions = self.bulk_toolbar(cls, "action-on-row-", bubble=True)
+        toolbar = bulk_buttons + toolbar
         crud = self.client(
             CrudMetadata(
                 title=title,
@@ -423,6 +407,50 @@ class CrudMapperMixin(MixinBase):
             display = replace(display, delete=Toggle.off)
         return display
 
+    def bulk_toolbar(self, cls, prefix: str, bubble: bool) -> tuple[list[Button], list[Action]]:
+        """The ``@list_toolbar_button`` methods of ``cls`` as listing toolbar buttons and their
+        advertised actions (Java's ``ToolbarButtons.listToolbarButton`` / ``toolbarAction``):
+        dressed by a ``@toolbar`` on the same method (style, colour, size, separator; unset keeps
+        the renderer's default), ordered by its ``order`` (stable), and behaving as an
+        ``@action_options`` on it declares — confirmation texts, transport knobs — with the
+        placement's confirmation/selection flags OR-ed in. Methods the caller may not see are
+        left out (refused on invocation anyway)."""
+        from mateu_ui.uidl.method_decorators import ToolbarLook
+
+        def look(fn) -> ToolbarLook:
+            return getattr(fn, "__mateu_toolbar_look__", None) or ToolbarLook()
+
+        methods = [
+            (name, fn) for name, fn in methods_with(cls, "__mateu_list_toolbar_button__")
+            if self.authorized(getattr(fn, "__mateu_eyes_only__", None))
+        ]
+        methods.sort(key=lambda m: look(m[1]).order)
+        buttons: list[Button] = []
+        actions: list[Action] = []
+        for name, fn in methods:
+            marker = getattr(fn, "__mateu_list_toolbar_button__")
+            action_id = prefix + camel_case(name)
+            style = getattr(fn, "__mateu_toolbar_style__", None)
+            appearance = look(fn)
+            buttons.append(Button(
+                label=self.T(marker.label or humanize(name)),
+                action_id=action_id,
+                button_style=style if style and style != "none" else None,
+                color=appearance.button_color if appearance.button_color != "none" else None,
+                size=appearance.button_size if appearance.button_size != "none" else None,
+                separator_before=appearance.separator_before,
+                rows_selected_required=marker.rows_selected_required,
+            ))
+            action = with_action_options(Action(
+                id=action_id,
+                validation_required=False,
+                confirmation_required=marker.confirmation_required,
+                rows_selected_required=marker.rows_selected_required,
+                bubble=bubble,
+            ), cls, camel_case(name))
+            actions.append(action)
+        return buttons, actions
+
     def map_listing(self, cls, route: str) -> ServerSideComponent:
         """A capability Listing view: columns from the Row type, and every further feature only
         because the class DECLARES the capability (mirrors Java's ``CapabilityCrud``) —
@@ -484,26 +512,14 @@ class CrudMapperMixin(MixinBase):
             toolbar.append(Button(label="New", action_id="new"))
         if deletable:
             toolbar.append(Button(label="Delete", action_id="delete", color="error"))
-        # @list_toolbar_button methods on the listing: BULK actions over the selected rows
-        # (mirrors Java's behaviourSource — the bridged listing's methods become toolbar
-        # buttons).
-        for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
-            if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
-                continue  # refused on invocation, and not advertised to this caller either
-            marker = getattr(fn, "__mateu_list_toolbar_button__")
-            action_id = "action-on-row-" + camel_case(name)
-            toolbar.append(Button(
-                label=self.T(marker.label or humanize(name)),
-                action_id=action_id,
-                rows_selected_required=marker.rows_selected_required,
-            ))
-            actions.append(Action(
-                id=action_id,
-                validation_required=False,
-                confirmation_required=marker.confirmation_required,
-                rows_selected_required=marker.rows_selected_required,
-                bubble=True,
-            ))
+        # @list_toolbar_button methods on the listing: BULK actions over the selected rows,
+        # LEADING the toolbar. A bridged listing (a CRUD) reaches them as action-on-row-<method>
+        # and lets them bubble (Java's CapabilityCrud → Crud.addButtonsToList); a plain one by
+        # the method's own name, right after search (Java's Listing.actions + PageListingBuilder).
+        bulk_buttons, bulk_actions = self.bulk_toolbar(
+            cls, "action-on-row-" if bridged else "", bubble=bridged)
+        toolbar = bulk_buttons + toolbar
+        actions[1:1] = bulk_actions
         if issubclass(cls, Selector):
             # The rows of a selector dialog show a Select button (the frontend keys on the
             # "select" action column) and clicking dispatches action-on-row-select.
@@ -572,8 +588,10 @@ class CrudMapperMixin(MixinBase):
             page_style = FULL_WIDTH
         else:
             page = self.client(
+                # the page header shows the title and the listing's bulk buttons on one line
+                # (Java's ReflectionPageMapper.listingPageToolbar)
                 PageMetadata(title=title, page_title=humanize(cls.__name__),
-                             page_type=page_type_of(cls)),
+                             page_type=page_type_of(cls), toolbar=list(bulk_buttons)),
                 None, page_children,
             )
             page_style = None

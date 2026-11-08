@@ -2168,6 +2168,10 @@ Mateu.Uidl.Toggle enum On
 Mateu.Uidl.ToggleExtensions static method System.Boolean Enabled(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToggleExtensions static method System.Boolean Shown(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToolbarAttribute ctor(System.String = null)
+Mateu.Uidl.ToolbarAttribute property System.Boolean SeparatorBefore { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.Int32 Order { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.String ButtonColor { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.String ButtonSize { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonStyle { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String Label { get; }
 Mateu.Uidl.Tooltip ctor(System.String)

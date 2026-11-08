@@ -686,6 +686,44 @@ class WireConformanceTest {
   }
 
   /**
+   * A CRUD whose listing toolbar carries two BULK buttons: one dressed by {@code @Toolbar} (style,
+   * colour, size, order) and confirmed with the {@code @Action} texts, one that needs no selection
+   * — declared in the reverse of their {@code order}.
+   */
+  @UI("/conformance/bulk-actions")
+  @Title("Products")
+  public static class BulkProductsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(confirmationRequired = true)
+    @io.mateu.uidl.annotations.Toolbar(
+        buttonStyle = io.mateu.uidl.data.ButtonStyle.secondary,
+        buttonColor = io.mateu.uidl.data.ButtonColor.error,
+        buttonSize = io.mateu.uidl.data.ButtonSize.small,
+        order = 10)
+    @io.mateu.uidl.annotations.Action(
+        confirmationTitle = "Discontinue products",
+        confirmationMessage = "The selected products leave the catalogue.",
+        confirmationText = "Discontinue them",
+        confirmationDenialText = "Keep them")
+    @io.mateu.uidl.annotations.Label("Discontinue")
+    public Message discontinue(List<Product> selection) {
+      return Message.success(selection.size() + " discontinued");
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(rowsSelectedRequired = false)
+    @io.mateu.uidl.annotations.Toolbar(order = 1)
+    @io.mateu.uidl.annotations.Label("Refresh prices")
+    public Message refreshPrices() {
+      return Message.success("Prices refreshed");
+    }
+  }
+
+  /**
    * The {@code @Action} knobs the ports gained for 3.0 GA: a streamed background action, a
    * confirmation with its texts, a link, a client script and a custom event — each on the page's
    * {@code actions}.
@@ -1593,6 +1631,36 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * A read-only listing (no interaction capability) with the dressed and confirmed bulk button —
+   * only one: a listing advertises its actions in the JVM's method order, which is unspecified.
+   */
+  @UI("/conformance/bulk-actions-listing")
+  @Title("Books")
+  public static class BulkBooks implements io.mateu.uidl.interfaces.Listing<Book> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(confirmationRequired = true)
+    @io.mateu.uidl.annotations.Toolbar(
+        buttonStyle = io.mateu.uidl.data.ButtonStyle.secondary,
+        buttonColor = io.mateu.uidl.data.ButtonColor.error,
+        buttonSize = io.mateu.uidl.data.ButtonSize.small,
+        order = 10)
+    @io.mateu.uidl.annotations.Action(
+        confirmationTitle = "Withdraw books",
+        confirmationMessage = "The selected books leave the shelves.",
+        confirmationText = "Withdraw them",
+        confirmationDenialText = "Keep them")
+    @io.mateu.uidl.annotations.Label("Withdraw")
+    public Message withdraw(List<Book> selection) {
+      return Message.success(selection.size() + " withdrawn");
+    }
+  }
+
   /** A listing that is navigable: the id column becomes the link to the record. */
   @UI("/conformance/listing-navigable")
   @Title("Books")
@@ -2029,7 +2097,9 @@ class WireConformanceTest {
           "definition-triggers",
           "definition-proxied-listing",
           "inline-form",
-          "inline-form-action");
+          "inline-form-action",
+          "bulk-actions",
+          "bulk-actions-listing");
 
   static TestMateu mateu;
 
@@ -2115,7 +2185,9 @@ class WireConformanceTest {
             HeroBooks.class,
             PageNoBreadcrumbs.class,
             PageBreadcrumbs.class,
-            InlineForm.class);
+            InlineForm.class,
+            BulkProductsCrud.class,
+            BulkBooks.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -2270,7 +2342,8 @@ class WireConformanceTest {
           "crud", ProductsCrud.class,
           "crud-grouped", SalesCrud.class,
           "listing-navigable", NavigableBooks.class,
-          "crud-hidden-in", EmployeesCrud.class);
+          "crud-hidden-in", EmployeesCrud.class,
+          "bulk-actions", BulkProductsCrud.class);
 
   /**
    * Cases loaded by a plain sync whose component is a mediator all the same: the wizard advertises
