@@ -24,6 +24,9 @@ export const renderText = (component: ClientSideComponent, state: ComponentState
     }
     const sizeStyle = (metadata.size && SIZE_VARS[metadata.size] ? `font-size: ${SIZE_VARS[metadata.size]}; ` : '')
         + (metadata.noMargins ? 'margin-block-start: 0; margin-block-end: 0; ' : '')
+        // variants: b = bold, i = italic (they used to be dropped on the way to the wire)
+        + (metadata.variants?.includes('b') ? 'font-weight: bold; ' : '')
+        + (metadata.variants?.includes('i') ? 'font-style: italic; ' : '')
     if (TextContainer.h1 == metadata.container) {
         return html`
             <h1 style="${sizeStyle}${component.style}" class="${component.cssClasses}"

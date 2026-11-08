@@ -5,6 +5,7 @@ import {
   checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged,
   initialPaymentMethod, initialQueueSelection, isImageAvatar, ledgerTotal, noticeShows, offerCtaLabel,
   ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights,
+  textEmphasis,
 } from './displayFigures.ts';
 
 test('sparkline bars span 4..26 over the series range; a flat series sits at the floor', () => {
@@ -97,4 +98,12 @@ test('initial selections and whether a notice shows', () => {
   assert.deepEqual(noticeShows('  ', 0), { hasText: false, shows: false });
   assert.deepEqual(noticeShows(undefined, 2), { hasText: false, shows: true });
   assert.deepEqual(noticeShows('Hi', 0), { hasText: true, shows: true });
+});
+
+test("a Text's variants: b is bold, i italic, none adds nothing", () => {
+  assert.deepEqual(textEmphasis(['b']), { fontWeight: 'bold' });
+  assert.deepEqual(textEmphasis(['i']), { fontStyle: 'italic' });
+  assert.deepEqual(textEmphasis(['b', 'i']), { fontWeight: 'bold', fontStyle: 'italic' });
+  assert.deepEqual(textEmphasis(undefined), {});
+  assert.deepEqual(textEmphasis('b'), {});
 });

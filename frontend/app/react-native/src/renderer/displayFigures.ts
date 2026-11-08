@@ -113,3 +113,12 @@ export const noticeShows = (text: unknown, childCount: number): { hasText: boole
   const hasText = !!((text as string) ?? '').trim();
   return { hasText, shows: hasText || childCount > 0 };
 };
+
+/** A Text's emphasis from its wire `variants`: b → bold, i → italic; nothing otherwise. */
+export function textEmphasis(variants: unknown): { fontWeight?: 'bold'; fontStyle?: 'italic' } {
+  const list = Array.isArray(variants) ? variants : [];
+  return {
+    ...(list.includes('b') ? { fontWeight: 'bold' as const } : {}),
+    ...(list.includes('i') ? { fontStyle: 'italic' as const } : {}),
+  };
+}

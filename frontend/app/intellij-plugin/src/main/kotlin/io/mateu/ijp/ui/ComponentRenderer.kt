@@ -61,6 +61,9 @@ class ComponentRenderer(val ctx: AppContext) {
                     "s" -> label.font = label.font.deriveFont(label.font.size2D * 0.875f)
                     "xs" -> label.font = label.font.deriveFont(label.font.size2D * 0.78f)
                 }
+                // variants: b = bold, i = italic (on top of a heading's own bold)
+                val emphasis = textEmphasis(metadata.get("variants"))
+                if (emphasis != Font.PLAIN) label.font = label.font.deriveFont(label.font.style or emphasis)
             }
             // A horizontal divider line (<hr>) separating contents inside a section or form.
             "Separator" -> javax.swing.JSeparator()
@@ -206,4 +209,10 @@ internal fun headingScale(container: String): Float? = when (container.trim().lo
     "h5" -> 1.05f
     "h6" -> 1.0f
     else -> null
+}
+
+/** A Text's wire `variants` as a font style mask: b → BOLD, i → ITALIC, none → PLAIN. */
+internal fun textEmphasis(variants: com.fasterxml.jackson.databind.JsonNode?): Int {
+    val names = variants?.takeIf { it.isArray }?.map { it.asText() }.orEmpty()
+    return (if ("b" in names) Font.BOLD else 0) or (if ("i" in names) Font.ITALIC else 0)
 }
