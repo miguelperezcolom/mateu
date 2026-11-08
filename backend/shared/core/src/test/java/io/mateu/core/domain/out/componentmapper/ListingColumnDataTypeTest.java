@@ -20,6 +20,10 @@ class ListingColumnDataTypeTest {
     BigDecimal amount;
     String name;
     boolean active;
+    java.time.LocalDate added;
+    java.time.LocalDateTime updated;
+    java.time.OffsetDateTime stamped;
+    java.time.LocalTime opens;
   }
 
   private static FieldDataType listing(String field) throws Exception {
@@ -32,6 +36,17 @@ class ListingColumnDataTypeTest {
     assertThat(listing("id")).isEqualTo(FieldDataType.integer);
     assertThat(listing("salary")).isEqualTo(FieldDataType.number);
     assertThat(listing("amount")).isEqualTo(FieldDataType.number);
+  }
+
+  @Test
+  void datesAndTimesSaySo() throws Exception {
+    // the renderers write them in the UI's locale; as "string" they showed the ISO value
+    assertThat(listing("added")).isEqualTo(FieldDataType.date);
+    assertThat(listing("updated")).isEqualTo(FieldDataType.dateTime);
+    assertThat(listing("stamped")).isEqualTo(FieldDataType.dateTime);
+    assertThat(listing("opens")).isEqualTo(FieldDataType.time);
+    assertThat(ColumnTypeMapper.getDataTypeForColumn(Row.class.getDeclaredField("added")))
+        .isEqualTo(FieldDataType.string);
   }
 
   @Test

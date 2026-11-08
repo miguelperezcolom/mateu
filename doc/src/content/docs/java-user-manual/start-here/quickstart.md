@@ -22,13 +22,6 @@ for AI assistants. See [Create your project](/java-create-your-project/). Prefer
 [Quickstart: YAML only](/define/yaml/quickstart/).
 :::
 
-:::caution[The archetype needs a JDK 21–25]
-Maven's archetype plugin runs a Groovy script that cannot read newer class files: on JDK 26+ it
-fails with *"BUG! exception in phase 'semantic analysis' … Unsupported class file major version
-70"* and leaves a half-generated folder (`variants/`, `generator/`). Delete that folder and rerun
-with `JAVA_HOME` pointing at a JDK 21–25. The IDE wizards have no such limit.
-:::
-
 ![The home page the quickstart builds](/images/docs/first-app/starter-home.png)
 
 ## The project

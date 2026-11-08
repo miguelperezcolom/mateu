@@ -9,7 +9,7 @@ import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -778,8 +778,19 @@ export function islandContentOf(ctx, opts = {}) {
         const raw = state[fieldId] != null ? state[fieldId]
           : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
         const lookupLabel = fromData(fieldId + '-label')
-        const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
-        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
+        // a lookup's label is already text; else money formatted, an option by its label, a status as a chip
+        const shown = lookupLabel != null && lookupLabel !== ''
+          ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
+          : readOnlyDisplayOf(m, raw, ctx.data)
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+        return
+      }
+      if (m.dataType === 'status') {
+        // a status FIELD (a YAML record page's `dataType: status`) is a chip under its label, the
+        // listing's: no layout widget draws it, and it used to vanish
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        const shown = readOnlyDisplayOf(m, raw, ctx.data)
+        atom({ isPropertyRow: true, stacked: true, label: interp(m.label || fieldId), value: shown.text || EMPTY_VALUE, valueClass: shown.badgeClass }, container)
         return
       }
       // editable FLUENT FormField (e.g. the charge search box of the check-out mode):

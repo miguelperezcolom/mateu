@@ -31,6 +31,14 @@ for f in $(grep -rlE "raw\.githubusercontent\.com/miguelperezcolom/mateu/v$REL/b
   rm -f "$f.bak"
   echo "$f (\$schema) → v$new"
 done
+# The .NET and Python starters name the published packages (NuGet 3.0.0-beta.N, PyPI 3.0.0bN; a GA
+# 3.0.0 is 3.0.0 on both) — inside the repository they build the sources instead.
+nuget=$(echo "$new" | sed -E 's#^([0-9]+)\.([0-9]+)-#\1.\2.0-#')
+pypi=$(echo "$new" | sed -E -e 's#^([0-9]+)\.([0-9]+)-([a-z]+)\.([0-9]+)$#\1.\2.0\3\4#' -e 's#alpha#a#' -e 's#beta#b#')
+sed -E -i.bak "s#(<PackageReference Include=\"Mateu\.[A-Za-z]+\" Version=\")[^\"]+\"#\1$nuget\"#" starters/dotnet/MateuStarter.csproj
+sed -E -i.bak "s#^mateu-ui==.*#mateu-ui==$pypi#" starters/python/requirements.txt
+rm -f starters/dotnet/MateuStarter.csproj.bak starters/python/requirements.txt.bak
+echo "starters/dotnet → $nuget, starters/python → $pypi"
 # The .NET and Python READMEs download the web renderer of a release to serve it (MATEU_UI=…).
 # (The doc site's guides write MATEU_VERSION, which the docs build resolves — nothing to bump there.)
 for f in backend/dotnet/README.md backend/python/README.md; do

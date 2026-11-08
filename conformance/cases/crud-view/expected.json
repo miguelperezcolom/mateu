@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Product",
+    "data" : "Espresso machine",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -126,7 +126,8 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "title" : "Product",
+          "title" : "Espresso machine",
+          "titleIsText" : true,
           "toolbar" : [ {
             "actionId" : "cancel-view",
             "buttonStyle" : "tertiary",

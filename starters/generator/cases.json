@@ -548,11 +548,13 @@
       ],
       "absent": [
         "MateuStarter.csproj",
+        "Directory.Build.targets",
         "claude/settings.json"
       ],
       "contains": {
         "MyShop.csproj": [
           "<PackageReference Include=\"Mateu.AspNetCore\" Version=\"3.0.0-alpha.999\" />",
+          "<PackageReference Include=\"Mateu.Uidl\" Version=\"3.0.0-alpha.999\" />",
           "<RootNamespace>MyShop</RootNamespace>"
         ],
         "Products.cs": [
@@ -621,7 +623,8 @@
       },
       "lacks": {
         "requirements.txt": [
-          "../../backend"
+          "../../backend",
+          "mateu-ui==3.0.0b"
         ]
       },
       "absent": [

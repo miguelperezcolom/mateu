@@ -869,9 +869,17 @@ class WireConformanceTest {
     Discontinued
   }
 
-  /** The starters' Product: an id, a text, a number and an enum. */
+  /**
+   * The starters' Product: an id, a text, a number and an enum — and, like the starters', a {@code
+   * toString()} that names the record, so its record pages are titled after it in every port.
+   */
   public record Product(String id, String name, double price, ProductStatus status)
-      implements io.mateu.uidl.interfaces.Identifiable {}
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New product";
+    }
+  }
 
   static final List<Product> PRODUCTS =
       List.of(

@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Product",
+    "data" : "New product",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -122,7 +122,8 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "title" : "Product",
+          "title" : "New product",
+          "titleIsText" : true,
           "toolbar" : [ {
             "actionId" : "cancel-new",
             "buttonStyle" : "tertiary",

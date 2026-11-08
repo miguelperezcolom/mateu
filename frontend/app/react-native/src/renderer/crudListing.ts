@@ -3,6 +3,7 @@
 // they are written into the component state, the mobile row shortcut and the column definitions.
 // Pure TypeScript, so node's runner tests it; the .tsx keeps only hooks and views.
 import { cellActionOf, isDisplayColumn, type RowOpen } from '../core/rowOpen.ts';
+import { toneOfStatusWord } from '../core/readOnlyDisplay.ts';
 
 type Dict = Record<string, unknown>;
 
@@ -199,7 +200,8 @@ export function cellTone(value: unknown, col: Pick<ColDef, 'tones' | 'dataType'>
   if (typeof value === 'object' && typeof (value as Dict)['type'] === 'string' && 'message' in (value as Dict)) {
     return String((value as Dict)['type']).toLowerCase();
   }
-  return col.dataType === 'status' ? 'neutral' : null;
+  // a plain word (a REST API's "AVAILABLE"): the tone its usual meaning gives it (web toStatus)
+  return col.dataType === 'status' ? (typeof value === 'object' ? 'neutral' : toneOfStatusWord(String(value))) : null;
 }
 
 const isBooleanColumn = (col: Pick<ColDef, 'dataType'>, value: unknown): boolean =>

@@ -3,7 +3,8 @@ import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
-import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger } from '../ui/controls';
+import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger, StatusChip } from '../ui/controls';
+import { optionLabelOf, readOnlyFieldText, readOnlyStatus } from '../core/readOnlyDisplay';
 import { Text, TextInput } from '../ui/Text';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
 import { DateField } from './DateField';
@@ -140,15 +141,15 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   // right, divider under the row — same contract as the web renderers' FormField.propertyRow.
   if (metadata.propertyRow) {
     const isBool = dataType === 'bool' || dataType === 'boolean' || rawValue === true || rawValue === false;
+    // money formatted, an option's label instead of its code, a status as its tone chip
+    const status = dataType === 'status' ? readOnlyStatus(metadata, rawValue) : null;
     const text = isBool
       ? (rawValue === true || rawValue === 'true' ? '✓' : '—')
-      : dataType === 'money'
-        ? formatMoney(rawValue)
-        : stringValue !== '' ? stringValue : '—';
+      : readOnlyFieldText(metadata, rawValue) || '—';
     return (
       <View style={styles.propertyRow}>
         {!!label && label !== 'null' && <Text style={styles.propertyRowLabel}>{label}</Text>}
-        <Text style={styles.propertyRowValue}>{text}</Text>
+        {status ? <StatusChip label={status.label} tone={status.tone} /> : <Text style={styles.propertyRowValue}>{text}</Text>}
       </View>
     );
   }
@@ -174,6 +175,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           }
         />
       );
+    }
+
+    // A status (dataType status): its tone chip — a plain word ("AVAILABLE") reads as its option
+    // label or as words, toned by its meaning (the web's toStatus); a Mateu {type, message} as is
+    if (dataType === 'status') {
+      const status = readOnlyStatus(metadata, rawValue);
+      return status ? <StatusChip label={status.label} tone={status.tone} /> : <ReadOnlyValue label={label || fieldId} text="" />;
     }
 
     // Boolean badge chip (@Badge): lit when true, shows the label
@@ -220,7 +228,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Plain read-only text (@PlainText context): money formats, @Multiline wraps
     if (stereotype === 'plainText') {
-      const text = dataType === 'money' ? formatMoney(rawValue) : stringValue;
+      const text = readOnlyFieldText(metadata, rawValue);
       return (
         <Text style={styles.plainText} numberOfLines={metadata.multiline ? undefined : 1}>
           {text}
@@ -375,7 +383,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Options (enum / static list)
     if (options.length > 0) {
-      if (!editable) return <ReadOnlyValue label={label || fieldId} text={options.find((o) => o.value === stringValue)?.label ?? stringValue} />;
+      if (!editable) return <ReadOnlyValue label={label || fieldId} text={optionLabelOf(metadata, rawValue) ?? stringValue} />;
       ownLabel = true;
       return <OptionsField label={label || fieldId} required={required} error={error} options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
@@ -384,7 +392,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // an editable one (same border, same background), so a view page read as a form the user could
     // not type into — and an empty value was an empty box. Now: the value as text, "—" when empty.
     if (showsAsReadOnlyText(editable, dataType, stereotype)) {
-      const shown = stereotype === 'password' && stringValue ? '••••••••' : stringValue;
+      const shown = stereotype === 'password' && stringValue ? '••••••••' : readOnlyFieldText(metadata, rawValue);
       return <ReadOnlyValue label={label || fieldId} text={shown} multiline={stereotype === 'textarea'} />;
     }
 

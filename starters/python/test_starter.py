@@ -41,3 +41,8 @@ def test_a_browser_opening_the_url_without_mateu_ui_gets_a_hint_not_a_json_404()
     assert page.status_code == 404
     assert page.headers["content-type"].startswith("text/html")
     assert "MATEU_UI" in page.text
+
+
+def test_a_record_page_is_titled_after_the_record():
+    # Product.__str__ names it, as Java's toString() does in the Java starter
+    assert '"title":"Espresso machine"' in sync("products/P-001")

@@ -598,7 +598,8 @@ class ProductStatus(Enum):
 
 
 class Product:
-    """The starters' Product: an id, a text, a number and an enum."""
+    """The starters' Product: an id, a text, a number and an enum — and, like the starters', a
+    ``__str__`` that names the record, so its record pages are titled after it in every port."""
 
     id: str = ""
     name: str = ""
@@ -607,6 +608,9 @@ class Product:
 
     def __init__(self, id="", name="", price=0.0, status=ProductStatus.Available):
         self.id, self.name, self.price, self.status = id, name, price, status
+
+    def __str__(self):
+        return self.name if self.name and self.name.strip() else "New product"
 
 
 PRODUCTS = [

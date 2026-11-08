@@ -659,6 +659,79 @@ export function dateConverterOptions(kind, locale) {
   return kind === 'dateTime' ? { ...options, hour: '2-digit', minute: '2-digit' } : options
 }
 
+// A listing cell of a date / dateTime / time column: the row carries ISO text ("2026-11-05",
+// "2026-11-05T10:15:30.000Z", "10:15:30"); it is written in the UI's locale with the web date
+// fields' rule (apps/vaadin dateLocale.ts dateFormatSpec / formatDateParts): the locale's order,
+// separator (. / - else /) and padding, the year always in four digits; a time as the locale's
+// hour:minute. The ISO components are read LITERALLY — never shifted to another time zone.
+const dateSpecs = new Map()
+
+/** How `locale` writes a numeric date: {order, separator, padDay, padMonth} (en-US when unusable). */
+export function dateFormatSpecOf(locale) {
+  const key = String(locale || '')
+  if (dateSpecs.has(key)) return dateSpecs.get(key)
+  let spec = { order: ['month', 'day', 'year'], separator: '/', padDay: false, padMonth: false }
+  try {
+    const parts = new Intl.DateTimeFormat(key || undefined, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' })
+      .formatToParts(new Date(Date.UTC(2027, 0, 5)))
+    const order = parts.map((p) => p.type).filter((t) => t === 'day' || t === 'month' || t === 'year')
+    if (order.length === 3 && new Set(order).size === 3) {
+      const literal = ((parts.find((p) => p.type === 'literal') || {}).value || '').trim()
+      spec = {
+        order,
+        separator: /^[./-]$/.test(literal) ? literal : '/',
+        padDay: ((parts.find((p) => p.type === 'day') || {}).value || '').length > 1,
+        padMonth: ((parts.find((p) => p.type === 'month') || {}).value || '').length > 1,
+      }
+    }
+  } catch (e) {
+    // an unknown locale keeps the en-US spec
+  }
+  dateSpecs.set(key, spec)
+  return spec
+}
+
+const padTo = (n, width) => String(n).padStart(width, '0')
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/
+const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?/
+
+function dateWritten(year, month, day, locale) {
+  const spec = dateFormatSpecOf(locale)
+  return spec.order.map((part) => (part === 'year' ? padTo(year, 4)
+    : part === 'month' ? padTo(month, spec.padMonth ? 2 : 1)
+      : padTo(day, spec.padDay ? 2 : 1))).join(spec.separator)
+}
+
+function timeWritten(hour, minute, locale) {
+  try {
+    return new Intl.DateTimeFormat(locale || undefined, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(2027, 0, 5, hour, minute)))
+  } catch (e) {
+    return padTo(hour, 2) + ':' + padTo(minute, 2)
+  }
+}
+
+/** A temporal value as `dataType` (date | dateTime | time) reads in `locale` (default: the date
+ *  locale); anything that is not that ISO text comes back as it is. */
+export function temporalText(value, dataType, locale) {
+  if (typeof value !== 'string') return value
+  const loc = locale || dateLocale()
+  const text = value.trim()
+  if (dataType === 'time') {
+    const t = ISO_TIME.exec(text)
+    return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? timeWritten(Number(t[1]), Number(t[2]), loc) : value
+  }
+  if (dataType !== 'date' && dataType !== 'dateTime') return value
+  const d = ISO_DATE.exec(text)
+  if (!d || Number(d[2]) < 1 || Number(d[2]) > 12 || Number(d[3]) < 1 || Number(d[3]) > 31) return value
+  const date = dateWritten(Number(d[1]), Number(d[2]), Number(d[3]), loc)
+  if (dataType === 'date') return date
+  const rest = text.slice(d[0].length)
+  if (!rest) return date
+  const t = /^[T ]/.test(rest) ? ISO_TIME.exec(rest.slice(1)) : null
+  return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? date + ' ' + timeWritten(Number(t[1]), Number(t[2]), loc) : value
+}
+
 function intl(locale, options) {
   try { return new Intl.NumberFormat(locale, options) } catch (e) {
     try { return new Intl.NumberFormat(String(locale || '').replace(/_/g, '-'), options) } catch (e2) {

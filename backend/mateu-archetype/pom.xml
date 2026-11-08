@@ -170,15 +170,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-archetype-plugin</artifactId>
         <version>3.4.1</version>
-        <dependencies>
-          <!-- The plugin's own Groovy 4 cannot read JDK 26 class files ("Unsupported class file major
-               version 70"), so archetype-post-generate.groovy failed on a current JDK. -->
-          <dependency>
-            <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy</artifactId>
-            <version>6.0.0</version>
-          </dependency>
-        </dependencies>
+        <!-- NO Groovy override here: the integration test must run archetype-post-generate.groovy with
+             the plugin's OWN Groovy (4.0.x), the one a user's `mvn archetype:generate` gets — an override
+             once made this test pass on JDK 26 while every user's run failed. The script keeps working on
+             a new JDK by never naming a JDK class (see its header). -->
         <configuration>
           <!-- -Dmaven.test.skip / -DskipTests also skip generating and packaging the sample projects -->
           <skip>${archetype.test.skip}</skip>
