@@ -295,6 +295,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
             // page; a page that declares modelView: instantiates that logic class (state + actions)
             // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
+            // a `type: AppShell` definition bound to the route: the mount's app (YamlAppShell)
+            if (yamlSpec.Shell is { } shell) return YamlShellResponse(shell, rq);
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
                 return yamlSpec.Layout is { } bare
                     // the route's seeds (state:, fixed/default/path params, already folded into the
@@ -529,27 +531,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     HomeServerSideType = homeTypeOverride ?? deepLinked.HomeServerSideType,
                 },
             };
-        // The catalogues ride the APP metadata (app-wide configuration, not per response); a
-        // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
-        if (app is { Metadata: AppMetadataDto catalogued })
-        {
-            var sampleMode = SampleMode;
-            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources, withSamples: sampleMode);
-            var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
-            if (sources.Count > 0) caps.Add(Capabilities.RestSources);
-            app = app with
-            {
-                Metadata = catalogued with
-                {
-                    RestSources = sources,
-                    Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
-                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
-                    RequiredCapabilities = caps.ToList(),
-                    MockSources = sampleMode ? true : null,
-                    AgentPush = AgentPush is not null ? true : null,
-                },
-            };
-        }
+        app = WithCatalogues(app);
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount

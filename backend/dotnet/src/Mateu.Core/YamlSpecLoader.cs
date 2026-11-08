@@ -46,6 +46,10 @@ internal sealed class YamlSpecLoader : ISpecsCache
         /// (Java's SeededYamlPage.declaredPageType → PageTypeResolver.ofTemplate). It never wraps a
         /// page by itself: a bare templated page keeps its bare shape.</summary>
         public string? TemplatePageType { get; init; }
+
+        /// <summary>A <c>type: AppShell</c> definition (the deserialised tree, access keys already
+        /// applied for the caller on a personalised spec): the route serves an APP, not a page.</summary>
+        public IDictionary<object, object>? Shell { get; init; }
     }
 
     private static readonly Spec None = new(null, null);
@@ -130,6 +134,9 @@ internal sealed class YamlSpecLoader : ISpecsCache
             // see, restrictions applied, just untranslated.
             MateuLogging.For("Mateu.Yaml").LogWarning("Could not translate the YAML spec for {Route} (served untranslated): {Error}", route, e.Message);
         }
+        // an app shell is not built into components: the caller's copy of its tree is the spec
+        if (spec.Shell is not null)
+            return spec with { Shell = tree as IDictionary<object, object>, Source = null, RefusedActions = refused, LockedFields = locked };
         try
         {
             var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials, _fieldTypes);
@@ -182,6 +189,13 @@ internal sealed class YamlSpecLoader : ISpecsCache
             // partials inlined as SOURCE first, so their access keys and i18n texts are applied per
             // caller like inline ones (mirrors Java YamlPartials)
             var root = _partials.Compose(YamlComponentBuilder.Deserialize(File.ReadAllText(path)));
+            // a `type: AppShell` bound to the route: the data-driven twin of an [App] class (YamlAppShell)
+            if (YamlAppShell.IsShell(root))
+                return new Spec(null, null)
+                {
+                    Shell = (IDictionary<object, object>)root!,
+                    Source = YamlAccess.DeclaresAccess(root) || TranslationRegistry.MentionsI18n(root) ? root : null,
+                };
             var (modelView, layout, delta) = YamlComponentBuilder.ParsePageNode(root, _partials, _fieldTypes);
             if (layout is null && delta.IsEmpty) return None;
             // A spec that depends on who asks or in which language keeps its source tree, so it can

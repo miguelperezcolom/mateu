@@ -239,6 +239,15 @@ internal sealed class RouteRegistry : ISpecsCache
         return byRoute.Values.ToList();
     }
 
+    /// <summary>The <c>home:</c> of the <c>type: UI</c> mount whose base path is <paramref name="route"/>
+    /// (a shell bound to that root lands there unless it declares its own <c>homeRoute:</c>); null
+    /// when the route is no mount root or the mount names no home.</summary>
+    public string? MountHomeOf(string? route)
+    {
+        var normalized = Normalize(route);
+        return ScanMounts().FirstOrDefault(m => m.BasePath == normalized)?.Home;
+    }
+
     /// <summary>A DSL mount discovered by content: a base path and the route files that make it up.</summary>
     private sealed record MountDescriptor(
         string BasePath, IReadOnlyList<string> RouteFiles, string? Home = null, string? File = null);
