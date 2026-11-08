@@ -86,6 +86,9 @@ plan) is in `design/figma/README.md`.
   auto-layout, or the layout its name says: `FormLayout`); a plain text layer is a `Text` (a
   heading from 18 px). Containers (Section, Card, Tab, DashboardPanel, Drawer…) have their own
   `slot:` frames.
+- **Sections take what follows them.** Figma does not let you drop layers into an instance, so put
+  a section's fields and buttons **under** the `Mateu/Layout/Section` instance, in the same frame:
+  everything after a Section whose `slot:content` is empty belongs to it, up to the next Section.
 - Edit **text layers** for labels and titles (a layer left with its placeholder text is not read),
   use **variants** for the styled knobs, and fill the **`#config`** line for ids and routes
   (`fieldId=name; required=true`, `route=people/${state.id}/edit`, `rowsSource.ref=swapi-people`).

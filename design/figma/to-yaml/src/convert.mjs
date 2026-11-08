@@ -365,8 +365,19 @@ export class FigmaToYaml {
   /** Converts a list of layers; page-level ones are collected, not returned. */
   nodes(children) {
     const out = []
-    for (const child of children) {
-      const v = this.node(child)
+    const list = children.filter((c) => c.visible !== false)
+    for (let i = 0; i < list.length; i++) {
+      const child = list[i]
+      // Figma cannot drop layers into an instance: a container (a Section…) whose `content` slot
+      // was left empty takes the siblings that follow it, up to the next such container — the
+      // @Section reading of a design, the same convention modux's importer uses
+      const absorbed = this.absorbsSiblings(child) ? [] : null
+      if (absorbed) {
+        while (i + 1 < list.length && !this.absorbsSiblings(list[i + 1])) absorbed.push(list[++i])
+      }
+      const v = absorbed?.length
+        ? this.instance(child, this.entryOf(child), new Map([['content', absorbed]]))
+        : this.node(child)
       if (v === null || v === undefined) continue
       if (isObject(v) && v.into) {
         this.into.push(v)
@@ -375,6 +386,14 @@ export class FigmaToYaml {
       out.push(v)
     }
     return out
+  }
+
+  /** A Section instance with nothing in its `content` slot (other containers keep their siblings). */
+  absorbsSiblings(node) {
+    if (node.type !== 'INSTANCE' || node.name.startsWith('#')) return false
+    const entry = this.entryOf(node)
+    if (entry?.name !== 'Mateu/Layout/Section' || !entry.yaml?.slots?.content) return false
+    return !(this.slotsOf(node).get('content') ?? []).length
   }
 
   node(node) {
