@@ -28,8 +28,18 @@
         "type" : "VerticalLayout"
       }
     },
+    "mission.yaml" : {
+      "content" : [ {
+        "text" : "Mission ${state.missionId}",
+        "type" : "Text"
+      } ],
+      "title" : "Mission ${state.missionId}",
+      "type" : "Form"
+    },
     "shell.yaml" : {
+      "accentColor" : "#0a7d5a",
       "homeRoute" : "hello",
+      "logo" : "/images/bundle-logo.svg",
       "menu" : [ {
         "label" : "Hello",
         "route" : "hello",
@@ -52,6 +62,9 @@
     }, {
       "definition" : "about.yaml",
       "route" : "about"
+    }, {
+      "definition" : "mission.yaml",
+      "route" : "missions/:missionId"
     } ]
   },
   "sources" : {

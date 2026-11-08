@@ -108,8 +108,18 @@ def main(argv: list[str] | None = None) -> int:
             mock=args.mock,
             environment=args.environment,
         )
+    from mateu_ui.core import yaml_app_shell
+
+    # the root mount's YAML app shell presents a YAML app (Java's MobileManifestFile)
     out = writer.write(
-        args.out, manifest, renderer, args.base_url, args.title, not args.no_pwa, registry.app_type
+        args.out,
+        manifest,
+        renderer,
+        args.base_url,
+        args.title,
+        not args.no_pwa,
+        registry.app_type,
+        yaml_app_shell.mount_shell(handler, ""),
     )
     ok = sum(1 for e in manifest.entries if e.ok)
     for e in manifest.entries:

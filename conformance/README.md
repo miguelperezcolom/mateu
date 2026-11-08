@@ -33,14 +33,20 @@ cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view
 `wizard-step-2`, `wizard-completion-error` (a refused completion stays on its step), `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
 (the server-side validation re-check), `error-boundary` (an unexpected exception),
 `dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `crud-hidden-constraints-edit`/`-new`, `editable-view`/`-edit`,
-`view-toolbar-button` and `inline-form-action` (a nested `@Inline` object's action, its fields read back from the flattened state).
+`view-toolbar-button` and `inline-form-action` (a nested `@Inline` object's action, its fields read back from the flattened state),
+`crud-nested-form` (a crud record form whose entity holds a nested data object: the form advertises
+its `nested-form-action-*` — the one part of a mediated form's actions the runners keep) and
+`crud-nested-form-action` (one of them, sent to the entity's server-side type).
 
 A case with a `specs/ui/` directory is a **YAML case**: no fixture type at all. Each runner serves
 that directory as its specs (Java through a classloader overlay on a Mateu booted for the case
 alone, the ports by pointing their specs directory at it) and loads the `request.json` route. The
 first one, `definition-actions`, pins a definition-only page that declares `actions:`;
 `definition-triggers` one that declares `triggers:`, and `definition-proxied-listing` one whose
-listing rows and select options come from proxied catalogue entries.
+listing rows and select options come from proxied catalogue entries. `definition-path-params` pins a
+page under a `:param` route that seeds nothing else (its BARE layout: a path parameter is no seed)
+and `definition-path-params-seeded` the same page whose route also declares `defaultParams` (wrapped,
+its state carrying the path parameter too).
 
 ## The contract
 

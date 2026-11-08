@@ -1,0 +1,4 @@
+# The case's own route table: one definition-only page (no view model) under a :param route.
+routes:
+  - route: missions/:missionId
+    layout: mission.yaml

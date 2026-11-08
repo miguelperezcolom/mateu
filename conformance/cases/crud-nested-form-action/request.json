@@ -1,0 +1,11 @@
+{
+  "route": "/conformance/crud-nested/PO-1/edit",
+  "consumedRoute": "/conformance/crud-nested",
+  "actionId": "nested-form-action-supplier-verify",
+  "componentState": {
+    "id": "PO-1",
+    "reference": "Q3 restock",
+    "supplier-name": "Globex",
+    "supplier-email": "hello@globex.test"
+  }
+}

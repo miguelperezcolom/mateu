@@ -246,11 +246,25 @@ class DispatchMixin(MixinBase):
         # ask) and a parameter pinned only there would be a suggestion, not a constraint.
         route_match = self.routes.match(rq.route)
         type_ = None
+        client_state = dict(rq.component_state or {})
+        route_seeds = False
         if route_match is not None:
             from ..request_context import current_request
 
             in_flight = current_request()
             query = dict(in_flight.query_params) if in_flight is not None else {}
+            # What makes a definition-only page's route SEED it (Java's seedBareLayout): a path
+            # parameter alone does not — the browser resolves ${state.x} from the route itself.
+            entry = route_match.entry
+            route_seeds = bool(
+                entry.data is not None
+                or entry.app_data is not None
+                or entry.app_state
+                or entry.state
+                or entry.default_params
+                or entry.fixed_params
+                or query
+            )
             rq = rq.model_copy(
                 update={
                     "component_state": route_match.params(rq.component_state or {}, query)
@@ -312,19 +326,33 @@ class DispatchMixin(MixinBase):
                     with_title_command=False,
                 )
             if not yaml_spec.model_view:
-                # The route's seeds (state:, fixed/default/path params) are the page's state: a
-                # bare layout has nowhere to hold them, so a seeded page is wrapped, as Java's
-                # SeededYamlPage does (they were dropped: ${state.x} rendered blank).
-                seeded = dict(rq.component_state or {}) if route_match is not None else {}
+                # The route's seeds (state:, fixed/default params, a query string) are the page's
+                # state: a bare layout has nowhere to hold them, so a seeded page is wrapped, as
+                # Java's SeededYamlPage does (they were dropped: ${state.x} rendered blank). So are
+                # declared actions/triggers/pageType and a proxied source. A path parameter ALONE is
+                # no seed: such a page answers its bare layout, as Java's seedBareLayout does.
+                page_actions = self._definition_page_actions(yaml_spec)
+                wraps = bool(
+                    route_seeds or yaml_spec.page_type or page_actions or list(yaml_spec.triggers)
+                )
+                # wrapped: every parameter folded in (path ones too); a page with no route entry
+                # keeps the client's state, as Java's (componentState)
+                seeded = (
+                    dict(rq.component_state or {}) if route_match is not None else client_state
+                )
+                title_state = seeded if wraps else client_state
+                # the route's PATTERN names the window, never the concrete path's id
+                title_route = route_match.entry.route if route_match is not None else rq.route
                 return self.fragment_response(
-                    _definition_window_title(yaml_spec.layout, seeded, rq.route),
+                    _definition_window_title(yaml_spec.layout, title_state, title_route),
                     _with_declared_page_type(
                         self.mapper.map_component(yaml_spec.layout),
                         yaml_spec.page_type,
                         rq,
                         seeded,
-                        self._definition_page_actions(yaml_spec),
+                        page_actions,
                         yaml_spec,
+                        wraps,
                     ),
                     rq,
                 )
@@ -557,7 +585,13 @@ class DispatchMixin(MixinBase):
 
 
 def _with_declared_page_type(
-    layout, page_type: str | None, rq: RunActionRq, state: dict | None = None, actions=(), spec=None
+    layout,
+    page_type: str | None,
+    rq: RunActionRq,
+    state: dict | None = None,
+    actions=(),
+    spec=None,
+    wraps: bool | None = None,
 ):
     """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
     fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
@@ -568,7 +602,9 @@ def _with_declared_page_type(
     validations of its required fields and the Form's ``confirmOnNavigationIfDirty``, as Java's.
     Neither → unchanged."""
     triggers = list(spec.triggers) if spec is not None else []
-    if not page_type and not state and not actions and not triggers:
+    if wraps is None:
+        wraps = bool(page_type or state or actions or triggers)
+    if not wraps:
         return layout
     import re
 
@@ -631,7 +667,12 @@ def _definition_window_title(layout, state: dict | None, route: str | None) -> s
         if all(value_of(p) is not None for p in placeholders):
             return re.sub(r"\$\{([^}]+)}", lambda m: value_of(m.group(1)) or "", title)
     for segment in reversed((route or "").split("?", 1)[0].split("/")):
-        if segment.strip() and not segment.startswith(":") and not segment.startswith("{"):
+        if (
+            segment.strip()
+            and not segment.startswith(":")
+            and not segment.startswith("{")
+            and not segment.isdigit()  # a concrete path's id never names the window
+        ):
             return humanize_constant(segment)
     return route or ""
 

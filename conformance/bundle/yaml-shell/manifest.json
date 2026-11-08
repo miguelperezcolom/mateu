@@ -28,8 +28,18 @@
         "type" : "VerticalLayout"
       }
     },
+    "mission.yaml" : {
+      "content" : [ {
+        "text" : "Mission ${state.missionId}",
+        "type" : "Text"
+      } ],
+      "title" : "Mission ${state.missionId}",
+      "type" : "Form"
+    },
     "shell.yaml" : {
+      "accentColor" : "#0a7d5a",
       "homeRoute" : "hello",
+      "logo" : "/images/bundle-logo.svg",
       "menu" : [ {
         "label" : "Hello",
         "route" : "hello",
@@ -49,6 +59,7 @@
         "action" : "Replace",
         "component" : {
           "metadata" : {
+            "accentColor" : "#0a7d5a",
             "actionCatalogue" : [ {
               "commands" : [ {
                 "data" : "about",
@@ -57,6 +68,7 @@
             } ],
             "homeRoute" : "hello",
             "layout" : "SINGLE_SLOT",
+            "logo" : "/images/bundle-logo.svg",
             "menu" : [ {
               "label" : "Hello",
               "path" : "/hello",
@@ -124,6 +136,7 @@
         "action" : "Replace",
         "component" : {
           "metadata" : {
+            "accentColor" : "#0a7d5a",
             "actionCatalogue" : [ {
               "commands" : [ {
                 "data" : "about",
@@ -132,6 +145,7 @@
             } ],
             "homeRoute" : "/about",
             "layout" : "SINGLE_SLOT",
+            "logo" : "/images/bundle-logo.svg",
             "menu" : [ {
               "label" : "Hello",
               "path" : "/hello",
@@ -206,6 +220,7 @@
         "action" : "Replace",
         "component" : {
           "metadata" : {
+            "accentColor" : "#0a7d5a",
             "actionCatalogue" : [ {
               "commands" : [ {
                 "data" : "about",
@@ -214,6 +229,7 @@
             } ],
             "homeRoute" : "/hello",
             "layout" : "SINGLE_SLOT",
+            "logo" : "/images/bundle-logo.svg",
             "menu" : [ {
               "label" : "Hello",
               "path" : "/hello",
@@ -251,6 +267,86 @@
     "ok" : true,
     "route" : "/hello",
     "syncPath" : "hello"
+  }, {
+    "contentJson" : {
+      "commands" : [ {
+        "data" : "Missions",
+        "type" : "SetWindowTitle"
+      } ],
+      "fragments" : [ {
+        "action" : "Replace",
+        "component" : {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Mission ${state.missionId}",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "title" : "Mission ${state.missionId}",
+            "type" : "Form"
+          },
+          "type" : "ClientSide"
+        }
+      } ],
+      "wireVersion" : "3.0"
+    },
+    "json" : {
+      "fragments" : [ {
+        "action" : "Replace",
+        "component" : {
+          "metadata" : {
+            "accentColor" : "#0a7d5a",
+            "actionCatalogue" : [ {
+              "commands" : [ {
+                "data" : "about",
+                "type" : "NavigateTo"
+              } ]
+            } ],
+            "homeRoute" : "/missions/__mateu_param__",
+            "layout" : "SINGLE_SLOT",
+            "logo" : "/images/bundle-logo.svg",
+            "menu" : [ {
+              "label" : "Hello",
+              "path" : "/hello",
+              "route" : "/hello",
+              "visible" : true
+            }, {
+              "label" : "About",
+              "path" : "/about",
+              "route" : "/about",
+              "visible" : true
+            } ],
+            "requiredCapabilities" : [ "rest-sources" ],
+            "restSources" : [ {
+              "description" : "ISO country codes",
+              "name" : "countries",
+              "provenance" : "existing",
+              "source" : {
+                "itemsPath" : "items",
+                "labelPath" : "label",
+                "method" : "GET",
+                "url" : "https://api.example.com/countries",
+                "valuePath" : "value"
+              }
+            } ],
+            "title" : "Bundle conformance",
+            "totalMenuOptions" : 2,
+            "type" : "App",
+            "variant" : "TABS"
+          },
+          "type" : "ClientSide"
+        }
+      } ],
+      "wireVersion" : "3.0"
+    },
+    "ok" : true,
+    "paramNames" : [ "missionId" ],
+    "route" : "/missions/:missionId",
+    "routePattern" : "^missions/([^/]+)$",
+    "syncPath" : "missions/:missionId"
   } ],
   "requiredCapabilities" : [ "rest-sources" ],
   "routes" : {
@@ -262,6 +358,9 @@
     }, {
       "definition" : "about.yaml",
       "route" : "about"
+    }, {
+      "definition" : "mission.yaml",
+      "route" : "missions/:missionId"
     } ]
   },
   "sources" : {

@@ -1,4 +1,6 @@
+using System.Reflection;
 using Mateu.Dtos;
+using Mateu.Uidl;
 
 namespace Mateu.Core;
 
@@ -22,7 +24,9 @@ internal sealed partial class SyncHandler
 
     /// <summary>Whether <paramref name="route"/> runs through an app ANCESTOR (any link of its
     /// routes.yaml chain but the last) whose view model is an app offering a "← Parent" link.
-    /// (Mirrors Java's RouteChains.insideBackLinkApp.)</summary>
+    /// (Mirrors Java's RouteChains.insideBackLinkApp.) Like Java, only the class's
+    /// <c>[App(BackLink = …)]</c> counts — a code shell's (IAppSupplier) own BackLink draws the app's
+    /// "← Parent" link but does not turn its pages' trails off.</summary>
     internal bool InsideBackLinkApp(string? route)
     {
         if (route is null) return false;
@@ -32,7 +36,8 @@ internal sealed partial class SyncHandler
             if (chain[i].ViewModel is not { Length: > 0 } viewModel) continue;
             try
             {
-                if (registry.TypeByName(viewModel) is { } type && ReflectionMapper.BackLinkParent(type)) return true;
+                if (registry.TypeByName(viewModel) is { } type
+                    && type.GetCustomAttribute<AppAttribute>()?.BackLink == BackLink.Parent) return true;
             }
             catch (Exception)
             {
@@ -48,15 +53,18 @@ internal static class PageBreadcrumbs
 {
     /// <summary>The component with <c>NoBreadcrumbs = true</c> on its pages: the pages directly under
     /// it (<paramref name="deep"/> false — an embedded view's own page), or every page of the tree.</summary>
+    /// <remarks>Deep, it walks the components a metadata record holds too (a card's, a drawer's or
+    /// a dialog's content…), as Java's PageMapper marks every page it maps.</remarks>
     internal static ComponentDto Off(ComponentDto component, bool deep) => component switch
     {
         ClientSideComponentDto { Metadata: PageMetadataDto page } client => client with
         {
-            Metadata = page with { NoBreadcrumbs = true },
+            Metadata = deep ? (PageMetadataDto)InMetadata(page with { NoBreadcrumbs = true })! : page with { NoBreadcrumbs = true },
             Children = deep ? client.Children.Select(c => Off(c, true)).ToList() : client.Children,
         },
         ClientSideComponentDto client when deep => client with
         {
+            Metadata = (ComponentMetadataDto)InMetadata(client.Metadata)!,
             Children = client.Children.Select(c => Off(c, true)).ToList(),
         },
         ServerSideComponentDto server => server with
@@ -65,6 +73,57 @@ internal static class PageBreadcrumbs
         },
         _ => component,
     };
+
+    private static readonly System.Reflection.Assembly Dtos = typeof(ComponentDto).Assembly;
+
+    private static readonly System.Reflection.MethodInfo Clone =
+        typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+
+    /// <summary>The value with every component it holds — at any depth of its wire-DTO members and
+    /// lists — passed through <see cref="Off"/> (deep); the value itself when it holds none.</summary>
+    private static object? InMetadata(object? value)
+    {
+        switch (value)
+        {
+            case null or string: return value;
+            case ComponentDto component: return Off(component, true);
+        }
+        var type = value.GetType();
+        if (type.IsArray || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)))
+        {
+            var element = type.IsArray ? type.GetElementType()! : type.GetGenericArguments()[0];
+            if (element.IsValueType || element == typeof(string)
+                || (element.Assembly != Dtos && element != typeof(object))) return value;
+            var items = (System.Collections.IList)value;
+            var mapped = new object?[items.Count];
+            var changed = false;
+            for (var i = 0; i < items.Count; i++)
+            {
+                mapped[i] = InMetadata(items[i]);
+                changed |= !ReferenceEquals(mapped[i], items[i]);
+            }
+            if (!changed) return value;
+            var copy = type.IsArray
+                ? Array.CreateInstance(element, items.Count)
+                : (System.Collections.IList)Activator.CreateInstance(type)!;
+            for (var i = 0; i < mapped.Length; i++)
+                if (copy is Array array) array.SetValue(mapped[i], i);
+                else copy.Add(mapped[i]);
+            return copy;
+        }
+        if (type.Assembly != Dtos || type.IsValueType || type.IsEnum) return value;
+        object? clone = null;
+        foreach (var property in type.GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
+        {
+            if (!property.CanRead || !property.CanWrite || property.GetIndexParameters().Length > 0) continue;
+            var current = property.GetValue(value);
+            var next = InMetadata(current);
+            if (ReferenceEquals(next, current)) continue;
+            clone ??= Clone.Invoke(value, null);
+            property.SetValue(clone, next);
+        }
+        return clone ?? value;
+    }
 
     private static ComponentDto TopPage(ComponentDto component) =>
         component is ClientSideComponentDto { Metadata: PageMetadataDto page } client

@@ -180,6 +180,51 @@ class BundleConformanceTest {
     }
   }
 
+  /**
+   * The bundle's {@code mateu/v3/manifest} (what the Mateu mobile app reads), as the Maven plugin's
+   * {@code MobileManifestFile} builds it from the same core calls: the root mount's YAML app shell
+   * presents the app (title, else pageTitle; logo, else favicon; accent colour), then {@code
+   * "bundle": "manifest.json"}. {@code mateuVersion} is dropped — it is the running build's.
+   */
+  static JsonNode mobileManifest(String name) throws Exception {
+    var thread = Thread.currentThread();
+    var previous = thread.getContextClassLoader();
+    var loader =
+        new CaseLoader(corpus().resolve(name), BundleConformanceTest.class.getClassLoader());
+    thread.setContextClassLoader(loader);
+    try {
+      var definition =
+          new io.mateu.core.application.runaction.RouteRegistry().rootDefinitionFor("");
+      var shell =
+          definition == null
+              ? null
+              : new io.mateu.core.application.runaction.YamlAppLoader().load(definition);
+      var manifest = (ObjectNode) JSON.readTree(io.mateu.core.infra.MobileManifest.json(shell));
+      manifest.put("bundle", "manifest.json");
+      manifest.remove("mateuVersion");
+      return sortedKeys(manifest);
+    } finally {
+      thread.setContextClassLoader(previous);
+    }
+  }
+
+  @Test
+  void theReferenceProducesTheMobileManifestCorpus() throws Exception {
+    for (var name : CASES) {
+      var actual = mobileManifest(name);
+      var file = corpus().resolve(name).resolve("mobile-manifest.json");
+      if (Boolean.getBoolean("conformance.write")) {
+        Files.writeString(file, JSON.writeValueAsString(actual) + "\n");
+      }
+      assertThat(Files.isRegularFile(file))
+          .as("mobile manifest golden for '%s' (generate it with -Dconformance.write=true)", name)
+          .isTrue();
+      assertThat(actual)
+          .as("bundle case '%s' — the reference's mateu/v3/manifest changed", name)
+          .isEqualTo(JSON.readTree(Files.readString(file)));
+    }
+  }
+
   @Test
   void theYamlShellCaseBundlesBothLoadsOfASubRoute() throws Exception {
     var raw = rawManifest("yaml-shell");

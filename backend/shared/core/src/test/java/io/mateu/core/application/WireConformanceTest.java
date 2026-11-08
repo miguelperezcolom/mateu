@@ -819,6 +819,36 @@ class WireConformanceTest {
     public String note = "orders";
   }
 
+  /**
+   * The master's {@code delivery} tab: a plain nested object drawn as a sub-form in a card — its
+   * page sits in the card's METADATA, and it says noBreadcrumbs too (every page mapped under the
+   * back-link app does).
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkChainDeliveryTab {
+    public String note = "delivery";
+    // not named like the tab: a page titled as its tab's label is deduped (RouteChains.dedupeTitle)
+    public DeliveryInfo shipping = new DeliveryInfo();
+  }
+
+  /**
+   * A master whose "← Parent" link is declared by its CODE shell ({@code AppSupplier}), with no
+   * {@code @App(backLink)}: {@code RouteChains.insideBackLinkApp} reads the class's {@code @App}
+   * only, so the pages under it keep their trail.
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkShellMaster implements AppSupplier {
+    public String customerId;
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      return AppShell.builder()
+          .title("Back link shell master")
+          .backLink(io.mateu.uidl.annotations.BackLink.PARENT)
+          .build();
+    }
+  }
+
   /** The routes.yaml-equivalent chain of the back-link cases, authored in code. */
   public static class ConformanceRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
     @Override
@@ -828,6 +858,17 @@ class WireConformanceTest {
               "conformance/bl-chain/:customerId",
               null,
               BackLinkChainMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", BackLinkChainTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of(
+                      "delivery", BackLinkChainDeliveryTab.class.getName()))),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/bl-shell/:customerId",
+              null,
+              BackLinkShellMaster.class.getName(),
               null,
               null,
               null,
@@ -1997,6 +2038,30 @@ class WireConformanceTest {
     public int days = 3;
   }
 
+  /** An {@code @Inline} nested object whose fields carry client-rule annotations. */
+  @SuppressWarnings("unused")
+  public static class ContactInfo {
+    @io.mateu.uidl.annotations.Hidden("state.reference == 'internal'")
+    public String phone = "600 000 000";
+
+    @io.mateu.uidl.annotations.Disabled public String email = "buyer@acme.test";
+  }
+
+  /**
+   * Client rules ({@code @Hidden(expr)}, {@code @Disabled}) are the VIEW's own fields' only: the
+   * page's {@code @Disabled reference} gets its rule, the {@code @Inline} nested object's fields
+   * (drawn as {@code contact-phone}, {@code contact-email}) get none — {@code RuleMapper} reads the
+   * view class's fields, not its nested objects'.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/inline-form-rules")
+  @Title("Inline form rules")
+  public static class InlineFormRules {
+    @io.mateu.uidl.annotations.Disabled public String reference = "PO-1";
+
+    @io.mateu.uidl.annotations.Inline public ContactInfo contact = new ContactInfo();
+  }
+
   @SuppressWarnings("unused")
   @UI("/conformance/inline-form")
   @Title("Inline form")
@@ -2010,6 +2075,68 @@ class WireConformanceTest {
 
     @Section("Delivery")
     public DeliveryInfo delivery = new DeliveryInfo();
+  }
+
+  /**
+   * A crud entity holding a plain nested data object ({@link SupplierInfo}, no {@code @Inline}):
+   * its record form draws the object as a sub-form whose {@code @Toolbar}/{@code @Button} methods
+   * are dispatched as {@code nested-form-action-supplier-<method>}. The form is the ENTITY's
+   * server-side component: it advertises those actions and runs them on the nested object hydrated
+   * from the flattened state.
+   */
+  @SuppressWarnings("unused")
+  public static class PurchaseOrder implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String reference;
+    public SupplierInfo supplier = new SupplierInfo();
+
+    public PurchaseOrder() {}
+
+    PurchaseOrder(String id, String reference) {
+      this.id = id;
+      this.reference = reference;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return reference;
+    }
+  }
+
+  static final List<PurchaseOrder> PURCHASE_ORDERS =
+      List.of(new PurchaseOrder("PO-1", "Q3 restock"));
+
+  @UI("/conformance/crud-nested")
+  @Title("Purchase orders")
+  public static class PurchaseOrdersCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<PurchaseOrder> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<PurchaseOrder> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<PurchaseOrder> findById(String id) {
+          return PURCHASE_ORDERS.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(PurchaseOrder entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<PurchaseOrder> findAll() {
+          return PURCHASE_ORDERS;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
   }
 
   /**
@@ -2038,7 +2165,12 @@ class WireConformanceTest {
           java.util.Map.entry("crud-edit", ProductsCrud.class),
           java.util.Map.entry("crud-view", ProductsCrud.class),
           java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
+          java.util.Map.entry("page-back-link-chain-nested", BackLinkChainDeliveryTab.class),
+          java.util.Map.entry("page-back-link-code-shell", BackLinkChainTab.class),
           java.util.Map.entry("inline-form-action", InlineForm.class),
+          java.util.Map.entry("crud-nested-form", PurchaseOrdersCrud.class),
+          // the record form's own component: its serverSideType is the ENTITY
+          java.util.Map.entry("crud-nested-form-action", PurchaseOrder.class),
           java.util.Map.entry("wizard-completion-error", RefusedSignUpWizard.class));
 
   private static final List<String> CASES =
@@ -2124,12 +2256,19 @@ class WireConformanceTest {
           "definition-actions",
           "definition-triggers",
           "definition-proxied-listing",
+          "definition-path-params",
+          "definition-path-params-seeded",
           "inline-form",
           "inline-form-action",
           "bulk-actions",
           "bulk-actions-listing",
           "bulk-actions-unlabeled",
-          "wizard-completion-error");
+          "wizard-completion-error",
+          "crud-nested-form",
+          "crud-nested-form-action",
+          "inline-form-rules",
+          "page-back-link-chain-nested",
+          "page-back-link-code-shell");
 
   static TestMateu mateu;
 
@@ -2219,7 +2358,9 @@ class WireConformanceTest {
             BulkProductsCrud.class,
             BulkBooks.class,
             UnlabeledBulkBooks.class,
-            RefusedSignUpWizard.class);
+            RefusedSignUpWizard.class,
+            InlineFormRules.class,
+            PurchaseOrdersCrud.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -2394,6 +2535,7 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "crud-hidden-constraints-edit",
           "crud-hidden-constraints-new",
+          "crud-nested-form",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
@@ -2529,6 +2671,7 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "crud-hidden-constraints-edit",
           "crud-hidden-constraints-new",
+          "crud-nested-form",
           "editable-view",
           "editable-view-edit",
           "view-toolbar-button");
@@ -2547,7 +2690,16 @@ class WireConformanceTest {
     for (var fragment : increment.path("fragments")) {
       ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
       if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
-        c.remove("actions");
+        // the mediator's own actions (create/save, their bubbling) are protocol; a nested data
+        // object's actions are the FORM's — the record form advertises what its sub-forms dispatch
+        if (c.get("actions") instanceof com.fasterxml.jackson.databind.node.ArrayNode actions) {
+          for (int i = actions.size() - 1; i >= 0; i--) {
+            if (!actions.get(i).path("id").asText("").startsWith("nested-form-action-")) {
+              actions.remove(i);
+            }
+          }
+          if (actions.isEmpty()) c.remove("actions");
+        }
         c.remove("initialData");
         // the mediator's own refresh subscriptions ("mateu-crud:*" events — a delete or a drawer
         // save tells the listing to search again); the ports re-render the listing in place

@@ -867,8 +867,31 @@ public class ConformanceRoutes : IRouteEntrySupplier
     [
         new("conformance/bl-chain/:customerId", null, typeof(BackLinkChainMaster).FullName,
             new Dictionary<string, object?>(), new Dictionary<string, object?>(),
+            Children: [
+                RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!),
+                RouteEntry.Of("delivery", typeof(BackLinkChainDeliveryTab).FullName!),
+            ]),
+        new("conformance/bl-shell/:customerId", null, typeof(BackLinkShellMaster).FullName,
+            new Dictionary<string, object?>(), new Dictionary<string, object?>(),
             Children: [RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!)]),
     ];
+}
+
+/// <summary>The master's `delivery` tab (page-back-link-chain-nested): a plain nested object drawn
+/// as a sub-form in a card — its page, in the card's metadata, says noBreadcrumbs too.</summary>
+public class BackLinkChainDeliveryTab
+{
+    public string? Note { get; set; } = "delivery";
+    public DeliveryInfo Shipping { get; set; } = new();
+}
+
+/// <summary>A master whose "← Parent" link its CODE shell declares, with no [App(BackLink)]
+/// (page-back-link-code-shell): the pages under it keep their trail, as Java's.</summary>
+public class BackLinkShellMaster : IAppSupplier
+{
+    public string? CustomerId { get; set; }
+
+    public AppShell GetApp() => new("Back link shell master", new List<MenuItemDto>()) { BackLink = BackLink.Parent };
 }
 
 /// <summary>The screen above the back-link app (app-back-link): its title labels the link.</summary>
@@ -1246,6 +1269,45 @@ public class DeliveryInfo
 {
     public string? City { get; set; } = "Palma";
     public int Days { get; set; } = 3;
+}
+
+/// <summary>An [Inline] nested object whose properties carry client-rule attributes.</summary>
+public class ContactInfo
+{
+    [Hidden("state.reference == 'internal'")] public string? Phone { get; set; } = "600 000 000";
+    [Disabled] public string? Email { get; set; } = "buyer@acme.test";
+}
+
+/// <summary>Client rules are the view's own properties' only (Java's RuleMapper): the [Inline]
+/// nested object's get none (inline-form-rules).</summary>
+[UI("conformance/inline-form-rules"), Title("Inline form rules")]
+public class InlineFormRules
+{
+    [Disabled] public string? Reference { get; set; } = "PO-1";
+    [Inline] public ContactInfo Contact { get; set; } = new();
+}
+
+/// <summary>A crud entity holding a plain nested data object (crud-nested-form, -action): its record
+/// form draws it as a sub-form and ADVERTISES its nested-form-action-supplier-&lt;method&gt; actions,
+/// which run on the nested object hydrated from the flattened state (Java's).</summary>
+public class PurchaseOrder
+{
+    public string Id { get; set; } = "";
+    public string? Reference { get; set; }
+    public SupplierInfo Supplier { get; set; } = new();
+
+    public override string ToString() => Reference ?? "";
+}
+
+[UI("conformance/crud-nested"), Title("Purchase orders")]
+public class PurchaseOrdersCrud : Crud<PurchaseOrder>
+{
+    private static readonly List<PurchaseOrder> Store = [new() { Id = "PO-1", Reference = "Q3 restock" }];
+
+    public override IEnumerable<PurchaseOrder> Fetch(string? search) => Store;
+    public override PurchaseOrder? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(PurchaseOrder order) { }
+    public override void Delete(string id) { }
 }
 
 /// <summary>Nested data objects in a form: one [Inline], one as a sub-form.</summary>

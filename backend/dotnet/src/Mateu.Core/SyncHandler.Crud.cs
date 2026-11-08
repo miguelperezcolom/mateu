@@ -71,6 +71,16 @@ internal sealed partial class SyncHandler
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
         // A [Searchable] field on the entity form opens its selector dialog.
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(element, rq);
+        // A nested data object of the ENTITY (its record form's sub-form): Java's record form is
+        // the entity's own server-side component, so the method runs on the entity's nested object
+        // hydrated from the form's flattened state (RunMethodActionRunner). A detached copy: an
+        // in-memory Get may hand out the stored instance itself, and an action must persist nothing.
+        if (rq.ActionId?.StartsWith(ReflectionMapper.NestedFormActionPrefix, StringComparison.Ordinal) == true)
+        {
+            var entity = id is null ? New(element) : CopyOf(GetOrNew(crud, crudType, element, id), element);
+            BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
+            return RunNestedFormAction(element, entity, rq, null);
+        }
 
         // the WRITES the crud does not offer are refused (403), not only undrawn (mirrors Java's
         // CrudWriteGate): a [ReadOnly] crud, CanCreate/CanEdit/CanDelete narrowed, a Disabled/Off

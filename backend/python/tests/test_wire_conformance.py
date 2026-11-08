@@ -1286,6 +1286,62 @@ class InlineForm:
         self.delivery = DeliveryInfo()
 
 
+class ContactInfo:
+    """An Inline() nested object whose fields carry client-rule markers."""
+
+    phone: Annotated[str, Hidden("state.reference == 'internal'")] = "600 000 000"
+    email: Annotated[str, Disabled()] = "buyer@acme.test"
+
+
+@ui("/conformance/inline-form-rules")
+@title("Inline form rules")
+class InlineFormRules:
+    """Client rules are the view's own fields' only (Java's RuleMapper): the nested object's get
+    none."""
+
+    reference: Annotated[str, Disabled()] = "PO-1"
+    contact: Annotated[ContactInfo, Inline()] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.contact = ContactInfo()
+
+
+class PurchaseOrder:
+    """A crud entity holding a plain nested data object (a ``SupplierInfo``, no Inline()): its
+    record form draws it as a sub-form and ADVERTISES its ``nested-form-action-supplier-<method>``
+    actions, which run on the nested object hydrated from the flattened state (Java's)."""
+
+    id: str = ""
+    reference: str = ""
+    supplier: SupplierInfo = None  # type: ignore[assignment]
+
+    def __init__(self, id="", reference=""):
+        self.id, self.reference = id, reference
+        self.supplier = SupplierInfo()
+
+    def __str__(self):
+        return self.reference
+
+
+PURCHASE_ORDERS = [PurchaseOrder("PO-1", "Q3 restock")]
+
+
+@ui("/conformance/crud-nested")
+@title("Purchase orders")
+class PurchaseOrdersCrud(Crud[PurchaseOrder]):
+    def fetch(self, search):
+        return list(PURCHASE_ORDERS)
+
+    def get(self, id):
+        return next((e for e in PURCHASE_ORDERS if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -1367,13 +1423,13 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -1388,7 +1444,15 @@ def without_mediator_protocol(increment: dict) -> dict:
         fragment.pop("state", None)
         component = fragment.get("component")
         if isinstance(component, dict):
-            component.pop("actions", None)
+            # the mediator's own actions (create/save, their bubbling) are protocol; a nested data
+            # object's actions are the FORM's — the record form advertises what its sub-forms
+            # dispatch (Java's withoutMediatorProtocol)
+            nested = [
+                a for a in component.pop("actions", None) or []
+                if str(a.get("id", "")).startswith("nested-form-action-")
+            ]
+            if nested:
+                component["actions"] = nested
             component.pop("initialData", None)
             # the mediator's own refresh subscriptions ("mateu-crud:*" events); this port
             # re-renders the listing in place
@@ -1553,6 +1617,27 @@ class BackLinkChainTab:
     note: str | None = "orders"
 
 
+class BackLinkChainDeliveryTab:
+    """The master's ``delivery`` tab (page-back-link-chain-nested): a plain nested object drawn as a
+    sub-form in a card — its page, in the card's metadata, says noBreadcrumbs too."""
+
+    note: str | None = "delivery"
+    shipping: DeliveryInfo = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.shipping = DeliveryInfo()
+
+
+class BackLinkShellMaster(AppSupplier):
+    """A master whose "← Parent" link its CODE shell declares, with no @app(back_link)
+    (page-back-link-code-shell): the pages under it keep their trail, as Java's."""
+
+    customer_id: str | None = None
+
+    def get_app(self) -> AppShell:
+        return AppShell(title="Back link shell master", back_link=BackLink.PARENT)
+
+
 class ConformanceRoutes(RouteEntrySupplier):
     """The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
     ConformanceRoutes; Python's RouteEntry is flat: the child names its parent)."""
@@ -1565,10 +1650,21 @@ class ConformanceRoutes(RouteEntrySupplier):
                 view_model=type_name(BackLinkChainTab),
                 parent="conformance/bl-chain/:customerId",
             ),
+            RouteEntry(
+                route="conformance/bl-chain/:customerId/delivery",
+                view_model=type_name(BackLinkChainDeliveryTab),
+                parent="conformance/bl-chain/:customerId",
+            ),
+            RouteEntry(route="conformance/bl-shell/:customerId", view_model=type_name(BackLinkShellMaster)),
+            RouteEntry(
+                route="conformance/bl-shell/:customerId/orders",
+                view_model=type_name(BackLinkChainTab),
+                parent="conformance/bl-shell/:customerId",
+            ),
         ]
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab)]
 
 
 def test_every_case_of_the_corpus_is_wired():

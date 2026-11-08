@@ -1,0 +1,4 @@
+{
+  "route": "/conformance/bl-shell/7/orders",
+  "consumedRoute": "/conformance/bl-shell/7"
+}

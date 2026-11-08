@@ -10,11 +10,14 @@ from mateu_ui.dtos import ClientSideComponent, PageMetadata, ServerSideComponent
 
 def breadcrumbs_off(component, deep: bool) -> None:
     """Sets ``no_breadcrumbs`` on the component's pages: the pages directly under it (``deep``
-    False — an embedded view's own page), or every page of the tree. In place."""
+    False — an embedded view's own page), or every page of the tree — the children AND the
+    components a metadata record holds (a card's, a drawer's or a dialog's content…), as Java's
+    PageMapper marks every page it maps. In place."""
     if isinstance(component, ClientSideComponent):
         if isinstance(component.metadata, PageMetadata):
             component.metadata.no_breadcrumbs = True
         if deep:
+            _metadata_off(component.metadata)
             for child in component.children:
                 breadcrumbs_off(child, True)
     elif isinstance(component, ServerSideComponent):
@@ -23,6 +26,23 @@ def breadcrumbs_off(component, deep: bool) -> None:
                 breadcrumbs_off(child, True)
             elif isinstance(child, ClientSideComponent) and isinstance(child.metadata, PageMetadata):
                 child.metadata.no_breadcrumbs = True
+
+
+def _metadata_off(value) -> None:
+    """Every page among the components a metadata record holds, at any depth of its members."""
+    from pydantic import BaseModel
+
+    if isinstance(value, (ClientSideComponent, ServerSideComponent)):
+        breadcrumbs_off(value, True)
+    elif isinstance(value, BaseModel):
+        for name in type(value).model_fields:
+            _metadata_off(getattr(value, name, None))
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            _metadata_off(item)
+    elif isinstance(value, dict):
+        for item in value.values():
+            _metadata_off(item)
 
 
 def chain_of(routes, path: str | None) -> list:
@@ -51,9 +71,9 @@ def chain_of(routes, path: str | None) -> list:
 def inside_back_link_app(routes, registry, route: str | None) -> bool:
     """Whether ``route`` runs through an app ANCESTOR (any link of its routes.yaml chain but the
     last) whose view model is an app offering a "← Parent" link (Java's
-    RouteChains.insideBackLinkApp)."""
-    from .mapper.app import back_link_parent
-
+    RouteChains.insideBackLinkApp). Like Java, only the class's ``@app(back_link=…)`` counts — a
+    code shell's (``AppSupplier``) own ``back_link`` draws the app's "← Parent" link but does not
+    turn its pages' trails off."""
     chain = chain_of(routes, route)
     for entry in chain[:-1]:
         view_model = entry.view_model
@@ -61,7 +81,7 @@ def inside_back_link_app(routes, registry, route: str | None) -> bool:
             continue
         try:
             cls = registry.type_by_name(view_model)
-            if cls is not None and back_link_parent(cls):
+            if cls is not None and getattr(cls, "__mateu_app_back_link__", None) == "PARENT":
                 return True
         except Exception:  # noqa: BLE001 - not a class we can read: no say
             continue
