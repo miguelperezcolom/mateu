@@ -41,3 +41,5 @@ new FullWidth(
 ## When to use
 
 Use `FullWidth` for hero sections, full-bleed images, banners, or any section that should break out of the centred column layout. For a constrained, centred column, use [Container](/java-ui-definition/components/container/) instead.
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks)

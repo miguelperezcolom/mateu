@@ -60,3 +60,5 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 ## When to use it
 
 Use an `OfferCard` for a **single, contextual offer** — typically a current-vs-upgrade pair side by side. To compare several plans/tiers in columns use a [Pricing table](/ux-patterns/pricing-table/); for many small priced extras with a running total use an [Add-on picker](/ux-patterns/addon-picker/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/offer-card-demo`.
+
+**See it live in the Explorer:** [Offers & pricing](https://explorer.mateu.io/components/status-and-kpis/offers-and-pricing)

@@ -41,3 +41,5 @@ The renderer is dependency-free, themes through the standard CSS variables, and 
 ## When to use it
 
 Use `ProgressSteps` to **orient** the user inside a process you render across several screens or sections. For a self-driving multi-step form, use a `Wizard` instead. Demo: `/steps-demo`.
+
+**See it live in the Explorer:** [Progress & checklists](https://explorer.mateu.io/components/status-and-kpis/progress)

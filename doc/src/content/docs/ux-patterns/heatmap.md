@@ -37,3 +37,5 @@ The renderer is dependency-free (a CSS grid of squares), colors by four intensit
 ## When to use it
 
 Use a `Heatmap` for **intensity across many days**. For a handful of dated events use a `Calendar`; for a trend line use a `TrendChart` or `Stat` sparkline. Demo: `/heatmap-demo`.
+
+**See it live in the Explorer:** [Charts, trends, funnels & heatmaps](https://explorer.mateu.io/components/visualisation/charts)

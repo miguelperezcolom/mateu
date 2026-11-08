@@ -88,3 +88,5 @@ public Object handleAction(String actionId, HttpRequest request) {
     };
 }
 ```
+
+**See it live in the Explorer:** [Dialog & ConfirmDialog](https://explorer.mateu.io/components/overlays/dialog)

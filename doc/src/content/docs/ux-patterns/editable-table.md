@@ -77,3 +77,5 @@ detail-form-edited one.
 - **Minimize navigation** — edit in place, no modal per row
 - **Workflow over screens** — the table is the task, not a launchpad to other screens
 - **Recoverability** — edits live in state until an explicit action persists them
+
+**See it live in the Explorer:** [Editable grid fields](https://explorer.mateu.io/behaviour/forms/editable-grid-field)

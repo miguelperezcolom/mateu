@@ -39,3 +39,5 @@ The renderer is dependency-free, themes through the standard CSS variables and w
 ## When to use it
 
 Use a `Checklist` for **tasks with completion state**. For a linear multi-step process indicator use `ProgressSteps`; for a kanban of work items use `Kanban`. Demo: `/checklist-demo`.
+
+**See it live in the Explorer:** [Progress & checklists](https://explorer.mateu.io/components/status-and-kpis/progress)

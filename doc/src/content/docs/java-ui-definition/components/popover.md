@@ -54,3 +54,5 @@ Popover.builder()
 ## Tip
 
 Use `Popover` when you need a click-triggered overlay with rich content (images, lists, formatted text). Use [Tooltip](/java-ui-definition/components/tooltip/) for simple hover hints.
+
+**See it live in the Explorer:** [Card, Details, Tooltip & Popover](https://explorer.mateu.io/components/display/card)

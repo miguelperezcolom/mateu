@@ -38,3 +38,5 @@ Form.builder()
 ```
 
 The banner handles showing itself only when consent has not yet been given (stored in local storage by the client-side component).
+
+**See it live in the Explorer:** [FAQ, features, testimonials & cookies](https://explorer.mateu.io/components/display/landing-blocks)

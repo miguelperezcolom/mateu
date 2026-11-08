@@ -61,3 +61,4 @@ notification — an `oj-messages` (display `notification`) whose `oj-message` pu
 undo action on the page that produced the message and closes the notification. Demo: moving or
 resizing a stay on the Room Diary of `demo-vb-pms`.
 
+**See it live in the Explorer:** [Messages & undo](https://explorer.mateu.io/behaviour/actions/messages)

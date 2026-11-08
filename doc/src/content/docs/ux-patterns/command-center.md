@@ -102,3 +102,5 @@ demo entities.
 - [Global search](/ux-patterns/global-search/) — the `GlobalSearchSupplier` contract the palette uses
   for entity results.
 - [Navigation & menus](/ux-patterns/navigation/) — the menu the palette flattens.
+
+**See it live in the Explorer:** [Chromeless apps & the command center](https://explorer.mateu.io/behaviour/navigation/chromeless) · [Command center](https://explorer.mateu.io/behaviour/app/command-center)

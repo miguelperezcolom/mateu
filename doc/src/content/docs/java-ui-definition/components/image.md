@@ -74,3 +74,5 @@ Card.builder()
     .variants(List.of(CardVariant.stretchMedia))
     .build()
 ```
+
+**See it live in the Explorer:** [Images, icons, avatars & badges](https://explorer.mateu.io/components/display/media-and-badges)

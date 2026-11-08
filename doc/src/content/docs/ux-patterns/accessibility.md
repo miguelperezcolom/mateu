@@ -179,3 +179,5 @@ The framework covers the generated UI. Three things are still yours:
 
 - [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/) — action and tab shortcuts
 - [Slow connections](/ux-patterns/slow-connections/) — busy states also set `aria-busy`
+
+**See it live in the Explorer:** [Focus moves to the first invalid field](https://explorer.mateu.io/behaviour/resilience-a11y/focus-on-errors) · [Live-region announcements](https://explorer.mateu.io/behaviour/resilience-a11y/live-regions) · [Skip link and main landmark](https://explorer.mateu.io/behaviour/resilience-a11y/skip-link)

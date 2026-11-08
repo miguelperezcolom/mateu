@@ -179,3 +179,5 @@ the body invalid JSON); `_toOrder` always has one.
 
 Use a Kanban to **visualize** work by stage, and to move it along when the stages are the thing
 users change. Demo: `/kanban-demo`.
+
+**See it live in the Explorer:** [Kanban](https://explorer.mateu.io/components/visualisation/kanban)

@@ -561,3 +561,5 @@ above. The two remaining drawer templates:
 The fifth drawer (a settings drawer: `drawerTitle/Subtitle`, `primaryAction`, `header` + default
 slots) has no dedicated Mateu piece, but its whole surface is a subset of the general drawer — build
 it with `Drawer` directly. ✅
+
+**See it live in the Explorer:** [Close with a result, nested overlays](https://explorer.mateu.io/behaviour/overlays/close-with-result) · [Drawers — general, bottom, modeless](https://explorer.mateu.io/behaviour/overlays/drawers) · [Edit in a drawer, save and next](https://explorer.mateu.io/behaviour/listings/edit-in-drawer) · [Drawer](https://explorer.mateu.io/components/overlays/drawer)

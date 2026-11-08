@@ -41,3 +41,5 @@ new Container(
 ## Tip
 
 Use `Container` to give a page a centred, readable column layout. For edge-to-edge content (full browser width), use [FullWidth](/java-ui-definition/components/full-width/) instead.
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks)

@@ -48,3 +48,5 @@ The renderer is dependency-free (an inline SVG sparkline), themes through the st
 ## When to use it
 
 Use `Stat` for **at-a-glance KPIs with a trend**. For a value without a sparkline, or for dashboard tiles wired into the `Dashboard` archetype's scoreboard, use `MetricCard`. Demo: `/stat-demo`.
+
+**See it live in the Explorer:** [KPIs, stats & meters](https://explorer.mateu.io/components/status-and-kpis/kpis)

@@ -45,3 +45,5 @@ The renderer is dependency-free, themes through the standard CSS variables, and 
 ## When to use it
 
 Use a `PricingTable` for **side-by-side plan comparison with a choice to make**. For a plain feature grid without CTAs, a `Grid`/table is lighter. Demo: `/pricing-demo`.
+
+**See it live in the Explorer:** [Offers & pricing](https://explorer.mateu.io/components/status-and-kpis/offers-and-pricing)

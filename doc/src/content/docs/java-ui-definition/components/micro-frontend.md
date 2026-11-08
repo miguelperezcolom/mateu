@@ -236,3 +236,5 @@ The other options (`default_timeout_ms`, `self_base_url`, `remote_registry`, `id
 `fragment_cache_store`, `correlation_id_provider`, `resolution_listeners`) are in the server options
 tables of the [Python](/python-user-manual/#server-options) and [.NET](/csharp-user-manual/#server-options)
 manuals.
+
+**See it live in the Explorer:** [MicroFrontend](https://explorer.mateu.io/components/composition/micro-frontend) · [MicroFrontend — CLIENT vs SERVER resolution](https://explorer.mateu.io/distributed/microfrontends/client-vs-server) · [Embedded chrome — NONE / COMPACT / PAGE](https://explorer.mateu.io/distributed/microfrontends/embedded-chrome) · [Fragment cache (varyBy)](https://explorer.mateu.io/distributed/microfrontends/fragment-cache)

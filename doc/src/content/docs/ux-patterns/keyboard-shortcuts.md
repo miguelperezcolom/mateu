@@ -172,3 +172,5 @@ the same as on Vaadin.
 - **Keyboard-first** — frequent tasks require no mouse gesture
 - **Consistency** — the same shortcut does the same thing everywhere in the app
 - **Workflow over screens** — shortcuts let users stay in flow without stopping to navigate
+
+**See it live in the Explorer:** [Access keys mode](https://explorer.mateu.io/behaviour/actions/access-keys) · [Keyboard shortcuts](https://explorer.mateu.io/behaviour/actions/shortcuts)

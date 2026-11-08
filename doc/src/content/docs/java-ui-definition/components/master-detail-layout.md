@@ -56,3 +56,5 @@ MasterDetailLayout.builder()
 ## Tip
 
 The default constructor sets `orientation = horizontal` and `variant = minimal`, which is the most common configuration. Use the builder only when you need a different orientation or variant.
+
+**See it live in the Explorer:** [Split & master-detail](https://explorer.mateu.io/components/layout/split-and-master-detail)

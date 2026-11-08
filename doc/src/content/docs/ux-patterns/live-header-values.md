@@ -91,3 +91,5 @@ Demo: `demo-admin-panel` → **End of day** (`/e2-business-day`, F8): *Close the
 
 - [App context](/ux-patterns/app-context/) — a value the USER picks for every screen
 - [Long-running jobs](/ux-patterns/long-running-jobs/) — the same SSE endpoint
+
+**See it live in the Explorer:** [Live header values](https://explorer.mateu.io/behaviour/app/live-header-values)

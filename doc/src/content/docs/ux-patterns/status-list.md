@@ -51,3 +51,5 @@ Use a `StatusList` for **stateful checklists and incident lists** — things tha
 
 - `BulletedList` — the lightweight sibling: a plain `<ul>` of text items, for read-only enumerations (preferences, highlights) without the row chrome. Also available declaratively: `@BulletedList` on a `List<String>` field.
 - [Notice](/ux-patterns/notice/) — a compact inline banner for a single highlighted line.
+
+**See it live in the Explorer:** [Status lists, ledger & process monitor](https://explorer.mateu.io/components/status-and-kpis/status-lists)

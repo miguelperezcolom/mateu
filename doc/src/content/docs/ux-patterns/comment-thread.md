@@ -40,3 +40,5 @@ The renderer is dependency-free, themes through the standard CSS variables and w
 ## When to use it
 
 Use `CommentThread` to **display a threaded discussion**. It is read-only; to post a comment, pair it with a form/`MessageInput` and re-render. For a flat chronological feed use `Timeline`. Demo: `/comments-demo`.
+
+**See it live in the Explorer:** [Timeline, comments & files](https://explorer.mateu.io/components/display/activity)

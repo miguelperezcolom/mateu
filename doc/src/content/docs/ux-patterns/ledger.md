@@ -40,3 +40,5 @@ All formatting (thousands separator, two decimals, currency symbol) happens clie
 ## When to use it
 
 Use a `Ledger` wherever the user must **verify a monetary breakdown before committing** — check-out, order confirmation, refund review. For plan/tier comparison use a [Pricing table](/ux-patterns/pricing-table/); to track the balance against a limit while charges accrue use a [Meter](/ux-patterns/meter/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/ledger-demo`.
+
+**See it live in the Explorer:** [Status lists, ledger & process monitor](https://explorer.mateu.io/components/status-and-kpis/status-lists)

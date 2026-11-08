@@ -262,3 +262,5 @@ Both kinds of inference have one global switch each, named the same way. An anno
 The names used before 3.0-alpha.412 — `mateu.layout.inference` (C# `Mateu.LayoutInference`) and
 `mateu.page.inference.disabled` (C# `Mateu.PageInference.Disabled`) — were removed in 3.0.0 and are
 ignored: use the names above (mind the polarity: `disabled=true` was `enabled=false`).
+
+**See it live in the Explorer:** [Layout inference (@AutoLayout)](https://explorer.mateu.io/behaviour/form-layout/auto-layout) · [Page-level inference (@AutoPage)](https://explorer.mateu.io/behaviour/form-layout/auto-page)

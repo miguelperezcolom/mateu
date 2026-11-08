@@ -203,3 +203,5 @@ the loaded options and (debounced) asks the server for matches beyond the loaded
 - [Audience projection](/ux-patterns/audience-projection/) — an `@AppContext` field named `audience` becomes a
   persona switch: `@Audience`-marked fields, buttons and menu entries filter to the selected
   audience (unset → everything visible).
+
+**See it live in the Explorer:** [App context selectors](https://explorer.mateu.io/behaviour/app/app-context) · [App header actions](https://explorer.mateu.io/behaviour/app/header-actions)

@@ -36,3 +36,5 @@ The renderer is dependency-free, themes through the standard CSS variables and w
 ## When to use it
 
 Use a `CalloutCard` for **an inline, actionable highlight**. For page-level notices use `@Banner`; for a friendly empty screen use `EmptyState`. Demo: `/callout-demo`.
+
+**See it live in the Explorer:** [Notices, callouts & empty states](https://explorer.mateu.io/components/display/notices)

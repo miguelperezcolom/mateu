@@ -62,3 +62,5 @@ VerticalLayout.builder()
     ))
     .build()
 ```
+
+**See it live in the Explorer:** [Text, Markdown, links & lists](https://explorer.mateu.io/components/display/text)

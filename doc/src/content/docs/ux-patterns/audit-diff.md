@@ -49,3 +49,5 @@ values back through your repository — the [optimistic-locking](/ux-patterns/op
 
 - [Concurrent edit conflicts](/ux-patterns/optimistic-locking/) — versions moving forward
 - [Totals & row grouping](/ux-patterns/aggregates/) — the grouping machinery this reuses
+
+**See it live in the Explorer:** [Audit history and version diff](https://explorer.mateu.io/behaviour/listings/audit-history)

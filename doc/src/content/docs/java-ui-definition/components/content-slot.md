@@ -198,3 +198,5 @@ CONTENT = RemoteDescriptor("content", "/_content-hub", 1000)
 The fluent twins are .NET `new ContentSlot("front-office.home.destacado") { Fallback = "…" }` and
 Python `components.ContentSlot(key=…, fallback=…)`. The slot descriptor action is switched on with
 `o.ContentSlotsDescriptorEnabled = true` / `add_mateu(content_slots_descriptor_enabled=True)`.
+
+**See it live in the Explorer:** [ContentSlot](https://explorer.mateu.io/components/composition/content-slot) · [@ContentSlot with fallback](https://explorer.mateu.io/distributed/microfrontends/content-slots)

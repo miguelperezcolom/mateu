@@ -57,3 +57,5 @@ public Object handleAction(String actionId, HttpRequest request) {
     return new State(this);
 }
 ```
+
+**See it live in the Explorer:** [Progress & checklists](https://explorer.mateu.io/components/status-and-kpis/progress)

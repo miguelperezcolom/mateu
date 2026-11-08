@@ -220,3 +220,5 @@ toolbar; in the showcase a click on a task name opens its detail in a drawer. Do
 - [Gantt](/ux-patterns/gantt/) — the Gantt component and the `GanttPage` archetype used as the timeline view.
 - [Inline editing in listings](/ux-patterns/inline-crud-editing/) and [High-density screens](/ux-patterns/high-density/) —
   for the dense, editable grid view.
+
+**See it live in the Explorer:** [Data management](https://explorer.mateu.io/archetypes/collections/data-management) · [Data management page](https://explorer.mateu.io/page-templates/templates/data-management-page)

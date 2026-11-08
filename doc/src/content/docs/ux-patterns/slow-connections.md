@@ -145,3 +145,5 @@ cd e2e && node vb-slow-network-probe.mjs
 
 - [Empty states and skeletons](/ux-patterns/empty-states-and-skeletons/) — the developer-declared `Skeleton` component
 - [Autosave](/ux-patterns/autosave/) — `background` actions, which are exempt from all of the above by design
+
+**See it live in the Explorer:** [Offline banner and reconnection](https://explorer.mateu.io/behaviour/resilience-a11y/offline-banner) · [Pending indicator, no double submit, retries](https://explorer.mateu.io/behaviour/resilience-a11y/pending-indicator) · [Skeleton while a route loads](https://explorer.mateu.io/behaviour/resilience-a11y/skeleton-loading) · [Timeouts & idempotent retries](https://explorer.mateu.io/behaviour/actions/timeouts-retries)

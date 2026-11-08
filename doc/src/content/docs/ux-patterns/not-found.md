@@ -108,3 +108,5 @@ The way back is an in-app navigation in both — the same one a menu click makes
 - Tests: `NotFoundPageSyncTest` (backend), `notFoundRenderer.test.ts` (Vaadin), the `not found`
   cases of the Redwood contract tests (`poc/test.mjs`), and `e2e/tests/shared/not-found.spec.ts`
   against every adapter.
+
+**See it live in the Explorer:** [Not-found pages](https://explorer.mateu.io/behaviour/navigation/not-found)

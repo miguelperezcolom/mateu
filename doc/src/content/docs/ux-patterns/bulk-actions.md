@@ -139,3 +139,5 @@ class InvoicesCrud(Crud[Invoice]):
 
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — finding the rows to act on
 - [Task queue](/ux-patterns/task-queue/) — when each item needs individual attention instead
+
+**See it live in the Explorer:** [Bulk actions on selected rows](https://explorer.mateu.io/behaviour/listings/bulk-actions)

@@ -181,3 +181,5 @@ guard's, not the drawer template's banner, which belongs to closing the drawer i
 - **Progressive complexity** — advanced sections are collapsed until needed
 - **Workflow over screens** — section-scoped actions avoid a round-trip to a dedicated sub-page
 - **Recoverability** — `@ConfirmOnNavigationIfDirty` prevents accidental data loss
+
+**See it live in the Explorer:** [Unsaved-changes guard](https://explorer.mateu.io/behaviour/forms/unsaved-changes)

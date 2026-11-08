@@ -80,3 +80,5 @@ BoardLayout.builder()
     ))
     .build()
 ```
+
+**See it live in the Explorer:** [Board & dashboard layouts](https://explorer.mateu.io/components/layout/board-and-dashboard-layout)

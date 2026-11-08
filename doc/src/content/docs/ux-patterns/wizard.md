@@ -485,3 +485,5 @@ numbers instead of field names, and .NET's early completion is the fixed `comple
 - **Progressive complexity** — each step shows only what is needed at that moment
 - **Recoverability** — validation fires before advancing, not at the end
 - **Workflow over screens** — the wizard models a task, not an entity
+
+**See it live in the Explorer:** [Wizard](https://explorer.mateu.io/archetypes/processes/wizard) · [Branching wizards](https://explorer.mateu.io/behaviour/wizards/branching) · [Cross-step state](https://explorer.mateu.io/behaviour/wizards/cross-step-state) · [Wizard drafts and resume](https://explorer.mateu.io/behaviour/wizards/drafts) · [Wizard progress styles](https://explorer.mateu.io/behaviour/wizards/progress-styles) · [Skippable steps and beforeStepNavigate](https://explorer.mateu.io/behaviour/wizards/skippable-steps) · [Guided process page](https://explorer.mateu.io/page-templates/templates/guided-process-page)

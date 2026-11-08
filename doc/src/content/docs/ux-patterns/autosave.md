@@ -64,3 +64,5 @@ By default, `@AutoSave` targets the first eligible action on the class. You can 
 - **Recoverability** — work is never lost to an accidental close or timeout
 - **Workflow over screens** — saving becomes invisible infrastructure, not a user task
 - **Minimize navigation** — no "save and stay" vs "save and go" decision required
+
+**See it live in the Explorer:** [Autosave](https://explorer.mateu.io/behaviour/forms/autosave)
