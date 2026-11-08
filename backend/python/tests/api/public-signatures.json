@@ -6599,6 +6599,13 @@
     ]
    ]
   },
+  "EmbeddedChrome": {
+   "enum": [
+    "COMPACT",
+    "NONE",
+    "PAGE"
+   ]
+  },
   "EmbeddedView": {
    "class": [
     [
@@ -8324,6 +8331,11 @@
     ],
     [
      "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chrome",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

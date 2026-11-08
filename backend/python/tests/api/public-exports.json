@@ -305,6 +305,7 @@
   "DrawerSize",
   "DropZone",
   "Element",
+  "EmbeddedChrome",
   "EmbeddedView",
   "EmptyState",
   "EntityHeader",

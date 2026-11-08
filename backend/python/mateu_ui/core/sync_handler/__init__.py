@@ -133,6 +133,24 @@ from .editable_view import EditableViewHandlerMixin
 
 
 
+#: What names or moves the window: never sent to an embedded micro frontend (Java's
+#: EmbeddedWindowCommands.WINDOW_COMMANDS).
+WINDOW_COMMANDS = frozenset({"SetWindowTitle", "SetFavicon", "PushStateToHistory"})
+
+
+def without_window_commands(increment):
+    """The increment without its window commands — the answer to an EMBEDDED micro frontend's
+    request: the island is a block of another page, and the window (its title, the address bar,
+    the favicon) belongs to that page. Stripped at the end of every answer, so no producer of
+    those commands has to know (mirrors Java's EmbeddedWindowCommands.strip)."""
+    if increment is None or not increment.commands:
+        return increment
+    kept = [c for c in increment.commands if c is None or c.type not in WINDOW_COMMANDS]
+    if len(kept) == len(increment.commands):
+        return increment
+    return increment.model_copy(update={"commands": kept})
+
+
 def referenced_rest_source_names(increment) -> tuple[set[str], bool]:
     """The source names a response's components reference by ``ref``, and whether it already
     carries the app's catalogue (an App metadata with ``rest_sources``)."""
@@ -383,6 +401,8 @@ class SyncHandler(
         # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
         if pending[0] and self.microfrontends is not None:
             increment = self.microfrontends.resolve_sync(increment, request)
+        if rq.embedded():
+            increment = without_window_commands(increment)
         return increment
 
     def _fragment_cache_candidates(self, rq: RunActionRq) -> list:

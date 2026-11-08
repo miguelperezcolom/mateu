@@ -1859,10 +1859,26 @@ class MicroFrontend(Component):
     server_side_type: str | None = None
     consumed_route: str | None = None
     action_id: str | None = None
+    #: Set = EMBEDDED in this page, a block rather than a page of its own: it never names the
+    #: window, touches the address bar or the favicon (its requests say so and its server sends
+    #: none of those commands) and draws no breadcrumb; NONE also drops its page header, COMPACT
+    #: keeps only the header actions, PAGE the header as is. None = a top-level micro frontend.
+    #: EXPERIMENTAL; mirrors ``io.mateu.uidl.data.MicroFrontend.chrome``.
+    chrome: "EmbeddedChrome | None" = None
 
     def resolved_by_server(self) -> bool:
         """Whether the host resolves it (``Resolve.SERVER``)."""
         return self.resolve is Resolve.SERVER
+
+
+class EmbeddedChrome(Enum):
+    """How much of its own page chrome an EMBEDDED :class:`MicroFrontend` keeps (any value makes it
+    embedded): ``NONE`` — only the content; ``COMPACT`` — the header's actions, no title; ``PAGE`` —
+    the header as is, no breadcrumb. EXPERIMENTAL; mirrors ``io.mateu.uidl.data.EmbeddedChrome``."""
+
+    NONE = "NONE"
+    COMPACT = "COMPACT"
+    PAGE = "PAGE"
 
 
 class Resolve(Enum):
@@ -2203,6 +2219,7 @@ __all__ = [
     "Dialog",
     "MicroFrontend",
     "Resolve",
+    "EmbeddedChrome",
     "ContentSlot",
     "Text",
     "Button",

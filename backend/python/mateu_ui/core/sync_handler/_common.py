@@ -147,6 +147,13 @@ class RunActionRq(BaseModel):
     #: server omits the component and replies with only state/data. None = full structure
     #: (mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash).
     known_structure_hash: str | None = None
+    #: Set (``NONE``/``COMPACT``/``PAGE``) when the request comes from a micro frontend EMBEDDED in
+    #: another page: the answer carries no window commands (mirrors RunActionRqDto.embeddedChrome).
+    embedded_chrome: str | None = None
+
+    def embedded(self) -> bool:
+        """Whether the request comes from an embedded micro frontend."""
+        return bool(self.embedded_chrome and self.embedded_chrome.strip())
 
 
 # The event the edit_in_drawer drawer emits on save: the listing refreshes by re-running its
