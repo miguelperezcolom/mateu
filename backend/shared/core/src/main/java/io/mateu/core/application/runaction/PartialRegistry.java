@@ -63,6 +63,13 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
    */
   private final ConcurrentHashMap<String, JsonNode> requestDependent = new ConcurrentHashMap<>();
 
+  /**
+   * The source tree of every YAML partial read, request-dependent or not: what {@link
+   * #sourceOf(String)} hands the write-side guard, which derives the fields a partial locks for a
+   * caller (and follows the partials it nests) without rendering it.
+   */
+  private final ConcurrentHashMap<String, JsonNode> sources = new ConcurrentHashMap<>();
+
   private final TranslationRegistry fallbackTranslations = new TranslationRegistry();
   private final ConcurrentHashMap<String, List<Component>> registered = new ConcurrentHashMap<>();
 
@@ -75,6 +82,7 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   public void invalidateSpecs() {
     byRef.clear();
     requestDependent.clear();
+    sources.clear();
   }
 
   /**
@@ -92,6 +100,34 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
     registered.clear();
     byRef.clear();
     requestDependent.clear();
+    sources.clear();
+  }
+
+  /**
+   * The authored YAML tree {@code ref} stands for, BEFORE any access key is applied (a copy), or
+   * {@code null} when the ref is not a YAML partial (registered in code, a class, or missing). For
+   * the write-side guard ({@code ClientLockedFields}): the fields a partial locks for a caller are
+   * derived from it.
+   */
+  public JsonNode sourceOf(String ref) {
+    if (ref == null || ref.isBlank() || registered.containsKey(ref)) {
+      return null;
+    }
+    byRef.computeIfAbsent(ref, this::fromYaml);
+    var source = sources.get(ref);
+    return source == null ? null : source.deepCopy();
+  }
+
+  /**
+   * The components a partial registered in code, or authored as a Java class, stands for; {@code
+   * null} for a YAML (or missing) one.
+   */
+  public List<Component> codeComponentsOf(String ref, HttpRequest httpRequest) {
+    if (ref == null || ref.isBlank()) {
+      return null;
+    }
+    var fromCode = registered.get(ref);
+    return fromCode != null ? fromCode : fromClass(ref, httpRequest);
   }
 
   /** The components {@code ref} stands for; empty when it resolves to nothing. */
@@ -211,6 +247,7 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
       if (root == null || root.isNull()) {
         return NONE;
       }
+      sources.put(ref, root.deepCopy());
       if (YamlAccess.declaresAccess(root) || TranslationRegistry.mentionsI18n(root)) {
         // re-derived per request (resolve → personalised); no shared version exists to leak
         requestDependent.put(ref, root);

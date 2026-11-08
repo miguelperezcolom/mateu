@@ -152,6 +152,21 @@ public class ComponentRegistry implements io.mateu.core.infra.dev.SpecsCache {
     }
   }
 
+  /**
+   * The authored source of a business component whose composition depends on the caller (it
+   * declares access keys or {@code ${i18n.…}}), BEFORE any access key is applied (a copy); {@code
+   * null} when the catalogue holds no such entry. For the write-side guard ({@code
+   * ClientLockedFields}), which derives from it the fields the component locks for a caller.
+   */
+  public com.fasterxml.jackson.databind.JsonNode authoredSourceOf(String name) {
+    if (name == null) {
+      return null;
+    }
+    catalog();
+    var source = requestDependent.get(name);
+    return source == null ? null : source.deepCopy();
+  }
+
   ComponentCatalog load(ClassLoader classLoader) {
     var derived = derivedFrom(classLoader);
     var authored = authoredFrom(classLoader);

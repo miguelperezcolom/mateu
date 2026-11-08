@@ -35,6 +35,10 @@ public class ComponentTreeSupplierMapper {
             route,
             initiatorComponentId,
             httpRequest);
+    // which YAML pieces this view draws: the state it is posted later must not write their locked
+    // fields (ClientLockedFields, applied before hydration)
+    io.mateu.core.infra.security.ClientLockedFields.learn(
+        componentTreeSupplier.serverSideType(), tree);
     var leaf =
         mapComponentToDto(
             componentTreeSupplier,

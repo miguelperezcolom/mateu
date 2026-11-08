@@ -368,8 +368,16 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     }
     var path = normalize(authoredRouteIn(route, mount));
     var spec = loadSpec(path);
-    if (spec == null || !spec.dependsOnRequest()) {
+    if (spec == null) {
       return command;
+    }
+    // the business components (components.yaml) and partials the layout names lock fields too:
+    // they are resolved while the tree is mapped, after the view model is hydrated
+    var lockedByPieces =
+        io.mateu.core.infra.security.ClientLockedFields.lockedByPiecesOf(
+            spec.layout(), httpRequest);
+    if (!spec.dependsOnRequest()) {
+      return withoutLocked(command, lockedByPieces);
     }
     var personal = loadSpec(path, httpRequest);
     if (personal == null) {
@@ -387,14 +395,22 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         throw refusedAction(String.valueOf(sourceId));
       }
     }
-    if (!personal.lockedFields().isEmpty()
-        && command.componentState() != null
-        && personal.lockedFields().stream().anyMatch(command.componentState()::containsKey)) {
-      var narrowed = new java.util.LinkedHashMap<>(command.componentState());
-      personal.lockedFields().forEach(narrowed::remove);
-      return command.withComponentState(narrowed);
+    var locked = new java.util.LinkedHashSet<>(personal.lockedFields());
+    locked.addAll(lockedByPieces);
+    return withoutLocked(command, locked);
+  }
+
+  /** {@code command} without the posted state of the fields {@code locked} names. */
+  private static RunActionCommand withoutLocked(
+      RunActionCommand command, java.util.Set<String> locked) {
+    if (locked.isEmpty()
+        || command.componentState() == null
+        || locked.stream().noneMatch(command.componentState()::containsKey)) {
+      return command;
     }
-    return command;
+    var narrowed = new java.util.LinkedHashMap<>(command.componentState());
+    locked.forEach(narrowed::remove);
+    return command.withComponentState(narrowed);
   }
 
   /** The action catalogue, when there is a bean context to ask (null in a bare unit test). */

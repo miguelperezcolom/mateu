@@ -30,6 +30,10 @@ public final class UIFragmentAssembler {
       HttpRequest httpRequest) {
     // Fragments are an authoring concept: they are inlined here, once, so that nothing downstream
     // — no mapper, no DTO, no renderer — ever has to know they existed.
+    if (componentSupplier != null) {
+      io.mateu.core.infra.security.ClientLockedFields.learn(
+          componentSupplier.serverSideType(), component);
+    }
     component = PartialExpander.expand(component, httpRequest);
     if (component instanceof State state) {
       return mapStateToDto(state, initiatorComponentId);

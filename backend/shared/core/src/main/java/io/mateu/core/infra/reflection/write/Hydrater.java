@@ -92,13 +92,14 @@ public class Hydrater {
 
   /**
    * Write-side enforcement of the field-level access-control annotations: the browser is untrusted,
-   * so a field the UI hides ({@link EyesOnly}) or locks ({@link ReadOnlyUnless}) for this request
-   * must not be writable by tampering with the component state either. The read side (what is
-   * rendered) is enforced by FormFieldFilter / PageFormBuilder; this is its symmetric counterpart.
-   * Unauthorized entries are dropped, so the field keeps the server-side value (initializer or
-   * whatever load()/actions set) — protected values must be computed server-side, never trusted
-   * from the round-tripped state. Class-level restrictions are intentionally not enforced here: a
-   * fully read-only view still legitimately round-trips state its actions need (e.g. the id).
+   * so a field the UI hides ({@link EyesOnly}) or locks ({@link ReadOnlyUnless}, {@code
+   * DisabledUnless}) for this request must not be writable by tampering with the component state
+   * either. The read side (what is rendered) is enforced by FormFieldFilter / PageFormBuilder; this
+   * is its symmetric counterpart. Unauthorized entries are dropped, so the field keeps the
+   * server-side value (initializer or whatever load()/actions set) — protected values must be
+   * computed server-side, never trusted from the round-tripped state. Class-level restrictions are
+   * intentionally not enforced here: a fully read-only view still legitimately round-trips state
+   * its actions need (e.g. the id).
    */
   private static boolean isClientWritable(Field field, HttpRequest httpRequest) {
     // A dependency the container injected (or a static) is not view state: writing wire data into
@@ -113,6 +114,12 @@ public class Hydrater {
     }
     var readOnlyUnless = MetaAnnotations.find(field, ReadOnlyUnless.class);
     if (readOnlyUnless != null && !Authorizer.isAuthorized(readOnlyUnless, httpRequest)) {
+      return false;
+    }
+    // a field rendered disabled for the caller can no more be changed than a read-only one
+    var disabledUnless =
+        MetaAnnotations.find(field, io.mateu.uidl.annotations.DisabledUnless.class);
+    if (disabledUnless != null && !Authorizer.isAuthorized(disabledUnless, httpRequest)) {
       return false;
     }
     return true;
