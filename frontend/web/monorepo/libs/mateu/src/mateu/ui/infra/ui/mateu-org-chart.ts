@@ -7,7 +7,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { announce } from '@infra/a11y/announcer.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts';
 import { isImageAddress } from "./avatarAddress";
-import { focusView, initialFocus, initialsOf, isFocusDisplay, MAX_VISIBLE_ANCESTORS, visibleAncestors } from '@infra/ui/orgChartModel.ts';
+import { focusView, initialFocus, initialsOf, isFocusDisplay, MAX_VISIBLE_ANCESTORS, treeConnectors, visibleAncestors } from '@infra/ui/orgChartModel.ts';
 
 /**
  * Dependency-free top-down org chart: each node is a card; its children sit in a row below,
@@ -56,54 +56,35 @@ export class MateuOrgChart extends LitElement {
             min-width: 100%;
             justify-content: center;
         }
-        ul {
+        /* The tree's connectors are real elements (treeConnectors): a line DOWN from a parent, the
+           sibling bar from the first child's centre to the last's, a line UP into each child. */
+        .tree ul {
             display: flex;
-            padding-top: 1.1rem;
-            position: relative;
+            justify-content: center;
             list-style: none;
             margin: 0;
+            padding: 0;
         }
-        li {
+        .tree li {
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
             padding: 1.1rem .4rem 0;
         }
-        /* vertical line down from a parent */
-        li::before {
-            content: '';
+        .tree li.root { padding-top: 0; }
+        .tree .line {
             position: absolute;
-            top: 0;
-            height: 1.1rem;
+            background: var(--lumo-contrast-20pct, #cbd5e1);
+        }
+        .tree .up { top: 0; left: 50%; width: 2px; height: 1.1rem; transform: translateX(-1px); }
+        .tree .bar { top: 0; height: 2px; width: 50%; }
+        .tree .bar.left { left: 0; }
+        .tree .bar.right { right: 0; }
+        .tree .down {
             width: 2px;
+            height: 1.1rem;
             background: var(--lumo-contrast-20pct, #cbd5e1);
-        }
-        /* horizontal connectors between siblings */
-        li::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            height: 2px;
-            width: 50%;
-            right: 50%;
-            background: var(--lumo-contrast-20pct, #cbd5e1);
-        }
-        li:only-child::before, li:only-child::after { display: none; }
-        li:first-child::after { display: none; }
-        li:last-child::before {
-            /* the last child needs the connector on its left */
-        }
-        ul > li:not(:only-child)::after { left: 50%; right: auto; }
-        ul > li:not(:only-child):last-child::after { display: none; }
-        ul > li:not(:only-child):first-child::before { display: none; }
-        /* the connecting bar spanning the children row */
-        ul::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 0;
         }
         .node {
             display: flex;
@@ -291,11 +272,16 @@ export class MateuOrgChart extends LitElement {
         }))
     }
 
-    private renderNode(node: OrgNode): TemplateResult {
+    private renderNode(node: OrgNode, index = 0, count = 1, isRoot = true): TemplateResult {
         const avatar = node.avatar
         const isImg = isImageAddress(avatar)
+        const lines = treeConnectors(index, count, isRoot)
+        const children = node.children ?? []
         return html`
-            <li>
+            <li class="${isRoot ? 'root' : nothing}">
+                ${lines.up ? html`<span class="line up" aria-hidden="true"></span>` : nothing}
+                ${lines.left ? html`<span class="line bar left" aria-hidden="true"></span>` : nothing}
+                ${lines.right ? html`<span class="line bar right" aria-hidden="true"></span>` : nothing}
                 <div role=${ifDefined(buttonRole(!!node.actionId))} tabindex=${ifDefined(tabStop(!!node.actionId))} class="node ${node.actionId ? 'clickable' : ''}"
                      style="${node.color ? `--mateu-org-accent: ${node.color};` : ''}"
                      @click="${() => this.clickNode(node)}" @keydown="${onActivate(() => this.clickNode(node))}">
@@ -303,8 +289,9 @@ export class MateuOrgChart extends LitElement {
                     <span class="title">${node.title}</span>
                     ${node.subtitle ? html`<span class="subtitle">${node.subtitle}</span>` : nothing}
                 </div>
-                ${node.children && node.children.length
-                    ? html`<ul>${node.children.map(child => this.renderNode(child))}</ul>`
+                ${children.length
+                    ? html`<span class="down" aria-hidden="true"></span>
+                        <ul>${children.map((child, i) => this.renderNode(child, i, children.length, false))}</ul>`
                     : nothing}
             </li>
         `

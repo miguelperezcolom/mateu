@@ -67,6 +67,16 @@ export const visibleAncestors = (ancestors: OrgNode[], expanded: boolean): { hid
     return { hidden: ancestors.length - 1, visible: ancestors.slice(-1) }
 }
 
+/**
+ * The connector lines of a node in the TREE display, for the child at `index` of `count`
+ * siblings: the line up to the sibling bar, and the bar's halves — left of a child that has a
+ * sibling before it, right of one with a sibling after it — so the bar runs exactly from the first
+ * child's centre to the last's. A root has none. (Pseudo-element rules used to draw it: no line ran
+ * down from a parent and the bar covered only the last siblings.)
+ */
+export const treeConnectors = (index: number, count: number, isRoot = false): { up: boolean, left: boolean, right: boolean } =>
+    isRoot ? { up: false, left: false, right: false } : { up: true, left: index > 0, right: index < count - 1 }
+
 /** Initials for a node without an avatar: first letters of its first two words. */
 export const initialsOf = (title?: string): string =>
     (title ?? '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('')
