@@ -998,6 +998,23 @@ Durable rules and where they live:
   wire-type gate like RN/IntelliJ/Redwood (parity checks read the schema). Normalisers: absent ==
   default EXCEPT the `MEANINGFUL_ZERO` members (e.g. `MessageDto.duration`).
 
+## Performance baseline + budgets (2026-11, `design/performance/baseline-2026-11.md`)
+
+- **Mateu gzips its own assets** (`AssetCompression`, core): every adapter served the renderer
+  UNCOMPRESSED (2.6 MB of JS on a Vaadin first load, 14 s on Fast 3G → 0.65 MB / 4.6 s). Spring:
+  `MateuGzipAssetResolver` in the `MateuStaticAssetCaching` chain; Quarkus `serveAsset`; Helidon's
+  routing filter (`servesGzippedAsset` — an encoding module would also compress SSE); Micronaut's
+  Netty does it itself; .NET `UiPage.Gzipped` / Python `ui_page.gzipped`. `mateu.static-assets.compression=false`
+  opts out. Pinned by `AdapterParityITFoundation.servesTextAssetsGzipped` (5 adapters).
+- **Never call `Class.getRecordComponents()` on the request path** — use `io.mateu.core.domain.Records.components`:
+  the JVM does not cache it and the per-node calls of the wire-record walks were 66% of a listing
+  load's CPU. `RequestBudgetTest` pins 0 shape reads per warm request and fails on a new direct call.
+- Python: `reflection._local_hints` resolves annotations once per class (it `eval`-ed them per request).
+- Budgets: `WireConformanceTest.everyCaseStaysWithinItsResponseSizeBudget` (raw wire JSON per corpus
+  screen, `src/test/resources/perf/response-size-budget.json`, `-Dresponse.size.write=true`),
+  `e2e/tests/shared/first-load-budget.spec.ts` (gzipped bundle, requests/bytes of a cold first load).
+  No latency gate (shared runners are noise). Probes: `e2e/first-load-probe.mjs`, `e2e/sync-latency-probe.mjs`.
+
 ## New Mateu project — one generator, three front doors (2026-10-10)
 
 IntelliJ **File › New › Project › Mateu** (`io.mateu.ijp.newproject`), VS Code **Mateu: New
