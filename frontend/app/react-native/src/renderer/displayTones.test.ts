@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { theme } from '../theme.ts';
 import {
   calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE,
-  processDotColor, statTrend, stepLook, taskProgressBackground,
+  processDotColor, statTrend, stepLook, taskProgressBackground, progressBarColor,
 } from './displayTones.ts';
 
 test('web icon tokens are not glyphs: only emoji/plain text show', () => {
@@ -99,4 +99,13 @@ test('stepper steps: done ticks, current outlined, upcoming numbered and muted',
   assert.equal(upcoming.glyph, '3');
   assert.equal(upcoming.dotColor, theme.border);
   assert.equal(upcoming.textColor, theme.muted);
+});
+
+test("a ProgressBar's theme is its fill colour (success / error / danger / warning), else primary", () => {
+  assert.equal(progressBarColor('success'), theme.success);
+  assert.equal(progressBarColor('error'), theme.danger);
+  assert.equal(progressBarColor('danger'), theme.danger);
+  assert.equal(progressBarColor('warning'), theme.warning);
+  assert.equal(progressBarColor(undefined), theme.primary);
+  assert.equal(progressBarColor('whatever'), theme.primary);
 });

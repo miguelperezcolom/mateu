@@ -51,4 +51,19 @@ test('a Badge draws its iconOnLeft / iconOnRight inside the chip', () => {
   }
 })
 
+test('a ProgressBar\'s theme tints its fill (the class was stamped and nothing painted with it)', () => {
+  const bars = atomsOf(node({ type: 'VerticalLayout' }, [
+    node({ type: 'ProgressBar', value: 0.8, theme: 'success' }),
+    node({ type: 'ProgressBar', value: 0.9, theme: 'error' }),
+    node({ type: 'ProgressBar', value: 0.5 }),
+  ])).filter((a) => a.isProgressBar)
+  assert.match(bars[0].barClass, /mateu-tone-success/)
+  assert.match(bars[1].barClass, /mateu-tone-danger/)
+  assert.doesNotMatch(bars[2].barClass, /mateu-tone-/)
+  const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
+  assert.match(css, /oj-progress-bar\[class\*="mateu-tone-"\] \.oj-progress-bar-value \{ background-color: var\(--mateu-tone\)/)
+  // every tone the projection stamps has its colour
+  for (const tone of ['success', 'danger', 'warning', 'info']) assert.match(css, new RegExp('\\.mateu-tone-' + tone + ' \\{ --mateu-tone:'))
+})
+
 console.log(`\n${passed} explorer-findings tests OK`)

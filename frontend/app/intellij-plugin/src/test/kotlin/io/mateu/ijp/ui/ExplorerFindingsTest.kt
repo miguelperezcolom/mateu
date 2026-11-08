@@ -31,4 +31,12 @@ class ExplorerFindingsTest : TestCase() {
         // and markup in it is text, not html
         assertTrue(faqAnswerHtml("<img src=x>").contains("&lt;img"))
     }
+
+    fun testAProgressBarsThemeIsThePlatformStatus() {
+        assertEquals("passed", progressBarStatus("success"))
+        assertEquals("error", progressBarStatus("error"))
+        assertEquals("error", progressBarStatus("danger"))
+        assertEquals("warning", progressBarStatus("warning"))
+        assertNull(progressBarStatus(""))
+    }
 }
