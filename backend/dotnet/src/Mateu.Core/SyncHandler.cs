@@ -79,6 +79,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         }
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
+        // the inbox messages of the answer are kept for the caller (IInboxStore)
+        increment = StoreInbox(increment, Principal?.Invoke());
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
         return pending.Value
@@ -98,7 +100,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
         var pending = MicroFrontends.MicroFrontendPending.Begin();
-        var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
+        var increment = StoreInbox(WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl)), Principal?.Invoke());
         return pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
             : increment;
@@ -119,6 +121,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 0a. The user cancels a running task (the renderer's Cancel on a LongTask): no instance
         // to resolve, and only the caller's own task can be stopped (mirrors Java's ProgressTasks).
         if (rq.ActionId == ProgressTasks.CancelAction) return CancelTask(rq);
+        // 0a'. A reloaded client asks which of its tasks still run (or just ended); over the sync
+        // endpoint a resume answers the same snapshot for its one task (the stream is the SSE leg's)
+        if (rq.ActionId == ProgressTasks.TasksAction) return TasksSnapshot(rq);
+        if (rq.ActionId == ProgressTasks.ResumeAction)
+            return ProgressTasks.Snapshot([StateString(GetState(rq.Parameters, "taskId")) ?? ""], Owner());
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this

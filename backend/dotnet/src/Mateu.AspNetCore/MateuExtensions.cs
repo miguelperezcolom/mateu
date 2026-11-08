@@ -45,6 +45,9 @@ public static class MateuExtensions
         else if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
+        // a task survives its stream for the reattach grace period (process-wide, like the registry)
+        if (options.ProgressReattachGraceSeconds is { } graceSeconds)
+            ProgressTasks.Grace = TimeSpan.FromSeconds(Math.Max(0, graceSeconds));
         var registry0 = new MateuRegistry(assemblies);
         services.AddSingleton(registry0);
         // Version skew (X-Mateu-Build / X-Mateu-Renderer): a startup filter puts the middleware at
@@ -111,10 +114,15 @@ public static class MateuExtensions
                 RequestSelfBaseUrl = () => accessor.HttpContext is { } ctx ? LocalOrigin(ctx) : null,
                 MicroFrontendResolver = MicroFrontendResolverOf(sp, options),
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
+                // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
+                InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
             };
         });
         return services;
     }
+
+    /// <summary>Mateu's in-memory inbox store, one per process (shared by every mount).</summary>
+    private static readonly InMemoryInboxStore DefaultInboxStore = new();
 
     /// <summary>The client the server-side micro frontend resolution calls remotes with (each call
     /// has its own deadline; this is only the outer bound).</summary>
@@ -203,11 +211,26 @@ public static class MateuExtensions
                 await StreamAgentChannel(ctx, rq, handler, Send);
                 return;
             }
+            if (rq.ActionId == ProgressTasks.ResumeAction)
+            {
+                // a reloaded client follows a task of ITS caller again (nothing for anyone else's)
+                try
+                {
+                    await foreach (var step in handler.ResumeTask(rq, ctx.RequestAborted))
+                        await Send(step, ctx.RequestAborted);
+                }
+                catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+                {
+                    // the browser went away again: the task runs on for the grace period
+                }
+                return;
+            }
             if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
             {
                 // An action that answers a LongTask streams its progress (one increment per step,
-                // cancellable with _progress-cancel; closing the stream cancels it); any other
-                // action streams its single increment.
+                // cancellable with _progress-cancel); closing the stream leaves the task running for
+                // the reattach grace period (_progress-resume picks it up), then cancels it. Any
+                // other action streams its single increment.
                 var slot = SyncHandler.BeginStream();
                 var increment = await RunGuarded(ctx, rq, () =>
                     handler.HandleAsync(rq, prefix, ctx.RequestAborted));
@@ -221,12 +244,12 @@ public static class MateuExtensions
                 try
                 {
                     await foreach (var step in handler.ContinueStream(slot,
-                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted))
+                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted, hot: true))
                         await Send(step, ctx.RequestAborted);
                 }
                 catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
                 {
-                    // the browser went away: the task was cancelled with its stream
+                    // the browser went away: a task runs on for the grace period
                 }
                 return;
             }

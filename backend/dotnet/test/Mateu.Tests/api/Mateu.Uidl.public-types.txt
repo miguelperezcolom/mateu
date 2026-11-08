@@ -186,6 +186,7 @@ Mateu.Uidl.IGroupActionVisibility
 Mateu.Uidl.IHeaderValuesSupplier
 Mateu.Uidl.IHeroSearch
 Mateu.Uidl.IHomeRouteSupplier
+Mateu.Uidl.IInboxStore
 Mateu.Uidl.IKeepAliveHandler
 Mateu.Uidl.ILinkSupplier
 Mateu.Uidl.IListingExporter

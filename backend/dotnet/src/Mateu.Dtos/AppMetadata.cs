@@ -49,9 +49,15 @@ public record AppMetadataDto(
     /// IAppActionsSupplier); an entry with Children renders as a dropdown.</summary>
     public IReadOnlyList<AppHeaderActionDto> ContextActions { get; init; } = [];
 
-    /// <summary>True when the app class implements INotificationsSupplier — the shell shows the
-    /// header bell, fed by the _notifications-list/_notifications-read app-level actions.</summary>
+    /// <summary>True when the app class implements INotificationsSupplier or declares
+    /// [App(Inbox = true)] — the shell shows the header bell, fed by the _notifications-list/
+    /// _notifications-read app-level actions.</summary>
     public bool NotificationsEnabled { get; init; }
+
+    /// <summary>[App(OsNotifications = true)]: the renderer may raise OS-level notifications (a new
+    /// inbox entry, a background task that finished) while the app is not in front — permission
+    /// asked only from a user gesture. (Mirrors AppDto.osNotifications.) EXPERIMENTAL.</summary>
+    public bool OsNotifications { get; init; }
 
     /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette
     /// also searches ENTITIES through the app-level _globalsearch action.</summary>

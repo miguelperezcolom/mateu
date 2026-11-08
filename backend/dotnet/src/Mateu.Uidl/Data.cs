@@ -201,6 +201,28 @@ public interface INotificationsSupplier
     object? NotificationDetail(string id) => null;
 }
 
+/// <summary>Where the INBOX messages of the answers are kept, per authenticated principal — an
+/// interface the app may implement (Mateu ships UI only): register an IInboxStore service and it
+/// replaces Mateu's default, in memory, per process, bounded (100 entries per principal, 10 000
+/// principals) and lost on restart. A <see cref="MessagePersistence.Inbox"/> message of an
+/// authenticated caller is <see cref="Add"/>ed (and pushed to the principal's other sessions);
+/// the bell lists it next to the <see cref="INotificationsSupplier"/>'s entries. (C# analogue of
+/// Java's io.mateu.uidl.interfaces.InboxStore.) EXPERIMENTAL.</summary>
+public interface IInboxStore
+{
+    /// <summary>Adds the entry to the principal's inbox — replacing an entry with the same id.</summary>
+    void Add(string principal, AppNotification entry);
+
+    /// <summary>The principal's entries, newest first.</summary>
+    IReadOnlyList<AppNotification> List(string principal);
+
+    /// <summary>Marks the principal's entries read (ids not in the inbox are ignored).</summary>
+    void MarkRead(string principal, IReadOnlyList<string> ids);
+
+    /// <summary>Removes the principal's entries (ids not in the inbox are ignored).</summary>
+    void Dismiss(string principal, IReadOnlyList<string> ids);
+}
+
 /// <summary>One hit of the app-wide entity search (the command palette's data results): a label,
 /// an optional secondary line, the route to navigate to, and an optional category caption used to
 /// group the palette's results ("Clientes", "Reservas"…). (C# analogue of
