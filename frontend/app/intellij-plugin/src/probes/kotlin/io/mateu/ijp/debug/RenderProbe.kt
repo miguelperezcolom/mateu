@@ -17,16 +17,48 @@ import javax.swing.UIManager
  * through the REAL renderer pipeline (AppContext.applyIncrement → ComponentRenderer) without
  * booting an IDE, then prints a component-tree summary and writes a PNG of the rendered panel.
  * Run with `./gradlew renderProbe -Pprobe.json=/path/to/increment.json [-Pprobe.png=/path/out.png]`.
+ * `probe.json` may also be a FOLDER of increments (batch: `probe.png` is then the output folder,
+ * one PNG + one tree dump per file). A `probe.properties` beside the input (`theme=light` paints under IntelliJ Light,
+ * `size=1440x900` sets the frame) — or env `MATEU_PROBE_THEME` / `MATEU_PROBE_SIZE`.
  *
  * The lightweight platform bootstrap (paths + scale + L&F, no Application) comes from the removed
  * standalone renderer's PlatformBootstrap — enough for Swing/JB components to construct and paint.
  */
+/** Options of a batch folder's `probe.properties` (theme=light|dark, size=WxH), else the env. */
+private val options = java.util.Properties()
+
+private fun option(key: String, env: String): String? = options.getProperty(key) ?: System.getenv(env)
+
 fun main() {
-    bootstrap()
-
     val jsonPath = System.getProperty("probe.json") ?: error("-Dprobe.json=<increment.json> required")
-    val pngPath = System.getProperty("probe.png") ?: "$jsonPath.png"
+    val input = File(jsonPath)
+    // The gradle daemon does not hand a NEW env var to the probe JVM, so a batch folder may carry
+    // its options in a probe.properties file instead.
+    File(if (input.isDirectory) input else input.absoluteFile.parentFile, "probe.properties").takeIf { it.isFile }
+        ?.reader()?.use { options.load(it) }
+    bootstrap()
+    if (input.isDirectory) {
+        // Batch mode: every *.json in the folder → <out>/<name>.png + <name>.txt (the tree dump), in
+        // one JVM — a gradle start per screen costs ~40 s. probe.png names the output folder.
+        val out = File(System.getProperty("probe.png") ?: input.absolutePath).apply { mkdirs() }
+        val realOut = System.out
+        for (file in input.listFiles { f -> f.name.endsWith(".json") }!!.sortedBy { it.name }) {
+            val base = file.nameWithoutExtension
+            val txt = java.io.PrintStream(File(out, "$base.txt"))
+            System.setOut(txt)
+            runCatching { renderOne(file, File(out, "$base.png").absolutePath) }
+                .onFailure { it.printStackTrace(txt) }
+            txt.close()
+            System.setOut(realOut)
+            println("rendered $base")
+        }
+    } else {
+        renderOne(input, System.getProperty("probe.png") ?: "$jsonPath.png")
+    }
+    kotlin.system.exitProcess(0)
+}
 
+private fun renderOne(jsonFile: File, pngPath: String) {
     val session = AppSession(System.getProperty("probe.baseUrl") ?: io.mateu.ijp.plugin.DEFAULT_BASE_URL)
     val ctx = AppContext(session)
     val panel = ctx.newSlot()
@@ -36,10 +68,10 @@ fun main() {
     // publish into ctx.viewActions instead of rendering inline; they're printed after the tree.
     ctx.nativeToolbarHost = System.getProperty("probe.nativeToolbar") == "true"
 
-    val increment = session.mapper.readTree(File(jsonPath))
+    val increment = session.mapper.readTree(jsonFile)
     SwingUtilities.invokeAndWait { ctx.applyIncrement(increment) }
     // loadServerSideComponent defers its putChildren via invokeLater; drain a few EDT hops.
-    repeat(3) { Thread.sleep(200); SwingUtilities.invokeAndWait {} }
+    repeat(4) { Thread.sleep(250); SwingUtilities.invokeAndWait {} }
 
     // -Dprobe.followUp=<json>: a second increment applied on top (e.g. an action's response),
     // to exercise in-place updates (state-only merges, toolbar republish…).
@@ -48,12 +80,14 @@ fun main() {
         SwingUtilities.invokeAndWait { ctx.applyIncrement(second) }
         repeat(3) { Thread.sleep(200); SwingUtilities.invokeAndWait {} }
     }
+    // MATEU_PROBE_SIZE=WxH (env: the gradle task forwards only fixed properties).
+    val (w, h) = (option("size", "MATEU_PROBE_SIZE") ?: "1200x900").split("x").map { it.trim().toInt() }
 
     SwingUtilities.invokeAndWait {
         val frame = JFrame("probe")
         frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
         frame.contentPane.add(panel)
-        frame.setSize(1200, 900)
+        frame.setSize(w, h)
         frame.isVisible = true
         frame.validate()
 
@@ -64,8 +98,6 @@ fun main() {
             ctx.viewActions.forEach { println("  $it") }
         }
         println("=== dirty chain: trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
-        ctx.putState("__probe__", "x")
-        println("=== after putState: dirty=${ctx.dirty}")
 
         val img = BufferedImage(frame.width, frame.height, BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()
@@ -75,7 +107,7 @@ fun main() {
         println("=== png written to $pngPath ===")
         frame.dispose()
     }
-    // Overlays (drawer dialogs) may keep displayable windows around — capture them first, then exit.
+    // Overlays (drawer dialogs) may keep displayable windows around — capture them first, then close.
     SwingUtilities.invokeAndWait {
         for (w in java.awt.Window.getWindows()) {
             if (w.isVisible && w !is JFrame) {
@@ -93,7 +125,6 @@ fun main() {
         }
     }
     session.executor.shutdownNow()
-    kotlin.system.exitProcess(0)
 }
 
 private fun dump(c: JComponent, depth: Int) {
@@ -140,14 +171,84 @@ private fun bootstrap() {
         JBUIScale.setSystemScaleFactor(1f)
     }.onFailure { System.err.println("[probe] scale precompute failed: $it") }
     runCatching {
-        val laf = Class.forName("com.intellij.ide.ui.laf.darcula.DarculaLaf")
+        // theme=light paints under IntelliJ Light; anything else, dark. The colours live in the
+        // platform's theme JSON (themes/expUI/*.theme.json = the New UI, the 2025 default), which a
+        // booted IDE applies through LafManager — so the probe applies it itself: without it,
+        // IntelliJLaf paints with Darcula's defaults and a "light" render comes out dark.
+        val light = option("theme", "MATEU_PROBE_THEME") == "light"
+        val lafClass = if (light) "com.intellij.ide.ui.laf.IntelliJLaf" else "com.intellij.ide.ui.laf.darcula.DarculaLaf"
+        val laf = Class.forName(lafClass)
             .getDeclaredConstructor().newInstance() as javax.swing.LookAndFeel
+        com.intellij.ui.JBColor.setDark(!light)
         UIManager.setLookAndFeel(laf)
+        runCatching {
+            // UITheme.loadTempThemeFromJson needs a booted Application, so apply the JSON here:
+            // the parent theme first, then the New UI one on top.
+            val loader = laf.javaClass.classLoader
+            val defaults = UIManager.getLookAndFeelDefaults()
+            if (light) {
+                applyThemeJson(loader, "themes/intellijlaf.theme.json", defaults)
+                applyThemeJson(loader, "themes/expUI/expUI_light.theme.json", defaults)
+            } else {
+                applyThemeJson(loader, "themes/darcula.theme.json", defaults)
+                applyThemeJson(loader, "themes/expUI/expUI_dark.theme.json", defaults)
+            }
+        }.onFailure { System.err.println("[probe] theme JSON not applied (${it.message}); bare L&F colours") }
     }.onFailure {
         // The system L&F (Aqua on macOS) is not module-accessible under newer JDKs, leaving no
         // ComponentUI and a blank render — fall back to the cross-platform (Metal) L&F so the probe
         // still paints on any environment.
         System.err.println("[probe] Darcula failed (${it.message}), cross-platform L&F")
         runCatching { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()) }
+    }
+}
+
+/**
+ * A minimal version of what LafManager does with a `*.theme.json`: the `ui` tree flattened to
+ * UIDefaults keys (`Panel: {background: …}` → `Panel.background`), `*` entries applied to every key
+ * with that suffix, colour values resolved through the theme's `colors` palette. Only colours,
+ * numbers and booleans are applied (border/insets strings are left to the L&F) — enough for the
+ * probe to paint a light or dark render that matches the IDE's.
+ */
+private fun applyThemeJson(loader: ClassLoader, resource: String, defaults: javax.swing.UIDefaults) {
+    val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+        .enable(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS)
+    val root = loader.getResourceAsStream(resource)?.use { mapper.readTree(it) } ?: error("$resource not found")
+    val palette = HashMap<String, String>()
+    root.path("colors").properties().forEach { (k, v) -> palette[k] = v.asText() }
+    fun colorOf(raw: String, depth: Int = 0): java.awt.Color? {
+        val v = raw.trim()
+        if (v.startsWith("#")) {
+            val hex = v.removePrefix("#")
+            return when (hex.length) {
+                6 -> java.awt.Color(hex.toInt(16))
+                8 -> java.awt.Color(hex.substring(0, 6).toInt(16) or (hex.substring(6).toInt(16) shl 24), true)
+                else -> null
+            }
+        }
+        return palette[v]?.takeIf { depth < 4 }?.let { colorOf(it, depth + 1) }
+    }
+    fun valueOf(node: com.fasterxml.jackson.databind.JsonNode): Any? = when {
+        node.isBoolean -> node.booleanValue()
+        node.isInt -> node.intValue()
+        node.isTextual -> colorOf(node.asText())?.let { javax.swing.plaf.ColorUIResource(it) }
+        else -> null
+    }
+    val flat = LinkedHashMap<String, com.fasterxml.jackson.databind.JsonNode>()
+    fun flatten(prefix: String, node: com.fasterxml.jackson.databind.JsonNode) {
+        if (node.isObject) node.properties().forEach { (k, v) -> flatten(if (prefix.isEmpty()) k else "$prefix.$k", v) }
+        else flat[prefix] = node
+    }
+    flatten("", root.path("ui"))
+    val existing = defaults.keys.mapNotNull { it as? String }
+    for ((key, node) in flat) {
+        if (!key.startsWith("*.")) continue
+        val value = valueOf(node) ?: continue
+        val suffix = key.substring(1)
+        for (k in existing) if (k.endsWith(suffix)) defaults[k] = value
+    }
+    for ((key, node) in flat) {
+        if (key.startsWith("*.")) continue
+        valueOf(node)?.let { defaults[key] = it }
     }
 }

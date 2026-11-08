@@ -44,7 +44,7 @@ internal fun uxChip(text: String, color: String): JBLabel = JBLabel(plain(text))
     isOpaque = true
     background = uxChipBg(color)
     border = JBUI.Borders.empty(1, 6)
-    font = font.deriveFont(Font.BOLD, 10f)
+    font = font.deriveFont(Font.BOLD, PageChrome.fontSize(10f))
 }
 
 internal fun uxMuted(): Color = ToneColors.secondaryText()

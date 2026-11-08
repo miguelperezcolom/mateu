@@ -1286,6 +1286,11 @@ class AppContext(val session: AppSession) {
                 val fresh = freshScreen
                 freshScreen = false
                 polling.enterScreen("${serverSideType.ifBlank { currentServerSideType }}|${route.ifBlank { currentRoute }}", triggers, fresh)
+                // A composed page (wizard, dashboard, welcome, item overview…) has a plain layout at
+                // its root, with no gutter of its own: it touched the window's edges.
+                if (io.mateu.ijp.ui.PageChrome.padsAsPage(sscNode)) {
+                    container.border = com.intellij.util.ui.JBUI.Borders.empty(io.mateu.ijp.ui.PageChrome.GUTTER)
+                }
                 SwingUtilities.invokeLater {
                     putChildren(container, ComponentRenderer(this), children, state, state)
                     if (triggers.isArray) fireOnLoadTriggers(triggers)

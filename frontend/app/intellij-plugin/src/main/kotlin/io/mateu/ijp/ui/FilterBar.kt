@@ -72,7 +72,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         }
         activeCount = { actives.count { it() } }
 
-        val buttons = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0)).apply { isOpaque = false }
+        val buttons = JPanel(FlushFlowLayout(JBUI.scale(4))).apply { isOpaque = false }
         buttons.add(JButton("Apply").apply { addActionListener { onApply(); refreshToggle() } })
         buttons.add(JButton("Clear").apply {
             addActionListener {
@@ -230,7 +230,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
     }
 
     private fun rangeRow(from: JComponent, to: JComponent, label: String): JComponent {
-        val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0))
+        val row = JPanel(FlushFlowLayout(JBUI.scale(4)))
         row.isOpaque = false
         row.add(from)
         row.add(JBLabel("–"))

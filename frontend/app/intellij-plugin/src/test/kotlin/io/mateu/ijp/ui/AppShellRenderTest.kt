@@ -92,13 +92,25 @@ class AppShellRenderTest : BasePlatformTestCase() {
         val opened = ArrayList<List<String?>>()
         ctx.session.openViewHandler = { label, route, consumed, sst, actionId -> opened.add(listOf(label, route, consumed, sst, actionId)) }
         val view = render(ctx)
-        val labels = all(view).filterIsInstance<JLabel>().map { it.text }.toList()
-        assertTrue("a top-level group is a header: $labels", labels.contains("SALES"))
-        assertTrue(all(view).any { it is JSeparator })
-        val links = all(view).filterIsInstance<ActionLink>().associateBy { it.text }
-        assertEquals(setOf("Orders", "Customers", "Settings"), links.keys)
-        links.getValue("Orders").doClick()
+        // the menu is ONE tree — the IDE navigator idiom — with the groups expanded
+        val tree = all(view).filterIsInstance<javax.swing.JTree>().single()
+        val rows = (0 until tree.rowCount).map { tree.getPathForRow(it).lastPathComponent.toString() }
+        assertEquals("groups expanded, separators dropped", listOf("Sales", "Orders", "Customers", "Settings"), rows)
+        val sales = tree.getPathForRow(0).lastPathComponent as javax.swing.tree.DefaultMutableTreeNode
+        assertTrue("a group is a branch", (sales.userObject as MenuTree.Node).isGroup)
+        // Enter on a selected leaf opens it, like the link did
+        tree.setSelectionRow(1)
+        tree.keyListeners.forEach {
+            it.keyPressed(java.awt.event.KeyEvent(tree, java.awt.event.KeyEvent.KEY_PRESSED, 0, 0, java.awt.event.KeyEvent.VK_ENTER, '\n'))
+        }
         assertEquals(listOf("Orders", "/orders", "", "x.Orders", ""), opened.single())
+        // Enter on a group folds it instead of opening anything
+        tree.setSelectionRow(0)
+        tree.keyListeners.forEach {
+            it.keyPressed(java.awt.event.KeyEvent(tree, java.awt.event.KeyEvent.KEY_PRESSED, 0, 0, java.awt.event.KeyEvent.VK_ENTER, '\n'))
+        }
+        assertTrue(tree.isCollapsed(0))
+        assertEquals(1, opened.size)
     }
 
     fun testARuleLeafRunsTheShellFlowInsteadOfOpeningAView() {

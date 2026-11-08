@@ -21,18 +21,16 @@ import javax.swing.JPanel
 fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val panel = verticalPanel()
 
-    val title = metadata.text("title")
-    if (title.isNotBlank()) {
-        val l = JBLabel(plain(title))
-        l.font = l.font.deriveFont(Font.BOLD, 16f)
-        panel.addStacked(l, 4)
-    }
-    val subtitle = metadata.text("subtitle")
-    if (subtitle.isNotBlank()) {
-        val l = JBLabel(plain(subtitle))
-        l.foreground = ToneColors.secondaryText()
-        panel.addStacked(l, 8)
-    }
+    // The Form's header is a PAGE header (a YAML record page is a Form): the same one the Page
+    // draws — title and subtitle interpolated (`${state.name}` showed as typed), and the toolbar
+    // (Edit, Back to People), which was dropped. A page template that owns the header (noHeader:
+    // the Welcome page's hero) gets none, or its title showed twice.
+    val exprCtx = PageChrome.exprContext(r.ctx, state, data)
+    val header = if (PageChrome.ownsNoHeader(metadata)) null else PageChrome.header(r, metadata, exprCtx)
+    if (header != null) panel.addStacked(header, JBGap)
+    // A form with a header (or one whose template owns it) IS the page: it gets the page gutter
+    // instead of touching the window's edges.
+    if (header != null || PageChrome.ownsNoHeader(metadata)) panel.border = JBUI.Borders.empty(PageChrome.GUTTER)
 
     val readOnly = metadata.bool("readOnly")
     if (!readOnly) {
@@ -104,7 +102,7 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
 
 /** FormRow → a horizontal row of its children (each field builds its own label + input). */
 fun renderFormRow(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(JBGap)))
     row.isOpaque = false
     val children = component.path("children")
     if (children.isArray) for (child in children) row.add(r.render(child, state, data))

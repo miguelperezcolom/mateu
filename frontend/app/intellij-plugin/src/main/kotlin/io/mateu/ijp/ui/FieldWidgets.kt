@@ -200,7 +200,7 @@ fun starsField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean
     }
     for (i in 1..5) {
         val star = JBLabel("☆")
-        star.font = star.font.deriveFont(20f)
+        star.font = star.font.deriveFont(PageChrome.fontSize(20f))
         if (enabled) {
             star.addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {

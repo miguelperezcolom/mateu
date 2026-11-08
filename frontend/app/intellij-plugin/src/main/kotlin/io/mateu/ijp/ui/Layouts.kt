@@ -30,15 +30,17 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
-    val weights = children.map { flexPercent(it.text("style")) }
-    if (weights.any { it != null }) {
+    val specs = children.map { FlexSpec.of(it.text("style")) }
+    if (specs.any { it != null }) {
         val row = JPanel(java.awt.GridBagLayout())
         row.isOpaque = false
         children.forEachIndexed { i, child ->
+            val spec = specs[i]
+            val fixedPx = spec?.fixedPx
             val gbc = java.awt.GridBagConstraints().apply {
                 gridx = i
                 gridy = 0
-                weightx = weights[i] ?: 10.0
+                weightx = spec?.weight ?: 10.0
                 weighty = 1.0
                 // Preferred height anchored NORTH: every column starts at the top of the row
                 // (the wire even says so: align-items: flex-start).
@@ -46,19 +48,99 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 anchor = java.awt.GridBagConstraints.NORTH
                 insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
             }
-            row.add(r.render(child, state, data), gbc)
+            val rendered = r.render(child, state, data)
+            val column: JComponent = if (fixedPx != null) FixedWidth(JBUI.scale(fixedPx), rendered) else rendered
+            // D-21: a column's CSS side rule (the RAIL wizard's `border-left` + `padding-left`)
+            SideRule.of(child.text("style"))?.let { rule -> 
+                column.border = column.border?.let { javax.swing.BorderFactory.createCompoundBorder(rule.border(), it) } ?: rule.border()
+            }
+            row.add(column, gbc)
         }
         return row
     }
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(gap), 0))
+    val row = JPanel(FlushFlowLayout(JBUI.scale(gap)))
     row.isOpaque = false
     for (child in children) row.add(r.render(child, state, data))
     return row
 }
 
-/** The flex-basis percentage in a CSS style (`flex: G S NN%`); null when absent. */
-private fun flexPercent(style: String): Double? =
-    Regex("flex:\\s*\\d+\\s+\\d+\\s+(\\d+(?:\\.\\d+)?)%").find(style)?.groupValues?.get(1)?.toDoubleOrNull()
+/**
+ * A child's CSS `flex` in a row, as GridBag terms. `flex: G S NN%` weighs NN (the zones'
+ * percentages); `flex: G` / `flex: G S <length>` with G > 0 grows with weight G; `flex: 0 0 <len>`
+ * is a FIXED column of that width. Only the percentage form was read: the RAIL wizard's
+ * `flex: 1` form beside its `flex: 0 0 15rem` rail fell back to equal weights at preferred
+ * widths, and the form shrank to a 130px column at the far left.
+ */
+data class FlexSpec(val weight: Double, val fixedPx: Int? = null) {
+    companion object {
+        private val FLEX = Regex("""(?:^|;)\s*flex:\s*([^;]+)""")
+        private val LENGTH = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)$""")
+
+        private val PERCENT = Regex("""(\d+(?:\.\d+)?)%""")
+
+        fun of(style: String): FlexSpec? {
+            val value = FLEX.find(style)?.groupValues?.get(1)?.trim() ?: return null
+            val parts = value.split(Regex("\\s+"))
+            val grow = parts.getOrNull(0)?.toDoubleOrNull() ?: return null
+            // a percentage basis, bare or inside calc() (the zones: `calc(64% - var(--gap))`), weighs it
+            PERCENT.find(value)?.groupValues?.get(1)?.toDoubleOrNull()?.let { return FlexSpec(it) }
+            val basis = parts.getOrNull(2) ?: parts.getOrNull(1)?.takeUnless { it.toDoubleOrNull() != null }
+            val px = basis?.let { LENGTH.matchEntire(it) }?.let { m ->
+                val n = m.groupValues[1].toDouble()
+                (if (m.groupValues[2] == "px") n else n * 16).toInt()
+            }
+            return if (grow <= 0.0 && px != null) FlexSpec(0.0, px) else FlexSpec(grow.coerceAtLeast(0.01) * 100)
+        }
+    }
+}
+
+/**
+ * A column's divider from its CSS: `border-left` / `border-right` (a width > 0) and the
+ * `padding-left` / `padding-right` that keep the content off it. The RAIL wizard's rail is
+ * `border-left: 1px solid …; padding-left: 1.5rem` — without it the rail floated beside the form
+ * with no edge (D-21). The colour is the THEME's divider, never the CSS one (a Lumo variable).
+ */
+data class SideRule(val leftPx: Int, val rightPx: Int, val padLeftPx: Int, val padRightPx: Int) {
+    fun border(): javax.swing.border.Border = javax.swing.BorderFactory.createCompoundBorder(
+        JBUI.Borders.customLine(com.intellij.ui.JBColor.border(), 0, leftPx, 0, rightPx),
+        JBUI.Borders.empty(0, padLeftPx, 0, padRightPx),
+    )
+
+    companion object {
+        private fun prop(style: String, name: String) =
+            Regex("""(?:^|;)\s*$name:\s*([^;]+)""").find(style)?.groupValues?.get(1)?.trim()
+
+        private fun px(length: String?): Int {
+            val m = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)?$""").matchEntire(length?.trim() ?: return 0) ?: return 0
+            val n = m.groupValues[1].toDouble()
+            return (if (m.groupValues[2] == "rem" || m.groupValues[2] == "em") n * 16 else n).toInt()
+        }
+
+        /** `border-left: 1px solid x` → 1; `none` / `0` / absent → 0. */
+        private fun borderWidth(value: String?): Int {
+            if (value == null || value.startsWith("none")) return 0
+            return value.split(Regex("\\s+")).firstNotNullOfOrNull { part -> px(part).takeIf { it > 0 } } ?: 0
+        }
+
+        /** The side rule of [style], or null when it draws no side border. */
+        fun of(style: String): SideRule? {
+            val left = borderWidth(prop(style, "border-left"))
+            val right = borderWidth(prop(style, "border-right"))
+            if (left == 0 && right == 0) return null
+            return SideRule(left, right, px(prop(style, "padding-left")), px(prop(style, "padding-right")))
+        }
+    }
+}
+
+/** Lays its child out at exactly [width] (a `flex: 0 0 <len>` column). */
+private class FixedWidth(private val width: Int, child: JComponent) : JPanel(java.awt.BorderLayout()) {
+    init {
+        isOpaque = false
+        add(child, java.awt.BorderLayout.CENTER)
+    }
+    override fun getPreferredSize() = java.awt.Dimension(width, super.getPreferredSize().height)
+    override fun getMinimumSize() = java.awt.Dimension(width, super.getMinimumSize().height)
+}
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
