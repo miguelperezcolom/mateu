@@ -1,0 +1,15 @@
+id: breadcrumbs
+area: components
+group: actions-and-navigation
+title: Breadcrumbs
+covers: [component:Breadcrumbs]
+description: |
+  A trail showing where you are: each crumb is a text and a link, the last item is plain text.
+  This is the component you place yourself; the page HEADER also draws a trail of its own from the
+  navigation (see behaviour › Breadcrumbs).
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/breadcrumbs/trail.yaml
+  - title: In Java
+    java: io.mateu.explorer.examples.components.breadcrumbs.ArtworkTrail
+    embed: inline

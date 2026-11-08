@@ -1,0 +1,10 @@
+# A street map as DATA. With markers and no `position` the view fits the markers; `position`
+# ("lat, lon") and `zoom` centre it instead. The tiles are OpenStreetMap unless `tileUrl` says
+# otherwise.
+content:
+  - type: Map
+    style: "height: 22rem; width: 100%;"
+    markers:
+      - {id: prado, latitude: 40.4138, longitude: -3.6921, label: Museo del Prado, description: "Velázquez, Goya, El Bosco"}
+      - {id: reina, latitude: 40.4080, longitude: -3.6945, label: Museo Reina Sofía, description: Guernica, color: "#dc2626"}
+      - {id: thyssen, latitude: 40.4160, longitude: -3.6949, label: Museo Thyssen-Bornemisza, color: "#7c3aed"}

@@ -1,0 +1,25 @@
+id: chat
+area: components
+group: interactive-widgets
+title: Chat, MessageList & MessageInput
+covers: [component:Chat, component:MessageInput, component:MessageList]
+description: |
+  - **Chat** — a whole conversation panel for an AI agent: Mateu draws it, **you** provide the
+    agent at `sseUrl`. Each message is POSTed (with the route and a description of the screen the
+    user is looking at) and the answer streams back as server-sent events — `agent-delta` pieces,
+    `agent-status` lines, tool calls, or UI events the panel applies. (`@AI` on the app gives the
+    same panel as a floating button.)
+  - **MessageList** + **MessageInput** — the two pieces for a conversation you run yourself: a list
+    of messages, and an input whose submit runs its `actionId` with the text in `message`.
+
+  Java only: the C# and Python ports have no Chat/MessageList/MessageInput components (their `@ai`
+  gives the app-level chat).
+
+  Try: ask the docent about *the starry night*; sign the visitor book.
+examples:
+  - title: Chat, in YAML, against a tiny SSE agent
+    yaml: specs/ui/explorer/components/chat/chat.yaml
+  - title: MessageList + MessageInput, in Java
+    java: io.mateu.explorer.examples.components.chat.VisitorBook
+code:
+  - {label: "The agent endpoint (Java)", path: src/main/java/io/mateu/explorer/examples/components/chat/DocentAgent.java}

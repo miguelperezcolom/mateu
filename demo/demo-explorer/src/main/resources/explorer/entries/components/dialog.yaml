@@ -1,0 +1,22 @@
+id: dialog
+area: components
+group: overlays
+title: Dialog & ConfirmDialog
+covers: [component:Dialog, component:ConfirmDialog]
+description: |
+  Overlays are **returned from an action**: a button runs a method, the method returns a `Dialog`
+  (or a `ConfirmDialog`) and it opens over the page — stacked, never replacing it.
+
+  - **Dialog** — `headerTitle` (or a `header` component), `content`, `footer`; `width`/`height`;
+    `modeless` drops the backdrop, `draggable`/`resizable`/`top`/`left` let it float like a window.
+    Its buttons are ordinary actions; `UICommand.closeModal()` closes the topmost overlay.
+  - **ConfirmDialog** — a ready-made question: confirm / reject / cancel, each running its own
+    action on the view that returned it.
+
+  The C# and Python ports return `Dialog` / `ConfirmDialog` the same way (they cannot make a dialog
+  draggable, resizable or placed).
+
+  Try every button; in the modal one, *Request a loan* closes it and shows a toast.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.dialog.DialogExamples

@@ -1,0 +1,43 @@
+# Menus as DATA. Each option is an Actionable: a `Menu` (a label with a `submenu`), a `RouteLink`
+# (navigates to a route) or a `MenuSeparator`.
+content:
+  - {type: Text, text: "A MenuBar — a row of drop-down menus:", container: h4}
+  - type: MenuBar
+    options:
+      - type: Menu
+        label: Collections
+        submenu:
+          - {type: RouteLink, label: Kanban, route: /components/visualisation/kanban}
+          - {type: RouteLink, label: Calendar, route: /components/visualisation/calendar}
+          - {type: MenuSeparator}
+          - {type: RouteLink, label: Map, route: /components/visualisation/map}
+      - type: Menu
+        label: Overlays
+        submenu:
+          - {type: RouteLink, label: Dialogs, route: /components/overlays/dialog}
+          - {type: RouteLink, label: Drawers, route: /components/overlays/drawer}
+      - {type: RouteLink, label: Home, route: /home}
+  - {type: Text, text: "A ContextMenu — right-click the card (activateOnLeftClick makes a left click open it too):", container: h4}
+  - type: ContextMenu
+    activateOnLeftClick: true
+    menu:
+      - {type: RouteLink, label: Open the Kanban entry, route: /components/visualisation/kanban}
+      - {type: RouteLink, label: Open the Map entry, route: /components/visualisation/map}
+    wrapped:
+      type: Card
+      title: {type: Text, text: "The Starry Night"}
+      content: {type: Text, text: "Vincent van Gogh, 1889 — click me for a menu"}
+  - {type: Text, text: "A Directory — sections of links, for a landing page:", container: h4}
+  - type: Directory
+    menu:
+      - type: Menu
+        label: Visualise
+        submenu:
+          - {type: RouteLink, label: Charts, route: /components/visualisation/charts}
+          - {type: RouteLink, label: Gantt, route: /components/visualisation/gantt}
+          - {type: RouteLink, label: Org chart, route: /components/visualisation/org-chart}
+      - type: Menu
+        label: Plan
+        submenu:
+          - {type: RouteLink, label: Planning board, route: /components/visualisation/planning-board}
+          - {type: RouteLink, label: Matrix grid, route: /components/visualisation/matrix-grid}

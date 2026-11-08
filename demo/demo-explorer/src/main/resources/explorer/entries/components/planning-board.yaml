@@ -1,0 +1,17 @@
+id: planning-board
+area: components
+group: visualisation
+title: PlanningBoard
+covers: [component:PlanningBoard]
+description: |
+  A tape chart: resources (rooms, galleries, vans…) down the side, days across, blocks on top.
+  With `moveActionId` a block can be dragged to another resource or day — the action receives
+  `_blockId`, `_resourceId`, `_start` and `_end`; with `selectActionId` a click runs it with
+  `_blockId`.
+
+  Try: drag a booking to another gallery in the Java example, then click it.
+examples:
+  - title: In YAML — a read-only board
+    yaml: specs/ui/explorer/components/planning-board/rooms.yaml
+  - title: In Java — blocks that move
+    java: io.mateu.explorer.examples.components.planningboard.GalleryPlanning

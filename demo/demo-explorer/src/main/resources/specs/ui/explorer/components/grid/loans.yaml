@@ -1,0 +1,25 @@
+# A Grid as DATA: columns (GridColumn), column groups (GridGroupColumn — a header over several
+# columns) and a page of rows, each row a map keyed by column id.
+content:
+  - type: Grid
+    rowStripes: true
+    content:
+      - {type: GridColumn, id: work, label: Work, frozen: true, width: 14rem}
+      - {type: GridColumn, id: artist, label: Artist, sortable: true}
+      - type: GridGroupColumn
+        id: loan
+        label: Loan
+        columns:
+          - {type: GridColumn, id: borrower, label: Borrower}
+          - {type: GridColumn, id: from, label: From, dataType: date}
+          - {type: GridColumn, id: to, label: To, dataType: date}
+      - {type: GridColumn, id: insurance, label: Insured value, dataType: money, align: end}
+    page:
+      pageSize: 10
+      pageNumber: 0
+      totalElements: 4
+      content:
+        - {work: The Starry Night, artist: Vincent van Gogh, borrower: Tate Modern, from: "2026-12-01", to: "2027-03-01", insurance: 82000000}
+        - {work: Las Meninas, artist: Diego Velázquez, borrower: Louvre, from: "2027-01-15", to: "2027-04-15", insurance: 150000000}
+        - {work: The Kiss, artist: Gustav Klimt, borrower: Rijksmuseum, from: "2026-11-20", to: "2027-02-20", insurance: 95000000}
+        - {work: Water Lilies, artist: Claude Monet, borrower: MoMA, from: "2027-02-01", to: "2027-05-01", insurance: 41000000}

@@ -1,0 +1,21 @@
+id: kanban
+area: components
+group: visualisation
+title: Kanban
+covers: [component:Kanban]
+description: |
+  A board of columns and cards. As **data** it is a picture of a process (columns, accent colours,
+  badges); with a `moveActionId` its cards **move** — drag a card to another column (or use its
+  "Move to…" menu on touch) and the action runs with `_cardId`, `_fromColumnId`, `_toColumnId` and
+  `_toIndex`. A card's `actionId` makes it clickable. A board can also be LIVE from a REST
+  `rowsSource` (one card per item, placed by `columnField`) — see the doc.
+
+  Try: drag *Reframe* to **Done**, then click a card.
+examples:
+  - title: In YAML — a static board
+    yaml: specs/ui/explorer/components/kanban/board.yaml
+  - title: In Java — cards that move
+    java: io.mateu.explorer.examples.components.kanban.ConservationBoard
+code:
+  - {label: "C#", path: src/main/ports/components/kanban/ConservationBoard.cs}
+  - {label: Python, path: src/main/ports/components/kanban/conservation_board.py}

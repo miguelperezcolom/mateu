@@ -1,0 +1,11 @@
+# A partial: a piece of layout written ONCE (a bare component, or a `content:` list) and spliced
+# wherever a Partial names it. It is resolved on the server: the reference never reaches the wire.
+content:
+  - type: Card
+    title: {type: Text, text: Opening hours}
+    content:
+      type: VerticalLayout
+      content:
+        - {type: Text, text: "Tuesday–Sunday · 10:00–18:00"}
+        - {type: Text, text: "Thursday late opening until 21:00"}
+        - {type: Text, text: "Closed on Mondays, 1 January and 25 December", size: s}

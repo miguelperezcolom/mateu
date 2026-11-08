@@ -1,0 +1,37 @@
+id: element
+area: components
+group: composition
+title: Element & CustomComponent (escape hatches)
+covers: [component:Element, component:CustomComponent]
+description: |
+  When no component fits:
+
+  - **Element** — a raw HTML element: a tag `name`, `attributes`, a text `content` (or trusted
+    markup with `html: true`; interpolated data is sanitised). `on` maps DOM events to actions of
+    the view (the serialised event arrives as `event`); an `import` attribute loads a JS module
+    first — the way to drop in any third-party web component.
+  - **CustomComponent** — a genuinely NEW rendering, declared as data (`name`, `props`, slotted
+    `content`) and drawn by a renderer you register in the front end
+    (``registerCustomComponent("seat-map", (props, children) => html`…`)``). Where no renderer is
+    registered — as in this app — it shows a visible "unsupported" placeholder instead of breaking
+    the screen. Reach for a business component (ComponentRef) first.
+
+  Both are in the C# and Python ports.
+
+  > **Known issue (3.0-beta.51):** an Element's `on` action ids are not advertised the way a
+  > component's `actionId` is, so the handler needs `@Action` (or the click is dropped in the
+  > browser: "no component on the page handles it").
+
+  Try: click / double-click the raw button.
+knownIssue: >-
+  3.0-beta.51: Element `on:` action ids are not harvested as tree-referenced actions
+  (TreeActionHarvester reads actionId/*ActionId keys only), so a plain public handler method is not
+  advertised and the browser drops the event; marking it @Action works around it.
+examples:
+  - title: In YAML — markup and an unregistered custom component
+    yaml: specs/ui/explorer/components/element/elements.yaml
+  - title: In Java — events and an imported web component
+    java: io.mateu.explorer.examples.components.element.ElementExamples
+code:
+  - {label: "The imported module", path: src/main/java/io/mateu/explorer/examples/components/element/MuseumClockModule.java}
+doc: https://mateu.io/java-ui-definition/custom-components/

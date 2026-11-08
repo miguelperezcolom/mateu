@@ -1,0 +1,21 @@
+id: action-panel
+area: components
+group: actions-and-navigation
+title: ActionPanel ("I want to…")
+covers: [component:ActionPanel]
+description: |
+  A trigger button that opens a layer with one column per category of actions — the place for the
+  dozens of things a record lets you do. Each item runs its `actionId` with its `parameters`, like
+  a button. Items that are **populated** (or carry a `count > 0`, shown as `(n)` / `25+`) come first
+  and bold; `maxPerCategory` (default 10) folds the rest under "Show more"; `hideUnpopulatedToggle`
+  adds a switch that hides the empty ones. `shortcut` opens it from the keyboard. All of the
+  layer's behaviour is client-side; build the panel per record on the server when what is possible
+  depends on the record's state.
+
+  Try: open the panel (or press Ctrl+I) and pick an action.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.actionpanel.ArtworkActions
+code:
+  - {label: "C#", path: src/main/ports/components/action-panel/ArtworkActions.cs}
+  - {label: Python, path: src/main/ports/components/action-panel/artwork_actions.py}

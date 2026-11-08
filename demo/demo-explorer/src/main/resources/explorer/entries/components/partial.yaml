@@ -1,0 +1,27 @@
+id: partial
+area: components
+group: composition
+title: Partial & ComponentRef (reuse by name)
+covers: [component:Partial, component:ComponentRef]
+description: |
+  Two ways to write a piece of UI once and use it by name:
+
+  - **Partial** — names a LAYOUT: a YAML file (`specs/ui/partials/<ref>.yaml`, or a path relative
+    to `specs/ui/`) or a `ComponentTreeSupplier` class. It is spliced in on the server, so it never
+    reaches the wire; a missing one renders nothing (and logs a warning). This very page draws each
+    YAML example through a `Partial`.
+  - **ComponentRef** — names a BUSINESS COMPONENT from the component catalogue: a bound composition
+    declared in `specs/ui/components.yaml` or by a `ComponentCatalogSupplier` bean. It also resolves
+    in the browser, for static bundles. An unknown name renders a placeholder.
+
+  Both are ported to C# and Python.
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/partial/reuse.yaml
+  - title: In Java
+    java: io.mateu.explorer.examples.components.partial.MuseumInfo
+    embed: inline
+code:
+  - {label: "The partial (YAML)", path: src/main/resources/specs/ui/explorer/components/partial/opening-hours.yaml}
+  - {label: "The catalogue (Java)", path: src/main/java/io/mateu/explorer/examples/components/partial/BusinessComponents.java}
+doc: https://mateu.io/java-ui-definition/component-catalogue/

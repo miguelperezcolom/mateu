@@ -1,0 +1,19 @@
+id: record-merge
+area: components
+group: listings-and-data
+title: RecordMerge (compare & merge)
+covers: [component:RecordMerge]
+description: |
+  Two (or more) records side by side, one row per field, to merge duplicates. Rows that differ
+  are highlighted ("Show only differences" hides the rest; `differencesOnly` starts it on); each
+  row is a pick — the value from one record, or a typed one where the field is `editable`; the
+  first pick is `withChosen(...)`, else the first record with a value. The picks stay in the
+  browser until the merge button runs `mergeActionId` with `_merged` and `_choices`.
+
+  Try: pick some values and press *Merge into A-104*.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.recordmerge.MergeArtists
+code:
+  - {label: "C#", path: src/main/ports/components/record-merge/MergeArtists.cs}
+  - {label: Python, path: src/main/ports/components/record-merge/merge_artists.py}

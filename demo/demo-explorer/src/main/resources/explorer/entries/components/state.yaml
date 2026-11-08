@@ -1,0 +1,24 @@
+id: state
+area: components
+group: composition
+title: State, Data, AppState & AppData
+covers: [component:State, component:Data, component:AppState, component:AppData]
+description: |
+  An action can answer with VALUES instead of components. The browser keeps four scopes, and any
+  text, label or rule reads them with `${…}`:
+
+  | Return | Scope | What it is for |
+  |---|---|---|
+  | `State` | `state` — this component | its fields: what travels back with every action |
+  | `Data` | `data` — this component | read-only values for the screen (lookups, totals…) |
+  | `AppState` | `appState` — the whole app | shared state, sent with every request |
+  | `AppData` | `appData` — the whole app | shared read-only data |
+
+  Returning `this` from an action is the common shorthand for `new State(this)`. In YAML routes the
+  same scopes are seeded with `state:`/`appState:` (literals) and `data:`/`appData:` (REST sources).
+  Ported to C# and Python.
+
+  Try: press each button and watch its line change.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.state.StateAndData
