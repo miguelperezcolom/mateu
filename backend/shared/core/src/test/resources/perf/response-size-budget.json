@@ -17,6 +17,7 @@
     "bulleted-list" : 9049,
     "bulk-actions" : 14644,
     "bulk-actions-listing" : 7556,
+    "bulk-actions-unlabeled" : 7411,
     "card-menu" : 3929,
     "client-rules" : 6801,
     "compact" : 5815,
@@ -85,6 +86,7 @@
     "view-toolbar-button" : 9331,
     "welcome-banner" : 4317,
     "wizard" : 6865,
+    "wizard-completion-error" : 368,
     "wizard-step-2" : 7675,
     "zones" : 8503
   },
@@ -104,6 +106,7 @@
     "bulleted-list" : 8226,
     "bulk-actions" : 13312,
     "bulk-actions-listing" : 6869,
+    "bulk-actions-unlabeled" : 6737,
     "card-menu" : 3571,
     "client-rules" : 6182,
     "compact" : 5286,
@@ -172,6 +175,7 @@
     "view-toolbar-button" : 8482,
     "welcome-banner" : 3924,
     "wizard" : 6240,
+    "wizard-completion-error" : 334,
     "wizard-step-2" : 6977,
     "zones" : 7730
   }

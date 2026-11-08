@@ -30,7 +30,7 @@ A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentSt
 optional) is rendered by sending that request to the case's fixture type — how an interaction step
 (the shell's content load, an action) is pinned, not only the first render. The second-request
 cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view`,
-`wizard-step-2`, `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
+`wizard-step-2`, `wizard-completion-error` (a refused completion stays on its step), `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
 (the server-side validation re-check), `error-boundary` (an unexpected exception),
 `dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `crud-hidden-constraints-edit`/`-new`, `editable-view`/`-edit`,
 `view-toolbar-button` and `inline-form-action` (a nested `@Inline` object's action, its fields read back from the flattened state).

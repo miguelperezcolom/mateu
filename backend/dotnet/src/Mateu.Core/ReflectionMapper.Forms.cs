@@ -698,7 +698,11 @@ internal sealed partial class ReflectionMapper
     /// ordered by its Order (stable), behaving as an [ActionOptions] on it declares —
     /// confirmation texts, transport knobs — with the placement's confirmation/selection flags
     /// OR-ed in. Methods the caller may not see are left out (refused on invocation anyway).</summary>
-    private (List<ButtonDto> Buttons, List<ActionDto> Actions) BulkToolbar(Type type, string prefix, bool bubble)
+    /// <para><paramref name="plain"/> (a listing with no interaction capability, Java's
+    /// PageListingBuilder): an unlabelled button carries the bare (camelCased) method name, as
+    /// Java's does there; a crud's or a bridged listing's is humanised and translated.</para>
+    private (List<ButtonDto> Buttons, List<ActionDto> Actions) BulkToolbar(Type type, string prefix, bool bubble,
+        bool plain = false)
     {
         var buttons = new List<ButtonDto>();
         var actions = new List<ActionDto>();
@@ -710,7 +714,9 @@ internal sealed partial class ReflectionMapper
             var bulk = m.Find<ListToolbarButtonAttribute>()!;
             var look = m.Find<ToolbarAttribute>();
             var actionId = prefix + Naming.CamelCase(m.Name);
-            buttons.Add(new ButtonDto(T(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name)), actionId)
+            var declared = m.Find<LabelAttribute>()?.Value;
+            var label = plain ? declared ?? Naming.CamelCase(m.Name) : T(declared ?? Naming.Humanize(m.Name));
+            buttons.Add(new ButtonDto(label, actionId)
             {
                 ButtonStyle = Unset(look?.ButtonStyle),
                 Color = Unset(look?.ButtonColor),
