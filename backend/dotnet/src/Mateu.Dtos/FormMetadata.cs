@@ -47,4 +47,17 @@ public record FormMetadataDto : ComponentMetadataDto
     /// <summary>The record/context switcher; null — and omitted — when the page declares none.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RecordSwitcherDto? Switcher { get; init; }
+
+    /// <summary>The page template the form fills (its type and own values); null — and omitted —
+    /// for a free page. Its slots travel laid out among the children. (Java's FormDto.template.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public PageTemplateDto? Template { get; init; }
 }
+
+/// <summary>A page template's own values on the wire: its <see cref="Type"/> (the template record's
+/// name, e.g. <c>ItemOverviewPage</c>) and, for the item overview, its avatar/photo. (Mirrors
+/// io.mateu.dtos.PageTemplateDto.)</summary>
+public record PageTemplateDto(string Type, TemplateImageDto? Avatar = null, TemplateImageDto? Photo = null);
+
+/// <summary>A template image: a picture or initials. (Mirrors io.mateu.dtos.TemplateImageDto.)</summary>
+public record TemplateImageDto(string? Src, string? Initials);

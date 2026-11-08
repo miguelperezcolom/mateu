@@ -40,6 +40,12 @@ internal sealed class YamlSpecLoader : ISpecsCache
 
         /// <summary>The <c>pageType:</c> the definition declares (wire name), or null — inferred.</summary>
         public string? PageType { get; init; }
+
+        /// <summary>The page type the page template the definition fills stands for (wire name), or
+        /// null — what a page WRAPPED for its seeds carries when it declares no <c>pageType:</c>
+        /// (Java's SeededYamlPage.declaredPageType → PageTypeResolver.ofTemplate). It never wraps a
+        /// page by itself: a bare templated page keeps its bare shape.</summary>
+        public string? TemplatePageType { get; init; }
     }
 
     private static readonly Spec None = new(null, null);
@@ -191,6 +197,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
             {
                 Delta = delta, Source = dependsOnRequest ? root : null,
                 PageType = YamlComponentBuilder.PageTypeOf(root),
+                TemplatePageType = layout is Form { Template: { } template } ? PageTemplateLayout.PageTypeOf(template) : null,
             };
         }
         catch (Exception e)

@@ -301,7 +301,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     // component state) are the page's state: a seeded bare page is wrapped so it
                     // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
                     ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
-                        routeEntry is not null ? rq.ComponentState : null), rq)
+                        routeEntry is not null ? rq.ComponentState : null, yamlSpec.TemplatePageType), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
         }
@@ -670,9 +670,12 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// page type, so it is wrapped in a server-side page that does (mirrors Java's
     /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Undeclared → unchanged.</summary>
     private static ComponentDto WithDeclaredPageType(
-        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null)
+        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null,
+        string? templatePageType = null)
     {
         if (pageType is null && (state is null || state.Count == 0)) return layout;
+        // wrapped for its seeds: a page that fills a template is the template's kind of page
+        pageType ??= templatePageType;
         var route = (rq.Route ?? "").Split('?')[0].Trim('/');
         return new ServerSideComponentDto(
             "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),

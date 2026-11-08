@@ -71,6 +71,9 @@ public sealed record FormField : ComponentBase
     public int SliderMax { get; init; } = 100;
     /// <summary>The increment of a number / slider control; 0 = the control's own.</summary>
     public double Step { get; init; }
+    /// <summary>The columns a radio/checkbox option group lays its options in (Java's
+    /// FormField.optionsColumns; 1 by default — a YAML field leaves it unset, 0, unless declared).</summary>
+    public int OptionsColumns { get; init; } = 1;
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────
@@ -1581,6 +1584,10 @@ public sealed record Form : ComponentBase
     public RecordSwitcher? RecordSwitcher { get; init; }
     public IReadOnlyList<PageBanner> Banners { get; init; } = [];
     public IReadOnlyList<PageFab> Fabs { get; init; } = [];
+
+    /// <summary>The design-system page template this page FILLS (YAML <c>template:</c>); null = a
+    /// free page, its content as written. See <see cref="IFormTemplate"/>. Experimental (3.0 beta).</summary>
+    public IFormTemplate? Template { get; init; }
 }
 
 // ── Generic building blocks ported from Java (M-A5) ─────────────────────────────

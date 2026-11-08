@@ -28,6 +28,10 @@ public record ButtonDto(string Label, string ActionId)
     // Java's ButtonDto.rowsSelectedRequired). Omitted when false, so other buttons' wire is unchanged.
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool RowsSelectedRequired { get; init; }
+    /// <summary>A route the button NAVIGATES to on the client (Java's ButtonDto.route — a toolbar
+    /// button whose actionable is a RouteLink). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Route { get; init; }
 }
 
 // ── ModelView bindable contract (mirrors io.mateu.dtos.ModelViewContractDto) ────
