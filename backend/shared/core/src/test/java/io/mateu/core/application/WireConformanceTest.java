@@ -781,6 +781,36 @@ class WireConformanceTest {
     public String note = "orders";
   }
 
+  /**
+   * The master's {@code delivery} tab: a plain nested object drawn as a sub-form in a card — its
+   * page sits in the card's METADATA, and it says noBreadcrumbs too (every page mapped under the
+   * back-link app does).
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkChainDeliveryTab {
+    public String note = "delivery";
+    // not named like the tab: a page titled as its tab's label is deduped (RouteChains.dedupeTitle)
+    public DeliveryInfo shipping = new DeliveryInfo();
+  }
+
+  /**
+   * A master whose "← Parent" link is declared by its CODE shell ({@code AppSupplier}), with no
+   * {@code @App(backLink)}: {@code RouteChains.insideBackLinkApp} reads the class's {@code @App}
+   * only, so the pages under it keep their trail.
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkShellMaster implements AppSupplier {
+    public String customerId;
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      return AppShell.builder()
+          .title("Back link shell master")
+          .backLink(io.mateu.uidl.annotations.BackLink.PARENT)
+          .build();
+    }
+  }
+
   /** The routes.yaml-equivalent chain of the back-link cases, authored in code. */
   public static class ConformanceRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
     @Override
@@ -790,6 +820,17 @@ class WireConformanceTest {
               "conformance/bl-chain/:customerId",
               null,
               BackLinkChainMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", BackLinkChainTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of(
+                      "delivery", BackLinkChainDeliveryTab.class.getName()))),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/bl-shell/:customerId",
+              null,
+              BackLinkShellMaster.class.getName(),
               null,
               null,
               null,
@@ -2029,6 +2070,8 @@ class WireConformanceTest {
           java.util.Map.entry("crud-edit", ProductsCrud.class),
           java.util.Map.entry("crud-view", ProductsCrud.class),
           java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
+          java.util.Map.entry("page-back-link-chain-nested", BackLinkChainDeliveryTab.class),
+          java.util.Map.entry("page-back-link-code-shell", BackLinkChainTab.class),
           java.util.Map.entry("inline-form-action", InlineForm.class),
           java.util.Map.entry("crud-nested-form", PurchaseOrdersCrud.class),
           // the record form's own component: its serverSideType is the ENTITY
@@ -2123,7 +2166,9 @@ class WireConformanceTest {
           "inline-form-action",
           "crud-nested-form",
           "crud-nested-form-action",
-          "inline-form-rules");
+          "inline-form-rules",
+          "page-back-link-chain-nested",
+          "page-back-link-code-shell");
 
   static TestMateu mateu;
 

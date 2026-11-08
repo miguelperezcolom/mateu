@@ -800,8 +800,31 @@ public class ConformanceRoutes : IRouteEntrySupplier
     [
         new("conformance/bl-chain/:customerId", null, typeof(BackLinkChainMaster).FullName,
             new Dictionary<string, object?>(), new Dictionary<string, object?>(),
+            Children: [
+                RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!),
+                RouteEntry.Of("delivery", typeof(BackLinkChainDeliveryTab).FullName!),
+            ]),
+        new("conformance/bl-shell/:customerId", null, typeof(BackLinkShellMaster).FullName,
+            new Dictionary<string, object?>(), new Dictionary<string, object?>(),
             Children: [RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!)]),
     ];
+}
+
+/// <summary>The master's `delivery` tab (page-back-link-chain-nested): a plain nested object drawn
+/// as a sub-form in a card — its page, in the card's metadata, says noBreadcrumbs too.</summary>
+public class BackLinkChainDeliveryTab
+{
+    public string? Note { get; set; } = "delivery";
+    public DeliveryInfo Shipping { get; set; } = new();
+}
+
+/// <summary>A master whose "← Parent" link its CODE shell declares, with no [App(BackLink)]
+/// (page-back-link-code-shell): the pages under it keep their trail, as Java's.</summary>
+public class BackLinkShellMaster : IAppSupplier
+{
+    public string? CustomerId { get; set; }
+
+    public AppShell GetApp() => new("Back link shell master", new List<MenuItemDto>()) { BackLink = BackLink.Parent };
 }
 
 /// <summary>The screen above the back-link app (app-back-link): its title labels the link.</summary>

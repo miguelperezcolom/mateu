@@ -291,6 +291,8 @@ public class WireConformanceTests
         { "crud-nested-form", typeof(Wire.PurchaseOrdersCrud) },
         { "crud-nested-form-action", typeof(Wire.PurchaseOrder) },
         { "inline-form-rules", typeof(Wire.InlineFormRules) },
+        { "page-back-link-chain-nested", typeof(Wire.BackLinkChainDeliveryTab) },
+        { "page-back-link-code-shell", typeof(Wire.BackLinkChainTab) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>
