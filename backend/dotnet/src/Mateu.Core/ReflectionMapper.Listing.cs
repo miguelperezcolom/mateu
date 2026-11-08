@@ -105,7 +105,7 @@ internal sealed partial class ReflectionMapper
         // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
         // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
-            .Where(p => GridRowType(p) is null && Visible(p))
+            .Where(p => GridRowType(p) is null && Visible(p) && !HiddenInList(p))
             .Select(p => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -189,7 +189,7 @@ internal sealed partial class ReflectionMapper
         return arg.IsEnum ? arg : null;
     }
 
-    private static List<FormFieldMetadataDto> MapListingFilters(Type filters) =>
+    private static List<FormFieldMetadataDto> MapListingFilters(Type filters) => WithMainFilters(filters,
         EditableProperties(filters)
             .Select(p =>
             {
@@ -217,7 +217,7 @@ internal sealed partial class ReflectionMapper
                 // a filter lays out no options grid: Java sends no optionsColumns for one
                 return new FormFieldMetadataDto(id, InferDataType(t, p), label) { OptionsColumns = 0 };
             })
-            .ToList();
+            .ToList());
 
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {
@@ -245,7 +245,7 @@ internal sealed partial class ReflectionMapper
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(element)
-            .Where(Visible)
+            .Where(p => Visible(p) && !HiddenInList(p))
             .Select((p, index) =>
             {
                 var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
@@ -371,7 +371,7 @@ internal sealed partial class ReflectionMapper
         // inline and it is not routed through a crud (route "_empty").
         var bridged = profile.CanView || profile.CanEdit || profile.CanCreate || profile.CanDelete;
         var columns = EditableProperties(profile.RowType)
-            .Where(p => GridRowType(p) is null && Visible(p))
+            .Where(p => GridRowType(p) is null && Visible(p) && !HiddenInList(p))
             .Select((p, index) => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -563,7 +563,7 @@ internal sealed partial class ReflectionMapper
     /// column labels (mirrors Java's ExportActionRunner.buildExportColumns).</summary>
     internal List<(PropertyInfo Property, string Label)> ExportColumns(Type element) =>
         EditableProperties(element)
-            .Where(Visible)
+            .Where(p => Visible(p) && !HiddenInList(p))
             .Select(p => (p, p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
             .ToList();
 
@@ -571,7 +571,7 @@ internal sealed partial class ReflectionMapper
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to
     /// multi-selects (IN) with their constants as options, temporals to from–to date ranges,
     /// [RangeFilter] numerics to min–max ranges.</summary>
-    private static List<FormFieldMetadataDto> MapCrudFilters(Type element) =>
+    private static List<FormFieldMetadataDto> MapCrudFilters(Type element) => WithMainFilters(element,
         EditableProperties(element)
             .Select(p => (Property: p, Type: Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType))
             .Where(x => x.Type.IsEnum || x.Type == typeof(string) || x.Type == typeof(bool)
@@ -597,7 +597,7 @@ internal sealed partial class ReflectionMapper
                     OptionsColumns = 0,
                 };
             })
-            .ToList();
+            .ToList());
 
     /// <summary>The in-place editor widget for an [InlineEditing] column (mirrors Java's
     /// GridColumnBuilder.getEditorType): enums edit as a select, [Money] as a number, the rest by
@@ -665,7 +665,7 @@ internal sealed partial class ReflectionMapper
         // form state (the frontend's renderEditableCell form-grid path) and save with the form.
         var inline = !readOnly && p.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(rowType)
-            .Where(Visible)
+            .Where(c => Visible(c) && !HiddenInList(c))
             .Select(c =>
             {
                 var editable = inline && c.Find<ReadOnlyAttribute>() == null;

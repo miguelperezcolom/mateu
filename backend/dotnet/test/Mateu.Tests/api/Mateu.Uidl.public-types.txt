@@ -106,6 +106,7 @@ Mateu.Uidl.Document
 Mateu.Uidl.DocumentDisposition
 Mateu.Uidl.DragRowsAttribute
 Mateu.Uidl.Drawer
+Mateu.Uidl.DrawerClosedAttribute
 Mateu.Uidl.DrawerPosition
 Mateu.Uidl.DrawerSize
 Mateu.Uidl.DropZone
@@ -125,6 +126,7 @@ Mateu.Uidl.FabAttribute
 Mateu.Uidl.Fact
 Mateu.Uidl.Faq
 Mateu.Uidl.FaqItem
+Mateu.Uidl.FavIconAttribute
 Mateu.Uidl.Feature
 Mateu.Uidl.FeatureGrid
 Mateu.Uidl.FieldTypeAttribute
@@ -176,6 +178,10 @@ Mateu.Uidl.HeroSearch`1
 Mateu.Uidl.HeroSection
 Mateu.Uidl.HeroTone
 Mateu.Uidl.HiddenAttribute
+Mateu.Uidl.HiddenInCreateAttribute
+Mateu.Uidl.HiddenInEditorAttribute
+Mateu.Uidl.HiddenInListAttribute
+Mateu.Uidl.HiddenInViewAttribute
 Mateu.Uidl.HorizontalLayout
 Mateu.Uidl.IActionCatalogSupplier
 Mateu.Uidl.IAppActionsSupplier
@@ -261,9 +267,11 @@ Mateu.Uidl.Listing`2
 Mateu.Uidl.LiveHeaderValues
 Mateu.Uidl.LiveNotifications
 Mateu.Uidl.LiveNotifications+Change
+Mateu.Uidl.LogoAttribute
 Mateu.Uidl.LongTask
 Mateu.Uidl.LongTaskRun
 Mateu.Uidl.LookupAttribute
+Mateu.Uidl.MainFilterAttribute
 Mateu.Uidl.Map
 Mateu.Uidl.MapMarker
 Mateu.Uidl.MarkClean
@@ -301,6 +309,7 @@ Mateu.Uidl.MoneyAttribute
 Mateu.Uidl.MultilineAttribute
 Mateu.Uidl.NavLink
 Mateu.Uidl.Navigate
+Mateu.Uidl.NoBreadcrumbsAttribute
 Mateu.Uidl.NotFound
 Mateu.Uidl.Notice
 Mateu.Uidl.Notification

@@ -1317,6 +1317,24 @@ public sealed record ListingComponent : ComponentBase
     public string? GridLayout { get; init; }
     public bool Compact { get; init; }
     public string? EmptyStateMessage { get; init; }
+
+    // The table's presentation (Java's fluent Crudl): striped rows, column borders, wrapped cells,
+    // all rows at once (no inner scroll), borders off, draggable column order, infinite scrolling /
+    // lazy loading, several rows selectable (OnRowSelectionChangedActionId runs on every change), an
+    // extra CSS for the grid and a fixed content height.
+    public bool RowStripes { get; init; }
+    public bool ColumnBorders { get; init; }
+    public bool WrapCellContent { get; init; }
+    public bool AllRowsVisible { get; init; }
+    public bool NoBorder { get; init; }
+    public bool NoRowBorder { get; init; }
+    public bool ColumnReorderingAllowed { get; init; }
+    public bool InfiniteScrolling { get; init; }
+    public bool LazyLoading { get; init; }
+    public bool MultipleRowSelectionEnabled { get; init; }
+    public string? OnRowSelectionChangedActionId { get; init; }
+    public string? GridStyle { get; init; }
+    public string? ContentHeight { get; init; }
 }
 
 /// <summary>An outlined card wrapping a component.</summary>
@@ -1465,6 +1483,18 @@ public sealed record Dialog : ComponentBase
     public bool NoPadding { get; init; }
     public bool Modeless { get; init; }
     public bool CloseButtonOnHeader { get; init; } = true;
+
+    /// <summary>The user can drag the dialog by its header. (Mirrors io.mateu.uidl.data.Dialog.draggable.)</summary>
+    public bool Draggable { get; init; }
+
+    /// <summary>The user can resize the dialog. (Mirrors io.mateu.uidl.data.Dialog.resizable.)</summary>
+    public bool Resizable { get; init; }
+
+    /// <summary>Where the dialog opens, from the top of the viewport (a CSS length); null = centred.</summary>
+    public string? Top { get; init; }
+
+    /// <summary>Where the dialog opens, from the left of the viewport (a CSS length); null = centred.</summary>
+    public string? Left { get; init; }
 }
 
 /// <summary>Embeds a routed view (a [UI]/[Route] model view — e.g. a <see cref="Wizard"/>) as an

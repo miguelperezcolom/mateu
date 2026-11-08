@@ -632,6 +632,28 @@ public class ActionEffectsPage
     };
 }
 
+/// <summary>An action that opens a dialog placed, draggable and resizable (dialog-placement).</summary>
+[UI("conformance/dialog-placement"), Title("Dialog placement")]
+public class DialogPlacementPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object OpenNotes() => new Dialog
+    {
+        HeaderTitle = "Notes",
+        Content = new Text("Free text"),
+        Top = "4rem",
+        Left = "2rem",
+        Draggable = true,
+        Resizable = true,
+        Width = "30rem",
+        Height = "20rem",
+        Modeless = true,
+        CloseButtonOnHeader = true,
+    };
+}
+
 /// <summary>An action that opens a drawer: an ADD fragment carrying the Drawer and its content.</summary>
 [UI("conformance/drawer"), Title("Drawer")]
 public class DrawerPage

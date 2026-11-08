@@ -93,6 +93,22 @@ public record AppMetadataDto(
     /// the generic Mateu mobile app). EXPERIMENTAL. (Mirrors AppDto.mobileQr.)</summary>
     public bool MobileQr { get; init; }
 
+    /// <summary>The shell's presentation (mirrors io.mateu.dtos.AppDto.accentColor / askLabel /
+    /// askIcon / logo / favicon / drawerClosed / noBreadcrumbs / style / cssClasses / fabs).</summary>
+    public string? AccentColor { get; init; }
+    public string? AskLabel { get; init; }
+    public string? AskIcon { get; init; }
+    public string? Logo { get; init; }
+    public string? Favicon { get; init; }
+    public bool DrawerClosed { get; init; }
+    public bool NoBreadcrumbs { get; init; }
+    public string? Style { get; init; }
+    public string? CssClasses { get; init; }
+
+    /// <summary>App-level floating action buttons ([Fab] methods of the app class), stacked above
+    /// the AI FAB on every screen (mirrors AppDto.fabs).</summary>
+    public IReadOnlyList<FabDto> Fabs { get; init; } = [];
+
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>

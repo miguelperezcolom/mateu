@@ -464,6 +464,19 @@ internal static class YamlComponentBuilder
         }).ToList(),
         Filters = Maps(map, "filters").Select(f => Build(f, partials, chain)).OfType<FormField>().ToList(),
         RowsSource = SourceOf(map, "rowsSource"),
+        RowStripes = Bool(map, "rowStripes"),
+        ColumnBorders = Bool(map, "columnBorders"),
+        WrapCellContent = Bool(map, "wrapCellContent"),
+        AllRowsVisible = Bool(map, "allRowsVisible"),
+        NoBorder = Bool(map, "noBorder"),
+        NoRowBorder = Bool(map, "noRowBorder"),
+        ColumnReorderingAllowed = Bool(map, "columnReorderingAllowed"),
+        InfiniteScrolling = Bool(map, "infiniteScrolling"),
+        LazyLoading = Bool(map, "lazyLoading"),
+        MultipleRowSelectionEnabled = Bool(map, "multipleRowSelectionEnabled"),
+        OnRowSelectionChangedActionId = Str(map, "onRowSelectionChangedActionId"),
+        GridStyle = Str(map, "gridStyle"),
+        ContentHeight = Str(map, "contentHeight"),
     };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>

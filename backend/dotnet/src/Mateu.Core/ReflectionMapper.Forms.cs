@@ -44,7 +44,7 @@ internal sealed partial class ReflectionMapper
             {
                 TitleIsText = TitledByData(element, entity) ? true : null,
             }, null,
-            DetailContent(entity, mode) ?? FormCards(element, entity, readOnly: mode == "view"))
+            InCrudForm(mode, () => DetailContent(entity, mode) ?? FormCards(element, entity, readOnly: mode == "view")))
             with { Style = "max-width:900px;margin: auto;" };
         // The entity's field values ARE the form state: seed them into initialData (and, via
         // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values
@@ -64,7 +64,8 @@ internal sealed partial class ReflectionMapper
             Rules = MapRules(element, entity),
             // the entity's constraints, checked on the client before Save like on any form (Python
             // parity; without them a required field only failed on the server, with no field marked)
-            Validations = mode == "view" ? [] : MapValidations(element),
+            Validations = mode == "view" ? []
+                : MapValidations(element, EditableProperties(element).Where(p => !HiddenInForm(p, mode)).ToList()),
             // A create/edit form IS a form page (Java's crud forms answer pageType "form") and
             // guards its unsaved changes, like Java's (automatic there): leaving it half-typed asked nothing.
             // A record's view is a detail page (Java's crud view answers "detail"); the crud's own
@@ -334,7 +335,8 @@ internal sealed partial class ReflectionMapper
         Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false,
         int? columnsOverride = null)
     {
-        var columns = columnsOverride ?? FormColumns(formType);
+        // [Section(Columns = n)] wins over the form's count (Java's SectionFormRenderer.sectionColumns)
+        var columns = columnsOverride ?? (section?.Columns >= 1 ? section.Columns : FormColumns(formType));
         // [Section(PropertyList = true)]: every data field becomes a read-only property row
         // (label left / value right, divider between rows), stacked full-width — so the body is a
         // plain vertical layout instead of the responsive form layout (mirrors Java's
@@ -376,7 +378,7 @@ internal sealed partial class ReflectionMapper
         if (section?.Frameless == true)
             return Client(new DivMetadataDto(), null, [body]) with
             {
-                Style = "flex: 1; min-width: 0; width:100%;",
+                Style = "flex: 1; min-width: 0; width:100%;" + section.Style,
             };
         // A titled section (one of several stacked or zoned sections) carries its title as an <h3>
         // Text inside the Card, and the Card takes the flex style (mirrors Java's SectionFormRenderer
@@ -393,19 +395,33 @@ internal sealed partial class ReflectionMapper
             {
                 Style = "width: 100%;",
             };
-            var content = Client(new VerticalLayoutMetadataDto(), null, [heading, inner]);
+            var content = Client(new VerticalLayoutMetadataDto(), null, [heading, inner]) with
+            {
+                Style = string.IsNullOrEmpty(section?.Style) ? null : section.Style,
+            };
             return Client(new CardMetadataDto(content), null, []) with
             {
-                CssClasses = "mateu-section",
-                Style = "flex: 1; min-width: 0; width:100%;",
+                CssClasses = SectionCssClasses(section),
+                Style = "flex: 1; min-width: 0; width:100%;" + StickyStyle(section),
             };
         }
         // A single untitled section maps to an outlined Card carrying the "mateu-section" marker
         // class; its body nests under metadata.content as Div → VerticalLayout → body (mirrors Java's
         // SectionFormRenderer / CardMapper). The section TITLE does not travel as a FormSection — the
         // golden simple sections carry no title member on the Card.
-        return SectionCardOfBody(body);
+        return section?.Sticky == true
+            ? SectionCardOfBody(body) with { CssClasses = SectionCssClasses(section), Style = StickyStyle(section) }
+            : SectionCardOfBody(body);
     }
+
+    /// <summary>The marker class every section card carries, plus the sticky one (Java's
+    /// SectionFormRenderer.sectionCssClasses).</summary>
+    private static string SectionCssClasses(SectionAttribute? section) =>
+        "mateu-section" + (section?.Sticky == true ? " mateu-section--sticky" : "");
+
+    /// <summary>A [Section(Sticky = true)] card is pinned while the rest scrolls (Java's stickyStyle).</summary>
+    private static string StickyStyle(SectionAttribute? section) =>
+        section?.Sticky == true ? "position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;" : "";
 
     /// <summary>Wraps an arbitrary body component in an untitled mateu-section Card
     /// (Card → Div → VerticalLayout → body) — the shape a plain form section AND a tabbed form use.</summary>
@@ -623,7 +639,7 @@ internal sealed partial class ReflectionMapper
         if (method?.ReturnType == typeof(LongTaskRun)) action = action with { Sse = true };
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
-        return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
+        return ActionOptionsOf(action, options);
     }
 
     /// <summary>A [Toolbar] method as a header toolbar button (Java's @Toolbar).</summary>
@@ -658,7 +674,8 @@ internal sealed partial class ReflectionMapper
         a.Caption == b.Caption && a.Zone == b.Zone
         && a.PropertyList == b.PropertyList && a.Frameless == b.Frameless
         && a.EditAction == b.EditAction && a.AddAction == b.AddAction
-        && a.ViewMoreAction == b.ViewMoreAction;
+        && a.ViewMoreAction == b.ViewMoreAction
+        && a.Sticky == b.Sticky && a.Columns == b.Columns && a.Style == b.Style;
 
     // ── Section affordances ([Section(EditAction/AddAction/ViewMoreAction)], Java's
     // SectionAffordances): the named methods' wire ids are their camelCase names.

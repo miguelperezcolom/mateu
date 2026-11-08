@@ -62,7 +62,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         && member.Find<Mateu.Uidl.AsideAttribute>() == null
         // [AppContext] properties are the shell header's selectors, never form fields (Java's
         // FormFieldFilter) — they leaked into the page an app without a home renders.
-        && member.Find<AppContextAttribute>() == null;
+        && member.Find<AppContextAttribute>() == null
+        // [HiddenInView] / [HiddenInEditor] / [HiddenInCreate] on the crud form being mapped
+        && !HiddenInCurrentForm(member);
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
