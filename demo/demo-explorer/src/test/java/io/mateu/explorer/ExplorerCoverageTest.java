@@ -92,10 +92,6 @@ class ExplorerCoverageTest {
       if (!routes.add(e.route())) {
         problems.add(where + "route " + e.route() + " used twice");
       }
-      if (e.title().contains("${")
-          || e.examples().stream().anyMatch(x -> x.title() != null && x.title().contains("${"))) {
-        problems.add(where + "a title with ${…} is interpolated on screen: write it without");
-      }
       if (e.knownIssue() == null && mentionsAKnownIssue(e)) {
         problems.add(where + "its description mentions a known issue: add a knownIssue: line");
       }

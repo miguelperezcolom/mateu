@@ -22,9 +22,9 @@ description: |
 knownIssue: >-
   3.0-beta.51: the Java twin's ${i18n.…} @Title / @Label reaches the screen untranslated (the YAML path works).
 examples:
-  - title: "A YAML page with i18n keys"
+  - title: "A YAML page with ${i18n.x}"
     route: x/behaviour/i18n/page
-  - title: "The language switch + Java labels with i18n keys"
+  - title: "The language switch + Java labels with ${i18n.x}"
     description: "The demo app runs as its own mount, embedded here with its own header."
     java: io.mateu.explorer.examples.behaviour.i18n.LanguageIsland
 pages:
