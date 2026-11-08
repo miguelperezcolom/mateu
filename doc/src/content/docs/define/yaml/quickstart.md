@@ -19,7 +19,7 @@ Pick one front door ([all of them](/java-create-your-project/) generate the same
 
   ```bash
   mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype \
-      -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app -Dauthoring=yaml
+      -DarchetypeVersion=MATEU_VERSION -DgroupId=com.acme -DartifactId=my-app -Dauthoring=yaml
   ```
 
 :::caution[The archetype needs a JDK 21–25]
@@ -135,6 +135,93 @@ A screen is a definition file plus a route and, if it belongs in the menu, a men
    ```
 
 Every file carries a `$schema` line, so both IDEs validate and complete it.
+
+## 4. Open a record and create one
+
+The listing becomes a CRUD with two more pages and three more lines: a **row route** opens a record
+page that loads the row by its id, and a **New** button leads to a form whose save is a REST call.
+
+1. In `products.yaml`, make the rows open their record and add the button:
+
+   ```yaml
+   rowRoute: products/${row.id}
+   toolbar:
+     - {type: Button, label: New, buttonStyle: primary, actionable: {type: RouteLink, route: products/new}}
+   ```
+
+2. In `routes.yaml`, the two pages. The record route's `:id` seeds the page state, so the `product`
+   source below reads it as `${state.id}`; `data:` names the source the page loads on entry:
+
+   ```yaml
+     - route: products/new
+       layout: product-new.yaml
+     - route: products/:id
+       layout: product.yaml
+       data: product
+   ```
+
+3. In `sources.yaml`, the two endpoints (with sample answers until the API exists):
+
+   ```yaml
+     - name: product
+       source:
+         url: /api/products/${state.id}
+       sample: {id: P-001, name: Espresso machine, price: 249.0, status: AVAILABLE}
+     - name: product-create
+       source:
+         url: /api/products
+         method: POST
+         body: '{"id": "${state.id}", "name": "${state.name}", "price": ${state.price}}'
+       sample: {ok: true}
+   ```
+
+4. `product.yaml`, the record — read-only fields named like the response's keys:
+
+   ```yaml
+   type: Form
+   title: ${state.name}
+   subtitle: Product
+   toolbar:
+     - {type: Button, actionId: backToList, label: Back to products, actionable: {type: RouteLink, route: products}}
+   content:
+     - type: FormLayout
+       content:
+         - {type: FormField, id: id, label: Id, readOnly: true}
+         - {type: FormField, id: name, label: Name, readOnly: true}
+         - {type: FormField, id: price, label: Price, readOnly: true}
+         - {type: FormField, id: status, label: Status, readOnly: true}
+   ```
+
+5. `product-new.yaml`, the form. Its **Save** runs the `create` action, which the page declares
+   under `actions:` — a REST call, then a message and back to the listing:
+
+   ```yaml
+   type: Form
+   title: New product
+   confirmOnNavigationIfDirty: true
+   toolbar:
+     - {type: Button, label: Cancel, actionable: {type: RouteLink, route: products}}
+     - {type: Button, label: Save, buttonStyle: primary, actionId: create}
+   content:
+     - type: FormLayout
+       content:
+         - {type: FormField, id: id, label: Id, dataType: string, required: true}
+         - {type: FormField, id: name, label: Name, dataType: string, required: true}
+         - {type: FormField, id: price, label: Price, dataType: number}
+   actions:
+     - id: create
+       validationRequired: true
+       restAction:
+         source: {ref: product-create}
+         successMessage: Product created
+         successRoute: products
+   ```
+
+Restart (or rebuild) and click a row, then **New**. In sample mode two things are expected: every
+record shows the **same** sample (a `sample:` is one fixed response, whatever `${state.id}` is), and
+a save shows *Product created* without storing anything. Point the sources at your API to see real
+records. Editing and deleting are more actions of the same kind (`method: PUT` / `DELETE` on a
+source) — see [Writing from YAML](/deploy/static-ui/#what-a-static-screen-is-made-of).
 
 ## No backend at all: the static flavour
 

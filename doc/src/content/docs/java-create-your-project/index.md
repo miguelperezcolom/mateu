@@ -16,7 +16,7 @@ compiles and boots on every change. The Mateu version is the latest release on M
 |---|---|
 | **IntelliJ IDEA** (Mateu plugin) | **File › New › Project… › Mateu** — choose the options, the project opens when it is created. |
 | **VS Code** (Mateu extension) | Command palette › **Mateu: New Project…** — quick picks, then a folder; the project opens when it is created. |
-| **Maven** | `mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app -Dauthoring=code` |
+| **Maven** | `mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=MATEU_VERSION -DgroupId=com.acme -DartifactId=my-app -Dauthoring=code` |
 
 The first choice is **how you author the UI**:
 
