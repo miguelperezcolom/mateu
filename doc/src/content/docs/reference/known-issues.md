@@ -132,22 +132,22 @@ uses a file picker for photo capture and searches only the loaded options of a s
 
 In 3.0 the .NET and Python servers are **supported with documented gaps**
 ([what that means](/reference/support-policy/#how-mature-each-part-is-in-30)). They emit the same
-wire as Java for the features they support. These Java
-features are **not ported yet**; an app that needs them must be written in Java for now:
+wire as Java for the features they support. The gaps documented before 3.0 GA — the editable-view
+orchestrators, class-level `@AutoSave`, `@ViewToolbarButton`, `type: AppShell` and `template:` in
+YAML, `Dialog` placement, `@MainFilter` / `@HiddenIn*` / `@Section(sticky, columns, style)`, the
+24 Java-only component types, Python's class-level `read_only_unless` — are closed
+([what the ports closed](/reference/parity/#what-the-ports-closed-for-30-ga)). These are still
+**not ported**; an app that needs them must be written in Java for now:
 
-- the editable-view orchestrators — `EditableView`, `AutoEditableView`, `MasterDetailView` (a read
-  view with an Edit button that flips to an editor and back). **Workaround:** a CRUD with
-  `editInDrawer`, or a view whose action returns the editor;
-- class-level `@AutoSave` (the archetypes that auto-save, such as `CollectionDetail`, do work);
-- `@ViewToolbarButton` — a CRUD record's view page has the fixed Back / Add another / Edit toolbar;
-- `type: AppShell` YAML definitions — author the shell in code (`AppShell` + `AppSupplier`);
-- the static-bundle exporter (`mateu-bundle:bundle` is a Java build plugin);
-- `Dialog` placement and `draggable`/`resizable`;
-- `@MainFilter`, `@HiddenIn*` and `@Section(sticky, columns, style)`;
-- Python only: a class-level `read_only_unless` — put it on each field.
+- the static-bundle exporter (`mateu-bundle:bundle` is a Java build plugin). **Workaround:** author
+  a UI that ships as a static bundle in YAML, which needs no backend;
+- `@App(backLink)` — the shell's "back to the parent screen" link;
+- .NET only: a page definition's `actions:` in YAML — declare the actions on a view model;
+- Python only: `HeroSearch` with a separate filters type — its facets are the row's fields.
 
-Listing filters (ranges, multi-select) are applied in memory in both ports; override `find` to push
-them to your database. The complete list is [What is still Java-only](/reference/parity/#what-is-still-java-only).
+Listing filters (ranges, multi-select) are applied in memory in both ports by default; override
+`find` (it receives the typed criteria) to push them to your database. The complete list is
+[What is still Java-only](/reference/parity/#what-is-still-java-only).
 
 ### .NET 8 leaves Microsoft support on 2026-11-10
 

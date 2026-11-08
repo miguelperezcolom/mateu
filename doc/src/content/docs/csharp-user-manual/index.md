@@ -915,9 +915,12 @@ server: every component of the fluent catalogue, read generically off its proper
 are the component's attributes, camel-cased), plus `Form` pages, partials and `ComponentRef`, and a
 **`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
 `pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
-whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
-(declare the shell in code here — an `[App]` class or an `IAppSupplier`) and a listing's `rowRoute`. An
-unknown `type:` renders as an "Unsupported component: <type>" text.
+whose `actionable:` is a `RouteLink` navigates; a listing's `rowRoute` opens a record page.
+A `Form` may fill a design-system page template (`template:` — Item overview, Welcome,
+Dashboard landing… laid out exactly as the Java server lays them out), and a `type: AppShell`
+definition bound to the mount route is served as the app shell (menus, flows, widgets, header
+switches, `access:` per caller — or declare the shell in code, an `[App]` class or an `IAppSupplier`). A page definition's `actions:` are not read yet (declare the actions on a view model).
+An unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
 

@@ -13,6 +13,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **The .NET and Python servers close their documented gaps.** Both ports gain the 24 wire
+  component types that were Java-only (`Grid` with column groups, `BoardLayout`, `CarouselLayout`,
+  `Chat`, `MessageList`/`MessageInput`, `ContextMenu`, `MenuBar`, `Directory` — `DirectoryMenu` in
+  C# —, `NotFound`, `VirtualList`, `CookieConsent`, `FormEditor`, `Workflow`…), YAML page templates
+  (`template:`) and `type: AppShell` definitions, a listing's `rowRoute`, the editable views
+  (`EditableView`, `AutoEditableView`, `MasterDetailView`), class-level `AutoSave`,
+  `ViewToolbarButton`, `MainFilter`, `HiddenIn*`, `Section(sticky, columns, style)`, `Dialog`
+  placement, the remaining action knobs (`sse`, `background`, confirmation texts, `href`, `js`,
+  custom events), `MicroFrontend.chrome`, typed filter criteria for a `find` override and a route's
+  `fixedParams` on the proxied leg; Python a class-level `read_only_unless` and a page
+  definition's `actions:`. Twelve new conformance cases pin them in Java, .NET and Python. Still
+  Java-only: the static-bundle exporter and `@App(backLink)` — see the parity matrix.
 - **Progress is a task, shown the platform's way.** A `LongTask` no longer builds a dialog on the
   server: it reports a task (`Progress` command: title, text, fraction or indeterminate, "12 of
   300", state) and each renderer shows it natively — a modal progress for a blocking task, a task

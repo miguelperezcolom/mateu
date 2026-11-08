@@ -105,8 +105,9 @@ Every crud listing already ships a bulk **Delete** (selection + confirmation) wi
 
 Same wire contract from .NET and Python — with the caveat that the appearance and confirmation-text
 knobs above are **Java only** for now: the ports' `[Toolbar]` / `@toolbar` style a page-toolbar
-button only (a list-toolbar button keeps the renderer's default look), and neither port carries
-confirmation texts on the wire (no action of theirs can declare them, bulk or not).
+button only (a list-toolbar button keeps the renderer's default look), and a list-toolbar button
+carries no confirmation texts there (a view's own actions can declare them since 3.0 GA, through
+`[ActionOptions]` / `@action_options`).
 
 
 ```csharp

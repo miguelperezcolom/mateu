@@ -27,7 +27,9 @@ optional) is rendered by sending that request to the case's fixture type — how
 (the shell's content load, an action) is pinned, not only the first render. The second-request
 cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view`,
 `wizard-step-2`, `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
-(the server-side validation re-check) and `error-boundary` (an unexpected exception).
+(the server-side validation re-check), `error-boundary` (an unexpected exception),
+`dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `editable-view`/`-edit` and
+`view-toolbar-button`.
 
 ## The contract
 
@@ -111,6 +113,15 @@ Some cases cannot be mirrored member for member, and that is information, not an
   `initialData`/`state`, like the mediated CRUD cases; everything it draws is pinned. Java names a
   step after its field and the ports number them, so the port fixtures supply the step titles
   through `StepTitle(n)` / `step_title(n)`.
+
+- **An editable view is a mediator in Java too.** `editable-view` and `editable-view-edit` pin the
+  content loads of the view and edit pages and leave the mediator protocol out, like the CRUD
+  record forms. A `save` is not pinned: Java pushes history from its mediator, .NET navigates and
+  Python re-renders in place — the same screen.
+
+- **Java's `@Action` order is the JVM's.** `Class.getDeclaredMethods()` has no specified order (it
+  changed between two runs of one build), so a case never pins several bare `@Action` methods side
+  by side: `action-extras` carries every knob on ONE action.
 
 Recording these is the point: a difference nobody wrote down is a difference somebody rediscovers.
 

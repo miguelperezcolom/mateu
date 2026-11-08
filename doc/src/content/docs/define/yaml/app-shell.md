@@ -249,8 +249,8 @@ globalSearch:
   fetched by the browser, a proxied one through `_appsource`, exactly as on Vaadin. Without a
   source, the inbox and search of an `@App` class (`_notifications-list` / `_globalsearch`) answer
   as before.
-- **Ports**: the .NET and Python servers have no `type: AppShell`, so these keys are Java-only
-  (their app classes keep `[AppContext]` / `IAppActionsSupplier` / … and `@app_context` / …).
+- **Ports**: the .NET and Python servers read these keys from a `type: AppShell` too (since 3.0
+  GA); their app classes keep `[AppContext]` / `IAppActionsSupplier` / … and `@app_context` / ….
 
 ## Header widgets
 
@@ -315,8 +315,8 @@ routes:
 - A `home` naming a route the mount does not have is logged as a warning at startup and ignored.
 
 It only applies to `type: UI` mounts; a class-declared `@UI` mount is unaffected. Java, .NET and
-Python resolve the root the same way (the ports have no `type: AppShell` definitions, so the shell
-default is Java-only).
+Python resolve the root the same way, and a `type: AppShell` bound to the root takes the mount's
+`home:` as its default `homeRoute` in all three.
 
 Mounts are found by scanning the classpath under `specs/ui/**` for `type: UI` files (by content, not
 by filename), so several UIs can coexist. When there is **no** `type: UI` file at all, the
