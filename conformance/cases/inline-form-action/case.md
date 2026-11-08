@@ -8,3 +8,6 @@ The server must rehydrate the nested object from those keys and run the method O
 is the toast `Verified Globex` — the edited value, not the field initializer (`Acme`). A server
 that ignored the flattened keys, or ran the method on a fresh nested object, answers `Verified
 Acme`; one that does not know the `nested-form-action-<field>-<method>` scheme refuses the call.
+
+The toast is a bare `Message.success` (.NET `Message.Success`, Python `Message.success`): it
+declares no position, so none travels, and it carries the default toast duration (3000).

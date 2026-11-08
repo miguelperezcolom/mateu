@@ -889,7 +889,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         var actions = msg.Actions.Select(LongTask.ToDto).ToList();
         if (msg.UndoActionId is not null && msg.Actions.All(a => a.ActionId != msg.UndoActionId))
             actions.Add(new MessageActionDto(msg.UndoLabel, msg.UndoActionId, msg.UndoParameters, null, Message.StyleUndo));
-        var dto = new MessageDto(variant, "middle", msg.Title, msg.Text, msg.Duration,
+        var dto = new MessageDto(variant, msg.Position, msg.Title, msg.Text, msg.Duration,
             msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)
         {
             Actions = actions,

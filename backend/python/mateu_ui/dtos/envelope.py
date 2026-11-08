@@ -115,7 +115,8 @@ class CustomEventRecord(Wire):
 
 class Message(Wire):
     variant: str
-    position: str
+    #: Only a hint; None when the message declares none (Java's MessageDto.position).
+    position: str | None = None
     title: str
     text: str
     duration: int

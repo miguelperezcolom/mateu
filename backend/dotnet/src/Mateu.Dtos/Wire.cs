@@ -110,7 +110,8 @@ public record CustomEventDto(string EventName, object? Detail);
 
 public record MessageDto(
     string Variant,
-    string Position,
+    // only a hint; null when the message declares none (Java's MessageDto.position)
+    string? Position,
     string Title,
     string Text,
     int Duration,

@@ -1862,12 +1862,7 @@ class WireConformanceTest {
 
     @io.mateu.uidl.annotations.WizardCompletionAction
     public Message signUp() {
-      // positioned like the ports' messages (a bare Message.error carries no position)
-      return Message.builder()
-          .variant(io.mateu.uidl.data.NotificationVariant.error)
-          .position(io.mateu.uidl.data.NotificationPosition.middle)
-          .text("No seats left on that plan.")
-          .build();
+      return Message.error("No seats left on that plan.");
     }
   }
 
@@ -1987,22 +1982,12 @@ class WireConformanceTest {
     @io.mateu.uidl.annotations.Toolbar
     @io.mateu.uidl.annotations.Action(shortcut = "ctrl+alt+v")
     public Object verify() {
-      return Message.builder()
-          .variant(io.mateu.uidl.data.NotificationVariant.success)
-          .position(io.mateu.uidl.data.NotificationPosition.middle)
-          .text("Verified " + name)
-          .duration(3000)
-          .build();
+      return Message.success("Verified " + name);
     }
 
     @io.mateu.uidl.annotations.Button
     public Object contact() {
-      return Message.builder()
-          .variant(io.mateu.uidl.data.NotificationVariant.success)
-          .position(io.mateu.uidl.data.NotificationPosition.middle)
-          .text("Contacting " + email)
-          .duration(3000)
-          .build();
+      return Message.success("Contacting " + email);
     }
   }
 

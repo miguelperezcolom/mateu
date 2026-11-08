@@ -14,6 +14,13 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
     public MessageVariant Variant { get; } = variant;
     public string Title { get; } = title;
     public int Duration { get; init; } = 5000;
+
+    /// <summary>Where the renderer shows it — only a hint (Java's NotificationPosition: middle,
+    /// topStart, bottomEnd…). The constructor says "middle", as Java's <c>new Message(text)</c>; the
+    /// <see cref="Success"/> / <see cref="Error"/>… factories say nothing (null), as Java's do, and a
+    /// message that says nothing travels without one (the renderer decides).</summary>
+    public string? Position { get; init; } = "middle";
+
     public string? UndoLabel { get; init; }
     public string? UndoActionId { get; init; }
     public IReadOnlyDictionary<string, object?>? UndoParameters { get; init; }
@@ -35,10 +42,28 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
 
     /// <summary>A toast with an Undo button dispatching the given action (10 s so there is time
     /// to react). The undo travels both as the legacy Undo* members and as one of the actions.</summary>
+    /// <summary>A success toast with no position and the default duration (Java's Message.success).</summary>
+    public static Message Success(string text) =>
+        new(text, MessageVariant.Success) { Duration = 3000, Position = null };
+
+    /// <summary>An error — sticky until dismissed — with no position (Java's Message.error).</summary>
+    public static Message Error(string text) =>
+        new(text, MessageVariant.Error) { Duration = 0, Position = null };
+
+    /// <summary>A warning toast with no position and the default duration (Java's Message.warning).</summary>
+    public static Message Warning(string text) =>
+        new(text, MessageVariant.Warning) { Duration = 3000, Position = null };
+
+    /// <summary>A contrast toast with no position and the default duration (Java's Message.contrast).</summary>
+    public static Message Contrast(string text) =>
+        new(text, MessageVariant.Contrast) { Duration = 3000, Position = null };
+
     public static Message Undoable(
         string text, string undoActionId, IReadOnlyDictionary<string, object?>? undoParameters = null) =>
         new(text, MessageVariant.Contrast)
         {
+            // Java's undoable is built with no position
+            Position = null,
             Duration = 10000,
             UndoActionId = undoActionId,
             UndoParameters = undoParameters,
@@ -59,6 +84,7 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
         new(Text, Variant, Title)
         {
             Duration = Duration,
+            Position = Position,
             UndoLabel = UndoLabel,
             UndoActionId = UndoActionId,
             UndoParameters = UndoParameters,

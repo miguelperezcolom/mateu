@@ -2693,9 +2693,35 @@
      "key",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ],
    "members": {
+    "contrast": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "error": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "success": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
     "to_wire": [],
     "undoable": [
      [
@@ -2712,6 +2738,13 @@
       "undo_parameters",
       "POSITIONAL_OR_KEYWORD",
       true
+     ]
+    ],
+    "warning": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
      ]
     ],
     "with_action": [

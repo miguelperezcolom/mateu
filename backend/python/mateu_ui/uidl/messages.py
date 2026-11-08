@@ -115,8 +115,14 @@ class Message:
         persistence: MessagePersistence | None = None,
         actions: list[MessageAction] | None = None,
         key: str | None = None,
+        position: str | None = "middle",
     ):
         self.text = text
+        #: Where the renderer shows it — only a hint (Java's NotificationPosition: middle,
+        #: topStart, bottomEnd…). The constructor says "middle", as Java's ``new Message(text)``;
+        #: the :meth:`success` / :meth:`error`… factories say nothing (None), as Java's do, and a
+        #: message that says nothing travels without one (the renderer decides).
+        self.position = position
         self.variant = variant
         self.title = title
         self.duration = duration
@@ -132,7 +138,7 @@ class Message:
             text=self.text, variant=self.variant, title=self.title, duration=self.duration,
             undo_label=self.undo_label, undo_action_id=self.undo_action_id,
             undo_parameters=self.undo_parameters, persistence=self.persistence,
-            actions=list(self.actions), key=self.key,
+            actions=list(self.actions), key=self.key, position=self.position,
         )
         values.update(changes)
         return Message(**values)
@@ -155,7 +161,7 @@ class Message:
 
         return MessageDto(
             variant=self.variant.value,
-            position="middle",
+            position=self.position,
             title=self.title,
             text=self.text,
             duration=self.duration,
@@ -166,6 +172,29 @@ class Message:
             actions=[a.to_wire() for a in self.actions],
             key=self.key,
         )
+
+    @staticmethod
+    def success(text: str) -> "Message":
+        """A success toast with no position and the default duration (Java's
+        ``Message.success``)."""
+        return Message(text, variant=MessageVariant.SUCCESS, duration=3000, position=None)
+
+    @staticmethod
+    def error(text: str) -> "Message":
+        """An error — sticky until dismissed — with no position (Java's ``Message.error``)."""
+        return Message(text, variant=MessageVariant.ERROR, duration=0, position=None)
+
+    @staticmethod
+    def warning(text: str) -> "Message":
+        """A warning toast with no position and the default duration (Java's
+        ``Message.warning``)."""
+        return Message(text, variant=MessageVariant.WARNING, duration=3000, position=None)
+
+    @staticmethod
+    def contrast(text: str) -> "Message":
+        """A contrast toast with no position and the default duration (Java's
+        ``Message.contrast``)."""
+        return Message(text, variant=MessageVariant.CONTRAST, duration=3000, position=None)
 
     @staticmethod
     def undoable(text: str, undo_action_id: str, undo_parameters: dict | None = None) -> "Message":
@@ -179,6 +208,8 @@ class Message:
             undo_action_id=undo_action_id,
             undo_parameters=undo_parameters,
             actions=[MessageAction(None, undo_action_id, undo_parameters, None, STYLE_UNDO)],
+            # Java's undoable is built with no position
+            position=None,
         )
 
 

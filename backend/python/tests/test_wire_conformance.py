@@ -990,7 +990,7 @@ class RefusedSignUpWizard(SignUpWizard):
 
     @wizard_completion_action("Sign up")
     def sign_up(self):
-        return Message("No seats left on that plan.", variant=MessageVariant.ERROR)
+        return Message.error("No seats left on that plan.")
 
 
 @ui("/conformance/rest-source")
@@ -1258,11 +1258,11 @@ class SupplierInfo:
     @action
     @shortcut("ctrl+alt+v")
     def verify(self):
-        return Message(f"Verified {self.name}", MessageVariant.SUCCESS, duration=3000)
+        return Message.success(f"Verified {self.name}")
 
     @button
     def contact(self):
-        return Message(f"Contacting {self.email}", MessageVariant.SUCCESS, duration=3000)
+        return Message.success(f"Contacting {self.email}")
 
 
 class DeliveryInfo:

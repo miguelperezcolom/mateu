@@ -2,7 +2,6 @@
   "messages" : [ {
     "duration" : 0,
     "persistence" : "sticky",
-    "position" : "middle",
     "text" : "No seats left on that plan.",
     "variant" : "error"
   } ],

@@ -1481,11 +1481,16 @@ Mateu.Uidl.Message property System.Collections.Generic.IReadOnlyDictionary<Syste
 Mateu.Uidl.Message property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MessageAction> Actions { get;init; }
 Mateu.Uidl.Message property System.Int32 Duration { get;init; }
 Mateu.Uidl.Message property System.String Key { get;init; }
+Mateu.Uidl.Message property System.String Position { get;init; }
 Mateu.Uidl.Message property System.String Text { get; }
 Mateu.Uidl.Message property System.String Title { get; }
 Mateu.Uidl.Message property System.String UndoActionId { get;init; }
 Mateu.Uidl.Message property System.String UndoLabel { get;init; }
+Mateu.Uidl.Message static method Mateu.Uidl.Message Contrast(System.String)
+Mateu.Uidl.Message static method Mateu.Uidl.Message Error(System.String)
+Mateu.Uidl.Message static method Mateu.Uidl.Message Success(System.String)
 Mateu.Uidl.Message static method Mateu.Uidl.Message Undoable(System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null)
+Mateu.Uidl.Message static method Mateu.Uidl.Message Warning(System.String)
 Mateu.Uidl.MessageAction ctor(System.String, System.String = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.String = null, System.String = null)
 Mateu.Uidl.MessageAction method Mateu.Uidl.MessageAction WithStyle(System.String)
 Mateu.Uidl.MessageAction property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }

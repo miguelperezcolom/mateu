@@ -729,7 +729,7 @@ public class WelcomeBannerPage
 public class RefusedSignUpWizard : SignUpWizard
 {
     public override object? BeforeStepNavigate(int from, int to) =>
-        to == 3 ? new Message("No seats left on that plan.", MessageVariant.Error) : null;
+        to == 3 ? Message.Error("No seats left on that plan.") : null;
 }
 
 // A plain listing whose bulk method has no [Label]: Java labels it with the bare method name.
@@ -1235,10 +1235,10 @@ public class SupplierInfo
     public string? Email { get; set; } = "sales@acme.test";
 
     [Toolbar, Action, Shortcut("ctrl+alt+v")]
-    public Message Verify() => new($"Verified {Name}") { Duration = 3000 };
+    public Message Verify() => Message.Success($"Verified {Name}");
 
     [Button]
-    public Message Contact() => new($"Contacting {Email}") { Duration = 3000 };
+    public Message Contact() => Message.Success($"Contacting {Email}");
 }
 
 /// <summary>A nested data object without [Inline]: a sub-form.</summary>
