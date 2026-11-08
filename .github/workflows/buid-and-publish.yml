@@ -112,9 +112,10 @@ jobs:
   # red. If Central is still not serving the version after the wait, or the repository does not let
   # the workflow token push a branch / open a PR (Settings › Actions › General › "Allow GitHub
   # Actions to create and approve pull requests"), the job ends green with a warning that prints the
-  # command to run by hand. A PR opened with the workflow token does not trigger the PR workflows by
-  # itself (GitHub's rule against recursive runs): close and reopen it, or push to its branch, to get
-  # the checks. Touches no publishing step and needs no publishing secret.
+  # command to run by hand. A PR opened with the workflow token does not run the PR workflows by
+  # itself (GitHub's rule against recursive runs), so the job dispatches the three workflows behind
+  # the required checks (Tests, Examples, Docs) on the bump branch. Touches no publishing step and
+  # needs no publishing secret.
   bump-examples:
     needs: all
     if: startsWith(github.event.release.tag_name, 'v3.')
@@ -171,10 +172,17 @@ jobs:
           # no checks — and the required "e2e" never reported, it was never merged: the bumps for
           # beta.28 to beta.31 piled up and the starters stayed on beta.12. A workflow_dispatch IS
           # allowed from the workflow token, and its check runs land on the branch's head commit,
-          # which is what the PR's required checks read.
-          if ! gh workflow run run_tests.yml --ref "$branch"; then
-            echo "::warning::Could not dispatch the checks on $branch: run 'Run tests' on it by hand (Actions ▸ Run tests ▸ Run workflow)."
-          fi
+          # which is what the PR's required checks read. ALL THREE required checks (ci-ok, examples-ok,
+          # docs-ok — design/ci-required-checks.md) have to be dispatched: dispatching only Tests left
+          # #1062 with a green e2e on its commit and no examples-ok/docs-ok, so it could not merge. The
+          # dispatched runs are not linked to the PR, so the PR's Checks tab does not list them; branch
+          # protection reads them from the head commit all the same. (The PR's own pull_request runs
+          # show up as "action_required": approving them in the PR is the other way to get the checks.)
+          for wf in run_tests.yml examples.yml docs.yml; do
+            if ! gh workflow run "$wf" --ref "$branch"; then
+              echo "::warning::Could not dispatch $wf on $branch: run it by hand (Actions ▸ $wf ▸ Run workflow, branch $branch)."
+            fi
+          done
           # Only the newest bump matters: an older one still open is superseded by this one.
           gh pr list --state open --search "\"Point the examples at\" in:title" --json number,headRefName \
             --jq ".[] | select(.headRefName != \"$branch\" and (.headRefName | startswith(\"chore/bump-examples-\"))) | .number" |

@@ -1,0 +1,9 @@
+# Netlify redirects (copied to dist/ by Astro).
+#
+# The generated JSON Schemas (backend/shared/uidl/*-schema.json) declare `$id`s under
+# https://mateu.io/uidl/…; these rules make those ids resolve, by proxying them (200, the address
+# stays the id) to the files on master. A project that needs the schemas of ONE release points its
+# `$schema` at the raw files of that release's tag instead (the starters and the New Project
+# generator do: https://raw.githubusercontent.com/miguelperezcolom/mateu/v<version>/backend/shared/uidl/…).
+/uidl/schema.json   https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json   200
+/uidl/*             https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/:splat             200
