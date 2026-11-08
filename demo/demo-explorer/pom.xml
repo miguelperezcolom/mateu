@@ -102,7 +102,16 @@
                                         <include>src/main/resources/specs/ui/**</include>
                                         <include>src/main/resources/application.properties</include>
                                         <include>src/main/ports/**</include>
+                                        <!-- the remote apps of the Distributed UIs area -->
+                                        <include>remotes/**</include>
                                     </includes>
+                                    <excludes>
+                                        <exclude>remotes/**/target/**</exclude>
+                                        <exclude>remotes/**/.venv/**</exclude>
+                                        <exclude>remotes/**/__pycache__/**</exclude>
+                                        <exclude>remotes/**/*.log</exclude>
+                                        <exclude>remotes/.pids</exclude>
+                                    </excludes>
                                 </resource>
                             </resources>
                         </configuration>

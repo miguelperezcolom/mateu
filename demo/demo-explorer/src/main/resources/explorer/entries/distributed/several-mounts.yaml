@@ -1,0 +1,25 @@
+id: several-mounts
+area: distributed
+group: mounts
+title: Several mounts in one app
+covers: [distributed:several-mounts]
+description: |
+  One Spring Boot process, three apps — **mounts** — each at its own base path:
+
+  - the Explorer, `@UI("")` (Java);
+  - the federated console, `@UI("/fed")` (Java, `FederatedConsole`);
+  - a YAML mount, a `type: UI` file with `basePath: /yaml-mount` and `home: welcome` — no class at all.
+
+  Routes are **relative to their mount**: `/fed` and `/yaml-mount` both have a `welcome`, and they
+  are different places. A YAML mount is served next to the `@UI` classes, on every adapter.
+
+  **Try it:** open `/yaml-mount` — it lands on its home, `welcome`; its button goes to
+  `/yaml-mount/second` with a mount-relative `RouteLink`. Then open `/fed/welcome`.
+examples:
+  - title: Each mount's own welcome route, embedded
+    java: io.mateu.explorer.examples.distributed.severalmounts.SeveralMounts
+code:
+  - {label: "YAML · the mount", path: src/main/resources/specs/ui/explorer/distributed/several-mounts/yaml-mount.ui.yaml}
+  - {label: "YAML · its routes", path: src/main/resources/specs/ui/explorer/distributed/several-mounts/yaml-mount.routes.yaml}
+  - {label: "YAML · welcome", path: src/main/resources/specs/ui/explorer/distributed/several-mounts/welcome.yaml}
+  - {label: "Java · the /fed mount", path: src/main/java/io/mateu/explorer/examples/distributed/console/FederatedConsole.java}

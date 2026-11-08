@@ -1,0 +1,21 @@
+id: static-remote
+area: distributed
+group: federation
+title: A static-bundle remote in the shell
+covers: [distributed:static-remote]
+description: |
+  A remote does not need a server. A `RemoteMenu` whose `baseUrl` names a bundle's
+  **`manifest.json`** is a *static remote*: the browser reads the manifest (the menu, the routes and
+  the raw definitions) and answers every load of that section from it, exactly as the static site
+  would. The file host only needs `Access-Control-Allow-Origin` for the shell.
+
+  **Try it:** in `/fed`, open *Help Center* → *FAQ*. In the network panel, the only request for it
+  goes to the file host (`manifest.json`); no `/mateu/v3/sync` call is made for its screens.
+examples:
+  - title: The Help Center inside the console
+    java: io.mateu.explorer.examples.distributed.staticremote.StaticRemoteLinks
+code:
+  - {label: "Java · the RemoteMenu", path: src/main/java/io/mateu/explorer/examples/distributed/console/FederatedConsole.java}
+  - {label: "pom.xml · the bundle", path: remotes/static-remote/pom.xml}
+  - {label: "YAML · the bundle's app shell", path: remotes/static-remote/src/main/resources/specs/ui/help-app.yaml}
+  - {label: "serve-static.mjs · the file host", path: remotes/serve-static.mjs}

@@ -1,0 +1,15 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Open orders
+subtitle: Served by the YAML-only remote — no UI code behind it
+content:
+  - type: Text
+    text: Two orders are waiting. Open one — the link is a route of THIS remote, resolved inside the shell.
+  - type: HorizontalLayout
+    content:
+      - type: Button
+        label: Order O-1
+        actionable: {type: RouteLink, route: order/o-1}
+      - type: Button
+        label: Order O-2
+        actionable: {type: RouteLink, route: order/o-2}

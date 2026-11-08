@@ -1,0 +1,27 @@
+id: ui-modules
+area: distributed
+group: mounts
+title: In-process UI modules (mateu.ui.modules)
+covers: [distributed:ui-modules]
+description: |
+  A **UI module** is a jar of `@UI` screens another team ships — here `explorer-helpdesk-ui`,
+  package `com.acme.helpdesk.ui`, compiled with the MVC annotation processor so it carries its
+  generated controllers. An app mounts it **in-process** by depending on it and **naming its
+  package**: `mateu.ui.modules=com.acme.helpdesk.ui` (or `@EnableMateuUiModules("com.acme.helpdesk.ui")`).
+
+  Mateu registers only its own beans and the app scans only its own package, so without that line
+  the module's mount `/helpdesk` answers 404 (and Mateu warns at startup when a named package
+  registers nothing).
+
+  Here the consumer is the **Java remote** (`remotes/java-remote`), so the module is embedded from
+  there. **Try it:** start the remotes (README, "Run the distributed examples") and open the Java
+  remote's `/helpdesk`; press *Close one* — it runs in the module's class, inside the remote's process.
+  Remove `mateu.ui.modules` from its `application.properties` and `/helpdesk` is gone.
+examples:
+  - title: The helpdesk module, served by the app that mounted it
+    java: io.mateu.explorer.examples.distributed.uimodules.HelpdeskModule
+code:
+  - {label: "Java · the module's screen", path: remotes/helpdesk-ui/src/main/java/com/acme/helpdesk/ui/HelpdeskHome.java}
+  - {label: "pom.xml · the module", path: remotes/helpdesk-ui/pom.xml}
+  - {label: "application.properties · the consumer", path: remotes/java-remote/src/main/resources/application.properties}
+  - {label: "pom.xml · the consumer", path: remotes/java-remote/pom.xml}

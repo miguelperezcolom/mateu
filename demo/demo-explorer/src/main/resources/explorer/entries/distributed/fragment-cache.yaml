@@ -1,0 +1,28 @@
+id: fragment-cache
+area: distributed
+group: microfrontends
+title: Fragment cache (varyBy)
+covers: [distributed:fragment-cache]
+description: |
+  For a SERVER micro frontend **the remote decides** what the host may cache: it stamps
+  `fragmentCache {maxAgeSeconds, varyBy}` on its load answers, from `@CacheableFragment` or a
+  `FragmentCachePolicySupplier`. `varyBy`:
+
+  - `none` (or no policy) — never cached;
+  - `shared` — one copy for everybody;
+  - `user` — one copy per caller (an anonymous caller is never cached);
+  - `key` — an opaque per-audience key: the host remembers caller → key and sends the keys it holds
+    in `X-Mateu-Fragment-Keys`; the remote may answer `notModified` with no fragments.
+
+  The host keeps the copies in its `FragmentCacheStore` (in memory, LRU, by default — replace the bean
+  for a shared one). The browser-side caches never keep a resolved island.
+
+  **Try it:** each remote counts its renders. Reload this page a few times: *render* of the
+  uncached island grows on every load; the shared one stays the same for 30 s.
+examples:
+  - title: Three cache policies
+    java: io.mateu.explorer.examples.distributed.fragmentcache.FragmentCaches
+code:
+  - {label: "Java · shared", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/SharedCachedFragment.java}
+  - {label: "Java · per user", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/PerUserCachedFragment.java}
+  - {label: "Java · uncached", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/UncachedFragment.java}

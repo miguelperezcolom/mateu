@@ -45,6 +45,7 @@
     <module>demo-static-vcn</module>
     <module>explorer</module>
     <module>demo-explorer</module>
+    <module>demo-explorer/remotes</module>
   </modules>
 
 </project>

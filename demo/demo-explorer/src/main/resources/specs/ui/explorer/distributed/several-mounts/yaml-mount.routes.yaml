@@ -1,0 +1,10 @@
+# Routes of the /yaml-mount mount — RELATIVE to it: `welcome` is /yaml-mount/welcome, and the
+# federated console's own `welcome` (/fed/welcome) is another place.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+basePath: /yaml-mount
+routes:
+  - route: welcome
+    layout: explorer/distributed/several-mounts/welcome.yaml
+  - route: second
+    layout: explorer/distributed/several-mounts/second.yaml

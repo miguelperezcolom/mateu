@@ -1,0 +1,19 @@
+id: route-collisions
+area: distributed
+group: federation
+title: Route collisions between remotes
+covers: [distributed:route-collisions]
+description: |
+  Routes are relative to each remote's mount and are spliced into the shell as they are. Inventory
+  (`InventoryApp.about`) and Orders (`about` in its `routes.yaml`) both have an `about` leaf — the
+  later registration wins, **silently**. So the renderer warns in the browser console, **once per
+  collision**, naming the route and the two owners.
+
+  **Try it:** open `/fed` with the developer tools open and look for the warning about `about`.
+  Rename one of the two routes and it goes away.
+examples:
+  - title: Two remotes with an about route
+    java: io.mateu.explorer.examples.distributed.routecollisions.RouteCollisions
+code:
+  - {label: "Java · Inventory's about", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/inventory/InventoryApp.java}
+  - {label: "YAML · Orders' about", path: remotes/yaml-remote/src/main/resources/specs/ui/routes.yaml}

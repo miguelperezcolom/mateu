@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.demo.explorer</groupId>
+    <artifactId>explorer-remotes</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>explorer-remotes</name>
+    <description>The other side of the Explorer's "Distributed UIs" area: small, independent Mateu apps
+        the Explorer federates, embeds and resolves micro frontends from. See ../README.md, "Run the
+        distributed examples".</description>
+
+    <modules>
+        <!-- a third-party UI module (a jar of @UI screens), mounted in-process by java-remote -->
+        <module>helpdesk-ui</module>
+        <!-- a Java remote: an app shell + the micro frontends, the content service, the identity echo -->
+        <module>java-remote</module>
+        <!-- a YAML-only remote: no UI code, served by Spring Boot -->
+        <module>yaml-remote</module>
+        <!-- a static bundle (specsOnly): no backend at all, served as files -->
+        <module>static-remote</module>
+    </modules>
+</project>

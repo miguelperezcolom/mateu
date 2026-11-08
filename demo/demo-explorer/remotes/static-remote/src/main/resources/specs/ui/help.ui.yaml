@@ -1,0 +1,7 @@
+# The Help Center's mount, as data. Built into a static bundle by mateu-bundle (specsOnly).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+home: faq
+routes:
+  - routes.yaml

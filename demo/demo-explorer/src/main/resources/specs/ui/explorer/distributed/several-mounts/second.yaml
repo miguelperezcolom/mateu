@@ -1,0 +1,6 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: The second page of the YAML mount
+content:
+  - type: Text
+    text: A route of /yaml-mount, reached by a mount-relative RouteLink.

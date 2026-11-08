@@ -1,0 +1,28 @@
+id: version-skew
+area: distributed
+group: operations
+title: Version skew (X-Mateu-Build)
+covers: [distributed:version-skew]
+description: |
+  Teams deploy on their own schedules, so an open tab may be talking to a backend that changed under
+  it. Every response of a `/mateu/` path carries **`X-Mateu-Build`** — a hash of the Mateu version,
+  the wire types and the specs, or `mateu.build-id` / `MATEU_BUILD_ID` when set. The renderer keeps
+  the first build each backend answered with, and:
+
+  - a later **successful** answer with another build → a sticky *"This app has been updated…"* with
+    *Reload*, once;
+  - a Mateu **403** from another build → *"This screen has changed since you opened it…"* instead of
+    a plain refusal.
+
+  Renderers also send `X-Mateu-Renderer: <name>/<version> wire/<M.m>`; a server warns once per
+  renderer of another wire major.
+
+  **Try it:** open *Stock* in the console. Restart the Java remote with another build id —
+  `MATEU_BUILD_ID=v2 java -jar remotes/java-remote/target/explorer-java-remote-1.0-SNAPSHOT.jar` —
+  and press *Reserve one*: the banner appears.
+examples:
+  - title: A remote that can change under an open tab
+    java: io.mateu.explorer.examples.distributed.versionskew.VersionSkew
+code:
+  - {label: "application.properties · the Java remote", path: remotes/java-remote/src/main/resources/application.properties}
+  - {label: "run.sh", path: remotes/run.sh}
