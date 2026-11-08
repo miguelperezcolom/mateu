@@ -28,7 +28,7 @@ from mateu_ui.dtos import (
 
 from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl.export import ListingExport
-from mateu_ui.uidl.messages import UserFacingException
+from mateu_ui.uidl.messages import Message, UserFacingException
 
 from .. import action_guard
 from ..naming import camel_case
@@ -189,7 +189,52 @@ class CrudHandlerMixin(MixinBase):
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
         if aid and aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
+        if aid and aid.startswith("action-on-view-"):
+            return self.action_on_view(crud, crud_type, element, id_, base_route, rq)
         action_guard.no_such_action(crud_type, aid)
+
+    def action_on_view(self, crud, crud_type, element, id_, base_route, rq: RunActionRq) -> UIIncrement:
+        """A @view_toolbar_button on the record view page: runs the crud method on the record
+        rebuilt from the page state (mirrors Java's ActionOnViewActionHandler). None / the record
+        → the record page re-rendered in place; messages only → shown over the record RELOADED;
+        the record with messages → both; anything else maps as a regular action result."""
+        fn = action_guard.resolve_view_action(crud_type, (rq.action_id or "")[len("action-on-view-"):])
+        if fn is None:
+            action_guard.no_such_action(crud_type, rq.action_id)
+        action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
+        record = element()
+        self.bind_state(record, rq.component_state or {})
+        record_id = id_ if id_ is not None else self._row_id(rq)
+        if record_id is not None and hasattr(record, "id"):
+            setattr(record, "id", record_id)
+        method = fn.__get__(crud, crud_type)
+        args = []
+        for p in list(inspect.signature(method).parameters.values()):
+            if p.kind not in (p.POSITIONAL_OR_KEYWORD, p.POSITIONAL_ONLY):
+                continue
+            args.append(rq if p.name == "request" or p.annotation in (RunActionRq, "RunActionRq") else record)
+        result = method(*args)
+        items = list(result) if isinstance(result, (list, tuple)) else [result]
+        messages = [i for i in items if isinstance(i, Message)]
+        others = [i for i in items if i is not None and not isinstance(i, Message)]
+        shown = None
+        if not others:
+            if result is None:
+                shown = record
+            elif record_id is not None:
+                # it acted on the record and only has something to SAY: show it again, reloaded
+                shown = crud.get(record_id) or record
+        elif len(others) == 1 and isinstance(others[0], element):
+            shown = others[0]
+        if shown is None:
+            return self.map_result(result, rq)
+        route = f"{base_route.rstrip('/')}/{record_id}" if record_id is not None else base_route
+        page = self.render_entity(crud_type, element, shown, "view", route, rq)
+        if messages:
+            page = page.model_copy(update={
+                "messages": [*page.messages, *self.map_result(messages, rq).messages]
+            })
+        return page
 
     def export_listing(self, crud, crud_type, element, action_id: str, rq: RunActionRq) -> UIIncrement:
         """export-csv / export-excel / export-pdf on an exportable crud: the WHOLE filtered result

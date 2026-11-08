@@ -5111,6 +5111,20 @@
     ]
    ]
   },
+  "view_toolbar_button": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirmation_required",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "welcome_banner": {
    "function": [
     [
