@@ -59,6 +59,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   `sourceTemplates.conformance.test.ts` (libs/mateu, the reference), `poc/test-conformance.mjs`
   (Redwood) and `src/core/sourceTemplates.conformance.test.ts` (React Native); the servers' proxied
   leg pins the same rules in their own url-template tests.
+- `figma-import.json` — Import from Figma's host-side rules: a Figma URL (or bare key, branch URLs)
+  → the file key, which routes file gets the imported pages, the page → route rule and the minimal
+  routes.yaml append (before a `# __ROUTES__` marker, else at the end; `expected: null` = an already
+  declared route leaves the file unchanged). Generated from the VS Code extension's `figmaImport.ts`
+  (`FIGMA_IMPORT_WRITE=true npx vitest run src/figmaImport.conformance.test.ts`, the reference), run
+  by the Maven goal (`FigmaImportConformanceTest`) and IntelliJ (`FigmaImportConformanceTest.kt`).
 
 ## Expected values
 

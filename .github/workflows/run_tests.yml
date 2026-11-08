@@ -252,6 +252,13 @@ jobs:
           cd design/figma/to-yaml
           npm test
 
+      # The one-step import every front door runs (mateu-bundle:figma, IntelliJ, VS Code): frame
+      # selection, file statuses, the Figma API errors. No dependencies to install.
+      - name: Figma import — driver
+        run: |
+          cd design/figma/import
+          npm test
+
   # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
   # schema, wire-type parity, headless rendering of every component type, the YAML binding
   # annotator) only ran on a developer's machine. setup-gradle only WRITES its cache on master, where

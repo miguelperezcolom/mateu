@@ -39,6 +39,15 @@ function stageSchema(from, to) {
 copy(join(repo, 'LICENSE.txt'), join(here, 'LICENSE'))
 stageSchema(join(repo, 'backend/shared/uidl/specs-schema.json'), join(here, 'schema/specs-schema.json'))
 
+// Import from Figma: the driver, the converter it calls, the contract and the authoring schema
+// (src/FigmaImportCommand.ts runs figma/import/figma-import.mjs with node). Laid out as the driver
+// expects (../to-yaml/src, ../contract.json, ../uidl-schema.json).
+rmSync(join(here, 'figma'), { recursive: true, force: true })
+copy(join(repo, 'design/figma/import/figma-import.mjs'), join(here, 'figma/import/figma-import.mjs'))
+copy(join(repo, 'design/figma/to-yaml/src'), join(here, 'figma/to-yaml/src'))
+copy(join(repo, 'design/figma/contract.json'), join(here, 'figma/contract.json'))
+copy(join(repo, 'backend/shared/uidl/uidl-schema.json'), join(here, 'figma/uidl-schema.json'))
+
 // New › Mateu: the file-kind catalogue and the skeletons, shared with the IntelliJ plugin (its
 // resources are the single source of truth; see src/newFiles.ts).
 const ijResources = join(repo, 'frontend/app/intellij-plugin/src/main/resources')

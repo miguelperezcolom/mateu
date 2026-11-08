@@ -350,6 +350,7 @@ export default defineConfig({
 								{ slug: 'native/ide-tooling', label: 'IDE tooling (IntelliJ & VS Code)' },
 								{ slug: 'design-systems/figma', label: 'From Figma' },
 								{ slug: 'design-systems/figma-guide', label: 'From Figma: step by step' },
+								{ slug: 'design-systems/figma-import', label: 'Import from Figma' },
 							],
 						},
 						{

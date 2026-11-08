@@ -65,6 +65,12 @@
           ],
           "markdownDescription": "The renderer the whole project paints with. **Stored in `specs/ui/project.yaml`** (`type: Project`) — the file is the truth: changing this setting writes it, and the setting follows the file whenever it changes. The visual editor and Play open in it and the static bundle ships it; a served app renders with its Maven dependency (the server warns when the two disagree). Same as *Mateu: Project Settings…*."
         },
+        "mateu.nodePath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "The `node` (20 or newer) *Mateu: Import from Figma…* runs the converter with. Empty = the first one on the PATH (or in the usual install folders)."
+        },
         "mateu.liveRun.openIn": {
           "type": "string",
           "enum": [
@@ -125,6 +131,16 @@
         "command": "mateu.openInDesktopApp",
         "title": "Open Running App in the Desktop App",
         "category": "Mateu"
+      },
+      {
+        "command": "mateu.importFromFigma",
+        "title": "Import from Figma…",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.forgetFigmaToken",
+        "title": "Forget the Figma Token",
+        "category": "Mateu"
       }
     ],
     "menus": {
@@ -138,6 +154,11 @@
           "command": "mateu.addRoute",
           "when": "!explorerResourceIsFolder && resourcePath =~ /[\\\\/]specs[\\\\/]ui[\\\\/].*\\.ya?ml$/",
           "group": "navigation@11"
+        },
+        {
+          "command": "mateu.importFromFigma",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@12"
         }
       ],
       "editor/context": [
@@ -181,7 +202,9 @@
     "onCommand:mateu.projectSettings",
     "onCommand:mateu.runLive",
     "onCommand:mateu.reloadScreen",
-    "onCommand:mateu.openInDesktopApp"
+    "onCommand:mateu.openInDesktopApp",
+    "onCommand:mateu.importFromFigma",
+    "onCommand:mateu.forgetFigmaToken"
   ],
   "keywords": [
     "mateu",
