@@ -26,6 +26,11 @@ import java.util.Map;
 final class SectionFormRenderer {
 
   /**
+   * A {@code @FoldedLayout} section column: grows, and wraps below the previous one under 20rem.
+   */
+  static final String FOLDED_COLUMN_STYLE = "flex: 1 1 20rem; min-width: min(20rem, 100%);";
+
+  /**
    * Bundles the many context values threaded unchanged through every rendering step (the fields per
    * section, the routing/request context and the form flags), so the private helpers take a single
    * {@code Ctx} instead of the same dozen positional parameters over and over.
@@ -122,10 +127,23 @@ final class SectionFormRenderer {
         }
       }
       if (MetaAnnotations.isPresent(instanceClass, FoldedLayout.class)) {
+        // The row WRAPS and each section column has a basis and a floor (like a zone column), so
+        // at phone width the sections stack instead of the second one being cut off at the screen
+        // edge (W-V-REFLOW-2). min(20rem, 100%) is the wrap point.
         return List.of(
             HorizontalLayout.builder()
                 .spacing(true)
-                .content(renderSections(sections, ctx))
+                .wrap(true)
+                .content(
+                    renderSections(sections, ctx).stream()
+                        .map(
+                            section ->
+                                (Component)
+                                    Div.builder()
+                                        .style(FOLDED_COLUMN_STYLE)
+                                        .children(List.of(section))
+                                        .build())
+                        .toList())
                 .build());
       }
       if (LayoutInference.preferTabs(

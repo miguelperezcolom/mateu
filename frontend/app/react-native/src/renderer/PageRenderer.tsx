@@ -12,9 +12,9 @@ import { MateuButton, StatusChip } from '../ui/controls';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
-import { fabBottom } from '../core/uxRules';
+import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
@@ -93,7 +93,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
   const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', ctx);
   // the same button twice (a listing's toolbar folded in more than once) is one button
-  const toolbar = uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []);
+  // …and «Back to list» stands down when the screen already has a back arrow (RN-26)
+  const screenHasBack = useScreenHasBack();
+  const toolbar = withoutRedundantBack(uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []), screenHasBack);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
   const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];

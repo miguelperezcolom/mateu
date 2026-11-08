@@ -9,6 +9,7 @@ import { BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
+import { ScreenHasBack } from './ScrollContext';
 import { useAppContext } from '../context/AppContext';
 import { BACK_HINT, NavTarget, ScreenBack, declareMenuRemotes, navigationSession } from '../core/MateuSession';
 import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
@@ -207,17 +208,19 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
           {!!top.label && <PaperText variant="titleMedium" numberOfLines={1} style={styles.backTitle}>{top.label}</PaperText>}
         </View>
       )}
-      <MateuViewHost
-        key={`${top.route}|${top.consumedRoute}|${stack.length}`}
-        session={session}
-        target={top}
-        onOpenDetail={push}
-        onStackNavigate={stackNavigate}
-        onController={(c) => {
-          topController.current = c;
-          appSession.currentScreen = () => screenOf(c);
-        }}
-      />
+      <ScreenHasBack.Provider value={stack.length > 0}>
+        <MateuViewHost
+          key={`${top.route}|${top.consumedRoute}|${stack.length}`}
+          session={session}
+          target={top}
+          onOpenDetail={push}
+          onStackNavigate={stackNavigate}
+          onController={(c) => {
+            topController.current = c;
+            appSession.currentScreen = () => screenOf(c);
+          }}
+        />
+      </ScreenHasBack.Provider>
     </View>
   );
 }

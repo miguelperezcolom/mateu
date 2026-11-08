@@ -148,3 +148,39 @@ internals, carved out with a reason).
   a regression of this pass.
 - .NET port: changes compile-reviewed only (no `dotnet` SDK on the review machine); Python port
   tests run green (696).
+
+## Estado 2026-11-08 (pre-GA re-check)
+
+Every item still ⏳ above (and every P2/P3 not marked ✅) re-checked on `master` @ `fcba5e110` in a
+real browser: Vaadin on `e2e/sut/apps/mvc-app1` and `demo/demo-admin-panel`, Redwood on `demo/demo-vb`
+and `demo/demo-vb-pms`, each running the core and the renderer bundle built from this branch. Probe:
+`e2e/ux/catalogue.mjs` (axe WCAG 2.2 AA + sideways overflow) at 1440 / 390, light / dark. Evidence in
+[`shots/`](shots/) (file names start with the finding id).
+
+| ID | Open on 2026-11-08? | Status | Evidence / why |
+|---|---|---|---|
+| W-V-ROWCLICK | No | ✅ verified | fixed by U1 (3.0-alpha.412: whole-row click + Enter); `tests/shared/row-click-opens-record.spec.ts` 5/5 against this build |
+| W-V-DASH-TIME | No (framework) | ✅ verified + demo fixed | `MetricCard.timeframe` + the `ArchetypeAdvisor` hint ("…shows 4 KPI tile(s) without a timeframe…") logged by `/dashboard-demo`; the demo now declares them (`W-V-DASH-TIME-timeframes.jpg`) |
+| W-V-REFLOW-2 | **Yes** — `/action-features` (a button ending at 561 px on a 390 px screen), `/accordion` and `/folded` (second section cut off, page scrolled sideways); `/patterns/wizard` already fine | ✅ fixed | form button rows wrap (`mateu-page`, `mateu-form`); the `@FoldedLayout` row wraps and each column has a `min(20rem, 100%)` floor (Java `SectionFormRenderer`, .NET `ReflectionMapper.Forms`, Python `mapper/layout.py`). After: no sideways scroll on the 7 phone routes checked. e2e `tests/shared/phone-reflow.spec.ts` (3); `LayoutSyncTest.foldedLayoutLaysSectionsOutHorizontally`, `Folded_layout_puts_…`, `test_folded_layout_…`. `W-V-REFLOW-2-*-before/after.jpg` |
+| W-V-SWITCHER | No | ✅ verified | the general-overview switcher is a select of records ("Requisition 204") — `W-V-SWITCHER-select.jpg` |
+| W-V-NESTED | No | ✅ verified | `/status-list-demo` axe-clean at 1440 / 390, light / dark |
+| W-V-SCROLLREGION | **Yes** — axe `scrollable-region-focusable` on the planning board frame @390 | ✅ fixed | the frame is a named `role=region` with `tabindex=0` and a focus ring; axe clean; `mateu-planning-board.dom.test.ts` |
+| (new) planning-board block ink | **Yes** — axe `color-contrast` on the violet blocks (#8b5cf6: 4.2:1 with white, 4.1:1 with the dark ink) at every width | ✅ fixed | `inkOn` falls back to black (5.0:1) when neither ink reaches AA; `inkOn.test.ts` |
+| W-V-DISABLED-CELL | **Yes** — disabled cells were tab stops, not `aria-disabled` | ✅ fixed | `aria-disabled` + `tabindex=-1`, `aria-pressed` on the selected card; the selected card's status chip measured 4.3:1 → the chip sits on the base surface there; axe clean; `mateu-resource-grid.dom.test.ts` |
+| W-V-GLYPHS | Partly | ✅ fixed (user-facing) / ⏳ dev tools | rich-text quote + link, the chat's attach button and attachment chips, the saved-view star and ✕, the filter chips' ✕ now go through the `icon()` port (the star also gained `aria-label` + `aria-pressed`); tests in `mateu-rich-text-editor.test.ts`, `mateu-chat.interaction.test.ts`, `mateu-filter-bar.test.ts`. Left: debug overlay / form editor / workflow editor (developer tools) and the ⚠️ inside chat message text (content) |
+| W-V-TOAST-DUP | not re-checked | ⏸ deferred | toast / Message code is being rebuilt by another stream in this release; the fix belongs there |
+| W-V-DELETE-FEEDBACK | Yes (the default delete answers only by removing the row) | ⏸ deferred | a confirmation toast is Message code (other stream); an Undo needs NEW public API — a restore hook on `CrudStore` / `Deletable` (e.g. `restoreAllById(ids)` or a soft-delete contract) that `Message.undoable` could call. Listed for the API-freeze owner |
+| W-V-TABLE-ID | Yes (`/full-crud`: `Id` is still the first column) | ⏸ deferred — product decision | the harm the review measured (only the Id cell opened the record) is gone with whole-row click; hiding or moving a UUID id changes the listing wire in three backends and the conformance corpus, so it needs the owner's call (hide the id when the row opens by click? move it last?) |
+| W-V-DEMO-LANG | Yes | ⏸ deferred | demo content, not the generator |
+| W-V-PHONE-DATE | — | ⬆ upstream | unchanged (Vaadin behaviour) |
+| W-R6 | No | ✅ verified | `/property-availability` shows "Property availability" (`W-R6-title.jpg`) |
+| W-R7 | No | ✅ verified | `/reservation-detail` @390: no sideways overflow |
+| W-R8, W-R9 | No | ✅ obsolete | the Redwood renderer is LIGHT ONLY since 2026-10-13 (`poc/theme.mjs`); with a dark OS preference `/end-of-day` and `/telephone-console` are axe-clean |
+| W-R-UPSTREAM | — | ⬆ upstream | `/property-availability`'s only axe finding is still the `oj-datagrid` databody (`scrollable-region-focusable`, JET internals) |
+
+**Probes on this build.** `e2e/a11y-audit.mjs`: 0 violations on its 8 routes, and 0 on `/full-crud`,
+`/action-features`, `/folded`, `/patterns/wizard`, `/row-open`. `e2e/vb-a11y-probe.mjs`: 10/10 against
+demo-vb. Catalogue on the re-checked admin routes (rules per screen): **before 3** on master
+(planning board: contrast @1440; contrast + scroll region @390) **+ 1** found during the re-check
+(resource grid: the selected card's chip contrast @1440, not in the first sweep) → **after 0**. Redwood PMS: 1 rule (the upstream data
+grid) before and after. Phone screens that scroll sideways among the checked routes: 3 → 0.

@@ -72,3 +72,13 @@ P1: 1 (fixed) · P2: 9 (7 fixed, 1 mitigated in docs, 1 open) · P3: 9 (6 fixed,
 
 Evidence (screenshots, logs, generated projects):
 `/private/tmp/claude-501/-Users-mguel-IdeaProjects-mateu/e5e6bb22-fdb5-44ff-95b8-b8117e101445/scratchpad/ux-native/dx/`.
+
+## Estado 2026-11-08 (pre-GA re-check)
+
+| Id | Open on 2026-11-08? | Status | Why |
+|---|---|---|---|
+| DX-07 archetype on JDK 26 | Yes | ⏸ mitigated in docs (unchanged) | the failure is Maven's archetype plugin running the post-generate Groovy with its own Groovy, which cannot read class-file 70; a Groovy-free archetype is a post-GA job |
+| DX-15 YAML Form template's dead Save | Yes (template unchanged) | ⏸ deferred | the template lives in the IntelliJ plugin's resources (shared by both IDE generators), owned by another stream this release; the web client's dev console warning for an unclaimed action (W-V-UNCLAIMED) does name the id meanwhile |
+| DX-16 dangling menu leaves are silent | Yes | ⏸ deferred | a boot / dev-mode check needs the LIVE route resolution (a `RunActionCommand`) inside the shell mapper, in three backends — post-GA |
+| DX-17 a broken page called a "route file" | **Yes** | ✅ fixed | `MountRegistry` warns only for a file named like a route file; an unreadable page is reported once, with its line, by its own loader (`MountRegistryTest.onlyAFileNamedLikeARouteFileIsReportedAsOne`) |
+| DX-19 archetype vs CLI package | Yes | ⏸ deferred | cosmetic, Maven's archetype convention |

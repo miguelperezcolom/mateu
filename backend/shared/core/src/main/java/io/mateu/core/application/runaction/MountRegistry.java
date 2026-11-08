@@ -107,10 +107,27 @@ public final class MountRegistry {
         }
         found.add(new RouteFileMount(text(root, "basePath"), resourcePath));
       } catch (Exception e) {
-        log.warn("Failed to read route file {}: {}", resourcePath, e.getMessage());
+        // This walk reads EVERY specs file to find the `type: Routes` ones, so an unreadable file
+        // is usually a PAGE, which its own loader already reports with the line (YamlSpecProblems):
+        // a second WARN calling it a "route file" was wrong and noise (UX review DX-17). Only a
+        // file named like a route file is reported here.
+        if (looksLikeRouteFile(resourcePath)) {
+          log.warn("Could not read the route file {}: {}", resourcePath, e.getMessage());
+        } else {
+          log.debug(
+              "Skipped unreadable specs file {} looking for route files: {}",
+              resourcePath,
+              e.getMessage());
+        }
       }
     }
     return found;
+  }
+
+  /** {@code routes.yaml}, {@code admin-routes.yml}… — the names the route-file convention uses. */
+  static boolean looksLikeRouteFile(String resourcePath) {
+    var name = resourcePath.substring(resourcePath.lastIndexOf('/') + 1).toLowerCase();
+    return name.matches("(.*[-_.])?routes?\\.ya?ml");
   }
 
   /**

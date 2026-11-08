@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute, stackAfterGoTo,
+  rowCheckboxLabel, serverSideState, withoutRedundantBack, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute, stackAfterGoTo,
 } from './uxRules.ts';
 import { setAppLocale } from './money.ts';
 
@@ -196,4 +196,11 @@ test('navigating to a screen already on the stack goes back to it; a saved form 
   assert.deepEqual(stackAfterGoTo([t('/products/P-2')], '/products', t('/orders/7'), false), [t('/products/P-2'), t('/orders/7')]);
   // a base-screen form (nothing pushed) pushes the record
   assert.deepEqual(stackAfterGoTo([], '/full-crud/new', t('/full-crud/3'), true), [t('/full-crud/3')]);
+});
+
+test('RN-26: «Back to list» stands down only when the screen already has a back arrow', () => {
+  const toolbar = [{ actionId: 'do-nothing' }, { actionId: 'cancel-view' }, { id: 'backToList' }, { actionId: 'edit' }];
+  assert.deepEqual(withoutRedundantBack(toolbar, true).map((b) => b.actionId ?? b.id), ['do-nothing', 'edit']);
+  // opened from a link with nothing under it: the button is the only way to the list
+  assert.equal(withoutRedundantBack(toolbar, false).length, 4);
 });

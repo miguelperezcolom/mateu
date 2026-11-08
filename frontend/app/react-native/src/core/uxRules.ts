@@ -291,3 +291,17 @@ export function stackAfterGoTo<T extends { route: string }>(stack: T[], baseRout
   if (replaceTop && stack.length > 0) return [...stack.slice(0, -1), target];
   return [...stack, target];
 }
+
+/**
+ * RN-26: on a screen pushed over the listing the top bar already carries the way back (the arrow,
+ * Android's system Back), so the record's own «Back to list» (`cancel-view`, `backToList`) is the
+ * same thing twice and cost the toolbar a row. Opened straight from a link, with nothing under it,
+ * the screen has no arrow and the button stays — it is then the only way to the list.
+ */
+export const REDUNDANT_WITH_BACK: ReadonlySet<string> = new Set(['cancel-view', 'backToList']);
+
+export function withoutRedundantBack<T extends { actionId?: string | null; id?: string | null }>(
+  buttons: T[], screenHasBack: boolean,
+): T[] {
+  return screenHasBack ? buttons.filter((b) => !REDUNDANT_WITH_BACK.has(buttonActionId(b))) : buttons;
+}

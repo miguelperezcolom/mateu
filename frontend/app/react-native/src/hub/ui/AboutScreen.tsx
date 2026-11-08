@@ -89,7 +89,7 @@ export function AboutScreen({ onClose }: { onClose: () => void }) {
 
 const styles = themed(() => StyleSheet.create({
   row: { paddingVertical: 6 },
-  label: { fontSize: 13, color: theme.muted },
+  label: { fontSize: 12, color: theme.muted }, // M3 labelMedium — the type scale has no 13 (RN-23)
   value: { fontSize: 16, color: theme.ink },
   wide: { alignSelf: 'stretch' },
 }));

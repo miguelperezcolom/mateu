@@ -3,8 +3,12 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import type { Editor } from "@tiptap/core";
 import { richTextHtml } from "./richTextValue";
 import { chromeText, type ChromeTextKey } from '@infra/ui/chromeTexts.ts'
+import { icon } from '@infra/ui/renderers/neutralIcon.ts'
 
-type Mark = { id: string, label: ChromeTextKey, glyph: string, active: (e: Editor) => boolean, run: (e: Editor) => void }
+// `icon` (the renderer's icon set) wins over `glyph`: the quote and link buttons used typographic /
+// emoji glyphs next to the design system's icons (UX review W-V-GLYPHS). B / I / U / S / H stay
+// letters — that is what every editor toolbar shows for them.
+type Mark = { id: string, label: ChromeTextKey, glyph: string, icon?: string, active: (e: Editor) => boolean, run: (e: Editor) => void }
 
 const MARKS: Mark[] = [
     { id: 'bold', label: 'bold', glyph: 'B', active: (e) => e.isActive('bold'), run: (e) => e.chain().focus().toggleBold().run() },
@@ -14,7 +18,7 @@ const MARKS: Mark[] = [
     { id: 'h2', label: 'heading', glyph: 'H', active: (e) => e.isActive('heading', { level: 2 }), run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
     { id: 'bullet', label: 'bulletedList', glyph: '•', active: (e) => e.isActive('bulletList'), run: (e) => e.chain().focus().toggleBulletList().run() },
     { id: 'ordered', label: 'numberedList', glyph: '1.', active: (e) => e.isActive('orderedList'), run: (e) => e.chain().focus().toggleOrderedList().run() },
-    { id: 'quote', label: 'quote', glyph: '❝', active: (e) => e.isActive('blockquote'), run: (e) => e.chain().focus().toggleBlockquote().run() },
+    { id: 'quote', label: 'quote', glyph: '"', icon: 'vaadin:quote-left', active: (e) => e.isActive('blockquote'), run: (e) => e.chain().focus().toggleBlockquote().run() },
     { id: 'code', label: 'codeBlock', glyph: '</>', active: (e) => e.isActive('codeBlock'), run: (e) => e.chain().focus().toggleCodeBlock().run() },
 ]
 
@@ -127,10 +131,10 @@ export class MateuRichTextEditor extends LitElement {
                             <button type="button" class="tool tool-${m.id}" title="${chromeText(m.label)}" aria-label="${chromeText(m.label)}"
                                     aria-pressed="${e ? String(m.active(e)) : 'false'}" ?disabled=${!e}
                                     @mousedown=${(ev: Event) => ev.preventDefault()}
-                                    @click=${() => e && m.run(e)}>${m.glyph}</button>`)}
+                                    @click=${() => e && m.run(e)}>${m.icon ? icon(m.icon) : m.glyph}</button>`)}
                         <button type="button" class="tool" title="${chromeText('link')}" aria-label="${chromeText('link')}" ?disabled=${!e}
                                 aria-pressed="${e ? String(e.isActive('link')) : 'false'}"
-                                @mousedown=${(ev: Event) => ev.preventDefault()} @click=${() => this.link()}>🔗</button>
+                                @mousedown=${(ev: Event) => ev.preventDefault()} @click=${() => this.link()}>${icon('vaadin:link')}</button>
                     </div>`}
                 <div id="editor"></div>
             </div>`

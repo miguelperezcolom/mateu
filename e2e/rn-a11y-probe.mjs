@@ -29,7 +29,9 @@ const check = (name, pass, detail = '') => {
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 420, height: 860 } })
-await page.goto(URL, { waitUntil: 'networkidle' })
+// 'load', not 'networkidle': an app with @App(liveUpdates) keeps a stream open, so the network
+// never goes idle and the probe timed out before it looked at anything (2026-11-08)
+await page.goto(URL, { waitUntil: 'load' })
 await sleep(5000)
 
 // Optional navigation before probing. Against a backend whose root IS a form (the e2e SUT) none

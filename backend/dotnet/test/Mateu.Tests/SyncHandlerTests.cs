@@ -1883,6 +1883,9 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"HorizontalLayout\"", json);
         Assert.Contains("One", json);
         Assert.Contains("Two", json);
+        // W-V-REFLOW-2: the row wraps and each column has a floor, so a phone stacks the sections.
+        Assert.Contains("\"wrap\":true", json);
+        Assert.Contains("min-width: min(20rem, 100%);", json);
     }
 
     [Fact]

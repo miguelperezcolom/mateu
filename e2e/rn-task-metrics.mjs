@@ -20,7 +20,7 @@ async function task(id, goal, route, body) {
   const log = { id, goal, steps: [], taps: 0, keystrokes: 0, errors: [], success: false, notes: [] };
   page.on('console', (m) => { if (m.type() === 'error' && !/descendant|nested|hydration/i.test(m.text())) log.errors.push(m.text().slice(0, 160)); });
   const t0 = Date.now();
-  await page.goto(route ? `${BASE}/?route=${encodeURIComponent(route)}` : BASE, { waitUntil: 'networkidle' });
+  await page.goto(route ? `${BASE}/?route=${encodeURIComponent(route)}` : BASE, { waitUntil: 'load' }); // live-update streams never let the network idle
   await sleep(3500);
   const u = {
     page,

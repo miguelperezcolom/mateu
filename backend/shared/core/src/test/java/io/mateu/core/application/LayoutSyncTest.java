@@ -553,6 +553,14 @@ class LayoutSyncTest {
     assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
     assertThat(((HorizontalLayoutDto) row.metadata()).spacing()).isTrue();
     assertThat(sectionCardsUnder(row)).hasSize(2);
+    // W-V-REFLOW-2: the row wraps and every column has a basis + floor, so at phone width the
+    // second section drops below the first instead of being cut off at the screen edge.
+    assertThat(((HorizontalLayoutDto) row.metadata()).wrap()).isTrue();
+    assertThat(row.children())
+        .allSatisfy(
+            column ->
+                assertThat(((ClientSideComponentDto) column).style())
+                    .contains("min-width: min(20rem, 100%)"));
   }
 
   // ------------------------------------------------------------------ @Toc

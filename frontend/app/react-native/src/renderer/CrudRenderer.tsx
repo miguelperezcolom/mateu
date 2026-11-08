@@ -16,7 +16,7 @@ import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
 import { theme, themed } from '../theme';
 import { Button as PaperButton, Card, Chip, Dialog, FAB, IconButton, Portal, Searchbar, Text as PaperText, TextInput as PaperTextInput, TouchableRipple } from 'react-native-paper';
-import { MateuButton, SelectBox, StatusChip } from '../ui/controls';
+import { MateuButton, MIcon, SelectBox, StatusChip } from '../ui/controls';
 import {
   AggregatableColumn,
   buildAggregateFooters,
@@ -737,7 +737,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                               </View>
                             )}
                           </View>
-                          {!!rowOpen && <IconButton icon="chevron-right" size={20} iconColor={theme.faint} style={styles.listChevron} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden />}
+                          {/* a decoration, not a control: an IconButton here was a (disabled) button INSIDE the row's
+                              button — a nested control on the web build (rn-a11y-probe, 2026-11-08) */}
+                          {!!rowOpen && (
+                            <View style={styles.listChevron} aria-hidden importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+                              <MIcon name="chevron-right" size={20} color={theme.faint} />
+                            </View>
+                          )}
                         </View>
                       </TouchableRipple>
                     );
@@ -1219,7 +1225,7 @@ const styles = themed(() => StyleSheet.create({
   listHeadline: { color: theme.ink },
   listSecondary: { color: theme.muted },
   listChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  listChevron: { margin: 0 },
+  listChevron: { marginHorizontal: 8, justifyContent: 'center' },
   treeRow: { flexDirection: 'row', alignItems: 'center', minHeight: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   treeCaret: { width: 40, height: 40, margin: 0, alignItems: 'center', justifyContent: 'center' },
   treeLabel: { flex: 1, minHeight: 56, justifyContent: 'center', paddingRight: 16 },

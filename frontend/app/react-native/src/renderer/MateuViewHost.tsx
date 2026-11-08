@@ -6,7 +6,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
-import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useFitsContent, ScreenHasBack } from './ScrollContext';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
@@ -151,7 +151,9 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   return (
     <ViewControllerContext.Provider value={controller}>
       {serverSideNode ? (
-        body
+        // an island (an embedded crud, an overlay's content) is not the pushed screen: ITS «Back to
+        // list» goes back inside the island, which the screen's arrow does not — it keeps it (RN-26)
+        <ScreenHasBack.Provider value={false}>{body}</ScreenHasBack.Provider>
       ) : (
         // RN-19: on iOS the software keyboard is laid OVER the screen — without this the bottom
         // button bar (Save / Next) and the last fields of a form sat hidden behind it. Android
