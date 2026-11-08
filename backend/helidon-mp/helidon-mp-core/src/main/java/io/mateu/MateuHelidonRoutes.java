@@ -158,9 +158,15 @@ public class MateuHelidonRoutes {
                     int status = res.status().code();
                     if (status == 200 || status == 304) {
                       res.header("Cache-Control", cacheControl);
+                      if (io.mateu.core.infra.AssetCompression.compressible(path)) {
+                        res.header("Vary", "Accept-Encoding");
+                      }
                     }
                   });
             }
+          }
+          if (servesGzippedAsset(req, res, path)) {
+            return;
           }
           chain.proceed();
         });
@@ -448,6 +454,64 @@ public class MateuHelidonRoutes {
     return authenticationRequired
         && !principalResolvers
         && HelidonSeIdentity.principalOf(req) == null;
+  }
+
+  /**
+   * Helidon's static content handler does not compress (it needs an encoding module on the
+   * classpath, which would also compress the SSE streams), so a Mateu text asset asked for with
+   * gzip is answered here from the classpath {@code static/} folder ({@link
+   * io.mateu.core.infra.AssetCompression}); anything else goes on to the static handler. The cache
+   * policy and {@code Vary} come from the filter's {@code beforeSend}.
+   */
+  static boolean servesGzippedAsset(ServerRequest req, ServerResponse res, String path) {
+    String method = req.prologue().method().text();
+    boolean head = "HEAD".equals(method);
+    if (!head && !"GET".equals(method)) {
+      return false;
+    }
+    if (!io.mateu.core.infra.AssetCompression.enabled()
+        || !io.mateu.core.infra.AssetCompression.compressible(path)
+        || !io.mateu.core.infra.AssetCompression.acceptsGzip(header(req, "Accept-Encoding"))) {
+      return false;
+    }
+    var asset =
+        io.mateu.core.infra.ClasspathAssets.find(
+            Thread.currentThread().getContextClassLoader(), path);
+    if (asset == null || asset.contentLength() < io.mateu.core.infra.AssetCompression.MIN_BYTES) {
+      return false;
+    }
+    String etag = io.mateu.core.infra.AssetCompression.gzipEtag(asset.etag());
+    if (etag != null) {
+      res.header("ETag", etag);
+    }
+    String lastModified = asset.lastModifiedHeader();
+    if (lastModified != null) {
+      res.header("Last-Modified", lastModified);
+    }
+    if (asset.notModified(header(req, "If-None-Match"), header(req, "If-Modified-Since"), etag)) {
+      res.status(Status.NOT_MODIFIED_304).send();
+      return true;
+    }
+    byte[] body;
+    try {
+      body =
+          io.mateu.core.infra.AssetCompression.gzipped(
+              asset.url().toString(), asset.contentLength(), asset.lastModified(), asset::read);
+    } catch (RuntimeException e) {
+      return false; // let the static handler answer it as it is
+    }
+    String contentType = asset.contentType();
+    if (contentType != null) {
+      res.header("Content-Type", contentType);
+    }
+    res.header("Content-Encoding", "gzip");
+    if (head) {
+      res.header("Content-Length", String.valueOf(body.length));
+      res.send();
+    } else {
+      res.send(body);
+    }
+    return true;
   }
 
   private static boolean refused(ServerResponse res, Throwable t) {

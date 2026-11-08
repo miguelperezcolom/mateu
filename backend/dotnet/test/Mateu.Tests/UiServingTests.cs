@@ -121,6 +121,37 @@ public class UiServingTests
     }
 
     [Fact]
+    public async Task The_renderers_text_assets_are_gzipped_to_a_browser_that_accepts_it()
+    {
+        // Java's AssetCompression: the bundles travel gzipped (2.6 MB → 0.65 MB on a first load)
+        if (!RendererCheckedOut) return;
+        var (web, http) = await Host("", VaadinStatic);
+        await using var _ = web;
+        var raw = await File.ReadAllBytesAsync(Path.Combine(VaadinStatic, "assets", "mateu-vaadin.js"));
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/assets/mateu-vaadin.js");
+        request.Headers.TryAddWithoutValidation("Accept-Encoding", "gzip, br");
+        var gz = await http.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, gz.StatusCode);
+        Assert.Equal("gzip", Assert.Single(gz.Content.Headers.ContentEncoding));
+        Assert.Contains("Accept-Encoding", gz.Headers.Vary);
+        var body = await gz.Content.ReadAsByteArrayAsync();
+        Assert.True(body.Length < raw.Length / 2);
+        using (var inflate = new GZipStream(new MemoryStream(body), CompressionMode.Decompress))
+        using (var inflated = new MemoryStream())
+        {
+            inflate.CopyTo(inflated);
+            Assert.Equal(raw, inflated.ToArray());
+        }
+
+        var plain = await http.GetAsync("/assets/mateu-vaadin.js"); // no Accept-Encoding
+        Assert.Empty(plain.Content.Headers.ContentEncoding);
+        Assert.Equal(raw, await plain.Content.ReadAsByteArrayAsync());
+        Assert.False(UiPage.AcceptsGzip("gzip;q=0"));
+        Assert.True(UiPage.AcceptsGzip("*"));
+    }
+
+    [Fact]
     public async Task The_api_and_the_apps_own_endpoints_are_never_answered_with_the_page()
     {
         if (!RendererCheckedOut) return;

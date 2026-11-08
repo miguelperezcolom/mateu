@@ -1286,6 +1286,63 @@ public class AdapterParityITFoundation {
         .header("Cache-Control", not(equalTo("no-cache")));
   }
 
+  /**
+   * A text asset (≥ 1 KB) is answered gzipped to a browser that accepts it — the bytes decompress
+   * to exactly what a client without gzip gets — with {@code Vary: Accept-Encoding} on both, and a
+   * revalidation of the gzip variant with its own validator is a 304. Before 2026-11 every adapter
+   * served the renderer bundles uncompressed (2.6 MB instead of 0.65 MB on the first load).
+   */
+  public void servesTextAssetsGzipped(String largeAssetPath) throws Exception {
+    var client = HttpClient.newHttpClient();
+    var uri = URI.create("http://localhost:" + RestAssured.port + largeAssetPath);
+    var identity =
+        client.send(
+            java.net.http.HttpRequest.newBuilder(uri).GET().build(),
+            HttpResponse.BodyHandlers.ofByteArray());
+    if (identity.statusCode() != 200) {
+      throw new AssertionError(largeAssetPath + " answered " + identity.statusCode());
+    }
+    if (identity.headers().firstValue("Content-Encoding").isPresent()) {
+      throw new AssertionError("compressed for a client that did not accept it");
+    }
+    assertThat(identity.headers().firstValue("Vary").orElse(""), containsString("Accept-Encoding"));
+    var gzipped =
+        client.send(
+            java.net.http.HttpRequest.newBuilder(uri)
+                .header("Accept-Encoding", "gzip, deflate, br")
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofByteArray());
+    assertThat(gzipped.statusCode(), equalTo(200));
+    assertThat(gzipped.headers().firstValue("Content-Encoding").orElse(""), equalTo("gzip"));
+    assertThat(gzipped.headers().firstValue("Vary").orElse(""), containsString("Accept-Encoding"));
+    assertThat(
+        gzipped.headers().firstValue("Content-Type").orElse(""), containsString("javascript"));
+    byte[] inflated;
+    try (var in =
+        new java.util.zip.GZIPInputStream(new java.io.ByteArrayInputStream(gzipped.body()))) {
+      inflated = in.readAllBytes();
+    }
+    if (!java.util.Arrays.equals(inflated, identity.body())) {
+      throw new AssertionError("the gzip bytes do not inflate to the asset");
+    }
+    if (gzipped.body().length >= identity.body().length) {
+      throw new AssertionError("gzip did not make the asset smaller");
+    }
+    var etag = gzipped.headers().firstValue("ETag");
+    if (etag.isPresent()) {
+      var revalidation =
+          client.send(
+              java.net.http.HttpRequest.newBuilder(uri)
+                  .header("Accept-Encoding", "gzip")
+                  .header("If-None-Match", etag.get())
+                  .GET()
+                  .build(),
+              HttpResponse.BodyHandlers.ofByteArray());
+      assertThat(revalidation.statusCode(), equalTo(304));
+    }
+  }
+
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */
   public void revalidatesFixedNameAssets(String assetPath) {
     given()

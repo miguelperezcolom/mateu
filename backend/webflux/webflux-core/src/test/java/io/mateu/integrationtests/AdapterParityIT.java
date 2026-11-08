@@ -162,6 +162,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void servesTextAssetsGzipped() throws Exception {
+      contract.servesTextAssetsGzipped("/assets/large.js");
+    }
+
+    @Test
     void answersARevalidationOfAnUnchangedAssetWith304() {
       contract.answersARevalidationOfAnUnchangedAssetWith304("/assets/fixed.js");
     }

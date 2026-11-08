@@ -776,7 +776,20 @@ class MateuUiMiddleware:
         if not state["swallow"]:
             return
         content_type, body, cache_control = answer
+        extra = []
+        path = scope["path"]
+        # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
+        # Vaadin first load); Java's AssetCompression
+        if path != "/" and ui_page.is_asset(path) and ui_page.compressible(path):
+            extra.append((b"vary", b"Accept-Encoding"))
+            accept_encoding = next(
+                (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept-encoding"), None
+            )
+            if len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(accept_encoding):
+                body = ui_page.gzipped(path, body)
+                extra.append((b"content-encoding", b"gzip"))
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
+        headers.extend(extra)
         if cache_control:
             headers.append((b"cache-control", cache_control.encode("latin-1")))
         await send({"type": "http.response.start", "status": self.status, "headers": headers})

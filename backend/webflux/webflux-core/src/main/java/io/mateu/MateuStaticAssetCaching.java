@@ -89,7 +89,11 @@ public class MateuStaticAssetCaching implements WebFluxConfigurer {
         .addResourceLocations(locations)
         .setCacheControl(cacheControl)
         .setUseLastModified(true)
-        .setEtagGenerator(MateuStaticAssetCaching::etag);
+        .setEtagGenerator(MateuStaticAssetCaching::etag)
+        // gzip for the text assets (io.mateu.core.infra.AssetCompression); the chain still ends in
+        // Spring's PathResourceResolver, which finds the file
+        .resourceChain(false)
+        .addResolver(new MateuGzipAssetResolver());
   }
 
   static String etag(Resource resource) {
