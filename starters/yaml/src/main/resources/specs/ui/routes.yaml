@@ -1,7 +1,7 @@
 # The route registry of the mount. Each entry binds a route (relative to the mount; "" is its root)
 # to a `layout:` — a definition file next to this one. See
 # https://mateu.io/concepts/routes-and-mounts/
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.51/backend/shared/uidl/routes-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.52/backend/shared/uidl/routes-schema.json
 type: Routes
 routes:
   - route: ""
