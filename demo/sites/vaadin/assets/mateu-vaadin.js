@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/marked.esm.js","assets/vendor.js","assets/mateu-chat.js","assets/vendor-lit.js","assets/neutralChrome.js","assets/mateu-workflow.js","assets/mateu-form-editor.js","assets/mateu-planning-board.js","assets/mateu-gantt.js","assets/mateu-matrix-grid.js","assets/mateu-signature-pad.js","assets/mateu-camera-capture.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-agent-connect-dialog.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-editor.js","assets/vcf-date-range-picker.js","assets/vendor-vaadin.js"])))=>i.map(i=>d[i]);
-/* mateu sources f571b5704987532c */
+/* mateu sources 25a640eb7c7720a1 */
 import{t as e}from"./rolldown-runtime.js";import{B as t,C as n,O as r,R as i,S as a,T as o,V as s,_ as c,b as l,g as u,h as d,m as f,v as p,y as m}from"./vendor-vaadin.js";import{C as h,E as g,S as _,T as v,_ as y,a as b,f as ee,g as te,h as ne,i as x,j as re,k as S,l as ie,n as ae,o as C,p as w,r as oe,s as se,t as ce,v as le,x as T}from"./vendor-lit.js";import{a as ue,i as E,n as de,o as fe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),t.credentials=e.crossOrigin===`use-credentials`?`include`:e.crossOrigin===`anonymous`?`omit`:`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var pe=window.Vaadin=window.Vaadin||{},me=pe.suppressPostFinalizeStylesWarning;pe.suppressPostFinalizeStylesWarning=!0;try{i(`vaadin-card`,S`
         :host(.mateu-section) {
           --vaadin-card-border-width: 0 !important;
@@ -9793,18 +9793,18 @@ ${t}
                 </vaadin-radio-button>
             `)}
 </vaadin-radio-group>
-        `}return v`
+        `}let r=e.field.optionsSource?ID(e):e.field.options;return v`
         <vaadin-radio-group
                 id="${e.field.fieldId}"
                 label="${n}"
-                @value-changed="${VD(e,e.field.options)}"
+                @value-changed="${VD(e,r)}"
                 .value="${zD(t)}"
                 .helperText="${e.helperText()}"
                 ?autofocus="${e.field.wantsFocus}"
                 required="${e.field.required||_}"
                 data-colspan="${e.field.colspan}"
         >
-            ${e.field.options?.map(e=>v`
+            ${r?.map(e=>v`
                 <vaadin-radio-button value="${e.value}" label="${e.label}">
                     ${e.description||e.image||e.icon?v`
                         <label slot="label">
