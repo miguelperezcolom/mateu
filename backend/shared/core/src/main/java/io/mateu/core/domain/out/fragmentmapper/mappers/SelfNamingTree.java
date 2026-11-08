@@ -65,7 +65,7 @@ final class SelfNamingTree {
     if (!node.getClass().isRecord()) {
       return out;
     }
-    for (var rc : node.getClass().getRecordComponents()) {
+    for (var rc : io.mateu.core.domain.Records.components(node.getClass())) {
       Object value;
       try {
         value = rc.getAccessor().invoke(node);

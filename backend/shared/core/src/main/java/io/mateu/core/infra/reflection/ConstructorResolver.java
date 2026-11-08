@@ -84,7 +84,7 @@ final class ConstructorResolver {
   }
 
   private static Constructor<?> canonicalRecordConstructor(Class<?> type) {
-    RecordComponent[] components = type.getRecordComponents();
+    RecordComponent[] components = io.mateu.core.domain.Records.components(type);
     Class<?>[] paramTypes = new Class<?>[components.length];
     for (int i = 0; i < components.length; i++) {
       paramTypes[i] = components[i].getType();

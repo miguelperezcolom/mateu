@@ -102,7 +102,7 @@ final class PageMetadataExtractor {
     if (!text.startsWith(prefix) || !text.endsWith("]")) {
       return false;
     }
-    var components = record.getClass().getRecordComponents();
+    var components = io.mateu.core.domain.Records.components(record.getClass());
     if (components == null || components.length == 0) {
       return text.equals(prefix + "]");
     }

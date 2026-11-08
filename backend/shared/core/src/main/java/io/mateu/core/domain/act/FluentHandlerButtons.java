@@ -109,7 +109,7 @@ public final class FluentHandlerButtons {
     if (!type.isRecord() || !type.getPackageName().startsWith("io.mateu.uidl")) {
       return false;
     }
-    for (RecordComponent component : type.getRecordComponents()) {
+    for (RecordComponent component : io.mateu.core.domain.Records.components(type)) {
       Object value;
       try {
         value = component.getAccessor().invoke(node);
