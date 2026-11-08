@@ -18,7 +18,7 @@ name: Desktop base (prototype)
 on:
   push:
     branches: [desktop/community-from-source]
-    paths: [.github/workflows/desktop-base.yml, frontend/app/intellij-plugin/build.gradle.kts]
+    paths: [.github/workflows/desktop-base.yml, .github/workflows/desktop-base-package.yml, frontend/app/intellij-plugin/build.gradle.kts]
   workflow_dispatch:
     inputs:
       ide_tag:
@@ -98,11 +98,21 @@ jobs:
           start=$(date +%s)
           cd ic && docker build . --target intellij_idea --tag intellij_idea
           echo "docker image: $(( $(date +%s) - start )) s"
+      # JetBrains tags every release twice (idea/2026.3 = idea/263.7307.200); without -Dbuild.number
+      # the build calls itself 263.7307.SNAPSHOT. Arch Linux's intellij-idea-oss passes it the same way.
+      - name: Build number of the tag
+        run: |
+          sha=$(git -C ic rev-parse HEAD)
+          bn=$(git ls-remote --tags https://github.com/JetBrains/intellij-community.git 'refs/tags/idea/2*' \
+            | awk -v s="$sha" '$1 == s { sub("refs/tags/idea/", "", $2); print $2 }' | grep -E '^[0-9]{3}\.[0-9]+\.[0-9]+$' | head -1)
+          echo "build number: ${bn:-none (SNAPSHOT)}"
+          echo "BUILD_NUMBER=$bn" >> "$GITHUB_ENV"
       - name: Build IntelliJ IDEA Open Source (all OSes, all archs)
         run: |
           start=$(date +%s)
-          cd ic && docker run --rm --user "$(id -u)" --volume "${PWD}:/community" intellij_idea \
-            -Dintellij.build.skip.build.steps=windows_exe_installer
+          props=(-Dintellij.build.skip.build.steps=windows_exe_installer)
+          [ -n "$BUILD_NUMBER" ] && props+=("-Dbuild.number=$BUILD_NUMBER")
+          cd ic && docker run --rm --user "$(id -u)" --volume "${PWD}:/community" intellij_idea "${props[@]}"
           secs=$(( $(date +%s) - start ))
           echo "installers.cmd: $secs s" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: What it produced
@@ -142,252 +152,20 @@ jobs:
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with: { name: base-from-source-macos-aarch64, path: base/macos-aarch64.sit, retention-days: 7, compression-level: 0 }
 
-  # ── packaging: the existing buildInstaller, handed the chosen base ──
-  package-macos:
-    needs: [from-source]
-    if: always() && (needs.from-source.result == 'success' || needs.from-source.result == 'skipped')
-    runs-on: macos-latest
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [aarch64, intel]
-        base: [oss-release, from-source]
-    steps:
-      - name: Is this base asked for?
-        id: want
-        run: |
-          if [ "$BASE" = both ] || [ "$BASE" = "${{ matrix.base }}" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; else echo "go=false" >> "$GITHUB_OUTPUT"; fi
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.want.outputs.go == 'true'
-        with:
-          persist-credentials: false
-      - name: Fetch the base (oss-release)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'oss-release'
-        env:
-          ARCH: ${{ matrix.arch }}
-        run: |
-          v="${IDE_TAG#idea/}"
-          suffix=$([ "$ARCH" = aarch64 ] && echo "-aarch64.dmg" || echo ".dmg")
-          name=$(gh release view "$IDE_TAG" -R JetBrains/intellij-community --json assets --jq '.assets[].name' | grep -E -- "-$v$suffix\$" | head -1)
-          echo "asset: $name"
-          mkdir -p "$RUNNER_TEMP/base" && cd "$RUNNER_TEMP/base"
-          start=$(date +%s); gh release download "$IDE_TAG" -R JetBrains/intellij-community -p "$name"; echo "download: $(( $(date +%s) - start )) s"
-          want=$(gh api "repos/JetBrains/intellij-community/releases/tags/$IDE_TAG" --jq ".assets[] | select(.name == \"$name\") | .digest")
-          got="sha256:$(shasum -a 256 "$name" | cut -d' ' -f1)"
-          echo "digest $got (release says $want)"; [ "$got" = "$want" ]
-          echo "IDE_ARCHIVE=$RUNNER_TEMP/base/$name" >> "$GITHUB_ENV"
-          echo "IDE_VERSION=$v" >> "$GITHUB_ENV"
-      - name: Fetch the base (from-source)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'from-source'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: base-from-source-macos-${{ matrix.arch }}
-          path: ${{ runner.temp }}/base
-          run-id: ${{ env.REUSE_RUN_ID || github.run_id }}
-          github-token: ${{ github.token }}
-      - name: Point at it (from-source)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'from-source'
-        run: |
-          echo "IDE_ARCHIVE=$RUNNER_TEMP/base/macos-${{ matrix.arch }}.sit" >> "$GITHUB_ENV"
-          echo "IDE_VERSION=${IDE_TAG#idea/}-oss-src" >> "$GITHUB_ENV"
-      - name: How JetBrains signed it (read-only)
-        if: steps.want.outputs.go == 'true'
-        run: |
-          mkdir -p "$RUNNER_TEMP/inspect"
-          case "$IDE_ARCHIVE" in
-            *.dmg) hdiutil attach "$IDE_ARCHIVE" -nobrowse -readonly -mountpoint "$RUNNER_TEMP/inspect/mnt" > /dev/null
-                   app=$(ls -d "$RUNNER_TEMP"/inspect/mnt/*.app) ;;
-            *)     ditto -x -k "$IDE_ARCHIVE" "$RUNNER_TEMP/inspect/x"; app=$(ls -d "$RUNNER_TEMP"/inspect/x/*.app) ;;
-          esac
-          echo "app: $app"
-          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' -c 'Print :CFBundleExecutable' -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist"
-          cat "$app/Contents/Resources/product-info.json" | head -20 || true
-          codesign -dv --verbose=2 "$app" 2>&1 | grep -E 'Authority|TeamIdentifier|Signature|flags' || true
-          spctl -a -vv -t exec "$app" 2>&1 || true
-          xcrun stapler validate "$app" 2>&1 || true
-          [ -d "$RUNNER_TEMP/inspect/mnt" ] && hdiutil detach "$RUNNER_TEMP/inspect/mnt" -quiet || true
-          rm -rf "$RUNNER_TEMP/inspect/x"
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          java-version: 21
-          distribution: zulu
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          node-version: 24
-      - name: Install monorepo dependencies
-        if: steps.want.outputs.go == 'true'
-        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
-      - name: Package (buildInstaller on CI)
-        if: steps.want.outputs.go == 'true'
-        env:
-          ARCH: ${{ matrix.arch }}
-        run: |
-          start=$(date +%s)
-          scripts/intellij-gradle.sh buildInstaller -Pinstaller.platform=macos "-Pinstaller.arch=$ARCH" \
-            "-Pinstaller.ideArchive=$IDE_ARCHIVE" "-Pinstaller.ideVersion=$IDE_VERSION" --console=plain
-          echo "package macos-$ARCH (${{ matrix.base }}): $(( $(date +%s) - start )) s" | tee -a "$GITHUB_STEP_SUMMARY"
-          ls -la frontend/app/intellij-plugin/build/installer | tee -a "$GITHUB_STEP_SUMMARY"
-      # The runner is Apple silicon: only the aarch64 app can run here.
-      - name: Smoke test — launch the app, the Mateu plugin must load
-        if: steps.want.outputs.go == 'true' && matrix.arch == 'aarch64'
-        run: |
-          app=frontend/app/intellij-plugin/build/installer/Mateu.app
-          exe=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")
-          "$app/Contents/MacOS/$exe" > "$RUNNER_TEMP/app.out" 2>&1 &
-          pid=$!
-          log="$HOME/Library/Logs/Mateu/idea.log"
-          for i in $(seq 1 36); do sleep 5; grep -q 'Loaded custom plugins' "$log" 2>/dev/null && break; done
-          sleep 20
-          kill $pid 2>/dev/null || true; pkill -f 'Mateu.app' || true
-          echo "--- idea.log (selected)"; grep -E 'IDE: |Loaded custom plugins|Loaded bundled plugins|io\.mateu|ERROR' "$log" | head -60 || true
-          grep 'Loaded custom plugins' "$log" | grep -q 'Mateu' && echo "✅ macOS: Mateu plugin loaded" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          name: mateu-desktop-${{ matrix.base }}-macos-${{ matrix.arch }}
-          path: frontend/app/intellij-plugin/build/installer/*.dmg
-          retention-days: 3
-          compression-level: 0
+  # ── packaging: the existing buildInstaller, handed each base (desktop-base-package.yml) ──
+  # The OSS release base does not wait for the source build.
+  package-oss-release:
+    if: (inputs.base || 'both') != 'from-source'
+    uses: ./.github/workflows/desktop-base-package.yml
+    with:
+      base: oss-release
+      ide_tag: ${{ inputs.ide_tag || 'idea/2026.3' }}
 
-  package-linux-windows:
+  package-from-source:
     needs: [from-source]
-    if: always() && (needs.from-source.result == 'success' || needs.from-source.result == 'skipped')
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [linux, windows]
-        base: [oss-release, from-source]
-    steps:
-      - name: Is this base asked for?
-        id: want
-        run: |
-          if [ "$BASE" = both ] || [ "$BASE" = "${{ matrix.base }}" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; else echo "go=false" >> "$GITHUB_OUTPUT"; fi
-      - name: Free disk space
-        if: steps.want.outputs.go == 'true'
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
-            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
-          df -h /
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.want.outputs.go == 'true'
-        with:
-          persist-credentials: false
-      - name: Fetch the base (oss-release)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'oss-release'
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          v="${IDE_TAG#idea/}"
-          suffix=$([ "$PLATFORM" = linux ] && echo ".tar.gz" || echo ".win.zip")
-          name=$(gh release view "$IDE_TAG" -R JetBrains/intellij-community --json assets --jq '.assets[].name' | grep -E -- "-$v$suffix\$" | head -1)
-          echo "asset: $name"
-          mkdir -p "$RUNNER_TEMP/base" && cd "$RUNNER_TEMP/base"
-          start=$(date +%s); gh release download "$IDE_TAG" -R JetBrains/intellij-community -p "$name"; echo "download: $(( $(date +%s) - start )) s"
-          want=$(gh api "repos/JetBrains/intellij-community/releases/tags/$IDE_TAG" --jq ".assets[] | select(.name == \"$name\") | .digest")
-          got="sha256:$(sha256sum "$name" | cut -d' ' -f1)"
-          echo "digest $got (release says $want)"; [ "$got" = "$want" ]
-          echo "IDE_ARCHIVE=$RUNNER_TEMP/base/$name" >> "$GITHUB_ENV"
-          echo "IDE_VERSION=$v" >> "$GITHUB_ENV"
-      - name: Fetch the base (from-source)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'from-source'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: base-from-source-${{ matrix.platform }}
-          path: ${{ runner.temp }}/base
-          run-id: ${{ env.REUSE_RUN_ID || github.run_id }}
-          github-token: ${{ github.token }}
-      - name: Point at it (from-source)
-        if: steps.want.outputs.go == 'true' && matrix.base == 'from-source'
-        run: |
-          f=$([ "${{ matrix.platform }}" = linux ] && echo linux.tar.gz || echo windows.win.zip)
-          echo "IDE_ARCHIVE=$RUNNER_TEMP/base/$f" >> "$GITHUB_ENV"
-          echo "IDE_VERSION=${IDE_TAG#idea/}-oss-src" >> "$GITHUB_ENV"
-      - name: Windows binaries — Authenticode (read-only)
-        if: steps.want.outputs.go == 'true' && matrix.platform == 'windows'
-        run: |
-          sudo apt-get update -q && sudo apt-get install -y -q osslsigncode nsis
-          mkdir -p "$RUNNER_TEMP/inspect" && cd "$RUNNER_TEMP/inspect"
-          unzip -q -o "$IDE_ARCHIVE" '*bin/idea64.exe' || true
-          exe=$(find . -name idea64.exe | head -1); echo "exe: $exe"
-          osslsigncode verify -in "$exe" 2>&1 | grep -E 'Subject:|Signature verification|No signature|Message digest' | head -8 || true
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          java-version: 21
-          distribution: zulu
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          node-version: 24
-      - name: Install monorepo dependencies
-        if: steps.want.outputs.go == 'true'
-        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
-      - name: Package (buildInstaller on CI)
-        if: steps.want.outputs.go == 'true'
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          start=$(date +%s)
-          scripts/intellij-gradle.sh buildInstaller "-Pinstaller.platform=$PLATFORM" \
-            "-Pinstaller.ideArchive=$IDE_ARCHIVE" "-Pinstaller.ideVersion=$IDE_VERSION" --console=plain
-          echo "package $PLATFORM (${{ matrix.base }}): $(( $(date +%s) - start )) s" | tee -a "$GITHUB_STEP_SUMMARY"
-          ls -la frontend/app/intellij-plugin/build/installer | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Smoke test — launch the app under Xvfb, the Mateu plugin must load
-        if: steps.want.outputs.go == 'true' && matrix.platform == 'linux'
-        run: |
-          sudo apt-get install -y -q xvfb > /dev/null
-          mkdir -p "$RUNNER_TEMP/smoke" && tar -xzf frontend/app/intellij-plugin/build/installer/*-linux.tar.gz -C "$RUNNER_TEMP/smoke"
-          root=$(ls -d "$RUNNER_TEMP"/smoke/*/)
-          grep -h '"buildNumber"\|"version"' "$root/product-info.json" | head -3
-          xvfb-run -a sh "$root/mateu.sh" > "$RUNNER_TEMP/app.out" 2>&1 &
-          log="$root/data/log/idea.log"
-          for i in $(seq 1 36); do sleep 5; grep -q 'Loaded custom plugins' "$log" 2>/dev/null && break; done
-          sleep 20
-          pkill -f "$root" || true
-          echo "--- idea.log (selected)"; grep -E 'IDE: |Loaded custom plugins|io\.mateu|ERROR' "$log" | head -60 || true
-          grep 'Loaded custom plugins' "$log" | grep -q 'Mateu' && echo "✅ linux: Mateu plugin loaded" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: steps.want.outputs.go == 'true'
-        with:
-          name: mateu-desktop-${{ matrix.base }}-${{ matrix.platform }}
-          path: |
-            frontend/app/intellij-plugin/build/installer/*-linux.tar.gz
-            frontend/app/intellij-plugin/build/installer/*-windows.zip
-          retention-days: 3
-          compression-level: 0
-
-  smoke-windows:
-    needs: [package-linux-windows]
-    if: always()
-    runs-on: windows-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        base: [oss-release, from-source]
-    steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        id: dl
-        continue-on-error: true
-        with:
-          name: mateu-desktop-${{ matrix.base }}-windows
-          path: ${{ runner.temp }}\pkg
-      - name: Launch the app, the Mateu plugin must load
-        if: steps.dl.outcome == 'success'
-        shell: pwsh
-        run: |
-          $zip = Get-ChildItem "$env:RUNNER_TEMP\pkg\*-windows.zip" | Select-Object -First 1
-          Expand-Archive $zip.FullName -DestinationPath "$env:RUNNER_TEMP\app"
-          $root = (Get-ChildItem "$env:RUNNER_TEMP\app" -Directory | Select-Object -First 1).FullName
-          $p = Start-Process -FilePath "$root\mateu.bat" -PassThru -WindowStyle Hidden
-          $log = "$root\data\log\idea.log"
-          for ($i = 0; $i -lt 36; $i++) { Start-Sleep 5; if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'Loaded custom plugins' -Quiet)) { break } }
-          Start-Sleep 20
-          Get-Process | Where-Object { $_.Path -like "$root*" } | Stop-Process -Force -ErrorAction SilentlyContinue
-          Select-String -Path $log -Pattern 'IDE: |Loaded custom plugins|io\.mateu|ERROR' | Select-Object -First 60 | ForEach-Object { $_.Line }
-          if (Select-String -Path $log -Pattern 'Loaded custom plugins.*Mateu' -Quiet) { "✅ windows (${{ matrix.base }}): Mateu plugin loaded" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY } else { exit 1 }
+    if: always() && (inputs.base || 'both') != 'oss-release' && (needs.from-source.result == 'success' || needs.from-source.result == 'skipped')
+    uses: ./.github/workflows/desktop-base-package.yml
+    with:
+      base: from-source
+      ide_tag: ${{ inputs.ide_tag || 'idea/2026.3' }}
+      base_run_id: ${{ inputs.reuse_run_id || '' }}
