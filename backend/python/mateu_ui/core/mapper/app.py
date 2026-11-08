@@ -196,9 +196,10 @@ class AppMapperMixin(MixinBase):
             mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
             # @app(layout, accent_color, ask_label, ask_icon) (mirror AppDto's members)
             **_app_presentation(cls),
-            # @app(back_link=PARENT): the "← Parent" link replaces the trail; the link itself (the
-            # parent screen's route and title) is resolved by the sync handler (with_back_link)
-            no_breadcrumbs=back_link_parent(cls),
+            # @no_breadcrumbs on the app class (no trail on any of its pages), or @app(back_link=
+            # PARENT): the "← Parent" link replaces the trail; the link itself (the parent screen's
+            # route and title) is resolved by the sync handler (with_back_link) — AppMapper's rule
+            no_breadcrumbs=bool(getattr(cls, "__mateu_no_breadcrumbs__", False)) or back_link_parent(cls),
             # The UI language: what the translator says, else the request's Accept-Language — the
             # chrome follows the browser, as on Java (DefaultTranslator.locale; mirrors AppDto.locale).
             locale=self._locale() or _accept_language(),

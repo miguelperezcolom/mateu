@@ -130,6 +130,7 @@ from .suppliers import (  # noqa: F401
     PeerNav,
     PeerNavigationSupplier,
     RuleSupplier,
+    BreadcrumbsSupplier,
 )
 from .placement import (  # noqa: F401
     Aside,
@@ -158,6 +159,7 @@ from .class_decorators import (  # noqa: F401
     auto_page,
     compact,
     auto_save,
+    breadcrumbs,
     confirm_on_navigation_if_dirty,
     edit_in_drawer,
     emits,
@@ -165,6 +167,7 @@ from .class_decorators import (  # noqa: F401
     form_layout,
     inline_editing,
     mobile_app,
+    no_breadcrumbs,
     overline,
     page_template,
     page_width,
@@ -438,7 +441,7 @@ __all__ = [
     "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
     "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
     # API freeze (3.0-alpha.410): names that were importable but missing from __all__
-    "app_context", "edit_in_drawer", "overline", "title_placeholder", "auto_page", "action_options",
+    "app_context", "edit_in_drawer", "overline", "title_placeholder", "no_breadcrumbs", "breadcrumbs", "BreadcrumbsSupplier", "auto_page", "action_options",
     "PrimaryColumn", "Aside", "LinkTo", "NavLink", "CollectionDetail", "GeneralOverview",
     "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
     # a crud record's own detail-page content (Java's DetailContentSupplier)

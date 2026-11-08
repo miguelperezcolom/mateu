@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from ..page_breadcrumbs import with_back_link_breadcrumbs
+
 from ._common import (  # noqa: F401 - the public import path of every helper
     Action,
     Aggregate,
@@ -390,6 +392,8 @@ class SyncHandler(
         pending, token = mfe.begin_pending()
         try:
             increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
+            # a page under a back-link app (its routes.yaml chain) carries no trail of its own
+            increment = with_back_link_breadcrumbs(increment, self.routes, self.registry, rq.route)
         finally:
             mfe.end_pending(token)
         request = current_request()

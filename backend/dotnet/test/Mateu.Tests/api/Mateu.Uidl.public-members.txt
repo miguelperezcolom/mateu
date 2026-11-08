@@ -229,6 +229,9 @@ Mateu.Uidl.Bpmn property System.String Xml { get;init; }
 Mateu.Uidl.Breadcrumb ctor(System.String, System.String)
 Mateu.Uidl.Breadcrumb property System.String Link { get;init; }
 Mateu.Uidl.Breadcrumb property System.String Text { get;init; }
+Mateu.Uidl.BreadcrumbAttribute ctor(System.String, System.String)
+Mateu.Uidl.BreadcrumbAttribute property System.String Label { get; }
+Mateu.Uidl.BreadcrumbAttribute property System.String Url { get; }
 Mateu.Uidl.Breadcrumbs ctor(System.String)
 Mateu.Uidl.Breadcrumbs property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Breadcrumb> Items { get;init; }
 Mateu.Uidl.Breadcrumbs property System.String CurrentItemText { get;init; }
@@ -1057,6 +1060,7 @@ Mateu.Uidl.HorizontalLayout property System.Boolean Spacing { get;init; }
 Mateu.Uidl.HorizontalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
 Mateu.Uidl.IActionCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction> ActionCatalog()
 Mateu.Uidl.IAppActionsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction> AppActions()
+Mateu.Uidl.IBreadcrumbsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Breadcrumb> Breadcrumbs()
 Mateu.Uidl.ICalendarPage abstract method System.Object CreateCalendarEvent()
 Mateu.Uidl.ICalendarPage abstract method System.Object OpenCalendarDay(System.String)
 Mateu.Uidl.ICalendarPage abstract method System.Object OpenCalendarEvent(System.String)

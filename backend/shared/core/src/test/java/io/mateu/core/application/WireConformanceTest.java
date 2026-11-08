@@ -714,6 +714,63 @@ class WireConformanceTest {
     @io.mateu.uidl.annotations.Menu public String overview = "/a";
   }
 
+  /** A page that turns the automatic breadcrumb trail off (PageDto.noBreadcrumbs). */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-no-breadcrumbs")
+  @Title("Welcome")
+  @io.mateu.uidl.annotations.NoBreadcrumbs
+  public static class PageNoBreadcrumbs {
+    public String name;
+  }
+
+  /** A page that declares its own breadcrumb trail (PageDto.breadcrumbs). */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-breadcrumbs")
+  @Title("Order 7")
+  @io.mateu.uidl.annotations.Breadcrumbs({
+    @io.mateu.uidl.annotations.Breadcrumb(label = "Home", url = "/"),
+    @io.mateu.uidl.annotations.Breadcrumb(label = "Orders", url = "/orders")
+  })
+  public static class PageBreadcrumbs {
+    public String name;
+  }
+
+  /**
+   * A record master offering "← Parent" ({@code @App(backLink = PARENT)}), bound in code to {@code
+   * /conformance/bl-chain/:customerId} with a child {@code orders} route: the pages under it carry
+   * no breadcrumb trail of their own.
+   */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(backLink = io.mateu.uidl.annotations.BackLink.PARENT)
+  public static class BackLinkChainMaster {
+    public String customerId;
+  }
+
+  /**
+   * The master's {@code orders} tab: its page says noBreadcrumbs (the master's link replaces it).
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkChainTab {
+    public String note = "orders";
+  }
+
+  /** The routes.yaml-equivalent chain of the back-link cases, authored in code. */
+  public static class ConformanceRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
+    @Override
+    public List<io.mateu.uidl.data.RouteEntry> routes() {
+      return List.of(
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/bl-chain/:customerId",
+              null,
+              BackLinkChainMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", BackLinkChainTab.class.getName()))));
+    }
+  }
+
   /** The screen above the back-link app: its title labels the app's "← Parent" link. */
   @SuppressWarnings("unused")
   @UI("/conformance")
@@ -1802,7 +1859,8 @@ class WireConformanceTest {
           java.util.Map.entry("wizard-step-2", SignUpWizard.class),
           java.util.Map.entry("crud-new", ProductsCrud.class),
           java.util.Map.entry("crud-edit", ProductsCrud.class),
-          java.util.Map.entry("crud-view", ProductsCrud.class));
+          java.util.Map.entry("crud-view", ProductsCrud.class),
+          java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class));
 
   private static final List<String> CASES =
       List.of(
@@ -1879,6 +1937,9 @@ class WireConformanceTest {
           "grid-field-detail",
           "fluent-crudl-options",
           "hero-search-filters",
+          "page-no-breadcrumbs",
+          "page-breadcrumbs",
+          "page-back-link-chain",
           "definition-actions",
           "definition-triggers",
           "definition-proxied-listing");
@@ -1896,7 +1957,8 @@ class WireConformanceTest {
       }
     }
     mateu =
-        TestMateu.withUis(
+        TestMateu.withUisAndBeans(
+            List.of(new ConformanceRoutes()),
             SimpleForm.class,
             PageHeader.class,
             Tabs.class,
@@ -1961,7 +2023,9 @@ class WireConformanceTest {
             GridFieldDetail.class,
             FluentCrudlOptionsPage.class,
             SeatsCrud.class,
-            HeroBooks.class);
+            HeroBooks.class,
+            PageNoBreadcrumbs.class,
+            PageBreadcrumbs.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

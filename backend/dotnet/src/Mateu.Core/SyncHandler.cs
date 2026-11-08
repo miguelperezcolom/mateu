@@ -106,7 +106,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     }
 
     private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>
-        StampFragmentCache(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), LoadActionNormalised(rq));
+        StampFragmentCache(WithBackLinkBreadcrumbs(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), rq), LoadActionNormalised(rq));
 
     private UIIncrementDto HandleCore(RunActionRqDto rq, string? requestBaseUrl)
     {

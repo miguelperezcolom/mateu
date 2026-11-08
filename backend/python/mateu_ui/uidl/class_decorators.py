@@ -302,6 +302,29 @@ def title_placeholder(value: str) -> Callable[[type], type]:
     return deco
 
 
+def no_breadcrumbs(cls: type) -> type:
+    """Turns the automatic breadcrumb trail off: on the ``@ui`` app class, for every page of the app;
+    on a page class, for that page (a home, a welcome, a wizard). A trail the page declares
+    (``@breadcrumbs`` / ``BreadcrumbsSupplier``) still shows. Mirrors Java's ``@NoBreadcrumbs``."""
+    setattr(cls, "__mateu_no_breadcrumbs__", True)
+    return cls
+
+
+def breadcrumbs(*crumbs) -> Callable[[type], type]:
+    """The breadcrumb trail a page DECLARES above its content, in order: each crumb a
+    ``Breadcrumb(text, link)`` or a ``(label, url)`` pair. A ``BreadcrumbsSupplier`` on the page wins
+    over it. Mirrors Java's ``@Breadcrumbs({@Breadcrumb(label, url)})``."""
+    from .components import Breadcrumb
+
+    trail = tuple(c if isinstance(c, Breadcrumb) else Breadcrumb(text=c[0], link=c[1]) for c in crumbs)
+
+    def deco(cls: type) -> type:
+        setattr(cls, "__mateu_breadcrumbs__", trail)
+        return cls
+
+    return deco
+
+
 class BackLink(str, Enum):
     """How an app offers the way back up — the Python mirror of Java's ``BackLink`` enum:
     ``BREADCRUMBS`` (the default, the automatic trail) or ``PARENT`` — ONE "← Parent" link to the

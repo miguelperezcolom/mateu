@@ -304,6 +304,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             Overline = OptT(type.Find<OverlineAttribute>()?.Value),
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
             TitleIsText = TitledByData(type, instance) ? true : null,
+            Breadcrumbs = BreadcrumbsOf(type, instance),
+            NoBreadcrumbs = type.Find<NoBreadcrumbsAttribute>() is not null ? true : null,
         };
         // The tree-supplier's children ARE the supplied tree (Page-less); a reflected form wraps its
         // content in a Page. The container style comes from the supplier for a tree view (Java's
@@ -486,9 +488,12 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         var type = view.GetType();
         var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
         // A wizard opens on its first step; any other routed view maps as its own page.
-        return typeof(Wizard).IsAssignableFrom(type)
-            ? MapWizard(type, view, route, 1)
-            : MapView(type, view, route);
+        if (typeof(Wizard).IsAssignableFrom(type)) return MapWizard(type, view, route, 1);
+        var mapped = MapView(type, view, route);
+        // an island is a block of the host page, not a page: the automatic breadcrumb trail would
+        // trace the HOST's menu and address above it (a trail the view DECLARES is still drawn) —
+        // Java's EmbeddedView branch; a composed (tree-supplier) view gets no page of its own there
+        return view is IComponentTreeSupplier ? mapped : (ServerSideComponentDto)PageBreadcrumbs.Off(mapped, deep: false);
     }
 
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>

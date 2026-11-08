@@ -446,9 +446,28 @@ public sealed class FavIconAttribute(string value) : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class DrawerClosedAttribute : Attribute;
 
-/// <summary>The pages inside this app show no breadcrumb trail. (C# analogue of Java's @NoBreadcrumbs.)</summary>
+/// <summary>Turns the automatic breadcrumb trail off: on the [UI] app class, for every page of the
+/// app; on a page class, for that page (a home, a welcome, a wizard). A trail the page declares
+/// ([Breadcrumb] / IBreadcrumbsSupplier) still shows. (C# analogue of Java's @NoBreadcrumbs.)</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class NoBreadcrumbsAttribute : Attribute;
+
+/// <summary>One crumb of the breadcrumb trail a page DECLARES above its content, in declaration
+/// order (repeat the attribute for each). (C# analogue of Java's @Breadcrumbs({@Breadcrumb(label,
+/// url)}); an IBreadcrumbsSupplier on the page wins over it.)</summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class BreadcrumbAttribute(string label, string url) : Attribute
+{
+    public string Label { get; } = label;
+    public string Url { get; } = url;
+}
+
+/// <summary>Implemented by a page to supply the breadcrumb trail shown above its content (wins over
+/// [Breadcrumb]); null = declares none. (C# analogue of Java's BreadcrumbsSupplier.)</summary>
+public interface IBreadcrumbsSupplier
+{
+    IReadOnlyList<Breadcrumb>? Breadcrumbs();
+}
 
 /// <summary>What the UI manifest (<c>GET {base}/mateu/v3/manifest</c>) tells the generic Mateu
 /// mobile app about this app: its name, short name, icon and theme colour (defaults: the [App]

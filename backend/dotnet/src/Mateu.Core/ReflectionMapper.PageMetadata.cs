@@ -336,6 +336,17 @@ internal sealed partial class ReflectionMapper
     /// PageWidthResolver).</summary>
     /// <summary>Previous/next peer-object arrows from an IPeerNavigationSupplier, as the wire DTO;
     /// null when the page supplies none (mirrors Java's PageMetadataExtractor.getPeerNav).</summary>
+    /// <summary>The breadcrumb trail the page declares: an IBreadcrumbsSupplier wins over its
+    /// [Breadcrumb] attributes; null when it declares none (mirrors Java's
+    /// PageSectionExtractor.getBreadcrumbs → PageMapper).</summary>
+    internal static IReadOnlyList<BreadcrumbDto>? BreadcrumbsOf(Type type, object? instance)
+    {
+        if (instance is IBreadcrumbsSupplier supplier)
+            return supplier.Breadcrumbs()?.Select(b => new BreadcrumbDto(b.Text, b.Link)).ToList();
+        var declared = type.GetCustomAttributes<BreadcrumbAttribute>().ToList();
+        return declared.Count > 0 ? declared.Select(b => new BreadcrumbDto(b.Label, b.Url)).ToList() : null;
+    }
+
     internal static PeerNavDto? PeerNavOf(object? instance)
     {
         if ((instance as IPeerNavigationSupplier)?.Peers() is { } p)

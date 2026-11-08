@@ -13,6 +13,7 @@ from pydantic import Field
 from .base import Wire
 
 if TYPE_CHECKING:
+    from .basic import BreadcrumbRecord
     from .components import Component
     from .records import (
         Badge,
@@ -60,6 +61,13 @@ class PageMetadata(Wire):
     #: The record/context switcher of the header (the Redwood selectObject/selectContext
     #: element); None when the page supplies none (mirrors PageDto.switcher).
     switcher: "RecordSwitcherRecord | None" = None
+    #: The breadcrumb trail the page DECLARES (``@breadcrumbs`` / ``BreadcrumbsSupplier``); None when
+    #: it declares none — the shell builds the automatic one (mirrors PageDto.breadcrumbs).
+    breadcrumbs: "list[BreadcrumbRecord] | None" = None
+    #: True when the page opts out of the automatic breadcrumb trail (``@no_breadcrumbs`` on the page,
+    #: an embedded view, or a page under a back-link app of its routes.yaml chain); None = the shell
+    #: shows it. A declared trail still shows (mirrors PageDto.noBreadcrumbs).
+    no_breadcrumbs: bool | None = None
 
 
 class TemplateImageRecord(Wire):

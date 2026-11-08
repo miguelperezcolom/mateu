@@ -1290,7 +1290,16 @@ class ComponentMapperMixin(MixinBase):
             # The embedded wizard opens on its first step; its "next"/"back" buttons carry the
             # wizard's own serverSideType so navigation routes back to it.
             return self.map_wizard(cls, view, route, 1)
-        return self.map_view(cls, view, route)
+        mapped = self.map_view(cls, view, route)
+        # an island is a block of the host page, not a page: the automatic breadcrumb trail would
+        # trace the HOST's menu and address above it (a trail the view DECLARES is still drawn) —
+        # Java's EmbeddedView branch; a composed (tree-supplier) view gets no page of its own there
+        from mateu_ui.uidl import ComponentTreeSupplier
+        from ..page_breadcrumbs import breadcrumbs_off
+
+        if not isinstance(view, ComponentTreeSupplier):
+            breadcrumbs_off(mapped, deep=False)
+        return mapped
 
     def _comment(self, cm) -> CommentRecord:
         return CommentRecord(
