@@ -95,6 +95,27 @@ parameters](/concepts/routes-and-mounts/#precedence) are re-applied on the serve
 A **partial** is no exception: the keys inside a `type: Partial` (and its `${i18n.…}` texts) are
 applied exactly as if its content were written in the page that references it — the server expands
 the partials into the definition first, then applies access and translations to the whole tree.
+So is a **business component** of `components.yaml` (a `type: ComponentRef`), and so is a partial or
+business component drawn inside a page written in **code** (`new Partial("payroll")` /
+`new ComponentRef("Payroll")` in a Java `ComponentTreeSupplier`, a C# or Python view building its
+own tree, or a YAML layout bound to a code view model).
+
+### Locked fields are enforced on writes
+
+Hiding a field or drawing it read-only only changes the screen; a client can still post any state
+it likes. So the server enforces the same keys on the way **in**: before the incoming state is
+written into the view model — the routed view, a nested form, a crud editor, a wizard step, an
+embedded island — every field the caller may not see (`eyesOnly:`) or may not edit
+(`readOnlyUnless:`, `disabledUnless:`) is **dropped** from it, and the view model keeps its
+server-side value. This holds wherever the field is declared: in the page's own definition, in a
+partial or business component it uses (followed through the partials they nest — a piece inside a
+section the caller may not see locks all of its fields), and in the annotations of a code view.
+The value is never echoed back either.
+
+It fails **closed**: if the access keys of a partial or business component cannot be evaluated for
+the request, none of its fields is writable. A code view the server has not rendered yet in this
+process (a request straight after a restart) is checked against every partial and business
+component of the app. Each dropped field is logged once at WARN (then at DEBUG).
 
 Hiding is UX, not authorization. As with the annotations, the REST endpoints your screens call must
 still check who is calling.

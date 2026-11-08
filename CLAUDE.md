@@ -931,7 +931,16 @@ Durable rules and where they live:
   Python. **CSRF**: adding Spring Security no longer kills every action — `MateuCsrfAutoConfiguration`
   (mvc-core) / `MateuCsrfWebFluxAutoConfiguration` exempt Mateu's JSON endpoints (`CsrfExemption`); a
   403 Mateu did not send gets its own client text. CRUD saves are not a mass-assignment channel
-  (`ClientWritableFields`). Active document types (HTML/SVG/XML/script) are never inlined. The
+  (`ClientWritableFields`). Nor is the state of a YAML partial / components.yaml business
+  component drawn by a CODE view (2026-11-08): `infra/security/ClientLockedFields` derives the
+  fields those pieces hide/lock for the caller from their DEFINITIONS and drops them before any
+  write (`ReflectionInstanceFactory.newInstance`, `AdapterInstanceFactory`, `YamlUidlLoader.guardIn`
+  for a layout's ComponentRefs); the pieces a view draws are learned at render
+  (`ComponentTreeSupplierMapper`/`UIFragmentAssembler` → `learn`), an unrendered CTS/holder class is
+  checked against every piece (fail closed). Ports: `ComponentRegistry.get_for`/`locked_for` (Python),
+  `AuthoredSources` + `MateuCatalogs.LockedBy` (.NET) — those also fixed the READ side of
+  components.yaml access keys, which the ports never applied. Tests `JavaPagePartialLockedStateSyncTest`,
+  `ClientLockedFieldsTest`, `test_locked_pieces_state.py`, `LockedPiecesStateTests`. Active document types (HTML/SVG/XML/script) are never inlined. The
   client-log endpoint is rate-limited.
 - **Settings from the framework config**: `MateuSettings` reads registered `MateuSettings.Source`s
   (each adapter registers its `Environment`/`Config`) before `-D`/env — `mateu.*` in
