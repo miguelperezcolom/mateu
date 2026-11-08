@@ -586,7 +586,7 @@
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBadge ]]">
-                    <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-if test="[[ $current.data.iconLeftClass ]]"><span :class="[[ $current.data.iconLeftClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ $current.data.iconRightClass ]]"><span :class="[[ $current.data.iconRightClass ]]" aria-hidden="true"></span></oj-bind-if></span>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
                     <div class="oj-flex">

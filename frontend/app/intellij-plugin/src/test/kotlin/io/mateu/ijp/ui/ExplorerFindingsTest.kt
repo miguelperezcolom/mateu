@@ -16,4 +16,10 @@ class ExplorerFindingsTest : TestCase() {
         assertEquals(Font.PLAIN, textEmphasis(null))
         assertEquals(Font.PLAIN, textEmphasis(json.readTree("\"b\"")))
     }
+
+    fun testABadgeKeepsItsIconAndWhichSideItGoes() {
+        assertEquals("vaadin:check" to false, badgeIconOf(json.readTree("""{"text":"Paid","iconOnLeft":"vaadin:check"}""")))
+        assertEquals("vaadin:arrow-right" to true, badgeIconOf(json.readTree("""{"text":"Details","iconOnRight":"vaadin:arrow-right"}""")))
+        assertNull(badgeIconOf(json.readTree("""{"text":"Pending"}""")))
+    }
 }

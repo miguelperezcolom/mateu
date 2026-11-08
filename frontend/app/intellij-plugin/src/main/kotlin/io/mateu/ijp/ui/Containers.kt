@@ -98,7 +98,28 @@ fun renderBadge(metadata: JsonNode): JComponent {
     label.isOpaque = true
     label.background = badgeColor(metadata.text("color"))
     label.border = JBUI.Borders.empty(2, 8)
+    // its icon inside the chip: iconOnLeft before the text, iconOnRight after it (never drawn before)
+    badgeIconOf(metadata)?.let { (name, after) ->
+        (uxActionIcon(name) ?: badgeArrowIcon(name))?.let { icon ->
+            label.icon = icon
+            label.horizontalTextPosition = if (after) javax.swing.SwingConstants.LEADING else javax.swing.SwingConstants.TRAILING
+        }
+    }
     return label
+}
+
+/** A Badge's icon and whether it goes AFTER the text — a label holds one: iconOnLeft wins. */
+internal fun badgeIconOf(metadata: JsonNode): Pair<String, Boolean>? {
+    val left = metadata.text("iconOnLeft")
+    if (left.isNotBlank()) return left to false
+    val right = metadata.text("iconOnRight")
+    return if (right.isNotBlank()) right to true else null
+}
+
+private fun badgeArrowIcon(name: String): javax.swing.Icon? = when (name) {
+    "vaadin:arrow-right" -> com.intellij.icons.AllIcons.General.ArrowRight
+    "vaadin:arrow-left" -> com.intellij.icons.AllIcons.General.ArrowLeft
+    else -> null
 }
 
 fun renderAnchor(ctx: AppContext, metadata: JsonNode): JComponent {

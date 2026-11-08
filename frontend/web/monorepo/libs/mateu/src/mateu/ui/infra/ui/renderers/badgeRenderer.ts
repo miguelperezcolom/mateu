@@ -3,12 +3,21 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
 import { html, nothing } from "lit";
 import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+
+// A badge's icons sit inside the chip, before (iconOnLeft) or after (iconOnRight) its text, sized
+// to the text — they used to be on the wire and never drawn.
+const BADGE_ICON_STYLE = 'width: 1em; height: 1em; vertical-align: -0.125em;'
+const leftIcon = (metadata: Badge) => metadata.iconOnLeft
+    ? icon(metadata.iconOnLeft, BADGE_ICON_STYLE + ' margin-inline-end: .3em;') : nothing
+const rightIcon = (metadata: Badge) => metadata.iconOnRight
+    ? icon(metadata.iconOnRight, BADGE_ICON_STYLE + ' margin-inline-start: .3em;') : nothing
 
 export const renderBadge = (component: ClientSideComponent, state: ComponentState, data: ComponentData) => {
     const metadata = component.metadata as Badge
     return html`<span theme="badge ${metadata.color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}"
                       style="${component.style}" class="${component.cssClasses}"
-                      slot="${component.slot??nothing}">${evalIfNecessary(metadata.text, state, data)}</span>`
+                      slot="${component.slot??nothing}">${leftIcon(metadata)}${evalIfNecessary(metadata.text, state, data)}${rightIcon(metadata)}</span>`
 }
 
 /**
@@ -32,5 +41,5 @@ export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data
     if (color == 'LIGHT') color = 'light';
     if (color == 'DARK') color = 'dark';
     const pill = metadata.pill || opts?.pill
-    return html`<span theme="badge ${color} ${pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${text}</span>`
+    return html`<span theme="badge ${color} ${pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${leftIcon(metadata)}${text}${rightIcon(metadata)}</span>`
 }

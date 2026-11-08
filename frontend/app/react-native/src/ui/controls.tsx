@@ -64,13 +64,25 @@ export function MIcon({ name, size = 24, color }: { name: string; size?: number;
 
 /** A status value as a tonal chip (success / warning / danger / info / neutral). Not a control —
  *  it reads as its text, so screen readers hear the value, not "button". */
-export function StatusChip({ label, tone, style }: { label: string; tone?: string | null; style?: StyleProp<ViewStyle> }) {
+export function StatusChip({ label, tone, style, iconLeft, iconRight }: {
+  label: string; tone?: string | null; style?: StyleProp<ViewStyle>;
+  /** Material Community Icons names drawn inside the chip, before / after the label */
+  iconLeft?: string; iconRight?: string;
+}) {
   const { background, ink } = toneColors(toneOf(tone));
+  const text = (
+    <Text variant="labelMedium" style={[styles.chipText, { color: ink }]} numberOfLines={1}>
+      {label}
+    </Text>
+  );
+  if (!iconLeft && !iconRight) {
+    return <View style={[styles.chip, { backgroundColor: background }, style]}>{text}</View>;
+  }
   return (
-    <View style={[styles.chip, { backgroundColor: background }, style]}>
-      <Text variant="labelMedium" style={[styles.chipText, { color: ink }]} numberOfLines={1}>
-        {label}
-      </Text>
+    <View style={[styles.chip, styles.chipWithIcons, { backgroundColor: background }, style]}>
+      {!!iconLeft && <Icon source={iconLeft} size={14} color={ink} />}
+      {text}
+      {!!iconRight && <Icon source={iconRight} size={14} color={ink} />}
     </View>
   );
 }
@@ -202,6 +214,7 @@ const styles = themed(() =>
     buttonLabel: { marginHorizontal: 18, letterSpacing: 0.1 },
     chip: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
     chipText: { fontWeight: '600' },
+    chipWithIcons: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     input: { backgroundColor: theme.surface, fontSize: 16 },
     outline: { borderRadius: 8 },
     helper: { paddingHorizontal: 4 },

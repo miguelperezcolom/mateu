@@ -186,6 +186,11 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   row-gap: 28px;
 }
 
+/* A Badge's icons (iconOnLeft / iconOnRight): inside the chip, the size of its text. */
+.mateu-badge-icon { font-size: 1em; vertical-align: -0.125em; }
+.mateu-badge-icon:first-child { margin-inline-end: 0.3em; }
+.mateu-badge-icon:last-child { margin-inline-start: 0.3em; }
+
 /* Rows of the passenger list: more air than the cockpit grid (they breathe on their own). */
 .mateu-list-item {
   margin-bottom: 40px !important;

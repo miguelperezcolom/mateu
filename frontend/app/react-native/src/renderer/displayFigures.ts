@@ -2,6 +2,7 @@
 // intensities, funnel stages, checklist and task progress, ledger totals, rating stars, file-type
 // icons, avatars and the initial open/selected state of the stateful pieces. Pure TypeScript,
 // tested by node's runner.
+import { materialIconOf } from '../ui/wireIcons.ts';
 
 /** A Stat's bar-sparkline: each value as a bar height from 4 to 26 points. */
 export function sparkHeights(spark: number[]): number[] {
@@ -120,5 +121,13 @@ export function textEmphasis(variants: unknown): { fontWeight?: 'bold'; fontStyl
   return {
     ...(list.includes('b') ? { fontWeight: 'bold' as const } : {}),
     ...(list.includes('i') ? { fontStyle: 'italic' as const } : {}),
+  };
+}
+
+/** A Badge's wire icons (iconOnLeft / iconOnRight) as Material icon names; undefined = none. */
+export function badgeIconsOf(m: { iconOnLeft?: unknown; iconOnRight?: unknown }): { iconLeft?: string; iconRight?: string } {
+  return {
+    iconLeft: materialIconOf(typeof m.iconOnLeft === 'string' ? m.iconOnLeft : undefined),
+    iconRight: materialIconOf(typeof m.iconOnRight === 'string' ? m.iconOnRight : undefined),
   };
 }

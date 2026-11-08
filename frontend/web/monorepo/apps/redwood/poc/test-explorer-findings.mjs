@@ -34,4 +34,21 @@ test('a Text\'s variants: b is bold, i italic (they were dropped)', () => {
   assert.doesNotMatch(by('plain').cls, /oj-typography-bold/)
 })
 
+test('a Badge draws its iconOnLeft / iconOnRight inside the chip', () => {
+  const badges = atomsOf(node({ type: 'VerticalLayout' }, [
+    node({ type: 'Badge', text: 'Paid', color: 'success', iconOnLeft: 'vaadin:check' }),
+    node({ type: 'Badge', text: 'Details', iconOnRight: 'vaadin:arrow-right' }),
+    node({ type: 'Badge', text: 'Pending' }),
+  ])).filter((a) => a.isBadge)
+  assert.match(badges[0].iconLeftClass, /oj-ux-ico-check/)
+  assert.equal(badges[0].iconRightClass, '')
+  assert.match(badges[1].iconRightClass, /oj-ux-ico-arrow-right/)
+  assert.deepEqual([badges[2].iconLeftClass, badges[2].iconRightClass], ['', ''])
+  // every badge chip in the markup binds both icons (the content atom, a row's badge, the listing's)
+  for (const markup of [template(), page()]) {
+    const chips = markup.match(/:class="\[\[ \$current\.data\.badgeClass \]\]"><oj-bind-if test="\[\[ \$current\.data\.iconLeftClass/g) || []
+    assert.ok(chips.length >= 2, 'badge chips with icons')
+  }
+})
+
 console.log(`\n${passed} explorer-findings tests OK`)
