@@ -1,6 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectionDetailPane, compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, splitCreateAction, wizardRailIndex } from './phoneLayout.ts';
+import { collectionDetailPane, compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, masterDetailDirection, splitCreateAction, wireButtonAlignSelf, wizardRailIndex } from './phoneLayout.ts';
+
+test('a master/detail lays its panes side by side from a tablet up — unless it is vertical: then always stacked', () => {
+  assert.equal(masterDetailDirection(undefined, 1024), 'row');
+  assert.equal(masterDetailDirection('horizontal', 1024), 'row');
+  assert.equal(masterDetailDirection(undefined, 393), 'column');
+  // orientation vertical = the detail BELOW the master (it used to be drawn beside it on a tablet)
+  assert.equal(masterDetailDirection('vertical', 1024), 'column');
+  assert.equal(masterDetailDirection('VERTICAL', 1024), 'column');
+});
+
+test('a button keeps its natural width, except inside a FullWidth, which stretches it across the row', () => {
+  assert.equal(wireButtonAlignSelf(false), 'flex-start');
+  assert.equal(wireButtonAlignSelf(true), 'stretch');
+});
 
 test('a form row is ONE column on a phone, the declared columns from a tablet up', () => {
   // iPhone 15 (393pt), a small Android (360dp), a phone in landscape still < 600
