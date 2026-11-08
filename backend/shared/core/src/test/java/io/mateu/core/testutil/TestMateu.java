@@ -189,6 +189,19 @@ public final class TestMateu implements AutoCloseable {
     }
   }
 
+  /** Same as {@link #stream(RunActionRqDto)}, sending the given request headers. */
+  public Flux<UIIncrementDto> stream(RunActionRqDto rq, java.util.Map<String, String> headers) {
+    try {
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      headers.forEach(httpRequest::withHeader);
+      return service.runAction("", rq, "", httpRequest);
+    } catch (RuntimeException | Error e) {
+      throw e;
+    } catch (Throwable t) {
+      throw new AssertionError("runAction failed for " + rq, t);
+    }
+  }
+
   /** All increments (some flows emit several, e.g. remote menus). */
   public List<UIIncrementDto> runAll(RunActionRqDto rq) {
     try {

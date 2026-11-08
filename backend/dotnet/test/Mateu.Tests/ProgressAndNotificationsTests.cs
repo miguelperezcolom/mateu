@@ -96,6 +96,9 @@ public class NotificationDesk : INotificationsSupplier
 {
     public static readonly List<AppNotification> Inbox = [];
     public static readonly List<string> Acted = [];
+    public static readonly List<string> Dismissed = [];
+    public static readonly List<string> Read = [];
+    public static readonly List<string> Opened = [];
 
     [MenuItem("Home")] public FreezeHome Home() => new();
 
@@ -104,7 +107,10 @@ public class NotificationDesk : INotificationsSupplier
         lock (Inbox) return Inbox.ToList();
     }
 
-    public void MarkNotificationsRead(IReadOnlyList<string> ids) { }
+    public void MarkNotificationsRead(IReadOnlyList<string> ids)
+    {
+        lock (Inbox) Read.AddRange(ids);
+    }
 
     public object? OnNotificationAction(string id, string actionId)
     {
@@ -119,10 +125,18 @@ public class NotificationDesk : INotificationsSupplier
 
     public void DismissNotifications(IReadOnlyList<string> ids)
     {
-        lock (Inbox) Inbox.RemoveAll(n => ids.Contains(n.Id));
+        lock (Inbox)
+        {
+            Dismissed.AddRange(ids);
+            Inbox.RemoveAll(n => ids.Contains(n.Id));
+        }
     }
 
-    public object? NotificationDetail(string id) => new Drawer { HeaderTitle = "Expense " + id, Content = new Text("Detail") };
+    public object? NotificationDetail(string id)
+    {
+        lock (Inbox) Opened.Add(id);
+        return new Drawer { HeaderTitle = "Expense " + id, Content = new Text("Detail") };
+    }
 
     public static void Seed()
     {
@@ -130,6 +144,9 @@ public class NotificationDesk : INotificationsSupplier
         {
             Inbox.Clear();
             Acted.Clear();
+            Dismissed.Clear();
+            Read.Clear();
+            Opened.Clear();
             Inbox.Add(new AppNotification("e1", "Expense to approve", null, null)
             {
                 Category = "Approvals",
@@ -387,6 +404,35 @@ public class ProgressAndNotificationsTests
 
         var opened = Handler().Handle(DeskRq("_notifications-open", new() { ["id"] = "e1" }));
         Assert.Contains("Expense e1", JsonSerializer.Serialize(opened, Json));
+    }
+
+    // every id the panel sends back comes from the browser: only the caller's own entries (the
+    // supplier's list for this request) and only the actions an entry offers reach the supplier
+    [Fact]
+    public void An_action_on_an_entry_not_in_the_callers_list_or_not_offered_is_refused()
+    {
+        NotificationDesk.Seed();
+        Assert.Throws<MateuForbiddenException>(() => Handler().Handle(
+            DeskRq("_notifications-act", new() { ["id"] = "someone-elses", ["actionId"] = "approve" })));
+        Assert.Throws<MateuForbiddenException>(() => Handler().Handle(
+            DeskRq("_notifications-act", new() { ["id"] = "e1", ["actionId"] = "deleteAll" })));
+        Assert.Throws<MateuForbiddenException>(() => Handler().Handle(
+            DeskRq("_notifications-act", new() { ["id"] = "e2", ["actionId"] = "approve" })));
+        Assert.Empty(NotificationDesk.Acted);
+    }
+
+    [Fact]
+    public void Dismiss_read_and_open_only_reach_the_callers_own_entries()
+    {
+        NotificationDesk.Seed();
+        Handler().Handle(DeskRq("_notifications-dismiss", new() { ["ids"] = new List<object?> { "e2", "someone-elses" } }));
+        Assert.Equal(["e2"], NotificationDesk.Dismissed);
+        Handler().Handle(DeskRq("_notifications-read", new() { ["ids"] = "someone-elses" }));
+        Assert.Empty(NotificationDesk.Read);
+        Handler().Handle(DeskRq("_notifications-open", new() { ["id"] = "someone-elses" }));
+        NotificationDesk.Seed();
+        Handler().Handle(DeskRq("_notifications-open", new() { ["id"] = "e2" }));
+        Assert.Empty(NotificationDesk.Opened);
     }
 
     [Fact]

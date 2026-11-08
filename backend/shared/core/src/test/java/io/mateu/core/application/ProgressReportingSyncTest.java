@@ -83,6 +83,18 @@ class ProgressReportingSyncTest {
                       Flux.just(progress.step("Row 1")),
                       Flux.error(new io.mateu.uidl.UserFacingException("Row 2 is invalid"))));
     }
+
+    @Button
+    public Flux<?> crashing() {
+      return LongTask.create("Crashing")
+          .run(
+              progress ->
+                  Flux.concat(
+                      Flux.just(progress.step("Row 1")),
+                      Flux.error(
+                          new IllegalStateException(
+                              "jdbc:postgresql://db.internal/prod password=hunter2"))));
+    }
   }
 
   static TestMateu mateu;
@@ -240,6 +252,45 @@ class ProgressReportingSyncTest {
     assertThat(last.error()).isEqualTo("Row 2 is invalid");
     assertThat(last.retryable()).isTrue();
     assertThat(ProgressTasks.isRunning(last.taskId())).isFalse();
+  }
+
+  @Test
+  void aTaskThatCrashesNeverStreamsTheRawException() {
+    var increments = mateu.runAll(rq("crashing"));
+    var progress = progressOf(increments);
+    var last = progress.get(progress.size() - 1);
+    assertThat(last.state()).isEqualTo(ProgressStateDto.failed);
+    assertThat(last.error()).isNotBlank().doesNotContain("hunter2").doesNotContain("jdbc");
+    assertThat(io.mateu.core.infra.JsonSerializer.toJson(increments))
+        .doesNotContain("hunter2")
+        .doesNotContain("IllegalStateException");
+  }
+
+  @Test
+  void anAnonymousCallerCannotCancelAnAuthenticatedCallersTask() throws Exception {
+    var seen = new CopyOnWriteArrayList<UIIncrementDto>();
+    var subscription =
+        mateu.stream(rq("endless"), TestIdentities.headersWithRoles("user"))
+            .doOnNext(seen::add)
+            .subscribe();
+    try {
+      var taskId = waitForTask(seen);
+      // the anonymous caller (no principal) holding the id, and the same user with other grants
+      assertThat(mateu.run(cancelRq(taskId)).commands()).isEmpty();
+      assertThat(
+              mateu
+                  .run(cancelRq(taskId), TestIdentities.headersWithRoles("user", "admin"))
+                  .commands())
+          .isEmpty();
+      assertThat(ProgressTasks.isRunning(taskId)).isTrue();
+      // a replayed cancel of a finished task answers nothing either
+      assertThat(mateu.run(cancelRq(taskId), TestIdentities.headersWithRoles("user")).commands())
+          .isNotEmpty();
+      assertThat(mateu.run(cancelRq(taskId), TestIdentities.headersWithRoles("user")).commands())
+          .isEmpty();
+    } finally {
+      subscription.dispose();
+    }
   }
 
   @Test
