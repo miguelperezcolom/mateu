@@ -78,11 +78,42 @@ class FluentButtonHandlersSyncTest {
     }
   }
 
+  static int iconPings;
+
+  /**
+   * Handler buttons built with the builder and NO actionId (the Mateu Explorer's first try): one
+   * with a label, one icon-only with just an id. Their id must be derived on the server, the same
+   * on the wire, in the advertised actions and in the runner — else the click is never sent.
+   */
+  @UI("/fluent-builder-handlers")
+  public static class BuilderHandlers implements ComponentTreeSupplier {
+
+    int count = 0;
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return new HorizontalLayout(
+          Button.builder()
+              .label("Say hello")
+              .callable(
+                  () -> {
+                    count += 10;
+                    return new State(this);
+                  })
+              .build(),
+          Button.builder()
+              .id("bell")
+              .iconOnLeft("vaadin:bell")
+              .runnable(() -> iconPings++)
+              .build());
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Counter.class, Handlers.class);
+    mateu = TestMateu.withUis(Counter.class, Handlers.class, BuilderHandlers.class);
   }
 
   @AfterAll
@@ -152,5 +183,24 @@ class FluentButtonHandlersSyncTest {
     int before = pings;
     run("/fluent-handlers", "ping", Map.of("count", 0));
     assertThat(pings).isEqualTo(before + 1);
+  }
+
+  @Test
+  void aBuilderHandlerButtonWithoutActionIdIsAdvertisedUnderTheIdItCarriesOnTheWire() {
+    var increment = mateu.sync("/fluent-builder-handlers");
+    assertThat(advertised(increment)).contains("sayHello", "bell");
+    assertThat(
+            io.mateu.core.testutil.WireWalk.all(increment, io.mateu.dtos.ButtonDto.class).stream()
+                .map(io.mateu.dtos.ButtonDto::actionId))
+        .contains("sayHello", "bell");
+  }
+
+  @Test
+  void aBuilderHandlerButtonWithoutActionIdRuns() {
+    var result = run("/fluent-builder-handlers", "sayHello", Map.of("count", 1));
+    assertThat(stateValue(result, "count")).isEqualTo(11);
+    int before = iconPings;
+    run("/fluent-builder-handlers", "bell", Map.of("count", 0));
+    assertThat(iconPings).isEqualTo(before + 1);
   }
 }

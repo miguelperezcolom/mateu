@@ -7,6 +7,7 @@ import { interpolate } from '../core/expressions';
 import { useButtonPress } from './useButtonPress';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
+import { buttonGroupMembers } from '../core/buttonGroup';
 import { RichText } from './FieldWidgets';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
@@ -168,7 +169,23 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       );
 
     case 'Button': {
-      const id = (metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
+      // a ButtonGroup in content: its buttons side by side, each one a button of its own
+      const members = buttonGroupMembers(metadata);
+      if (members) {
+        return (
+          <View style={styles.buttonGroup} accessibilityLabel={(metadata['label'] as string | undefined) ?? undefined}>
+            {members.map((member, i) => (
+              <ComponentRenderer
+                key={`${String(component['id'] ?? 'group')}-${i}`}
+                component={{ type: 'ClientSide', id: `${String(component['id'] ?? 'group')}-${i}`, metadata: member, children: [] }}
+                state={state}
+                data={data}
+              />
+            ))}
+          </View>
+        );
+      }
+      const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
       const label = interpolate((metadata['label'] as string) ?? id, { state });
       // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
@@ -489,4 +506,5 @@ const styles = themed(() => StyleSheet.create({
   imageRound: { width: 112, height: 112, borderRadius: 56, alignSelf: 'center', backgroundColor: theme.background },
   imagePhoto: { width: '100%', aspectRatio: 4 / 3, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   wireButton: { alignSelf: 'flex-start' },
+  buttonGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignSelf: 'flex-start' },
 }));

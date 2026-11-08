@@ -42,3 +42,21 @@ describe('client-side expander — a Button in content', () => {
         expect(wire.metadata.route).toBeUndefined()
     })
 })
+
+describe('client-side expander — a ButtonGroup in content', () => {
+    it('is a content Button whose children are the group buttons, like ButtonMapper.mapButtonGroupToDto', () => {
+        const wire = expandComponent({
+            type: 'ButtonGroup', id: 'more', label: 'More',
+            buttons: [{ type: 'Button', label: 'Export' }, { type: 'Button', label: 'Home', actionable: { type: 'RouteLink', route: 'home' } }],
+        } as unknown as FluentNode) as any
+        expect(wire.type).toBe('ClientSide')
+        expect(wire.id).toBe('more')
+        expect(wire.children).toEqual([])
+        expect(wire.metadata).toEqual({
+            type: 'Button', label: 'More', children: [
+                { type: 'Button', label: 'Export', actionId: 'export' },
+                { type: 'Button', label: 'Home', actionId: 'home', route: 'home' },
+            ],
+        })
+    })
+})

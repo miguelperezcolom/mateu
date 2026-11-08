@@ -31,4 +31,23 @@ test.describe('FluentCounter (/fluent-counter)', () => {
     await expect(page.getByText('Count: 10')).toBeVisible();
   });
 
+  test('a builder-made handler button with no actionId runs', async ({ page }) => {
+    await page.goto('/fluent-counter');
+
+    await expect(page.getByText('Count: 0')).toBeVisible();
+    await page.getByRole('button', { name: 'Add a hundred' }).click();
+    await expect(page.getByText('Count: 100')).toBeVisible();
+  });
+
+  test('a ButtonGroup in the content is drawn and its buttons run', async ({ page }) => {
+    await page.goto('/fluent-counter');
+
+    await expect(page.getByText('Count: 0')).toBeVisible();
+    // the group was dropped from content altogether; now it is a trigger opening its buttons
+    // (a vaadin-menu-bar on Vaadin: its buttons are menu items)
+    await page.getByText('More', { exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Add one' }).or(page.getByRole('button', { name: 'Add one' })).first().click();
+    await expect(page.getByText('Count: 1')).toBeVisible();
+  });
+
 });

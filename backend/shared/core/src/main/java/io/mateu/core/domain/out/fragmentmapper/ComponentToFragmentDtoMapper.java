@@ -53,6 +53,59 @@ public final class ComponentToFragmentDtoMapper {
   /** Component types already reported as unrenderable, so the warning is logged once each. */
   private static final Set<String> warnedUnrenderableComponents = ConcurrentHashMap.newKeySet();
 
+  /** The page types of the composed archetypes, which draw no heading of their own. */
+  private static final java.util.Set<String> COMPOSED_PAGE_TYPES =
+      java.util.Set.of("dashboard", "collection", "detail");
+
+  /**
+   * A composed archetype (a {@code Dashboard}, a {@code CollectionDetail}…) draws no heading: when
+   * ROUTED the web shows the window title above it. EMBEDDED in another page the window title is
+   * the HOST's, so the island names itself instead — its declared title (never one derived from the
+   * class name) as an h2 opening its tree. Nothing changes when it already has a heading of its
+   * own.
+   */
+  private static ComponentDto withOwnHeading(
+      ComponentDto dto,
+      Object view,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (!(dto instanceof ServerSideComponentDto island)
+        || island.pageType() == null
+        || !COMPOSED_PAGE_TYPES.contains(island.pageType())) {
+      return dto;
+    }
+    var title = ReflectionPageMapper.getDeclaredTitle(view);
+    if (title == null || title.isBlank()) {
+      return dto;
+    }
+    var heading =
+        mapComponentToDto(
+            null,
+            io.mateu.uidl.data.Text.builder()
+                .id(island.id() + "-page-title")
+                .text(title)
+                .container(io.mateu.uidl.data.TextContainer.h2)
+                .variants(List.of())
+                .style("")
+                .cssClasses("")
+                .attributes(java.util.Map.of())
+                .build(),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+    var children = new java.util.ArrayList<ComponentDto>();
+    children.add(heading);
+    if (island.children() != null) {
+      children.addAll(island.children());
+    }
+    return island.withChildren(children);
+  }
+
   private static void warnIfGuidedProcessDrawerTooLong(Object view) {
     if (!(view instanceof Wizard wizard)) {
       return;
@@ -193,8 +246,15 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof ModelViewComponent modelViewComponent) {
       var view = modelViewComponent.modelView();
       if (view instanceof Component c) {
-        return mapComponentToDto(
-            null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+        return withOwnHeading(
+            mapComponentToDto(
+                null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+            view,
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
       }
       if (view != null && ViewTypeClassifier.isPage(view, route)) {
         var pageView =
@@ -219,8 +279,15 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof EmbeddedView embeddedView) {
       var view = embeddedView.view();
       if (view instanceof Component c) {
-        return mapComponentToDto(
-            null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+        return withOwnHeading(
+            mapComponentToDto(
+                null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+            view,
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
       }
       warnIfGuidedProcessDrawerTooLong(view);
       // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
@@ -230,6 +297,9 @@ public final class ComponentToFragmentDtoMapper {
       var pageView =
           ReflectionPageMapper.mapToPageComponent(
               view, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      // an island is a block of the host page, not a page: the automatic breadcrumb trail would
+      // trace the HOST's menu and address above it (a trail the view DECLARES is still drawn)
+      pageView = pageView.toBuilder().noBreadcrumbs(Boolean.TRUE).build();
       var page =
           mapComponentToDto(
               null, pageView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);

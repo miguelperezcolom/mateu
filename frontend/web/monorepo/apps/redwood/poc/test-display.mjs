@@ -651,6 +651,36 @@ test('a sectioned form with tabs inside one section is not an item overview', ()
   assert.ok(itemOverviewOf({ tree: io, state: {}, data: {} }))
 })
 
+test('a Form page with a description, several cards and a code TabLayout is not an item overview (Mateu Explorer entry page)', () => {
+  // the Explorer's entry page: header + description + doc links + one Card per example + a "Code"
+  // heading + the code tabs, all siblings in the Form's content. The first card beside the tabs
+  // was taken for the item overview's key panel: the page lost its header, its description and
+  // every other card
+  const card = (title, text) => node({ type: 'Card', title: { text: title } }, [node({ type: 'Text', text })])
+  const tabs = node({ type: 'TabLayout' }, [
+    node({ type: 'Tab', label: 'YAML · buttons.yaml' }, [node({ type: 'Markdown', markdown: '```yaml\nx: 1\n```' })]),
+    node({ type: 'Tab', label: 'Java · FluentButtons.java' }, [node({ type: 'Markdown', markdown: '```java\nclass X {}\n```' })]),
+  ])
+  const form = node({ type: 'Form', title: 'Button & ButtonGroup', overline: 'Components', subtitle: 'component:Button' }, [
+    node({ type: 'Markdown', markdown: '**Button** — a button of a component tree' }),
+    node({ type: 'HorizontalLayout' }, [node({ type: 'Anchor', text: '📖 mateu.io/docs', url: 'https://mateu.io/docs' })]),
+    card('In YAML', 'yaml example'),
+    card('In Java', 'java example'),
+    card('A whole page', 'page example'),
+    node({ type: 'Text', text: 'Code', container: 'h3' }),
+    tabs,
+  ])
+  const host = { tree: { type: 'ServerSide', id: 'entry', children: [form] }, state: {}, data: {} }
+  assert.equal(itemOverviewOf(host), null)
+  const shown = JSON.stringify(hostContentOf(host, null, { title: 'Button & ButtonGroup' }))
+  for (const text of ['a button of a component tree', 'In YAML', 'In Java', 'A whole page', 'java example', 'page example', 'Code']) {
+    assert.ok(shown.includes(text), `the page shows "${text}"`)
+  }
+  // the archetype's own shape (the key card and the tab bar, and nothing else) still is one
+  const io = node({ type: 'VerticalLayout' }, [card('Key', 'k'), tabs])
+  assert.ok(itemOverviewOf({ tree: io, state: {}, data: {} }))
+})
+
 test('a form whose rich blocks replace the generic form keeps its action row', () => {
   // a form with a grid field (or a capture field…) is drawn by its blocks and the generic form
   // is cleared — with it, the form's @Button row: the page had no way to submit
@@ -992,6 +1022,20 @@ test('a Form toolbar reaches the header like a Page one, a ButtonGroup with its 
     children: [{ type: 'Button', label: 'Print', actionId: 'print' }, { type: 'Button', label: 'Duplicate', actionId: 'dup' }] }
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Form', title: 'Order', toolbar: [group, { type: 'Button', label: 'Save', actionId: 'save' }] })])
   assert.deepEqual(pageToolbarOf({ tree, state: {} }).map((b) => b.actionId), ['print', 'dup', 'save'])
+})
+
+test('a ButtonGroup in CONTENT (a Button with children) brings its buttons; it used to show as one inert button', () => {
+  const tree = node({ type: 'VerticalLayout' }, [
+    node({ type: 'Text', text: 'Hello' }),
+    node({ type: 'Button', label: 'More', children: [
+      { type: 'Button', label: 'Export', actionId: 'export' },
+      { type: 'Button', label: 'Home', actionId: 'home', route: 'home' },
+    ] }),
+  ])
+  const buttons = atomsOf(tree).filter((a) => a.isButtons).flatMap((a) => a.buttons)
+  assert.deepEqual(buttons.map((b) => b.label), ['Export', 'Home'])
+  assert.deepEqual(buttons.map((b) => b.actionId), ['export', 'home'])
+  assert.equal(buttons[1].route, 'home')
 })
 
 test('a RouteLink button in content keeps its route (it navigates); a plain one does not get one', () => {

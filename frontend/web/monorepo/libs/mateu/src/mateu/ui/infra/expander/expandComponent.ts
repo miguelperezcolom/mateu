@@ -149,6 +149,14 @@ export function expandComponent(authored: FluentNode): Component {
         } as unknown as ClientSideComponent
     }
 
+    // A ButtonGroup placed in content: the server's ButtonMapper.mapButtonGroupToDto sends it as a
+    // content Button whose `children` are the group's buttons (the toolbar group's shape).
+    if (node.type === 'ButtonGroup') {
+        const envelope: Record<string, unknown> = {}
+        for (const [key, value] of Object.entries(node)) if (key !== 'type' && ENVELOPE_FIELDS.has(key)) envelope[key] = value
+        return { ...envelope, type: CLIENT_SIDE, metadata: expandButton(node), children: [] } as unknown as ClientSideComponent
+    }
+
     // A Button placed in content (a hero's call to action, a layout's child) is ClientSide-wrapped
     // on the wire, but the server's ButtonMapper treats it exactly like a toolbar button: a RouteLink
     // `actionable` becomes the button's `route` (it NAVIGATES on the client) and a missing actionId
@@ -409,6 +417,16 @@ const toCamelCase = (label: string): string => {
  * ClientSide-wrapped on the wire. Anything else passes through as authored.
  */
 export function expandButton(node: FluentNode): Record<string, unknown> {
+    if (node?.type === 'ButtonGroup') {
+        // FormMapper/ButtonMapper: a group is a Button carrying the group's buttons as `children`
+        const group = node as FluentNode & { label?: string, iconOnLeft?: string, iconOnRight?: string,
+            separatorBefore?: boolean, buttons?: FluentNode[] }
+        const out: Record<string, unknown> = { type: 'Button', children: (group.buttons ?? []).map(expandButton) }
+        for (const key of ['label', 'iconOnLeft', 'iconOnRight', 'separatorBefore'] as const) {
+            if (group[key] !== undefined) out[key] = group[key]
+        }
+        return out
+    }
     if (!node || node.type !== 'Button') return node as unknown as Record<string, unknown>
     const { actionable, ...button } = node as FluentNode & { actionable?: { type?: string, route?: string } }
     const out: Record<string, unknown> = { ...button }

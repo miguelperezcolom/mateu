@@ -37,3 +37,26 @@ describe("the Vaadin button and CalendarPage's built-in labels", () => {
         expect(draw(button('Today', 'goCalendarToday'))).toBe('Today')
     })
 })
+
+describe('a ButtonGroup in content (a Button with children)', () => {
+    const group = {
+        type: 'ClientSide', id: 'more', children: [],
+        metadata: { type: 'Button', label: 'More', children: [
+            { type: 'Button', label: 'Export', actionId: 'export' },
+            { type: 'Button', label: 'Archive', actionId: 'archive', parameters: { all: true } },
+        ] },
+    } as unknown as ClientSideComponent
+
+    it('is a menu bar whose one item opens the group buttons, each running its own action', () => {
+        const host = document.createElement('div')
+        render(renderButton(group, {}, {}), host)
+        const bar = host.querySelector('vaadin-menu-bar') as HTMLElement & { items: any[] }
+        expect(bar).not.toBeNull()
+        expect(bar.items[0].text).toBe('More')
+        expect(bar.items[0].children.map((c: any) => c.text)).toEqual(['Export', 'Archive'])
+        const seen: unknown[] = []
+        host.addEventListener('action-requested', e => seen.push((e as CustomEvent).detail))
+        bar.dispatchEvent(new CustomEvent('item-selected', { detail: { value: bar.items[0].children[1] } }))
+        expect(seen).toEqual([{ actionId: 'archive', parameters: { all: true } }])
+    })
+})

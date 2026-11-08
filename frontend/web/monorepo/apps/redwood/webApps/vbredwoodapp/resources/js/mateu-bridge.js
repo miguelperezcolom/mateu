@@ -4846,8 +4846,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // cards) was taken for an item overview and drawn as its first section + the tab bar — every
     // other section, and the form's buttons, were gone
     const parent = parentOfNode(ctx.tree, tabLayout)
-    const keyCard = ((parent && parent.children) || [])
+    const siblings = ((parent && parent.children) || []).filter(Boolean)
+    const keyCard = siblings
       .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
+    // …and the key card and the tab bar are ALL there is: a page whose content merely includes a
+    // card and some tabs among other blocks (the Mateu Explorer's entry page: a description, one card
+    // per example, a heading and the code tabs) is a page, not an item overview — claimed, it lost its
+    // header, its description and every card but the first
+    if (siblings.some((c) => c !== keyCard && c !== tabLayout)) return null
     // The archetype is key-data panel + tabs: without a panel this is not an item overview,
     // it is a FORM that happens to carry tabs inside. Claiming it anyway left the page
     // without its fields (there is no key card to paint) and the tabs reduced to their labels
@@ -5534,6 +5540,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       label: b.label,
       badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
     })
+    // a group (a Button with `children`, no action of its own) stands for its buttons
+    const groupMembersOf = (m) =>
+      (!m.actionId && Array.isArray(m.children) && m.children.length ? m.children.filter(Boolean) : [m])
     const buttonOf = (m) => {
       // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
       // route on it): the click goes to that route instead of running actionId on the server, which
@@ -5610,9 +5619,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const collectButtons = (node, out) => {
       if (!node || typeof node !== 'object') return out
       if (node.metadata && node.metadata.type === 'Button') {
-        const button = buttonOf(node.metadata)
-        if (editorNodeIds && node.id) button.nodeId = String(node.id)
-        out.push(button)
+        for (const member of groupMembersOf(node.metadata)) {
+          const button = buttonOf(member)
+          if (editorNodeIds && node.id) button.nodeId = String(node.id)
+          out.push(button)
+        }
         return out
       }
       for (const child of kidsOf(node)) collectButtons(child, out)
@@ -6746,10 +6757,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Button') {
         const target = container || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
-        const button = buttonOf(m)
-        if (editorNodeIds && node.id) button.nodeId = String(node.id)
-        if (last && last.isButtons) last.buttons.push(button)
-        else atom({ isButtons: true, buttons: [button] }, container)
+        // a ButtonGroup in content travels as a Button with `children` (the toolbar group's shape)
+        // and no action of its own: its buttons join the row, as a toolbar group's join the header
+        const buttons = groupMembersOf(m).map(buttonOf)
+        if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
+        if (last && last.isButtons) last.buttons.push(...buttons)
+        else atom({ isButtons: true, buttons }, container)
         return
       }
       // ── display components with their own projection (core/display.mjs) ──

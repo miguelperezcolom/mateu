@@ -178,7 +178,7 @@ public class FormMapper {
     }
     if (userTrigger instanceof Button button) {
       return ButtonDto.builder()
-          .actionId(button.resolvedActionId())
+          .actionId(io.mateu.core.domain.act.FluentHandlerButtons.actionIdOf(button))
           .label(button.label())
           .iconOnLeft(button.iconOnLeft())
           .iconOnRight(button.iconOnRight())
