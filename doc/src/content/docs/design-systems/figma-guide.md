@@ -114,6 +114,32 @@ In your design file, with the library enabled:
   referenced from every page that contains it.
 - **Notes.** Hidden layers and layers whose name starts with `#` are never read.
 
+### Select and radio options
+
+A `Mateu/Field/Select` (in every variant: select, combobox, searchable, treeSelect, listBox,
+multiSelect) and a `Mateu/Field/RadioGroup` have an **`options`** property in the right panel. Type
+the choices there, separated by commas:
+
+| You type | The field offers (value → label) |
+|---|---|
+| `Spain, France, Portugal` | `spain` → Spain, `france` → France, `portugal` → Portugal |
+| `es=Spain, fr=France` | `es` → Spain, `fr` → France |
+| `pcs=Pieces; box=Boxes of 12, sealed` | `pcs` → Pieces, `box` → Boxes of 12, sealed |
+
+- A plain label gets its value made from it: lower case, accents dropped, spaces and symbols turned
+  into `-` (`Opción A` → `opcion-a`, `United Kingdom` → `united-kingdom`).
+- Write `value=Label` when the value must be a particular code (`es=Spain`). Both kinds can be mixed.
+- When a label has a comma in it, separate the items with `;` instead: as soon as the text has a `;`,
+  only `;` separates.
+- The value is what the form keeps and sends when the user picks the option.
+- Left as it comes (it shows `options`, its own name), the field has no options of its own; a
+  developer can still give it some in the YAML (`options:` or `optionsSource:`).
+- The option texts the component draws (the RadioGroup's "Opción A / Opción B", the Select's "Value")
+  are only a picture: they are never read.
+
+The converter warns about an item it cannot read (`a=` with no label, a label with no letters or
+digits such as `★`, the same value twice) and leaves that item out.
+
 ### Older libraries
 
 Files designed before the library had native slots and properties still convert:
@@ -283,8 +309,10 @@ writes `real-sample-screens.figma.json` (only the page with the screens and the 
 and `npm test` and `npm run e2e` then check both fixtures. The frames must be named `contact`,
 `artwork`, `artworks`, `dashboard`, `onboarding` and `welcome`.
 
-One thing a design cannot say yet: a **select's options**. The library's `Mateu/Field/Select` has no
-property for them, so the `country` select of the sample renders empty.
+The sample's `country` select takes its choices from its `options` property
+(`Spain, France, Portugal, United Kingdom`, see [Select and radio options](#select-and-radio-options)).
+The browser check opens it, sees those four options, picks France and checks that Save posts
+`country: france`.
 
 ## If something does not look right
 

@@ -36,6 +36,53 @@ export function slugify(name) {
   )
 }
 
+/**
+ * The `options` property of a Select / RadioGroup (contract `yamlConventions.options`): items split
+ * by `;` when the text has one, else by `,`; each a bare label (value = the label slugified) or
+ * `value=Label`. Returns `{options: [{value, label}], problems: [message]}` — a malformed item is a
+ * problem and is left out, an empty one is skipped.
+ */
+export function parseOptions(text) {
+  const options = []
+  const problems = []
+  const seen = new Set()
+  const source = String(text ?? '')
+  for (const raw of source.split(source.includes(';') ? ';' : ',')) {
+    const item = raw.trim()
+    if (item === '') continue
+    let value, label
+    const eq = item.indexOf('=')
+    if (eq >= 0) {
+      value = item.substring(0, eq).trim()
+      label = item.substring(eq + 1).trim()
+      if (value === '' || label === '') {
+        problems.push(`"${item}" needs a value and a label (value=Label)`)
+        continue
+      }
+    } else {
+      label = item
+      value = label
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      if (value === '') {
+        problems.push(`"${item}" makes no value: write it as value=Label`)
+        continue
+      }
+    }
+    if (seen.has(value)) {
+      problems.push(`the value "${value}" is given twice ("${item}" left out)`)
+      continue
+    }
+    seen.add(value)
+    options.push({ value, label })
+  }
+  if (options.length === 0 && problems.length === 0) problems.push(`"${source}" lists no option`)
+  return { options, problems }
+}
+
 /** The contract, indexed for reading instances back. */
 export class Contract {
   constructor(json) {
@@ -396,6 +443,11 @@ export class FigmaToYaml {
         if (value === null) continue
       }
       if (y.defaults && y.defaults[p.name] === p.value) continue
+      if (s.parse) {
+        const parsed = this.parse(s.parse, value, node, p.name)
+        if (parsed !== undefined) this.put(ctx, s.path, parsed, true)
+        continue
+      }
       if (s.list) {
         const all = lists.get(s.path) ?? []
         all.push(s.key ? { [s.key]: value } : value)
@@ -462,6 +514,17 @@ export class FigmaToYaml {
       return undefined
     }
     return text
+  }
+
+  /** A param whose text has a syntax of its own (`parse:` in a param spec); undefined = nothing to write. */
+  parse(kind, text, node, param) {
+    if (kind === 'options') {
+      const { options, problems } = parseOptions(text)
+      for (const m of problems) this.warn(node, `${param}: ${m}`)
+      return options.length ? options : undefined
+    }
+    this.warn(node, `${param}: no parser "${kind}"`)
+    return undefined
   }
 
   /** Sets `attrs` on every FormField under `obj` (a section's `propertyList`). */

@@ -47,11 +47,16 @@ test('contact: Save is refused while a required field is empty, then sends the f
 
   await page.getByRole('textbox', { name: 'Full name' }).fill('Ada Lovelace')
   await page.getByRole('textbox', { name: 'Email' }).fill('ada@example.com')
+  // the Country select offers the options typed in its Figma `options` property
+  await page.getByRole('button', { name: 'Country' }).click()
+  const options = page.getByRole('option')
+  await expect(options).toHaveText(['Spain', 'France', 'Portugal', 'United Kingdom'])
+  await options.filter({ hasText: 'France' }).click()
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByRole('alert').filter({ hasText: 'Contact saved' })).toBeVisible()
   expect(posts.length).toBe(1)
   const saved = await (await request.get('/api/contacts')).json()
-  expect(saved.at(-1)).toMatchObject({ name: 'Ada Lovelace', email: 'ada@example.com' })
+  expect(saved.at(-1)).toMatchObject({ name: 'Ada Lovelace', email: 'ada@example.com', country: 'france' })
   expect(errors).toEqual([])
 })
 

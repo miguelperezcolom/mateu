@@ -38,6 +38,12 @@ for (const fixture of fixtures()) {
     assert.equal(byId.name.required, true)
     assert.equal(byId.balance.dataType, 'money')
     assert.equal(byId.birthDate.dataType, 'date')
+    // the Select's `options` property, typed in Figma's properties panel as plain labels
+    assert.equal(byId.country.stereotype, 'select')
+    assert.deepEqual(byId.country.options, [
+      { value: 'spain', label: 'Spain' }, { value: 'france', label: 'France' },
+      { value: 'portugal', label: 'Portugal' }, { value: 'united-kingdom', label: 'United Kingdom' },
+    ])
     assert.equal(pages.artwork.template.type, 'ItemOverviewPage')
     assert.equal(pages.artwork.content[0].type, 'TabLayout')
     const listing = pages.artworks.content[0]

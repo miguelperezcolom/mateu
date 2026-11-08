@@ -94,7 +94,7 @@ export const SAMPLE_SCREENS: ScreenPlan[] = [
       section('Contact details', [
         textField('name', 'Full name', { required: true, placeholder: 'Ada Lovelace' }),
         textField('email', 'Email', { required: true, placeholder: 'ada@example.com' }),
-        { component: 'Mateu/Field/Select', variants: { stereotype: 'select' }, properties: { fieldId: 'country', label: 'Country' } },
+        { component: 'Mateu/Field/Select', variants: { stereotype: 'select' }, properties: { fieldId: 'country', label: 'Country', options: 'Spain, France, Portugal, United Kingdom' } },
         { component: 'Mateu/Field/Date', variants: { dataType: 'date' }, properties: { fieldId: 'birthDate', label: 'Birth date' } },
       ]),
       section('Membership', [
