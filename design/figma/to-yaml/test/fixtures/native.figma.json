@@ -1,0 +1,1209 @@
+{
+ "name": "Native slots and properties",
+ "document": {
+  "id": "0:0",
+  "name": "Document",
+  "type": "DOCUMENT",
+  "children": [
+   {
+    "id": "0:1",
+    "name": "Screens",
+    "type": "CANVAS",
+    "children": [
+     {
+      "id": "9:1",
+      "name": "order",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "9:2",
+        "name": "ItemOverviewPage",
+        "type": "INSTANCE",
+        "componentId": "iop",
+        "componentProperties": {
+         "avatar.src#41:1": {
+          "type": "TEXT",
+          "value": "avatar.src"
+         },
+         "avatar.initials#41:2": {
+          "type": "TEXT",
+          "value": "${state.initials}"
+         },
+         "photo.src#41:3": {
+          "type": "TEXT",
+          "value": "photo.src"
+         },
+         "overline#41:4": {
+          "type": "TEXT",
+          "value": "Overline"
+         },
+         "title#41:5": {
+          "type": "TEXT",
+          "value": "${state.number}"
+         },
+         "subtitle#41:6": {
+          "type": "TEXT",
+          "value": "Order"
+         },
+         "slot:toolbar#41:7": {
+          "type": "SLOT",
+          "value": ""
+         },
+         "slot:body#41:8": {
+          "type": "SLOT",
+          "value": ""
+         },
+         "slot:footer#41:9": {
+          "type": "SLOT",
+          "value": ""
+         },
+         "slot:content#41:10": {
+          "type": "SLOT",
+          "value": ""
+         }
+        },
+        "children": [
+         {
+          "id": "9:3",
+          "name": "Overline",
+          "type": "TEXT",
+          "characters": "Overline",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          },
+          "componentPropertyReferences": {
+           "characters": "overline#41:4"
+          }
+         },
+         {
+          "id": "9:4",
+          "name": "Title",
+          "type": "TEXT",
+          "characters": "${state.number}",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 20
+          },
+          "componentPropertyReferences": {
+           "characters": "title#41:5"
+          }
+         },
+         {
+          "id": "9:5",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "characters": "Order",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          },
+          "componentPropertyReferences": {
+           "characters": "subtitle#41:6"
+          }
+         },
+         {
+          "id": "9:10",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "layoutMode": "VERTICAL",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#41:7"
+          },
+          "children": [
+           {
+            "id": "9:6",
+            "name": "Button",
+            "type": "INSTANCE",
+            "componentId": "btn-t",
+            "componentProperties": {
+             "style": {
+              "type": "VARIANT",
+              "value": "tertiary"
+             },
+             "size": {
+              "type": "VARIANT",
+              "value": "m"
+             },
+             "actionId#21:1": {
+              "type": "TEXT",
+              "value": "backToList"
+             },
+             "route#21:2": {
+              "type": "TEXT",
+              "value": "orders"
+             },
+             "label#21:3": {
+              "type": "TEXT",
+              "value": "Back to orders"
+             }
+            },
+            "children": [
+             {
+              "id": "9:7",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Back to orders",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              },
+              "componentPropertyReferences": {
+               "characters": "label#21:3"
+              }
+             },
+             {
+              "type": "FRAME",
+              "id": "9:6-props",
+              "name": "#props",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "type": "TEXT",
+                "id": "9:6-p-actionId",
+                "name": "#prop:actionId",
+                "characters": "backToList",
+                "componentPropertyReferences": {
+                 "characters": "actionId#21:1"
+                }
+               },
+               {
+                "type": "TEXT",
+                "id": "9:6-p-route",
+                "name": "#prop:route",
+                "characters": "orders",
+                "componentPropertyReferences": {
+                 "characters": "route#21:2"
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "9:8",
+            "name": "Button",
+            "type": "INSTANCE",
+            "componentId": "btn-p",
+            "componentProperties": {
+             "style": {
+              "type": "VARIANT",
+              "value": "primary"
+             },
+             "size": {
+              "type": "VARIANT",
+              "value": "m"
+             },
+             "actionId#21:1": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#21:2": {
+              "type": "TEXT",
+              "value": "orders/${state.id}/edit"
+             },
+             "label#21:3": {
+              "type": "TEXT",
+              "value": "Edit"
+             }
+            },
+            "children": [
+             {
+              "id": "9:9",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Edit",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              },
+              "componentPropertyReferences": {
+               "characters": "label#21:3"
+              }
+             },
+             {
+              "type": "FRAME",
+              "id": "9:8-props",
+              "name": "#props",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "type": "TEXT",
+                "id": "9:8-p-actionId",
+                "name": "#prop:actionId",
+                "characters": "actionId",
+                "componentPropertyReferences": {
+                 "characters": "actionId#21:1"
+                }
+               },
+               {
+                "type": "TEXT",
+                "id": "9:8-p-route",
+                "name": "#prop:route",
+                "characters": "orders/${state.id}/edit",
+                "componentPropertyReferences": {
+                 "characters": "route#21:2"
+                }
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "9:11",
+          "name": "Frame",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "9:12",
+            "name": "Frame",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "9:17",
+              "name": "slot:body",
+              "type": "SLOT",
+              "layoutMode": "VERTICAL",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:body#41:8"
+              },
+              "children": [
+               {
+                "id": "9:13",
+                "name": "TextField",
+                "type": "INSTANCE",
+                "componentId": "tf",
+                "componentProperties": {
+                 "fieldId#11:1": {
+                  "type": "TEXT",
+                  "value": "customer"
+                 },
+                 "required#11:2": {
+                  "type": "BOOLEAN",
+                  "value": true
+                 },
+                 "readOnly#11:3": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#11:4": {
+                  "type": "TEXT",
+                  "value": "Customer"
+                 },
+                 "placeholder#11:5": {
+                  "type": "TEXT",
+                  "value": "Value"
+                 }
+                },
+                "children": [
+                 {
+                  "id": "9:14",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "characters": "Customer",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  },
+                  "componentPropertyReferences": {
+                   "characters": "label#11:4"
+                  }
+                 },
+                 {
+                  "id": "9:15",
+                  "name": "Frame",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "9:16",
+                    "name": "Value",
+                    "type": "TEXT",
+                    "characters": "Value",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    },
+                    "componentPropertyReferences": {
+                     "characters": "placeholder#11:5"
+                    }
+                   }
+                  ]
+                 },
+                 {
+                  "type": "FRAME",
+                  "id": "9:13-props",
+                  "name": "#props",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-p-fieldId",
+                    "name": "#prop:fieldId",
+                    "characters": "customer",
+                    "componentPropertyReferences": {
+                     "characters": "fieldId#11:1"
+                    }
+                   }
+                  ]
+                 },
+                 {
+                  "type": "FRAME",
+                  "id": "9:13-flags",
+                  "name": "#flags",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-f-required",
+                    "name": "#flag:required",
+                    "characters": "required",
+                    "visible": true,
+                    "componentPropertyReferences": {
+                     "visible": "required#11:2"
+                    }
+                   },
+                   {
+                    "type": "TEXT",
+                    "id": "9:13-f-readOnly",
+                    "name": "#flag:readOnly",
+                    "characters": "readOnly",
+                    "visible": false,
+                    "componentPropertyReferences": {
+                     "visible": "readOnly#11:3"
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "9:18",
+              "name": "slot:footer",
+              "type": "SLOT",
+              "layoutMode": "VERTICAL",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:footer#41:9"
+              },
+              "children": []
+             }
+            ]
+           },
+           {
+            "id": "9:45",
+            "name": "Main area",
+            "type": "SLOT",
+            "layoutMode": "VERTICAL",
+            "componentPropertyReferences": {
+             "slotContentId": "slot:content#41:10"
+            },
+            "children": [
+             {
+              "id": "9:28",
+              "name": "Section",
+              "type": "INSTANCE",
+              "componentId": "sec",
+              "componentProperties": {
+               "propertyList": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "frameless": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "sticky": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "zone#31:1": {
+                "type": "TEXT",
+                "value": "zone"
+               },
+               "columns#31:2": {
+                "type": "TEXT",
+                "value": "columns"
+               },
+               "title#31:3": {
+                "type": "TEXT",
+                "value": "Lines"
+               },
+               "slot:content#31:4": {
+                "type": "SLOT",
+                "value": ""
+               }
+              },
+              "children": [
+               {
+                "id": "9:29",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Lines",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                },
+                "componentPropertyReferences": {
+                 "characters": "title#31:3"
+                }
+               },
+               {
+                "id": "9:27",
+                "name": "slot:content",
+                "type": "SLOT",
+                "layoutMode": "VERTICAL",
+                "componentPropertyReferences": {
+                 "slotContentId": "slot:content#31:4"
+                },
+                "children": [
+                 {
+                  "id": "9:19",
+                  "name": "TextField",
+                  "type": "INSTANCE",
+                  "componentId": "tf",
+                  "componentProperties": {
+                   "fieldId#11:1": {
+                    "type": "TEXT",
+                    "value": "product"
+                   },
+                   "required#11:2": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "readOnly#11:3": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "label#11:4": {
+                    "type": "TEXT",
+                    "value": "Product"
+                   },
+                   "placeholder#11:5": {
+                    "type": "TEXT",
+                    "value": "Value"
+                   }
+                  },
+                  "children": [
+                   {
+                    "id": "9:20",
+                    "name": "Label",
+                    "type": "TEXT",
+                    "characters": "Product",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    },
+                    "componentPropertyReferences": {
+                     "characters": "label#11:4"
+                    }
+                   },
+                   {
+                    "id": "9:21",
+                    "name": "Frame",
+                    "type": "FRAME",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "id": "9:22",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "characters": "Value",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      },
+                      "componentPropertyReferences": {
+                       "characters": "placeholder#11:5"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:19-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "product",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:19-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:19-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "id": "9:23",
+                  "name": "TextField",
+                  "type": "INSTANCE",
+                  "componentId": "tf",
+                  "componentProperties": {
+                   "fieldId#11:1": {
+                    "type": "TEXT",
+                    "value": "quantity"
+                   },
+                   "required#11:2": {
+                    "type": "BOOLEAN",
+                    "value": true
+                   },
+                   "readOnly#11:3": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "label#11:4": {
+                    "type": "TEXT",
+                    "value": "Quantity"
+                   },
+                   "placeholder#11:5": {
+                    "type": "TEXT",
+                    "value": "Value"
+                   }
+                  },
+                  "children": [
+                   {
+                    "id": "9:24",
+                    "name": "Label",
+                    "type": "TEXT",
+                    "characters": "Quantity",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    },
+                    "componentPropertyReferences": {
+                     "characters": "label#11:4"
+                    }
+                   },
+                   {
+                    "id": "9:25",
+                    "name": "Frame",
+                    "type": "FRAME",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "id": "9:26",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "characters": "Value",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      },
+                      "componentPropertyReferences": {
+                       "characters": "placeholder#11:5"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:23-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "quantity",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:23-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": true,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:23-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:28-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:28-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:28-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
+                  }
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "9:35",
+              "name": "Section",
+              "type": "INSTANCE",
+              "componentId": "sec-pl",
+              "componentProperties": {
+               "propertyList": {
+                "type": "VARIANT",
+                "value": "true"
+               },
+               "frameless": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "sticky": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "zone#31:1": {
+                "type": "TEXT",
+                "value": "zone"
+               },
+               "columns#31:2": {
+                "type": "TEXT",
+                "value": "columns"
+               },
+               "title#31:3": {
+                "type": "TEXT",
+                "value": "Delivery"
+               },
+               "slot:content#31:4": {
+                "type": "SLOT",
+                "value": ""
+               }
+              },
+              "children": [
+               {
+                "id": "9:36",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Delivery",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                },
+                "componentPropertyReferences": {
+                 "characters": "title#31:3"
+                }
+               },
+               {
+                "id": "9:34",
+                "name": "Content",
+                "type": "SLOT",
+                "layoutMode": "VERTICAL",
+                "componentPropertyReferences": {
+                 "slotContentId": "slot:content#31:4"
+                },
+                "children": [
+                 {
+                  "id": "9:30",
+                  "name": "TextField",
+                  "type": "INSTANCE",
+                  "componentId": "tf",
+                  "componentProperties": {
+                   "fieldId#11:1": {
+                    "type": "TEXT",
+                    "value": "address"
+                   },
+                   "required#11:2": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "readOnly#11:3": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "label#11:4": {
+                    "type": "TEXT",
+                    "value": "Address"
+                   },
+                   "placeholder#11:5": {
+                    "type": "TEXT",
+                    "value": "Value"
+                   }
+                  },
+                  "children": [
+                   {
+                    "id": "9:31",
+                    "name": "Label",
+                    "type": "TEXT",
+                    "characters": "Address",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    },
+                    "componentPropertyReferences": {
+                     "characters": "label#11:4"
+                    }
+                   },
+                   {
+                    "id": "9:32",
+                    "name": "Frame",
+                    "type": "FRAME",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "id": "9:33",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "characters": "Value",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      },
+                      "componentPropertyReferences": {
+                       "characters": "placeholder#11:5"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:30-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "address",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:30-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:30-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:35-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:35-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:35-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
+                  }
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "9:39",
+              "name": "Section",
+              "type": "INSTANCE",
+              "componentId": "sec",
+              "componentProperties": {
+               "propertyList": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "frameless": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "sticky": {
+                "type": "VARIANT",
+                "value": "false"
+               },
+               "zone#31:1": {
+                "type": "TEXT",
+                "value": "zone"
+               },
+               "columns#31:2": {
+                "type": "TEXT",
+                "value": "columns"
+               },
+               "title#31:3": {
+                "type": "TEXT",
+                "value": "Notes"
+               },
+               "slot:content#31:4": {
+                "type": "SLOT",
+                "value": ""
+               }
+              },
+              "children": [
+               {
+                "id": "9:40",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Notes",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                },
+                "componentPropertyReferences": {
+                 "characters": "title#31:3"
+                }
+               },
+               {
+                "id": "9:37",
+                "name": "slot:content",
+                "type": "FRAME",
+                "children": [
+                 {
+                  "id": "9:38",
+                  "name": "#placeholder",
+                  "type": "TEXT",
+                  "characters": "content",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 11
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:39-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:39-p-zone",
+                  "name": "#prop:zone",
+                  "characters": "zone",
+                  "componentPropertyReferences": {
+                   "characters": "zone#31:1"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:39-p-columns",
+                  "name": "#prop:columns",
+                  "characters": "columns",
+                  "componentPropertyReferences": {
+                   "characters": "columns#31:2"
+                  }
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "9:41",
+              "name": "TextField",
+              "type": "INSTANCE",
+              "componentId": "tf",
+              "componentProperties": {
+               "fieldId#11:1": {
+                "type": "TEXT",
+                "value": "note"
+               },
+               "required#11:2": {
+                "type": "BOOLEAN",
+                "value": false
+               },
+               "readOnly#11:3": {
+                "type": "BOOLEAN",
+                "value": false
+               },
+               "label#11:4": {
+                "type": "TEXT",
+                "value": "Internal note"
+               },
+               "placeholder#11:5": {
+                "type": "TEXT",
+                "value": "Value"
+               }
+              },
+              "children": [
+               {
+                "id": "9:42",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Internal note",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                },
+                "componentPropertyReferences": {
+                 "characters": "label#11:4"
+                }
+               },
+               {
+                "id": "9:43",
+                "name": "Frame",
+                "type": "FRAME",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "id": "9:44",
+                  "name": "Value",
+                  "type": "TEXT",
+                  "characters": "Value",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  },
+                  "componentPropertyReferences": {
+                   "characters": "placeholder#11:5"
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:41-props",
+                "name": "#props",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-p-fieldId",
+                  "name": "#prop:fieldId",
+                  "characters": "note",
+                  "componentPropertyReferences": {
+                   "characters": "fieldId#11:1"
+                  }
+                 }
+                ]
+               },
+               {
+                "type": "FRAME",
+                "id": "9:41-flags",
+                "name": "#flags",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-f-required",
+                  "name": "#flag:required",
+                  "characters": "required",
+                  "visible": false,
+                  "componentPropertyReferences": {
+                   "visible": "required#11:2"
+                  }
+                 },
+                 {
+                  "type": "TEXT",
+                  "id": "9:41-f-readOnly",
+                  "name": "#flag:readOnly",
+                  "characters": "readOnly",
+                  "visible": false,
+                  "componentPropertyReferences": {
+                   "visible": "readOnly#11:3"
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "type": "FRAME",
+          "id": "9:2-props",
+          "name": "#props",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "type": "TEXT",
+            "id": "9:2-p-avatar.src",
+            "name": "#prop:avatar.src",
+            "characters": "avatar.src",
+            "componentPropertyReferences": {
+             "characters": "avatar.src#41:1"
+            }
+           },
+           {
+            "type": "TEXT",
+            "id": "9:2-p-avatar.initials",
+            "name": "#prop:avatar.initials",
+            "characters": "${state.initials}",
+            "componentPropertyReferences": {
+             "characters": "avatar.initials#41:2"
+            }
+           },
+           {
+            "type": "TEXT",
+            "id": "9:2-p-photo.src",
+            "name": "#prop:photo.src",
+            "characters": "photo.src",
+            "componentPropertyReferences": {
+             "characters": "photo.src#41:3"
+            }
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "components": {
+  "iop": {
+   "key": "k-iop",
+   "name": "Mateu/Page Templates/ItemOverviewPage",
+   "remote": true
+  },
+  "tf": {
+   "key": "k-tf",
+   "name": "Mateu/Field/TextField",
+   "remote": true
+  },
+  "sec": {
+   "key": "k-sec",
+   "name": "propertyList=false, frameless=false, sticky=false",
+   "componentSetId": "sec-set",
+   "remote": true
+  },
+  "sec-pl": {
+   "key": "k-sec-pl",
+   "name": "propertyList=true, frameless=false, sticky=false",
+   "componentSetId": "sec-set",
+   "remote": true
+  },
+  "btn-t": {
+   "key": "k-bt",
+   "name": "style=tertiary, size=m",
+   "componentSetId": "btn-set",
+   "remote": true
+  },
+  "btn-p": {
+   "key": "k-bp",
+   "name": "style=primary, size=m",
+   "componentSetId": "btn-set",
+   "remote": true
+  }
+ },
+ "componentSets": {
+  "sec-set": {
+   "key": "k-ss",
+   "name": "Mateu/Layout/Section",
+   "remote": true
+  },
+  "btn-set": {
+   "key": "k-bs",
+   "name": "Mateu/Actions/Button",
+   "remote": true
+  }
+ }
+}

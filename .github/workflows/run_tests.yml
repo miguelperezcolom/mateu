@@ -251,6 +251,10 @@ jobs:
         run: |
           cd design/figma/to-yaml
           npm test
+          cd ../publish
+          npm ci --ignore-scripts
+          npm test
+          npm run build
 
   # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
   # schema, wire-type parity, headless rendering of every component type, the YAML binding

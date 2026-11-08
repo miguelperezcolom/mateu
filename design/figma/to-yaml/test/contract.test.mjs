@@ -4,7 +4,8 @@
 // so the library cannot promise a param the YAML does not have.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadContract, loadSchema, Schema } from '../src/schema.mjs'
+import { Schema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 import { Contract } from '../src/convert.mjs'
 
 const contract = loadContract()

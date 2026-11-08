@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.toView;
+import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.viewState;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.infra.declarative.orchestrators.RoutedPage;
@@ -25,7 +26,7 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String methodName = actionId.substring("action-on-view-".length());
-    var item = toView(httpRequest, orchestrator.viewClass());
+    var item = recordOf(httpRequest, orchestrator);
     var idField = orchestrator.getIdFieldForRow();
     Object savedId;
     try {
@@ -74,6 +75,28 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
         .withRoute("/" + savedId)
         .withState(new State(item))
         .withTargetComponentId(CrudTargetComponentId.view(httpRequest));
+  }
+
+  /**
+   * The record the page shows, with the page's values. A crud declared {@code Crud<Object, ...>}
+   * leaves its record's class to {@code view()}: built from {@code Object} there is no record, the
+   * button's method is not found, and the page is redrawn around an empty object.
+   */
+  private static Object recordOf(HttpRequest httpRequest, Crud orchestrator) {
+    var viewClass = orchestrator.viewClass();
+    if (viewClass != null && viewClass != Object.class) {
+      return toView(httpRequest, viewClass);
+    }
+    var id = viewState(httpRequest).get(orchestrator.getIdFieldForRow());
+    if (id == null) {
+      throw new IllegalStateException(
+          "The record page's state has no '"
+              + orchestrator.getIdFieldForRow()
+              + "': cannot tell which record this action is for");
+    }
+    return toView(
+        httpRequest,
+        orchestrator.view(orchestrator.toId(String.valueOf(id)), httpRequest).getClass());
   }
 
   /**

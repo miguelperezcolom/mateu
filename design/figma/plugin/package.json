@@ -6,10 +6,10 @@
   "scripts": {
     "build": "esbuild src/code.ts --bundle --target=es2017 --outfile=dist/code.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/sketch-kinds.test.mjs"
+    "test": "node --test test/sketch-kinds.test.mjs test/plan.test.mjs test/selftest.test.mjs"
   },
   "devDependencies": {
-    "@figma/plugin-typings": "^1.100.0",
+    "@figma/plugin-typings": "^1.142.0",
     "esbuild": "^0.28.1",
     "typescript": "^5.5.0"
   }

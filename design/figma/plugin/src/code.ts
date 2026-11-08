@@ -8,8 +8,13 @@
  *
  * Every contract entry becomes a Figma COMPONENT (or a COMPONENT SET when it declares variant
  * axes), named exactly `Mateu/<Category>/<Name>` with variant properties named exactly like the
- * Mateu annotation/record parameters. Non-visual config (fieldId, actionId…) lives in a subtle
- * text layer named `#config` whose content is `key=value; key2=value2` — the importer parses it.
+ * Mateu annotation/record parameters. Non-visual config (fieldId, actionId, route, required…)
+ * and the editable texts (Label, Title…) are COMPONENT PROPERTIES, edited in Figma's properties
+ * panel; every named `slot` is a NATIVE slot, so designers drag library instances into it (see
+ * ./plan.ts). Every property drives a layer — a config prop its own muted `#prop:`/`#flag:` marker
+ * in the component's `#props`/`#flags` rows — because Figma does not publish a component with an
+ * unbound property. Only a prop Figma refuses as a property falls back to the old subtle `#config`
+ * text layer (`key=value; key2=value2`), which the importers still read.
  *
  * The drawing is data-driven: each entry carries a compact `sketch` (a list of primitives) that
  * the generic renderer below turns into auto-layout frames. Regenerating the library after the
@@ -17,6 +22,12 @@
  */
 
 import contract from "../../contract.json";
+import { FLAGS_ROW, PROPS_ROW, planEntry } from "./plan";
+import type { EntryPlan, PropertyPlan, SlotPlan } from "./plan";
+import {
+  SELF_TEST_PAGE, aggregate, childForSlot, otherVariantValue, publishProblems, valueForProperty, variantCombosToTest, variantName,
+} from "./selftest";
+import type { Check, Report } from "./selftest";
 
 type Sketch = any;
 type Entry = any;
@@ -95,16 +106,16 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
   switch (item.t) {
     case 'title': {
       const size = item.sizeFromVariant ? sizeFor(ctx.variants[item.sizeFromVariant]) : (item.size ?? LUMO.sizeM);
-      return textNode(item.text ?? 'Título', { size, bold: true, color: item.color === 'primary' ? LUMO.primary : item.color, name: item.text });
+      return textNode(item.text ?? 'Título', { size, bold: true, color: item.color === 'primary' ? LUMO.primary : item.color, name: item.layer ?? item.text });
     }
     case 'label':
-      return textNode(item.text ?? 'Label', { size: LUMO.sizeXs + 1, color: LUMO.secondary, name: item.text });
+      return textNode(item.text ?? 'Label', { size: LUMO.sizeXs + 1, color: LUMO.secondary, name: item.layer ?? item.text });
     case 'value':
-      return textNode(item.text ?? 'Valor', { size: LUMO.sizeS, medium: true, name: item.text });
+      return textNode(item.text ?? 'Valor', { size: LUMO.sizeS, medium: true, name: item.layer ?? item.text });
     case 'text': {
       const size = item.sizeFromVariant ? sizeFor(ctx.variants[item.sizeFromVariant]) : (item.size ?? LUMO.sizeS);
       const color = item.inkFromTheme ? colors.ink : (item.color === 'secondary' ? LUMO.secondary : item.color === 'primary' ? LUMO.primary : item.color);
-      const t = textNode(item.text ?? 'Texto', { size, bold: item.bold, italic: item.italic, color, name: item.text });
+      const t = textNode(item.text ?? 'Texto', { size, bold: item.bold, italic: item.italic, color, name: item.layer ?? item.text });
       if (item.underline) t.textDecoration = 'UNDERLINE';
       return t;
     }
@@ -112,7 +123,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       const c = themeColors(item.theme);
       const f = frameNode({ dir: 'HORIZONTAL', pad: 4, gap: 4, bg: c.bg, radius: 999 });
       f.paddingLeft = f.paddingRight = 8;
-      f.appendChild(textNode(item.text ?? 'chip', { size: LUMO.sizeXs, medium: true, color: c.ink, name: item.text }));
+      f.appendChild(textNode(item.text ?? 'chip', { size: LUMO.sizeXs, medium: true, color: c.ink, name: item.layer ?? item.text }));
       return f;
     }
     case 'fieldbox': {
@@ -120,7 +131,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.resize(item.w ?? 180, Math.max(item.h ?? 32, 32));
       f.primaryAxisSizingMode = 'FIXED';
       f.counterAxisSizingMode = 'FIXED';
-      f.appendChild(textNode(item.text ?? '', { size: LUMO.sizeS, color: LUMO.secondary, name: item.text }));
+      f.appendChild(textNode(item.text ?? '', { size: LUMO.sizeS, color: LUMO.secondary, name: item.layer ?? item.text }));
       if (item.icon) f.appendChild(textNode(item.icon, { size: LUMO.sizeS, color: LUMO.secondary }));
       return f;
     }
@@ -139,7 +150,7 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.counterAxisSizingMode = 'FIXED';
       f.primaryAxisAlignItems = 'CENTER';
       if (item.hollow) { f.strokes = [solid(LUMO.contrast20)]; f.strokeWeight = 1; }
-      if (item.text) f.appendChild(textNode(item.text, { size: size * 0.55, bold: true, color: '#ffffff' }));
+      if (item.text) f.appendChild(textNode(item.text, { size: size * 0.55, bold: true, color: '#ffffff', name: item.layer ?? item.text }));
       return f;
     }
     case 'bullets': {
@@ -239,20 +250,22 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       const ink = secondary && !item.themeBadge ? LUMO.body : '#ffffff';
       const f = frameNode({ dir: 'HORIZONTAL', pad: 8, bg, radius: item.pill ? 999 : LUMO.radiusM, center: true });
       f.paddingLeft = f.paddingRight = 14;
-      f.appendChild(textNode(item.text ?? 'Botón', { size: LUMO.sizeS, medium: true, color: ink, name: item.text }));
+      f.appendChild(textNode(item.text ?? 'Botón', { size: LUMO.sizeS, medium: true, color: ink, name: item.layer ?? item.text }));
       f.name = 'button';
       return f;
     }
     case 'slot': {
       const f = frameNode({ dir: 'VERTICAL', bg: '#fafafa', radius: LUMO.radiusM, center: true, stroke: LUMO.contrast20 });
       f.resize(item.w ?? 380, item.h ?? 80);
-      f.primaryAxisSizingMode = 'FIXED';
+      // fixed width, but it GROWS with what is dropped into it (never clips the content)
+      f.primaryAxisSizingMode = 'AUTO';
       f.counterAxisSizingMode = 'FIXED';
+      f.minHeight = item.h ?? 80;
       f.primaryAxisAlignItems = 'CENTER';
       f.strokeWeight = 1;
       f.dashPattern = [4, 4];
-      // A named slot is the frame `slot:<name>` the YAML converter (design/figma/to-yaml) fills
-      // from; its placeholder caption is a `#`-named layer, which is never read back as content.
+      // A named slot is the frame `slot:<name>`, made a NATIVE slot by linkSlots (designers drag
+      // instances into it); its caption is a `#`-named layer, never read back as content.
       f.appendChild(textNode(item.label ?? item.name ?? 'contenido', { size: LUMO.sizeXs, color: LUMO.secondary, name: '#placeholder' }));
       f.name = item.name ? `slot:${item.name}` : 'slot';
       return f;
@@ -362,17 +375,213 @@ function buildComponent(entry: Entry, variants: Record<string, string>): Compone
   comp.counterAxisSizingMode = 'AUTO';
   const ctx = { variants };
   for (const item of entry.sketch ?? []) comp.appendChild(renderItem(item, ctx));
-  // non-visual config: a subtle `#config` text layer the importers (../to-yaml, modux) parse (key=value; …)
-  const props = Object.keys(entry.props ?? {});
-  if (props.length > 0) {
-    const cfg = textNode(props.map((p: string) => `${p}=`).join('; '), { size: 9, color: '#b0b0b0', name: '#config' });
-    comp.appendChild(cfg);
-  }
   const variantEntries = Object.entries(variants);
   comp.name = variantEntries.length > 0
     ? variantEntries.map(([k, v]) => `${k}=${v}`).join(', ')
     : entry.name;
   return comp;
+}
+
+// ── component properties & native slots ──────────────────────────────────────
+
+/** What the run did, reported when it ends (and what fell back to the old conventions). */
+const stats = { properties: 0, textBindings: 0, slots: 0, preferred: 0, configFallbacks: 0, slotFallbacks: 0 };
+/** Slots whose preferred values name components that may be built later in the run. */
+const pendingPreferred: { owner: ComponentNode | ComponentSetNode, propertyId: string, slot: SlotPlan }[] = [];
+/** Contract name → the built component (or component set), for preferred values. */
+const built = new Map<string, ComponentNode | ComponentSetNode>();
+
+function findAll(root: BaseNode, test: (n: SceneNode) => boolean): SceneNode[] {
+  const out: SceneNode[] = [];
+  const walk = (n: BaseNode) => {
+    for (const c of (n as ChildrenMixin).children ?? []) {
+      if (test(c)) out.push(c);
+      walk(c);
+    }
+  };
+  walk(root);
+  return out;
+}
+
+/**
+ * Adds the entry's properties and slots to `owner` — the component, or the COMPONENT SET for an
+ * entry with variants (Figma keeps non-variant properties on the set; each variant's layers then
+ * reference the set's property) — and binds the layers of every component in `variants`.
+ */
+function applyPlan(owner: ComponentNode | ComponentSetNode, variants: ComponentNode[], plan: EntryPlan) {
+  const fallback: string[] = [];
+  for (const comp of variants) addMarkerRows(comp, plan.properties);
+  for (const p of plan.properties) {
+    let id: string;
+    try {
+      id = owner.addComponentProperty(p.name, p.type, p.defaultValue);
+    } catch (e) {
+      dropMarkers(variants, p);
+      if (p.marker) fallback.push(p.param); // a texts layer is still read off the layer itself
+      continue;
+    }
+    let bound = 0;
+    for (const comp of variants) {
+      for (const t of findAll(comp, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[]) {
+        try {
+          t.componentPropertyReferences = p.binds === 'visible' ? { visible: id } : { characters: id };
+          bound++;
+        } catch (e) { /* the layer keeps working as a plain text layer */ }
+      }
+    }
+    if (bound === 0) {
+      // Figma does not publish a component carrying a property bound to nothing: drop it
+      try { owner.deleteComponentProperty(id); } catch (e) { /* keep */ }
+      dropMarkers(variants, p);
+      if (p.marker) fallback.push(p.param);
+      continue;
+    }
+    stats.properties++;
+    stats.textBindings += bound;
+    if (p.marker) continue;
+    // a drawn text's default is the layer's own text, so an untouched instance reads unchanged;
+    // never an empty default (Figma does not publish that either)
+    const layers: TextNode[] = [];
+    for (const c of variants) layers.push(...(findAll(c, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[]));
+    const first = layers[0];
+    if (first && first.characters.trim() !== '' && first.characters !== p.defaultValue) {
+      try { owner.editComponentProperty(id, { defaultValue: first.characters }); } catch (e) { /* keep */ }
+    } else if (first && first.characters.trim() === '') {
+      for (const t of layers) { try { t.characters = String(p.defaultValue); } catch (e) { /* keep */ } }
+    }
+  }
+  for (const slot of plan.slots) linkSlot(owner, variants, slot);
+  for (const comp of variants) removeEmptyMarkerRows(comp);
+  if (fallback.length > 0) {
+    stats.configFallbacks++;
+    for (const comp of variants) {
+      comp.appendChild(textNode(fallback.map((p) => `${p}=`).join('; '), { size: 9, color: MARKER_INK, name: '#config' }));
+    }
+  }
+}
+
+const MARKER_INK = '#b0b0b0';
+
+/**
+ * The compact rows at the bottom of a component holding the config props' marker layers: `#props`
+ * (one muted `#prop:<prop>` text per TEXT prop, showing its value — its name until set) and
+ * `#flags` (one `#flag:<prop>` text per BOOLEAN prop, shown only while it is on). They exist so
+ * every property drives a layer — the condition for Figma to publish the component.
+ */
+function addMarkerRows(comp: ComponentNode, properties: PropertyPlan[]) {
+  const row = (name: string, items: PropertyPlan[], visible: boolean) => {
+    if (items.length === 0) return;
+    const f = frameNode({ dir: 'HORIZONTAL', gap: 6, name });
+    for (const p of items) {
+      const t = textNode(p.param, { size: 9, color: MARKER_INK, name: p.layer });
+      t.visible = visible;
+      f.appendChild(t);
+    }
+    comp.appendChild(f);
+  };
+  row(PROPS_ROW, properties.filter((p) => p.marker && p.type === 'TEXT'), true);
+  row(FLAGS_ROW, properties.filter((p) => p.marker && p.type === 'BOOLEAN'), false);
+}
+
+function dropMarkers(variants: ComponentNode[], p: PropertyPlan) {
+  if (!p.marker) return;
+  for (const comp of variants) for (const n of findAll(comp, (x) => x.name === p.layer)) n.remove();
+}
+
+function removeEmptyMarkerRows(comp: ComponentNode) {
+  for (const n of findAll(comp, (x) => (x.name === PROPS_ROW || x.name === FLAGS_ROW) && x.type === 'FRAME')) {
+    if ((n as FrameNode).children.length === 0) n.remove();
+  }
+}
+
+/**
+ * Makes every variant's `slot:<name>` frame a native slot: one SLOT property on the owner, each
+ * frame linked to it (`componentPropertyReferences.slotContentId`). A component without variants
+ * that refuses the link gets a fresh `createSlot()` node in the frame's place instead. When neither
+ * works the frame stays a plain `slot:<name>` frame — the converters read it either way.
+ */
+function linkSlot(owner: ComponentNode | ComponentSetNode, variants: ComponentNode[], slot: SlotPlan) {
+  const frameName = `slot:${slot.name}`;
+  const options = { description: slot.description, slotSettings: slot.settings };
+  let id: string | null = null;
+  try {
+    id = owner.addComponentProperty(slot.property, 'SLOT', '', options);
+  } catch (e) { id = null; }
+  let linked = 0;
+  for (const comp of variants) {
+    for (const frame of findAll(comp, (n) => n.type === 'FRAME' && n.name === frameName) as FrameNode[]) {
+      if (id) {
+        try {
+          (frame as any).componentPropertyReferences = { slotContentId: id };
+          linked++;
+          continue;
+        } catch (e) { /* try createSlot below */ }
+      }
+      if (owner.type === 'COMPONENT' && replaceWithCreatedSlot(owner, frame, slot, id)) linked++;
+    }
+  }
+  if (linked === 0) {
+    stats.slotFallbacks++;
+    if (id) { try { owner.deleteComponentProperty(id); } catch (e) { /* keep */ } }
+    return;
+  }
+  stats.slots++;
+  const propertyId = id ?? slotPropertyOf(owner, slot.property);
+  if (slot.preferred.length > 0 && propertyId) pendingPreferred.push({ owner, propertyId, slot });
+}
+
+/** `createSlot()` (which also creates its own SLOT property), styled like the frame it replaces. */
+function replaceWithCreatedSlot(comp: ComponentNode, frame: FrameNode, slot: SlotPlan, unusedId: string | null): boolean {
+  try {
+    if (unusedId) { try { comp.deleteComponentProperty(unusedId); } catch (e) { /* keep */ } }
+    const node = comp.createSlot();
+    const parent = frame.parent as (BaseNode & ChildrenMixin);
+    parent.insertChild(parent.children.indexOf(frame), node);
+    node.name = frame.name;
+    node.layoutMode = frame.layoutMode;
+    node.resize(frame.width, frame.height);
+    node.primaryAxisSizingMode = frame.primaryAxisSizingMode;
+    node.counterAxisSizingMode = frame.counterAxisSizingMode;
+    node.minHeight = frame.minHeight;
+    node.primaryAxisAlignItems = frame.primaryAxisAlignItems;
+    node.counterAxisAlignItems = frame.counterAxisAlignItems;
+    node.fills = frame.fills;
+    node.strokes = frame.strokes;
+    node.strokeWeight = frame.strokeWeight;
+    node.dashPattern = frame.dashPattern;
+    node.cornerRadius = frame.cornerRadius;
+    for (const child of [...frame.children]) node.appendChild(child);
+    frame.remove();
+    const ref = ((node as any).componentPropertyReferences ?? {}).slotContentId as string | undefined;
+    if (ref) {
+      comp.editComponentProperty(ref, { name: slot.property, description: slot.description, slotSettings: slot.settings });
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function slotPropertyOf(owner: ComponentNode | ComponentSetNode, name: string): string | null {
+  for (const [key, def] of Object.entries(owner.componentPropertyDefinitions)) {
+    if (def.type === 'SLOT' && key.replace(/#.*$/, '') === name) return key;
+  }
+  return null;
+}
+
+/** Preferred values (Buttons first in a toolbar) once every component of the run exists. */
+function applyPreferredValues() {
+  for (const { owner, propertyId, slot } of pendingPreferred) {
+    const values = slot.preferred
+      .map((name) => built.get(name))
+      .filter((n): n is ComponentNode | ComponentSetNode => !!n)
+      .map((n) => ({ type: n.type, key: n.key } as InstanceSwapPreferredValue));
+    if (values.length === 0) continue;
+    try {
+      owner.editComponentProperty(propertyId, { preferredValues: values });
+      stats.preferred++;
+    } catch (e) { /* the slot still takes anything */ }
+  }
 }
 
 async function buildLibrary() {
@@ -407,6 +616,8 @@ async function buildLibrary() {
         const comp = buildComponent(entry, {});
         comp.x = 0; comp.y = y;
         page.appendChild(comp);
+        applyPlan(comp, [comp], planEntry(entry));
+        built.set(entry.name, comp);
         y += comp.height + 60;
       } else {
         const comps = combos.map(combo => buildComponent(entry, combo));
@@ -419,13 +630,271 @@ async function buildLibrary() {
         set.counterAxisSpacing = 24;
         set.paddingTop = set.paddingBottom = set.paddingLeft = set.paddingRight = 16;
         set.x = 0; set.y = y;
+        applyPlan(set, comps, planEntry(entry));
+        built.set(entry.name, set);
         y += set.height + 60;
       }
     }
   }
+  applyPreferredValues();
 
-  figma.notify(`Mateu library generated: ${(contract as any).components.length} components ✔`);
+  const fallbacks = stats.configFallbacks + stats.slotFallbacks > 0
+    ? ` — fallbacks: ${stats.configFallbacks} #config, ${stats.slotFallbacks} plain slot frames`
+    : '';
+  figma.notify(`Mateu library generated: ${(contract as any).components.length} components, ${stats.properties} properties, ${stats.slots} native slots ✔${fallbacks}`, { timeout: 10000 });
+  console.log('Mateu library generator', JSON.stringify(stats));
   figma.closePlugin();
 }
 
-buildLibrary();
+// ── self-test ────────────────────────────────────────────────────────────────
+
+/**
+ * "Mateu Library Self-test": run in the library file after generating it. For every contract
+ * entry (its default variant and one more instance per other axis value) it makes an instance on
+ * the `Mateu · Self-test` page, drops a library instance into each slot, sets every property to a
+ * distinctive value and reads it back, flips every variant axis, and checks no `#config` was left.
+ * The results table sits at the top of the page; the full report is logged as JSON.
+ */
+async function runSelfTest() {
+  await figma.loadFontAsync(FONT_R);
+  await figma.loadFontAsync(FONT_B);
+  await figma.loadFontAsync(FONT_M);
+
+  // the library's components, by contract name
+  const library = new Map<string, ComponentNode | ComponentSetNode>();
+  for (const page of figma.root.children) {
+    if (!page.name.startsWith('Mateu · ') || page.name === SELF_TEST_PAGE) continue;
+    await page.loadAsync();
+    for (const node of page.children) {
+      if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') library.set(node.name, node);
+    }
+  }
+  if (library.size === 0) {
+    figma.notify('No Mateu library in this file: run "Mateu Library Generator" first', { error: true });
+    figma.closePlugin();
+    return;
+  }
+
+  let page = figma.root.children.find((p) => p.name === SELF_TEST_PAGE) as PageNode | undefined;
+  if (page) {
+    await page.loadAsync();
+    for (const child of [...page.children]) child.remove();
+  } else {
+    page = figma.createPage();
+    page.name = SELF_TEST_PAGE;
+  }
+  await figma.setCurrentPageAsync(page);
+
+  const grid = frameNode({ dir: 'HORIZONTAL', gap: 32, pad: 24, name: 'Self-test instances' });
+  grid.layoutWrap = 'WRAP';
+  grid.counterAxisSpacing = 32;
+  grid.resize(4800, 100);
+  grid.primaryAxisSizingMode = 'FIXED';
+  grid.counterAxisAlignItems = 'MIN';
+  page.appendChild(grid);
+
+  const checks: Check[] = [];
+  const instances: Record<string, number> = {};
+  const instanceOf = (name: string): InstanceNode | null => {
+    const node = library.get(name);
+    if (!node) return null;
+    return (node.type === 'COMPONENT_SET' ? node.defaultVariant : node).createInstance();
+  };
+
+  for (const entry of (contract as any).components as Entry[]) {
+    const node = library.get(entry.name);
+    instances[entry.name] = 0;
+    if (!node) {
+      checks.push({ entry: entry.name, variant: '', kind: 'config', target: 'component', ok: false, message: 'not in the library (re-run the generator)' });
+      continue;
+    }
+    const plan = planEntry(entry);
+    checkPublishable(entry.name, node, checks);
+    const combos = variantCombosToTest(entry.variants ?? {});
+    combos.forEach((combo, index) => {
+      const variant = variantName(combo);
+      const main = node.type === 'COMPONENT_SET'
+        ? node.children.find((c) => sameVariant((c as ComponentNode).variantProperties, combo)) as ComponentNode | undefined
+        : node;
+      if (!main) {
+        checks.push({ entry: entry.name, variant, kind: 'variant', target: variant, ok: false, message: 'no such variant in the set' });
+        return;
+      }
+      const instance = main.createInstance();
+      instances[entry.name]++;
+      const cell = frameNode({ dir: 'VERTICAL', gap: 6, name: `cell ${entry.name}${variant ? ` [${variant}]` : ''}` });
+      cell.appendChild(textNode(variant ? `${entry.name}  ·  ${variant}` : entry.name, { size: 11, bold: true, color: LUMO.secondary, name: '#label' }));
+      cell.appendChild(instance);
+      grid.appendChild(cell);
+
+      for (const slot of plan.slots) checkSlot(entry.name, variant, instance, slot, instanceOf, checks);
+      // properties and variants: once per entry, on the default variant's instance
+      if (index === 0) {
+        for (const p of plan.properties) checkProperty(entry.name, variant, instance, p, checks);
+        for (const [axis, values] of Object.entries(entry.variants ?? {}) as [string, string[]][]) {
+          checkVariant(entry.name, variant, instance, axis, values, checks);
+        }
+        if (Object.keys(entry.props ?? {}).length > 0) {
+          const leftover = findAll(instance, (n) => n.name === '#config');
+          checks.push({
+            entry: entry.name, variant, kind: 'config', target: '#config', ok: leftover.length === 0,
+            message: leftover.length ? `#config left (${(leftover[0] as TextNode).characters}): Figma refused those props as properties` : undefined,
+          });
+        }
+      }
+    });
+  }
+
+  const report = aggregate(checks, instances);
+  const table = resultsTable(report);
+  page.insertChild(0, table);
+  table.x = 0; table.y = 0;
+  grid.x = 0; grid.y = table.height + 80;
+
+  const t = report.totals;
+  const blocked = report.instanceSlotBlocked ? ` (${report.instanceSlotBlocked} slot appends blocked on instances by the API)` : '';
+  figma.notify(`Self-test: ${t.entries} entries, ${t.instances} instances — publishable ${t.publishable}/${t.entries}, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures${blocked}`, { timeout: 15000 });
+  console.log('Mateu library self-test', JSON.stringify(report));
+  figma.closePlugin();
+}
+
+function sameVariant(props: { [p: string]: string } | null, combo: Record<string, string>): boolean {
+  if (!props) return false;
+  return Object.entries(combo).every(([k, v]) => props[k] === v);
+}
+
+/** The instance's native slot for `slot`: a SLOT node named `slot:<name>` or linked to its property. */
+function slotNodeOf(instance: InstanceNode, slot: SlotPlan): SceneNode | null {
+  const frameName = `slot:${slot.name}`;
+  const found = findAll(instance, (n) => {
+    if ((n as any).type !== 'SLOT') return false;
+    const ref = ((n as any).componentPropertyReferences ?? {}).slotContentId as string | undefined;
+    return n.name === frameName || (!!ref && ref.replace(/#[^#]*$/, '') === slot.property);
+  });
+  return found[0] ?? null;
+}
+
+function checkSlot(entry: string, variant: string, instance: InstanceNode, slot: SlotPlan,
+                   instanceOf: (name: string) => InstanceNode | null, checks: Check[]) {
+  const childName = childForSlot(slot);
+  if (!childName) return;
+  const base = { entry, variant, kind: 'slot' as const, target: slot.name };
+  const target = slotNodeOf(instance, slot);
+  if (!target) {
+    const plain = findAll(instance, (n) => n.type === 'FRAME' && n.name === `slot:${slot.name}`).length > 0;
+    checks.push({ ...base, ok: false, message: plain ? 'a plain slot:<name> frame, not a native slot (generator fallback)' : 'no slot in the instance' });
+    return;
+  }
+  const child = instanceOf(childName);
+  if (!child) {
+    checks.push({ ...base, ok: false, message: `${childName} is not in the library` });
+    return;
+  }
+  try {
+    (target as unknown as ChildrenMixin).appendChild(child);
+    const inside = child.parent === (target as BaseNode);
+    const violations = ((target as any).limitViolations ?? []) as string[];
+    checks.push({ ...base, ok: inside && violations.length === 0,
+      message: !inside ? 'appended but not inside the slot' : violations.length ? `limit violations: ${violations.join(', ')}` : undefined });
+  } catch (e) {
+    child.remove();
+    checks.push({ ...base, ok: false, message: `append refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+function propertyKey(instance: InstanceNode, name: string): string | null {
+  for (const key of Object.keys(instance.componentProperties)) {
+    if (key.replace(/#[^#]*$/, '') === name && instance.componentProperties[key].type !== 'VARIANT') return key;
+  }
+  return null;
+}
+
+function checkProperty(entry: string, variant: string, instance: InstanceNode, p: PropertyPlan, checks: Check[]) {
+  const base = { entry, variant, kind: 'property' as const, target: p.name };
+  const key = propertyKey(instance, p.name);
+  if (!key) {
+    checks.push({ ...base, ok: false, message: 'not a property of the instance' });
+    return;
+  }
+  const value = valueForProperty(p);
+  try {
+    instance.setProperties({ [key]: value });
+    const read = instance.componentProperties[key]?.value;
+    let message: string | undefined = read === value ? undefined : `read back ${JSON.stringify(read)}`;
+    if (!message) {
+      const layers = findAll(instance, (n) => n.type === 'TEXT' && n.name === p.layer) as TextNode[];
+      if (layers.length === 0) message = `no "${p.layer}" text layer`;
+      else if (p.binds === 'visible' && !layers.some((l) => l.visible === value)) message = `"${p.layer}" visibility did not follow`;
+      else if (p.binds === 'characters' && !layers.some((l) => l.characters === value)) message = `"${p.layer}" still shows ${JSON.stringify(layers[0].characters)}`;
+    }
+    // config props go back to their default (a typed param would not read "selftest-x");
+    // text props keep the distinctive value, visible on the page and in its REST JSON
+    if (p.marker) instance.setProperties({ [key]: p.defaultValue });
+    checks.push({ ...base, ok: !message, message });
+  } catch (e) {
+    checks.push({ ...base, ok: false, message: `setProperties refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+/**
+ * Whether Figma will PUBLISH the component: every non-variant property is referenced by a layer
+ * (characters / visible / mainComponent / slotContentId) and no TEXT default is empty. In-file
+ * instances work either way — this is what the instance checks cannot see.
+ */
+function checkPublishable(entry: string, node: ComponentNode | ComponentSetNode, checks: Check[]) {
+  const referenced = new Set<string>();
+  const collect = (n: BaseNode) => {
+    const refs = (n as any).componentPropertyReferences as Record<string, string> | null | undefined;
+    for (const v of Object.values(refs ?? {})) if (v) referenced.add(v);
+    for (const c of (n as ChildrenMixin).children ?? []) collect(c);
+  };
+  collect(node);
+  const problems = publishProblems(node.componentPropertyDefinitions as any, referenced);
+  checks.push({ entry, variant: '', kind: 'publish', target: 'library', ok: problems.length === 0,
+    message: problems.length ? `not publishable: ${problems.join('; ')}` : undefined });
+}
+
+function checkVariant(entry: string, variant: string, instance: InstanceNode, axis: string, values: string[], checks: Check[]) {
+  const current = (instance.variantProperties ?? {})[axis];
+  const other = otherVariantValue(values, current);
+  if (other === null) return;
+  const base = { entry, variant, kind: 'variant' as const, target: axis };
+  try {
+    instance.setProperties({ [axis]: other });
+    const read = (instance.variantProperties ?? {})[axis];
+    instance.setProperties({ [axis]: current });
+    checks.push({ ...base, ok: read === other, message: read === other ? undefined : `read back ${JSON.stringify(read)}` });
+  } catch (e) {
+    checks.push({ ...base, ok: false, message: `setProperties refused: ${String((e as Error)?.message ?? e)}` });
+  }
+}
+
+/** The results table: one row per entry (instances, slots ok/total, properties ok/total, failures). */
+function resultsTable(report: Report): FrameNode {
+  const table = frameNode({ dir: 'VERTICAL', gap: 0, pad: 16, bg: LUMO.base, radius: LUMO.radiusM, stroke: LUMO.contrast20, name: '_Self-test results' });
+  const t = report.totals;
+  table.appendChild(textNode(`Mateu library self-test — ${t.entries} entries, ${t.instances} instances, publishable ${t.publishable}/${t.entries}, slots ${t.slotsOk}/${t.slotsTotal}, properties ${t.propsOk}/${t.propsTotal}, ${t.failed} failures`, { size: LUMO.sizeM, bold: true, name: '#title' }));
+  const widths = [340, 80, 80, 110, 130, 900];
+  const row = (cells: string[], bold: boolean, failed: boolean) => {
+    const r = frameNode({ dir: 'HORIZONTAL', gap: 0, bg: failed ? LUMO.themes.danger.bg : undefined });
+    cells.forEach((c, i) => {
+      const cell = frameNode({ dir: 'HORIZONTAL', pad: 4 });
+      cell.resize(widths[i], 20);
+      cell.primaryAxisSizingMode = 'FIXED';
+      const text = textNode(c, { size: 11, bold, name: '#cell' });
+      if (i === 5) { text.textAutoResize = 'HEIGHT'; text.resize(widths[i] - 8, text.height); }
+      cell.appendChild(text);
+      r.appendChild(cell);
+    });
+    return r;
+  };
+  table.appendChild(row(['Entry', 'Instances', 'Publish', 'Slots', 'Properties', 'Failures'], true, false));
+  for (const e of report.entries) {
+    table.appendChild(row([e.entry, String(e.instances), e.publishable ? 'yes' : 'NO', `${e.slotsOk}/${e.slotsTotal}`, `${e.propsOk}/${e.propsTotal}`,
+      e.failures.join('\n')], false, e.failures.length > 0));
+  }
+  return table;
+}
+
+if (figma.command === 'selftest') runSelfTest();
+else buildLibrary();

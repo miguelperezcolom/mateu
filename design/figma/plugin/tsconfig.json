@@ -8,7 +8,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "node_modules/@figma"],
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"]
 }

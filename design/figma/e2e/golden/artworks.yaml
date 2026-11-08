@@ -1,0 +1,33 @@
+# Generated from the Figma frame "artworks" (node 2:997) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Obras
+subtitle: Toda la colección
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Inicio
+    actionable:
+      type: RouteLink
+      route: welcome
+content:
+  - type: Listing
+    gridLayout: table
+    title: Obras
+    searchable: true
+    rowRoute: "artworks/${row.id}"
+    pageSize: 10
+    columns:
+      - type: GridColumn
+        id: title
+        label: Título
+      - type: GridColumn
+        id: artist
+        label: Artista
+      - type: GridColumn
+        id: year
+        label: Año
+        dataType: integer
+    rowsSource:
+      ref: artworks

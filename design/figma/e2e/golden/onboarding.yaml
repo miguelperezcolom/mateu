@@ -1,0 +1,42 @@
+# Generated from the Figma frame "onboarding" (node 2:1190) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Bienvenida al equipo
+subtitle: Tres pasos y listo
+overline: Alta
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Finalizar
+    actionId: finish
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: you
+      title: Tus datos
+      description: Quién eres
+      content:
+        - type: FormField
+          id: fullName
+          dataType: string
+          label: Nombre completo
+          required: true
+    - id: team
+      title: Tu equipo
+      description: Dónde trabajarás
+      content:
+        - type: FormField
+          id: team
+          dataType: string
+          stereotype: select
+          label: Equipo
+    - id: confirm
+      title: Confirmación
+      description: Revisa y termina
+      content:
+        - type: FormField
+          id: accept
+          dataType: bool
+          stereotype: checkbox
+          label: He leído la guía de bienvenida
