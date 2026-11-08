@@ -214,6 +214,40 @@ val copyStarters = tasks.register("copyStarters") {
 sourceSets.main.get().resources.srcDir(startersResourceDir)
 tasks.named("processResources") { dependsOn(copyStarters) }
 
+// Import from Figma…: the driver (design/figma/import), the converter it calls (design/figma/to-yaml/src),
+// the contract and the authoring schema, laid out as the driver expects under mateu/figma-import/ with an
+// index.txt (FigmaImportRunner extracts them and runs import/figma-import.mjs with node). Copied at build
+// time — the sources of truth stay where they are authored.
+val figmaDir = projectDir.resolve("../../../design/figma")
+val uidlSchema = projectDir.resolve("../../../backend/shared/uidl/uidl-schema.json")
+val figmaResourceDir = layout.buildDirectory.dir("generated/figma-import")
+val copyFigmaImport = tasks.register("copyFigmaImport") {
+    description = "Copy the Figma → YAML converter into the plugin resources."
+    val sources = mapOf(
+        "import/figma-import.mjs" to figmaDir.resolve("import/figma-import.mjs"),
+        "contract.json" to figmaDir.resolve("contract.json"),
+        "uidl-schema.json" to uidlSchema,
+    )
+    val converter = figmaDir.resolve("to-yaml/src")
+    val target = figmaResourceDir
+    inputs.files(sources.values)
+    inputs.dir(converter)
+    outputs.dir(target)
+    doLast {
+        val out = target.get().dir("mateu/figma-import").asFile
+        deleteTree(out)
+        val files = sources.toMutableMap()
+        converter.listFiles { f -> f.isFile && f.name.endsWith(".mjs") }!!.forEach { files["to-yaml/src/${it.name}"] = it }
+        for ((rel, src) in files) {
+            check(src.isFile) { "missing $src" }
+            src.copyTo(out.resolve(rel), overwrite = true)
+        }
+        out.resolve("index.txt").writeText(files.keys.sorted().joinToString("\n", postfix = "\n"))
+    }
+}
+sourceSets.main.get().resources.srcDir(figmaResourceDir)
+tasks.named("processResources") { dependsOn(copyFigmaImport) }
+
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.

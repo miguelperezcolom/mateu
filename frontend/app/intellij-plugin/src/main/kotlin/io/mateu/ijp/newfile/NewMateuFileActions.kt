@@ -38,7 +38,10 @@ class MateuNewFileGroup : ActionGroup(), DumbAware {
     }
 
     override fun getChildren(e: AnActionEvent?): Array<AnAction> =
-        (MateuNewFiles.catalogue.files.map { NewMateuFileAction(it) } + AddMateuRouteAction(fromNewGroup = true)).toTypedArray()
+        (
+            MateuNewFiles.catalogue.files.map { NewMateuFileAction(it) } + AddMateuRouteAction(fromNewGroup = true) +
+                listOfNotNull(com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction("io.mateu.ImportFromFigma"))
+            ).toTypedArray()
 }
 
 /** The specs/ui folder New | Mateu targets for the folder selected in [e], or null. */
