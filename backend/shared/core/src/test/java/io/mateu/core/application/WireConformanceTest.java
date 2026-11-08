@@ -573,6 +573,25 @@ class WireConformanceTest {
   }
 
   /**
+   * A class-level {@code @AutoSave}: every change runs the named action after the debounce — an
+   * {@code AutoSave} trigger with its action id and debounce, and the action advertised (the client
+   * only sends what the component advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/auto-save")
+  @Title("Settings")
+  @io.mateu.uidl.annotations.AutoSave(debounceMillis = 500, action = "persist")
+  public static class AutoSaveForm {
+    public String nickname = "ada";
+    public boolean newsletter;
+
+    @io.mateu.uidl.annotations.Action
+    public Message persist() {
+      return Message.success("Saved");
+    }
+  }
+
+  /**
    * The last wire component types the ports lacked (3.0 GA parity): layouts (BoardLayout,
    * CarouselLayout, Container, FullWidth, Scroller, FormItem, FormSubSection, MasterDetailLayout),
    * navigation (ContextMenu, Directory, MenuBar), the fluent Grid with a column group, the chat and
@@ -1420,7 +1439,8 @@ class WireConformanceTest {
           "field-hints",
           "page-toolbar",
           "form-columns",
-          "more-components");
+          "more-components",
+          "auto-save");
 
   static TestMateu mateu;
 
@@ -1476,7 +1496,8 @@ class WireConformanceTest {
             FieldHintsPage.class,
             PageToolbarForm.class,
             FormColumnsForm.class,
-            MoreComponentsPage.class);
+            MoreComponentsPage.class,
+            AutoSaveForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
