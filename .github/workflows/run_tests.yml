@@ -76,7 +76,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: frontend/web/monorepo/package-lock.json
+          cache-dependency-path: |
+            frontend/web/monorepo/package-lock.json
+            frontend/app/react-native/package-lock.json
+            frontend/app/vscode-extension/package-lock.json
 
       # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
       # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
@@ -87,10 +90,18 @@ jobs:
       - name: Install the library's dependencies
         run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --workspace mateu-vaadin --include-workspace-root --ignore-scripts
 
+      # The licence guard below also walks the React Native app and the VS Code extension, so their
+      # trees must be installed too (no build, no install hooks: only the package.json files are read).
+      - name: Install the native apps' dependencies for the licence guard
+        run: |
+          (cd frontend/app/react-native && npm ci --ignore-scripts --no-audit --no-fund)
+          (cd frontend/app/vscode-extension && npm ci --ignore-scripts --no-audit --no-fund)
+
       # The vaadin-lit jar is Apache-2.0: nothing bundled into it may be under a commercial licence
-      # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk).
-      - name: Bundled frontend dependencies are under approved licences
-        run: node scripts/check-frontend-licenses.mjs
+      # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk). The same holds
+      # for the visual editor bundled into the IDE plugins, the React Native app and the .vsix.
+      - name: Shipped frontend dependencies are under approved licences
+        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension
 
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
