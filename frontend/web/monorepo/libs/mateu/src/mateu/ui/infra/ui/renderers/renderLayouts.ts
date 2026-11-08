@@ -298,7 +298,7 @@ export const renderBoardLayoutRow = (container: LitElement, component: ClientSid
 export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as BoardLayoutItem
     return html`
-        <div style="flex: ${metadata.boardCols ?? 1} 1 0; min-width: min(100%, 12rem); display: flex; flex-direction: column; align-items: stretch; ${component.style ?? ''}" class="${component.cssClasses}">
+        <div style="flex: ${metadata.boardCols || 1} 1 0; min-width: min(100%, 12rem); display: flex; flex-direction: column; align-items: stretch; ${component.style ?? ''}" class="${component.cssClasses}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `

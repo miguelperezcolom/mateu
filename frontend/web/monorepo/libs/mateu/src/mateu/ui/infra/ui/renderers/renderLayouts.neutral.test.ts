@@ -202,5 +202,8 @@ describe('simple wrappers', () => {
         expect(el.firstElementChild!.getAttribute('style')).toContain('align-items: stretch')
         const def = draw(renderBoardLayoutItem(container, cs('i', {}, []), undefined, {}, {}, {}, {}))
         expect(def.firstElementChild!.getAttribute('style')).toContain('flex: 1 1 0')
+        // the wire sends boardCols 0 for an item that declares none: it still takes its share
+        const zero = draw(renderBoardLayoutItem(container, cs('i', { boardCols: 0 }, []), undefined, {}, {}, {}, {}))
+        expect(zero.firstElementChild!.getAttribute('style')).toContain('flex: 1 1 0')
     })
 })
