@@ -36,6 +36,8 @@ import {
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType, toStatus } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 import { valueLabel } from "@infra/ui/renderers/columnRenderers/valueLabel.ts";
+import { formatTemporalCell } from "@infra/ui/dateFormat.ts";
+import { uiLocale } from "@infra/ui/uiLocale.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
@@ -1211,7 +1213,7 @@ export class MateuTableCrud extends LitElement {
             }
             if (col.dataType === 'bool') return html`${val ? '✓' : '✗'}`
             if (typeof val === 'object') return html`${val.label ?? val.name ?? val.message ?? ''}`
-            return html`${valueLabel(val, col.valueLabels)}`
+            return html`${formatTemporalCell(valueLabel(val, col.valueLabels), col.dataType, uiLocale())}`
         }
 
         // A listing that declares a rowRoute opens a row by its route in EVERY layout (the table

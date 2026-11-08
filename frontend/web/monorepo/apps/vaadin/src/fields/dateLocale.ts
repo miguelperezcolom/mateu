@@ -14,58 +14,15 @@ import { uiLocale } from '@infra/ui/uiLocale.ts'
  * from Intl too; the first day of the week from `Intl.Locale` weekInfo where the browser has it.
  */
 
-export type DatePart = 'day' | 'month' | 'year'
-
-export interface DateParts { day: number, month: number, year: number }
-
-export interface DateFormatSpec {
-    order: DatePart[]
-    separator: string
-    padDay: boolean
-    padMonth: boolean
-}
+// The format rule itself lives in libs/mateu (dateFormat.ts): the listing cells of a date column
+// write dates with it too, so a picker and the column next to it never disagree.
+import { dateFormatSpec, formatDateParts } from '@infra/ui/dateFormat.ts'
+import type { DatePart, DateParts } from '@infra/ui/dateFormat.ts'
+export { dateFormatSpec, formatDateParts }
+export type { DatePart, DateParts, DateFormatSpec } from '@infra/ui/dateFormat.ts'
 
 /** The locale date pickers format and parse in: the UI's (shared with the calendar). */
 export { uiLocale }
-
-const specs = new Map<string, DateFormatSpec>()
-
-/** How `locale` writes a numeric date: the order of its parts, the separator and the padding. */
-export const dateFormatSpec = (locale: string): DateFormatSpec => {
-    const cached = specs.get(locale)
-    if (cached) return cached
-    let spec: DateFormatSpec = { order: ['month', 'day', 'year'], separator: '/', padDay: false, padMonth: false }
-    try {
-        // 5 January: a day and month that show whether the locale pads them
-        const parts = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' })
-            .formatToParts(new Date(Date.UTC(2027, 0, 5)))
-        const order = parts.map(p => p.type).filter((t): t is DatePart => t === 'day' || t === 'month' || t === 'year')
-        if (order.length === 3 && new Set(order).size === 3) {
-            const literal = parts.find(p => p.type === 'literal')?.value.trim() ?? ''
-            spec = {
-                order,
-                // a separator a user can type: "." (de), "-" (nl), "/" … ; "年" or "" → "/"
-                separator: /^[./-]$/.test(literal) ? literal : '/',
-                padDay: (parts.find(p => p.type === 'day')?.value.length ?? 1) > 1,
-                padMonth: (parts.find(p => p.type === 'month')?.value.length ?? 1) > 1,
-            }
-        }
-    } catch {
-        // an unknown locale keeps the en-US spec
-    }
-    specs.set(locale, spec)
-    return spec
-}
-
-const pad = (n: number, width: number) => String(n).padStart(width, '0')
-
-/** `{year, month (0-based), day}` as `locale` writes it ("15/2/2027" in es-ES, "2/15/2027" in en-US). */
-export const formatDateParts = (d: DateParts, locale: string): string => {
-    const spec = dateFormatSpec(locale)
-    return spec.order.map(part => part === 'year' ? pad(d.year, 4)
-        : part === 'month' ? pad(d.month + 1, spec.padMonth ? 2 : 1)
-        : pad(d.day, spec.padDay ? 2 : 1)).join(spec.separator)
-}
 
 const daysInMonth = (year: number, month0: number) => new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate()
 

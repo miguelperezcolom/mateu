@@ -1,0 +1,18 @@
+# A record page with no view model: its values come raw from a source (here, the route's state).
+# What the renderers need to show 249 as "249.00" and AVAILABLE as "Available" must reach the wire.
+type: Form
+title: Product
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: id, label: Id, readOnly: true}
+      - {type: FormField, id: price, label: Price, stereotype: money, readOnly: true}
+      - {type: FormField, id: amount, label: Amount, dataType: money, readOnly: true}
+      - type: FormField
+        id: status
+        label: Status
+        readOnly: true
+        options:
+          - {value: AVAILABLE, label: Available}
+          - {value: OUT_OF_STOCK, label: Out of stock}
+      - {type: FormField, id: state, label: State, dataType: status, readOnly: true}

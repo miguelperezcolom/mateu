@@ -42,6 +42,13 @@ routes:
     definition: yaml-guarded.yaml
   - route: yaml-write
     definition: yaml-write.yaml
+  # A definition-only RECORD page: read-only fields whose values arrive raw (249, AVAILABLE).
+  - route: yaml-readonly-record
+    layout: yaml-readonly-record.yaml
+    state:
+      id: P-001
+      price: 249
+      status: AVAILABLE
     state:
       name: Leia
 

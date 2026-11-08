@@ -4,7 +4,7 @@ import { isPasswordField, shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import { safeHtml } from '@infra/ui/safeHtml.ts'
 import { Notification } from '@vaadin/notification'
 import { evalIfNecessary } from '@infra/ui/renderers/avatarRenderer.ts'
-import { displayedValue, formatMoney } from './fieldDisplay'
+import { displayedValue, formatMoney, readOnlyText } from './fieldDisplay'
 import type { FieldLabel, FieldValue } from './fieldEvents'
 import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from './mateu-field'
@@ -52,7 +52,8 @@ export function renderPropertyRowField(host: MateuField, _fieldId: string, value
         const lookupLabel = fromData(host.field.fieldId + '-label')
         if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
         v = shownReadOnlyValue(host.field, v)
-        const { isBool, checked, isMoney, display } = displayedValue(v, host.field?.dataType, host.field?.stereotype)
+        const { isBool, checked, isMoney, display } = displayedValue(v, host.field?.dataType, host.field?.stereotype,
+            lookupLabel !== undefined && lookupLabel !== '' ? undefined : (host.field as any).options)
         const valueBody = isBool
             ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
             : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
@@ -81,7 +82,7 @@ export function renderBulletedListField(host: MateuField, _fieldId: string, valu
 export function renderPlainTextField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
         const v = shownReadOnlyValue(host.field, evalIfNecessary(value, host.state, host.data))
-        const { isBool, checked, isMoney, display } = displayedValue(v, host.field?.dataType, host.field?.stereotype)
+        const { isBool, checked, isMoney, display } = displayedValue(v, host.field?.dataType, host.field?.stereotype, (host.field as any).options)
         const body = isBool
             ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
             : host.field?.multiline
@@ -175,7 +176,10 @@ export function renderReadOnlyField(host: MateuField, fieldId: string, value: Fi
                     data-colspan="${host.field.colspan}"
             ></vaadin-text-field>`
         }
-        const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
+        // an amount reads formatted ("249.00") and a select its option's label ("Available"), like
+        // a reflected Java form — a YAML page's values arrive raw from its REST source
+        const shown = isPasswordField(host.field) ? valueToDisplay : readOnlyText(valueToDisplay, host.field as any)
+        const strValue = shown != null ? String(shown) : ''
         // The copy icon is always rendered and only hidden, never added or removed: a Lit
         // expression as the last child of vaadin-text-field owns everything up to the end of
         // the element, which includes the <input slot="input"> vaadin appends there. Switching

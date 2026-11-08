@@ -1,9 +1,8 @@
 import { fieldAttribute } from '@components/mateu-file-upload.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { html, nothing, TemplateResult } from 'lit'
-import { getThemeForBadgetType } from '@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts'
-import Status from '@mateu/shared/apiClients/dtos/componentmetadata/Status.ts'
-import { formatMoney } from './fieldDisplay'
+import { getThemeForBadgetType, toStatus } from '@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts'
+import { formatMoney, optionLabels } from './fieldDisplay'
 import type { FieldLabel, FieldValue } from './fieldEvents'
 import type { MateuField } from './mateu-field'
 import type { ValueChangedDetail } from './fieldEvents'
@@ -39,7 +38,9 @@ export function renderMoneyField(host: MateuField, _fieldId: string, value: Fiel
 
 export function renderStatusField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
-        const status = value as Status
+        // a Status {type, message}, or the plain word a REST source answers (AVAILABLE): its tone by
+        // the word, its label the option's when the field has options, else the humanised constant
+        const status = toStatus(value, undefined, optionLabels((host.field as any).options))
         return html`
             <vaadin-custom-field
                     id="${host.field.fieldId}"

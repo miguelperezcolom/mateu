@@ -42,6 +42,8 @@ import "@vaadin/time-picker";
 import "@vaadin/date-time-picker";
 import "@vaadin/combo-box";
 import { columnAlign, formatNumberCell } from "@infra/ui/columnAlign.ts";
+import { formatTemporalCell } from "@infra/ui/dateFormat.ts";
+import { uiLocale } from "@infra/ui/uiLocale.ts";
 
 // Per-row cache of lookup labels, keyed by the row object itself so the synthetic "<col>-label"
 // keys never end up on the row that round-trips to the server (the Java row class has no such
@@ -476,7 +478,10 @@ export const columnRenderer = (item: any,
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
     // an enum column reads as its labels ("In house"); the row keeps the raw value
-    const cellValue = formatNumberCell(valueLabel(item[vaadinColumn.path!], column.valueLabels), column.dataType, document.documentElement.lang)
+    // a date / date-time / time column reads in the UI's locale, like the date fields ("5/11/2026")
+    const cellValue = formatTemporalCell(
+        formatNumberCell(valueLabel(item[vaadinColumn.path!], column.valueLabels), column.dataType, document.documentElement.lang),
+        column.dataType, uiLocale())
     // A listing that declares a rowRoute makes its IDENTIFIER column the way in, as a real anchor.
     // The row itself is clickable too, but a click target you cannot see is not an affordance: this
     // is the visible one, and being an <a> it also focuses with the keyboard, opens in a new tab and
