@@ -1,0 +1,6 @@
+# The case's own route table: one definition-only page (no view model) that the route seeds.
+routes:
+  - route: people/new
+    layout: person-new.yaml
+    state:
+      name: Leia

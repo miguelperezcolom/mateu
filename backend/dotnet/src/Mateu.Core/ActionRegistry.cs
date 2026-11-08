@@ -227,7 +227,7 @@ internal sealed class ActionRegistry : ISpecsCache
         return accepted;
     }
 
-    private static IReadOnlyList<FlowStep> StepsOf(object? node)
+    internal static IReadOnlyList<FlowStep> StepsOf(object? node)
     {
         var steps = new List<FlowStep>();
         foreach (var item in node as IEnumerable<object> ?? [])

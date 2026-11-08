@@ -315,7 +315,8 @@ class DispatchMixin(MixinBase):
                         yaml_spec.page_type,
                         rq,
                         seeded,
-                        [a for a in yaml_spec.actions if a.id not in yaml_spec.refused_actions],
+                        self._definition_page_actions(yaml_spec),
+                        yaml_spec,
                     ),
                     rq,
                 )
@@ -503,6 +504,33 @@ class DispatchMixin(MixinBase):
             return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq, layout_override)
 
+    def _definition_page_actions(self, spec) -> list:
+        """What a definition-only page advertises: its DECLARED actions (a refused one is not in
+        the caller's copy), then the catalogue entries its layout — or its own flows — names but
+        does not declare (OWNER FIRST), then ``__restfetch__`` when a declared call is proxied, as a
+        Java ``RestSourceSupplier`` page does (Java's ``seedBareLayout.withCatalogue`` +
+        ``SeededYamlPage``). Never the "*" wildcard a class view advertises."""
+        from mateu_ui.dtos import Action
+
+        from ..action_registry import to_dto
+
+        declared = [a for a in spec.actions if a.id not in spec.refused_actions]
+        actions = [a.dto for a in declared]
+        if self.action_catalog is not None and spec.layout is not None:
+            named = list(self.mapper.collect_action_ids(spec.layout))
+            for a in actions:
+                for command in a.commands or []:
+                    if command.type == "RunAction" and isinstance(command.data, dict):
+                        named.append(str(command.data.get("actionId") or ""))
+            owned = {a.id for a in actions} | set(spec.refused_actions)
+            actions += [
+                to_dto(e) for e in self.action_catalog.referenced_by(named, owned, self.mapper.authorized)
+            ]
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else (lambda s: s)
+        if any(a.source is not None and (resolve(a.source) or a.source).proxy for a in declared):
+            actions.append(Action(id="__restfetch__", validation_required=False))
+        return actions
+
     @staticmethod
     def _clicked_event_id(rq: RunActionRq) -> str | None:
         """The id inside the calendar's ``_clickedEvent`` action parameter — a map
@@ -516,30 +544,44 @@ class DispatchMixin(MixinBase):
 
 
 def _with_declared_page_type(
-    layout, page_type: str | None, rq: RunActionRq, state: dict | None = None, actions=()
+    layout, page_type: str | None, rq: RunActionRq, state: dict | None = None, actions=(), spec=None
 ):
     """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
     fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
     page that does (Java's ``ActionInstanceCreator.seedBareLayout`` → ``SeededYamlPage``).
-    A page that declares ``actions:`` is wrapped too, carrying THOSE actions — never the "*"
-    wildcard a class view advertises, which would claim every id for a server that has no
-    behaviour behind it (Java's SeededYamlPage.actions). Neither → unchanged."""
+    A page that declares ``actions:`` (or names catalogue actions) is wrapped too, carrying THOSE
+    actions (wire DTOs) — never the "*" wildcard a class view advertises, which would claim every id
+    for a server that has no behaviour behind it (Java's SeededYamlPage.actions) — with the client
+    validations of its required fields and the Form's ``confirmOnNavigationIfDirty``, as Java's.
+    Neither → unchanged."""
     if not page_type and not state and not actions:
         return layout
-    from ..action_registry import to_dto
     import re
 
     from mateu_ui.dtos import ServerSideComponent
 
+    from ..yaml_spec_loader import required_field_validations
+
+    bare = spec.layout if spec is not None else None
+    if not page_type:
+        # wrapped for its seeds: a listing is a collection, anything else a form (Java's
+        # PageTypeResolver default)
+        from mateu_ui.uidl.components import ListingComponent
+
+        page_type = "collection" if isinstance(bare, ListingComponent) else "form"
     route = (rq.route or "").split("?")[0].strip("/")
     return ServerSideComponent(
         id="page_" + re.sub(r"[^A-Za-z0-9_-]", "_", route or "root"),
         server_side_type="",
-        route="/" + route,
+        route=rq.consumed_route or "_empty",
         children=[layout],
         initial_data=dict(state or {}),
         page_type=page_type,
-        actions=[to_dto(a) for a in actions],
+        actions=list(actions),
+        # ComponentTreeSupplier.style()'s default: the page's reading measure
+        style="max-width:900px;margin: auto;",
+        validations=required_field_validations(bare),
+        confirm_on_navigation_if_dirty=bool(spec is not None and spec.confirm_on_navigation_if_dirty),
     )
 
 

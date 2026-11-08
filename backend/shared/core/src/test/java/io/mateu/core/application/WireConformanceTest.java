@@ -1638,12 +1638,21 @@ class WireConformanceTest {
           "crud-hidden-in-new",
           "editable-view",
           "editable-view-edit",
-          "view-toolbar-button");
+          "view-toolbar-button",
+          "definition-actions");
 
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
+    // The YAML cases first, each on a Mateu of its own: booting (and closing) one re-points the
+    // core's process-wide statics, so the shared instance below has to be the last one booted.
+    for (var name : CASES) {
+      if (Files.isDirectory(corpus().resolve(name).resolve("specs"))) {
+        var answer = actualYaml(name);
+        YAML_ANSWERS.put(name, new Object[] {answer, lastRawBytes});
+      }
+    }
     mateu =
         TestMateu.withUis(
             SimpleForm.class,
@@ -1878,7 +1887,70 @@ class WireConformanceTest {
           "editable-view-edit",
           "view-toolbar-button");
 
+  /**
+   * A YAML case: its {@code specs/ui/} directory is served as the classpath's {@code specs/ui/**}
+   * (everything else from the test classpath) to a Mateu booted for it alone, and its {@code
+   * request.json} route is loaded — the ports point their specs directory at the same files.
+   */
+  private static JsonNode actualYaml(String name) {
+    try {
+      var request =
+          MAPPER.readTree(Files.readString(corpus().resolve(name).resolve("request.json")));
+      var root = corpus().resolve(name).toUri().toURL();
+      var thread = Thread.currentThread();
+      var previous = thread.getContextClassLoader();
+      var overlay = new SpecsOverlay(root, WireConformanceTest.class.getClassLoader());
+      thread.setContextClassLoader(overlay);
+      try (var yaml = TestMateu.withUis()) {
+        return roundTrip(
+            yaml.run(
+                io.mateu.dtos.RunActionRqDto.builder()
+                    .route(request.path("route").asText(""))
+                    .consumedRoute(
+                        request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
+                    .actionId(request.path("actionId").asText(""))
+                    .componentState(java.util.Map.of())
+                    .build()));
+      } finally {
+        thread.setContextClassLoader(previous);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /** Serves {@code specs/ui/**} from one case directory; everything else from the parent. */
+  static final class SpecsOverlay extends ClassLoader {
+    private final java.net.URLClassLoader specs;
+
+    SpecsOverlay(java.net.URL root, ClassLoader parent) {
+      super(parent);
+      this.specs = new java.net.URLClassLoader(new java.net.URL[] {root}, null);
+    }
+
+    private static boolean isSpec(String name) {
+      return name.startsWith("specs/ui") || name.startsWith("/specs/ui");
+    }
+
+    @Override
+    public java.net.URL getResource(String name) {
+      return isSpec(name) ? specs.getResource(name) : super.getResource(name);
+    }
+
+    @Override
+    public java.util.Enumeration<java.net.URL> getResources(String name) throws IOException {
+      return isSpec(name) ? specs.getResources(name) : super.getResources(name);
+    }
+  }
+
+  /** The YAML cases' answers (and raw sizes), rendered in {@link #boot()}. */
+  private static final java.util.Map<String, Object[]> YAML_ANSWERS = new java.util.HashMap<>();
+
   private static JsonNode actual(String route) {
+    if (YAML_ANSWERS.get(route) instanceof Object[] answer) {
+      lastRawBytes = (Integer) answer[1];
+      return ((JsonNode) answer[0]).deepCopy();
+    }
     var requested = REQUESTED.get(route);
     var requestFile = corpus().resolve(route).resolve("request.json");
     if (requested != null && Files.exists(requestFile)) {

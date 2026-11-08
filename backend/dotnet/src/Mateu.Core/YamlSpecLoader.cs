@@ -50,6 +50,14 @@ internal sealed class YamlSpecLoader : ISpecsCache
         /// <summary>A <c>type: AppShell</c> definition (the deserialised tree, access keys already
         /// applied for the caller on a personalised spec): the route serves an APP, not a page.</summary>
         public IDictionary<object, object>? Shell { get; init; }
+
+        /// <summary>The definition's own <c>actions:</c> (beside <c>layout:</c>), as the caller may run
+        /// them — a refused one (<c>access:</c>) is already gone on a personalised spec. What a
+        /// definition-only page advertises (Java's SeededYamlPage.actions).</summary>
+        public IReadOnlyList<YamlDeclaredActions.Declared> Actions { get; init; } = [];
+
+        /// <summary>A <c>type: Form</c> definition declaring <c>confirmOnNavigationIfDirty: true</c>.</summary>
+        public bool ConfirmOnNavigationIfDirty { get; init; }
     }
 
     private static readonly Spec None = new(null, null);
@@ -140,7 +148,12 @@ internal sealed class YamlSpecLoader : ISpecsCache
         try
         {
             var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials, _fieldTypes);
-            return spec with { Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked };
+            return spec with
+            {
+                Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked,
+                // re-read from the caller's copy: a refused action is gone, its texts translated
+                Actions = YamlDeclaredActions.Of(tree).Where(a => !refused.Contains(a.Dto.Id)).ToList(),
+            };
         }
         catch (Exception e)
         {
@@ -212,6 +225,8 @@ internal sealed class YamlSpecLoader : ISpecsCache
                 Delta = delta, Source = dependsOnRequest ? root : null,
                 PageType = YamlComponentBuilder.PageTypeOf(root),
                 TemplatePageType = layout is Form { Template: { } template } ? PageTemplateLayout.PageTypeOf(template) : null,
+                Actions = YamlDeclaredActions.Of(root),
+                ConfirmOnNavigationIfDirty = YamlDeclaredActions.ConfirmsOnNavigationIfDirty(root),
             };
         }
         catch (Exception e)

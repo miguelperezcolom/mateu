@@ -1,0 +1,96 @@
+{
+  "commands" : [ {
+    "data" : "New person",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "save",
+        "restAction" : {
+          "source" : {
+            "body" : "{\"name\":\"${state.name}\"}",
+            "method" : "POST",
+            "url" : "https://api.example/people"
+          },
+          "successMessage" : "Saved",
+          "successRoute" : "people/${state.id}"
+        },
+        "validationRequired" : true
+      }, {
+        "id" : "remove",
+        "restAction" : {
+          "source" : {
+            "method" : "DELETE",
+            "proxy" : true,
+            "url" : "https://api.example/people/${state.id}"
+          },
+          "successMessage" : "Deleted"
+        }
+      }, {
+        "commands" : [ {
+          "data" : "people",
+          "type" : "NavigateTo"
+        } ],
+        "id" : "back"
+      }, {
+        "id" : "__restfetch__"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "colspan" : 1,
+            "dataType" : "string",
+            "fieldId" : "name",
+            "label" : "Name",
+            "stereotype" : "regular",
+            "type" : "FormField"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "colspan" : 1,
+            "dataType" : "string",
+            "fieldId" : "title",
+            "label" : "Title",
+            "required" : true,
+            "stereotype" : "regular",
+            "type" : "FormField"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "actionId" : "save",
+            "color" : "normal",
+            "label" : "Save",
+            "type" : "Button"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "title" : "New person",
+          "type" : "Form"
+        },
+        "type" : "ClientSide"
+      } ],
+      "confirmOnNavigationIfDirty" : true,
+      "initialData" : {
+        "name" : "Leia"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide",
+      "validations" : [ {
+        "condition" : "state['title'] != null && state['title'] !== '' && (state['title'].length === undefined || state['title'].length > 0)",
+        "fieldId" : "title",
+        "message" : "Cannot be empty"
+      } ]
+    },
+    "state" : {
+      "name" : "Leia"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
