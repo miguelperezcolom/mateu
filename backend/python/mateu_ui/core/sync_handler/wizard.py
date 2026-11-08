@@ -8,9 +8,13 @@ from mateu_ui.uidl import Draftable, Message, Step, Wizard
 from ..reflection import view_fields
 from .. import action_guard
 from ..mapper.wizard import (
+    completing_step,
     completion_method,
     completion_offered_early,
     has_next_step,
+    next_applicable,
+    previous_applicable,
+    step_applies,
 )
 from ..naming import camel_case
 from ._base import MixinBase
@@ -48,7 +52,9 @@ class WizardHandlerMixin(MixinBase):
             # The completion action (from the penultimate step, or earlier from its
             # available_from_step): run it over the bound state of every step, then show the
             # read-only result step (Java's WizardActionDispatcher).
-            if step != total - 1 and not completion_offered_early(type_, step, total):
+            if step != completing_step(type_, wizard, total) and not completion_offered_early(
+                type_, step, total, wizard
+            ):
                 return self.error("The wizard cannot complete from this step")
             veto = wizard.before_step_navigate(step, total)
             if veto is not None:
@@ -68,7 +74,9 @@ class WizardHandlerMixin(MixinBase):
                     }
                 )
             return response
-        if completion is not None and rq.action_id == "next" and step >= total - 1:
+        if completion is not None and rq.action_id == "next" and step >= completing_step(
+            type_, wizard, total
+        ):
             # a completion wizard never reaches its result step by Next: only the action leads there
             return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step), rq)
         if rq.action_id == "skip":
@@ -77,37 +85,45 @@ class WizardHandlerMixin(MixinBase):
             if (
                 wizard.step_skippable(step)
                 and wizard.display().skip.enabled()
-                and has_next_step(type_, step, total)
+                and has_next_step(type_, step, total, wizard)
             ):
-                veto = wizard.before_step_navigate(step, step + 1)
+                target = next_applicable(type_, wizard, step, total)
+                veto = wizard.before_step_navigate(step, target)
                 if veto is not None:
                     return self.map_result(veto, rq)
-                wizard.on_next(step, step + 1)
-                step += 1
+                wizard.on_next(step, target)
+                step = target
         elif rq.action_id in ("saveDraft", "saveAndClose"):
             response = self._save_draft(wizard, rq)
             if response is not None:
                 return response
         elif rq.action_id == "back":
-            if step > 1:
-                veto = wizard.before_step_navigate(step, step - 1)
+            # branching: the steps that do not apply are skipped backward too
+            target = previous_applicable(type_, wizard, step, total)
+            if target is not None:
+                veto = wizard.before_step_navigate(step, target)
                 if veto is not None:
                     return self.map_result(veto, rq)
-            step = max(1, step - 1)
-        elif rq.action_id == "next" and step >= total:
+                step = target
+        elif rq.action_id == "next" and next_applicable(type_, wizard, step, total) is None:
             return self.map_result(wizard.complete())
         elif rq.action_id == "next":
-            veto = wizard.before_step_navigate(step, step + 1)
+            target = next_applicable(type_, wizard, step, total)
+            veto = wizard.before_step_navigate(step, target)
             if veto is not None:
                 # cancelled: the answer is the response, the wizard stays where it was
                 return self.map_result(veto, rq)
-            wizard.on_next(step, step + 1)
-            step += 1
+            wizard.on_next(step, target)
+            step = target
         elif rq.action_id == "goToStep":
             # The drawer step pager's jump-to-step: `_stepId` = the bullet id "step-N"; jump only
             # BACKWARD (to an already-visited step) so we never skip a step's validation forward.
             target = self._go_to_step_target(rq)
-            if target is not None and 1 <= target < step:
+            if (
+                target is not None
+                and 1 <= target < step
+                and step_applies(type_, wizard, target, total)
+            ):
                 veto = wizard.before_step_navigate(step, target)
                 if veto is not None:
                     return self.map_result(veto, rq)

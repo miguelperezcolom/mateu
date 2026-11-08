@@ -81,6 +81,13 @@ class Wizard:
         field's label; .NET's ``StepTitle``). Default: None (no text; bullets read "Step n")."""
         return None
 
+    def step_applies(self, step: int) -> bool:
+        """Whether step ``step`` (1-based) applies given the answers so far (Java's
+        ``Wizard.stepApplies``): a step that does not is skipped by Next and Back alike and left
+        out of the progress; when the penultimate step does not apply, the completion action moves
+        to the last step that does. The result step always applies. Default: every step applies."""
+        return True
+
     def step_skippable(self, step: int) -> bool:
         """Whether the user may SKIP step ``step`` (1-based; the Redwood ``spSkip``): a "Skip"
         button moves on without requiring the step. Default: no step is skippable."""
