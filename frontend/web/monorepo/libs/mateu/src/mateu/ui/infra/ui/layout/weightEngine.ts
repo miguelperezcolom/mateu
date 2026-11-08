@@ -71,7 +71,11 @@ export function compactColumns(cols: GridColumn[]): GridColumn[] {
  */
 export function railColumns(cols: GridColumn[]): GridColumn[] {
     const compact = compactColumns(cols)
-    return compact.length > 0 ? compact : cols.slice(0, 3)
+    if (compact.length > 0) return compact
+    // the first few DATA columns: an action / menu / button column says nothing about the row
+    const data = cols.filter(c => !(c.dataType === 'action' || c.dataType === 'actionGroup'
+        || c.dataType === 'menu' || c.stereotype === 'button'))
+    return (data.length > 0 ? data : cols).slice(0, 3)
 }
 
 // ── Filter layout ──────────────────────────────────────────────────────────────
