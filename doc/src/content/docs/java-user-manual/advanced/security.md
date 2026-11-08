@@ -200,8 +200,6 @@ claim shapes:
 
 If any required condition is not met, the element is omitted from the response. The user never sees the menu entry or page.
 
-> `@KeycloakSecured` only configures the (Keycloak) login flow in the browser. The backend still has to authenticate the token it sends — configure your framework's security as above.
-
 ---
 
 ## Condition logic
@@ -441,8 +439,8 @@ yourself — it is the client's to write.
 ## Where the browser keeps the Bearer token
 
 Every request the web client sends carries `Authorization: Bearer <token>` when a token is
-available. The bootstrap (the Keycloak adapter `@KeycloakSecured` injects, your own login page, an
-`onSessionExpired` handler) leaves it and Mateu reads it on each request. Where it lives is a
+available. The bootstrap (your own login page, an `onSessionExpired`
+handler) leaves it and Mateu reads it on each request. Where it lives is a
 security trade-off, so it is configurable:
 
 | Storage | Survives a reload | Shared by tabs | Readable by a script injected into the page |
@@ -521,12 +519,9 @@ Content-Security-Policy:
   `connect-src`, and your identity provider to `connect-src`/`frame-src` when it uses an iframe.
 - The Vaadin renderer's page has **no inline script**: its theme script is a file
   (`/assets/mateu-theme.js`) and the module bundle is external, so `script-src 'self'` is enough.
-- Two pages do carry inline scripts, and then `script-src` must allow them by hash (or by nonce):
-  a `@KeycloakSecured` UI (the token bootstrap, which embeds the Keycloak url/realm/client — and
-  which, by default, imports the Keycloak adapter from `https://esm.sh`: allow that origin or
-  self-host the adapter, see [`@KeycloakSecured`](#legacy-keycloaksecured-deprecated)) and a
-  page served by the Redwood renderer (Oracle Visual Builder's boot, plus Mateu's replayer of it).
-  Their hashes are stable for a given configuration; compute them from the page Mateu serves with
+- One page does carry inline scripts, and then `script-src` must allow them by hash (or by
+  nonce): a page served by the Redwood renderer (Oracle Visual Builder's boot, plus Mateu's
+  replayer of it). Their hashes are stable for a given configuration; compute them from the page Mateu serves with
   `IndexPage.inlineScriptHashes(html)` (core, `io.mateu.core.infra`) and put them in your header:
 
   ```java
@@ -558,52 +553,6 @@ without an opener. `javascript:` URLs are never followed.
 In a microservices deployment, each service enforces `@EyesOnly` independently. The shell forwards the JWT to the service backend, which applies its own rules. A user who lacks a role sees the menu entry removed in the service's response — not just hidden in the shell.
 
 See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) for how this fits into a distributed architecture.
-
----
-
-## Legacy: `@KeycloakSecured` (deprecated)
-
-:::caution[Deprecated in 3.0-alpha.412]
-`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
-not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
-[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
-register a `PrincipalResolver`.
-:::
-
-`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
-
-```java
-@UI("")
-@KeycloakSecured(
-        url      = "https://auth.example.com/auth",
-        realm    = "my-realm",
-        clientId = "my-client"
-)
-public class App {
-    @Menu Products products;
-    @Menu Orders orders;
-}
-```
-
-| Parameter | Description |
-|---|---|
-| `url` | Base URL of your Keycloak server |
-| `realm` | Keycloak realm name |
-| `clientId` | OAuth2 client ID registered in Keycloak |
-| `jsUrl` | Optional: URL of the Keycloak JS adapter, imported as an **ES module**. Defaults to `https://esm.sh/keycloak-js@26.2.2` (a public CDN, not your Keycloak server) |
-
-When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
-
-**Under a Content Security Policy** the default `jsUrl` is a third-party script, so the
-`script-src 'self'` recipe [above](#content-security-policy) is not enough on its own: either add
-`https://esm.sh` to `script-src` (a module there imports further modules from the same origin), or —
-better for a hardened deployment — **self-host** the adapter: copy the ES-module build of
-`keycloak-js` (`node_modules/keycloak-js/lib/keycloak.js`, at the version your Keycloak server
-supports) under your app's static resources and point `jsUrl` at it, e.g.
-`jsUrl = "/js/keycloak.js"`. (The `static/js/keycloak.min.js` some Mateu jars carry is the legacy
-UMD build: it cannot be `import`ed, so it is not a valid `jsUrl`.) In both cases add the Keycloak
-`url` to `connect-src` and `frame-src` — keycloak-js calls its token endpoint and uses an iframe for
-the silent session check — and allow the inline bootstrap by hash as shown above.
 
 ---
 

@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
@@ -13,13 +14,19 @@ import lombok.Builder;
  *     declares it decorative. {@code null} = none declared (since 3.0-beta.4)
  */
 @Builder
-public record Image(String src, String style, String cssClasses, String alt) implements Component {
+public record Image(
+    String src,
+    String style,
+    String cssClasses,
+    @Experimental("image alt text (3.0-beta.4)") String alt)
+    implements Component {
 
   public Image(String src) {
     this(src, "", "", null);
   }
 
   /** An image with its text alternative (since 3.0-beta.4). */
+  @Experimental("image alt text (3.0-beta.4)")
   public Image(String src, String alt) {
     this(src, "", "", alt);
   }

@@ -1,9 +1,9 @@
 using Mateu.Dtos;
 using Mateu.Uidl;
 
-// The mapper keeps rendering the deprecated DashboardLayout / ContentLayout for code that still
-// authors them (they are [Obsolete], not removed).
-#pragma warning disable CS0618, MATEU002, MATEU003
+// The mapper keeps rendering the deprecated DashboardLayout for code that still authors it
+// (it is [Obsolete], not removed).
+#pragma warning disable CS0618, MATEU002
 
 namespace Mateu.Core;
 
@@ -32,8 +32,6 @@ internal static class ComponentMapper
         Slotted sl => Map(sl.SlotContent) with { Slot = sl.Slot },
 
         FoldoutLayout f => MapFoldout(f),
-
-        ContentLayout cl => MapContentLayout(cl),
 
         HeroSection h => Dto(h,
             new HeroSectionMetadataDto(h.Title, h.Subtitle, h.Image, h.Height, h.Centered)
@@ -457,30 +455,6 @@ internal static class ComponentMapper
         return new ClientSideComponentDto(meta, f.Id, children, f.Style, f.CssClasses, null);
     }
 
-    /// <summary>Content page: the named regions travel as slotted children (main-N / aside-N /
-    /// footer-N); the aside chrome (side/width/sticky) rides in the metadata.</summary>
-    private static ClientSideComponentDto MapContentLayout(ContentLayout cl)
-    {
-        var children = new List<ComponentDto>();
-        AddSlotted(children, cl.Main, "main-");
-        AddSlotted(children, cl.Aside, "aside-");
-        AddSlotted(children, cl.Footer, "footer-");
-        var meta = new ContentLayoutMetadataDto
-        {
-            AsidePosition = string.IsNullOrEmpty(cl.AsidePosition) ? "end" : cl.AsidePosition,
-            AsideWidth = cl.AsideWidth,
-            AsideSticky = cl.AsideSticky,
-        };
-        return new ClientSideComponentDto(meta, cl.Id, children, cl.Style, cl.CssClasses, null);
-    }
-
-    private static void AddSlotted(List<ComponentDto> children, IReadOnlyList<IComponent> region, string prefix)
-    {
-        for (var i = 0; i < region.Count; i++)
-            if (region[i] is not null)
-                children.Add(Map(region[i]) with { Slot = $"{prefix}{i}" });
-    }
-
     /// <summary>All actionIds referenced anywhere in the tree (MetricCard/EmptyState tiles, buttons),
     /// so the view's ServerSideComponent can advertise them and the renderer routes them back.</summary>
     public static IEnumerable<string> CollectActionIds(IComponent component)
@@ -521,11 +495,6 @@ internal static class ComponentMapper
                 if (fm.RecordSwitcher is { Route: null } rs) ids.Add(rs.ActionId ?? IRecordSwitcherSupplier.ActionId);
                 break;
             case Slotted sl when sl.SlotContent is not null: Collect(sl.SlotContent, ids); break;
-            case ContentLayout cl:
-                foreach (var i in cl.Main) Collect(i, ids);
-                foreach (var i in cl.Aside) Collect(i, ids);
-                foreach (var i in cl.Footer) Collect(i, ids);
-                break;
             case FoldoutLayout f:
                 if (f.Overview is not null) Collect(f.Overview, ids);
                 foreach (var p in f.Panels.Where(p => p.Content is not null)) Collect(p.Content!, ids);

@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Internal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ public record RestSourceCatalog(List<RestSourceEntry> sources) {
    * template (see {@link RestDataSource#forTheClient()}) — the server calls them from its own
    * table. Not a getter (manifest Jackson gotcha, see above).
    */
+  @Internal
   public RestSourceCatalog forTheClient() {
     return new RestSourceCatalog(
         sources.stream()

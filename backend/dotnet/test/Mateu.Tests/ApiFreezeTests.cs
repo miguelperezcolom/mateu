@@ -6,24 +6,13 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-// The pre-beta API freeze (design/api-freeze-review.md): the right spelling of the hamburger variant
-// is the wire value (since 3.0-alpha.412; the old spelling maps to it), and every [Obsolete] element of the public surface names
-// its replacement — the .NET side of Java's DeprecationsNameTheirReplacementTest.
+// The API freeze (design/api-freeze-review.md): the right spelling of the hamburger variant is the
+// wire value (the alpha-era misspelling HAMBURGUER_MENU was removed for 3.0), and every [Obsolete]
+// element of the public surface names its replacement — the .NET side of Java's
+// DeprecationsNameTheirReplacementTest.
 
 [App("Hamburger", Variant = AppVariant.HamburgerMenu)]
 public class HamburgerVariantApp
-{
-    [MenuItem("Home")] public FreezeHome Home() => new();
-}
-
-[App("Old hamburger", Variant = "HAMBURGUER_MENU")]
-public class OldHamburguerVariantApp
-{
-    [MenuItem("Home")] public FreezeHome Home() => new();
-}
-
-[App("Old hamburger, warned", Variant = "HAMBURGUER_MENU")]
-public class WarnedHamburguerVariantApp
 {
     [MenuItem("Home")] public FreezeHome Home() => new();
 }
@@ -40,12 +29,6 @@ public class ApiFreezeTests
     {
         // since 3.0-alpha.412 servers send HAMBURGER_MENU; the renderers accept both spellings
         Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(HamburgerVariantApp)));
-    }
-
-    [Fact]
-    public void The_old_misspelling_keeps_working()
-    {
-        Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(OldHamburguerVariantApp)));
     }
 
     [Fact]
@@ -68,11 +51,10 @@ public class ApiFreezeTests
                 Check(member, type.FullName + "." + member.Name, offenders);
         }
         Assert.Empty(offenders);
-        // the scan is not vacuous: the deprecated layouts are found
-#pragma warning disable CS0618, MATEU002, MATEU003
+        // the scan is not vacuous: the deprecated layout is found
+#pragma warning disable CS0618, MATEU002
         Assert.NotNull(typeof(DashboardLayout).GetCustomAttribute<ObsoleteAttribute>());
-        Assert.NotNull(typeof(ContentLayout).GetCustomAttribute<ObsoleteAttribute>());
-#pragma warning restore CS0618, MATEU002, MATEU003
+#pragma warning restore CS0618, MATEU002
     }
 
     [Fact]
@@ -137,52 +119,5 @@ public class ApiFreezeTests
         if (!message.Contains("use ", StringComparison.OrdinalIgnoreCase)
             && !message.Contains("no replacement", StringComparison.OrdinalIgnoreCase))
             offenders.Add(name + ": [Obsolete] names no replacement — \"" + message + "\"");
-    }
-}
-
-/// <summary>The warning half of the variant rename: it captures <see cref="MateuLogging"/>'s ONE
-/// process-wide logger factory, which a host booting in a parallel test swaps (and resets) under it —
-/// hence its own class in <see cref="ProcessWideStateCollection"/>.</summary>
-[Collection(ProcessWideStateCollection.Name)]
-public class ApiFreezeWarningTests
-{
-    private static string WireVariantOf(Type app) =>
-        ((AppMetadataDto)new ReflectionMapper().MapApp(app).Metadata).Variant;
-
-    [Fact]
-    public void The_old_misspelling_warns_naming_the_replacement()
-    {
-        var capture = new VariantLogCapture();
-        MateuLogging.UseLoggerFactory(capture);
-        try
-        {
-            Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(WarnedHamburguerVariantApp)));
-            WireVariantOf(typeof(WarnedHamburguerVariantApp)); // once per app, not per request
-        }
-        finally
-        {
-            MateuLogging.UseLoggerFactory(null);
-        }
-        var warned = capture.Entries.Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Warning
-                                               && e.Message.Contains(nameof(WarnedHamburguerVariantApp))).ToList();
-        var warning = Assert.Single(warned);
-        Assert.Contains("AppVariant.HamburgerMenu", warning.Message);
-    }
-}
-
-internal sealed class VariantLogCapture : Microsoft.Extensions.Logging.ILoggerFactory
-{
-    public readonly System.Collections.Concurrent.ConcurrentQueue<(Microsoft.Extensions.Logging.LogLevel Level, string Message)> Entries = new();
-    public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName) => new Logger(this);
-    public void AddProvider(Microsoft.Extensions.Logging.ILoggerProvider provider) { }
-    public void Dispose() { }
-
-    private sealed class Logger(VariantLogCapture owner) : Microsoft.Extensions.Logging.ILogger
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
-        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, Microsoft.Extensions.Logging.EventId eventId,
-            TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
-            owner.Entries.Enqueue((logLevel, formatter(state, exception)));
     }
 }

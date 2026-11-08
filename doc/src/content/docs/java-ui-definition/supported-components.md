@@ -50,7 +50,7 @@ or a pattern page, its name links there.
 
 <!-- GENERATED from backend/shared/uidl/uidl-catalog.json by scripts/gen-supported-components.mjs — do not edit -->
 
-126 types (catalogue version 3.0). The common attributes every component takes — `style`, `cssClasses`, `note` and the access keys — are left out.
+125 types (catalogue version 3.0). The common attributes every component takes — `style`, `cssClasses`, `note` and the access keys — are left out.
 
 ### Components
 
@@ -85,7 +85,6 @@ or a pattern page, its name links there.
 | [`ComponentRef`](/define/yaml/partials/) | A reference to a named business component in the ComponentCatalog (coherence-plan .13): drop new ComponentRef("AgencySelector") anywhere a component goes and it stands for that catalogue entry's bound composition. | `ref` |
 | [`ConfirmDialog`](/java-ui-definition/components/confirm-dialog/) | A modal that asks the user to confirm, reject or cancel, running an action for each choice. | `header`, `content`, `canCancel`, `canReject`, `rejectText`, `confirmText`, `openedCondition`, `confirmActionId`, `rejectActionId`, `cancelActionId` |
 | [`Container`](/java-ui-definition/components/container/) | A plain wrapper around one component, used for styling or grouping. | `content` |
-| `ContentLayout` | Redwood-style content page layout: the uniform slot grammar shared by the page archetypes. | `id`, `main`, `aside`, `footer`, `asidePosition`, `asideWidth`, `asideSticky` |
 | [`ContentSlot`](/java-ui-definition/components/content-slot/) | A hole for managed content filled by the content service, resolved by the host while it builds the view and replaced by its fallback when there is none. | `key`, `fallback`, `timeoutMs`, `description`, `degradeToClient` |
 | `ContextMenu` | A menu that opens on right click (or left click) over a wrapped component. | `menu`, `wrapped`, `activateOnLeftClick` |
 | [`CookieConsent`](/java-ui-definition/components/cookie-consent/) | A cookie-consent banner with a message, learn-more link and dismiss button. | `position`, `cookieName`, `message`, `theme`, `learnMore`, `learnMoreLink`, `dismiss` |

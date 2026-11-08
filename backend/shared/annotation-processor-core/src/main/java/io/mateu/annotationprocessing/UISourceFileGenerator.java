@@ -2,7 +2,6 @@ package io.mateu.annotationprocessing;
 
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.uidl.annotations.KeycloakSecured;
 import io.mateu.uidl.annotations.Link;
 import io.mateu.uidl.annotations.Meta;
 import io.mateu.uidl.annotations.Script;
@@ -82,15 +81,10 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "label", caption,
                   "routes", paths));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
-  @SuppressWarnings("removal") // @KeycloakSecured is deprecated but keeps working
   static void createIndexController(
       String generatedFullClassName,
       String pkgName,
@@ -144,27 +138,8 @@ class UISourceFileGenerator {
       model.put("links", extractLinks(e));
       model.put("metas", extractMetas(e));
 
-      KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
-      if (keycloakAnnotation != null) {
-        String keycloakJsUrl = keycloakAnnotation.jsUrl();
-        if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
-          keycloakJsUrl = "https://esm.sh/keycloak-js@26.2.2";
-        }
-        model.put(
-            "keycloak",
-            Map.of(
-                "url", keycloakAnnotation.url(),
-                "realm", keycloakAnnotation.realm(),
-                "clientId", keycloakAnnotation.clientId(),
-                "jsUrl", keycloakJsUrl));
-      }
-
       Formatter formatter = new Formatter("index.ftl", model);
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -178,10 +153,6 @@ class UISourceFileGenerator {
       String path,
       String indexHtmlPath,
       String frontendComponentPath,
-      String keycloakUrl,
-      String keycloakRealm,
-      String keycloakClientId,
-      String keycloakJsUrl,
       List<Map<String, Object>> scripts,
       List<Map<String, Object>> links,
       List<Map<String, Object>> metas,
@@ -210,23 +181,8 @@ class UISourceFileGenerator {
       model.put("scripts", scripts);
       model.put("links", links);
       model.put("metas", metas);
-      if (!keycloakUrl.isEmpty()) {
-        String jsUrl =
-            keycloakJsUrl.isEmpty() ? "https://esm.sh/keycloak-js@26.2.2" : keycloakJsUrl;
-        model.put(
-            "keycloak",
-            Map.of(
-                "url", keycloakUrl,
-                "realm", keycloakRealm,
-                "clientId", keycloakClientId,
-                "jsUrl", jsUrl));
-      }
       Formatter formatter = new Formatter("index.ftl", model);
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -253,11 +209,7 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "pageTitle", caption,
                   "path", path));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -284,11 +236,7 @@ class UISourceFileGenerator {
                   "generatedFullClassName", generatedFullClassName,
                   "pageTitle", caption,
                   "path", path));
-      try {
-        out.println(formatter.apply());
-      } catch (TemplateException ex) {
-        ex.printStackTrace();
-      }
+      print(out, formatter);
     }
   }
 
@@ -334,4 +282,13 @@ class UISourceFileGenerator {
   }
 
   private UISourceFileGenerator() {}
+
+  /** Writes what the template renders; a template error is printed, as it always was. */
+  private static void print(PrintWriter out, Formatter formatter) throws IOException {
+    try {
+      out.println(formatter.apply());
+    } catch (TemplateException ex) {
+      ex.printStackTrace();
+    }
+  }
 }

@@ -163,6 +163,28 @@ Experimental today:
 
 The exact list, type by type, is [generated from the code](#stable-and-experimental-api-by-package).
 
+Beyond the API, three **tools** are in **preview** in 3.0 — the Figma → YAML pipeline, the visual
+editor and the VS Code extension — and the .NET and Python servers are **supported with documented
+gaps**; [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30) says what
+that means.
+
+### Added after the freeze: experimental in 3.0.0
+
+Everything that joined the public API after the freeze (`3.0-beta.1`) and before `3.0.0` is
+**experimental in 3.0.0**: it shipped in betas, weeks old, and keeps the freedom to change in a
+3.x minor. Most of it was marked when it landed (the page templates, the micro frontends resolved in
+the server and `@ContentSlot`, the kanban drag and order, the org chart in focus, the hero
+overline…); the GA review marked the rest:
+
+| Backend | Marked experimental at 3.0.0 |
+|---|---|
+| Java (`@Experimental`) | `@NoCrudNavigation`, `DetailContentSupplier`, `@AI(followLabel, followingLabel)`, `Direction.parse`, `Image.alt` (+ `Image(src, alt)`), `ProgressSteps.resultTitle`, `MicroFrontend.resolvedByServer`, `RouteTable.Match.params(incoming, query)`, `HttpRequest.getRemoteAddress`, `GeneralOverview.recordLabel` / `label`. `@Internal` (plumbing): `RestDataSource.forTheClient`, `RestSourceCatalog.forTheClient`, the archetypes' `bindRequest`, `MultiView.wrapView(…6 args)` |
+| .NET (`Experimental (3.0-beta.N)` in the doc comment — the port's convention) | `Image.Alt`, `IDetailContentSupplier`, `ProgressSteps.ResultTitle`, `HeroSection.Overline`, `Welcome.HeroOverline`, `ArchetypeComposers.ComposeWelcome(…, heroOverline)`, `WelcomeBannerAttribute.Overline`, `ICalendarPage.GoToDate` / `CalendarPage.GoToDate`, `MicroFrontend.ServerSideType` / `ActionId`, `Kanban.MoveActionId` / `RowsSource` / `ColumnField` / `Card` / `CardColors` / `CardRoute` / `OrderField`, `FoldoutPanel.AutoOpen`, `AIAttribute.FollowLabel` / `FollowingLabel` (the micro-frontend types and `OrgChart` display/focus were already marked) |
+| Python (no marker: the port has no experimental convention, so this list is the record) | `mateu_ui.uidl`: `ContentSlot`, `CorrelationIdProvider`, `DetailContentSupplier`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`, `ResolutionOutcome`, `cacheable_fragment`; `mateu_ui.uidl.components`: `ContentSlot`, `OrgChartDisplay`, `Resolve` |
+
+Lombok-generated members of an experimental record component (its builder setter, a `withX` of
+`@With`, `PageView.toBuilder()`) cannot carry the annotation; they follow the component they set.
+
 ### Stable and experimental API, by package
 
 Everything public in these packages is **stable** unless it is listed as experimental or internal
@@ -199,24 +221,24 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-dtos` | `io.mateu.dtos` | 281 | 251 | 0 | 30 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 176 | 163 | 9 | 4 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 333 | 263 | 64 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 328 | 263 | 64 | 1 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.fluent` | 35 | 31 | 1 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 92 | 8 | 2 | 7 |
-| `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
+| `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 91 | 9 | 0 | 7 |
+| `mateu-uidl` | `io.mateu.uidl.layout` | 2 | 0 | 0 | 0 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1031** | **833** | **93** | **45** | **60** |
+| **Total** | | **1016** | **831** | **95** | **31** | **59** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`
-- `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `RowStatus`, `Tooltip`
+- `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
 - `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
 
 **Experimental members** of otherwise stable types:
@@ -226,10 +248,11 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard`: `reorderable`
 - `io.mateu.core.infra.declarative.orchestrators.datamanagement.DataManagement`: `bottomPanel`, `endPanel`, `toggleBottomPanel`, `toggleEndPanel`
 - `io.mateu.core.infra.declarative.orchestrators.foldout.Foldout`: `panelSummary`
-- `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `display`, `info`, `infoWidth`
+- `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `display`, `info`, `infoWidth`, `label`, `recordLabel`
 - `io.mateu.core.infra.declarative.orchestrators.smartsearch.SmartSearchPage`: `preSearchContent`
 - `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroOverline`, `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
+- `io.mateu.uidl.annotations.AI`: `followLabel`, `followingLabel`
 - `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
@@ -238,37 +261,49 @@ same concepts.
 - `io.mateu.uidl.data.AppHeaderAction`: `route`
 - `io.mateu.uidl.data.Calendar`: `dayActionId`, `days`, `view`, `views`
 - `io.mateu.uidl.data.CalendarEvent`: `endDate`, `endTime`, `startTime`
+- `io.mateu.uidl.data.Direction`: `parse`
 - `io.mateu.uidl.data.FieldLink`: `presentation`
 - `io.mateu.uidl.data.FoldoutPanel`: `autoOpen`, `summary`
 - `io.mateu.uidl.data.GridColumn`: `tones`
 - `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
+- `io.mateu.uidl.data.Image`: `Image`, `alt`
 - `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `orderField`, `rowsSource`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
 - `io.mateu.uidl.data.MetricCard`: `timeframe`
-- `io.mateu.uidl.data.MicroFrontend`: `chrome`, `resolve`, `timeoutMs`
+- `io.mateu.uidl.data.MicroFrontend`: `chrome`, `resolve`, `resolvedByServer`, `timeoutMs`
 - `io.mateu.uidl.data.OrgChart`: `display`, `focus`
 - `io.mateu.uidl.data.PlanningBlock`: `icon`, `summary`
 - `io.mateu.uidl.data.PlanningBoard`: `attributeColumns`, `openActionId`, `rangeSelectActionId`, `resizeActionId`
 - `io.mateu.uidl.data.PlanningResource`: `attributes`, `icon`
 - `io.mateu.uidl.data.Popover`: `trigger`
+- `io.mateu.uidl.data.ProgressSteps`: `resultTitle`
 - `io.mateu.uidl.data.RecordSwitcher`: `actionId`, `optionsSource`, `route`
 - `io.mateu.uidl.data.ResponsiveGrid`: `asReorderable`, `reorderable`
 - `io.mateu.uidl.data.RestDataSource`: `sample`
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
+- `io.mateu.uidl.data.RouteTable`: `params`
 - `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `ai`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `shortcuts`
 - `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `confirmOnNavigationIfDirty`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
+- `io.mateu.uidl.interfaces.HttpRequest`: `getRemoteAddress`
 
 **Internal members** of otherwise stable types (`@Internal`: framework plumbing, outside the promise — do not call or override them):
 
+- `io.mateu.core.infra.declarative.orchestrators.MultiView`: `wrapView`
+- `io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage`: `bindRequest`
+- `io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `stateSource`
+- `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `bindRequest`
+- `io.mateu.core.infra.declarative.orchestrators.todolist.TodoList`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `currentStepField`
 - `io.mateu.uidl.LiveHeaderValues`: `reset`, `subscribe`
+- `io.mateu.uidl.data.RestDataSource`: `forTheClient`
+- `io.mateu.uidl.data.RestSourceCatalog`: `forTheClient`
 - `io.mateu.uidl.di.MateuBeanProvider`: `setBeanProvider`
 - `io.mateu.uidl.interfaces.HttpRequest`: `storeGetUIRqDto`, `storeRunActionRqDto`
 - `io.mateu.uidl.interfaces.Listing`: `getCrudId`, `handleActionOnRow`
@@ -297,6 +332,38 @@ compatibility check skips them, and they may change in any release. The extensio
 - A **default that changes behaviour** is treated like a removal: announced one minor ahead, with a
   switch to keep the old behaviour for at least that minor. Security fixes are the exception: an
   insecure default can change in a patch, and the release notes say how to opt back in.
+
+### Removed in 3.0.0
+
+`3.0.0` removed the API deprecated during the alphas (`3.0-alpha.*`); what was deprecated during the
+betas stays, deprecated, until 4.0. Each removal is recorded as a reviewed exclusion of the
+compatibility check (`backend/api-compat/japicmp-exclusions.properties`) and in the CHANGELOG.
+
+| Removed | Deprecated in | Use instead |
+|---|---|---|
+| `AppVariant.HAMBURGUER_MENU` (Java, YAML `variant:`, .NET/Python strings) | 3.0-alpha.410 | `HAMBURGER_MENU` (the wire DTO keeps both spellings; renderers accept both) |
+| `@GenericClass` | 3.0-alpha.410 | declare the field with its type argument |
+| `io.mateu.uidl.annotations.ActionType` | 3.0-alpha.410 | `@Toolbar` / `@Button` / `@Hidden` |
+| `ActionPosition`, `ActionStereotype`, `ActionThemeVariant` | 3.0-alpha.410 | `ButtonStyle` / `ButtonColor` / `ButtonVariant` |
+| `Binding`, `BindingSource`, `ClientSideEvent`, `Destination` | 3.0-alpha.410 | binding by convention; `UICommand.dispatchEvent` + `@SubscribeTo`; `UICommand.navigateTo` |
+| `ListAdapter` | 3.0-alpha.410 | `Listing<Row>` |
+| `io.mateu.uidl.layout.ColumnLayoutSelector` | 3.0-alpha.410 | `gridLayout()` |
+| `ContentLayout` (Java, .NET, Python, YAML) | 3.0-alpha.348 | `ResponsiveGrid` with named areas |
+| `@List` (`io.mateu.uidl.annotations.List`) | 3.0-alpha.426 | `@BulletedList` |
+| `BadgeSupplier` | 3.0-alpha.412 | `HeaderBadgesSupplier` |
+| `Button.getActionId()` | 3.0-alpha.412 | `Button.resolvedActionId()` |
+| `@KeycloakSecured` | 3.0-alpha.412 | your framework's authentication, or a `PrincipalResolver` |
+| the settings `mateu.layout.inference`, `mateu.page.inference.disabled` (.NET `Mateu.LayoutInference`, `Mateu.PageInference.Disabled`) | 3.0-alpha.412 | `mateu.layout.inference.enabled`, `mateu.page.inference.enabled` |
+| core `JwtExtractor` | 3.0-alpha.425 | `IdentityResolver` |
+| core `application.runaction.DeclaredRestMethod` | 3.0-alpha.425 | `io.mateu.core.domain.DeclaredRestMethod` |
+| the static `wrap`/`getState`/`withoutRestricted`/`getAppRoute` of `ComponentStateHelper` and `RunActionUseCase`, `RunActionUseCase.SECRET_ENV_PREFIX` / `secretEnvName` | 3.0-alpha.425 | `io.mateu.core.domain.ComponentState`, `SecretResolver` |
+| .NET `[Secured]`, Python `@secured` | 3.0-alpha.412 | `EyesOnly(permissions = …)` |
+| Python `Size` (length constraint) | 3.0-alpha.412 | `Length` |
+| Python `components.Step` | 3.0-alpha.426 | `ProgressStep` |
+
+Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template — deprecated,
+removable in 4.0), the deprecated wire DTOs (`io.mateu.dtos`, versioned by the wire, not the Java
+API), and the YAML key aliases `definition:` / `modelView:`.
 
 ## Enforcement
 

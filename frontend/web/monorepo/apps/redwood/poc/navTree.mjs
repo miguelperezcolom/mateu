@@ -95,9 +95,23 @@ function leafRoutesOf(menu, out = new Set()) {
   return out
 }
 
+/**
+ * A label as plain text: tags removed until none is left (one pass is not enough — `<scr<b>ipt>`
+ * leaves `<script>` behind), then any stray angle bracket. The result never contains `<` or `>`.
+ */
+export function plainLabelOf(label) {
+  let text = String(label == null ? '' : label)
+  let previous
+  do {
+    previous = text
+    text = text.replace(/<[^<>]*>/g, '')
+  } while (text !== previous)
+  return text.replace(/[<>]/g, '').trim()
+}
+
 /** How a pod is named in a warning: its label and where it lives. */
 export function remoteSourceName(option) {
-  const label = String(option.label == null ? '' : option.label).replace(/<[^<>]*>/g, '').replace(/[<>]/g, '').trim()
+  const label = plainLabelOf(option.label)
   return 'RemoteMenu "' + (label || '?') + '" (' + (option.baseUrl || '') + (option.route ? ' ' + option.route : '') + ')'
 }
 

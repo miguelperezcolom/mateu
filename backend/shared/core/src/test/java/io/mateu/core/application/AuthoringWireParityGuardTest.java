@@ -165,7 +165,10 @@ class AuthoringWireParityGuardTest {
               // Deprecated for removal: nothing produces them (no mapper, no record, no port) —
               // registered only because the wire is additive within a major.
               "ResultDto",
-              "StepperDto"));
+              "StepperDto",
+              // Its authoring record (ContentLayout) was removed in 3.0.0; the wire type stays for
+              // renderers and for the .NET/Python @Aside path, which still emit it.
+              "ContentLayoutDto"));
 
   @Test
   void everyWireDtoFieldIsAuthorable() {

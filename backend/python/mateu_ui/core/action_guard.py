@@ -131,7 +131,7 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     if not mapper.authorized(getattr(fn, "__mateu_eyes_only__", None)):
         reason = "eyes_only"
     elif not class_access_granted(mapper, type_):
-        reason = "class-level eyes_only/secured"
+        reason = "class-level eyes_only"
     elif not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
         reason = "disabled_unless"
     elif not for_current_audience(getattr(fn, "__mateu_audience__", None)):
@@ -141,20 +141,13 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
 
 
 def class_gates(klass) -> list:
-    """The class-level access gates declared on ``klass`` itself: its ``@eyes_only`` and the
-    deprecated ``@secured`` (enforced since 3.0-alpha.412 as ``@eyes_only(permissions=[p])``)."""
-    return [
-        gate
-        for gate in (
-            klass.__dict__.get("__mateu_eyes_only__"),
-            klass.__dict__.get("__mateu_secured_gate__"),
-        )
-        if gate is not None
-    ]
+    """The class-level access gates declared on ``klass`` itself: its ``@eyes_only``."""
+    gate = klass.__dict__.get("__mateu_eyes_only__")
+    return [gate] if gate is not None else []
 
 
 def class_access_granted(mapper, type_) -> bool:
-    """Whether the caller passes every class-level ``@eyes_only`` / ``@secured`` of ``type_`` and
+    """Whether the caller passes every class-level ``@eyes_only`` of ``type_`` and
     of its bases (Java's ``WireTypePolicy.classLevelAccessGranted``)."""
     if not isinstance(type_, type):
         return True
@@ -169,7 +162,7 @@ def ensure_class_access(mapper, type_, what: str = "request") -> None:
     if type_ is not None and not class_access_granted(mapper, type_):
         deny(
             f"{what} for {type_.__module__}.{type_.__qualname__}: "
-            "class-level eyes_only/secured not satisfied"
+            "class-level eyes_only not satisfied"
         )
 
 

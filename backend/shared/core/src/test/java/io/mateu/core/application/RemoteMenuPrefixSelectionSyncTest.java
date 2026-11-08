@@ -283,13 +283,13 @@ class RemoteMenuPrefixSelectionSyncTest {
     var declared =
         AppShell.builder()
             .menuItem(new RemoteMenu("/_workflow"))
-            .variant(AppVariant.HAMBURGUER_MENU)
+            .variant(AppVariant.HAMBURGER_MENU)
             .build();
 
     assertThat(withRemote.variant()).isEqualTo(AppVariant.MENU_ON_TOP);
     assertThat(grouped.variant()).isEqualTo(AppVariant.MENU_ON_TOP);
     assertThat(local.variant()).isEqualTo(AppVariant.TABS);
-    assertThat(declared.variant()).isEqualTo(AppVariant.HAMBURGUER_MENU);
+    assertThat(declared.variant()).isEqualTo(AppVariant.HAMBURGER_MENU);
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────────────────────────

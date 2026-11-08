@@ -6,7 +6,7 @@ Mateu defines business UIs agnostically: one model, authored as YAML (by hand or
 ```xml
 <properties>
   <!-- latest release: https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml -->
-  <mateu.version>3.0-beta.32</mateu.version>
+  <mateu.version>3.0-beta.51</mateu.version>
 </properties>
 
 <dependency>
@@ -77,7 +77,7 @@ Marks a class as the application shell.
 ```java
 @App(value = AppVariant.AUTO, themeToggle = true)
 ```
-`AppVariant` values: `AUTO` (auto-select), `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `MEDIATOR` (`HAMBURGUER_MENU` is the deprecated misspelling of `HAMBURGER_MENU`).
+`AppVariant` values: `AUTO` (auto-select), `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `MEDIATOR`.
 `themeToggle = true` adds a moon/sun button to the header for dark/light mode switching. The user's choice persists in `localStorage`; the OS `prefers-color-scheme` is the default when no choice is stored.
 
 ### `@Title` / `@Subtitle` / `@PageTitle`
@@ -95,11 +95,6 @@ Marks a class as the application shell.
 
 ### `@DrawerClosed`
 Starts the navigation drawer in the closed state.
-
-### `@KeycloakSecured` (deprecated — identity comes from the host framework or a `PrincipalResolver`)
-```java
-@KeycloakSecured(url="https://auth.example.com", realm="myrealm", clientId="myapp")
-```
 
 ### `@AI`
 Embeds an AI chat assistant.
@@ -991,7 +986,7 @@ return PageBanners.append(new PageBanner(BannerTheme.WARNING, "Warning", detail)
 @BadgeInHeader(color = "warning") String alertCode;
 ```
 
-### `HeaderBadgesSupplier` (programmatic; the old `BadgeSupplier` is a deprecated alias)
+### `HeaderBadgesSupplier` (programmatic)
 ```java
 public class BookingPage implements HeaderBadgesSupplier {
     @Override
@@ -1034,7 +1029,7 @@ public class CustomerList {
 | `Hydratable` | `hydrate(HttpRequest)` called before each render — load data from DB |
 | `ComponentTreeSupplier` | Return a fluent component tree instead of annotated fields |
 | `BannerSupplier` | Programmatic page banners |
-| `HeaderBadgesSupplier` | Programmatic header-strip badges (was `BadgeSupplier`, deprecated) |
+| `HeaderBadgesSupplier` | Programmatic header-strip badges |
 | `TitleSupplier` | Dynamic page title |
 | `SubtitleSupplier` | Dynamic page subtitle |
 | `ValidationSupplier` | Programmatic cross-field validation |

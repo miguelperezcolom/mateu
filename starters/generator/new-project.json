@@ -58,6 +58,7 @@
         {"from": "processing.group=com.example", "to": "processing.group=${groupId}"},
         {"from": "mateu-starter-${starter}", "to": "${artifactId}"},
         {"regex": "<mateu\\.version>[^<]*</mateu\\.version>", "to": "<mateu.version>${version}</mateu.version>"},
+        {"regex": "raw\\.githubusercontent\\.com/miguelperezcolom/mateu/[^/]+/backend/shared/uidl/", "to": "raw.githubusercontent.com/miguelperezcolom/mateu/v${version}/backend/shared/uidl/"},
         {"from": "<artifactId>mateu-vaadin</artifactId>", "to": "<artifactId>${rendererArtifactId}</artifactId>"},
         {"from": "renderer: vaadin", "to": "renderer: ${renderer}"},
         {"from": "title: My app", "to": "title: ${appTitle}"},

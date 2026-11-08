@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,6 +89,7 @@ public record RouteTable(List<RouteEntry> routes) {
      * client state > path > query > defaults}. A null in the client state is no value at all — the
      * path, the query and the defaults still fill it.
      */
+    @Experimental("query parameters in route matching (3.0 beta)")
     public Map<String, Object> params(Map<String, Object> incoming, Map<String, ?> query) {
       var resolved = new java.util.LinkedHashMap<String, Object>();
       if (incoming != null) {

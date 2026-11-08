@@ -128,7 +128,7 @@ Three notes on how to read the table:
   bespoke layout. The aside sits beside the main region on wide viewports and stacks under it when
   narrow. It is a wire component like `FoldoutLayout`, so you can also compose it directly in a
   custom view; ported to .NET and Python. (The older `ContentLayout` with `main`/`aside`/`footer`
-  regions is deprecated: no archetype produces it any more.)
+  regions was removed from the Java/.NET/Python API in 3.0.0.)
 - **`@Aside` — content-page from a plain form.** The minimal way to get the content-page grammar
   without composing anything: on an ordinary reflected form, mark one component-holder field
   `@Aside` (`.NET` `[Aside]`, Python `Aside()`). That field is pulled out of the form body and

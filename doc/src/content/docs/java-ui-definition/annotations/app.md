@@ -76,7 +76,7 @@ those children as its options — the tabs of a record master. See the
 
 | Value | Description |
 |---|---|
-| `HAMBURGER_MENU` | Collapsible hamburger-style navigation drawer. (`HAMBURGUER_MENU`, the old misspelling, still works but is deprecated.) |
+| `HAMBURGER_MENU` | Collapsible hamburger-style navigation drawer. (The old misspelling `HAMBURGUER_MENU` was removed in 3.0.0.) |
 | `MENU_ON_LEFT` | Persistent navigation panel on the left side |
 | `MENU_ON_TOP` | Navigation bar along the top |
 | `TABS` | Tab-based navigation |
@@ -240,45 +240,6 @@ No attributes. Starts the navigation drawer in the closed (collapsed) state when
 @App(AppVariant.HAMBURGER_MENU)
 @DrawerClosed
 public class ShellApp implements App { ... }
-```
-
----
-
-## @KeycloakSecured (deprecated)
-
-**Target:** `TYPE`
-
-:::caution[Deprecated in 3.0-alpha.412]
-Identity comes from your host framework (Spring Security, Quarkus OIDC…) or a `PrincipalResolver`
-bean — see [Security](/java-user-manual/advanced/security/). `@KeycloakSecured` keeps working.
-:::
-
-Integrates Keycloak authentication. The frontend will redirect unauthenticated users to the Keycloak login page before the UI is displayed.
-
-```java
-public @interface KeycloakSecured {
-    String url();
-    String realm();
-    String clientId();
-    String jsUrl() default "";
-}
-```
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `url` | `String` | — | Keycloak server base URL |
-| `realm` | `String` | — | Keycloak realm name |
-| `clientId` | `String` | — | Keycloak client ID |
-| `jsUrl` | `String` | `""` | Optional override for the Keycloak JS adapter URL (an ES module; blank → `https://esm.sh/keycloak-js@26.2.2`). See [Security](/java-user-manual/advanced/security/#legacy-keycloaksecured-deprecated) for CSP and self-hosting |
-
-```java
-@UI("/_workflow")
-@KeycloakSecured(
-    url    = "https://auth.example.com",
-    realm  = "myrealm",
-    clientId = "my-app"
-)
-public class WorkflowHome { ... }
 ```
 
 ---

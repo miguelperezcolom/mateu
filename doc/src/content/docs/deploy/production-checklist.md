@@ -106,8 +106,8 @@ Keep it that way:
 Mateu does not authenticate users itself; it reads an identity the platform established:
 
 - **Login**: put your identity provider in front of the app — an OIDC-aware gateway, Spring Security,
-  Quarkus OIDC… (the older `@KeycloakSecured`, which has the browser log in against Keycloak, still
-  works but is deprecated).
+  Quarkus OIDC… (`@KeycloakSecured`, which had the browser log in against Keycloak, was removed in
+  3.0.0).
 - **Authorization**: `@EyesOnly`, `@ReadOnlyUnless` and `@DisabledUnless` check roles, groups,
   scopes and permissions of the caller your framework authenticated (see
   [Security](/java-user-manual/advanced/security/)) — never a token Mateu decodes itself.

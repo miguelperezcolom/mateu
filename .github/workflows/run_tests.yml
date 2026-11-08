@@ -76,7 +76,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: frontend/web/monorepo/package-lock.json
+          cache-dependency-path: |
+            frontend/web/monorepo/package-lock.json
+            frontend/app/react-native/package-lock.json
+            frontend/app/vscode-extension/package-lock.json
 
       # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
       # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
@@ -87,10 +90,18 @@ jobs:
       - name: Install the library's dependencies
         run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --workspace mateu-vaadin --include-workspace-root --ignore-scripts
 
+      # The licence guard below also walks the React Native app and the VS Code extension, so their
+      # trees must be installed too (no build, no install hooks: only the package.json files are read).
+      - name: Install the native apps' dependencies for the licence guard
+        run: |
+          (cd frontend/app/react-native && npm ci --ignore-scripts --no-audit --no-fund)
+          (cd frontend/app/vscode-extension && npm ci --ignore-scripts --no-audit --no-fund)
+
       # The vaadin-lit jar is Apache-2.0: nothing bundled into it may be under a commercial licence
-      # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk).
-      - name: Bundled frontend dependencies are under approved licences
-        run: node scripts/check-frontend-licenses.mjs
+      # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk). The same holds
+      # for the visual editor bundled into the IDE plugins, the React Native app and the .vsix.
+      - name: Shipped frontend dependencies are under approved licences
+        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension
 
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
@@ -246,11 +257,24 @@ jobs:
   # annotator) only ran on a developer's machine. setup-gradle only WRITES its cache on master, where
   # this workflow does not run, so the IDE (~1 GB) is downloaded on every PR run; only the small layout
   # index is shared (warm-caches.yml).
+  #
+  # It also runs the JetBrains Plugin Verifier against the IDE lines named in build.gradle.kts
+  # (pluginVerification): the plugin's range is open-ended, so this is what says a new IDE line still
+  # loads it. Those IDEs (~2 GB each, 5 of them) are NOT cached — they would not fit the repository's
+  # cache quota — but they come from JetBrains' CDN in a minute or two, and the step reuses the
+  # build the tests already compiled.
   intellij-plugin:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
+      # the verifier's five IDEs need ~25 GB unpacked, more than a runner has free by default
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
+          df -h /
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -260,7 +284,7 @@ jobs:
           java-version: 21
           distribution: zulu
 
-      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
@@ -281,6 +305,11 @@ jobs:
       # The wrapper discards an incomplete index and retries ONCE on that one failure signature.
       - name: IntelliJ plugin tests
         run: scripts/intellij-gradle.sh test koverVerify --console=plain
+
+      # Compatibility with every IDE line the plugin claims (no internal/removed API, descriptor OK).
+      # After the tests so a red test is reported first; the layout index is warm by now.
+      - name: IntelliJ plugin verifier (2025.2 → 2026.3)
+        run: scripts/intellij-gradle.sh verifyPlugin --console=plain
 
       - name: Save the IntelliJ layout index (only a complete one)
         if: success() && steps.layout-index.outputs.cache-hit != 'true' && hashFiles('frontend/app/intellij-plugin/.intellijPlatform/ides/layoutIndex/*.json') != ''
@@ -421,7 +450,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install the package
@@ -468,10 +497,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.11'
-      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install the package at its lowest direct dependencies
         run: |
           uv venv /tmp/lowest --python 3.11
@@ -673,7 +702,7 @@ jobs:
       # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
       # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: |
             8.0.x

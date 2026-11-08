@@ -14,7 +14,7 @@ import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
-import { activeSectionOf, sectionHomeOf, sectionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
+import { activeSectionOf, sectionHomeOf, sectionOf, routeCollisionsOf, routeCollisionMessage, plainLabelOf, remoteSourceName } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
 import { readFileSync } from 'node:fs'
@@ -1786,6 +1786,18 @@ test('routeCollisionsOf (port of navTree.ts routeCollisions): homes, groups and 
     { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (https://a/app)' },
     { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (https://a/app)', second: 'RemoteMenu "Biblioteca" (https://b/app)' },
   ])
+})
+
+test('plainLabelOf strips tags to a fixpoint: a nested tag cannot rebuild <script> (CodeQL js/incomplete-multi-character-sanitization)', () => {
+  assert.equal(plainLabelOf('<b>Orders</b>'), 'Orders')
+  assert.equal(plainLabelOf('<scr<b>ipt>alert(1)</scr</b>ipt>'), 'alert(1)')
+  assert.equal(plainLabelOf('<<script>script>x'), 'x')
+  assert.equal(plainLabelOf('a > b'), 'a  b')
+  assert.equal(plainLabelOf(null), '')
+  for (const hostile of ['<scr<script>ipt>', '<<b>script>', '<scr<i>ipt src=x>', '<<<>>>']) {
+    assert.ok(!/[<>]/.test(plainLabelOf(hostile)), hostile)
+  }
+  assert.equal(remoteSourceName({ label: '<scr<b>ipt>', baseUrl: 'https://a' }), 'RemoteMenu "?" (https://a)')
 })
 
 atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async () => {

@@ -208,16 +208,11 @@ final class PageMetadataExtractor {
 
   /**
    * The badges a page supplies in code, or null when it supplies none: {@link
-   * HeaderBadgesSupplier}, else the deprecated {@code BadgeSupplier} alias.
+   * HeaderBadgesSupplier}.
    */
-  @SuppressWarnings("removal")
   private static List<Badge> suppliedHeaderBadges(Object instance) {
     if (instance instanceof HeaderBadgesSupplier supplier) {
       var badges = supplier.headerBadges();
-      return badges != null ? badges : List.of();
-    }
-    if (instance instanceof BadgeSupplier supplier) {
-      var badges = supplier.badges();
       return badges != null ? badges : List.of();
     }
     return null;

@@ -135,7 +135,7 @@
       "type" : "list of Actionable"
     }, {
       "name" : "variant",
-      "type" : "HAMBURGUER_MENU | HAMBURGER_MENU | HAMBURGER_SECTIONS | MENU_ON_LEFT | MENU_ON_TOP | TABS | TILES | RAIL | AUTO | MEDIATOR"
+      "type" : "HAMBURGER_MENU | HAMBURGER_SECTIONS | MENU_ON_LEFT | MENU_ON_TOP | TABS | TILES | RAIL | AUTO | MEDIATOR"
     }, {
       "name" : "layout",
       "type" : "SINGLE_SLOT | SPLIT"
@@ -655,31 +655,6 @@
     "attributes" : [ {
       "name" : "content",
       "type" : "Component"
-    } ]
-  }, {
-    "type" : "ContentLayout",
-    "description" : "Redwood-style content page layout: the uniform slot grammar shared by the page archetypes.",
-    "attributes" : [ {
-      "name" : "id",
-      "type" : "string"
-    }, {
-      "name" : "main",
-      "type" : "list of Component"
-    }, {
-      "name" : "aside",
-      "type" : "list of Component"
-    }, {
-      "name" : "footer",
-      "type" : "list of Component"
-    }, {
-      "name" : "asidePosition",
-      "type" : "start | end"
-    }, {
-      "name" : "asideWidth",
-      "type" : "string"
-    }, {
-      "name" : "asideSticky",
-      "type" : "boolean"
     } ]
   }, {
     "type" : "ContentSlot",

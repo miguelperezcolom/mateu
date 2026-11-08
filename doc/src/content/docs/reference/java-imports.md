@@ -42,6 +42,5 @@ All packages above are under `io.mateu.uidl`.
 
 | Mateu type | Clashes with | Tip |
 |---|---|---|
-| `io.mateu.uidl.annotations.List` | `java.util.List` | import `java.util.List` by name; the annotation is rarely needed |
 | `io.mateu.uidl.data.Map` (the map component) | `java.util.Map` | refer to one of them by its full name |
 | `io.mateu.uidl.data.Image` | `java.awt.Image` | only matters if you also import `java.awt.*` |

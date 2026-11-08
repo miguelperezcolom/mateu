@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
-import io.mateu.core.application.runaction.RunActionUseCase;
+import io.mateu.core.application.runaction.SecretResolver;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -172,8 +172,8 @@ class RestProxySecretsSyncTest {
     assertThat(sent == null ? "" : sent)
         .as("${secret.HOME} reads MATEU_SECRET_HOME, never HOME")
         .doesNotContain(System.getenv("HOME"));
-    assertThat(RunActionUseCase.secretEnvName("HOME")).isEqualTo("MATEU_SECRET_HOME");
-    assertThat(RunActionUseCase.secretEnvName("MATEU_SECRET_X")).isEqualTo("MATEU_SECRET_X");
+    assertThat(SecretResolver.secretEnvName("HOME")).isEqualTo("MATEU_SECRET_HOME");
+    assertThat(SecretResolver.secretEnvName("MATEU_SECRET_X")).isEqualTo("MATEU_SECRET_X");
   }
 
   @Test

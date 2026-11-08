@@ -8,7 +8,8 @@ import java.util.List;
  * {@code @BadgeInHeader} fields, over which it takes precedence. {@link #headerBadges()} returns
  * the {@link Badge} chips to render in the page header; a badge with a blank text is skipped.
  *
- * @since 3.0-alpha.412 (replaces {@link BadgeSupplier}, whose name did not say WHERE the badges go)
+ * @since 3.0-alpha.412 (replaced {@code BadgeSupplier}, removed in 3.0.0, whose name did not say
+ *     WHERE the badges go)
  */
 public interface HeaderBadgesSupplier {
 

@@ -790,7 +790,7 @@
     },
     "AppVariant" : {
       "type" : "string",
-      "enum" : [ "HAMBURGUER_MENU", "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
+      "enum" : [ "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
     },
     "AutoSaveTrigger" : {
       "description" : "Runs an action automatically, after a debounce delay, whenever the user changes a field.",
@@ -2114,8 +2114,6 @@
       }, {
         "$ref" : "#/$defs/Container"
       }, {
-        "$ref" : "#/$defs/ContentLayout"
-      }, {
         "$ref" : "#/$defs/ContentSlot"
       }, {
         "$ref" : "#/$defs/ContextMenu"
@@ -2426,73 +2424,6 @@
         },
         "content" : {
           "$ref" : "#/$defs/Component"
-        },
-        "style" : {
-          "type" : "string"
-        },
-        "cssClasses" : {
-          "type" : "string"
-        },
-        "note" : {
-          "type" : "string",
-          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
-        },
-        "eyesOnly" : {
-          "$ref" : "#/$defs/Access",
-          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
-        },
-        "readOnlyUnless" : {
-          "$ref" : "#/$defs/Access",
-          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
-        },
-        "disabledUnless" : {
-          "$ref" : "#/$defs/Access",
-          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
-        }
-      }
-    },
-    "ContentAsidePosition" : {
-      "type" : "string",
-      "enum" : [ "start", "end" ]
-    },
-    "ContentLayout" : {
-      "description" : "Redwood-style content page layout: the uniform slot grammar shared by the page archetypes.",
-      "type" : "object",
-      "required" : [ "type" ],
-      "properties" : {
-        "type" : {
-          "type" : "string",
-          "const" : "ContentLayout"
-        },
-        "id" : {
-          "type" : "string"
-        },
-        "main" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/Component"
-          }
-        },
-        "aside" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/Component"
-          }
-        },
-        "footer" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/Component"
-          }
-        },
-        "asidePosition" : {
-          "$ref" : "#/$defs/ContentAsidePosition"
-        },
-        "asideWidth" : {
-          "type" : "string"
-        },
-        "asideSticky" : {
-          "type" : "boolean"
         },
         "style" : {
           "type" : "string"

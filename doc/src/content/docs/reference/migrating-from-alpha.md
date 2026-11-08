@@ -87,15 +87,15 @@ relocation.
 All the annotations in the rows above had **no effect** in any alpha — nothing read them — so
 removing one changes no screen; it only makes the compiler point at it.
 
-## Deprecated in 3.0-alpha.410 (still working)
+## Deprecated in 3.0-alpha.410 (removed in 3.0.0)
 
-The pre-beta API freeze review deprecated these instead of removing them: they keep compiling and
-working, the compiler warns, and they will be removed after the deprecation period. Each Javadoc
-names its replacement.
+The pre-beta API freeze review deprecated these instead of removing them; **3.0.0 removed them**
+(except the wire DTOs, which stay on the wire, and `DashboardLayout`, which a page template still
+produces). Code that still uses one no longer compiles — switch to the replacement.
 
-| Deprecated | Use instead |
+| Removed | Use instead |
 |---|---|
-| `AppVariant.HAMBURGUER_MENU` (misspelled; also in YAML `variant:`) | `AppVariant.HAMBURGER_MENU` — renders the same. .NET: `AppVariant.HamburgerMenu`; Python: `AppVariant.HAMBURGER_MENU` (the old string warns). Since 3.0-alpha.412 it is also the wire value — see [Wire and renderers](#wire-and-renderers) |
+| `AppVariant.HAMBURGUER_MENU` (misspelled; also in YAML `variant:`) | `AppVariant.HAMBURGER_MENU` — renders the same. .NET: `AppVariant.HamburgerMenu`; Python: `AppVariant.HAMBURGER_MENU`. Since 3.0-alpha.412 it is also the wire value — see [Wire and renderers](#wire-and-renderers) |
 | `@GenericClass` | nothing — it was never read; declare the field with its type argument (`List<MyDto>`) |
 | `io.mateu.uidl.annotations.ActionType` | `@Toolbar` / `@Button` / `@Hidden` on the method |
 | `ActionPosition`, `ActionStereotype`, `ActionThemeVariant` (empty enums in `io.mateu.uidl.fluent`) | nothing — they had no constants; style buttons with `ButtonStyle` / `ButtonColor` / `ButtonVariant` |
@@ -104,24 +104,24 @@ names its replacement.
 | `Destination` | `UICommand.navigateTo(route)`, or return a `URI` from the action |
 | `ListAdapter<Filters, Row>` | `Listing<Row>` (`search(SearchRequest, HttpRequest)`) |
 | `io.mateu.uidl.layout.ColumnLayoutSelector` | declare `gridLayout()` — `GridLayout.auto` is a table |
-| 28 unreachable wire DTOs in `io.mateu.dtos` (`JourneyDto`, `ViewDto`, `BadgeColorDto`, `SortCriteriaDto`, …) | nothing — no live DTO references them; the wire is unchanged |
-| .NET `DashboardLayout` / `ContentLayout` (now `[Obsolete]`, like Java's `@Deprecated`); Python ones warn | `ResponsiveGrid` |
+| 28 unreachable wire DTOs in `io.mateu.dtos` (`JourneyDto`, `ViewDto`, `BadgeColorDto`, `SortCriteriaDto`, …) | nothing — no live DTO references them; the wire is unchanged (still deprecated, not removed: the wire DTOs are versioned by the wire) |
+| `ContentLayout` (Java, .NET, Python, YAML `type: ContentLayout`) | `ResponsiveGrid` with named areas (`template` + `Slotted`, `stickyAreas` for a pinned aside); `@Aside` already composes one |
+| `DashboardLayout` (Java, .NET, Python) — **kept, still deprecated** | `ResponsiveGrid` |
 
-## Deprecated in 3.0-alpha.412 (still working)
+## Deprecated in 3.0-alpha.412 (removed in 3.0.0)
 
-The owner's pre-beta API decisions. Every item is an addition plus a deprecation: the old name keeps
-compiling and working (Java `@Deprecated(forRemoval = true)`, .NET `[Obsolete]`, Python
-`DeprecationWarning`) until it is removed after the deprecation period.
+The owner's pre-beta API decisions. Every item was an addition plus a deprecation; **3.0.0 removed
+the deprecated half** (except the wire DTO value, which renderers still accept).
 
-| Deprecated | Use instead |
+| Removed | Use instead |
 |---|---|
-| `BadgeSupplier` (`List<Badge> badges()`) | `HeaderBadgesSupplier` (`List<Badge> headerBadges()`) — named after `@BadgeInHeader`. Both are read; the new one wins if a page implements both |
+| `BadgeSupplier` (`List<Badge> badges()`) | `HeaderBadgesSupplier` (`List<Badge> headerBadges()`) — named after `@BadgeInHeader` |
 | `Button.getActionId()` | `Button.resolvedActionId()` — same value: the declared id, else derived from the label. `actionId()` is the declared id only. Nothing changes on the wire |
 | `@KeycloakSecured` | your framework's authentication (an OIDC login / resource server for Keycloak) — Mateu reads the principal it authenticates, or a `PrincipalResolver` bean. See [Security](/java-user-manual/advanced/security/) |
-| `AppVariantDto.HAMBURGUER_MENU` (wire DTO) | `AppVariantDto.HAMBURGER_MENU` |
-| The settings `mateu.layout.inference` and `mateu.page.inference.disabled` (they warn once) | `mateu.layout.inference.enabled` and `mateu.page.inference.enabled` — mind the polarity: `disabled=true` is `enabled=false`. .NET: the AppContext switches `Mateu.LayoutInference` / `Mateu.PageInference.Disabled` → `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled`. See [Global switches](/ux-patterns/layout-inference/#global-switches) |
+| `AppVariantDto.HAMBURGUER_MENU` (wire DTO) — **kept, still deprecated** (renderers accept both spellings) | `AppVariantDto.HAMBURGER_MENU` |
+| The settings `mateu.layout.inference` and `mateu.page.inference.disabled` (now ignored) | `mateu.layout.inference.enabled` and `mateu.page.inference.enabled` — mind the polarity: `disabled=true` is `enabled=false`. .NET: the AppContext switches `Mateu.LayoutInference` / `Mateu.PageInference.Disabled` → `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled`. See [Global switches](/ux-patterns/layout-inference/#global-switches) |
 | Python `Size(min=, max=)` (the length constraint) | `Length(min=, max=)` — same fields; in Java and .NET `Size` is a component's sizing intent |
-| .NET `[Secured("x")]`, Python `@secured("x")` | `[EyesOnly(Permissions = new[] { "x" })]` / `@eyes_only(permissions=["x"])` on the class. **`[Secured]`/`@secured` are now enforced (they were silently ignored before)**: exactly like `EyesOnly(permissions = "x")`, the view and its actions are refused (403) to a caller without the permission or with no principal, and the menu entries leading to it are hidden. A view that carried it was open to everyone until 3.0-alpha.412 — check that the callers who need it hold the permission (and that your framework's security is configured, or nobody does) |
+| .NET `[Secured("x")]`, Python `@secured("x")` | `[EyesOnly(Permissions = new[] { "x" })]` / `@eyes_only(permissions=["x"])` on the class. (Between 3.0-alpha.412 and 3.0.0 `[Secured]`/`@secured` were enforced, exactly like `EyesOnly(permissions = "x")`, the view and its actions are refused (403) to a caller without the permission or with no principal, and the menu entries leading to it are hidden. A view that carried it was open to everyone until 3.0-alpha.412.) |
 
 **Moved, nothing to change**: the .NET code-authoring types (`IRouteEntrySupplier`, `IAppSupplier`,
 `IMenuSupplier`, `AppShell`, `RouteEntry`) now live in the `Mateu.Uidl` package with the same full
@@ -154,7 +154,7 @@ These compile unchanged and **behave differently**. Check each against your scre
 | `@Section(columns = …)` | default `1`, and an explicit `1` was ignored | default `0` = inherit from `@FormLayout`; an explicit `columns = 1` is honoured | remove an explicit `columns = 1` you did not mean |
 | CORS | the generated controllers carried `@CrossOrigin` (any origin; Micronaut also with credentials) | **off**: same-origin only | set `mateu.cors.allowed-origins` (comma-separated; optionally `mateu.cors.allow-credentials=true`, never with `*`) — Python: `add_mateu(app, cors_origins=[...])` |
 | Roles for `@EyesOnly` / `@ReadOnlyUnless` / `@DisabledUnless` / YAML `access:` | read from the Bearer token's payload **without verifying it** — anyone could forge them | **Mateu does not authenticate**: roles come only from the principal your framework authenticated (Spring Security, Quarkus/Micronaut/Helidon security, ASP.NET Core authentication, Python's `request.state.mateu_identity` / `AuthenticationMiddleware`) or a `PrincipalResolver` bean. A token on its own grants nothing; with no security configured, restricted UI is hidden for everyone and a WARN at startup says so | configure your framework's security (see [Security](/java-user-manual/advanced/security/#how-authorization-works)) — there is no opt-out. Python: `jwt_identity_provider` and the `jwt` extra are gone; verify the token in your app and set `request.state.mateu_identity = identity_from_claims(claims)` |
-| .NET `[Secured("x")]` / Python `@secured("x")` on a view | silently ignored: the view was open to everyone | **enforced** like `EyesOnly(permissions = "x")`: 403 for the view and its actions without the permission (or with no principal), menu entries to it hidden | — (it was always meant to restrict; grant the permission to the callers who need the view) |
+| .NET `[Secured("x")]` / Python `@secured("x")` on a view | silently ignored: the view was open to everyone | **enforced** like `EyesOnly(permissions = "x")`: 403 for the view and its actions without the permission (or with no principal), menu entries to it hidden — and removed in 3.0.0 | use `EyesOnly(permissions = "x")` on the class |
 | `@EyesOnly` fields in the state | hidden in the form but their value travelled in the component state | left out of the state for callers who may not see them | — |
 | Spring component scan | the generated `…Config` scanned **all of `io.mateu`**, sweeping in the beans of any library under `io.mateu.*`; the docs asked for `scanBasePackages = "io.mateu"` | Mateu's beans come from its adapter's auto-configuration (`io.mateu.MateuAutoConfiguration`), which scans only Mateu's own packages | drop `"io.mateu"` from `scanBasePackages`; if your OWN code lives under `io.mateu.*` (outside the main class's package), name that package there; a third-party UI module you used to get for free (e.g. EventConductor's console) is mounted with `mateu.ui.modules=<its package>` — see [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/) |
 | Which methods an `actionId` can run (Java) | every public method of a view model | **strict action mode**: a method marked as an action (`@Action`, `@Button`, `@Toolbar`…) or one whose id the view advertises (a fluent button, a trigger, `@OnRowSelected`, a menu rule…); an unadvertised public method answers 403 — as the .NET and Python backends always did | mark the handler `@Action` (undo targets, row actions, methods only a test or another backend dispatches); or `mateu.actions.strict=false` while you migrate |
