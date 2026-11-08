@@ -129,3 +129,51 @@ def test_a_code_view_drawing_a_business_component_keeps_its_locked_fields(tmp_pa
     view = PayrollTreeView()
     handler(root, roles=("hr",)).bind_state(view, dict(TAMPERED))
     assert (view.bonus, view.salary_note, view.approver, view.comment) == (999, "hacked", "mallory", "hi")
+
+
+class ConditionalPayrollView:
+    """A code view that draws the business component ONLY while ``show_payroll`` is true."""
+
+    show_payroll: bool = False
+    bonus: float = 10.0
+    comment: str = ""
+
+    def component(self):
+        if self.show_payroll:
+            return fluent.VerticalLayout(content=[fluent.ComponentRef(ref="Payroll")])
+        return fluent.VerticalLayout(content=[])
+
+
+def test_a_component_drawn_only_in_another_state_still_locks_its_fields(tmp_path):
+    """STRICT: rendered WITHOUT the component, a guest posting its locked field is still refused."""
+    root = specs(tmp_path)
+    h = handler(root)
+    assert h.mapper is not None
+    rendered = ConditionalPayrollView().component()  # drawn without the component
+    assert not rendered.content
+    view = ConditionalPayrollView()
+    h.bind_state(view, {"showPayroll": False, "bonus": 999, "comment": "hi"})
+    assert (view.show_payroll, view.bonus, view.comment) == (False, 10.0, "hi")
+    view = ConditionalPayrollView()
+    handler(root, roles=("hr",)).bind_state(view, {"showPayroll": False, "bonus": 999, "comment": "hi"})
+    assert view.bonus == 999
+
+
+def test_a_yaml_layout_is_checked_against_every_restricted_component(tmp_path, caplog):
+    """STRICT for YAML views too: a layout naming no component still drops a field some restricted
+    component of the app locks for the caller (the documented false positive), and the WARN names
+    the component so the author can rename one of the two fields."""
+    root = specs(tmp_path)
+    (root / "plain.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: FormField, id: bonus, label: B, dataType: number}\n"
+        "    - {type: FormField, id: comment, label: C, dataType: string}\n"
+    )
+    (root / "routes.yaml").write_text(
+        (root / "routes.yaml").read_text()
+        + f"  - route: plain\n    layout: plain.yaml\n    viewModel: {type_name(PayrollModel)}\n"
+    )
+    with caplog.at_level("WARNING", logger="mateu.components"):
+        assert guarded(handler(root), "/plain") == {"comment": "hi"}
+    assert any("'Payroll'" in r.getMessage() for r in caplog.records)
+    assert guarded(handler(root, roles=("hr",)), "/plain") == TAMPERED

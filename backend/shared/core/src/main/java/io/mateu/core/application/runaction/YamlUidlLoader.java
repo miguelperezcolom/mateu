@@ -371,13 +371,13 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     if (spec == null) {
       return command;
     }
-    // the business components (components.yaml) and partials the layout names lock fields too:
-    // they are resolved while the tree is mapped, after the view model is hydrated
+    // the business components (components.yaml) and partials lock fields too: they are resolved
+    // while the tree is mapped, after the view model is hydrated. STRICT, like a code view: every
+    // piece of the app is checked, not only the ones this layout names
     var lockedByPieces =
-        io.mateu.core.infra.security.ClientLockedFields.lockedByPiecesOf(
-            spec.layout(), httpRequest);
+        io.mateu.core.infra.security.ClientLockedFields.appWideLockedFor(httpRequest);
     if (!spec.dependsOnRequest()) {
-      return withoutLocked(command, lockedByPieces);
+      return withoutLockedByPieces(command, path, lockedByPieces);
     }
     var personal = loadSpec(path, httpRequest);
     if (personal == null) {
@@ -395,9 +395,17 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         throw refusedAction(String.valueOf(sourceId));
       }
     }
-    var locked = new java.util.LinkedHashSet<>(personal.lockedFields());
-    locked.addAll(lockedByPieces);
-    return withoutLocked(command, locked);
+    return withoutLockedByPieces(
+        withoutLocked(command, personal.lockedFields()), path, lockedByPieces);
+  }
+
+  /** {@code command} without the posted state the YAML pieces of the app lock for the caller. */
+  private static RunActionCommand withoutLockedByPieces(
+      RunActionCommand command, String owner, java.util.Map<String, String> lockedByPieces) {
+    var state = command.componentState();
+    var narrowed =
+        io.mateu.core.infra.security.ClientLockedFields.without(owner, state, lockedByPieces);
+    return narrowed == state ? command : command.withComponentState(narrowed);
   }
 
   /** {@code command} without the posted state of the fields {@code locked} names. */

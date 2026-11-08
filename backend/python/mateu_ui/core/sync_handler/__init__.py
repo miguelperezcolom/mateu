@@ -429,14 +429,13 @@ class SyncHandler(
         spec = self.yaml_specs.load_spec(rq.route)
         if spec is None:
             return rq
-        # the business components (components.yaml) the layout names lock fields too: they are
-        # resolved while the tree is mapped, after the view model is bound
-        from ..component_registry import component_refs_in
-
-        refs = component_refs_in(spec.layout) if getattr(self, "components", None) is not None else set()
-        by_pieces = self.components.locked_for(refs, self.mapper.authorized) if refs else set()
+        # the business components (components.yaml) lock fields too: they are resolved while the
+        # tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
+        # component of the app is checked, not only the ones this layout names
+        components = getattr(self, "components", None)
+        by_pieces = components.app_wide_locked_by(self.mapper.authorized) if components is not None else {}
         if not spec.depends_on_request():
-            return self._without_locked(rq, by_pieces)
+            return self._without_locked_by_pieces(rq, by_pieces)
         from ..translations import locale_of
 
         personal = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
@@ -448,7 +447,15 @@ class SyncHandler(
             source_id = (rq.parameters or {}).get("_sourceId")
             if source_id is not None and str(source_id) in personal.refused_actions:
                 action_guard.deny(f"action '{source_id}' declares access: not satisfied")
-        return self._without_locked(rq, set(personal.locked_fields) | by_pieces)
+        return self._without_locked_by_pieces(self._without_locked(rq, set(personal.locked_fields)), by_pieces)
+
+    @staticmethod
+    def _without_locked_by_pieces(rq: RunActionRq, locked_by: dict[str, str]) -> RunActionRq:
+        from ..component_registry import without_locked
+
+        state = rq.component_state or {}
+        narrowed = without_locked(rq.route or "", state, locked_by)
+        return rq if narrowed is state else rq.model_copy(update={"component_state": narrowed})
 
     @staticmethod
     def _without_locked(rq: RunActionRq, locked) -> RunActionRq:

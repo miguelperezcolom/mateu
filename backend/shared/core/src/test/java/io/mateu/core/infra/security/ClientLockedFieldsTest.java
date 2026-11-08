@@ -117,22 +117,57 @@ class ClientLockedFieldsTest {
     assertThat(locked).contains("secretCode");
   }
 
+  /**
+   * STRICT: what a view drew before never narrows the check — a page may draw a piece only in some
+   * state, so every view that may draw pieces is checked against every piece, every time.
+   */
   @Test
-  void onceRenderedAViewIsCheckedOnlyAgainstThePiecesItDraws() {
+  void everyViewThatMayDrawPiecesIsCheckedAgainstEveryPieceWhateverItRendered() {
     var locked =
         over(
             NESTED,
-            () -> {
-              ClientLockedFields.learn(
-                  DrawsNothing.class.getName(), new DrawsNothing().component(guest()));
-              ClientLockedFields.learn(
-                  DrawsAPartial.class.getName(), new DrawsAPartial().component(guest()));
-              return List.of(
-                  ClientLockedFields.lockedFor(DrawsNothing.class, guest()),
-                  ClientLockedFields.lockedFor(DrawsAPartial.class, guest()));
-            });
-    assertThat(locked.get(0)).isEmpty();
+            () ->
+                List.of(
+                    ClientLockedFields.lockedFor(DrawsNothing.class, guest()),
+                    ClientLockedFields.lockedFor(DrawsAPartial.class, guest()),
+                    ClientLockedFields.lockedFor(DrawsNothing.class, guest())));
+    assertThat(locked.get(0)).containsExactly("secretCode");
     assertThat(locked.get(1)).containsExactly("secretCode");
+    assertThat(locked.get(2)).containsExactly("secretCode");
+  }
+
+  /** The app-wide set is cached per caller identity: another identity gets its own answer. */
+  @Test
+  void theAppWideSetIsPerCallerIdentity() {
+    var locked =
+        over(
+            NESTED,
+            () ->
+                List.of(
+                    ClientLockedFields.appWideLockedFor(guest()),
+                    ClientLockedFields.appWideLockedFor(hr()),
+                    ClientLockedFields.appWideLockedFor(guest())));
+    assertThat(locked.get(0)).containsOnlyKeys("secretCode");
+    assertThat(locked.get(0).get("secretCode")).contains("inner");
+    assertThat(locked.get(1)).isEmpty();
+    assertThat(locked.get(2)).isEqualTo(locked.get(0));
+  }
+
+  public static class HasAMethodReturningComponents {
+    public String secretCode;
+
+    public List<Component> overview() {
+      return List.of(new Partial("outer"));
+    }
+  }
+
+  @Test
+  void aClassWithAMethodReturningComponentsMayDrawPieces() {
+    var locked =
+        over(
+            NESTED,
+            () -> ClientLockedFields.lockedFor(HasAMethodReturningComponents.class, guest()));
+    assertThat(locked).containsExactly("secretCode");
   }
 
   @Test

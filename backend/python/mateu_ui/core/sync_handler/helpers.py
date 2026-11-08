@@ -223,7 +223,11 @@ class ResponseHelpersMixin(MixinBase):
         return value
 
     def bind_state(self, instance, state: dict[str, Any]) -> None:
-        locked = self._locked_by_pieces(instance)
+        # a field a components.yaml business component hides or locks for the caller (the view's
+        # own tree may draw it): never written from the wire
+        from ..component_registry import without_locked
+
+        state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
@@ -231,10 +235,6 @@ class ResponseHelpersMixin(MixinBase):
                 continue
             key = camel_case(f.name)
             if key not in state:
-                continue
-            if key in locked:
-                # a field a components.yaml business component hides or locks for the caller
-                # (the view's own tree may draw it): never written from the wire
                 continue
             if isinstance(f.type, type) and issubclass(f.type, fluent.Component):
                 # a component-holder field is structure, not data: the wire never writes it
@@ -261,16 +261,15 @@ class ResponseHelpersMixin(MixinBase):
             if value is not None:
                 setattr(instance, f.name, value)
 
-    def _locked_by_pieces(self, instance) -> set[str]:
-        """The fields the authored business components hide or lock for the caller, for a view that
-        draws its own tree (it may reference them; nothing records which it renders, so every
-        restricted one counts: fail closed). A YAML layout's are dropped earlier, in
-        ``_guard_yaml_access``."""
+    def _locked_by_pieces(self, instance) -> dict[str, str]:
+        """Field id → the business component locking it, for a view that draws its own tree:
+        STRICT — every restricted business component of the app counts, whatever the view drew
+        before (it may draw one only in some state). A YAML layout's are dropped earlier, in
+        ``_guard_yaml_access``, by the same rule."""
         components = getattr(self, "components", None)
         if components is None or not callable(getattr(type(instance), "component", None)):
-            return set()
-        names = components.restricted_names()
-        return components.locked_for(names, self.mapper.authorized) if names else set()
+            return {}
+        return components.app_wide_locked_by(self.mapper.authorized)
 
     @staticmethod
     def convert_value(raw, target):

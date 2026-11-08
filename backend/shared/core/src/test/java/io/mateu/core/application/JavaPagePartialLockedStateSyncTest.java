@@ -80,6 +80,29 @@ class JavaPagePartialLockedStateSyncTest {
     }
   }
 
+  /** Draws the {@code bonus-sheet} partial ONLY while {@code showBonus} is true. */
+  @UI("/java-page-conditional-partial")
+  public static class PageWithConditionalPartial implements ComponentTreeSupplier {
+    public boolean showBonus = false;
+    public String extra = "kept";
+    public String comment = "";
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return showBonus
+          ? new VerticalLayout(List.of(new Partial("bonus-sheet")))
+          : new VerticalLayout(List.of());
+    }
+
+    @Action
+    public void save() {
+      var values = new LinkedHashMap<String, Object>();
+      values.put("extra", extra);
+      values.put("comment", comment);
+      SAVED.set(values);
+    }
+  }
+
   /** The view model a YAML layout binds (routes.yaml {@code viewModel:}). */
   public static class PayrollViewModel {
     public Double bonus = 10.0;
@@ -134,6 +157,15 @@ class JavaPagePartialLockedStateSyncTest {
         Map.of(
             "partials/payroll.yaml",
             "content:\n" + FIELDS,
+            "partials/bonus-sheet.yaml",
+            """
+            content:
+              - type: FormField
+                id: extra
+                label: Extra
+                dataType: string
+                readOnlyUnless: {roles: [hr]}
+            """,
             "routes.yaml",
             """
             type: Routes
@@ -166,13 +198,21 @@ class JavaPagePartialLockedStateSyncTest {
 
   /** Posts the tampered state to {@code save}; optionally loads the page first in the same run. */
   private String save(String route, Map<String, String> headers, boolean loadFirst) {
+    return save(route, headers, loadFirst, TAMPERED);
+  }
+
+  private String save(
+      String route, Map<String, String> headers, boolean loadFirst, Map<String, Object> posted) {
     return SpecsDir.over(
         fixture(),
         cl -> {
           PartialRegistry.instance().reset();
           ClientLockedFields.reset();
           try (var mateu =
-              TestMateu.withUis(PageWithPartial.class, PageWithBusinessComponent.class)) {
+              TestMateu.withUis(
+                  PageWithPartial.class,
+                  PageWithBusinessComponent.class,
+                  PageWithConditionalPartial.class)) {
             if (loadFirst) {
               mateu.run(RunActionRqDto.builder().route(route).actionId("").build(), headers);
             }
@@ -180,7 +220,7 @@ class JavaPagePartialLockedStateSyncTest {
                 RunActionRqDto.builder()
                     .route(route)
                     .actionId("save")
-                    .componentState(new LinkedHashMap<>(TAMPERED))
+                    .componentState(new LinkedHashMap<>(posted))
                     .build();
             return JSON.valueToTree(mateu.run(rq, headers)).toString();
           }
@@ -234,6 +274,26 @@ class JavaPagePartialLockedStateSyncTest {
   @Test
   void aCallerWhoSatisfiesTheAccessKeysWritesABusinessComponentsFields() {
     assertHrCanWrite("/java-page-locked-component");
+  }
+
+  /**
+   * STRICT: a page that draws the locked partial only in some state is still guarded when this
+   * process has only ever rendered it WITHOUT the partial (the render record is never the source of
+   * truth).
+   */
+  @Test
+  void aGuestCannotWriteAFieldOfAPartialThePageDrawsOnlyInAnotherState() {
+    var posted = Map.<String, Object>of("showBonus", false, "extra", "hacked", "comment", "hi");
+    var wire = save("/java-page-conditional-partial", Map.of(), true, posted);
+    assertThat(SAVED.get()).containsEntry("extra", "kept").containsEntry("comment", "hi");
+    assertThat(wire).doesNotContain("hacked");
+  }
+
+  @Test
+  void aCallerWhoSatisfiesTheAccessKeysWritesAConditionalPartialsField() {
+    var posted = Map.<String, Object>of("showBonus", false, "extra", "hacked", "comment", "hi");
+    save("/java-page-conditional-partial", TestIdentities.headersWithRoles("hr"), true, posted);
+    assertThat(SAVED.get()).containsEntry("extra", "hacked").containsEntry("comment", "hi");
   }
 
   /**

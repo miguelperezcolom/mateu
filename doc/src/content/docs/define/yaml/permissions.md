@@ -112,10 +112,24 @@ partial or business component it uses (followed through the partials they nest �
 section the caller may not see locks all of its fields), and in the annotations of a code view.
 The value is never echoed back either.
 
+The check is **strict**: a view that can draw partials or business components — a code view that
+builds its own component tree (or holds components, or has a method returning them), an adapted
+model, a YAML layout — is checked against **every** partial and business component of the app that
+declares access keys, every time, not only against the pieces it happens to draw. A page may draw a
+piece only in some state (`if (state.showBonus) …`), so what the server saw it render before can
+never decide what is writable now. (On .NET and Python a partial can only be used from YAML, where
+it is part of the page's own definition, so there the app-wide check covers the business
+components.)
+
+That has one consequence worth knowing: **field names are app-wide** for this purpose. If some
+partial or business component locks a field called `bonus` for the caller, a `bonus` posted to an
+unrelated view that can draw pieces is dropped too, even though that view never shows that piece.
+The WARN names the piece that locked it — rename one of the two fields if they are unrelated.
+
 It fails **closed**: if the access keys of a partial or business component cannot be evaluated for
-the request, none of its fields is writable. A code view the server has not rendered yet in this
-process (a request straight after a restart) is checked against every partial and business
-component of the app. Each dropped field is logged once at WARN (then at DEBUG).
+the request, none of its fields is writable. When no spec file declares access keys at all, none
+of this costs anything. Each dropped field is logged once at WARN, naming the partial or component
+that locks it (then at DEBUG).
 
 Hiding is UX, not authorization. As with the annotations, the REST endpoints your screens call must
 still check who is calling.

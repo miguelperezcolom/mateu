@@ -14,7 +14,11 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Write side of the access keys of the YAML pieces a Java view draws: the ids of the fields a YAML
+ * Write side of the access keys of the YAML pieces a view may draw: the ids of the fields a YAML
  * partial ({@code new Partial("payroll")}) or a {@code components.yaml} business component ({@code
  * new ComponentRef("Payroll")}) hides ({@code eyesOnly:}) or locks ({@code readOnlyUnless:}, {@code
  * disabledUnless:}) for THIS caller, so the state the client posts for them is dropped before it
@@ -41,11 +45,16 @@ import lombok.extern.slf4j.Slf4j;
  * DEFINITIONS (no rendering): {@link YamlAccess#apply} reports the fields it locks, the pieces a
  * definition nests are followed, and a piece hidden from the caller locks every field under it.
  *
- * <p>Which pieces a view draws is learned from its rendered trees ({@link #learn}). A view class
- * not rendered yet in this process that MAY draw pieces (a {@link ComponentTreeSupplier}, or a
- * class with a component-holder field) is checked against EVERY YAML piece of the app instead — a
- * POST straight after a restart, or a hand-made one, is still guarded. It fails CLOSED: when a
- * piece's access keys cannot be evaluated, all of its fields are treated as not writable.
+ * <p>The rule is STRICT: a view that may draw pieces (a {@link ComponentTreeSupplier}, a {@link
+ * Component}, a class with a component-holder field or a method returning components, an adapted
+ * model, a YAML layout) is ALWAYS checked against EVERY partial and business component of the app.
+ * What a view drew in earlier renders is never the source of truth, because a page may draw a piece
+ * only in some state. The price is a documented false positive: a posted field whose name matches a
+ * field some unrelated piece locks for this caller is dropped too — the WARN names the piece, so
+ * the author can rename one of them. The app-wide set is cached per caller identity (roles, groups,
+ * scopes, permissions) and dropped when the specs change. It costs nothing when no spec file
+ * declares access keys, and it fails CLOSED: when a piece's access keys cannot be evaluated, all of
+ * its fields are treated as not writable.
  */
 @Slf4j
 public final class ClientLockedFields {
@@ -57,48 +66,74 @@ public final class ClientLockedFields {
     COMPONENT
   }
 
-  record Ref(Kind kind, String name) {}
+  record Ref(Kind kind, String name) {
+    String label() {
+      return (kind == Kind.PARTIAL ? "partial '" : "business component '") + name + "'";
+    }
+  }
+
+  /** The caller as far as access keys can tell (its name does not matter to them). */
+  private record IdentityKey(
+      Set<String> roles, Set<String> groups, Set<String> scopes, Set<String> permissions) {
+    static IdentityKey of(HttpRequest httpRequest) {
+      var identity = IdentityResolver.resolve(httpRequest);
+      return new IdentityKey(
+          Set.copyOf(identity.roles()),
+          Set.copyOf(identity.groups()),
+          Set.copyOf(identity.scopes()),
+          Set.copyOf(identity.permissions()));
+    }
+  }
 
   private static final int MAX_DEPTH = 20;
 
-  /** View type name → the pieces its rendered trees named (only ever grows: bounded by code). */
-  private static final Map<String, Set<Ref>> LEARNED = new ConcurrentHashMap<>();
+  private static final int MAX_CACHED_IDENTITIES = 512;
+
+  /**
+   * Caller identity → field id → the piece that locks it, app-wide. Only ever a cache, filled from
+   * the pieces' definitions (never from what was rendered); not filled when a piece is built in
+   * code, whose content may depend on the request.
+   */
+  private static final Map<IdentityKey, Map<String, String>> APP_WIDE = new ConcurrentHashMap<>();
 
   /** Per specs index: whether any spec file declares access keys at all (the fast path). */
   private static final Map<SpecsIndex, Boolean> RESTRICTED =
       Collections.synchronizedMap(new WeakHashMap<>());
 
+  /** Whether a view class may draw pieces (decided once per class). */
+  private static final ClassValue<Boolean> MAY_DRAW =
+      new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+          return computeMayDrawPieces(type);
+        }
+      };
+
   /** (type, field) pairs already reported at WARN. */
   private static final Set<String> REPORTED = ConcurrentHashMap.newKeySet();
 
-  /** Forget what was learned. Tests. */
+  /** Drops the caches when a spec file changes (dev mode); a static field keeps it registered. */
+  private static final io.mateu.core.infra.dev.SpecsCache ON_SPECS_CHANGED =
+      () -> {
+        APP_WIDE.clear();
+        RESTRICTED.clear();
+      };
+
+  static {
+    io.mateu.core.infra.dev.DevSpecs.register(ON_SPECS_CHANGED);
+  }
+
+  /** Forget what was cached. Tests. */
   public static void reset() {
-    LEARNED.clear();
+    APP_WIDE.clear();
     RESTRICTED.clear();
     REPORTED.clear();
   }
 
   /**
-   * Records the YAML pieces {@code tree} (as returned by the view, before the partials are
-   * expanded) names, for the view type {@code viewType}.
-   */
-  public static void learn(String viewType, Component tree) {
-    if (viewType == null || tree == null) {
-      return;
-    }
-    try {
-      var refs = refsIn(tree);
-      var known = LEARNED.computeIfAbsent(viewType, k -> ConcurrentHashMap.newKeySet());
-      known.addAll(refs);
-    } catch (Exception e) {
-      log.debug("Could not learn the pieces of {}: {}", viewType, e.toString());
-    }
-  }
-
-  /**
-   * {@code state} without the entries the caller may not write into a {@code viewType}: the fields
-   * of the YAML pieces the view draws that are hidden or locked for {@code httpRequest}. The very
-   * same map when nothing is dropped.
+   * {@code state} without the entries the caller may not write into a {@code viewType}: when the
+   * view may draw YAML pieces, the fields that ANY partial or business component of the app hides
+   * or locks for {@code httpRequest}. The very same map when nothing is dropped.
    */
   public static Map<String, Object> withoutLocked(
       Class<?> viewType, Map<String, Object> state, HttpRequest httpRequest) {
@@ -114,8 +149,10 @@ public final class ClientLockedFields {
     if (state == null || state.isEmpty() || viewType == null) {
       return state;
     }
-    var locked = lockedFor(viewType, httpRequest, drawsPieces);
-    return without(viewType.getName(), state, locked);
+    if (!drawsPieces && !mayDrawPieces(viewType)) {
+      return state;
+    }
+    return without(viewType.getName(), state, appWideLockedFor(httpRequest));
   }
 
   /**
@@ -124,25 +161,44 @@ public final class ClientLockedFields {
    */
   public static Map<String, Object> without(
       String owner, Map<String, Object> state, Set<String> locked) {
-    if (state == null || locked == null || locked.isEmpty()) {
+    if (locked == null || locked.isEmpty()) {
+      return state;
+    }
+    var by = new LinkedHashMap<String, String>();
+    locked.forEach(key -> by.put(key, null));
+    return without(owner, state, by);
+  }
+
+  /**
+   * {@code state} without the keys of {@code lockedBy} (field id → the piece that locks it), one
+   * log line per (owner, key): WARN the first time, naming the piece, DEBUG after.
+   */
+  public static Map<String, Object> without(
+      String owner, Map<String, Object> state, Map<String, String> lockedBy) {
+    if (state == null || lockedBy == null || lockedBy.isEmpty()) {
       return state;
     }
     Map<String, Object> narrowed = null;
     for (var key : state.keySet()) {
-      if (locked.contains(key)) {
-        if (narrowed == null) {
-          narrowed = new LinkedHashMap<>(state);
-        }
-        narrowed.remove(key);
-        if (REPORTED.add(owner + "#" + key)) {
-          log.warn(
-              "Dropped client state for '{}' of {}: a YAML partial/component it draws hides or locks"
-                  + " that field for the caller (further drops are logged at DEBUG)",
-              key,
-              owner);
-        } else {
-          log.debug("Dropped client state for locked field '{}' of {}", key, owner);
-        }
+      if (!lockedBy.containsKey(key)) {
+        continue;
+      }
+      if (narrowed == null) {
+        narrowed = new LinkedHashMap<>(state);
+      }
+      narrowed.remove(key);
+      var piece = lockedBy.get(key) == null ? "a YAML partial/component" : lockedBy.get(key);
+      if (REPORTED.add(owner + "#" + key)) {
+        log.warn(
+            "Dropped client state for '{}' of {}: {} hides or locks a field of that name for the"
+                + " caller. Every view that may draw YAML pieces is checked against every partial"
+                + " and business component of the app; if that piece is unrelated to this view,"
+                + " rename one of the two fields (further drops are logged at DEBUG)",
+            key,
+            owner,
+            piece);
+      } else {
+        log.debug("Dropped client state for locked field '{}' of {} ({})", key, owner, piece);
       }
     }
     return narrowed == null ? state : narrowed;
@@ -150,31 +206,50 @@ public final class ClientLockedFields {
 
   /** The field ids the caller may not write into a {@code viewType}. */
   public static Set<String> lockedFor(Class<?> viewType, HttpRequest httpRequest) {
-    return lockedFor(viewType, httpRequest, false);
-  }
-
-  private static Set<String> lockedFor(
-      Class<?> viewType, HttpRequest httpRequest, boolean drawsPieces) {
-    if (viewType == null || !anyRestrictedSpec()) {
+    if (viewType == null || !mayDrawPieces(viewType)) {
       return Set.of();
     }
-    var learned = LEARNED.get(viewType.getName());
+    return appWideLockedFor(httpRequest).keySet();
+  }
+
+  /**
+   * Field id → the piece that locks it: every field that ANY YAML partial or business component of
+   * the app hides or locks for the caller. Empty (and free) when no spec file declares access keys.
+   */
+  public static Map<String, String> appWideLockedFor(HttpRequest httpRequest) {
+    if (!anyRestrictedSpec()) {
+      return Map.of();
+    }
+    IdentityKey key;
     try {
-      if (learned != null && !learned.isEmpty()) {
-        return lockedBy(learned, httpRequest);
+      key = IdentityKey.of(httpRequest);
+    } catch (RuntimeException e) {
+      key = null; // not cacheable: evaluated for this request alone
+    }
+    if (key != null) {
+      var cached = APP_WIDE.get(key);
+      if (cached != null) {
+        return cached;
       }
-      if (learned == null && (drawsPieces || mayDrawPieces(viewType))) {
-        return lockedBy(everyPiece(), httpRequest);
-      }
-      return Set.of();
+    }
+    var fromCode = new boolean[1];
+    Map<String, String> locked;
+    try {
+      locked = Collections.unmodifiableMap(lockedBy(everyPiece(), httpRequest, fromCode));
     } catch (RuntimeException e) {
       log.error(
-          "Could not derive the locked fields of {}; treating every field of every YAML piece as"
-              + " not writable",
-          viewType.getName(),
+          "Could not derive the locked fields of the app's YAML pieces; treating every field of"
+              + " every piece as not writable",
           e);
       return everyFieldOfEveryPiece(httpRequest);
     }
+    if (key != null && !fromCode[0]) {
+      if (APP_WIDE.size() >= MAX_CACHED_IDENTITIES) {
+        APP_WIDE.clear();
+      }
+      APP_WIDE.put(key, locked);
+    }
+    return locked;
   }
 
   /** The field ids the YAML pieces {@code tree} names hide or lock for the caller. */
@@ -183,10 +258,10 @@ public final class ClientLockedFields {
       return Set.of();
     }
     try {
-      return lockedBy(refsIn(tree), httpRequest);
+      return lockedBy(refsIn(tree), httpRequest, new boolean[1]).keySet();
     } catch (RuntimeException e) {
       log.error("Could not derive the locked fields of a tree's pieces; treating all as locked", e);
-      return everyFieldOfEveryPiece(httpRequest);
+      return everyFieldOfEveryPiece(httpRequest).keySet();
     }
   }
 
@@ -221,16 +296,76 @@ public final class ClientLockedFields {
     }
   }
 
-  /** A view that may draw a partial: a component tree, or a class holding components. */
-  private static boolean mayDrawPieces(Class<?> type) {
+  /** Whether {@code type} may draw a partial. Decided once per class. */
+  static boolean mayDrawPieces(Class<?> type) {
+    return MAY_DRAW.get(type);
+  }
+
+  /**
+   * A view that may draw a partial: a component tree, a component, a class holding components, or
+   * one with a method returning components (an archetype's {@code overview(row)}, a header
+   * supplier…).
+   */
+  private static boolean computeMayDrawPieces(Class<?> type) {
     if (ComponentTreeSupplier.class.isAssignableFrom(type)
         || Component.class.isAssignableFrom(type)) {
       return true;
     }
-    for (var field : AllFieldsProvider.getAllFields(type)) {
-      if (!Modifier.isStatic(field.getModifiers()) && HolderFieldChecker.isNonDataHolder(field)) {
+    try {
+      for (var field : AllFieldsProvider.getAllFields(type)) {
+        if (!Modifier.isStatic(field.getModifiers()) && HolderFieldChecker.isNonDataHolder(field)) {
+          return true;
+        }
+      }
+      for (var c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+        for (var method : c.getDeclaredMethods()) {
+          if (!Modifier.isStatic(method.getModifiers())
+              && mentionsComponent(method.getGenericReturnType(), 0)) {
+            return true;
+          }
+        }
+      }
+      for (var method : type.getMethods()) {
+        if (mentionsComponent(method.getGenericReturnType(), 0)) {
+          return true;
+        }
+      }
+    } catch (RuntimeException | LinkageError e) {
+      return true; // fail closed: a class we cannot inspect is checked
+    }
+    return false;
+  }
+
+  /** Whether a (generic) type is, or carries, a {@link Component}. */
+  private static boolean mentionsComponent(Type type, int depth) {
+    if (type == null || depth > 4) {
+      return false;
+    }
+    if (type instanceof Class<?> c) {
+      return Component.class.isAssignableFrom(c)
+          || (c.isArray() && mentionsComponent(c.getComponentType(), depth + 1));
+    }
+    if (type instanceof ParameterizedType p) {
+      if (mentionsComponent(p.getRawType(), depth + 1)) {
         return true;
       }
+      for (var arg : p.getActualTypeArguments()) {
+        if (mentionsComponent(arg, depth + 1)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (type instanceof WildcardType w) {
+      for (var bound : w.getUpperBounds()) {
+        if (mentionsComponent(bound, depth + 1)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (type instanceof GenericArrayType a) {
+      return mentionsComponent(a.getGenericComponentType(), depth + 1);
     }
     return false;
   }
@@ -252,11 +387,11 @@ public final class ClientLockedFields {
     return all;
   }
 
-  private static Set<String> everyFieldOfEveryPiece(HttpRequest httpRequest) {
-    var out = new LinkedHashSet<String>();
+  private static Map<String, String> everyFieldOfEveryPiece(HttpRequest httpRequest) {
+    var out = new LinkedHashMap<String, String>();
     try {
       for (var ref : everyPiece()) {
-        lockAll(ref, httpRequest, new ArrayDeque<>(), out);
+        lockAll(ref, httpRequest, new ArrayDeque<>(), out, new boolean[1]);
       }
     } catch (RuntimeException e) {
       throw new IllegalStateException("the locked fields of the app's YAML pieces are unknown", e);
@@ -274,16 +409,24 @@ public final class ClientLockedFields {
 
   // ── what a piece locks ──────────────────────────────────────────────────────────────────────
 
-  private static Set<String> lockedBy(Set<Ref> refs, HttpRequest httpRequest) {
-    var out = new LinkedHashSet<String>();
+  private static Map<String, String> lockedBy(
+      Set<Ref> refs, HttpRequest httpRequest, boolean[] fromCode) {
+    var out = new LinkedHashMap<String, String>();
     for (var ref : refs) {
-      locked(ref, httpRequest, new ArrayDeque<>(), out);
+      locked(ref, httpRequest, new ArrayDeque<>(), out, fromCode);
     }
     return out;
   }
 
+  private static void lock(Map<String, String> out, Collection<String> fields, Ref by) {
+    for (var field : fields) {
+      out.putIfAbsent(field, by.label());
+    }
+  }
+
   /** The fields {@code ref} hides or locks for the caller, its nested pieces included. */
-  private static void locked(Ref ref, HttpRequest rq, Deque<Ref> chain, Set<String> out) {
+  private static void locked(
+      Ref ref, HttpRequest rq, Deque<Ref> chain, Map<String, String> out, boolean[] fromCode) {
     if (chain.contains(ref) || chain.size() >= MAX_DEPTH) {
       return;
     }
@@ -291,11 +434,12 @@ public final class ClientLockedFields {
     try {
       var source = sourceOf(ref, rq);
       if (source instanceof JsonNode node) {
-        lockedBySource(ref, node, rq, chain, out);
+        lockedBySource(ref, node, rq, chain, out, fromCode);
       } else if (source instanceof Collection<?> code) {
+        fromCode[0] = true;
         for (var item : code) {
           for (var nested : refsIn(item)) {
-            locked(nested, rq, chain, out);
+            locked(nested, rq, chain, out, fromCode);
           }
         }
       }
@@ -305,40 +449,43 @@ public final class ClientLockedFields {
   }
 
   private static void lockedBySource(
-      Ref ref, JsonNode source, HttpRequest rq, Deque<Ref> chain, Set<String> out) {
+      Ref ref,
+      JsonNode source,
+      HttpRequest rq,
+      Deque<Ref> chain,
+      Map<String, String> out,
+      boolean[] fromCode) {
     var nested = refsIn(source);
     Set<Ref> visible;
     try {
       if (YamlAccess.declaresAccess(source)) {
         var applied = YamlAccess.apply(source, rq, null);
-        out.addAll(applied.lockedFields());
+        lock(out, applied.lockedFields(), ref);
         visible = applied.tree() == null ? Set.of() : refsIn(applied.tree());
         if (applied.tree() == null) {
-          out.addAll(fieldIdsIn(source)); // the whole piece is hidden from the caller
+          lock(out, fieldIdsIn(source), ref); // the whole piece is hidden from the caller
         }
       } else {
         visible = nested;
       }
     } catch (Exception e) {
       log.error(
-          "Could not apply the access keys of {} '{}'; none of its fields is writable",
-          ref.kind().name().toLowerCase(),
-          ref.name(),
-          e);
-      out.addAll(fieldIdsIn(source));
+          "Could not apply the access keys of {}; none of its fields is writable", ref.label(), e);
+      lock(out, fieldIdsIn(source), ref);
       visible = Set.of();
     }
     for (var child : nested) {
       if (visible.contains(child)) {
-        locked(child, rq, chain, out);
+        locked(child, rq, chain, out, fromCode);
       } else {
-        lockAll(child, rq, chain, out); // under a section the caller may not see
+        lockAll(child, rq, chain, out, fromCode); // under a section the caller may not see
       }
     }
   }
 
   /** Every field of {@code ref}, its nested pieces included: none of it reaches the caller. */
-  private static void lockAll(Ref ref, HttpRequest rq, Deque<Ref> chain, Set<String> out) {
+  private static void lockAll(
+      Ref ref, HttpRequest rq, Deque<Ref> chain, Map<String, String> out, boolean[] fromCode) {
     if (chain.contains(ref) || chain.size() >= MAX_DEPTH) {
       return;
     }
@@ -346,15 +493,18 @@ public final class ClientLockedFields {
     try {
       var source = sourceOf(ref, rq);
       if (source instanceof JsonNode node) {
-        out.addAll(fieldIdsIn(node));
+        lock(out, fieldIdsIn(node), ref);
         for (var child : refsIn(node)) {
-          lockAll(child, rq, chain, out);
+          lockAll(child, rq, chain, out, fromCode);
         }
       } else if (source instanceof Collection<?> code) {
+        fromCode[0] = true;
         for (var item : code) {
-          collectFieldIds(item, out, new IdentityHashMap<>(), 0);
+          var ids = new LinkedHashSet<String>();
+          collectFieldIds(item, ids, new IdentityHashMap<>(), 0);
+          lock(out, ids, ref);
           for (var child : refsIn(item)) {
-            lockAll(child, rq, chain, out);
+            lockAll(child, rq, chain, out, fromCode);
           }
         }
       }

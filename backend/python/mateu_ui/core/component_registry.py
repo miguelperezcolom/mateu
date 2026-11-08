@@ -156,15 +156,28 @@ class ComponentRegistry:
         lock for the caller — dropped from the state the client posts (Java's
         ``ClientLockedFields``). Fails CLOSED: a composition whose access keys cannot be evaluated
         locks every field it holds."""
+        return set(self.locked_by(names, authorized))
+
+    def locked_by(self, names, authorized: Callable[[Any], bool] | None) -> dict[str, str]:
+        """As :meth:`locked_for`, field id → the business component that locks it (for the log)."""
         self.catalog()
-        out: set[str] = set()
+        out: dict[str, str] = {}
         for name in names:
             self._locked(str(name).strip(), authorized, (), out, lock_all=False)
         return out
 
-    def _locked(self, name, authorized, chain, out: set[str], lock_all: bool) -> None:
+    def app_wide_locked_by(self, authorized: Callable[[Any], bool] | None) -> dict[str, str]:
+        """STRICT (Java's ``ClientLockedFields.appWideLockedFor``): every field ANY restricted
+        business component of the app hides or locks for the caller, field id → the component. A
+        view that may draw pieces is checked against all of them, whatever it drew before — a page
+        may draw a piece only in some state."""
+        names = self.restricted_names()
+        return self.locked_by(names, authorized) if names else {}
+
+    def _locked(self, name, authorized, chain, out_by: dict[str, str], lock_all: bool) -> None:
         if name in chain or len(chain) >= 20:
             return
+        out = _Locking(out_by, name)
         source = self._sources.get(name)
         if source is None:
             return  # nothing authored with access keys: it locks nothing of its own
@@ -188,7 +201,47 @@ class ComponentRegistry:
                 out.update(_field_ids_in(source))
                 visible = set()
         for child in nested:
-            self._locked(child, authorized, chain, out, lock_all=child not in visible)
+            self._locked(child, authorized, chain, out_by, lock_all=child not in visible)
+
+
+class _Locking:
+    """``out.update(ids)`` recording the business component that locks each field (first wins)."""
+
+    def __init__(self, out: dict[str, str], name: str) -> None:
+        self._out = out
+        self._name = name
+
+    def update(self, ids) -> None:
+        for field_id in ids:
+            self._out.setdefault(field_id, self._name)
+
+
+_REPORTED: set[str] = set()
+
+
+def without_locked(owner: str, state: dict[str, Any], locked_by: dict[str, str]) -> dict[str, Any]:
+    """``state`` without the keys ``locked_by`` names (field id → the piece locking it), one WARN
+    per (owner, key) naming the piece — then DEBUG. The same dict when nothing is dropped."""
+    if not state or not locked_by or not any(k in state for k in locked_by):
+        return state
+    for key in state:
+        if key not in locked_by:
+            continue
+        piece = locked_by[key] or "a YAML partial/component"
+        if f"{owner}#{key}" not in _REPORTED:
+            _REPORTED.add(f"{owner}#{key}")
+            log.warning(
+                "Dropped client state for '%s' of %s: business component '%s' hides or locks a field"
+                " of that name for the caller. Every view that may draw business components is"
+                " checked against every restricted one of the app; if that component is unrelated"
+                " to this view, rename one of the two fields (further drops are logged at DEBUG)",
+                key,
+                owner,
+                piece,
+            )
+        else:
+            log.debug("Dropped client state for locked field '%s' of %s (%s)", key, owner, piece)
+    return {k: v for k, v in state.items() if k not in locked_by}
 
 
 def _nobody(gate) -> bool:

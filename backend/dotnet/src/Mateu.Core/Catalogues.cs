@@ -507,22 +507,58 @@ internal static class MateuCatalogs
     /// they nest) hide or lock for the caller — dropped from the state the client posts (Java's
     /// <c>ClientLockedFields</c>). Fails CLOSED: a composition whose access keys cannot be evaluated
     /// locks every field it holds; one under a section the caller may not see locks all of its own.</summary>
-    internal static IReadOnlySet<string> LockedBy(IEnumerable<string> names)
+    internal static IReadOnlySet<string> LockedBy(IEnumerable<string> names) =>
+        LockedByComponent(names).Keys.ToHashSet();
+
+    /// <summary>As <see cref="LockedBy"/>, field id → the business component that locks it (for the log).</summary>
+    internal static IReadOnlyDictionary<string, string> LockedByComponent(IEnumerable<string> names)
     {
-        var locked = new HashSet<string>();
+        var locked = new Dictionary<string, string>();
         foreach (var name in names) Lock(name, [], locked, lockAll: false);
         return locked;
+    }
+
+    /// <summary>STRICT (Java's <c>ClientLockedFields.appWideLockedFor</c>): every field ANY restricted
+    /// business component of the app hides or locks for the caller, field id → the component. A view
+    /// that may draw pieces — a code view drawing its own tree, a YAML layout — is checked against all
+    /// of them, whatever it drew before: a page may draw a piece only in some state.</summary>
+    internal static IReadOnlyDictionary<string, string> AppWideLockedBy() =>
+        RestrictedNames().ToList() is { Count: > 0 } names ? LockedByComponent(names) : new Dictionary<string, string>();
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> Reported = new();
+
+    /// <summary><paramref name="state"/> without the keys of <paramref name="lockedBy"/> (field id →
+    /// the component locking it), one WARN per (owner, key) naming the component — then Debug. The
+    /// same dictionary when nothing is dropped.</summary>
+    internal static IDictionary<string, object?> WithoutLocked(
+        string owner, IDictionary<string, object?> state, IReadOnlyDictionary<string, string> lockedBy)
+    {
+        if (lockedBy.Count == 0 || !state.Keys.Any(lockedBy.ContainsKey)) return state;
+        var log = MateuLogging.For("Mateu.Components");
+        var narrowed = new Dictionary<string, object?>(state);
+        foreach (var key in state.Keys.Where(lockedBy.ContainsKey))
+        {
+            narrowed.Remove(key);
+            if (Reported.TryAdd(owner + "#" + key, true))
+                log.LogWarning(
+                    "Dropped client state for '{Key}' of {Owner}: business component '{Component}' hides or locks a field of that name for the caller. Every view that may draw business components is checked against every restricted one of the app; if that component is unrelated to this view, rename one of the two fields (further drops are logged at Debug)",
+                    key, owner, lockedBy[key]);
+            else
+                log.LogDebug("Dropped client state for locked field '{Key}' of {Owner} ({Component})", key, owner, lockedBy[key]);
+        }
+        return narrowed;
     }
 
     /// <summary>The names of the authored compositions guarded by access keys.</summary>
     internal static IEnumerable<string> RestrictedNames() =>
         Components.Components.Where(e => AuthoredSources.Of(e) is not null).Select(e => e.Name);
 
-    private static void Lock(string name, string[] chain, HashSet<string> locked, bool lockAll)
+    private static void Lock(string name, string[] chain, Dictionary<string, string> lockedBy, bool lockAll)
     {
         if (chain.Contains(name) || chain.Length >= 20) return;
         if (Components.Get(name) is not { } entry || AuthoredSources.Of(entry) is not { } source) return;
         chain = [.. chain, name];
+        var locked = new FirstWins(lockedBy, name);
         var nested = AuthoredSources.RefsIn(source.Node);
         ISet<string> visible = nested;
         if (lockAll)
@@ -550,7 +586,16 @@ internal static class MateuCatalogs
                 visible = new HashSet<string>();
             }
         }
-        foreach (var child in nested) Lock(child, chain, locked, lockAll: !visible.Contains(child));
+        foreach (var child in nested) Lock(child, chain, lockedBy, lockAll: !visible.Contains(child));
+    }
+
+    /// <summary>A field-id sink recording the component that locks each field (first wins).</summary>
+    private sealed class FirstWins(Dictionary<string, string> lockedBy, string component)
+    {
+        public void UnionWith(IEnumerable<string> ids)
+        {
+            foreach (var id in ids) lockedBy.TryAdd(id, component);
+        }
     }
 
     /// <summary>Runs <paramref name="body"/> over the resolved composition with the reference on the

@@ -262,20 +262,27 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
         if (_yaml.LoadSpec(rq.Route) is not { } spec) return rq;
-        // the business components (components.yaml) the layout names lock fields too: they are
-        // resolved while the tree is mapped, after the view model is bound
-        var byPieces = AuthoredSources.RefsInTree(spec.Layout) is { Count: > 0 } refs
-            ? MateuCatalogs.LockedBy(refs)
-            : new HashSet<string>();
-        if (!spec.DependsOnRequest) return WithoutLocked(rq, byPieces);
+        // the business components (components.yaml) lock fields too: they are resolved while the
+        // tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
+        // component of the app is checked, not only the ones this layout names
+        var byPieces = MateuCatalogs.AppWideLockedBy();
+        if (!spec.DependsOnRequest) return WithoutLockedByPieces(rq, byPieces);
         if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal)
-            return WithoutLocked(rq, byPieces);
+            return WithoutLockedByPieces(rq, byPieces);
         if (rq.ActionId is { } actionId && personal.RefusedActions.Contains(actionId))
             ActionGuard.Deny($"action '{actionId}' denied by access:");
         if (rq.ActionId == "__restfetch__" && StateString(GetState(rq.Parameters, "_sourceId")) is { } sourceId
             && personal.RefusedActions.Contains(sourceId))
             ActionGuard.Deny($"action '{sourceId}' denied by access:");
-        return WithoutLocked(rq, personal.LockedFields.Concat(byPieces).ToHashSet());
+        return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
+    }
+
+    /// <summary><paramref name="rq"/> without the posted state the business components lock for the caller.</summary>
+    private static RunActionRqDto WithoutLockedByPieces(RunActionRqDto rq, IReadOnlyDictionary<string, string> lockedBy)
+    {
+        var state = rq.ComponentState;
+        var narrowed = MateuCatalogs.WithoutLocked(rq.Route ?? "", state, lockedBy);
+        return ReferenceEquals(narrowed, state) ? rq : rq with { ComponentState = new Dictionary<string, object?>(narrowed) };
     }
 
     /// <summary><paramref name="rq"/> without the posted state of the fields <paramref name="locked"/> names.</summary>

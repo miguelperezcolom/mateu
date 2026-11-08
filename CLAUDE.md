@@ -935,10 +935,17 @@ Durable rules and where they live:
   component drawn by a CODE view (2026-11-08): `infra/security/ClientLockedFields` derives the
   fields those pieces hide/lock for the caller from their DEFINITIONS and drops them before any
   write (`ReflectionInstanceFactory.newInstance`, `AdapterInstanceFactory`, `YamlUidlLoader.guardIn`
-  for a layout's ComponentRefs); the pieces a view draws are learned at render
-  (`ComponentTreeSupplierMapper`/`UIFragmentAssembler` → `learn`), an unrendered CTS/holder class is
-  checked against every piece (fail closed). Ports: `ComponentRegistry.get_for`/`locked_for` (Python),
-  `AuthoredSources` + `MateuCatalogs.LockedBy` (.NET) — those also fixed the READ side of
+  for a layout). STRICT (owner decision, same day): a view that MAY draw pieces (CTS, Component,
+  holder field, a method returning components, an adapted model, any YAML layout) is ALWAYS checked
+  against EVERY partial + business component of the app (`appWideLockedFor`, cached per caller
+  identity, dropped on spec change; no cost without access keys) — never against "what it rendered"
+  (a page may draw a piece only in some state; the old render record `learn` is gone). Accepted
+  false positive: a same-named field locked by an unrelated piece is dropped; the WARN names the
+  piece so the author can rename. Ports: `ComponentRegistry.get_for`/`app_wide_locked_by`/
+  `without_locked` (Python), `AuthoredSources` + `MateuCatalogs.AppWideLockedBy`/`WithoutLocked`
+  (.NET), used by BOTH the YAML guard and `bind_state`/`BindState` — the ports' pieces are the
+  restricted business components (their partials are YAML-only, composed into the page before
+  access) — those also fixed the READ side of
   components.yaml access keys, which the ports never applied. Tests `JavaPagePartialLockedStateSyncTest`,
   `ClientLockedFieldsTest`, `test_locked_pieces_state.py`, `LockedPiecesStateTests`. Active document types (HTML/SVG/XML/script) are never inlined. The
   client-log endpoint is rate-limited.
