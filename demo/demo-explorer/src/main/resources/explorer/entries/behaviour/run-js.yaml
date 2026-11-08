@@ -1,0 +1,18 @@
+id: run-js
+area: behaviour
+group: actions
+title: RunJS (off by default)
+covers: [behaviour:run-js]
+description: |
+  `@Action(js = "…")` and the `RunJS` rule action run JavaScript **statements** in the browser. That
+  needs `new Function` — `'unsafe-eval'` in a Content Security Policy — so RunJS is **off by
+  default**: the statement is skipped with a console warning. An action with `js` is client-side
+  only (its method is never called).
+  A page opts in with `<meta name="mateu-allow-run-js" content="true">` (or `configureRunJs(true)`).
+  Rules, conditions and `${…}` are expressions, evaluated in a sandbox with no opt-in.
+
+  Try it: press **Change the note with JS** — *Note* stays `untouched`: the statement was not run,
+  and the browser console says why. With the meta tag it would read *changed by RunJS*.
+examples:
+  - title: An action with js
+    java: io.mateu.explorer.examples.behaviour.runjs.RunJsDemo

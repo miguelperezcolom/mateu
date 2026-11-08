@@ -1,0 +1,19 @@
+id: semantic-annotations
+area: behaviour
+group: forms
+title: Semantic (composed) annotations
+covers: [behaviour:semantic-annotations]
+description: |
+  Put Mateu's annotations on **your own** annotation and use that: Mateu reads through it. One
+  `@TotalAmount` (money + label + help) replaces three annotations at every amount of the domain;
+  one `@SaveAction` (toolbar + label + validation + shortcut) gives every screen the same Save.
+  Routing annotations (`@UI`) are the exception — they are read at compile time.
+
+  Try it: the field reads *Total amount* with the help text, formatted as money; press
+  **Ctrl+Alt+S** (or the **Save** button on the toolbar).
+examples:
+  - title: An order summary
+    java: io.mateu.explorer.examples.behaviour.semanticannotations.OrderSummary
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/semanticannotations/TotalAmount.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/semanticannotations/SaveAction.java}

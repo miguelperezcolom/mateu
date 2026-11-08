@@ -1,0 +1,25 @@
+id: shell-variants
+area: behaviour
+group: navigation
+title: App shell variants
+covers: [behaviour:shell-variants]
+description: |
+  `@App(AppVariant.X)` on the `@UI` app class picks how the shell draws its menu — the menu itself
+  (`@Menu` fields; a field whose type holds more `@Menu` fields is a group) never changes:
+  `MENU_ON_TOP`, `MENU_ON_LEFT`, `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `TILES`, `TABS`, `RAIL`.
+  The default, `AUTO`, chooses from the menu's shape: a group holding a group → tiles, more than 7
+  entries → hamburger, otherwise menu on top; no groups at all → tabs.
+
+  Each tab below is the **same** three-entry app, mounted once per variant. Try it: open
+  *Reports* in each one and pick *Arrivals*.
+examples:
+  - title: One app, seven shells
+    java: io.mateu.explorer.examples.behaviour.shellvariants.ShellVariantsPreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/shellvariants/MenuOnTopApp.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/shellvariants/ReportsMenu.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/shellvariants/RailApp.java}
+  - {label: "C#", path: src/main/ports/behaviour/shell-variants/ShellApp.cs}
+  - {label: Python, path: src/main/ports/behaviour/shell-variants/shell_app.py}
+  - {label: "C# · pages", path: src/main/ports/behaviour/shell-variants/Pages.cs}
+  - {label: "Python · pages", path: src/main/ports/behaviour/shell-variants/pages.py}

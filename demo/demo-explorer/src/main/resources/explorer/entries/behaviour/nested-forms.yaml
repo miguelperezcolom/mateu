@@ -1,0 +1,16 @@
+id: nested-forms
+area: behaviour
+group: forms
+title: Nested forms & @Inline
+covers: [behaviour:nested-forms]
+description: |
+  A field typed as another class is a **nested form** — a sub-form of its own. With `@Inline` its
+  fields are laid out directly in the parent `@Section`, no extra card. The nested class can carry
+  its own actions: `@Toolbar` methods go on the section title row, `@Button` methods below its
+  content, and they run against the nested object.
+
+  Try it: press **Validate** on the *Billing address* title row; change the *Email* of the contact
+  and press **Save** — the parent sees the nested values.
+examples:
+  - title: A customer with nested parts
+    java: io.mateu.explorer.examples.behaviour.nestedforms.CustomerForm

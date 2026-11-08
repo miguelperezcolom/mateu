@@ -1,0 +1,20 @@
+id: card-menus
+area: behaviour
+group: navigation
+title: Card menus & rule leaves
+covers: [behaviour:card-menus, behaviour:rule-leaves]
+description: |
+  `@Menu(display = MenuDisplay.cards)` on a group opens it as a panel of **cards**: each entry is a
+  card (its `description` the text, `image`/`@Icon` the visual), and an entry holding entries is a
+  card whose entries are its actions. A `@Menu` field typed `Rule` (or `List<Rule>`) is a leaf that
+  **runs** — a `RunAction` of the app, a client rule — instead of navigating.
+
+  Try it: in the framed app open **Quick access** — three cards, *Billing* with two actions. Then
+  click **Ping**: a toast answers and the page stays.
+examples:
+  - title: A front-office app
+    java: io.mateu.explorer.examples.behaviour.cardmenus.FrontOfficePreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/cardmenus/FrontOfficeApp.java}
+  - {label: "C#", path: src/main/ports/behaviour/card-menus/FrontOfficeApp.cs}
+  - {label: Python, path: src/main/ports/behaviour/card-menus/front_office_app.py}

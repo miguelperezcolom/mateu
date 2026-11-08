@@ -1,0 +1,26 @@
+id: auto-layout
+area: behaviour
+group: form-layout
+title: Layout inference (@AutoLayout)
+covers: [behaviour:auto-layout]
+description: |
+  `@AutoLayout` lets Mateu infer the layout from the amount and shape of what is declared — you
+  declare data only, and an explicit layout annotation always wins:
+
+  - a heavy **editable** form with required and optional fields keeps the required ones in view and
+    folds the optional ones into **More options**;
+  - a heavy **read-only** view of five or more sections turns each section into a **tab**;
+  - an enum of up to four constants becomes radio buttons.
+
+  `mateu.layout.inference.enabled=true` turns it on for every class (`@AutoLayout(false)` opts one out).
+
+  Try it: in the first form only *Name*, *Email* and *Phone* show — open **More options** for the
+  rest; the second one is five tabs.
+examples:
+  - title: Fold the optional fields
+    java: io.mateu.explorer.examples.behaviour.autolayout.NewSupplierForm
+  - title: Sections become tabs
+    java: io.mateu.explorer.examples.behaviour.autolayout.SupplierOverview
+code:
+  - {label: "C#", path: src/main/ports/behaviour/auto-layout/NewSupplierForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/auto-layout/new_supplier_form.py}

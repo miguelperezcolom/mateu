@@ -1,0 +1,15 @@
+id: interpolation
+area: behaviour
+group: forms
+title: Interpolation in labels and titles
+covers: [behaviour:interpolation]
+description: |
+  A `${…}` in a label or title is an expression over the live `state` (and `data`), evaluated in the
+  browser — section titles, field labels, button labels, tab labels, banners and page titles follow
+  the form as it is typed.
+
+  Try it: change **Guest** to `Grace` and the section title reads *Rate for Grace*; set
+  **Currency** to `USD` and **Nights** to `5` — the price label and the button follow.
+examples:
+  - title: A room rate
+    java: io.mateu.explorer.examples.behaviour.interpolation.RoomRate

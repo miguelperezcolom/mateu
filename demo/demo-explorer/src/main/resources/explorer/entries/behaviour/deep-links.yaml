@@ -1,0 +1,18 @@
+id: deep-links
+area: behaviour
+group: navigation
+title: Deep links & back / forward
+covers: [behaviour:deep-links]
+description: |
+  Every screen is a URL. Navigating pushes a history entry, so the browser's **Back** and **Forward**
+  walk the screens, and opening a URL in a new tab — or reloading — lands on the same screen with the
+  same parameters. Under an app shell, a deep link opens the shell aimed at that route (every
+  Explorer page is one).
+
+  Try it: open the plan on its own, press **Next day ›** twice (the URL ends in `2026-12-22`), then
+  the browser's Back — *Plan for 2026-12-21*; reload: still there.
+examples:
+  - title: A day plan
+    java: io.mateu.explorer.examples.behaviour.deeplinks.DayPlanPreview
+pages:
+  - {route: "x/behaviour/deep-links/days/:date", viewModel: io.mateu.explorer.examples.behaviour.deeplinks.DayPlan}

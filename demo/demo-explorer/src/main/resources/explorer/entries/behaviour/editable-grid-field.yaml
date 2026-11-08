@@ -1,0 +1,14 @@
+id: editable-grid-field
+area: behaviour
+group: forms
+title: Editable grid fields
+covers: [behaviour:editable-grid-field]
+description: |
+  A `List` of rows is a **grid field**, part of the form's state. With `@InlineEditing` its cells
+  are edited in place and "+" appends a row; the edited rows travel back with the rest of the form.
+
+  Try it: change the *Quantity* of *Consulting* to `3` and press **Recalculate** — the *Total*
+  becomes 1470.
+examples:
+  - title: Quote lines
+    java: io.mateu.explorer.examples.behaviour.editablegridfield.QuoteForm

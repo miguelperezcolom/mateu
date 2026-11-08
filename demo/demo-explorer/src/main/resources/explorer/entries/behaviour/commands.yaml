@@ -1,0 +1,20 @@
+id: commands
+area: behaviour
+group: actions
+title: Navigate, window title, announce
+covers: [behaviour:navigate-to, behaviour:window-title, behaviour:announce]
+description: |
+  An action can return **commands** — instructions for the browser — next to or instead of state.
+  Returning a `URI` (or `UICommand.navigateTo(route)`) goes to another route; a URI outside the app
+  is a browser load. `SetWindowTitle` renames the browser tab. `UICommand.announce(text)` /
+  `announceAssertive(text)` speak to **screen readers only**, through a live region — nothing is
+  drawn. A `List` returns several at once.
+
+  Try it: press **Set window title** and look at the browser tab; press **Announce** with a screen
+  reader on; **Return a URI** takes you to the *Validation* entry.
+examples:
+  - title: Commands
+    java: io.mateu.explorer.examples.behaviour.commands.CommandsPanel
+code:
+  - {label: "C#", path: src/main/ports/behaviour/commands/CommandsPanel.cs}
+  - {label: Python, path: src/main/ports/behaviour/commands/commands_panel.py}

@@ -1,0 +1,15 @@
+id: confirmations
+area: behaviour
+group: actions
+title: Confirmations
+covers: [behaviour:confirmations]
+description: |
+  `@Action(confirmationRequired = true)` asks before running; `confirmationTitle`,
+  `confirmationMessage`, `confirmationText` and `confirmationDenialText` word the question.
+  Declining sends nothing to the server.
+
+  Try it: press **Release room** and answer **Keep it** — nothing happens; press it again and answer
+  **Release it** — the toast confirms.
+examples:
+  - title: Release a room
+    java: io.mateu.explorer.examples.behaviour.confirmations.RoomRelease

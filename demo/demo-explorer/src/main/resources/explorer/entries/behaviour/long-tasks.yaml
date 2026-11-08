@@ -1,0 +1,19 @@
+id: long-tasks
+area: behaviour
+group: actions
+title: Long tasks (streamed progress)
+covers: [behaviour:long-tasks]
+description: |
+  A long task streams its progress over Server-Sent Events: the action returns a `Flux` built with
+  `LongTask.create(title).withProgressBar().done(…).run(progress -> …)`, and the browser shows a
+  progress dialog that moves **while** the task runs — one `progress.step(text, fraction)` per
+  element — then the `done` message. The page has to be a route of its own (a mount's root view does
+  not stream).
+
+  Try it: press **Update 5 rate plans** and watch the bar advance step by step, then the final
+  message.
+examples:
+  - title: A streamed task
+    route: x/behaviour/long-tasks/rates
+pages:
+  - {route: x/behaviour/long-tasks/rates, viewModel: io.mateu.explorer.examples.behaviour.longtasks.NightlyRateUpdate}

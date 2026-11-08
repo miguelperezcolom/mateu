@@ -1,0 +1,21 @@
+id: toc
+area: behaviour
+group: form-layout
+title: Sections index & pinned sections
+covers: [behaviour:toc]
+description: |
+  `@Toc` adds a sticky index of the section titles to a long page: a click scrolls to the section,
+  the entry in view is highlighted as you scroll, and **Ctrl+Alt+1…9** jump to the first nine.
+  Without `@Toc` the index appears by itself once five sections are stacked (`@Toc(false)`
+  suppresses it). `@Section(sticky = true)` pins a section while the rest scrolls.
+
+  Try it: open the page on its own, click **Spa** in the index (it lands below the pinned
+  *Arrival* section), then press **Ctrl+Alt+6** to jump to *Departure*.
+examples:
+  - title: A long page
+    route: x/behaviour/toc/handbook
+pages:
+  - {route: x/behaviour/toc/handbook, viewModel: io.mateu.explorer.examples.behaviour.toc.HotelHandbook}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/toc/HotelHandbook.cs}
+  - {label: Python, path: src/main/ports/behaviour/toc/hotel_handbook.py}

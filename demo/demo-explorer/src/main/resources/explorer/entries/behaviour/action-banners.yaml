@@ -1,0 +1,18 @@
+id: action-banners
+area: behaviour
+group: actions
+title: Banners from actions
+covers: [behaviour:action-banners]
+description: |
+  An action can return banners for the current page. A bare `PageBanner` (or a list of them, or
+  `PageBanners.replace(…)`) **replaces** the banners earlier actions showed; `PageBanners.append(…)`
+  **adds** to them. They go away when the user navigates.
+
+  Try it: press **Add a finding** twice — two amber banners; press **Run audit** — they are replaced
+  by one green banner.
+examples:
+  - title: The night audit
+    java: io.mateu.explorer.examples.behaviour.actionbanners.NightAudit
+code:
+  - {label: "C#", path: src/main/ports/behaviour/action-banners/NightAudit.cs}
+  - {label: Python, path: src/main/ports/behaviour/action-banners/night_audit.py}

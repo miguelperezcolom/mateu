@@ -1,0 +1,19 @@
+id: separators-text-sizes
+area: behaviour
+group: form-layout
+title: Separators & text sizes
+covers: [behaviour:separators-text-sizes]
+description: |
+  `@Text(size, container, noMargins)` renders a field's **value** as text — a caption that follows
+  the state — at a size from `xl` to `xs`. `@SeparatorBefore` draws a full-width line above a field,
+  to split groups inside a section without starting a new one. Both also exist as fluent
+  components (`Text.size`, `Separator`).
+
+  Try it: the headline is large and the caption tiny and tight; the line separates the guest from
+  the room-service fields.
+examples:
+  - title: A room summary
+    java: io.mateu.explorer.examples.behaviour.separatorstextsizes.RoomSummary
+code:
+  - {label: "C#", path: src/main/ports/behaviour/separators-text-sizes/RoomSummary.cs}
+  - {label: Python, path: src/main/ports/behaviour/separators-text-sizes/room_summary.py}
