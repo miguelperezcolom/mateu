@@ -1,6 +1,6 @@
 # Mateu ⇄ Figma — design-to-code pipeline
 
-**Published library:** [Mateu UI Kit on Figma Community](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit) (generated with this plugin; republish it with *Share › Publish to Community › Publish update* after regenerating).
+**Published library:** [Mateu UI Kit on Figma Community](https://www.figma.com/community/file/1701291643502429777) (generated with this plugin; republish it with *Share › Publish to Community › Publish update* after regenerating).
 
 ```
 contract.json ──► plugin (this repo) ──► Figma library ──► designer composes screens

@@ -14,7 +14,7 @@ the file and one command turns every screen into a Mateu page. There is no hand-
 nothing is re-implemented: the YAML the converter writes is what the app serves.
 
 :::tip[Mateu UI Kit on Figma Community]
-The component library is published as **[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)**: duplicate it to start
+The component library is published as **[Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777)**: duplicate it to start
 designing right away, on any Figma plan.
 :::
 
@@ -45,7 +45,7 @@ flowchart LR
    texts, its slots and what it becomes in YAML. Every other piece reads it.
 2. **The plugin draws the library** (`design/figma/plugin`). Run in a dedicated Figma file, it
    creates one page per category with one component (or variant set) per contract entry. The result
-   is also published on Figma Community as the [Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit), ready to duplicate.
+   is also published on Figma Community as the [Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777), ready to duplicate.
 3. **The library is published** as a Figma team library, so design files can use it and receive its
    updates.
 4. **Designers compose screens** in their own design file, with instances of the library: one

@@ -20,7 +20,7 @@ Who does what:
 
 ## 0. Get the Mateu UI Kit (the quick way)
 
-The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)**. Open it and
+The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777)**. Open it and
 *Open in Figma* (Figma calls it **duplicating**): you get your own copy of the 161 components in your
 Drafts, with no plugin to build and on any Figma plan, the free Starter included. Then go to
 [2. Publish the library](#2-publish-the-library) to share it with your team, or straight to
