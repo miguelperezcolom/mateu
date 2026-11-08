@@ -2,8 +2,9 @@
 
 Everything Mateu can do — every component, page template, archetype, behaviour and distributed-UI
 pattern — **running live**, next to the very source that renders it. It is itself a Mateu app
-(Spring Boot MVC, Java shell + YAML/Java examples). Target: `explorer.mateu.io` (prepared in
-`deploy/demos/demo-explorer.Dockerfile` + `deploy/demos/k8s/70-demo-explorer.yaml`, not deployed).
+(Spring Boot MVC, Java shell + YAML/Java examples). Live at **https://explorer.mateu.io** (a preview
+on 3.0-beta.51; `deploy/demos/demo-explorer.Dockerfile` + `deploy/demos/k8s/70-demo-explorer.yaml`,
+how to redeploy in `deploy/demos/README.md`).
 
 ```bash
 cd demo/demo-explorer
@@ -167,7 +168,8 @@ Gotchas found building the area:
   silently ignored — every route then answers "Route not found". Pass `A, B` or the module.
 
 k8s: `deploy/demos/k8s/70-demo-explorer.yaml` carries a Deployment/Service/Ingress per remote
-(images from `deploy/demos/demo-explorer-remotes.Dockerfile`, one `--target` each). Prepared, not applied.
+(images from `deploy/demos/demo-explorer-remotes.Dockerfile`, one `--target` each), on
+`explorer-{java,yaml,static,python}.ec1.mateu.io`.
 
 ## Redwood
 
