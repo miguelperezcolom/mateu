@@ -228,7 +228,7 @@ also kept in `globalThis.__mateuTimings`, to measure on a real phone.
 
 ## The desktop app
 
-The desktop Mateu app (IntelliJ IDEA Community with the Mateu plugin, built by `buildInstaller` —
+The desktop Mateu app (IntelliJ IDEA Open Source with the Mateu plugin, built by `buildInstaller` —
 see [IDE tooling](/native/ide-tooling/)) has the same hub in its `hub` build: **My UIs**, with
 search, open, reorder, remove, **Share…** (the QR code of one UI, to open it on a phone) and
 **Export…** (one QR with the whole list). A `fixed` build is bound to one UI and has none of it,

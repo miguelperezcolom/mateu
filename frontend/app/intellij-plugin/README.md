@@ -62,7 +62,7 @@ start, `installer/apply-update.sh|.cmd`); IntelliJ's own update checks are off. 
 
 **linux / windows** → `build/installer/mateu-desktop-<version>-linux.tar.gz` (+ `install.sh`, a
 `.desktop` entry) | `…-windows.zip` and, with `makensis` on the PATH, `…-windows-setup.exe` (~1.2 GB):
-**IntelliJ IDEA Community with the Mateu plugin preinstalled**, fully **portable** (config/system/log
+**IntelliJ IDEA Open Source 2026.3 with the Mateu plugin preinstalled**, fully **portable** (config/system/log
 live in `data/` inside the bundle — it never touches an existing IDE install), first-boot prompts
 pre-answered, and a `mateu.sh` / `mateu.bat` launcher that opens the bundled workspace directly.
 

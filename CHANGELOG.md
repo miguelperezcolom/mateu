@@ -38,6 +38,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Changed
 
+- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** JetBrains stopped publishing
+  IntelliJ IDEA Community after 2025.2. Its open-source successor, IntelliJ IDEA Open Source
+  (Apache-2.0), now comes from the installers JetBrains attaches to the
+  [intellij-community releases](https://github.com/JetBrains/intellij-community/releases). Each
+  download is checked against a pinned SHA-256, and CI starts every packaged app before the release
+  reaches installed apps. Apps installed from an earlier beta ask to be **reinstalled once**; their
+  settings and list of UIs are kept. The Marketplace plugin still supports IntelliJ IDEA 2025.2 and
+  later.
+
 - **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
   was generated as its month and as "Today": it opens on the current month.
 

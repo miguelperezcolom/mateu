@@ -1,8 +1,12 @@
 # What the Mateu desktop app is built on (3.0 and after)
 
-Status: **proposal for the owner** (2026-11-08). Prototype: `.github/workflows/desktop-base.yml` +
-`desktop-base-package.yml`, branch `desktop/community-from-source`. The release pipeline
-(`desktop.yml`) is **unchanged** by this work.
+Status: **adopted, option B** (owner, 2026-11-09), from 3.0-beta.54. The release pipeline
+(`desktop.yml`) packages IntelliJ IDEA Open Source 2026.3 from JetBrains' GitHub Release assets:
+`desktopIdeVersion` + pinned sha256s in `frontend/app/intellij-plugin/build.gradle.kts`, smoke tests
+of every packaged app (`scripts/desktop-smoke.sh`, Windows Authenticode check), and a `dry_run`
+dispatch input. `desktop-base.yml` + `desktop-base-package.yml` stay as the manual from-source
+fallback. Branding on Linux/Windows is left as JetBrains ships it (undecided, §1.2). The rest of this
+document is the proposal as written on 2026-11-08.
 
 ## TL;DR
 

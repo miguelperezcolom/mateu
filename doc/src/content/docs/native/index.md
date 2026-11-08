@@ -40,7 +40,7 @@ Then open a project, point it at your backend in **Settings | Tools | Mateu** (b
   -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
 ```
 
-This produces the **Mateu desktop app**: IntelliJ IDEA Community with the Mateu plugin preinstalled
+This produces the **Mateu desktop app**: IntelliJ IDEA Open Source with the Mateu plugin preinstalled
 and rebranded, with isolated settings (it never interferes with an IDE the user already has), first-boot
 prompts pre-answered and a launcher that opens the UI directly — a `.dmg` on macOS, a per-user setup
 `.exe` on Windows, a `.tar.gz` with an `install.sh` on Linux. Passing registry coordinates (or

@@ -37,8 +37,11 @@ One of them carries a condition:
 
 The Mateu desktop app installers (built on CI from
 frontend/app/intellij-plugin, `buildInstaller`) redistribute IntelliJ IDEA
-Community Edition, Copyright (C) JetBrains s.r.o., licensed under the Apache
-License, Version 2.0. The installers repackage that distribution with the
+Open Source (the open-source IntelliJ IDEA built from
+https://github.com/JetBrains/intellij-community, which replaced IntelliJ IDEA
+Community Edition from 2025.3 on), Copyright (C) JetBrains s.r.o., licensed
+under the Apache License, Version 2.0, as JetBrains publishes it on that
+repository's GitHub Releases. The installers repackage that distribution with the
 Mateu plugin preinstalled and their own name, icon, launcher and settings
 (IntelliJ's own update checks are switched off); its code is not modified. It
 ships with the JetBrains Runtime (a build of OpenJDK, GPLv2 with the

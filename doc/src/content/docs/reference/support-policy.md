@@ -74,6 +74,7 @@ not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 b
 | **Web renderers** (Vaadin, Redwood) | current versions of Chrome, Edge, Firefox and Safari (desktop, and Safari on iOS / Chrome on Android). The Redwood renderer loads Oracle JET from Oracle's CDN, so the browser must reach it |
 | **React Native app** | iOS and Android as supported by Expo SDK 57 (React Native 0.86) |
 | **IntelliJ plugin** | IntelliJ IDEA 2025.2 and later (build `252` on, no upper bound). Verified with the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and 2026.3 |
+| **Desktop app** | macOS (Apple silicon and Intel), Windows x64 and Linux x64. Built on IntelliJ IDEA Open Source 2026.3 (Apache-2.0); the base follows that line's patch releases (2026.3.x), and each change of base asks installed apps to reinstall once |
 | **VS Code extension** | VS Code 1.85 or later |
 | **Node.js** | not needed to *use* Mateu — the renderers ship pre-built inside their jars. Building the renderers, the docs or the e2e suite from source needs Node 24 |
 
