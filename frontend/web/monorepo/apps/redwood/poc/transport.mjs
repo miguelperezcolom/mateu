@@ -670,7 +670,9 @@ export async function registerInlineIsland(base, reg, sub, extra = {}) {
         // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
         // previous incarnation held
         state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
-        data: (previous && previous.data) || {},
+        // an EmbeddedView island brings the data its page's fragment would (a lookup's
+        // `<field>-label`): it has no fragment of its own — the stored id used to be shown raw
+        data: { ...((previous && previous.data) || {}), ...(node.data && typeof node.data === 'object' ? node.data : {}) },
         dirty: false,
         outbound,
       },

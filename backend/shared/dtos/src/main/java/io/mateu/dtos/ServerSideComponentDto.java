@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import lombok.Builder;
 import lombok.With;
@@ -60,8 +61,59 @@ public record ServerSideComponentDto(
      * stale-while-revalidate, phase b). Computed by the server after mapping; {@code null} on the
      * wire only for old backends.
      */
-    String structureHash)
+    String structureHash,
+    /**
+     * The data the component renders with — what a routed page carries in its fragment's data (a
+     * lookup's {@code <field>-label}, a selector's options…). Only an island delivered INSIDE
+     * another page's answer (an {@code EmbeddedView}) has it: it has no fragment of its own. Its
+     * keys win over the host's for the island. Absent elsewhere.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL) Object data)
     implements ComponentDto {
+
+  /** Every member but {@code data} (an island's own data): the shape before it existed. */
+  public ServerSideComponentDto(
+      String id,
+      String serverSideType,
+      String route,
+      List<ComponentDto> children,
+      Object initialData,
+      String style,
+      String cssClasses,
+      List<ActionDto> actions,
+      List<TriggerDto> triggers,
+      List<RuleDto> rules,
+      List<ValidationDto> validations,
+      String slot,
+      String containerId,
+      boolean confirmOnNavigationIfDirty,
+      String emitsName,
+      String pageWidth,
+      String pageType,
+      boolean staticView,
+      String structureHash) {
+    this(
+        id,
+        serverSideType,
+        route,
+        children,
+        initialData,
+        style,
+        cssClasses,
+        actions,
+        triggers,
+        rules,
+        validations,
+        slot,
+        containerId,
+        confirmOnNavigationIfDirty,
+        emitsName,
+        pageWidth,
+        pageType,
+        staticView,
+        structureHash,
+        null);
+  }
 
   @Override
   public ComponentDto setStyle(String style) {
@@ -84,7 +136,8 @@ public record ServerSideComponentDto(
         pageWidth,
         pageType,
         staticView,
-        structureHash);
+        structureHash,
+        data);
   }
 
   @Override
@@ -110,7 +163,8 @@ public record ServerSideComponentDto(
         pageWidth,
         pageType,
         staticView,
-        structureHash);
+        structureHash,
+        data);
   }
 
   @Override
@@ -134,7 +188,8 @@ public record ServerSideComponentDto(
         pageWidth,
         pageType,
         staticView,
-        structureHash);
+        structureHash,
+        data);
   }
 
   @Override
@@ -158,6 +213,7 @@ public record ServerSideComponentDto(
         pageWidth,
         pageType,
         staticView,
-        structureHash);
+        structureHash,
+        data);
   }
 }

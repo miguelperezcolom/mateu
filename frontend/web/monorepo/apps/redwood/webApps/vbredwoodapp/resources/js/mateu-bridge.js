@@ -4881,6 +4881,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'vaadin:gift': 'oj-ux-ico-gift',
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
+    'vaadin:arrow-right': 'oj-ux-ico-arrow-right',
+    'vaadin:arrow-left': 'oj-ux-ico-arrow-left',
     'vaadin:clock': 'oj-ux-ico-clock',
     'vaadin:list': 'oj-ux-ico-list',
     // the tray badge's bell (header widget)
@@ -5352,6 +5354,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (n >= 700) out += ' oj-typography-bold'
     else if (n >= 500) out += ' oj-typography-semi-bold'
     return { cls: out.trim(), style }
+  }
+
+  /** A Badge's icons as Redwood icon classes ('' = none, or a name with no Redwood glyph). */
+  function badgeIconsOf(m) {
+    const cls = (name) => (ojIconOf(name) ? ojIconOf(name) + ' mateu-badge-icon' : '')
+    return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
+  }
+
+  /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
+  function withTextVariants(m, styled) {
+    const variants = Array.isArray(m && m.variants) ? m.variants : []
+    let cls = styled.cls
+    if (variants.includes('b') && !/\boj-typography-bold\b/.test(cls)) cls = (cls + ' oj-typography-bold').trim()
+    const style = variants.includes('i') ? { ...styled.style, fontStyle: 'italic' } : styled.style
+    return { cls, style }
   }
 
   /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
@@ -6230,10 +6247,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               isH2: m.container === 'h2',
               text,
               // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-              ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
+              ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
             }, container)
           } else {
-            atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
+            atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
           }
         }
         return
@@ -6539,7 +6556,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Badge') {
-        atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+        atom({
+          isBadge: true,
+          label: interp(m.text),
+          badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+          // its icons, inside the chip before/after the text (they were never drawn)
+          ...badgeIconsOf(m),
+        }, container)
         return
       }
       if (t === 'ResourceGrid') {
@@ -6575,7 +6598,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           currentLabel: m.current ? (m.currentLabel || '') : '',
           addedLabel: m.added ? (m.addedLabel || '') : '',
           priceLabel: interp(m.priceLabel || ''),
-          actionLabel: m.actionId ? (m.actionLabel || '') : '',
+          // the CTA shows whenever it has a label (once added: the addedLabel) — with no actionId it
+          // is INERT, not dropped; `added` used to show nothing at all
+          actionLabel: m.current ? '' : interp((m.added ? (m.addedLabel || m.actionLabel) : m.actionLabel) || ''),
+          ctaDisabled: !m.actionId,
+          ctaChroming: m.added ? 'outlined' : 'callToAction',
           actionId: m.actionId || '',
           parameters: {},
         }, container)
@@ -6622,6 +6649,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isStatusList: true,
           wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
+          // columns: N = AT MOST N cells per line: the cells are fixed (22rem), so the wrapper is capped
+          // at N of them and their gaps — uncapped, a wide page fitted three or four
+          wrapStyle: cols > 1 ? { maxWidth: 'calc(' + cols + ' * 22rem + ' + (cols - 1) + ' * 40px)' } : {},
           items: (m.items || []).map((it) => {
             // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
             // array; a row WITH actions is painted STACKED (title+chip /
@@ -6647,7 +6677,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               cellClass,
               statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
               avatar: it.avatar || '',
-              icon: it.icon || '',
+              // an emoji/text icon is printed; a token (vaadin:…) becomes its Redwood icon class
+              icon: it.icon && !String(it.icon).includes(':') ? it.icon : '',
+              iconClass: it.icon && String(it.icon).includes(':') ? (ojIconOf(it.icon) || '') : '',
               title: interp(it.title),
               description: interp(it.description || ''),
               status: interp(it.status || ''),
@@ -22426,7 +22458,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
           // previous incarnation held
           state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
-          data: (previous && previous.data) || {},
+          // an EmbeddedView island brings the data its page's fragment would (a lookup's
+          // `<field>-label`): it has no fragment of its own — the stored id used to be shown raw
+          data: { ...((previous && previous.data) || {}), ...(node.data && typeof node.data === 'object' ? node.data : {}) },
           dirty: false,
           outbound,
         },

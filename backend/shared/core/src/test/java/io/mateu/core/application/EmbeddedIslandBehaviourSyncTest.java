@@ -143,6 +143,19 @@ class EmbeddedIslandBehaviourSyncTest {
   }
 
   @Test
+  void anEmbeddedLookupShowsTheLabelOfTheStoredId() {
+    var wire = JSON.valueToTree(mateu.sync("/island-host-lookup"));
+    var islands = islandsOf(wire, BookingForm.class.getName());
+    assertThat(islands).hasSize(1);
+    var island = islands.get(0);
+    // the stored id stays the state…
+    assertThat(island.path("initialData").path("guestId").asText()).isEqualTo("g2");
+    // …and the island carries the label its label supplier gives that id, as a page does in its
+    // fragment's data
+    assertThat(island.path("data").path("guestId-label").asText()).isEqualTo("Alan Turing");
+  }
+
+  @Test
   void anEmbeddedInferredDashboardAdvertisesAndRunsItsMetricCardAction() {
     var wire = JSON.valueToTree(mateu.sync("/island-host-board"));
     var islands = islandsOf(wire, FrontDeskBoard.class.getName());
