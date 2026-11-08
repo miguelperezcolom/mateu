@@ -30,6 +30,7 @@ Mateu.Uidl.AsideAttribute
 Mateu.Uidl.AudienceAttribute
 Mateu.Uidl.AutoLayoutAttribute
 Mateu.Uidl.AutoPageAttribute
+Mateu.Uidl.AutoSaveAttribute
 Mateu.Uidl.Avatar
 Mateu.Uidl.AvatarGroup
 Mateu.Uidl.Badge

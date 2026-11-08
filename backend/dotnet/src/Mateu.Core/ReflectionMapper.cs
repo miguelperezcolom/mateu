@@ -103,6 +103,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
                 From = string.IsNullOrWhiteSpace(s.From) ? null : s.From,
                 Condition = string.IsNullOrWhiteSpace(s.Condition) ? null : s.Condition,
             }));
+        // [AutoSave]: the debounced save-as-you-type trigger, after the subscriptions (Java's order)
+        if (AutoSaveOf(type) is { } autoSave)
+            triggers.Add(AutoSaveTrigger(autoSave.Action, autoSave.DebounceMillis));
         return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
 
@@ -128,8 +131,17 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             .SelectMany(t => t.Type is TriggerType.OnSuccess or TriggerType.OnError
                 ? new[] { t.ActionId, t.CalledActionId } : new[] { t.ActionId })
             .Concat(type.GetCustomAttributes<SubscribeToAttribute>().Select(s => s.Action))
+            .Concat(AutoSaveOf(type) is { } autoSave ? [autoSave.Action] : [])
             .Where(a => !string.IsNullOrEmpty(a))
             .Distinct();
+
+    /// <summary>The class's [AutoSave] (directly or through a composed attribute), else null.</summary>
+    internal static AutoSaveAttribute? AutoSaveOf(Type type) => type.Find<AutoSaveAttribute>();
+
+    /// <summary>The AutoSave trigger on the wire: <c>{type: "AutoSave", actionId, debounceMillis}</c>
+    /// (mirrors Java's AutoSaveTriggerDto; debounceMillis always travels — 0 means no debounce).</summary>
+    internal static object AutoSaveTrigger(string actionId, int debounceMillis) =>
+        new { type = "AutoSave", actionId, debounceMillis };
 
     public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null,
         bool embedded = false, bool inline = false)

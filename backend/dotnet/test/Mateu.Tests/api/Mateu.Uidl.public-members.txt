@@ -163,6 +163,9 @@ Mateu.Uidl.AutoLayoutAttribute ctor(System.Boolean = True)
 Mateu.Uidl.AutoLayoutAttribute property System.Boolean Value { get; }
 Mateu.Uidl.AutoPageAttribute ctor(System.Boolean = True)
 Mateu.Uidl.AutoPageAttribute property System.Boolean Value { get; }
+Mateu.Uidl.AutoSaveAttribute ctor()
+Mateu.Uidl.AutoSaveAttribute property System.Int32 DebounceMillis { get;set; }
+Mateu.Uidl.AutoSaveAttribute property System.String Action { get;set; }
 Mateu.Uidl.Avatar ctor()
 Mateu.Uidl.Avatar property System.String Abbreviation { get;init; }
 Mateu.Uidl.Avatar property System.String Image { get;init; }
