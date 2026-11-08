@@ -881,13 +881,13 @@ Mateu.Uidl.HeroSearch<T> ctor()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroImage()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroSubtitle()
 Mateu.Uidl.HeroSearch<T> virtual method System.String HeroTitle()
-Mateu.Uidl.HeroSearchPage ctor()
-Mateu.Uidl.HeroSearchPage property System.String BackgroundColor { get;init; }
 Mateu.Uidl.HeroSearch<TFilters,TRow> ctor()
 Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String GridLayout()
 Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroImage()
 Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroSubtitle()
 Mateu.Uidl.HeroSearch<TFilters,TRow> virtual method System.String HeroTitle()
+Mateu.Uidl.HeroSearchPage ctor()
+Mateu.Uidl.HeroSearchPage property System.String BackgroundColor { get;init; }
 Mateu.Uidl.HeroSection ctor()
 Mateu.Uidl.HeroSection property Mateu.Uidl.HeroTone Tone { get;init; }
 Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }
