@@ -296,8 +296,8 @@ Mateu.Uidl.MapMarker
 Mateu.Uidl.MarkClean
 Mateu.Uidl.MarkDirty
 Mateu.Uidl.Markdown
-Mateu.Uidl.MasterDetailView
 Mateu.Uidl.MasterDetailLayout
+Mateu.Uidl.MasterDetailView
 Mateu.Uidl.MateuEnvironment
 Mateu.Uidl.MatrixCell
 Mateu.Uidl.MatrixColumn
@@ -330,8 +330,8 @@ Mateu.Uidl.MultilineAttribute
 Mateu.Uidl.MultimediaContentPage
 Mateu.Uidl.NavLink
 Mateu.Uidl.Navigate
-Mateu.Uidl.NoSelection
 Mateu.Uidl.NoBreadcrumbsAttribute
+Mateu.Uidl.NoSelection
 Mateu.Uidl.NotFound
 Mateu.Uidl.Notice
 Mateu.Uidl.Notification

@@ -1282,9 +1282,9 @@ Mateu.Uidl.ListingComponent property System.Int32 PageSize { get;init; }
 Mateu.Uidl.ListingComponent property System.String ContentHeight { get;init; }
 Mateu.Uidl.ListingComponent property System.String EmptyStateMessage { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridLayout { get;init; }
-Mateu.Uidl.ListingComponent property System.String RowRoute { get;init; }
 Mateu.Uidl.ListingComponent property System.String GridStyle { get;init; }
 Mateu.Uidl.ListingComponent property System.String OnRowSelectionChangedActionId { get;init; }
+Mateu.Uidl.ListingComponent property System.String RowRoute { get;init; }
 Mateu.Uidl.ListingComponent property System.String Subtitle { get;init; }
 Mateu.Uidl.ListingComponent property System.String Title { get;init; }
 Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> From<TRow>(System.Collections.Generic.IEnumerable<TRow>)
@@ -1357,14 +1357,14 @@ Mateu.Uidl.MarkClean ctor()
 Mateu.Uidl.MarkDirty ctor()
 Mateu.Uidl.Markdown ctor()
 Mateu.Uidl.Markdown property System.String MarkdownText { get;init; }
+Mateu.Uidl.MasterDetailLayout ctor(Mateu.Uidl.IComponent)
+Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Detail { get;init; }
+Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Master { get;init; }
 Mateu.Uidl.MasterDetailView abstract method System.Void Load()
 Mateu.Uidl.MasterDetailView ctor()
 Mateu.Uidl.MasterDetailView property Mateu.Uidl.NoSelection NoSelection { get; }
 Mateu.Uidl.MasterDetailView virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Header()
 Mateu.Uidl.MasterDetailView virtual method System.String Title()
-Mateu.Uidl.MasterDetailLayout ctor(Mateu.Uidl.IComponent)
-Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Detail { get;init; }
-Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Master { get;init; }
 Mateu.Uidl.MateuEnvironment ctor(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride>)
 Mateu.Uidl.MateuEnvironment property System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride> Sources { get;init; }
 Mateu.Uidl.MateuEnvironment property System.String Name { get;init; }
@@ -1542,9 +1542,9 @@ Mateu.Uidl.NavLink property System.String Target { get;init; }
 Mateu.Uidl.NavLink property System.String Title { get;init; }
 Mateu.Uidl.Navigate ctor(System.String)
 Mateu.Uidl.Navigate property System.String Route { get;init; }
+Mateu.Uidl.NoBreadcrumbsAttribute ctor()
 Mateu.Uidl.NoSelection enum Empty
 Mateu.Uidl.NoSelection enum First
-Mateu.Uidl.NoBreadcrumbsAttribute ctor()
 Mateu.Uidl.NotFound ctor()
 Mateu.Uidl.NotFound property System.String BackLabel { get;init; }
 Mateu.Uidl.NotFound property System.String BackRoute { get;init; }

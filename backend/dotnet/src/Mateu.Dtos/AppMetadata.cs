@@ -94,16 +94,12 @@ public record AppMetadataDto(
     public bool MobileQr { get; init; }
 
     /// <summary>The shell's presentation (mirrors io.mateu.dtos.AppDto.accentColor / askLabel /
-    /// askIcon / logo / favicon / drawerClosed / noBreadcrumbs / style / cssClasses / fabs).</summary>
-    public string? AccentColor { get; init; }
+    /// askIcon / logo / favicon / drawerClosed / noBreadcrumbs / style / cssClasses / fabs). AccentColor,
+    /// Logo, Favicon, DrawerClosed, Style and CssClasses are declared below with the YAML shell's
+    /// members (shared by both producers).</summary>
     public string? AskLabel { get; init; }
     public string? AskIcon { get; init; }
-    public string? Logo { get; init; }
-    public string? Favicon { get; init; }
-    public bool DrawerClosed { get; init; }
     public bool NoBreadcrumbs { get; init; }
-    public string? Style { get; init; }
-    public string? CssClasses { get; init; }
 
     /// <summary>App-level floating action buttons ([Fab] methods of the app class), stacked above
     /// the AI FAB on every screen (mirrors AppDto.fabs).</summary>
