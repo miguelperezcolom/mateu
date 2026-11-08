@@ -20,10 +20,14 @@ data class NoticeAction(
     val route: String? = null,
     val style: String? = null,
 ) {
-    /** What the button says: its label, or the platform's own word for an unlabelled undo. */
-    fun labelFor(locale: Locale = Locale.getDefault()): String =
+    /**
+     * What the button says: its label, or the platform's own word for an unlabelled undo. Data on a
+     * Swing link/button: never live HTML ([io.mateu.ijp.ui.plain]).
+     */
+    fun labelFor(locale: Locale = Locale.getDefault()): String = io.mateu.ijp.ui.plain(
         label?.takeIf { it.isNotBlank() }
-            ?: if (style == "undo") NoticeTexts.undo(locale) else (actionId ?: route ?: "")
+            ?: if (style == "undo") NoticeTexts.undo(locale) else (actionId ?: route ?: ""),
+    )
 
     companion object {
         private val mapper = ObjectMapper()
@@ -144,8 +148,11 @@ object ProgressTasks {
         return commands.filter { it.text("type") == COMMAND }.mapNotNull { of(it.path("data")) }
     }
 
-    /** The indicator's main line: what the task is. */
-    fun indicatorText(task: ProgressTask): String = task.title.ifBlank { task.text }
+    /**
+     * The indicator's main line: what the task is. Shown by Swing labels (status bar, progress
+     * dialog title), so data is never live HTML ([io.mateu.ijp.ui.plain]).
+     */
+    fun indicatorText(task: ProgressTask): String = io.mateu.ijp.ui.plain(task.title.ifBlank { task.text })
 
     /** The indicator's second line: the count ("12 of 300") and what it is doing now. */
     fun indicatorText2(task: ProgressTask, locale: Locale = Locale.getDefault()): String {
@@ -155,7 +162,7 @@ object ProgressTasks {
             null
         }
         val now = task.text.takeIf { it.isNotBlank() && it != task.title }
-        return listOfNotNull(count, now).joinToString(" · ")
+        return io.mateu.ijp.ui.plain(listOfNotNull(count, now).joinToString(" · "))
     }
 
     /** The result notification's text: what was done, or what went wrong. */

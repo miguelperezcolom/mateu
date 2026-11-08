@@ -17,7 +17,11 @@ import java.util.List;
  * #onNotificationAction}). New or changed entries can be pushed to open sessions with {@code
  * LiveNotifications.publish} (apps with {@code @App(liveUpdates = true)}).
  *
- * <p>Every id the panel sends back comes from the browser: check it belongs to the caller.
+ * <p>Every id the panel sends back comes from the browser. Mateu hands the methods below only ids
+ * that are in the list {@link #notifications} answers for the SAME request (the caller's own), and
+ * {@link #onNotificationAction} only an action id that entry offers — anything else is refused
+ * before your code runs. That makes {@link #notifications} the caller's authority: scope it to the
+ * user, and keep checking ownership in your own store too.
  */
 public interface NotificationsSupplier {
 

@@ -168,6 +168,40 @@ def test_an_inbox_entry_opens_its_detail():
     assert "Expense e1" in json.dumps(wire(inc))
 
 
+# every id the panel sends back comes from the browser: only the caller's own entries (the
+# supplier's list for this request) and only the actions an entry offers reach the supplier
+
+
+def test_an_action_on_an_entry_not_in_the_callers_list_or_not_offered_is_refused():
+    from mateu_ui.core.action_guard import MateuForbiddenException
+
+    _seed()
+    for params in (
+        {"id": "someone-elses", "actionId": "approve"},
+        {"id": "e1", "actionId": "deleteAll"},
+        {"id": "e2", "actionId": "approve"},
+    ):
+        with pytest.raises(MateuForbiddenException):
+            run_app("_notifications-act", params)
+    assert ACTED == []
+
+
+def test_dismiss_read_and_open_only_reach_the_callers_own_entries(monkeypatch):
+    _seed()
+    seen = {"dismissed": [], "read": [], "opened": []}
+    monkeypatch.setattr(Desk, "dismiss_notifications",
+                        lambda self, ids, rq: seen["dismissed"].extend(ids))
+    monkeypatch.setattr(Desk, "mark_notifications_read",
+                        lambda self, ids, rq: seen["read"].extend(ids))
+    monkeypatch.setattr(Desk, "notification_detail",
+                        lambda self, id, rq: seen["opened"].append(id))
+    run_app("_notifications-dismiss", {"ids": ["e2", "someone-elses"]})
+    run_app("_notifications-read", {"ids": ["e1", "someone-elses"]})
+    run_app("_notifications-open", {"id": "someone-elses"})
+    run_app("_notifications-open", {"id": "e2"})
+    assert seen == {"dismissed": ["e2"], "read": ["e1"], "opened": []}
+
+
 def test_changes_reach_only_the_sessions_of_their_user():
     mine, theirs = [], []
     unsub_mine = LiveNotifications.subscribe(

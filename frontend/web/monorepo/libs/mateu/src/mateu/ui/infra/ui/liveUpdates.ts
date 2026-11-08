@@ -119,6 +119,9 @@ const connect = () => {
                         inboxStore.applyChange(change)
                         // and so do the other tabs (they hold no stream: storage tells them)
                         safeLocalStorage.setJson(INBOX_CHANGE_KEY, { at: Date.now(), tab: tabId, change })
+                        // the write already fired their storage event: the entry (another user's,
+                        // on a shared machine after a sign-out) must not stay at rest in the browser
+                        safeLocalStorage.remove(INBOX_CHANGE_KEY)
                     }
                 } catch { /* a heartbeat or a malformed chunk: skip it */ }
             }

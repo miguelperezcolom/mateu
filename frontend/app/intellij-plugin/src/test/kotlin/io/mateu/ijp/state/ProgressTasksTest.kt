@@ -25,6 +25,24 @@ class ProgressTasksTest : TestCase() {
         assertEquals(listOf(NoticeAction("Open report", null, emptyMap(), "/r/1", null)), t.resultActions)
     }
 
+    /**
+     * The task's title/text and an action's label land on Swing labels (the status-bar indicator,
+     * the progress dialog, the balloon's action links), which render a value starting with `<html>`
+     * as HTML and fetch its images: a row name like `<html><img src=…>` would be a beacon.
+     */
+    fun testTaskTextsAndActionLabelsAreNeverLiveHtml() {
+        val beacon = "<html><img src=http://127.0.0.1:1/x>"
+        val t = ProgressTasks.of(json.readTree(
+            """{"taskId":"t1","title":"$beacon","text":"$beacon","state":"running"}""",
+        ))!!
+        val live = { s: String -> javax.swing.plaf.basic.BasicHTML.isHTMLString(s) && s.contains("<img") }
+        assertFalse(live(ProgressTasks.indicatorText(t)))
+        assertFalse(live(ProgressTasks.indicatorText(t.copy(title = ""))))
+        assertFalse(live(ProgressTasks.indicatorText2(t.copy(title = "Importing"), Locale.ENGLISH)))
+        assertFalse(live(NoticeAction(beacon, "approve").labelFor(Locale.ENGLISH)))
+        assertFalse(live(NoticeAction(null, beacon).labelFor(Locale.ENGLISH)))
+    }
+
     fun testNoFractionIsIndeterminate() {
         assertTrue(task().indeterminate)
         assertFalse(task(""","fraction":0.5""").indeterminate)

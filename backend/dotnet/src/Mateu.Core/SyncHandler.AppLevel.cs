@@ -20,19 +20,28 @@ internal sealed partial class SyncHandler
     {
         if (instance is not INotificationsSupplier supplier)
             return Error("the app class does not implement INotificationsSupplier — no inbox to serve");
-        // the entry's detail (a drawer, a dialog…) answered like any action's result
+        // every id the panel sends back comes from the browser: the supplier is only handed ids of
+        // the CALLER's own list (what it answers for this request) and only the actions an entry
+        // offers — an app that looks entries up by id alone must not open another user's inbox
         if (rq.ActionId == "_notifications-open")
-            return MapResult(supplier.NotificationDetail(StateString(GetState(rq.Parameters, "id")) ?? ""), rq);
+        {
+            // the entry's detail (a drawer, a dialog…) answered like any action's result
+            var openId = StateString(GetState(rq.Parameters, "id"));
+            if (OwnEntry(supplier, openId) is not { HasDetail: true }) return UIIncrementDto.Of();
+            return MapResult(supplier.NotificationDetail(openId!), rq);
+        }
         object? result = null;
         if (rq.ActionId == "_notifications-read")
-            supplier.MarkNotificationsRead(ReadIds(supplier, rq));
+            supplier.MarkNotificationsRead(OwnIds(supplier, ReadIds(supplier, rq)));
         else if (rq.ActionId == "_notifications-dismiss")
-            supplier.DismissNotifications(Ids(rq));
+            supplier.DismissNotifications(OwnIds(supplier, Ids(rq)));
         else if (rq.ActionId == "_notifications-act")
         {
             var id = StateString(GetState(rq.Parameters, "id"));
             var actionId = StateString(GetState(rq.Parameters, "actionId"));
             if (id is null || actionId is null) throw new UserFacingException("Which notification, and which action?");
+            if (OwnEntry(supplier, id) is not { } entry || entry.Actions.All(a => a.ActionId != actionId))
+                ActionGuard.Deny("_notifications-act: the caller's inbox has no entry offering that action");
             result = supplier.OnNotificationAction(id, actionId);
         }
         var data = new Dictionary<string, object?>
@@ -42,6 +51,18 @@ internal sealed partial class SyncHandler
         var list = UIIncrementDto.Of(fragments:
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
         return result is null ? list : Merge([MapResult(result, rq), list]);
+    }
+
+    /// <summary>The caller's own entry <paramref name="id"/> (in the list the supplier answers now).</summary>
+    private static AppNotification? OwnEntry(INotificationsSupplier supplier, string? id) =>
+        id is null ? null : (supplier.Notifications() ?? []).FirstOrDefault(n => n is not null && n.Id == id);
+
+    /// <summary><paramref name="ids"/> kept only when they are the caller's own entries.</summary>
+    private static List<string> OwnIds(INotificationsSupplier supplier, List<string> ids)
+    {
+        if (ids.Count == 0) return ids;
+        var own = (supplier.Notifications() ?? []).Where(n => n is not null).Select(n => n.Id).ToHashSet();
+        return ids.Where(own.Contains).ToList();
     }
 
     /// <summary>The ids parameter of _notifications-dismiss: a list, or one bare id.</summary>

@@ -1,6 +1,7 @@
 package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.mateu.core.testutil.FakeHttpRequest;
 import io.mateu.core.testutil.TestIdentities;
@@ -42,6 +43,9 @@ class NotificationPatternsSyncTest {
 
   static final List<AppNotification> INBOX = new ArrayList<>();
   static final List<String> ACTED = new ArrayList<>();
+  static final List<String> DISMISSED = new ArrayList<>();
+  static final List<String> READ = new ArrayList<>();
+  static final List<String> OPENED = new ArrayList<>();
 
   @SuppressWarnings("unused")
   @UI("/notification-patterns")
@@ -56,7 +60,9 @@ class NotificationPatternsSyncTest {
     }
 
     @Override
-    public void markNotificationsRead(List<String> ids, HttpRequest httpRequest) {}
+    public void markNotificationsRead(List<String> ids, HttpRequest httpRequest) {
+      READ.addAll(ids);
+    }
 
     @Override
     public Object onNotificationAction(String id, String actionId, HttpRequest httpRequest) {
@@ -68,11 +74,13 @@ class NotificationPatternsSyncTest {
 
     @Override
     public void dismissNotifications(List<String> ids, HttpRequest httpRequest) {
+      DISMISSED.addAll(ids);
       INBOX.removeIf(n -> ids.contains(n.id()));
     }
 
     @Override
     public Object notificationDetail(String id, HttpRequest httpRequest) {
+      OPENED.add(id);
       return Drawer.builder().headerTitle("Expense " + id).content(new Text("Detail")).build();
     }
   }
@@ -116,6 +124,9 @@ class NotificationPatternsSyncTest {
   void seed() {
     INBOX.clear();
     ACTED.clear();
+    DISMISSED.clear();
+    READ.clear();
+    OPENED.clear();
     INBOX.add(
         AppNotification.builder()
             .id("e1")
@@ -215,6 +226,50 @@ class NotificationPatternsSyncTest {
     var increment = mateu.run(rq("_notifications-open", Map.of("id", "e1")));
     assertThat(increment.fragments()).isNotEmpty();
     assertThat(io.mateu.core.infra.JsonSerializer.toJson(increment)).contains("Expense e1");
+  }
+
+  // --- security: every id the panel sends back comes from the browser ---------------------------
+  // The framework hands the supplier only ids that are in the CALLER's own list (what
+  // notifications(rq) answers for this request) and only actions that entry offers, so an app
+  // whose supplier looks entries up by id alone is not an IDOR.
+
+  @Test
+  void anActionOnAnEntryNotInTheCallersListIsRefused() {
+    assertThatThrownBy(
+            () ->
+                mateu.run(
+                    rq("_notifications-act", Map.of("id", "someone-elses", "actionId", "approve"))))
+        .isInstanceOf(io.mateu.core.application.security.MateuForbiddenException.class);
+    assertThat(ACTED).isEmpty();
+  }
+
+  @Test
+  void anActionTheEntryDoesNotOfferIsRefused() {
+    assertThatThrownBy(
+            () -> mateu.run(rq("_notifications-act", Map.of("id", "e1", "actionId", "deleteAll"))))
+        .isInstanceOf(io.mateu.core.application.security.MateuForbiddenException.class);
+    // e2 offers no actions at all
+    assertThatThrownBy(
+            () -> mateu.run(rq("_notifications-act", Map.of("id", "e2", "actionId", "approve"))))
+        .isInstanceOf(io.mateu.core.application.security.MateuForbiddenException.class);
+    assertThat(ACTED).isEmpty();
+  }
+
+  @Test
+  void dismissAndReadOnlyReachTheCallersOwnEntries() {
+    mateu.runAll(rq("_notifications-dismiss", Map.of("ids", List.of("e2", "someone-elses"))));
+    assertThat(DISMISSED).containsExactly("e2");
+    mateu.runAll(rq("_notifications-read", Map.of("ids", List.of("e1", "someone-elses"))));
+    assertThat(READ).containsExactly("e1");
+  }
+
+  @Test
+  void onlyAnOwnEntryThatDeclaresADetailOpensIt() {
+    mateu.runAll(rq("_notifications-open", Map.of("id", "someone-elses")));
+    mateu.runAll(rq("_notifications-open", Map.of("id", "e2")));
+    assertThat(OPENED).isEmpty();
+    mateu.runAll(rq("_notifications-open", Map.of("id", "e1")));
+    assertThat(OPENED).containsExactly("e1");
   }
 
   @Test

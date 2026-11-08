@@ -68,6 +68,14 @@ class Jobs:
 
         return LongTask.create("Broken").retryable().run(work)
 
+    @button()
+    def crashing(self):
+        def work(p):
+            yield p.step("Row 1")
+            raise RuntimeError("postgres://db.internal/prod password=hunter2")
+
+        return LongTask.create("Crashing").run(work)
+
 
 MODULE = sys.modules[__name__]
 
@@ -193,6 +201,31 @@ def test_a_task_that_fails_ends_failed_with_the_message_the_user_sees():
     assert last["retryable"] is True
     assert any(m["text"] == "Row 2 is invalid" for i in increments for m in wire(i)["messages"])
     assert not progress.is_running(last["taskId"])
+
+
+def test_a_task_that_crashes_never_streams_the_raw_exception(monkeypatch):
+    monkeypatch.delenv("MATEU_ERRORS_DETAILED", raising=False)
+    first, rest = streamed("crashing")
+    increments = [first, *rest]
+    last = progress_of(increments)[-1]
+    assert last["state"] == "failed"
+    assert last["error"] and "hunter2" not in last["error"]
+    assert "hunter2" not in json.dumps([wire(i) for i in increments])
+
+
+def test_an_anonymous_caller_cannot_cancel_an_authenticated_callers_task():
+    from mateu_ui.core.identity import Identity
+
+    ana = Identity(name="ana", roles=["user"])
+    first, rest = streamed("endless", ana)
+    task_id = progress_of([first])[0]["taskId"]
+    try:
+        assert handler(None).handle(rq("_progress-cancel", {"taskId": task_id})).commands == []
+        assert handler(Identity(name="ana", roles=["user", "admin"])).handle(
+            rq("_progress-cancel", {"taskId": task_id})).commands == []
+        assert progress.is_running(task_id)
+    finally:
+        rest.close()
 
 
 def test_closing_the_stream_cancels_the_work():
