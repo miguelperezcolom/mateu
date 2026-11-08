@@ -11,6 +11,7 @@ import { openExternal } from './openExternal';
 import { announce } from '../a11y/a11y';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
+import { RichText } from './FieldWidgets';
 import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanCard, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme, themed } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
@@ -677,7 +678,8 @@ export function FaqRenderer({ component }: { component: unknown }) {
             <Text style={styles.faqQText}>{it.question ?? ''}</Text>
             <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
           </TouchableOpacity>
-          {open[i] && <Text style={styles.faqA}>{it.answer ?? ''}</Text>}
+          {/* the answer is markdown, like on the web and Redwood (it was shown as plain text) */}
+          {open[i] && <View style={styles.faqA}><RichText value={it.answer ?? ''} kind="markdown" /></View>}
         </View>
       ))}
     </View>
@@ -1470,7 +1472,7 @@ const styles = themed(() => StyleSheet.create({
   faqQ: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
   faqQText: { fontWeight: '600', color: theme.ink, flex: 1 },
   faqChevron: { color: theme.faint, fontSize: 16 },
-  faqA: { paddingHorizontal: 14, paddingBottom: 14, color: theme.muted, lineHeight: 20 },
+  faqA: { paddingHorizontal: 14, paddingBottom: 14 },
   // CalloutCard
   callout: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: 14, borderLeftWidth: 4 },
   calloutIcon: { fontSize: 24 },
