@@ -85,7 +85,35 @@ public class AppMenuResolver {
               command.httpRequest());
       return resolveInApp(command, route, app, instance, false, findRouteResolverFn);
     }
+    // A view whose component tree IS an app shell (a fluent AppShell returned at its route) is an
+    // app like an AppSupplier: the content loads its slot sends name it by type, and answering
+    // with the view again redrew the shell inside itself — "Not found" in the slot, re-sent until
+    // the request-loop guard tripped. Only on a LOAD: an action runs on the view as it is.
+    var shellTree = shellTreeOf(command, instance);
+    if (shellTree != null) {
+      var app =
+          shellTree.serverSideType() == null
+              ? shellTree.withServerSideType(instance.getClass().getName())
+              : shellTree;
+      return resolveInApp(command, route, app, instance, false, findRouteResolverFn);
+    }
     return Mono.just(instance);
+  }
+
+  /** The app shell a component-tree view returns as its tree, on a load; else null. */
+  static AppShell shellTreeOf(RunActionCommand command, Object instance) {
+    if (!(instance instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier supplier)
+        || instance instanceof io.mateu.uidl.interfaces.DtoSupplier
+        || (command.actionId() != null
+            && !command.actionId().isEmpty()
+            && !"__load__".equals(command.actionId()))) {
+      return null;
+    }
+    try {
+      return supplier.component(command.httpRequest()) instanceof AppShell app ? app : null;
+    } catch (RuntimeException e) {
+      return null; // the view renders (and reports) its own failure as usual
+    }
   }
 
   // ── resolveInApp ─────────────────────────────────────────────────────────
