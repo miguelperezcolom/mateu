@@ -29,6 +29,15 @@ export const unregisterListing = (el: object): void => {
     if (i >= 0) connected.splice(i, 1)
 }
 
+/**
+ * Whether another listing is on the page too. Then a listing's search text and filters must stay
+ * its OWN: they used to bubble (value-changed) into the state of the component around, which hands
+ * that state to every listing it draws — searching one listing put its chip on the other, which
+ * did not filter.
+ */
+export const sharesThePageWithAnotherListing = (el: object): boolean =>
+    connected.some(o => o !== el)
+
 const scopes = new WeakMap<object, string>()
 
 /** The key prefix of this listing: '' for the first one on the page, `<id>.` for any other. */
