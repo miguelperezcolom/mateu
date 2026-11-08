@@ -15,7 +15,7 @@ All three front doors generate from the same verified starters (an app shell + h
 Product CRUD, plus `AGENTS.md`/`CLAUDE.md` for AI assistants):
 
 - **IntelliJ**: File › New › Project… › Mateu (Mateu plugin). **VS Code**: "Mateu: New Project…".
-- **Maven** (needs JDK 21–25 to run the archetype's Groovy script):
+- **Maven** (any JDK from 21 on):
   ```bash
   mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype \
       -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app \

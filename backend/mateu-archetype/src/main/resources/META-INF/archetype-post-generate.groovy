@@ -3,12 +3,25 @@
 // data: generator/new-project.json's java `replacements`, `sampleFiles`, `incompatible` and overlays.
 // The archetype covers the Spring Boot flavours (code = starters/spring-mvc, yaml, static); the IDE
 // wizards add the other runtimes, Code + YAML and the page templates.
+//
+// RULE — NEVER NAME A JDK CLASS IN THIS SCRIPT (no `import java.…`, no `new File(…)`, no `Files.x`,
+// no typed `{ Path p -> }` parameter). The script runs inside whatever maven-archetype-plugin the
+// user's `mvn archetype:generate` resolves (3.4.1 → Groovy 4.0.28), and that Groovy's compiler reads
+// every class a script names with its own ASM, which cannot read the class files of a newer JDK
+// (JDK 26 = major 70: "BUG! exception in phase 'semantic analysis' … Unsupported class file major
+// version 70"). Nothing in our pom can change the user's plugin, so the script stays readable on any
+// JDK by naming only what Groovy never decompiles — String/Object/Class/List/Map and Groovy's own
+// classes — and reaching the JDK at run time: jdk('java.nio.file.Files') + dynamic calls.
 import groovy.json.JsonSlurper
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 
-Path root = Path.of(request.outputDirectory.toString()).resolve(request.artifactId)
+def jdk = { String name -> Class.forName(name) }
+def nioFiles = jdk('java.nio.file.Files')
+def nioPaths = jdk('java.nio.file.Paths')
+def replaceExisting = jdk('java.nio.file.StandardCopyOption').REPLACE_EXISTING
+def path = { String first -> nioPaths.get(first) }
+def listOf = { stream -> try { stream.iterator().toList() } finally { stream.close() } }
+
+def root = path(request.outputDirectory.toString()).resolve(request.artifactId)
 def props = request.properties
 String authoring = props.getProperty('authoring', 'code')
 String renderer = props.getProperty('renderer', 'vaadin')
@@ -17,14 +30,14 @@ String groupId = request.groupId
 String artifactId = request.artifactId
 String pkg = props.getProperty("package") ?: request.getPackage() ?: groupId
 
-Path gen = root.resolve('generator')
-def manifest = new JsonSlurper().parse(gen.resolve('new-project.json').toFile())
-String version = Files.readString(gen.resolve('mateu.version')).trim()
+def gen = root.resolve('generator')
+def manifest = new JsonSlurper().parse(gen.resolve('new-project.json').toFile())   // parse(File): parseText needs groovy-json's FastStringService, which the plugin realm cannot load
+String version = nioFiles.readString(gen.resolve('mateu.version')).trim()
 def java = manifest.languages.java
 
 def fail = { String why ->
     root.toFile().deleteDir()
-    throw new IllegalArgumentException(why)
+    throw jdk('java.lang.IllegalArgumentException').newInstance(why)
 }
 if (!(authoring in ['code', 'yaml', 'static'])) fail("authoring must be code, yaml or static (was '${authoring}')")
 def flavour = manifest.authoring.find { it.id == authoring }
@@ -38,11 +51,17 @@ def clash = manifest.incompatible?.find { x ->
 if (clash) fail(clash.reason)
 if (!(pkg ==~ /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/)) fail("package must be a dotted Java name (was '${pkg}')")
 
-def move = { Path from, Path to ->
-    Files.walk(from).sorted().toList().each { Path p ->
-        Path t = to.resolve(from.relativize(p).toString())
-        if (Files.isDirectory(p)) Files.createDirectories(t)
-        else { Files.createDirectories(t.parent); Files.move(p, t, StandardCopyOption.REPLACE_EXISTING) }
+def isDir = { p -> p.toFile().isDirectory() }
+def isEmptyDir = { p -> isDir(p) && p.toFile().list().length == 0 }
+def walk = { from -> listOf(nioFiles.walk(from)).sort() }
+def move = { from, to ->
+    walk(from).each { p ->
+        def t = to.resolve(from.relativize(p).toString())
+        if (isDir(p)) t.toFile().mkdirs()
+        else {
+            t.parent.toFile().mkdirs()
+            nioFiles.move(p, t, replaceExisting)
+        }
     }
 }
 
@@ -50,14 +69,14 @@ def move = { Path from, Path to ->
 move(root.resolve("variants/${authoring}"), root)
 // (2) the sample: the Empty overlay replaces the CRUD
 if (authoring == 'code' && sample == 'empty') {
-    java.sampleFiles.each { Files.deleteIfExists(root.resolve(it)) }
-    Path empty = gen.resolve('overlays/java/empty')
-    if (Files.isDirectory(empty)) move(empty, root)
+    java.sampleFiles.each { root.resolve(it).toFile().delete() }
+    def empty = gen.resolve('overlays/java/empty')
+    if (isDir(empty)) move(empty, root)
 }
 // (4) overlays: common (gitignore → .gitignore, claude/settings.json → .claude/settings.json) and the renderer's
 move(gen.resolve('overlays/common'), root)
-Path rendererOverlay = gen.resolve("overlays/java/${renderer}")
-if (Files.isDirectory(rendererOverlay)) move(rendererOverlay, root)
+def rendererOverlay = gen.resolve("overlays/java/${renderer}")
+if (isDir(rendererOverlay)) move(rendererOverlay, root)
 // (5) no page templates here: drop the YAML markers
 // (6) replacements, renames, the package directory
 String starter = authoring == 'code' ? 'spring-mvc' : authoring
@@ -74,33 +93,34 @@ def binary = manifest.binaryExtensions as List<String>
 def markers = ['# __ROUTES__', '# __MENU__']
 
 ['variants', 'generator'].each { root.resolve(it).toFile().deleteDir() }
-Files.walk(root).filter { Files.isRegularFile(it) }.toList().each { Path f ->
+walk(root).findAll { !isDir(it) }.each { f ->
     if (binary.any { f.fileName.toString().toLowerCase().endsWith(it) }) return
-    String text = Files.readString(f)
+    String text = nioFiles.readString(f)
     String out = text.readLines().findAll { !(it.trim() in markers) }.join('\n') + (text.endsWith('\n') ? '\n' : '')
     java.replacements.each { r ->
         String to = expand(r.to)
-        out = r.regex ? out.replaceAll(r.regex, java.util.regex.Matcher.quoteReplacement(to)) : out.replace(expand(r.from), to)
+        // a closure replacement is literal: no `$`/`\` group syntax to quote
+        out = r.regex ? out.replaceAll(r.regex) { to } : out.replace(expand(r.from), to)
     }
-    if (out != text) Files.writeString(f, out)
+    if (out != text) nioFiles.writeString(f, out)
 }
 java.renames.each { r ->
-    Path from = root.resolve(expand(r.from))
-    if (!Files.exists(from)) return
-    Path to = root.resolve(expand(r.to))
-    Files.createDirectories(to.parent)   // claude/settings.json → .claude/settings.json
-    Files.move(from, to, StandardCopyOption.REPLACE_EXISTING)
-    if (from.parent != root && from.parent.toFile().list().length == 0) Files.delete(from.parent)
+    def from = root.resolve(expand(r.from))
+    if (!from.toFile().exists()) return
+    def to = root.resolve(expand(r.to))
+    to.parent.toFile().mkdirs()   // claude/settings.json → .claude/settings.json
+    nioFiles.move(from, to, replaceExisting)
+    if (from.parent != root && isEmptyDir(from.parent)) from.parent.toFile().delete()
 }
-Path pkgDir = root.resolve(java.packageDir)
-if (Files.isDirectory(pkgDir)) {
-    Path target = root.resolve(java.sourceRoot).resolve(vars.packagePath)
+def pkgDir = root.resolve(java.packageDir)
+if (isDir(pkgDir)) {
+    def target = root.resolve(java.sourceRoot).resolve(vars.packagePath)
     if (target != pkgDir) {
         move(pkgDir, target)
         // remove the emptied starter package folders (com/example/app), innermost first
-        Path d = pkgDir
-        while (d != root.resolve(java.sourceRoot) && Files.isDirectory(d) && d.toFile().list().length == 0) {
-            Files.delete(d)
+        def d = pkgDir
+        while (d != root.resolve(java.sourceRoot) && isEmptyDir(d)) {
+            d.toFile().delete()
             d = d.parent
         }
     }

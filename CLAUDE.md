@@ -1013,7 +1013,9 @@ resolving a view model bound only in routes.yaml). Two engines apply it
 (Kotlin `MateuProjectGenerator`, TS `newProject.ts`), kept identical by `starters/generator/cases.json`
 plus a byte-for-byte comparison in `MateuProjectGeneratorTest` when node + the compiled extension are
 present; the archetype's `archetype-post-generate.groovy` applies the same replacements (Spring Boot
-flavours only; its Groovy needs a JDK ≤ 25 to RUN Maven). The IntelliJ plugin bundles the starters via
+flavours only; it runs with the archetype plugin's OWN Groovy 4, which cannot decompile JDK 26+ class files — so the
+script NEVER names a JDK class (`jdk('java.nio.file.Files')` + dynamic calls; rule in its header) and the archetype pom
+has no Groovy override, so the IT runs what users get). The IntelliJ plugin bundles the starters via
 the `copyStarters` Gradle task (+ `index.txt`); the .vsix stages them in `prepackage.mjs`. The common
 overlay's `gitignore` is renamed to `.gitignore` at generation (packagers drop dotted ignore files).
 Every starter ships `AGENTS.md` + a `CLAUDE.md` that imports it (`@AGENTS.md`); `yaml`/`static` share
