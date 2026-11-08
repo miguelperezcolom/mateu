@@ -6,6 +6,7 @@ import io.mateu.explorer.catalog.UidlCatalog;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.EmbeddedView;
+import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.Notice;
@@ -201,7 +202,12 @@ public class EntryPage implements ComponentTreeSupplier {
   }
 
   static Component column(List<Component> items) {
-    return VerticalLayout.builder().content(items).spacing(true).fullWidth(true).build();
+    return VerticalLayout.builder()
+        .content(items)
+        .spacing(true)
+        .fullWidth(true)
+        .horizontalAlignment(HorizontalAlignment.STRETCH)
+        .build();
   }
 
   static Component row(List<Component> items) {

@@ -94,6 +94,18 @@ whole YAML page), `entries/behaviour/validation.yaml` (a Java view island + C#/P
   page.
 - An embedded archetype's composed heading shows the app title, not the view's `@Title`.
 - The menu nests paths: a leaf's route must start with its group's path (hence `/<area>/<group>/<id>`).
+- **A `pages:` route with only a `layout:` renders embedded but not on its own** (beta.51): the
+  "Open this page on its own ↗" link lands on "Page not found". The route is registered and works.
+  But under the class shell, the content load names `ExplorerShell` as its type, and Mateu resolves
+  that through the shell's menu and the routed classes only. It never reaches the definition. This
+  is a framework bug, and it is being fixed in `fix/explorer-findings-2`.
+
+> **These workarounds are temporary.** The notes on handler buttons needing an explicit `actionId`,
+> on `ButtonGroup` rendering only in a toolbar, on the embedded heading and the Redwood section below
+> describe beta.51 bugs. Framework PR #1092 (branch `fix/explorer-findings`) and its follow-up
+> `fix/explorer-findings-2` fix them. Once both are merged and `mateu.version` moves to the release
+> that contains them, drop these notes. Also drop the workarounds in the examples, such as the
+> explicit `actionId`s and showing `ButtonGroup` only on a page.
 
 ## Redwood
 
