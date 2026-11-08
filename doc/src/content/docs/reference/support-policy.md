@@ -15,12 +15,11 @@ release are in [Known issues](/reference/known-issues/).
 | **Latest minor of 3.x** (`3.N`) | ✅ in patch releases `3.N.x` | ✅ |
 | **Previous minor** (`3.N-1`) | ❌ — upgrade to the latest minor | ✅ critical and high severity, for **6 months** after `3.N` is released |
 | Older 3.x minors | ❌ | ❌ |
-| **3.0 pre-releases** (`-alpha.N`, `-beta.N`) | only in the next pre-release | only in the next pre-release |
+| **3.0 pre-releases** (`-alpha.N`, `-beta.N`, `-rc.N`) | ❌ — upgrade to `3.0.0` | ❌ — upgrade to `3.0.0` |
 | 1.x / 2.x | ❌ | ❌ |
 
-- **Pre-releases.** Until `3.0.0` is out, fixes ship only in the next beta: there are no patch
-  releases of a beta. Alphas are not supported — upgrade with
-  [Migrating from alpha](/reference/migrating-from-alpha/).
+- **Pre-releases.** The 3.0 alphas, betas and release candidates are not supported: `3.0.0`, the
+  first stable release, replaces them and keeps no compatibility with them.
 - **A minor is a safe upgrade.** A minor release never breaks the public API or the wire (see
   [Stability & versioning](/reference/stability-and-versioning/)), so the fix for a bug in an older
   minor is the upgrade.

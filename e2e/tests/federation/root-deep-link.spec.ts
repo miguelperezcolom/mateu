@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
  * menu nested inside the shell — and navigating that nested app loops the server forever.
  */
 
-const ROOT_API = '/mateu/v3/components/_/action';
+const ROOT_API = '/mateu/v3/sync/_no_route';
 
 async function callAction(request: any, body: object) {
   const response = await request.post(ROOT_API, {

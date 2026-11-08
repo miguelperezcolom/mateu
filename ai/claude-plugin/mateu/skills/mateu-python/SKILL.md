@@ -19,7 +19,7 @@ pip install "mateu-ui[server]" fastapi      # PyPI name is mateu-ui ([server] ad
 Versions follow the Java release: `3.0-beta.N` → `3.0.0bN` (pin it: `mateu-ui==3.0.0bN`).
 Python 3.11+. Import from `mateu_ui.uidl` (authoring API), `mateu_ui.uidl.components` (fluent
 components), `mateu_ui.fastapi` (`add_mateu`), `mateu_ui.dtos` (wire model, e.g. `Option`).
-The old top-level names `mateu_uidl`/`mateu_core`/… still import but are deprecated.
+The pre-3.0 top-level names (`mateu_uidl`, `mateu_core`…) no longer exist.
 
 ```python
 # main.py

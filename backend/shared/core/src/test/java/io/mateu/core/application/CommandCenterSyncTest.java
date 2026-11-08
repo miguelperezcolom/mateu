@@ -8,7 +8,6 @@ import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -45,14 +44,10 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
-  @SuppressWarnings({"unused", "removal"})
+  @SuppressWarnings("unused")
   @UI("/cc-branded")
   @Title("Branded")
-  @App(
-      askLabel = "Ask RIU",
-      askIcon = " R ",
-      accentColor = " #D2232A ",
-      accentStrip = " /images/strip.svg ")
+  @App(askLabel = "Ask RIU", askIcon = " R ", accentColor = " #D2232A ")
   public static class BrandedAskApp {
     @Menu String home = "/";
   }
@@ -62,22 +57,6 @@ class CommandCenterSyncTest {
   @Title("Generated strip")
   @App(accentColor = "#D2232A")
   public static class GeneratedStripApp {
-    @Menu String home = "/";
-  }
-
-  @SuppressWarnings({"unused", "removal"})
-  @UI("/cc-generated-seed")
-  @Title("Generated strip, another seed")
-  @App(accentColor = "#D2232A", accentStripSeed = 11)
-  public static class GeneratedStripSeedApp {
-    @Menu String home = "/";
-  }
-
-  @SuppressWarnings({"unused", "removal"})
-  @UI("/cc-no-strip")
-  @Title("No strip")
-  @App(accentColor = "#D2232A", accentStrip = " none ")
-  public static class NoStripApp {
     @Menu String home = "/";
   }
 
@@ -100,8 +79,6 @@ class CommandCenterSyncTest {
             ChromelessApp.class,
             BrandedAskApp.class,
             GeneratedStripApp.class,
-            GeneratedStripSeedApp.class,
-            NoStripApp.class,
             CssAccentApp.class);
   }
 
@@ -152,26 +129,8 @@ class CommandCenterSyncTest {
     assertThat(app("/cc-branded").accentColor()).isEqualTo("#D2232A");
   }
 
-  /**
-   * Redwood removes its colour strip as soon as an app brings its own brand (Redwood Cobranding),
-   * so no accent strip travels — not a declared image, not a generated one, whatever the accent.
-   */
   @Test
-  @SuppressWarnings("removal")
-  void noAccentStripTravelsWhateverTheAppDeclares() {
-    for (var route :
-        List.of(
-            "/cc-plain",
-            "/cc-branded",
-            "/cc-generated",
-            "/cc-generated-seed",
-            "/cc-no-strip",
-            "/cc-css-accent")) {
-      var app = app(route);
-      assertThat(app.accentStrip()).as(route).isNull();
-      assertThat(app.generatedAccentStrip()).as(route).isNull();
-    }
-    // the accent itself still travels: it is the Section dash's colour
+  void theAccentTravelsAsDeclared() {
     assertThat(app("/cc-generated").accentColor()).isEqualTo("#D2232A");
     assertThat(app("/cc-css-accent").accentColor()).isEqualTo("rgb(210, 35, 42)");
   }

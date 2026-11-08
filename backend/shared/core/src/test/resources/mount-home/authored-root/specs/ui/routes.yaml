@@ -1,8 +1,8 @@
 type: Routes
 routes:
   - route: ""
-    definition: welcome.yaml
+    layout: welcome.yaml
   - route: dashboard
-    definition: dashboard.yaml
+    layout: dashboard.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml

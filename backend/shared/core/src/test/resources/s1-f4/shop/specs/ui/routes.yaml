@@ -1,13 +1,13 @@
 type: Routes
 routes:
   - route: ""
-    definition: shell.yaml
+    layout: shell.yaml
   - route: dashboard
-    definition: dashboard.yaml
+    layout: dashboard.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: orders/:status
-    definition: orders.yaml
+    layout: orders.yaml
     fixedParams:
       region: EU
     defaultParams:

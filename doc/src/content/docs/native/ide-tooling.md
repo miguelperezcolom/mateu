@@ -131,7 +131,7 @@ context menu of the routes file, or from the command palette. You choose:
 | Field | Written as | Notes |
 |---|---|---|
 | Routes file | — | Preselected when invoked on one; a choice when the specs folder has several. |
-| Layout | `layout:` | A page or app shell discovered under `specs/ui` (relative to it), or none when the view model supplies its own tree. `layout` is the canonical key (`definition` is its deprecated alias). |
+| Layout | `layout:` | A page or app shell discovered under `specs/ui` (relative to it), or none when the view model supplies its own tree. |
 | Route | `route:` | Relative to the mount; empty is the mount root (typically the app shell). Defaults to the layout's file name in kebab case. A route already declared in the file is rejected. |
 | View model | `viewModel:` | Optional fully qualified class — empty is a definition-only route, which is valid (the statically served case). |
 | Parent route | `parent:` | Optional: one of the file's existing routes; the new route renders in that screen's slot (the route stays absolute). |

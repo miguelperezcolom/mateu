@@ -76,7 +76,7 @@ those children as its options — the tabs of a record master. See the
 
 | Value | Description |
 |---|---|
-| `HAMBURGER_MENU` | Collapsible hamburger-style navigation drawer. (The old misspelling `HAMBURGUER_MENU` was removed in 3.0.0.) |
+| `HAMBURGER_MENU` | Collapsible hamburger-style navigation drawer. |
 | `MENU_ON_LEFT` | Persistent navigation panel on the left side |
 | `MENU_ON_TOP` | Navigation bar along the top |
 | `TABS` | Tab-based navigation |
@@ -120,7 +120,7 @@ public class MyApp { ... }
 - the welcome hero's background, a deep tone of the accent;
 - the console name in the menu band, in the light theme only. In dark mode the name stays in the header text colour, because a brand red loses contrast on the dark base.
 
-The accent draws **no colour strip**. Redwood removes its texture strip as soon as an app brings its own brand, so Mateu doesn't draw one either. `accentStrip` and `accentStripSeed` are deprecated and have no effect. See [Accent colour](/design-systems/accent-strip/).
+The accent draws **no colour strip**. Redwood removes its texture strip as soon as an app brings its own brand, so Mateu doesn't draw one either. See [Accent colour](/design-systems/accent-strip/).
 
 The accent reaches the page as the `--mateu-accent` custom property on `mateu-app`, which an app's own CSS can also set (the hero also reads `--mateu-hero-background`).
 

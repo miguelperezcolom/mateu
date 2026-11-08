@@ -971,6 +971,115 @@
                    "fontFamily": "Inter",
                    "fontSize": 11
                   }
+                 },
+                 {
+                  "id": "9:41",
+                  "name": "TextField",
+                  "type": "INSTANCE",
+                  "componentId": "tf",
+                  "componentProperties": {
+                   "fieldId#11:1": {
+                    "type": "TEXT",
+                    "value": "note"
+                   },
+                   "required#11:2": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "readOnly#11:3": {
+                    "type": "BOOLEAN",
+                    "value": false
+                   },
+                   "label#11:4": {
+                    "type": "TEXT",
+                    "value": "Internal note"
+                   },
+                   "placeholder#11:5": {
+                    "type": "TEXT",
+                    "value": "Value"
+                   }
+                  },
+                  "children": [
+                   {
+                    "id": "9:42",
+                    "name": "Label",
+                    "type": "TEXT",
+                    "characters": "Internal note",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    },
+                    "componentPropertyReferences": {
+                     "characters": "label#11:4"
+                    }
+                   },
+                   {
+                    "id": "9:43",
+                    "name": "Frame",
+                    "type": "FRAME",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "id": "9:44",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "characters": "Value",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      },
+                      "componentPropertyReferences": {
+                       "characters": "placeholder#11:5"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:41-props",
+                    "name": "#props",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:41-p-fieldId",
+                      "name": "#prop:fieldId",
+                      "characters": "note",
+                      "componentPropertyReferences": {
+                       "characters": "fieldId#11:1"
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "type": "FRAME",
+                    "id": "9:41-flags",
+                    "name": "#flags",
+                    "layoutMode": "HORIZONTAL",
+                    "children": [
+                     {
+                      "type": "TEXT",
+                      "id": "9:41-f-required",
+                      "name": "#flag:required",
+                      "characters": "required",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "required#11:2"
+                      }
+                     },
+                     {
+                      "type": "TEXT",
+                      "id": "9:41-f-readOnly",
+                      "name": "#flag:readOnly",
+                      "characters": "readOnly",
+                      "visible": false,
+                      "componentPropertyReferences": {
+                       "visible": "readOnly#11:3"
+                      }
+                     }
+                    ]
+                   }
+                  ]
                  }
                 ]
                },
@@ -996,115 +1105,6 @@
                   "characters": "columns",
                   "componentPropertyReferences": {
                    "characters": "columns#31:2"
-                  }
-                 }
-                ]
-               }
-              ]
-             },
-             {
-              "id": "9:41",
-              "name": "TextField",
-              "type": "INSTANCE",
-              "componentId": "tf",
-              "componentProperties": {
-               "fieldId#11:1": {
-                "type": "TEXT",
-                "value": "note"
-               },
-               "required#11:2": {
-                "type": "BOOLEAN",
-                "value": false
-               },
-               "readOnly#11:3": {
-                "type": "BOOLEAN",
-                "value": false
-               },
-               "label#11:4": {
-                "type": "TEXT",
-                "value": "Internal note"
-               },
-               "placeholder#11:5": {
-                "type": "TEXT",
-                "value": "Value"
-               }
-              },
-              "children": [
-               {
-                "id": "9:42",
-                "name": "Label",
-                "type": "TEXT",
-                "characters": "Internal note",
-                "style": {
-                 "fontFamily": "Inter",
-                 "fontSize": 13
-                },
-                "componentPropertyReferences": {
-                 "characters": "label#11:4"
-                }
-               },
-               {
-                "id": "9:43",
-                "name": "Frame",
-                "type": "FRAME",
-                "layoutMode": "HORIZONTAL",
-                "children": [
-                 {
-                  "id": "9:44",
-                  "name": "Value",
-                  "type": "TEXT",
-                  "characters": "Value",
-                  "style": {
-                   "fontFamily": "Inter",
-                   "fontSize": 13
-                  },
-                  "componentPropertyReferences": {
-                   "characters": "placeholder#11:5"
-                  }
-                 }
-                ]
-               },
-               {
-                "type": "FRAME",
-                "id": "9:41-props",
-                "name": "#props",
-                "layoutMode": "HORIZONTAL",
-                "children": [
-                 {
-                  "type": "TEXT",
-                  "id": "9:41-p-fieldId",
-                  "name": "#prop:fieldId",
-                  "characters": "note",
-                  "componentPropertyReferences": {
-                   "characters": "fieldId#11:1"
-                  }
-                 }
-                ]
-               },
-               {
-                "type": "FRAME",
-                "id": "9:41-flags",
-                "name": "#flags",
-                "layoutMode": "HORIZONTAL",
-                "children": [
-                 {
-                  "type": "TEXT",
-                  "id": "9:41-f-required",
-                  "name": "#flag:required",
-                  "characters": "required",
-                  "visible": false,
-                  "componentPropertyReferences": {
-                   "visible": "required#11:2"
-                  }
-                 },
-                 {
-                  "type": "TEXT",
-                  "id": "9:41-f-readOnly",
-                  "name": "#flag:readOnly",
-                  "characters": "readOnly",
-                  "visible": false,
-                  "componentPropertyReferences": {
-                   "visible": "readOnly#11:3"
                   }
                  }
                 ]

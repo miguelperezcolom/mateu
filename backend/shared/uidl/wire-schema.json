@@ -301,9 +301,6 @@
         "accentColor" : {
           "type" : "string"
         },
-        "accentStrip" : {
-          "type" : "string"
-        },
         "accessKeys" : {
           "type" : "boolean"
         },
@@ -386,9 +383,6 @@
           "type" : "string"
         },
         "followingLabel" : {
-          "type" : "string"
-        },
-        "generatedAccentStrip" : {
           "type" : "string"
         },
         "globalSearchEnabled" : {
@@ -578,7 +572,7 @@
     },
     "AppVariantDto" : {
       "type" : "string",
-      "enum" : [ "HAMBURGUER_MENU", "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
+      "enum" : [ "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
     },
     "AutoSaveTriggerDto" : {
       "type" : "object",
@@ -1531,8 +1525,6 @@
       }, {
         "$ref" : "#/$defs/ResponsiveGridDto"
       }, {
-        "$ref" : "#/$defs/ResultDto"
-      }, {
         "$ref" : "#/$defs/ScoreboardDto"
       }, {
         "$ref" : "#/$defs/ScrollerDto"
@@ -1546,8 +1538,6 @@
         "$ref" : "#/$defs/StatDto"
       }, {
         "$ref" : "#/$defs/StatusListDto"
-      }, {
-        "$ref" : "#/$defs/StepperDto"
       }, {
         "$ref" : "#/$defs/TabDto"
       }, {
@@ -1986,27 +1976,6 @@
           "type" : "integer"
         }
       }
-    },
-    "DestinationDto" : {
-      "type" : "object",
-      "properties" : {
-        "description" : {
-          "type" : "string"
-        },
-        "id" : {
-          "type" : "string"
-        },
-        "type" : {
-          "$ref" : "#/$defs/DestinationTypeDto"
-        },
-        "value" : {
-          "type" : "string"
-        }
-      }
-    },
-    "DestinationTypeDto" : {
-      "type" : "string",
-      "enum" : [ "ActionId", "Url", "CustomEvent", "Component", "View" ]
     },
     "DetailsDto" : {
       "type" : "object",
@@ -5213,44 +5182,6 @@
         }
       }
     },
-    "ResultDto" : {
-      "type" : "object",
-      "deprecated" : true,
-      "properties" : {
-        "type" : {
-          "const" : "Result"
-        },
-        "actionHandler" : {
-          "$ref" : "#/$defs/ServerSideObjectDto"
-        },
-        "interestingLinks" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/DestinationDto"
-          }
-        },
-        "leftSideImageUrl" : {
-          "type" : "string"
-        },
-        "message" : {
-          "type" : "string"
-        },
-        "nowTo" : {
-          "$ref" : "#/$defs/DestinationDto"
-        },
-        "resultType" : {
-          "$ref" : "#/$defs/ResultTypeDto"
-        },
-        "title" : {
-          "type" : "string"
-        }
-      },
-      "required" : [ "type" ]
-    },
-    "ResultTypeDto" : {
-      "type" : "string",
-      "enum" : [ "Success", "Info", "Warning", "Error", "Ignored" ]
-    },
     "RuleActionDto" : {
       "type" : "string",
       "enum" : [ "SetAppDataValue", "SetAppStateValue", "SetDataValue", "RunAction", "RunJS", "SetAttributeValue", "SetStateValue", "SetCssClass", "SetStyle" ]
@@ -5453,20 +5384,6 @@
       },
       "required" : [ "type" ]
     },
-    "ServerSideObjectDto" : {
-      "type" : "object",
-      "properties" : {
-        "className" : {
-          "type" : "string"
-        },
-        "data" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "description" : "Any JSON value."
-          }
-        }
-      }
-    },
     "SkeletonDto" : {
       "type" : "object",
       "properties" : {
@@ -5661,16 +5578,6 @@
           "type" : "string"
         }
       }
-    },
-    "StepperDto" : {
-      "type" : "object",
-      "deprecated" : true,
-      "properties" : {
-        "type" : {
-          "const" : "Stepper"
-        }
-      },
-      "required" : [ "type" ]
     },
     "SubscriptionSourceDto" : {
       "type" : "string",

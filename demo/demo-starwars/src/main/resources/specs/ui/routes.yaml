@@ -5,94 +5,94 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Routes
 routes:
   - route: ""          # the mount root → the app shell
-    definition: app.yaml
+    layout: app.yaml
   - route: welcome     # the home page (app.yaml homeRoute)
-    definition: welcome.yaml
+    layout: welcome.yaml
   - route: dashboard   # the saga in numbers (a Dashboard landing page)
-    definition: dashboard.yaml
+    layout: dashboard.yaml
   - route: fleet       # the vehicles managed (a Data management page)
-    definition: fleet.yaml
+    layout: fleet.yaml
   - route: search      # search the galaxy (a Hero search page)
-    definition: search.yaml
+    layout: search.yaml
   - route: people
-    definition: people.yaml
+    layout: people.yaml
 
   # Create comes BEFORE the parameterised sibling so `people/new` is not read as an id.
   - route: people/new
-    definition: person-new.yaml
+    layout: person-new.yaml
 
   # One record, read-only. `data:` names the source that fetches it; the id comes from the path, and
   # the source's url interpolates it as ${state.id}.
   - route: people/:id
-    definition: person.yaml
+    layout: person.yaml
     data: swapi-person
 
   # The edit form for that record — same fetch, editable, Save/Delete.
   - route: people/:id/edit
-    definition: person-edit.yaml
+    layout: person-edit.yaml
     data: swapi-person
   - route: planets
-    definition: planets.yaml
+    layout: planets.yaml
 
   # Create comes BEFORE the parameterised sibling so `planets/new` is not read as an id.
   - route: planets/new
-    definition: planet-new.yaml
+    layout: planet-new.yaml
 
   - route: planets/:id
-    definition: planet.yaml
+    layout: planet.yaml
     data: swapi-planet
   - route: planets/:id/edit
-    definition: planet-edit.yaml
+    layout: planet-edit.yaml
     data: swapi-planet
   - route: films
-    definition: films.yaml
+    layout: films.yaml
 
   # Create comes BEFORE the parameterised sibling so `films/new` is not read as an id.
   - route: films/new
-    definition: film-new.yaml
+    layout: film-new.yaml
 
   - route: films/:id
-    definition: film.yaml
+    layout: film.yaml
     data: swapi-film
   - route: films/:id/edit
-    definition: film-edit.yaml
+    layout: film-edit.yaml
     data: swapi-film
   - route: species
-    definition: species.yaml
+    layout: species.yaml
 
   # Create comes BEFORE the parameterised sibling so `species/new` is not read as an id.
   - route: species/new
-    definition: species-new.yaml
+    layout: species-new.yaml
 
   - route: species/:id
-    definition: species-record.yaml
+    layout: species-record.yaml
     data: swapi-species-record
   - route: species/:id/edit
-    definition: species-record-edit.yaml
+    layout: species-record-edit.yaml
     data: swapi-species-record
   - route: vehicles
-    definition: vehicles.yaml
+    layout: vehicles.yaml
 
   # Create comes BEFORE the parameterised sibling so `vehicles/new` is not read as an id.
   - route: vehicles/new
-    definition: vehicle-new.yaml
+    layout: vehicle-new.yaml
 
   - route: vehicles/:id
-    definition: vehicle.yaml
+    layout: vehicle.yaml
     data: swapi-vehicle
   - route: vehicles/:id/edit
-    definition: vehicle-edit.yaml
+    layout: vehicle-edit.yaml
     data: swapi-vehicle
   - route: starships
-    definition: starships.yaml
+    layout: starships.yaml
 
   # Create comes BEFORE the parameterised sibling so `starships/new` is not read as an id.
   - route: starships/new
-    definition: starship-new.yaml
+    layout: starship-new.yaml
 
   - route: starships/:id
-    definition: starship.yaml
+    layout: starship.yaml
     data: swapi-starship
   - route: starships/:id/edit
-    definition: starship-edit.yaml
+    layout: starship-edit.yaml
     data: swapi-starship

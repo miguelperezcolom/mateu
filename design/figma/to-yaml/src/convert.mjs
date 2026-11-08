@@ -283,8 +283,8 @@ export class FigmaToYaml {
 
   /**
    * Params read off an instance: variants; then its TEXT/BOOLEAN component properties (what the
-   * designer sets in Figma's properties panel); then — for instances placed with an older library —
-   * the `#config` layer and the text layers. A param already read is never read again from a lower
+   * designer sets in Figma's properties panel); then the `#config` layer (the plugin's fallback
+   * for a prop Figma refuses as a property) and the text layers. A param already read is never read again from a lower
    * source, so a property bound to a text layer is one value, not two.
    */
   readParams(node, entry) {
@@ -492,18 +492,8 @@ export class FigmaToYaml {
   nodes(children) {
     const out = []
     const list = children.filter((c) => c.visible !== false)
-    for (let i = 0; i < list.length; i++) {
-      const child = list[i]
-      // Figma cannot drop layers into an instance: a container (a Section…) whose `content` slot
-      // was left empty takes the siblings that follow it, up to the next such container — the
-      // @Section reading of a design, the same convention modux's importer uses
-      const absorbed = this.absorbsSiblings(child) ? [] : null
-      if (absorbed) {
-        while (i + 1 < list.length && !this.absorbsSiblings(list[i + 1])) absorbed.push(list[++i])
-      }
-      const v = absorbed?.length
-        ? this.instance(child, this.entryOf(child), new Map([['content', absorbed]]))
-        : this.node(child)
+    for (const child of list) {
+      const v = this.node(child)
       if (v === null || v === undefined) continue
       if (isObject(v) && v.into) {
         this.into.push(v)
@@ -512,15 +502,6 @@ export class FigmaToYaml {
       out.push(v)
     }
     return out
-  }
-
-  /** A Section instance with nothing in its `content` slot (other containers keep their siblings). */
-  absorbsSiblings(node) {
-    if (node.type !== 'INSTANCE' || node.name.startsWith('#')) return false
-    const entry = this.entryOf(node)
-    if (entry?.name !== 'Mateu/Layout/Section' || !entry.yaml?.slots?.content) return false
-    // the library's own `#placeholder` caption (and hidden layers) do not count as content
-    return !(this.slotsOf(node).get('content') ?? []).some((c) => c.visible !== false && !c.name.startsWith('#'))
   }
 
   node(node) {

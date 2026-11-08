@@ -112,7 +112,7 @@ in the same change.
 | [Live UI push](/reference/agent-operability/#drive-a-live-ui) (`_agent-channel` SSE + pairing code, `mateu_list_sessions` / `mateu_push_ui` / `mateu_dispatch_event`… → `AgentPush` commands; `AppDto.agentPush`; off unless both `mateu.mcp.enabled` and `mateu.mcp.push.enabled`; pinned by `conformance/mcp/push.json`) | ✅ | ✅ | ✅ |
 | [`layoutDelta:`](/define/yaml/pages/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. Java, .NET and Python apply it (same three rules) | ✅ | ✅ | ✅ |
 | [Partials](/define/yaml/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
-| YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports). The ports' YAML component builder covers the whole fluent catalogue generically (the YAML keys are the component's attributes), `Form` pages, partials, `ComponentRef`, a `type: Listing` over a REST source (`rowsSource`/`columns`/`filters`) and a `Button` navigating by `actionable: RouteLink`; `type: AppShell` definitions and a listing's `rowRoute` stay Java-only (the ports author shells in code) | ✅ | 🟡 | 🟡 |
+| YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `viewModel:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports). The ports' YAML component builder covers the whole fluent catalogue generically (the YAML keys are the component's attributes), `Form` pages, partials, `ComponentRef`, a `type: Listing` over a REST source (`rowsSource`/`columns`/`filters`) and a `Button` navigating by `actionable: RouteLink`; `type: AppShell` definitions and a listing's `rowRoute` stay Java-only (the ports author shells in code) | ✅ | 🟡 | 🟡 |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
@@ -277,7 +277,7 @@ express, not broken screens:
 
 | DTO | Java-only members |
 |---|---|
-| `AppDto` | `accentColor`, `accentStrip`, `generatedAccentStrip`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
+| `AppDto` | `accentColor`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
 | `CrudlDto` | `multipleRowSelectionEnabled`, `onRowSelectionChangedActionId`, `selectionListened`, `hasActionOnSelectedRow`, `useButtonForDetail`, `infiniteScrolling`, `lazyLoading`, `lazyColumnRendering`, `initialPage`, `allRowsVisible`, `contentHeight`, `size`, `header`, `footer`, `child`, `rowRoute` (Java's YAML listings), `showCards`, `wrapCellContent`, `columnBorders`, `columnReorderingAllowed`, `noBorder`, `noRowBorder`, `rowStripes`, `gridStyle`, `vaadinGridCellBackground`, `vaadinGridCellPadding` |
 | `FormFieldDto` (.NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
 | `ActionDto` | `sse`, `background`, `confirmationTexts`, `js`, `href`, `customEvent`, `modalStyle`, `modalTitle` |
@@ -396,7 +396,7 @@ render), so this table — not the feature rows above — is the authority on wh
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 96 rendered, 11 layout
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 94 rendered, 11 layout
 containers, 2 partial, 0 not rendered. A type the renderer does not know
 (one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
 renderers, and its children still render.
@@ -482,14 +482,12 @@ renderers, and its children still render.
 | `RecordMerge` | ✅ | compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
-| `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
 | `Scoreboard` | ✅ | KPI band = oj-sp-scoreboard |
 | `Separator` | ✅ |  |
 | `Skeleton` | ✅ | the shell skeleton bones (JET has no skeleton), text/card/grid/form × count |
 | `SplitLayout` | ✅ | two panes |
 | `Stat` | ✅ |  |
 | `StatusList` | ✅ |  |
-| `Stepper` | ✅ | a numbered step header per child, its content below |
 | `TabLayout` | ✅ | oj-tab-bar (nested strips flattened) |
 | `TaskProgress` | ✅ |  |
 | `TaskQueue` | ✅ | the TodoList archetype: inside oj-sp-task-organizer-page |
@@ -532,7 +530,7 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 90 rendered, 11 layout containers, 6 parts of another component,
+native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
 9 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
@@ -611,14 +609,12 @@ native renderer — 90 rendered, 11 layout containers, 6 parts of another compon
 | `RecordMerge` | ✅ | one card per field (records as rows of radios) |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | declared tracks + col spans; stacks below stackBelow (600 px default) |
-| `Result` | ✅ | icon by result type, links, next step |
 | `Scoreboard` | ✅ |  |
 | `Separator` | ✅ |  |
 | `Skeleton` | ✅ |  |
 | `SplitLayout` | ✅ |  |
 | `Stat` | ✅ |  |
 | `StatusList` | ✅ |  |
-| `Stepper` | ✅ | children as numbered steps |
 | `TabLayout` | ✅ |  |
 | `TaskProgress` | ✅ |  |
 | `TaskQueue` | ✅ |  |

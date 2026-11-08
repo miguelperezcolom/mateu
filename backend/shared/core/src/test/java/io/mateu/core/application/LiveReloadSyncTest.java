@@ -239,7 +239,7 @@ class LiveReloadSyncTest {
     var sb = new StringBuilder("routes:\n");
     for (var name : names) {
       sb.append("  - route: ").append(name).append('\n');
-      sb.append("    definition: ").append(name).append(".yaml\n");
+      sb.append("    layout: ").append(name).append(".yaml\n");
     }
     return sb.toString();
   }

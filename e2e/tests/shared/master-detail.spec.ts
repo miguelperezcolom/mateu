@@ -51,7 +51,7 @@ function toolbarActions(fragments: any[]): any[] {
 // detail part is encoded in the route as /__md/<key>.
 // ---------------------------------------------------------------------------
 
-const MD_API = '/master-detail/mateu/v3/components/_/action';
+const MD_API = '/master-detail/mateu/v3/sync/_no_route';
 const MD_TYPE = 'io.mateu.sample1.app.MasterDetailDemo';
 
 function load(request: any, route: string = '/') {

@@ -41,18 +41,9 @@ pip install "mateu-ui[server]"     # the package + uvicorn (any ASGI server work
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); it
 installs one top-level package, `mateu_ui`, and you import `mateu_ui.uidl` (the authoring API),
 `mateu_ui.dtos` (the wire model), `mateu_ui.core` (the engine) and `mateu_ui.fastapi` (the adapter).
-Versions move in lockstep with the Java artifacts: the `v3.0-beta.N` release publishes `3.0.0bN`.
+Versions move in lockstep with the Java artifacts: the `v3.0.0` release publishes `3.0.0`.
 Python 3.11–3.13 are tested in CI (3.14 has been seen to work too).
 
-:::note[Upgrading from 3.0-alpha.428 or earlier]
-Before 3.0-beta the wheel installed four top-level packages: `mateu_uidl`, `mateu_dtos`,
-`mateu_core` and `mateu_fastapi`. Those imports keep working for the whole 3.x line (they are
-aliases of the same modules, so `mateu_core.mapper.ReflectionMapper is
-mateu_ui.core.mapper.ReflectionMapper`), and each emits one `DeprecationWarning` naming the new path.
-Type checkers only see the new paths. To migrate, replace the prefixes:
-`mateu_uidl` → `mateu_ui.uidl`, `mateu_dtos` → `mateu_ui.dtos`, `mateu_core` → `mateu_ui.core`,
-`mateu_fastapi` → `mateu_ui.fastapi`. The aliases go away in Mateu 4.
-:::
 
 ## Start a new project
 

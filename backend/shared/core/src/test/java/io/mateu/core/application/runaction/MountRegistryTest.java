@@ -33,9 +33,9 @@ class MountRegistryTest {
         """
         routes:
           - route: ""
-            definition: app.yaml
+            layout: app.yaml
           - route: orders
-            definition: orders.yaml
+            layout: orders.yaml
         """);
     // Collides with orders-routes.yaml on `orders`; being LAST in the mount's list it wins.
     Files.writeString(
@@ -43,7 +43,7 @@ class MountRegistryTest {
         """
         routes:
           - route: orders
-            definition: orders-v2.yaml
+            layout: orders-v2.yaml
         """);
     return root;
   }

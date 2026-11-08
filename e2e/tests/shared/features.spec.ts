@@ -63,7 +63,7 @@ function rootComponent(fragments: any[]): any {
 // FieldTypesForm — /field-types
 // ---------------------------------------------------------------------------
 
-const FIELD_TYPES_API = '/field-types/mateu/v3/components/_/action';
+const FIELD_TYPES_API = '/field-types/mateu/v3/sync/_no_route';
 
 test.describe('FieldTypesForm — data types', () => {
 
@@ -117,7 +117,7 @@ test.describe('FieldTypesForm — data types', () => {
 // FieldAnnotationsForm — /field-annotations
 // ---------------------------------------------------------------------------
 
-const FIELD_ANN_API = '/field-annotations/mateu/v3/components/_/action';
+const FIELD_ANN_API = '/field-annotations/mateu/v3/sync/_no_route';
 
 test.describe('FieldAnnotationsForm — field annotations', () => {
 
@@ -202,7 +202,7 @@ test.describe('FieldAnnotationsForm — field annotations', () => {
 // ValidationForm — /validation
 // ---------------------------------------------------------------------------
 
-const VALIDATION_API = '/validation/mateu/v3/components/_/action';
+const VALIDATION_API = '/validation/mateu/v3/sync/_no_route';
 
 test.describe('ValidationForm — bean validation', () => {
 
@@ -251,7 +251,7 @@ test.describe('ValidationForm — bean validation', () => {
 // SectionsForm — /sections
 // ---------------------------------------------------------------------------
 
-const SECTIONS_API = '/sections/mateu/v3/components/_/action';
+const SECTIONS_API = '/sections/mateu/v3/sync/_no_route';
 
 test.describe('SectionsForm — @Section grouping', () => {
 
@@ -304,7 +304,7 @@ test.describe('SectionsForm — @Section grouping', () => {
 // TabsForm — /tabs
 // ---------------------------------------------------------------------------
 
-const TABS_API = '/tabs/mateu/v3/components/_/action';
+const TABS_API = '/tabs/mateu/v3/sync/_no_route';
 
 test.describe('TabsForm — @Tab layout', () => {
 
@@ -355,7 +355,7 @@ test.describe('TabsForm — @Tab layout', () => {
 // AccordionForm — /accordion
 // ---------------------------------------------------------------------------
 
-const ACCORDION_API = '/accordion/mateu/v3/components/_/action';
+const ACCORDION_API = '/accordion/mateu/v3/sync/_no_route';
 
 test.describe('AccordionForm — @FoldedLayout layout', () => {
 
@@ -395,7 +395,7 @@ test.describe('AccordionForm — @FoldedLayout layout', () => {
 // MultiColumnForm — /multi-column
 // ---------------------------------------------------------------------------
 
-const MULTI_COL_API = '/multi-column/mateu/v3/components/_/action';
+const MULTI_COL_API = '/multi-column/mateu/v3/sync/_no_route';
 
 test.describe('MultiColumnForm — @FormLayout(columns=3)', () => {
 
@@ -427,7 +427,7 @@ test.describe('MultiColumnForm — @FormLayout(columns=3)', () => {
 // InlineForm — /inline
 // ---------------------------------------------------------------------------
 
-const INLINE_API = '/inline/mateu/v3/components/_/action';
+const INLINE_API = '/inline/mateu/v3/sync/_no_route';
 
 test.describe('InlineForm — @Inline nested type', () => {
 
@@ -469,7 +469,7 @@ test.describe('InlineForm — @Inline nested type', () => {
 // PlainTextForm — /plain-text
 // ---------------------------------------------------------------------------
 
-const PLAIN_TEXT_API = '/plain-text/mateu/v3/components/_/action';
+const PLAIN_TEXT_API = '/plain-text/mateu/v3/sync/_no_route';
 
 test.describe('PlainTextForm — @PlainText stereotype', () => {
 
@@ -510,7 +510,7 @@ test.describe('PlainTextForm — @PlainText stereotype', () => {
 // BannerDemoForm — /banners
 // ---------------------------------------------------------------------------
 
-const BANNERS_API = '/banners/mateu/v3/components/_/action';
+const BANNERS_API = '/banners/mateu/v3/sync/_no_route';
 
 test.describe('BannerDemoForm — @Banner', () => {
 
@@ -556,7 +556,7 @@ test.describe('BannerDemoForm — @Banner', () => {
 // FabDemoForm — /fab
 // ---------------------------------------------------------------------------
 
-const FAB_API = '/fab/mateu/v3/components/_/action';
+const FAB_API = '/fab/mateu/v3/sync/_no_route';
 
 test.describe('FabDemoForm — @Fab floating action buttons', () => {
 
@@ -617,7 +617,7 @@ test.describe('FabDemoForm — @Fab floating action buttons', () => {
 // KpiDemoForm — /kpi
 // ---------------------------------------------------------------------------
 
-const KPI_API = '/kpi/mateu/v3/components/_/action';
+const KPI_API = '/kpi/mateu/v3/sync/_no_route';
 
 test.describe('KpiDemoForm — @KPI fields', () => {
 
@@ -674,7 +674,7 @@ test.describe('KpiDemoForm — @KPI fields', () => {
 // ZonesForm — /zones
 // ---------------------------------------------------------------------------
 
-const ZONES_API = '/zones/mateu/v3/components/_/action';
+const ZONES_API = '/zones/mateu/v3/sync/_no_route';
 
 test.describe('ZonesForm — @Zones / @Zone layout', () => {
 
@@ -707,7 +707,7 @@ test.describe('ZonesForm — @Zones / @Zone layout', () => {
 // CatalogNotCreatable — /catalog-read-only (AutoCrud with constraints)
 // ---------------------------------------------------------------------------
 
-const CATALOG_RO_API = '/catalog-read-only/mateu/v3/components/_/action';
+const CATALOG_RO_API = '/catalog-read-only/mateu/v3/sync/_no_route';
 
 test.describe('CatalogNotCreatable — @NotCreatable @NotEditable @NotDeletable', () => {
 
@@ -754,7 +754,7 @@ test.describe('CatalogNotCreatable — @NotCreatable @NotEditable @NotDeletable'
 // FilterableCatalog — /catalog-filterable
 // ---------------------------------------------------------------------------
 
-const FILTERABLE_API = '/catalog-filterable/mateu/v3/components/_/action';
+const FILTERABLE_API = '/catalog-filterable/mateu/v3/sync/_no_route';
 
 test.describe('FilterableCatalog — @Filterable columns', () => {
 
@@ -790,7 +790,7 @@ test.describe('FilterableCatalog — @Filterable columns', () => {
 // RegistrationWizard — /wizard
 // ---------------------------------------------------------------------------
 
-const WIZARD_API = '/wizard/mateu/v3/components/_/action';
+const WIZARD_API = '/wizard/mateu/v3/sync/_no_route';
 
 test.describe('RegistrationWizard — Wizard', () => {
 
@@ -834,7 +834,7 @@ test.describe('RegistrationWizard — Wizard', () => {
 // ActionFeaturesForm — /action-features
 // ---------------------------------------------------------------------------
 
-const ACTION_FEATURES_API = '/action-features/mateu/v3/components/_/action';
+const ACTION_FEATURES_API = '/action-features/mateu/v3/sync/_no_route';
 
 test.describe('ActionFeaturesForm — @Action attributes', () => {
 
@@ -904,7 +904,7 @@ test.describe('ActionFeaturesForm — @Action attributes', () => {
 // BadgeDemoForm — /badge-demo
 // ---------------------------------------------------------------------------
 
-const BADGE_DEMO_API = '/badge-demo/mateu/v3/components/_/action';
+const BADGE_DEMO_API = '/badge-demo/mateu/v3/sync/_no_route';
 
 test.describe('BadgeDemoForm — @Badge and @BadgeInHeader', () => {
 
@@ -957,7 +957,7 @@ test.describe('BadgeDemoForm — @Badge and @BadgeInHeader', () => {
 // CompactForm — /compact
 // ---------------------------------------------------------------------------
 
-const COMPACT_API = '/compact/mateu/v3/components/_/action';
+const COMPACT_API = '/compact/mateu/v3/sync/_no_route';
 
 test.describe('CompactForm — @Compact + @FormLayout(columns=4)', () => {
 
@@ -999,7 +999,7 @@ test.describe('CompactForm — @Compact + @FormLayout(columns=4)', () => {
 // FoldedLayoutForm — /folded
 // ---------------------------------------------------------------------------
 
-const FOLDED_API = '/folded/mateu/v3/components/_/action';
+const FOLDED_API = '/folded/mateu/v3/sync/_no_route';
 
 test.describe('FoldedLayoutForm — @FoldedLayout', () => {
 
@@ -1041,7 +1041,7 @@ test.describe('FoldedLayoutForm — @FoldedLayout', () => {
 // HiddenFieldsForm — /hidden-fields
 // ---------------------------------------------------------------------------
 
-const HIDDEN_FIELDS_API = '/hidden-fields/mateu/v3/components/_/action';
+const HIDDEN_FIELDS_API = '/hidden-fields/mateu/v3/sync/_no_route';
 
 test.describe('HiddenFieldsForm — @Hidden and @ReadOnly', () => {
 
@@ -1084,7 +1084,7 @@ test.describe('HiddenFieldsForm — @Hidden and @ReadOnly', () => {
 // StereotypesForm — /stereotypes
 // ---------------------------------------------------------------------------
 
-const STEREOTYPES_API = '/stereotypes/mateu/v3/components/_/action';
+const STEREOTYPES_API = '/stereotypes/mateu/v3/sync/_no_route';
 
 test.describe('StereotypesForm — @Stereotype variants', () => {
 
@@ -1148,7 +1148,7 @@ test.describe('StereotypesForm — @Stereotype variants', () => {
 // SubtitleForm — /subtitle
 // ---------------------------------------------------------------------------
 
-const SUBTITLE_API = '/subtitle/mateu/v3/components/_/action';
+const SUBTITLE_API = '/subtitle/mateu/v3/sync/_no_route';
 
 test.describe('SubtitleForm — @Subtitle', () => {
 
@@ -1179,7 +1179,7 @@ test.describe('SubtitleForm — @Subtitle', () => {
 // CatalogWithHiddenColumns — /catalog-hidden-cols
 // ---------------------------------------------------------------------------
 
-const HIDDEN_COLS_API = '/catalog-hidden-cols/mateu/v3/components/_/action';
+const HIDDEN_COLS_API = '/catalog-hidden-cols/mateu/v3/sync/_no_route';
 
 function getCrudColumns(fragments: any[]): any[] {
   const all: any[] = [];
@@ -1263,7 +1263,7 @@ test.describe('CatalogWithHiddenColumns — @HiddenInList / @HiddenInCreate / @H
 // FullCrud — /full-crud
 // ---------------------------------------------------------------------------
 
-const FULL_CRUD_API = '/full-crud/mateu/v3/components/_/action';
+const FULL_CRUD_API = '/full-crud/mateu/v3/sync/_no_route';
 
 test.describe('FullCrud — full AutoCrud lifecycle', () => {
 
@@ -1381,7 +1381,7 @@ test.describe('FullCrud — full AutoCrud lifecycle', () => {
 // CustomLabelsCrud — /custom-labels-crud
 // ---------------------------------------------------------------------------
 
-const CUSTOM_LABELS_API = '/custom-labels-crud/mateu/v3/components/_/action';
+const CUSTOM_LABELS_API = '/custom-labels-crud/mateu/v3/sync/_no_route';
 const CUSTOM_LABELS_TYPE = 'io.mateu.sample1.app.CustomLabelsCrud';
 
 test.describe('CustomLabelsCrud — overridden CRUD button labels', () => {
@@ -1452,7 +1452,7 @@ test.describe('CustomLabelsCrud — overridden CRUD button labels', () => {
 // ConfirmOnNavigationForm — /confirm-dirty  (@ConfirmOnNavigationIfDirty)
 // ---------------------------------------------------------------------------
 
-const CONFIRM_DIRTY_API = '/confirm-dirty/mateu/v3/components/_/action';
+const CONFIRM_DIRTY_API = '/confirm-dirty/mateu/v3/sync/_no_route';
 const CONFIRM_DIRTY_TYPE = 'io.mateu.sample1.ConfirmOnNavigationForm';
 
 test.describe('ConfirmOnNavigationForm — @ConfirmOnNavigationIfDirty', () => {
@@ -1491,7 +1491,7 @@ test.describe('ConfirmOnNavigationForm — @ConfirmOnNavigationIfDirty', () => {
 test.describe('ConfirmOnNavigationForm — flag is opt-in', () => {
 
   test('a non-annotated form (SimpleForm) has no confirmOnNavigationIfDirty flag', async ({ request }) => {
-    const body = await callAction(request, '/mateu/v3/components/_/action', { route: '/', actionId: '__load__' });
+    const body = await callAction(request, '/mateu/v3/sync/_no_route', { route: '/', actionId: '__load__' });
     expect(rootComponent(body.fragments)?.confirmOnNavigationIfDirty).toBeFalsy();
   });
 
@@ -1511,9 +1511,9 @@ test.describe('ConfirmOnNavigationForm — flag is opt-in', () => {
 // renders, and the embedded view stays at level=0.
 // ---------------------------------------------------------------------------
 
-const INLINE_HOST_API = '/inline-host/mateu/v3/components/_/action';
-const NON_INLINE_HOST_API = '/non-inline-host/mateu/v3/components/_/action';
-const EMBEDDED_DATA_API = '/embedded-data/mateu/v3/components/_/action';
+const INLINE_HOST_API = '/inline-host/mateu/v3/sync/_no_route';
+const NON_INLINE_HOST_API = '/non-inline-host/mateu/v3/sync/_no_route';
+const EMBEDDED_DATA_API = '/embedded-data/mateu/v3/sync/_no_route';
 
 function findServerSideComponent(node: any, predicate: (n: any) => boolean): any {
   if (!node || typeof node !== 'object') return null;

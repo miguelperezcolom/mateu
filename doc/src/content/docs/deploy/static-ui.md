@@ -46,8 +46,7 @@ usual meaning of the word (available/active → success, provisioning/updating �
 failed/terminated → error).
 
 Inner routes are data: `@UI("")` declares the mount (the app shell); `specs/ui/routes.yaml` binds the
-routes inside it — to a Java view model (`viewModel:`) or to a definition only (`layout:`; the older
-key `definition:` is a deprecated alias).
+routes inside it — to a Java view model (`viewModel:`) or to a definition only (`layout:`).
 
 ## Two ways to build it
 

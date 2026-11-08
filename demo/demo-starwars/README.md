@@ -68,7 +68,7 @@ deletes:
 ```yaml
 # routes.yaml — the record's route names the source that fetches it
 - route: people/:id
-  definition: person.yaml
+  layout: person.yaml
   data: swapi-person          # url: .../api/people/${state.id}
 ```
 ```yaml

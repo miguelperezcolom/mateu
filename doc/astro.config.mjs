@@ -603,7 +603,6 @@ export default defineConfig({
 						{ slug: 'reference/language-rosetta', label: 'Language Rosetta (Java/C#/Python)' },
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
 						{ slug: 'reference/stability-and-versioning', label: 'Stability & versioning' },
-						{ slug: 'reference/migrating-from-alpha', label: 'Migrating from alpha' },
 						{ slug: 'reference/support-policy', label: 'Support policy' },
 						{ slug: 'reference/known-issues', label: 'Known issues' },
 					],

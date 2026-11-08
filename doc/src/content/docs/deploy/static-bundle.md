@@ -249,5 +249,5 @@ route. (Shipping only the first is what made a bundled deep link "render HOME", 
   the renderer resolves routes and their parameters from shipped data. Only the authored half
   travels: the annotation-derived half is route→class, and a class is what a bundle with no backend
   cannot use. Routes that exist only in `routes.yaml` are exported too, **including those with no
-  view model** — a definition that declares no `modelView` renders as a bare layout through the
+  view model** — a definition that declares no `viewModel` renders as a bare layout through the
   ordinary sync path, so it is pre-rendered like any other route.

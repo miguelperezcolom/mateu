@@ -78,8 +78,7 @@ console logs the same as JSON.
 - **Slots** are native Figma slots drawn dashed with a `#placeholder` caption (never read): drag
   instances into them. A frame named `slot:<name>` NEXT TO the page-template instance in the screen
   frame fills it too; other siblings are `content`. The page toolbar is the `toolbar` slot (Button
-  instances, the primary first). With a library older than native slots, a Section whose content
-  slot is empty takes the layers that follow it (up to the next Section).
+  instances, the primary first).
 - A screen with a `Mateu/Page Templates/<FormTemplate>` instance is a templated page; one without
   is a free page (a `Mateu/Page/Header` instance gives its title/subtitle/toolbar).
 - A frame named `partial:<ref>` is written once to `partials/<ref>.yaml` and referenced.

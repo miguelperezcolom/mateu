@@ -1,11 +1,7 @@
 package io.mateu.uidl.fluent;
 
 public enum AppVariant {
-  /**
-   * A hamburger button opening the whole menu in a drawer. It is also the wire value (since
-   * 3.0-alpha.412; the old misspelling {@code HAMBURGUER_MENU} was removed in 3.0.0 — renderers
-   * still accept it on the wire).
-   */
+  /** A hamburger button opening the whole menu in a drawer. It is also the wire value. */
   HAMBURGER_MENU,
   /**
    * Opera Cloud style: the hamburger holds the sections (the menu's first level) and the band under

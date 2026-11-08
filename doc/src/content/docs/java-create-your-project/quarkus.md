@@ -88,11 +88,9 @@ annotationProcessor("io.mateu:mateu-annotation-processor-quarkus")
 implementation("io.quarkus:quarkus-rest-jackson")
 ```
 
-> **Upgrading from `v3.0-alpha.406` or older:** `mateu-quarkus` no longer brings
-> `quarkus-resteasy-reactive-jackson` and `quarkus-spring-di` along (they came in at fixed, mismatched
-> versions). Declare `quarkus-rest-jackson` as above. Mateu itself no longer needs Spring-DI support;
-> add `quarkus-spring-di` yourself only if YOUR beans use Spring annotations or are `@Named` without a
-> scope.
+> `mateu-quarkus` brings no REST or DI extension along: declare `quarkus-rest-jackson` as above.
+> Mateu needs no Spring-DI support; add `quarkus-spring-di` yourself only if YOUR beans use Spring
+> annotations or are `@Named` without a scope.
 
 See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
 notably cross-origin access (off unless you list the origins) and the MCP endpoint (off unless enabled).

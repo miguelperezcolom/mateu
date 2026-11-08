@@ -258,7 +258,3 @@ Both kinds of inference have one global switch each, named the same way. An anno
 |---|---|---|---|---|
 | Layout (`@AutoLayout`) | `mateu.layout.inference.enabled` / `MATEU_LAYOUT_INFERENCE_ENABLED` | `Mateu.LayoutInference.Enabled` | `MATEU_LAYOUT_INFERENCE_ENABLED` | `false` |
 | Page (`@AutoPage`) | `mateu.page.inference.enabled` / `MATEU_PAGE_INFERENCE_ENABLED` | `Mateu.PageInference.Enabled` | `MATEU_PAGE_INFERENCE_ENABLED` | `true` |
-
-The names used before 3.0-alpha.412 — `mateu.layout.inference` (C# `Mateu.LayoutInference`) and
-`mateu.page.inference.disabled` (C# `Mateu.PageInference.Disabled`) — were removed in 3.0.0 and are
-ignored: use the names above (mind the polarity: `disabled=true` was `enabled=false`).

@@ -215,10 +215,11 @@ controllers for your adapter.
 In-process, the product's classes were compiled against **its** Mateu version and run against
 **yours**. Two things make that work:
 
-- **One Mateu on the classpath.** Import `io.mateu:mateu-bom`: it also manages the pre-rename
-  artifact ids (`mvc-core`, `uidl`, `core`, `vaadin-lit`…) a product built on an older alpha still
-  declares, which resolve to relocation poms — so Maven does not load two copies of `io.mateu.*`.
-- **Binary compatibility.** Mateu is still in alpha; a release may rename or remove API. Check the
+- **One Mateu on the classpath.** Import `io.mateu:mateu-bom`, so the product's Mateu artifacts and
+  yours resolve to one version. A product built on a 3.0 pre-release (an alpha or beta, with the
+  pre-rename artifact ids `mvc-core`, `uidl`, `core`…) must be rebuilt on 3.0.0 first.
+- **Binary compatibility.** Within 3.x the stable API is binary compatible
+  ([Stability & versioning](/reference/stability-and-versioning/)). Check the
   product's jars against yours before upgrading either (the EventConductor check below is a
   template).
 

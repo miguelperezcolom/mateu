@@ -67,10 +67,6 @@ public interface HeaderBadgesSupplier {
 }
 ```
 
-:::note[Renamed in 3.0-alpha.412]
-This interface used to be `BadgeSupplier` (`List<Badge> badges()`), a deprecated alias removed in
-3.0.0: implement `HeaderBadgesSupplier`.
-:::
 
 ## Usage
 

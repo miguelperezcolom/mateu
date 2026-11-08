@@ -774,13 +774,9 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
     out.add(
         new RouteEntry(
             full,
-            // Vocabulary (coherence-plan #5): the canonical key for the layout file is `layout:`;
-            // `definition:` is the DEPRECATED ALIAS, still accepted so every existing routes.yaml
-            // keeps working (`layout:` wins if both are present). The RouteEntry field / wire key
-            // stays `definition` — only the authoring key is unified.
-            node.hasNonNull("layout")
-                ? node.get("layout").asText()
-                : node.hasNonNull("definition") ? node.get("definition").asText() : null,
+            // The authoring key for the layout file is `layout:`; the RouteEntry field / wire key
+            // is `definition`.
+            node.hasNonNull("layout") ? node.get("layout").asText() : null,
             node.hasNonNull("viewModel") ? node.get("viewModel").asText() : null,
             paramsOf(node, "fixedParams"),
             paramsOf(node, "defaultParams"),
