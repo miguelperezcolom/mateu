@@ -134,8 +134,8 @@ class AppMetadata(Wire):
     drawer_closed: bool = False
     style: str | None = None
     css_classes: str | None = None
-    #: The brand accent, a CSS colour (AppDto.accentColor).
-    accent_color: str | None = None
+    #: (accent_color — the brand accent — is declared above with @app(accent_color=...); a YAML
+    #: shell sets the same member.)
     #: The AI assistant's MCP endpoint and upload url (``ai: {mcp, upload}``; AppDto.mcpUrl/uploadUrl).
     mcp_url: str | None = None
     upload_url: str | None = None
