@@ -52,6 +52,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
     /// [Audience] projects it out as well.</summary>
     private bool Visible(MemberInfo member) =>
         Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
+        // a MasterDetailView's non-selected detail parts (ReflectionMapper.EditableViews.cs)
+        && !HiddenParts(member)
         // [Timestamp] properties render as the header "last updated" text, never as form fields.
         && member.Find<Mateu.Uidl.TimestampAttribute>() == null
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.

@@ -211,6 +211,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (ResolveCapability(rq) is { } cap)
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
 
+        // 2a'. An editable view (EditableView / AutoEditableView: view ⇄ /edit) or a master-detail
+        // view (button bar of detail parts) — Java's MultiView orchestrators of the same names.
+        if (ResolveOrchestratedView(rq) is { } orchestrated)
+            return HandleOrchestratedView(orchestrated.Type, orchestrated.BaseRoute, rq);
+
         // The AUTHORED registry answers before the attribute-declared views — explicit beats
         // derived, the same precedence the layout and page inference already use. Its parameters are
         // folded into the component state here, at the single point every downstream step reads:

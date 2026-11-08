@@ -101,7 +101,9 @@ internal sealed partial class ReflectionMapper
                 initialData[Naming.CamelCase(member.Name)] = t.IsEnum ? memberValue.ToString() : memberValue;
         }
         // the island claims its own actions, so a toolbar click goes to the view, not the host
-        var actions = MapView(type, value, route).Actions;
+        var actions = value is IEditableView editable
+            ? EditableViewActions(type, editable)
+            : MapView(type, value, route).Actions;
         var app = Client(new AppMetadataDto("", "MEDIATOR", [])
         {
             HomeRoute = markedRoute,

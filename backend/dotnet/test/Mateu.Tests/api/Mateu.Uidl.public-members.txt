@@ -159,6 +159,12 @@ Mateu.Uidl.AsideAttribute property System.String Position { get;init; }
 Mateu.Uidl.AsideAttribute property System.String Width { get;init; }
 Mateu.Uidl.AudienceAttribute ctor(System.String[])
 Mateu.Uidl.AudienceAttribute property System.String[] Audiences { get; }
+Mateu.Uidl.AutoEditableView<T> abstract method System.Void Persist(T)
+Mateu.Uidl.AutoEditableView<T> abstract method T Load()
+Mateu.Uidl.AutoEditableView<T> ctor()
+Mateu.Uidl.AutoEditableView<T> virtual method System.Void Save(T)
+Mateu.Uidl.AutoEditableView<T> virtual method T Editor()
+Mateu.Uidl.AutoEditableView<T> virtual method T View()
 Mateu.Uidl.AutoLayoutAttribute ctor(System.Boolean = True)
 Mateu.Uidl.AutoLayoutAttribute property System.Boolean Value { get; }
 Mateu.Uidl.AutoPageAttribute ctor(System.Boolean = True)
@@ -471,6 +477,10 @@ Mateu.Uidl.DeclaredRestSource ctor(Mateu.Uidl.RestSourceKind, System.String, Mat
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestDataSource Source { get;init; }
 Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestSourceKind Kind { get;init; }
 Mateu.Uidl.DeclaredRestSource property System.String Id { get;init; }
+Mateu.Uidl.DetailPartAttribute ctor()
+Mateu.Uidl.DetailPartAttribute property System.Int32 Order { get;set; }
+Mateu.Uidl.DetailPartAttribute property System.String Key { get;set; }
+Mateu.Uidl.DetailPartAttribute property System.String Label { get;set; }
 Mateu.Uidl.Details ctor()
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.Details property Mateu.Uidl.IComponent Summary { get;init; }
@@ -543,6 +553,11 @@ Mateu.Uidl.DropZone property System.String Accept { get;init; }
 Mateu.Uidl.DropZone property System.String ActionId { get;init; }
 Mateu.Uidl.DropZone property System.String Subtitle { get;init; }
 Mateu.Uidl.DropZone property System.String Title { get;init; }
+Mateu.Uidl.EditableView<TView,TEditor> abstract method System.Void Save(TEditor)
+Mateu.Uidl.EditableView<TView,TEditor> abstract method TEditor Editor()
+Mateu.Uidl.EditableView<TView,TEditor> abstract method TView View()
+Mateu.Uidl.EditableView<TView,TEditor> ctor()
+Mateu.Uidl.EditableView<TView,TEditor> property System.Boolean ReadOnly { get; }
 Mateu.Uidl.Element ctor(System.String)
 Mateu.Uidl.Element property System.Boolean Html { get;init; }
 Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Attributes { get;init; }
@@ -900,6 +915,10 @@ Mateu.Uidl.IDraftable virtual method System.Int32? ResumeStep()
 Mateu.Uidl.IDraftable virtual method System.Object CloseDraft()
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TEditor Edit(TId)
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TId Save(TEditor)
+Mateu.Uidl.IEditableView abstract method System.Object LoadEditor()
+Mateu.Uidl.IEditableView abstract method System.Object LoadView()
+Mateu.Uidl.IEditableView abstract method System.Void SaveEditor(System.Object)
+Mateu.Uidl.IEditableView property System.Boolean ReadOnly { get; }
 Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
 Mateu.Uidl.IFragmentCachePolicySupplier abstract method Mateu.Uidl.FragmentCachePolicy CachePolicy(Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.IFragmentCacheStore abstract method System.String Get(System.String)
@@ -919,6 +938,10 @@ Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Ma
 Mateu.Uidl.IListingExporter abstract method Mateu.Uidl.ExportedFile Export(Mateu.Uidl.ListingExport)
 Mateu.Uidl.IListingExporter property Mateu.Uidl.ExportFormat Format { get; }
 Mateu.Uidl.ILookupLabelSupplier abstract method System.String Label(System.String, System.Object)
+Mateu.Uidl.IMasterDetailView abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> PageHeader()
+Mateu.Uidl.IMasterDetailView abstract method System.String PageTitle()
+Mateu.Uidl.IMasterDetailView abstract method System.Void LoadParts()
+Mateu.Uidl.IMasterDetailView property Mateu.Uidl.NoSelection WhenNothingSelected { get; }
 Mateu.Uidl.IMicroFrontendResolutionListener abstract method System.Void OnResolution(Mateu.Uidl.MicroFrontendResolutionEvent)
 Mateu.Uidl.INavigable<TDetail,TId> abstract method TDetail View(TId)
 Mateu.Uidl.INotificationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> Notifications()
@@ -1148,6 +1171,11 @@ Mateu.Uidl.MarkClean ctor()
 Mateu.Uidl.MarkDirty ctor()
 Mateu.Uidl.Markdown ctor()
 Mateu.Uidl.Markdown property System.String MarkdownText { get;init; }
+Mateu.Uidl.MasterDetailView abstract method System.Void Load()
+Mateu.Uidl.MasterDetailView ctor()
+Mateu.Uidl.MasterDetailView property Mateu.Uidl.NoSelection NoSelection { get; }
+Mateu.Uidl.MasterDetailView virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Header()
+Mateu.Uidl.MasterDetailView virtual method System.String Title()
 Mateu.Uidl.MateuEnvironment ctor(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride>)
 Mateu.Uidl.MateuEnvironment property System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride> Sources { get;init; }
 Mateu.Uidl.MateuEnvironment property System.String Name { get;init; }
@@ -1298,6 +1326,8 @@ Mateu.Uidl.NavLink property System.String Target { get;init; }
 Mateu.Uidl.NavLink property System.String Title { get;init; }
 Mateu.Uidl.Navigate ctor(System.String)
 Mateu.Uidl.Navigate property System.String Route { get;init; }
+Mateu.Uidl.NoSelection enum Empty
+Mateu.Uidl.NoSelection enum First
 Mateu.Uidl.Notice ctor(System.String)
 Mateu.Uidl.Notice property System.Boolean FullWidth { get;init; }
 Mateu.Uidl.Notice property System.Boolean InlineContent { get;init; }
