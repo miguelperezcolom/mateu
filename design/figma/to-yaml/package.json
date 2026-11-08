@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "golden": "node bin/figma-to-yaml.mjs test/fixtures/starwars.figma.json --out test/golden --clean"
+    "golden": "node bin/figma-to-yaml.mjs test/fixtures/starwars.figma.json --out test/golden --clean && node bin/figma-to-yaml.mjs test/fixtures/native.figma.json --out test/golden-native --clean",
+    "self-test": "node bin/figma-to-yaml.mjs --self-test"
   },
   "engines": {
     "node": ">=20"

@@ -15,9 +15,15 @@ export const SCHEMA_URL =
   'https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json'
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
+/** The page the plugin's self-test command draws in the library file. */
+export const SELF_TEST_PAGE = 'Mateu · Self-test'
 const SLOT = /^slot:(.+)$/
 const PARTIAL = /^partial:(.+)$/
-const CONTAINER_KEY = { VerticalLayout: 'content', HorizontalLayout: 'content', FormLayout: 'content' }
+/** Layer types that only draw: never content, never a warning. */
+const DECORATION = new Set([
+  'RECTANGLE', 'ELLIPSE', 'LINE', 'VECTOR', 'STAR', 'POLYGON', 'REGULAR_POLYGON', 'BOOLEAN_OPERATION',
+])
+const CONTAINER_KEY ={ VerticalLayout: 'content', HorizontalLayout: 'content', FormLayout: 'content' }
 
 export function slugify(name) {
   return (
@@ -49,6 +55,38 @@ export class Contract {
       ...Object.keys(entry.props ?? {}),
       ...Object.values(entry.texts ?? {}),
     ])
+  }
+
+  /**
+   * What a TEXT/BOOLEAN component property of the entry carries — `{param, layer?, index}` — or
+   * null. The plugin (design/figma/plugin/src/plan.ts) names a `props` key as the param, and a
+   * `texts` layer as its param when unambiguous, else as the layer itself (`Title1`); this reads
+   * every one of those spellings back.
+   */
+  static property(entry, name) {
+    const texts = entry.texts ?? {}
+    const index = (layer) => Number((layer.match(/(\d+)$/) ?? [])[1] ?? 1)
+    if (name in texts) return { param: texts[name], layer: name, index: index(name) }
+    if (entry.props && name in entry.props) return { param: name, index: 1 }
+    const layers = Object.keys(texts).filter((l) => texts[l] === name)
+    if (layers.length === 1) return { param: name, layer: layers[0], index: index(layers[0]) }
+    return null
+  }
+
+  /**
+   * The texts an untouched layer still shows: its own name, and the text the sketch draws in a
+   * primitive that names its layer apart from its text (`{text: "+", layer: "Icon"}`).
+   */
+  static placeholders(entry, layer) {
+    const out = new Set([layer])
+    const walk = (n) => {
+      if (Array.isArray(n)) return n.forEach(walk)
+      if (!isObject(n)) return
+      if (n.layer === layer && typeof n.text === 'string') out.add(n.text)
+      Object.values(n).forEach(walk)
+    }
+    walk(entry.sketch)
+    return out
   }
 }
 
@@ -85,6 +123,44 @@ export class FigmaToYaml {
     }
     for (const f of files) f.text = this.render(f)
     return { files, warnings: this.warnings }
+  }
+
+  /**
+   * Converts the `Mateu · Self-test` page the plugin's "Mateu Library Self-test" command draws in
+   * the LIBRARY file (a page every ordinary conversion skips): every instance on it, one by one.
+   * Returns `{page, results: [{name, cell, nodeId, status, value, warnings}]}` — status `ok` (a
+   * component, no warnings), `failed` (warnings), or `noYaml` (an entry the contract maps to no YAML,
+   * a Java archetype). `page` is null when the file has no self-test page.
+   */
+  selfTest(file, pageName = SELF_TEST_PAGE) {
+    this.file = file
+    this.partials = new Map()
+    const canvas = (file.document?.children ?? []).find((c) => c.type === 'CANVAS' && c.name === pageName)
+    if (!canvas) return { page: null, results: [] }
+    const results = []
+    const visit = (node, cell) => {
+      if (node.visible === false || node.name.startsWith('_') || node.name.startsWith('#')) return
+      if (node.type === 'INSTANCE') {
+        const entry = this.entryOf(node)
+        this.warnings = []
+        this.into = []
+        const name = entry?.name ?? this.componentName(node) ?? node.componentId
+        if (entry && !entry.yaml) {
+          results.push({ name, cell, nodeId: node.id, status: 'noYaml', value: null, warnings: [] })
+          return
+        }
+        const out = this.node(node)
+        const value = isObject(out) && out.into ? out.value : out
+        const warnings = this.warnings
+        const ok = !!entry && isObject(value) && warnings.length === 0
+        results.push({ name, cell, nodeId: node.id, status: ok ? 'ok' : 'failed', value: value ?? null, warnings: entry ? warnings : [`not a Mateu component`, ...warnings] })
+        return
+      }
+      for (const child of node.children ?? []) visit(child, node.name.startsWith('cell ') ? node.name.substring(5) : cell)
+    }
+    for (const node of canvas.children ?? []) visit(node, null)
+    this.warnings = []
+    return { page: canvas.name, results }
   }
 
   /**
@@ -161,11 +237,15 @@ export class FigmaToYaml {
     return out
   }
 
-  /** The instance's own layers: everything but nested Mateu instances and slot frames. */
+  /**
+   * The instance's own layers: everything but nested Mateu instances and slots. The library's
+   * `#`-named layers (`#props`/`#prop:<p>`, `#flags`/`#flag:<p>`, `#placeholder`) are listed too,
+   * but every reader skips them: they mirror component properties, never content.
+   */
   ownLayers(node, out = []) {
     for (const child of node.children ?? []) {
       if (child.visible === false) continue
-      if (SLOT.test(child.name)) continue
+      if (this.slotName(child)) continue
       if (child.type === 'INSTANCE' && this.entryOf(child)) continue
       out.push(child)
       this.ownLayers(child, out)
@@ -173,12 +253,26 @@ export class FigmaToYaml {
     return out
   }
 
+  /**
+   * The contract name of a slot layer, or null: a frame named `slot:<name>` (the library's own
+   * spelling, a detached copy, or a sibling frame), or a native Figma slot — a node of type SLOT,
+   * named after its frame, else after the SLOT property it is linked to (`slot:<name>#<id>`).
+   */
+  slotName(child) {
+    const m = String(child.name ?? '').match(SLOT)
+    if (m) return m[1]
+    if (child.type !== 'SLOT') return null
+    const ref = child.componentPropertyReferences?.slotContentId
+    const fromRef = ref ? String(ref).replace(/#[^#]*$/, '').replace(/^slot:/, '') : null
+    return fromRef || child.name || null
+  }
+
   slotsOf(node, out = new Map()) {
     for (const child of node.children ?? []) {
       if (child.visible === false) continue
-      const m = child.name.match(SLOT)
-      if (m) {
-        out.set(m[1], [...(out.get(m[1]) ?? []), ...(child.children ?? [])])
+      const name = this.slotName(child)
+      if (name) {
+        out.set(name, [...(out.get(name) ?? []), ...(child.children ?? [])])
         continue
       }
       if (child.type === 'INSTANCE' && this.entryOf(child)) continue
@@ -187,12 +281,44 @@ export class FigmaToYaml {
     return out
   }
 
-  /** Params read off an instance: variants, then `#config`, then text layers. */
+  /**
+   * Params read off an instance: variants; then its TEXT/BOOLEAN component properties (what the
+   * designer sets in Figma's properties panel); then — for instances placed with an older library —
+   * the `#config` layer and the text layers. A param already read is never read again from a lower
+   * source, so a property bound to a text layer is one value, not two.
+   */
   readParams(node, entry) {
     const params = []
+    const seen = new Set()
+    const push = (p) => {
+      const key = `${p.name}#${p.index ?? 1}`
+      if (seen.has(key)) return
+      seen.add(key)
+      params.push(p)
+    }
     const known = Contract.params(entry)
     for (const [k, v] of Object.entries(this.variantsOf(node))) {
-      if (entry.variants && k in entry.variants) params.push({ name: k, value: v, from: 'variant' })
+      if (entry.variants && k in entry.variants) push({ name: k, value: v, from: 'variant' })
+    }
+    for (const [key, prop] of Object.entries(node.componentProperties ?? {})) {
+      if (!prop || (prop.type !== 'TEXT' && prop.type !== 'BOOLEAN')) continue
+      const name = key.replace(/#[^#]*$/, '')
+      const target = Contract.property(entry, name)
+      if (!target) {
+        this.warn(node, `property "${name}" is not a param of ${entry.name}`)
+        continue
+      }
+      const value = String(prop.value ?? '')
+      // unset: empty (a library made before every property was bound to a layer), or — since then —
+      // a config property still showing its own name, the default its `#prop:` marker layer starts with
+      if (value.trim() === '') continue
+      if (!target.layer && value === name) continue
+      // an untouched text property still shows the layer's placeholder
+      if (target.layer && Contract.placeholders(entry, target.layer).has(value)) {
+        seen.add(`${target.param}#${target.index}`)
+        continue
+      }
+      push({ name: target.param, value, from: 'property', index: target.index })
     }
     const layers = this.ownLayers(node)
     const config = layers.find((l) => l.type === 'TEXT' && l.name === '#config')
@@ -204,16 +330,16 @@ export class FigmaToYaml {
           this.warn(node, `#config key "${m[1]}" is not a param of ${entry.name}`)
           continue
         }
-        params.push({ name: m[1], value: m[2], from: 'config' })
+        push({ name: m[1], value: m[2], from: 'config' })
       }
     }
     for (const layer of layers) {
       if (layer.type !== 'TEXT' || layer.name.startsWith('#')) continue
       const param = entry.texts?.[layer.name]
       const text = layer.characters ?? ''
-      if (!param || text === '' || text === layer.name) continue
+      if (!param || text === '' || Contract.placeholders(entry, layer.name).has(text)) continue
       const index = Number((layer.name.match(/(\d+)$/) ?? [])[1] ?? 1)
-      params.push({ name: param, value: text, from: 'text', index })
+      push({ name: param, value: text, from: 'text', index })
     }
     return params
   }
@@ -365,8 +491,19 @@ export class FigmaToYaml {
   /** Converts a list of layers; page-level ones are collected, not returned. */
   nodes(children) {
     const out = []
-    for (const child of children) {
-      const v = this.node(child)
+    const list = children.filter((c) => c.visible !== false)
+    for (let i = 0; i < list.length; i++) {
+      const child = list[i]
+      // Figma cannot drop layers into an instance: a container (a Section…) whose `content` slot
+      // was left empty takes the siblings that follow it, up to the next such container — the
+      // @Section reading of a design, the same convention modux's importer uses
+      const absorbed = this.absorbsSiblings(child) ? [] : null
+      if (absorbed) {
+        while (i + 1 < list.length && !this.absorbsSiblings(list[i + 1])) absorbed.push(list[++i])
+      }
+      const v = absorbed?.length
+        ? this.instance(child, this.entryOf(child), new Map([['content', absorbed]]))
+        : this.node(child)
       if (v === null || v === undefined) continue
       if (isObject(v) && v.into) {
         this.into.push(v)
@@ -375,6 +512,15 @@ export class FigmaToYaml {
       out.push(v)
     }
     return out
+  }
+
+  /** A Section instance with nothing in its `content` slot (other containers keep their siblings). */
+  absorbsSiblings(node) {
+    if (node.type !== 'INSTANCE' || node.name.startsWith('#')) return false
+    const entry = this.entryOf(node)
+    if (entry?.name !== 'Mateu/Layout/Section' || !entry.yaml?.slots?.content) return false
+    // the library's own `#placeholder` caption (and hidden layers) do not count as content
+    return !(this.slotsOf(node).get('content') ?? []).some((c) => c.visible !== false && !c.name.startsWith('#'))
   }
 
   node(node) {
@@ -388,8 +534,11 @@ export class FigmaToYaml {
       return this.frame(node)
     }
     if (node.type === 'TEXT') return this.text(node)
-    if (['FRAME', 'GROUP', 'SECTION', 'COMPONENT'].includes(node.type)) return this.frame(node)
-    return null // shapes, vectors, images: decoration
+    // a SLOT out of its instance (a detached copy) is a frame like any other
+    if (['FRAME', 'GROUP', 'SECTION', 'COMPONENT', 'SLOT'].includes(node.type)) return this.frame(node)
+    if (DECORATION.has(node.type)) return null // shapes, vectors, images
+    this.warn(node, `a ${node.type} layer is not read (no Mateu counterpart)`)
+    return null
   }
 
   text(node) {

@@ -122,3 +122,24 @@ test('file names come from the frame names', () => {
   assert.equal(slugify('Fleet'), 'fleet')
   assert.equal(slugify('Señal  ·  Nº 1'), 'senal-no-1')
 })
+
+test('a Section left empty takes the layers that follow it, up to the next Section', () => {
+  // Figma cannot drop layers into an instance, so a designer stacks the fields UNDER the Section
+  const text = (name, characters) => ({ type: 'TEXT', name, characters })
+  const section = (id, title) => ({ type: 'INSTANCE', id, name: 'Section', componentId: 'sec', children: [text('Title', title), { type: 'FRAME', name: 'slot:content', children: [text('#placeholder', 'content')] }] })
+  const field = (id, label, fieldId) => ({ type: 'INSTANCE', id, name: 'TextField', componentId: 'tf', children: [text('Label', label), text('#config', `fieldId=${fieldId}`)] })
+  const file = {
+    components: { sec: { name: 'Mateu/Layout/Section' }, tf: { name: 'Mateu/Field/TextField' } },
+    document: { children: [{ type: 'CANVAS', name: 'Screens', children: [{
+      type: 'FRAME', id: '1:1', name: 'contacto',
+      children: [text('Heading', 'Contacto'), section('2:1', 'Datos'), field('3:1', 'Nombre', 'nombre'), field('3:2', 'Email', 'email'), section('2:2', 'Otros'), field('3:3', 'Notas', 'notas')],
+    }] }] },
+  }
+  const { files } = converter().convert(file)
+  const page = files.find((f) => f.path === 'contacto.yaml').value
+  const cards = page.content.filter((c) => c.type === 'Card')
+  assert.equal(cards.length, 2, JSON.stringify(page, null, 1))
+  const ids = (card) => card.content.content.map((f) => f.id)
+  assert.deepEqual(ids(cards[0]), ['nombre', 'email'])
+  assert.deepEqual(ids(cards[1]), ['notas'])
+})
