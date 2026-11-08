@@ -18,6 +18,7 @@ interface Props {
   onRemove: (entry: HubEntry) => void;
   onMove: (entry: HubEntry, delta: number) => void;
   onExport: () => void;
+  onAbout: () => void;
 }
 
 /**
@@ -25,7 +26,7 @@ interface Props {
  * Each row's actions (remove, reorder) are one tap away — its "⋮" button or a long press open them in a bottom sheet — besides the
  * edit mode, which shows them on every row at once.
  */
-export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport }: Props) {
+export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport, onAbout }: Props) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -41,6 +42,7 @@ export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemov
             <Appbar.Action icon="pencil-outline" onPress={() => setEditing(true)} accessibilityLabel="Edit list" />
           </>
         )}
+        {!editing && <Appbar.Action icon="information-outline" onPress={onAbout} accessibilityLabel="About Mateu" />}
       </HubBar>
 
       {entries.length === 0 ? (

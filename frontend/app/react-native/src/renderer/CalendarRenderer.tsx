@@ -7,7 +7,7 @@ import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import {
   agenda, anchorOf, dayA11yLabel, dayInfo, dayOfMonth, dayParameters, eventA11yLabel, eventsOn, initialView,
-  isDayActionable, monthWeeks, periodDates, periodTitle, switcherViews, timeRange, viewLabel, weekdayShort,
+  isDayActionable, monthWeeks, periodDates, periodTitle, switcherViews, timeRange, todayIso, viewLabel, weekdayShort,
   WEEKDAY_HEADERS, type CalendarEventMeta, type CalendarMeta, type CalendarView, type Tone,
 } from './calendar';
 
@@ -39,6 +39,13 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   React.useEffect(() => { setView(initialView(meta)); }, [metadata]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const anchor = anchorOf(meta);
+  const today = todayIso();
+  // today's number in a filled accent circle, like the web and Redwood calendars
+  const dayNumber = (date: string, style: object) => (
+    <View style={date === today ? styles.todayBadge : null}>
+      <Text style={[style, date === today && styles.todayNumber]}>{dayOfMonth(date)}</Text>
+    </View>
+  );
   const views = switcherViews(meta);
   const dayActionable = isDayActionable(meta);
   const pressDay = (date: string) => void controller.runAction(meta.dayActionId!, { ...dayParameters(date) });
@@ -99,7 +106,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
               <View key={date} style={[styles.monthCell, toneStyle(date)]}>
                 {dayBox(date, null, (
                   <>
-                    <Text style={styles.dayNumber}>{dayOfMonth(date)}</Text>
+                    {dayNumber(date, styles.dayNumber)}
                     {dayLabel(date)}
                   </>
                 ))}
@@ -118,7 +125,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   const dayHeader = (date: string) => dayBox(date, [styles.dayHeader, toneStyle(date)], (
     <>
       <Text style={styles.dayHeaderDow}>{weekdayShort(date)}</Text>
-      <Text style={styles.dayHeaderNumber}>{dayOfMonth(date)}</Text>
+      {dayNumber(date, styles.dayHeaderNumber)}
       {dayLabel(date)}
     </>
   ));
@@ -211,6 +218,11 @@ const styles = themed(() => StyleSheet.create({
   monthCellEmpty: { backgroundColor: theme.background },
   dayNumber: { fontSize: 12, fontWeight: '700', color: theme.ink },
   dayLabel: { fontSize: 11, fontWeight: '600' },
+  todayBadge: {
+    alignSelf: 'flex-start', minWidth: 22, paddingHorizontal: 4, borderRadius: 11,
+    backgroundColor: theme.primary, alignItems: 'center',
+  },
+  todayNumber: { color: theme.onPrimary },
   more: { fontSize: 11, color: theme.muted },
   // day headers (week, day, list)
   dayHeader: { padding: 6, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.divider, alignItems: 'flex-start' },

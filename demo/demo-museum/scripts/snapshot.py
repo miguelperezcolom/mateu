@@ -185,6 +185,8 @@ def exhibition_calendar():
     out.append("""# The exhibition calendar — a CALENDAR of every show, each a multi-day event from its opening to its
 # closing, coloured by status; month, week and agenda views switch in place. A YAML Calendar carries
 # its events (it has no REST source), so this page is a snapshot; each event opens the LIVE exhibition.
+# No `month:` and no "Today" day: the snapshot must not pin a date — every renderer opens on the
+# viewer's current month and marks today itself.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: Exhibition calendar
@@ -195,11 +197,8 @@ toolbar:
 content:
   - type: Calendar
     id: exhibitions-calendar
-    month: "2026-10-31"
     view: month
     views: [month, list]
-    days:
-      - {date: "2026-10-31", label: Today, tone: info}
     events:
 """)
     for e in exhibitions:
