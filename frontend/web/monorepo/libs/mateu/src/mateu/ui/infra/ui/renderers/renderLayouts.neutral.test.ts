@@ -198,6 +198,8 @@ describe('simple wrappers', () => {
     it('a board item grows by its declared columns', () => {
         const el = draw(renderBoardLayoutItem(container, cs('i', { boardCols: 2 }, [cs('a', {})]), undefined, {}, {}, {}, {}))
         expect(el.firstElementChild!.getAttribute('style')).toContain('flex: 2 1 0')
+        // what the item holds fills its share of the row
+        expect(el.firstElementChild!.getAttribute('style')).toContain('align-items: stretch')
         const def = draw(renderBoardLayoutItem(container, cs('i', {}, []), undefined, {}, {}, {}, {}))
         expect(def.firstElementChild!.getAttribute('style')).toContain('flex: 1 1 0')
     })

@@ -199,12 +199,28 @@ describe('explorer findings: form rows, form items, master/detail, full width', 
         expect(host.querySelector('vaadin-form-row')).not.toBeNull()
     })
 
-    it('a vertical MasterDetailLayout tells vaadin-master-detail-layout its orientation', () => {
+    it('a vertical MasterDetailLayout stacks the detail below the master, stretched, never as an overlay', () => {
         const host = mountTemplate(renderMasterDetailLayout(container, {
             type: 'ClientSide', id: 'md', metadata: { type: 'MasterDetailLayout', orientation: 'vertical' },
+            children: [text('m', 'master'), text('d', 'detail')], style: 'height: 14rem;',
+        } as never, '', {}, {}, {}, {}))
+        // vaadin-master-detail-layout's vertical mode needs 30em for the master and overlays the
+        // detail in a shorter box
+        expect(host.querySelector('vaadin-master-detail-layout')).toBeNull()
+        const box = host.firstElementChild as HTMLElement
+        expect(box.getAttribute('style')).toContain('flex-direction: column')
+        expect(box.getAttribute('style')).toContain('align-self: stretch')
+        expect(box.getAttribute('style')).toContain('height: 14rem')
+        expect(box.textContent).toContain('master')
+        expect(box.textContent).toContain('detail')
+    })
+
+    it('a horizontal MasterDetailLayout stays a vaadin-master-detail-layout', () => {
+        const host = mountTemplate(renderMasterDetailLayout(container, {
+            type: 'ClientSide', id: 'md', metadata: { type: 'MasterDetailLayout' },
             children: [text('m', 'master'), text('d', 'detail')],
         } as never, '', {}, {}, {}, {}))
-        expect(host.querySelector('vaadin-master-detail-layout')!.getAttribute('orientation')).toBe('vertical')
+        expect(host.querySelector('vaadin-master-detail-layout')).not.toBeNull()
     })
 
     it('FullWidth stretches its content', () => {

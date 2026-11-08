@@ -6,7 +6,7 @@ import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
-import { FULL_WIDTH_STYLE, formItemLabelOf, formItemLabelText } from "@infra/ui/renderers/renderLayouts.ts";
+import { FULL_WIDTH_STYLE, formItemLabelOf, formItemLabelText, renderMasterDetailLayout as renderStackedMasterDetail } from "@infra/ui/renderers/renderLayouts.ts";
 import MasterDetailLayout from "@mateu/shared/apiClients/dtos/componentmetadata/MasterDetailLayout";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
@@ -241,13 +241,18 @@ export const renderSplitLayout = (container: LitElement, component: Component, b
 }
 
 export const renderMasterDetailLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    // orientation vertical: the detail BELOW the master, stacked. vaadin-master-detail-layout's
+    // vertical mode sizes the master to 30em and, in a box shorter than that (a `height` style),
+    // turns the detail into an overlay over a grey backdrop — so the stack is drawn as a column.
+    if (((component as ClientSideComponent).metadata as MasterDetailLayout)?.orientation === 'vertical') {
+        return renderStackedMasterDetail(container, component, baseUrl, state, data, appState, appData)
+    }
     const staticDetail = component.children && component.children.length > 1 ? component.children[1] : null
     const dynamicDetail = data?.detailComponent ?? null
     const hasDetail = !!(data?.hasDetail) || !!staticDetail
     const detailContent = dynamicDetail ?? staticDetail
     return html`
                <vaadin-master-detail-layout ?has-detail="${hasDetail}"
-                                            orientation="${((component as ClientSideComponent).metadata as MasterDetailLayout)?.orientation ?? nothing}"
                                             style="${component.style}"
                                             class="${component.cssClasses}"
                                             slot="${component.slot??nothing}">

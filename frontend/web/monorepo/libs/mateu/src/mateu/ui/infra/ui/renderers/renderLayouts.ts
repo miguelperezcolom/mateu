@@ -177,7 +177,7 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
     // orientation vertical: the detail sits BELOW the master
     const direction = ((component as ClientSideComponent).metadata as MasterDetailLayout)?.orientation === 'vertical' ? 'column' : 'row'
     return html`
-        <div id="${component.id ?? nothing}" style="display: flex; flex-direction: ${direction}; gap: var(--lumo-space-m, 1rem); ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="display: flex; flex-direction: ${direction}; gap: var(--lumo-space-m, 1rem); align-self: stretch; min-width: 0; ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             <div style="flex: 1; min-width: 0;">${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
             ${hasDetail && detailContent
                 ? html`<div style="flex: 1; min-width: 0;">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>`
@@ -289,7 +289,7 @@ export const renderBoardLayout = (container: LitElement, component: ClientSideCo
 
 export const renderBoardLayoutRow = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     return html`
-        <div style="display: flex; gap: ${GAP}; flex-wrap: wrap; ${component.style}" class="${component.cssClasses}">
+        <div style="display: flex; gap: ${GAP}; flex-wrap: wrap; ${component.style ?? ''}" class="${component.cssClasses}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
@@ -298,7 +298,7 @@ export const renderBoardLayoutRow = (container: LitElement, component: ClientSid
 export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as BoardLayoutItem
     return html`
-        <div style="flex: ${metadata.boardCols ?? 1} 1 0; min-width: min(100%, 12rem); ${component.style}" class="${component.cssClasses}">
+        <div style="flex: ${metadata.boardCols ?? 1} 1 0; min-width: min(100%, 12rem); display: flex; flex-direction: column; align-items: stretch; ${component.style ?? ''}" class="${component.cssClasses}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
