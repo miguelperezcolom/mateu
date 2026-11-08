@@ -248,6 +248,24 @@ public class LockedFieldsForm
     [MinLength(3), PlainText] public string? Caption { get; set; } = "Hello";
 }
 
+// A field locked by permission ([ReadOnlyUnless], anonymous caller) still sends its constraints.
+[UI("conformance/validation-unless"), Title("Locked by permission")]
+public class LockedByPermissionForm
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [Required, ReadOnlyUnless(Roles = ["manager"])] public string? Notes { get; set; } = "n/a";
+}
+
+// A class-level [ReadOnly] view still sends its constraints (Java's ValidationMapper).
+[UI("conformance/validation-read-only-view"), Title("Read-only view"), ReadOnly]
+public class ReadOnlyValidatedView
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [MinLength(3)] public string? Code { get; set; } = "ABC";
+}
+
 // The stereotype vocabulary: slider/stars on ints, password/textarea on strings.
 [UI("conformance/stereotypes"), Title("Stereotypes")]
 public class Stereotypes

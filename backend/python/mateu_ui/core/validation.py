@@ -26,7 +26,7 @@ from mateu_ui.uidl import (
 )
 
 from .naming import camel_case, humanize
-from .reflection import class_flag, view_fields
+from .reflection import view_fields
 
 
 #: What an open maximum reads as in a length message — Java's ``Integer.MAX_VALUE``, the default of
@@ -86,18 +86,13 @@ def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | No
     ``PlainText()`` (or a ``@plain_text`` class) still sends its constraints, as Java's
     ``PageFormBuilder.rendersAsInput`` does — its value travels pre-filled; whether the reference
     should skip locked fields is an open question, and the ports follow the reference meanwhile
-    (conformance case ``validation-locked``)."""
-    view_read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-    if view_read_only:
+    (conformance case ``validation-locked``). So does a field locked by an unauthorized
+    ``ReadOnlyUnless`` and every field of a ``@read_only`` class (``validation-unless``,
+    ``validation-read-only-view``): Java's ValidationMapper asks neither. Only ``read_only=True``
+    from the caller — a page that is not a form at all, like a crud record's view page — sends none."""
+    if read_only:
         return []
-    out = []
-    for f in fields if fields is not None else view_fields(cls):
-        if not mapper.visible(f):
-            continue
-        if not _authorized_to_edit(mapper, f, cls):
-            continue
-        out.append(f)
-    return out
+    return [f for f in (fields if fields is not None else view_fields(cls)) if mapper.visible(f)]
 
 
 def client_validations(
@@ -159,14 +154,6 @@ def _add_client_validations(mapper, cls, instance, read_only, fields, prefix, ou
                     condition=condition, field_id=prefix + camel_case(f.name), message=mapper.T(message)
                 )
             )
-
-
-def _authorized_to_edit(mapper, f, cls=None) -> bool:
-    from mateu_ui.uidl import ReadOnlyUnless
-
-    return mapper.authorized(f.marker(ReadOnlyUnless)) and mapper.authorized(
-        getattr(cls, "__mateu_read_only_unless__", None)
-    )
 
 
 def _is_blank(value: Any) -> bool:
