@@ -26,7 +26,7 @@ public class InvoicePage implements BreadcrumbsSupplier, TitleSupplier {
   public List<Breadcrumb> breadcrumbs(HttpRequest httpRequest) {
     return List.of(
         new Breadcrumb("Behaviour", "/behaviour/overview"),
-        new Breadcrumb("Breadcrumbs", "/behaviour/navigation/breadcrumbs"),
+        new Breadcrumb("Breadcrumbs", "/behaviour/navigation/breadcrumb-trail"),
         new Breadcrumb("Invoice " + id + " · " + guest, ""));
   }
 

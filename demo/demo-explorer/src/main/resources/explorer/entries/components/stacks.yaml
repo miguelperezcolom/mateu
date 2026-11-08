@@ -4,6 +4,8 @@ group: layout
 title: Stacks & boxes
 covers: [component:HorizontalLayout, component:VerticalLayout, component:Container, component:Div, component:FullWidth, component:Scroller, component:Separator]
 # KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+knownIssue: >-
+  Vaadin, 3.0-beta.51: FullWidth does not stretch the button it wraps; Text `variants` are not applied.
 examples:
   - title: In YAML
     description: "Known issues (3.0-beta.51, Vaadin): `FullWidth` does not stretch the button it wraps. `variants: [b]` on a Text is not applied (the total is not bold) — see the Text entry."

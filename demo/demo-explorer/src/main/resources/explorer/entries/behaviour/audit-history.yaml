@@ -16,6 +16,8 @@ description: |
   handlers claim `history` before the audit runner sees it ("no such action"), and once past that,
   the dialog's own search is refused because its listing type (`AuditHistoryListing`) is not on the
   wire allow-list. The entry stays so it turns green when the framework is fixed.
+knownIssue: >-
+  3.0-beta.51: the History button is refused with a 403 (the crud's handlers claim `history` first; the dialog's listing type is not advertised).
 examples:
   - title: Price list
     yaml: specs/ui/explorer/behaviour/audit-history/open.yaml

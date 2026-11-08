@@ -14,6 +14,8 @@ description: |
   it) — the phone below is drawn but inert.
 
   Try it: in the framed app press the ✓ (*Mark clean*, a page FAB) — the toast confirms.
+knownIssue: >-
+  3.0-beta.51: @Fab `label` is not used (named from @Label / the method), and an app-level FAB sends nothing while a page is on screen.
 examples:
   - title: A housekeeping app
     java: io.mateu.explorer.examples.behaviour.fabs.HousekeepingPreview

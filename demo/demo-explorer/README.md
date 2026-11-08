@@ -182,9 +182,13 @@ advertising the Redwood twin.
    every `FormTemplate` — a new Mateu component without a checklist id fails the build.
 2. Every entry is well-formed: known area/group, every `covers:` id is a checklist id, something runs
    (or `notDemonstrable:` says why), every file it runs or shows exists and was copied into the jar,
-   every Java example is a class under `io.mateu.explorer.examples`, no route is used twice.
-3. Checklist ids no entry covers yet are **pending**: printed on every run; a failure only with
-   `-Dexplorer.coverage.strict=true` (make it the default once the Explorer is complete).
+   every Java example is a class under `io.mateu.explorer.examples`, no route is used twice, and a
+   description that talks about a known issue / gap carries a `knownIssue:` line.
+3. **Strict by default**: a checklist id no entry covers (by an example or a `notDemonstrable:`
+   reason) fails the build. `-Dexplorer.coverage.strict=false` only reports them, for work in progress.
+4. Every run prints the totals and the `knownIssue:` list. A **known issue** is a Mateu bug an entry
+   runs into: the description says it to the reader, `knownIssue:` (one line) lets the guard and the
+   probe report it — never a failure. Drop both once the fix ships in `mateu.version`.
 
 Ids are `component:<Type>`, `template:<FormTemplate>`, `archetype:<Name>`, `behaviour:<id>`,
 `distributed:<id>`. To add a checklist id (not an entry), edit `checklist.yaml` — keep it rare.

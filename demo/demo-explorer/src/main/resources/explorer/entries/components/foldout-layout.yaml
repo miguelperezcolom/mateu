@@ -3,6 +3,8 @@ area: components
 group: layout
 title: Foldout layout
 covers: [component:FoldoutLayout, component:FoldoutPanel]
+knownIssue: >-
+  Vaadin, 3.0-beta.51: a YAML `style` on a FoldoutLayout is not applied (the same style set in Java works).
 examples:
   - title: In YAML
     description: "Known issue (3.0-beta.51, Vaadin): the YAML `style` (height: 24rem) is not applied, so the layout fills the viewport height; the same style set in Java works."

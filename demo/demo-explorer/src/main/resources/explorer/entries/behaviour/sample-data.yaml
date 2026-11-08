@@ -19,6 +19,8 @@ description: |
 
   > **Known issue (3.0-beta.51):** the failed first load (the 404) is silent — no error is shown,
   > although a failed call is documented to show what the service said. Reported.
+knownIssue: >-
+  3.0-beta.51: a listing whose first load fails (404) shows no error.
 examples:
   - title: "An endpoint still to be built"
     route: x/behaviour/sample-data/forecast

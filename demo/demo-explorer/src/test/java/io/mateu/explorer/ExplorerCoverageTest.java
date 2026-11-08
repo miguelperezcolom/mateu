@@ -24,8 +24,11 @@ import org.junit.jupiter.api.Test;
  *   <li>Every entry file is well-formed: its area/group exist, every id it covers is a checklist id,
  *       it runs something (or says why it cannot), and every file it runs or shows exists — the
  *       YAML it draws, the class it embeds, the sources of its Code tabs.
- *   <li>Checklist ids no entry covers yet are PENDING: reported, and a failure only with {@code
- *       -Dexplorer.coverage.strict=true} (switch it on in the pom once the Explorer is complete).
+ *   <li>Checklist ids no entry covers yet are PENDING: a failure (STRICT by default — every id is
+ *       covered by an example or a {@code notDemonstrable:} reason); {@code
+ *       -Dexplorer.coverage.strict=false} only reports them, for work in progress.
+ *   <li>A description that talks about a known issue / gap carries a {@code knownIssue:} line, so
+ *       the probe and this report list it. Known issues are reported, never a failure.
  * </ol>
  */
 class ExplorerCoverageTest {
@@ -89,6 +92,9 @@ class ExplorerCoverageTest {
       if (!routes.add(e.route())) {
         problems.add(where + "route " + e.route() + " used twice");
       }
+      if (e.knownIssue() == null && mentionsAKnownIssue(e)) {
+        problems.add(where + "its description mentions a known issue: add a knownIssue: line");
+      }
       for (var x : e.examples()) {
         int kinds = (x.yaml() != null ? 1 : 0) + (x.java() != null ? 1 : 0) + (x.route() != null ? 1 : 0);
         if (kinds != 1) {
@@ -151,12 +157,29 @@ class ExplorerCoverageTest {
         .append(total)
         .append(" checklist ids covered by ")
         .append(catalog.entries().size())
-        .append(" entries. PENDING:\n");
+        .append(" entries (")
+        .append(catalog.entries().stream().filter(e -> e.notDemonstrable() != null).count())
+        .append(" not demonstrable live, ")
+        .append(catalog.entries().stream().filter(e -> e.knownIssue() != null).count())
+        .append(" with a known issue). PENDING:\n");
     byGroup.forEach((g, ids) -> report.append("  ").append(g).append(": ").append(ids).append('\n'));
+    catalog.entries().stream()
+        .filter(e -> e.knownIssue() != null)
+        .forEach(e -> report.append("  known issue [").append(e.route()).append("] ")
+            .append(e.knownIssue().replaceAll("\\s+", " ")).append('\n'));
     System.out.println(report);
-    if (Boolean.getBoolean("explorer.coverage.strict") && !pending.isEmpty()) {
+    if (!"false".equals(System.getProperty("explorer.coverage.strict")) && !pending.isEmpty()) {
       fail(report.toString());
     }
+  }
+
+  private static boolean mentionsAKnownIssue(Entry e) {
+    var texts = new ArrayList<String>();
+    texts.add(e.description());
+    e.examples().forEach(x -> texts.add(x.description()));
+    return texts.stream()
+        .filter(t -> t != null)
+        .anyMatch(t -> t.matches("(?is).*known (issues?|gaps?)\\b.*"));
   }
 
   private static void requireFile(List<String> problems, String where, String path) {

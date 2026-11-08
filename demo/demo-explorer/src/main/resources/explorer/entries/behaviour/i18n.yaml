@@ -19,6 +19,8 @@ description: |
   > **Known issue (3.0-beta.51):** the Java twin (`Greeting`, `@Title` / `@Label("${i18n.…}")`)
   > reaches the screen untranslated — the key is shown — although the docs say the default translator
   > resolves it. Reported; the YAML path works.
+knownIssue: >-
+  3.0-beta.51: the Java twin's ${i18n.…} @Title / @Label reaches the screen untranslated (the YAML path works).
 examples:
   - title: "A YAML page with ${i18n.x}"
     route: x/behaviour/i18n/page

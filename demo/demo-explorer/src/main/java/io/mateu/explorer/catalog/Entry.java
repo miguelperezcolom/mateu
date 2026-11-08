@@ -15,6 +15,8 @@ import java.util.Map;
  * @param extraCode source files shown in the Code tabs besides the ones the examples imply
  * @param notDemonstrable instead of examples: why this id cannot run live (the coverage guard
  *     accepts it as covered with a reason)
+ * @param knownIssue a Mateu bug this entry runs into (shown in its description too): reported by
+ *     the coverage guard and the Explorer probe, never a failure — drop it once the fix ships
  */
 public record Entry(
     String id,
@@ -28,6 +30,7 @@ public record Entry(
     List<Page> pages,
     List<CodeFile> extraCode,
     String notDemonstrable,
+    String knownIssue,
     String file) {
 
   /**
@@ -149,6 +152,7 @@ public record Entry(
         List.copyOf(pages),
         List.copyOf(code),
         s(raw.get("notDemonstrable")),
+        s(raw.get("knownIssue")),
         file);
   }
 
