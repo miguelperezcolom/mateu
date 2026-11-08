@@ -115,16 +115,6 @@ public class RouteRegistryTests
     }
 
     [Fact]
-    public void The_canonical_layout_key_is_an_alias_for_definition()
-    {
-        // coherence-plan #5 vocabulary: `layout:` names the layout file identically to the
-        // deprecated `definition:` alias — both land on RouteEntry.Definition.
-        var entry = Registry().Match("help")!.Entry;
-        Assert.Equal("about.yaml", entry.Definition);
-        Assert.Null(entry.ViewModel);
-    }
-
-    [Fact]
     public void A_path_that_matches_nothing_resolves_to_nothing()
     {
         Assert.Null(Registry().Match("customers"));
@@ -167,7 +157,7 @@ public class RouteRegistryTests
     public void One_definition_serves_two_routes_each_binding_its_own_view_model()
     {
         // The case the <route>.yaml convention cannot express, and the reason a shared definition
-        // must declare no modelView of its own.
+        // must declare no viewModel of its own.
         var loader = new YamlSpecLoader(SpecsDir, Registry());
         Assert.Equal("Mateu.Tests.RegistryBooks", loader.LoadSpec("catalog/books")!.ModelView);
         Assert.Equal("Mateu.Tests.RegistryFilms", loader.LoadSpec("catalog/films")!.ModelView);

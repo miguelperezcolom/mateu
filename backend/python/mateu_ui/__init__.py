@@ -7,10 +7,6 @@ Everything lives under this one namespace so the wheel installs a single top-lev
 - :mod:`mateu_ui.core` — the engine (registry, reflection mapper, the sync use case)
 - :mod:`mateu_ui.fastapi` — the FastAPI adapter
 
-The pre-3.0-beta top-level names (``mateu_uidl``, ``mateu_dtos``, ``mateu_core``,
-``mateu_fastapi``) still import for the whole 3.x line, as deprecated aliases of these modules
-(see :mod:`mateu_ui._compat`).
-
 Importing this package is cheap: the subpackages are loaded only when imported.
 """
 

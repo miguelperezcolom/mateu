@@ -108,14 +108,6 @@ def test_a_route_can_have_a_definition_and_no_view_model():
     assert entry.view_model is None
 
 
-def test_the_canonical_layout_key_is_an_alias_for_definition():
-    # coherence-plan #5 vocabulary: `layout:` names the layout file identically to the deprecated
-    # `definition:` alias — both land on RouteEntry.definition.
-    entry = registry().match("help").entry
-    assert entry.definition == "about.yaml"
-    assert entry.view_model is None
-
-
 def test_a_path_that_matches_nothing_resolves_to_nothing():
     assert registry().match("customers") is None
 
@@ -149,7 +141,7 @@ def test_derived_entries_the_yaml_does_not_mention_survive_the_merge():
 
 def test_one_definition_serves_two_routes_each_binding_its_own_view_model():
     # The case the <route>.yaml convention cannot express, and the reason a shared definition must
-    # declare no modelView of its own.
+    # declare no viewModel of its own.
     loader = YamlSpecLoader(str(HERE), registry())
     assert loader.load_spec("catalog/books").model_view.endswith("Books")
     assert loader.load_spec("catalog/films").model_view.endswith("Films")

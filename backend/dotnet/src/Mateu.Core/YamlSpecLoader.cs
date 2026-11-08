@@ -7,7 +7,7 @@ namespace Mateu.Core;
 /// <summary>
 /// Loads a page defined in a YAML file under <c>specs/ui/</c> relative to the working directory —
 /// the .NET analogue of Java's classpath-based YamlUidlLoader. A spec is a component tree, optionally
-/// wrapped in an envelope with a <c>modelView:</c> key naming the logic class that supplies state and
+/// wrapped in an envelope with a <c>viewModel:</c> key naming the logic class that supplies state and
 /// actions (the YAML supplies only the layout). The binding is by convention, as everywhere in Mateu:
 /// a FormField <c>id="name"</c> binds to the ModelView's <c>Name</c> property, a Button
 /// <c>actionId="save"</c> to its <c>Save()</c> method.
@@ -183,7 +183,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
             var dependsOnRequest = YamlAccess.DeclaresAccess(root) || TranslationRegistry.MentionsI18n(root)
                                    || ReferencesRestrictedCatalogueAction(root);
             // The definition is layout; the binding to a view model belongs to the route entry. A
-            // YAML that still declares modelView: keeps working and wins — but a definition shared
+            // YAML that declares viewModel: wins — but a definition shared
             // by several routes must NOT name one, or it could only ever serve the class it names.
             if (string.IsNullOrWhiteSpace(modelView) && !string.IsNullOrWhiteSpace(entry?.ViewModel))
                 modelView = entry!.ViewModel;

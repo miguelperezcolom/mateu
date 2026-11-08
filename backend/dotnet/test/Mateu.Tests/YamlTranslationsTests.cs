@@ -36,7 +36,7 @@ public class YamlTranslationsTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: i18n-page
-                definition: page.yaml
+                layout: page.yaml
             """);
         File.WriteAllText(Path.Combine(dir, "page.yaml"), """
             layout:

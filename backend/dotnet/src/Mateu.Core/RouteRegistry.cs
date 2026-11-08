@@ -415,9 +415,8 @@ internal sealed class RouteRegistry : ISpecsCache
             : prefix + "/" + relative;
         entries.Add(new RouteEntry(
             Prefix(basePath, full),
-            // Vocabulary (coherence-plan #5): `layout:` is the canonical layout-file key; `definition:`
-            // is the deprecated alias (both accepted, `layout` wins). The wire field stays Definition.
-            Str(node, "layout") ?? Str(node, "definition"),
+            // `layout:` names the layout file. The wire field stays Definition.
+            Str(node, "layout"),
             Str(node, "viewModel") ?? Str(node, "view_model"),
             Params(node, "fixedParams", "fixed_params"),
             Params(node, "defaultParams", "default_params"),

@@ -256,7 +256,7 @@ class DispatchMixin(MixinBase):
         )
         if type_ is None and yaml_spec is not None:
             # A route with no view class → a YAML page. A bare layout renders as a static, unbound
-            # page; a page that declares modelView: instantiates that logic class (state + actions)
+            # page; a page that declares viewModel: instantiates that logic class (state + actions)
             # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
             if not yaml_spec.model_view:
                 # The route's seeds (state:, fixed/default/path params) are the page's state: a

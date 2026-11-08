@@ -58,11 +58,9 @@ public class ApiFreezeTests
     }
 
     [Fact]
-    public void The_code_authoring_types_live_in_Mateu_Uidl_and_Mateu_Core_forwards_them()
+    public void The_code_authoring_types_live_in_Mateu_Uidl()
     {
-        // A UI-only module (referencing just Mateu.Uidl) can author routes and app shells in code;
-        // the full names are unchanged and Mateu.Core forwards them, so old binaries keep loading.
-        var core = typeof(SyncHandler).Assembly;
+        // A UI-only module (referencing just Mateu.Uidl) can author routes and app shells in code.
         foreach (var type in new[]
                  {
                      typeof(IRouteEntrySupplier), typeof(IAppSupplier), typeof(IMenuSupplier),
@@ -71,7 +69,6 @@ public class ApiFreezeTests
         {
             Assert.Equal("Mateu.Uidl", type.Assembly.GetName().Name);
             Assert.Equal("Mateu.Core", type.Namespace);
-            Assert.Same(type, core.GetType(type.FullName!, throwOnError: true));
         }
     }
 

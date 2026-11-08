@@ -293,7 +293,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (type is null && yamlSpec is not null)
         {
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
-            // page; a page that declares modelView: instantiates that logic class (state + actions)
+            // page; a page that declares viewModel: instantiates that logic class (state + actions)
             // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
                 return yamlSpec.Layout is { } bare

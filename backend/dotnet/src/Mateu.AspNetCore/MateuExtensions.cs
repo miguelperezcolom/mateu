@@ -162,10 +162,6 @@ public static class MateuExtensions
         // relative baseUrl): the browser resolves it against the page, so the shell keeps working
         // behind a TLS-terminating or Host-rewriting reverse proxy — an origin built from the
         // request the app SAW made the shell load its home from an address the browser can't reach.
-        // The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
-        // calls POST /mateu/v3/components/_/action, which this port answered 404 — Redwood could not
-        // render a .NET backend at all. The route travels in the body, never in that path.
-        app.MapPost(prefix + "/mateu/v3/components/{**rest}", SyncEndpoint).JsonBodiesOnly();
         app.MapPost(prefix + "/mateu/v3/sync/{**route}", SyncEndpoint).JsonBodiesOnly();
 
         async Task SyncEndpoint(HttpContext ctx, SyncHandler handler)

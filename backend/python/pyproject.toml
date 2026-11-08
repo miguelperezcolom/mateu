@@ -5,9 +5,7 @@ build-backend = "hatchling.build"
 [project]
 # `mateu` on PyPI belongs to an unrelated project (a board-game AI), so the distribution is
 # published as `mateu-ui`, and it installs ONE top-level package, `mateu_ui` (mateu_ui.uidl,
-# mateu_ui.dtos, mateu_ui.core, mateu_ui.fastapi). The pre-beta top-level names (mateu_uidl,
-# mateu_dtos, mateu_core, mateu_fastapi) ship too, as deprecated aliases kept for the 3.x line
-# (mateu_ui/_compat.py).
+# mateu_ui.dtos, mateu_ui.core, mateu_ui.fastapi).
 name = "mateu-ui"
 dynamic = ["version"]
 description = "Mateu server-side for Python — annotate Python classes; any Mateu renderer renders them."
@@ -56,16 +54,11 @@ Source = "https://github.com/miguelperezcolom/mateu/tree/master/backend/python"
 path = "mateu_ui/_version.py"
 
 [tool.hatch.build.targets.wheel]
-# `mateu_ui` is the package; the other four are the one-file deprecated aliases (see above).
-packages = ["mateu_ui", "mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
+packages = ["mateu_ui"]
 
 [tool.hatch.build.targets.sdist]
 include = [
     "mateu_ui",
-    "mateu_uidl",
-    "mateu_dtos",
-    "mateu_core",
-    "mateu_fastapi",
     "README.md",
     "DESIGN.md",
     "pyproject.toml",
@@ -84,7 +77,7 @@ testpaths = ["tests"]
 # lines 95.3%, branches 88.0% (the branch floor sits one point under: branch arcs vary slightly
 # between the 3.11–3.13 interpreters CI runs).
 [tool.coverage.run]
-source = ["mateu_ui", "mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
+source = ["mateu_ui"]
 branch = true
 
 [tool.coverage.report]

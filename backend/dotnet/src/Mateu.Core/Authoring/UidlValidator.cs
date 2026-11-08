@@ -214,7 +214,7 @@ internal sealed class UidlValidator(JsonObject specsSchema)
         /// <summary>The page's own declared action ids, unless a view model is named (it owns the actions).</summary>
         private void PrepareActionCheck(YMapping root, bool applies)
         {
-            if (!applies || !Blank(ScalarText(Get(root, "viewModel"))) || !Blank(ScalarText(Get(root, "modelView"))))
+            if (!applies || !Blank(ScalarText(Get(root, "viewModel"))))
                 return;
             _declaredActions = new HashSet<string>(StringComparer.Ordinal);
             if (Get(root, "actions") is YSequence list)

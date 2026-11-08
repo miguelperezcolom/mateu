@@ -215,7 +215,7 @@ public class SecurityDefaultsOverHttpTests
         foreach (var (path, body) in new[]
                  {
                      ("/mateu/v3/sync/http-security-probe", rq), ("/mateu/v3/sse/http-security-probe", rq),
-                     ("/mateu/v3/components/_/action", rq), ("/mateu/mcp", mcp),
+                     ("/mateu/mcp", mcp),
                  })
         {
             var content = new ByteArrayContent(Encoding.UTF8.GetBytes(body));

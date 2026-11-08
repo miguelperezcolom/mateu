@@ -1,4 +1,4 @@
-# Layout only: no modelView, so each route's entry binds its own.
+# Layout only: no viewModel, so each route's entry binds its own.
 layout:
   type: VerticalLayout
   content:

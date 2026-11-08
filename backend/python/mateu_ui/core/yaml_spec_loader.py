@@ -1,7 +1,7 @@
 """Loads a page defined in a YAML file under ``specs/ui/`` relative to the working directory — the
 Python analogue of Java's classpath-based YamlUidlLoader and .NET's YamlSpecLoader.
 
-A spec is a component tree, optionally wrapped in an envelope with a ``modelView:`` key naming the
+A spec is a component tree, optionally wrapped in an envelope with a ``viewModel:`` key naming the
 logic class that supplies state and actions (the YAML supplies only the layout). The binding is by
 convention, as everywhere in Mateu: a FormField ``id="name"`` binds to the ModelView's ``name``
 attribute, a Button ``actionId="save"`` to its ``save()`` method.
@@ -234,7 +234,7 @@ class YamlSpecLoader:
         if layout is None and delta is None:
             return None
         # The definition is layout; the binding to a view model belongs to the route entry. A YAML
-        # that still declares modelView: keeps working and wins — but a definition shared by several
+        # that declares viewModel: wins — but a definition shared by several
         # routes must NOT name one, or it could only ever serve the class it names.
         if not model_view and entry is not None:
             model_view = entry.view_model or None
