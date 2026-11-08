@@ -378,7 +378,7 @@ internal static class ComponentMapper
     private static ComponentDto MapContent(IComponent content) => content switch
     {
         EmbeddedView ev when ev.View is IComponent c => Map(c),
-        EmbeddedView ev => new ReflectionMapper().MapEmbeddedView(ev.View),
+        EmbeddedView ev => ReflectionMapper.MapEmbedded(ev.View),
         _ => Map(content),
     };
 

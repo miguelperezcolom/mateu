@@ -1235,6 +1235,11 @@ class ComponentMapperMixin(MixinBase):
             return self.map_component(view)
         cls = type(view)
         route = "/" + normalize(getattr(cls, "__mateu_ui__", ""))
+        # an object a ComponentAdapter renders is drawn BY ITS ADAPTER, as it is as a route or a
+        # form field (it used to be reflected field by field — no adapter components or actions)
+        adapter = self.adapter_of(view)
+        if adapter is not None:
+            return self.map_adapted(view, adapter, route)
         if isinstance(view, Wizard):
             # The embedded wizard opens on its first step; its "next"/"back" buttons carry the
             # wizard's own serverSideType so navigation routes back to it.
