@@ -29,7 +29,7 @@ cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view
 `wizard-step-2`, `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
 (the server-side validation re-check), `error-boundary` (an unexpected exception),
 `dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `crud-hidden-constraints-edit`/`-new`, `editable-view`/`-edit` and
-`view-toolbar-button`.
+`view-toolbar-button` and `inline-form-action` (a nested `@Inline` object's action, its fields read back from the flattened state).
 
 ## The contract
 
