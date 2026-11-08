@@ -1879,7 +1879,9 @@ class WireConformanceTest {
           "grid-field-detail",
           "fluent-crudl-options",
           "hero-search-filters",
-          "definition-actions");
+          "definition-actions",
+          "definition-triggers",
+          "definition-proxied-listing");
 
   static TestMateu mateu;
 

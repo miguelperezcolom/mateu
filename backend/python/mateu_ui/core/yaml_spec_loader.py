@@ -54,6 +54,9 @@ class Spec:
     actions: tuple = ()
     #: A ``type: Form`` definition declaring ``confirmOnNavigationIfDirty: true``.
     confirm_on_navigation_if_dirty: bool = False
+    #: The definition's own ``triggers:`` (beside ``layout:``) as wire triggers — what a
+    #: definition-only page fires without a click (Java's SeededYamlPage.triggers).
+    triggers: tuple = ()
 
     def depends_on_request(self) -> bool:
         return self.source is not None
@@ -200,6 +203,7 @@ class YamlSpecLoader:
             # re-read from the caller's copy: a refused action is gone, its texts translated
             tuple(a for a in declared_actions_of(tree) if a.id not in refused),
             spec.confirm_on_navigation_if_dirty,
+            declared_triggers_of(tree),
         )
 
     def load_spec(self, route: str | None) -> Spec | None:
@@ -260,6 +264,7 @@ class YamlSpecLoader:
             model_view, layout, delta, source, page_type=page_type_of(data),
             actions=declared_actions_of(data),
             confirm_on_navigation_if_dirty=confirms_on_navigation_if_dirty(data),
+            triggers=declared_triggers_of(data),
         )
 
 
@@ -389,6 +394,168 @@ def _declared_source(node: Any):
         proxy=str(node.get("proxy")).lower() == "true",
         sample=node.get("sample"),
     )
+
+
+def declared_triggers_of(data: Any) -> tuple:
+    """The ``triggers:`` a definition declares beside its ``layout:`` (Java's
+    ``YamlUidlLoader.triggersOf``), as the wire triggers Java's ``TriggerMapper.mapTrigger`` emits.
+    Each entry is discriminated by ``type`` — the Java record's simple name (``OnLoadTrigger``,
+    ``OnCustomEventTrigger``, ``OnValueChangeTrigger``, ``OnSuccessTrigger``, ``OnErrorTrigger``,
+    ``AutoSaveTrigger``). One that does not parse (no or an unknown type, an unknown ``source``) is
+    dropped with a warning: the rest still fire."""
+    nodes = data.get("triggers") if isinstance(data, dict) else None
+    if not isinstance(nodes, list):
+        return ()
+    parsed = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        trigger = _declared_trigger(node)
+        if trigger is None:
+            _log.warning("Ignoring an unparseable trigger in a YAML spec (type %r)", node.get("type"))
+            continue
+        parsed.append(trigger)
+    return tuple(parsed)
+
+
+def _declared_trigger(node: dict) -> Any:
+    from mateu_ui.dtos import (
+        CustomTrigger,
+        OnErrorTrigger,
+        OnLoadTrigger,
+        OnSuccessTrigger,
+        OnValueChangeTrigger,
+    )
+
+    def text(key: str) -> str | None:
+        value = node.get(key)
+        return None if value is None else str(value)
+
+    def number(key: str) -> int:
+        try:
+            return int(node.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def flag(key: str) -> bool:
+        return str(node.get(key)).lower() == "true"
+
+    action_id = text("actionId") or ""
+    kind = node.get("type")
+    if kind == "OnLoadTrigger":
+        # an absent `times` is 0 here, as Java's record reads it (not the code builder's 1)
+        return OnLoadTrigger(
+            action_id=action_id,
+            timeout_millis=number("timeoutMillis"),
+            times=number("times"),
+            condition=text("condition"),
+            background=flag("background"),
+        )
+    if kind == "OnCustomEventTrigger":
+        # an absent source is SELF — the record's own default, not @subscribe_to's DOCUMENT
+        source = text("source") or "SELF"
+        if source not in ("DOCUMENT", "COMPONENT", "SELF"):
+            return None
+        return CustomTrigger(
+            event=text("eventName") or "",
+            action_id=action_id,
+            source=source,
+            from_=text("from"),
+            condition=text("condition"),
+        )
+    if kind == "OnValueChangeTrigger":
+        return OnValueChangeTrigger(
+            action_id=action_id, property_name=text("propertyName"), condition=text("condition")
+        )
+    if kind == "OnSuccessTrigger":
+        return OnSuccessTrigger(
+            action_id=action_id,
+            called_action_id=text("calledActionId"),
+            condition=text("condition"),
+            timeout_millis=number("timeoutMillis"),
+            background=flag("background"),
+        )
+    if kind == "OnErrorTrigger":
+        return OnErrorTrigger(
+            action_id=action_id, called_action_id=text("calledActionId"), condition=text("condition")
+        )
+    if kind == "AutoSaveTrigger":
+        # debounceMillis always travels (0 = no debounce), as Java's AutoSaveTriggerDto
+        return {"type": "AutoSave", "actionId": action_id, "debounceMillis": number("debounceMillis")}
+    return None
+
+
+@dataclass(frozen=True)
+class DeclaredSource:
+    """One source a definition-only page declares: its wire kind (``action`` | ``options`` |
+    ``rows``), the id the browser names it by and the source as the ENDPOINT declares it (resolved
+    against the catalogue)."""
+
+    kind: str
+    id: str
+    source: Any
+
+
+def definition_sources(spec: Spec, resolve: Any = None) -> list:
+    """Every source a definition-only page declares (Java's ``SeededYamlPage.declaredRestSources``):
+    its actions' calls and — walking the layout — a select's ``optionsSource`` (by the field's id),
+    a listing's ``rowsSource`` (by its id, else ``crud``) and a live kanban's (else ``kanban``),
+    each resolved by ``resolve`` (the catalogue). Without these a PROXIED listing or select on a
+    classless page had nobody to fetch it: ``__restfetch__`` was never advertised and the listing
+    stayed empty."""
+    import dataclasses
+
+    from mateu_ui.uidl.components import FormField, Kanban, ListingComponent
+
+    from .mapper.components import ComponentMapperMixin
+
+    def resolved(source: Any) -> Any:
+        return (resolve(source) if resolve is not None else None) or source
+
+    out: list = []
+    for action in spec.actions:
+        if action.source is not None:
+            out.append(DeclaredSource("action", action.id, resolved(action.source)))
+
+    def add(kind: str, id_: str, source: Any) -> None:
+        dto = ComponentMapperMixin._fluent_rest_source(source)
+        if dto is not None:
+            out.append(DeclaredSource(kind, id_, resolved(dto)))
+
+    seen: set[int] = set()
+
+    def walk(node: Any) -> None:
+        if node is None or isinstance(node, (str, bytes, int, float, bool)) or id(node) in seen:
+            return
+        seen.add(id(node))
+        if isinstance(node, FormField) and node.options_source is not None and node.field_id:
+            add("options", node.field_id, node.options_source)
+        elif isinstance(node, ListingComponent) and node.rows_source is not None:
+            add("rows", node.id or "crud", node.rows_source)  # the listing mapper's default id
+        elif isinstance(node, Kanban) and node.rows_source is not None:
+            add("rows", node.id or "kanban", node.rows_source)
+        if isinstance(node, (list, tuple)):
+            for item in node:
+                walk(item)
+            return
+        if dataclasses.is_dataclass(node) and type(node).__module__.startswith("mateu_ui.uidl"):
+            for f in dataclasses.fields(node):
+                walk(getattr(node, f.name, None))
+
+    walk(spec.layout)
+    return out
+
+
+def source_for(sources: list, kind: Any, source_id: Any) -> Any:
+    """The source a ``__restfetch__`` for ``kind``/``source_id`` names: the one declared with that
+    id first; rows (one per page) fall back to the first of their kind (Java's RestSourceResolver
+    over a RestSourceSupplier) — never a client url."""
+    of_kind = [s for s in sources if s.kind == kind]
+    wanted = str(source_id or "")
+    match = next((s for s in of_kind if s.id == wanted), None)
+    if match is None and kind in ("rows", "data") and of_kind:
+        match = of_kind[0]
+    return match.source if match is not None else None
 
 
 def confirms_on_navigation_if_dirty(data: Any) -> bool:

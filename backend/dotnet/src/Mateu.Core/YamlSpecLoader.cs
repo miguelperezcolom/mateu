@@ -56,6 +56,10 @@ internal sealed class YamlSpecLoader : ISpecsCache
         /// definition-only page advertises (Java's SeededYamlPage.actions).</summary>
         public IReadOnlyList<YamlDeclaredActions.Declared> Actions { get; init; } = [];
 
+        /// <summary>The definition's own <c>triggers:</c> (beside <c>layout:</c>), as wire triggers —
+        /// what a definition-only page fires without a click (Java's SeededYamlPage.triggers).</summary>
+        public IReadOnlyList<object> Triggers { get; init; } = [];
+
         /// <summary>A <c>type: Form</c> definition declaring <c>confirmOnNavigationIfDirty: true</c>.</summary>
         public bool ConfirmOnNavigationIfDirty { get; init; }
     }
@@ -153,6 +157,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
                 Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked,
                 // re-read from the caller's copy: a refused action is gone, its texts translated
                 Actions = YamlDeclaredActions.Of(tree).Where(a => !refused.Contains(a.Dto.Id)).ToList(),
+                Triggers = YamlDeclaredTriggers.Of(tree),
             };
         }
         catch (Exception e)
@@ -226,6 +231,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
                 PageType = YamlComponentBuilder.PageTypeOf(root),
                 TemplatePageType = layout is Form { Template: { } template } ? PageTemplateLayout.PageTypeOf(template) : null,
                 Actions = YamlDeclaredActions.Of(root),
+                Triggers = YamlDeclaredTriggers.Of(root),
                 ConfirmOnNavigationIfDirty = YamlDeclaredActions.ConfirmsOnNavigationIfDirty(root),
             };
         }

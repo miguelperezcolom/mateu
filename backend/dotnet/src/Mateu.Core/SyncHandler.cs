@@ -680,8 +680,15 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     actions.Select(a => a.Id).Concat(MateuCatalogs.RefusedActions).Concat(spec?.RefusedActions ?? new HashSet<string>()))
                 .Select(ActionRegistry.ToDto));
         }
-        var proxied = spec is not null && YamlDeclaredActions.ProxiesAny(spec.Actions);
-        if (pageType is null && (state is null || state.Count == 0) && actions.Count == 0) return layout;
+        // a proxied call — a declared action's, or a listing's rows / a select's options read off a
+        // keyed catalogue entry — is the server's to make through __restfetch__, which only a
+        // server-side page answers (Java's SeededYamlPage as a RestSourceSupplier)
+        var proxied = spec is not null
+                      && YamlDeclaredActions.SourcesOf(spec.Actions, bare).Any(s => s.Source.Proxy);
+        var triggers = spec?.Triggers ?? [];
+        if (pageType is null && (state is null || state.Count == 0) && actions.Count == 0 && triggers.Count == 0
+            && !proxied)
+            return layout;
         if (proxied) actions.Add(new ActionDto("__restfetch__", ValidationRequired: false));
         // wrapped for its seeds: a page that fills a template is the template's kind of page, a
         // listing is a collection, anything else a form (Java's PageTypeResolver default)
@@ -690,7 +697,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         return new ServerSideComponentDto(
             "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),
             "", string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!, [layout],
-            new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), actions, [],
+            new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), actions, triggers.ToList(),
             // ComponentTreeSupplier.style()'s default: the page's reading measure
             "max-width:900px;margin: auto;", null, null)
         {

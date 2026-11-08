@@ -91,6 +91,7 @@ internal static class ComponentMapper
             SliderMax = ff.SliderMax,
             Step = ff.Step,
             OptionsColumns = ff.OptionsColumns,
+            OptionsSource = ff.OptionsSource is null ? null : MateuCatalogs.ToDto(ff.OptionsSource),
         }) with { Id = ff.Id ?? ff.FieldId },
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(

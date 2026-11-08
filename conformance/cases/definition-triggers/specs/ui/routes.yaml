@@ -1,0 +1,4 @@
+# The case's own route table: one definition-only page (no view model) that fires actions on its own.
+routes:
+  - route: watch
+    layout: watch.yaml
