@@ -171,7 +171,7 @@ internal sealed partial class ReflectionMapper
                 sections.Select((s, i) => (ComponentDto)new ClientSideComponentDto(
                     new DivMetadataDto(), null,
                     [SectionCard(
-                        s.Title, MapFields(s.Props, instance, readOnly),
+                        s.Title, MapFields(s.Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
                         sectionAttrs[i], type, s.Props, titled: true)],
                     FoldedColumnStyle, null, null)).ToList(),
                 null, null, null)];
@@ -189,7 +189,7 @@ internal sealed partial class ReflectionMapper
         // full-width VerticalLayout; a single section is untitled (Java parity).
         var titled = sections.Count > 1;
         var cards = sections.Select((s, i) => (ComponentDto)SectionCard(
-            s.Title, MapFields(s.Props, instance, readOnly),
+            s.Title, MapFields(s.Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
             sectionAttrs[i], type, s.Props, titled)).ToList();
         if (titled)
             return [new ClientSideComponentDto(
@@ -212,7 +212,7 @@ internal sealed partial class ReflectionMapper
     {
         ComponentDto CardOf(int i) =>
             SectionCard(sections[i].Title,
-                MapFields(sections[i].Props, instance, readOnly),
+                MapFields(sections[i].Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
                 sectionAttrs[i], type, sections[i].Props, titled: true);
 
         // Consolidated onto the one responsive grid (coherence-plan #9): each zone is a grid track
@@ -333,6 +333,10 @@ internal sealed partial class ReflectionMapper
     /// (mirrors Java's PageFormBuilder.getFormColumns; see <see cref="FormColumnsInference"/>).</summary>
     internal static int FormColumns(Type? type) => FormColumnsInference.FormColumns(type);
 
+    /// <summary>A section's column count: its [Section(Columns)] when set, else the form's.</summary>
+    private static int SectionColumns(SectionAttribute? section, Type? formType) =>
+        section?.Columns >= 1 ? section.Columns : FormColumns(formType);
+
     private ClientSideComponentDto SectionCard(
         string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null,
         Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false,
@@ -388,7 +392,15 @@ internal sealed partial class ReflectionMapper
         // when the section has a heading).
         if (titled && !string.IsNullOrWhiteSpace(title))
         {
-            var heading = hasTitleRow
+            // the [Inline] nested objects' triggers: [Toolbar] on the title row, [Button] below
+            // (Java's SectionFormRenderer.buildTitleRow + the button row; multi-section path only)
+            var (inlineToolbar, inlineButtons) = InlineTriggers(props);
+            var heading = inlineToolbar.Count > 0
+                ? SectionTitleRow(title, [.. titleButtons, .. inlineToolbar]) with
+                {
+                    Metadata = new HorizontalLayoutMetadataDto { Spacing = true },
+                }
+                : hasTitleRow
                 ? SectionTitleRow(title, titleButtons)
                 : Client(new TextMetadataDto(T(title!)) { Container = "h3" }, null, []) with
                 {
@@ -398,7 +410,13 @@ internal sealed partial class ReflectionMapper
             {
                 Style = "width: 100%;",
             };
-            var content = Client(new VerticalLayoutMetadataDto(), null, [heading, inner]) with
+            var contentChildren = new List<ComponentDto> { heading, inner };
+            if (inlineButtons.Count > 0)
+                contentChildren.Add(Client(new HorizontalLayoutMetadataDto { Spacing = false }, null, inlineButtons) with
+                {
+                    Style = "justify-content: flex-end; width: 100%;",
+                });
+            var content = Client(new VerticalLayoutMetadataDto(), null, contentChildren) with
             {
                 Style = string.IsNullOrEmpty(section?.Style) ? null : section.Style,
             };
@@ -443,7 +461,8 @@ internal sealed partial class ReflectionMapper
 
     private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
-        var fieldId = Naming.CamelCase(p.Name);
+        // inside a nested form the id carries the nested fields' prefix ("supplier-name")
+        var fieldId = PrefixedFieldId(p);
         // [ContentSlot]: a hole for managed content — the property's value is irrelevant, the slot
         // is resolved by the server against the content remote (Java: the @ContentSlot branch of
         // ReflectionFormFieldMapper; see MicroFrontendServerResolver)
@@ -460,7 +479,7 @@ internal sealed partial class ReflectionMapper
         // [Text]: the value shown as a text block bound to the state (Java: the @Text branch of
         // ReflectionFormFieldMapper).
         if (p.Find<TextAttribute>() is { } text)
-            return Client(new TextMetadataDto("${state." + fieldId + "}")
+            return Client(new TextMetadataDto(StateExpression(fieldId))
             {
                 Container = text.Container,
                 Size = text.Size,
@@ -472,7 +491,7 @@ internal sealed partial class ReflectionMapper
         // an IOptionsSupplier view wins (its options may carry Children → tree selects);
         // enums keep contributing their constants
         var options = instance is IOptionsSupplier supplier
-                      && supplier.Options(fieldId) is { Count: > 0 } supplied
+                      && supplier.Options(Naming.CamelCase(p.Name)) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
             : (t.IsEnum ? t : ElementEnum(t)) is { } choices
                 // value = the constant name; label = its [Label], else the name humanized
@@ -610,6 +629,12 @@ internal sealed partial class ReflectionMapper
                 continue;
             // an island (adapted value / embedded view) keeps its own state, not the host's
             if (IsIslandProperty(p)) continue;
+            // a nested data object travels as a nested map (and, in the fragment state, flattened)
+            if (IsNestedFormProperty(p))
+            {
+                data[Naming.CamelCase(p.Name)] = p.GetValue(instance) is { } nested ? NestedStateOf(nested) : null;
+                continue;
+            }
             data[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
                 ? GridRows(p, rowType, instance)
                 : InitialValueOf(p.GetValue(instance));
@@ -734,7 +759,7 @@ internal sealed partial class ReflectionMapper
     /// <summary>Maps the section's properties to field DTOs, inserting a full-width separator
     /// above any [SeparatorBefore] property (mirrors Java's FormLayoutBuilder).</summary>
     private List<ClientSideComponentDto> MapFields(
-        IEnumerable<PropertyInfo> props, object instance, bool readOnly = false)
+        IEnumerable<PropertyInfo> props, object instance, bool readOnly = false, int? columns = null)
     {
         var fields = new List<ClientSideComponentDto>();
         foreach (var p in props)
@@ -744,6 +769,12 @@ internal sealed partial class ReflectionMapper
                     new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
             // a property holding a fluent component with nothing in it renders nothing (never a field)
             if (IsComponentProperty(p) && p.GetValue(instance) is null) continue;
+            // a data object: a nested form, spanning the section's row
+            if (IsNestedFormProperty(p))
+            {
+                fields.Add(MapNestedFormField(p, instance, readOnly, columns ?? FormColumns(p.DeclaringType)));
+                continue;
+            }
             fields.Add(IsIslandProperty(p)
                 ? MapIslandField(p, instance, FormColumns(p.DeclaringType)) ?? MapField(p, instance, readOnly)
                 : MapField(p, instance, readOnly));

@@ -175,7 +175,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // Field-declared actions first, in Java's FieldActionCollector order: the list fields' row
         // editing actions, the [OnRowSelected] grid actions (which must be advertised or the
         // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
-        var actions = FieldActions(type);
+        // The nested data objects' actions (nested-form-action-<field>-<method>) lead (Java's
+        // ActionMapper adds the nested forms' actions first).
+        var actions = NestedFormActions(type);
+        actions.AddRange(FieldActions(type).Where(a => actions.All(x => x.Id != a.Id)));
         actions.AddRange(buttonMethods.Select(m =>
                 WithActionOptions(new ActionDto(Naming.CamelCase(m.Name))
                     { RestAction = RestActionOf(m), Shortcut = m.Find<ShortcutAttribute>()?.Keys },

@@ -257,6 +257,8 @@ public class WireConformanceTests
         { "crud-hidden-constraints-edit", typeof(Wire.SeatsCrud) },
         { "crud-hidden-constraints-new", typeof(Wire.SeatsCrud) },
         { "hero-search-filters", typeof(Wire.HeroBooks) },
+        { "inline-form", typeof(Wire.InlineForm) },
+        { "inline-form-action", typeof(Wire.InlineForm) },
     };
 
     [Fact]

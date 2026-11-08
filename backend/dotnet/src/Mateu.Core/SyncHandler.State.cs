@@ -67,6 +67,14 @@ internal sealed partial class SyncHandler
             // this caller is never written from the wire — it keeps its server-side value.
             if (!ActionGuard.MayWrite(p)) continue;
             var key = Naming.CamelCase(p.Name);
+            // A nested data object: rebuilt from its nested map overlaid with the flattened
+            // <field>-<key> entries (the flattened ones win), recursively, on the instance the
+            // property already holds (Java's Hydrater over FormViewSerializer's state).
+            if (ReflectionMapper.IsNestedFormPropertyType(p))
+            {
+                BindNested(instance, p, key, state);
+                continue;
+            }
             if (!state.TryGetValue(key, out var raw) || raw is null) continue;
             if (IsCleared(raw, p.PropertyType))
             {
@@ -82,6 +90,28 @@ internal sealed partial class SyncHandler
             if (value is not null) p.SetValue(instance, value);
         }
     }
+
+    private static void BindNested(object instance, PropertyInfo p, string key, IDictionary<string, object?> state)
+    {
+        var prefix = key + "-";
+        var flattened = state.Where(kv => kv.Key.StartsWith(prefix, StringComparison.Ordinal) && kv.Key.Length > prefix.Length)
+            .ToDictionary(kv => kv.Key[prefix.Length..], kv => kv.Value);
+        var nested = state.TryGetValue(key, out var raw) ? AsStateMap(raw) : null;
+        if (nested is null && flattened.Count == 0) return;
+        var target = p.GetValue(instance) ?? Activator.CreateInstance(p.PropertyType)!;
+        if (nested is not null) BindState(target, nested);
+        if (flattened.Count > 0) BindState(target, flattened);
+        p.SetValue(instance, target);
+    }
+
+    /// <summary>A wire value that is a JSON object (or an already-built map) as a state map; else null.</summary>
+    private static Dictionary<string, object?>? AsStateMap(object? raw) => raw switch
+    {
+        JsonElement { ValueKind: JsonValueKind.Object } el =>
+            el.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value),
+        IDictionary<string, object?> map => new Dictionary<string, object?>(map),
+        _ => null,
+    };
 
     /// <summary>A null, or a blank string aimed at a non-text property: the user cleared it.</summary>
     private static bool IsCleared(object raw, Type target) =>
