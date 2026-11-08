@@ -22,9 +22,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `ViewToolbarButton`, `MainFilter`, `HiddenIn*`, `Section(sticky, columns, style)`, `Dialog`
   placement, the remaining action knobs (`sse`, `background`, confirmation texts, `href`, `js`,
   custom events), `MicroFrontend.chrome`, typed filter criteria for a `find` override and a route's
-  `fixedParams` on the proxied leg; Python a class-level `read_only_unless` and a page
-  definition's `actions:`. Twelve new conformance cases pin them in Java, .NET and Python. Still
-  Java-only: the static-bundle exporter and `@App(backLink)` — see the parity matrix.
+  `fixedParams` on the proxied leg, a page definition's `actions:`, `triggers:` and proxied
+  listing/select sources, `@App(backLink)` and a YAML shell's `backLink`/`pageTitle`, page
+  breadcrumbs, `@Inline` nested data-object forms, `HeroSearch` with a separate filters type
+  (Python `HeroSearchListing[F, R]`), the fluent listing's grid options and a grid field's row
+  detail, .NET length/pattern validation (`[StringLength]`, `[RegularExpression]`…); Python a
+  class-level `read_only_unless`. **Static bundles from the ports**: `python -m mateu_ui.bundle`
+  and `dotnet mateu-bundle` (the `Mateu.Bundle` tool) write the same bundle as
+  `mateu-bundle:bundle`, held to one golden (`conformance/bundle`). New conformance cases pin all
+  of it in Java, .NET and Python with empty allow-lists.
 - **Progress is a task, shown the platform's way.** A `LongTask` no longer builds a dialog on the
   server: it reports a task (`Progress` command: title, text, fraction or indeterminate, "12 of
   300", state) and each renderer shows it natively — a modal progress for a blocking task, a task
