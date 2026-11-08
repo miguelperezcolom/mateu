@@ -149,13 +149,14 @@ public class WireConformanceTests
     /// <c>__step</c> — so its actions and state stay out as well.</para>
     private static readonly HashSet<string> Mediated =
         ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
-         "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new"];
+         "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
+         "editable-view", "editable-view-edit", "view-toolbar-button"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
     /// every side (Java's <c>MEDIATED_FORMS</c>).</summary>
     private static readonly HashSet<string> MediatedForms =
-        ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new"];
+        ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new", "editable-view", "editable-view-edit", "view-toolbar-button"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     private static JsonNode WithoutMediatorProtocol(JsonNode increment)
@@ -246,6 +247,9 @@ public class WireConformanceTests
         { "page-toolbar", typeof(Wire.PageToolbarForm) },
         { "form-columns", typeof(Wire.FormColumnsForm) },
         { "auto-save", typeof(Wire.AutoSaveForm) },
+        { "editable-view", typeof(Wire.ProfileView) },
+        { "editable-view-edit", typeof(Wire.ProfileView) },
+        { "view-toolbar-button", typeof(Wire.ViewToolbarProductsCrud) },
     };
 
     [Fact]
