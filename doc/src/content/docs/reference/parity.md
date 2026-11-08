@@ -499,7 +499,7 @@ renderers, and its children still render.
 | `Tooltip` | ✅ | the wrapped component keeps its view; the text opens in the shared oj-popup on hover/focus (on the button itself, or an info marker) |
 | `TrendChart` | ✅ | oj-chart line/area |
 | `VirtualList` | ✅ | every item through the same projection (no windowing — neither has the neutral web renderer) |
-| `BoardLayout` | ✅ layout | children stacked, not a board |
+| `BoardLayout` | ✅ layout | rows of column-blocks by boardCols |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |
 | `CustomField` | ✅ layout | its component in place |

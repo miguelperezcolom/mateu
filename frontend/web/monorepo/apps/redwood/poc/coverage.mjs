@@ -37,7 +37,7 @@ export const REDWOOD_COVERAGE = {
   Div: { status: 'layout' },
   ContentLayout: { status: 'layout' },
   ResponsiveGrid: { status: 'full', note: 'fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→)' },
-  BoardLayout: { status: 'layout', note: 'children stacked, not a board' },
+  BoardLayout: { status: 'layout', note: 'rows of column-blocks by boardCols' },
   BoardLayoutRow: { status: 'part', note: 'of BoardLayout' },
   BoardLayoutItem: { status: 'part', note: 'of BoardLayout' },
   CarouselLayout: { status: 'full', note: 'an image gallery is an oj-film-strip; other slides one at a time with a ‹ › pager and dots (client-side)' },
