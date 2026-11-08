@@ -40,7 +40,7 @@ export function renderStatusField(host: MateuField, _fieldId: string, value: Fie
     if (!host.field) return html``
         // a Status {type, message}, or the plain word a REST source answers (AVAILABLE): its tone by
         // the word, its label the option's when the field has options, else the humanised constant
-        const status = toStatus(value, undefined, optionLabels((host.field as any).options))
+        const status = toStatus(value, undefined, optionLabels(host.field.options))
         return html`
             <vaadin-custom-field
                     id="${host.field.fieldId}"

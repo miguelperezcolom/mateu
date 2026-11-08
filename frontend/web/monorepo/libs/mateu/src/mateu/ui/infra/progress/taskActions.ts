@@ -64,5 +64,6 @@ export const runResultAction = (taskId: string, action: MessageAction): void => 
         if (from && dirtyGuard.confirmLeave()) navigateToRoute(from, action.route)
         return
     }
+    // eslint-disable-next-line no-console -- a diagnostic, not a warning: the task simply outlived its screen
     console.debug?.('mateu: the screen that started the task is gone; its action cannot run there', action.actionId)
 }

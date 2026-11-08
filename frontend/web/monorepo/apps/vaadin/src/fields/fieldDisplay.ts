@@ -18,7 +18,7 @@ export const formatMoney = (raw: unknown): string => formatMoneyValue(raw)
 /** The LABEL of the option `value` names (a select / radio / enum field read-only), else undefined. */
 export const optionLabel = (options: unknown, value: unknown): string | undefined => {
     if (!Array.isArray(options) || value === null || value === undefined || value === '') return undefined
-    const option = options.find((o: any) => o && o.value == value)
+    const option = (options as { value?: unknown, label?: unknown }[]).find((o) => o && o.value == value)
     return option && option.label !== null && option.label !== undefined ? String(option.label) : undefined
 }
 
@@ -26,7 +26,7 @@ export const optionLabel = (options: unknown, value: unknown): string | undefine
 export const optionLabels = (options: unknown): Record<string, string> | undefined => {
     if (!Array.isArray(options) || options.length === 0) return undefined
     const labels: Record<string, string> = {}
-    for (const o of options as any[]) if (o && o.value !== undefined && o.value !== null && o.label != null) labels[String(o.value)] = String(o.label)
+    for (const o of options as { value?: unknown, label?: unknown }[]) if (o && o.value !== undefined && o.value !== null && o.label != null) labels[String(o.value)] = String(o.label)
     return labels
 }
 
@@ -38,10 +38,10 @@ export const optionLabels = (options: unknown): Record<string, string> | undefin
  */
 export const readOnlyText = (raw: unknown, field: { dataType?: string, stereotype?: string, options?: unknown } | undefined): unknown => {
     let v: unknown = raw
-    if (v && typeof v === 'object' && 'value' in (v as any) && !isAmount(v)) v = (v as any).value
+    if (v && typeof v === 'object' && 'value' in v && !isAmount(v)) v = (v as { value: unknown }).value
     const money = field?.dataType === 'money' || field?.stereotype === 'money'
     if (money && v !== null && v !== undefined && v !== '') return formatMoney(v)
-    if (isAmount(v)) v = (v as any).value
+    if (isAmount(v)) v = (v as { value: unknown }).value
     // a date / date-time / time reads in the UI's locale, like the listing column next to it
     return optionLabel(field?.options, v) ?? formatTemporalCell(v, field?.dataType, uiLocale())
 }
