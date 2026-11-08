@@ -1482,6 +1482,9 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isStatusList: true,
         wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
+        // columns: N = AT MOST N cells per line: the cells are fixed (22rem), so the wrapper is capped
+        // at N of them and their gaps — uncapped, a wide page fitted three or four
+        wrapStyle: cols > 1 ? { maxWidth: 'calc(' + cols + ' * 22rem + ' + (cols - 1) + ' * 40px)' } : {},
         items: (m.items || []).map((it) => {
           // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
           // array; a row WITH actions is painted STACKED (title+chip /
@@ -1507,7 +1510,9 @@ export function islandContentOf(ctx, opts = {}) {
             cellClass,
             statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
             avatar: it.avatar || '',
-            icon: it.icon || '',
+            // an emoji/text icon is printed; a token (vaadin:…) becomes its Redwood icon class
+            icon: it.icon && !String(it.icon).includes(':') ? it.icon : '',
+            iconClass: it.icon && String(it.icon).includes(':') ? (ojIconOf(it.icon) || '') : '',
             title: interp(it.title),
             description: interp(it.description || ''),
             status: interp(it.status || ''),
