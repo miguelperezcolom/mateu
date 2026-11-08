@@ -36,6 +36,8 @@ export interface Progress {
     closeAfterSeconds?: number | null
     error?: string | null
     resultActions?: MessageAction[] | null
+    /** the server's estimate of the seconds left (running + determinate only; null = none) */
+    etaSeconds?: number | null
 }
 
 /** One inbox entry. */

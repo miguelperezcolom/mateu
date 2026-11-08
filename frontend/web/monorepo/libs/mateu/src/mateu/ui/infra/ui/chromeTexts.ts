@@ -216,6 +216,12 @@ const en = {
     taskFailedAnnounce: '{title}: failed',
     taskCancelledAnnounce: '{title}: cancelled',
     taskCancelFailed: 'Could not cancel the task.',
+    // a running task's ETA (ProgressDto.etaSeconds — conformance/client/eta-format.json)
+    taskEtaUnderMinute: 'less than a minute left',
+    taskEtaMinutes: 'about {n} min left',
+    taskEtaHours: 'about {n} h left',
+    // OS-level notifications (@App(osNotifications)), asked for only from this control
+    osNotificationsEnable: 'Notify me on this device',
     // command center
     commandCenter: 'Command center',
     commandCenterHint: 'Search and navigate (⌘K)',
@@ -539,6 +545,10 @@ const es: Catalogue = {
     taskFailedAnnounce: '{title}: ha fallado',
     taskCancelledAnnounce: '{title}: cancelada',
     taskCancelFailed: 'No se pudo cancelar la tarea.',
+    taskEtaUnderMinute: 'menos de un minuto',
+    taskEtaMinutes: 'unos {n} min restantes',
+    taskEtaHours: 'unas {n} h restantes',
+    osNotificationsEnable: 'Avisarme en este dispositivo',
     commandCenter: 'Centro de mando',
     commandCenterHint: 'Buscar y navegar (⌘K)',
     commandCenterPlaceholder: 'Buscar pantallas, datos y acciones…',

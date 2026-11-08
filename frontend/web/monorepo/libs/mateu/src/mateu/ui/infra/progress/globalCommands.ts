@@ -1,6 +1,7 @@
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import type { NotificationsChanged, Progress } from '@mateu/shared/apiClients/dtos/Progress.ts'
-import { taskStore, type TaskOrigin } from '@infra/progress/taskStore.ts'
+import { isFinished, taskStore, type TaskOrigin } from '@infra/progress/taskStore.ts'
+import { forgetTask, rememberTask } from '@infra/progress/taskMemory.ts'
 import { inboxStore } from '@infra/notify/inboxStore.ts'
 import { ensureTaskCenter } from '@infra/progress/taskCenterMount.ts'
 
@@ -23,6 +24,14 @@ export const applyGlobalCommand = (command: UICommand | undefined, origin?: Task
         if (progress?.taskId) {
             ensureTaskCenter()
             taskStore.upsert(progress, origin)
+            // a task a STREAM reports is remembered for the tab's session, so a reload reattaches
+            // to it; once its end has been applied there is nothing left to reattach to
+            if (isFinished(progress)) {
+                forgetTask(progress.taskId)
+            } else if (typeof origin?.baseUrl === 'string') {
+                rememberTask({ taskId: progress.taskId, baseUrl: origin.baseUrl, route: origin.route,
+                    serverSideType: origin.serverSideType })
+            }
         }
         return true
     }

@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{F as c,M as l,k as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
+import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{H as c,I as l,z as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
         :host {
             display: block;
             width: 100%;
@@ -182,7 +182,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
             </div>
         `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),c=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null;return t`
             <div class="label" title="${n.label??``}">
-                <span class="res-name">${n.icon?l(n.icon):e}${n.label}</span>
+                <span class="res-name">${n.icon?u(n.icon):e}${n.label}</span>
                 ${this.attributeColumns.map((e,r)=>t`<span class="attr">${(n.attributes??[])[r]??``}</span>`)}
             </div>
             <div class="lane" data-resource-id="${n.id}">
@@ -197,7 +197,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                 ${s.map(n=>{let i=d.daysBetween(r.from,d.parse(n.start)),a=d.daysBetween(r.from,d.parse(n.end));if(a<0||i>=r.days)return e;let s=Math.max(0,i),c=Math.min(r.days-1,a),f=this.drag?.moved&&this.drag.blockId===n.id,p=this.resize?.blockId===n.id?this.resize:null,m=p?Math.max(0,p.startIdx):s,h=p?Math.min(r.days-1,p.endIdx):c,g=n.summary??`${n.label??``} · ${n.start} → ${n.end}${n.status?` · ${n.status}`:``}`;return t`
                         <div class="block ${this.selectActionId?`clickable`:``} ${this.moveActionId?`draggable`:``} ${f?`dragging`:``}"
                              title="${g}"
-                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${u(n.color)?`--mateu-planning-block-ink: ${u(n.color)};`:``}`:``}"
+                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${l(n.color)?`--mateu-planning-block-ink: ${l(n.color)};`:``}`:``}"
                              @dblclick="${this.openActionId?()=>this.emit(this.openActionId,{_blockId:n.id}):e}"
                              @pointerdown="${e=>this.onBlockPointerDown(e,n,i)}"
                              @pointermove="${e=>this.onBlockPointerMove(e)}"
@@ -206,7 +206,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                         >${this.resizeActionId?t`<span class="handle start"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`start`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
-                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?l(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
+                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?u(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`end`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
                                 @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}</div>

@@ -14,6 +14,7 @@ import '@infra/ui/mateu-shortcuts-help.ts'
 import { setTaskCenterHost } from '@infra/progress/taskCenterMount.ts'
 import { inboxStore } from '@infra/notify/inboxStore.ts'
 import { notify } from '@application/Notifier.ts'
+import { syncOsNotifications } from '@infra/notify/osNotifications.ts'
 import '@infra/ui/mateu-idle-warning.ts'
 
 /**
@@ -83,6 +84,10 @@ export function syncAppExtras(host: Host): void {
                 (owner as HTMLElement | null) ?? document.body)
         })
     }
+
+    // OS-level notifications (@App(osNotifications)): new inbox entries and background tasks that
+    // finish while the tab is hidden
+    syncOsNotifications(md, host)
 
     // live header values
     seedHeaderValues(md.headerValues)

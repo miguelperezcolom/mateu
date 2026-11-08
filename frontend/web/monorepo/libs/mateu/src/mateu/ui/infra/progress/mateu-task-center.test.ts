@@ -121,4 +121,36 @@ describe('mateu-task-center', () => {
         await settle()
         expect($$('.list .task')).toHaveLength(2)
     })
+
+    it('shows the server\'s ETA while the task runs, never once it ended', async () => {
+        taskStore.upsert(p('a', { blocking: true, fraction: 0.5, etaSeconds: 125 }))
+        await settle()
+        expect($('.modal .eta')?.textContent).toBe('about 2 min left')
+        taskStore.upsert(p('a', { blocking: true, fraction: 0.6, etaSeconds: null }))
+        await settle()
+        expect($('.modal .eta')).toBeNull()
+        taskStore.upsert(p('a', { blocking: true, state: 'done', etaSeconds: 10 }))
+        await settle()
+        expect($('.modal .eta')).toBeNull()
+    })
+
+    it('offers OS notifications in the task list only to an app that opted in, while undecided', async () => {
+        const { syncOsNotifications, resetOsNotifications } = await import('@infra/notify/osNotifications.ts')
+        const requestPermission = vi.fn(async () => 'granted')
+        ;(globalThis as unknown as { Notification: unknown }).Notification = { permission: 'default', requestPermission }
+        try {
+            taskStore.upsert(p('a'))
+            await settle()
+            $('.indicator')!.click()
+            await settle()
+            expect($('.os-notify')).toBeNull()
+            syncOsNotifications({ osNotifications: true } as never, document.body)
+            await settle()
+            $('.os-notify')!.click()
+            expect(requestPermission).toHaveBeenCalledTimes(1)
+        } finally {
+            resetOsNotifications()
+            delete (globalThis as unknown as { Notification?: unknown }).Notification
+        }
+    })
 })

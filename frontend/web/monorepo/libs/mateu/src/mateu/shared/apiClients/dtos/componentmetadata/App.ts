@@ -51,6 +51,8 @@ export default interface App extends ComponentMetadata {
     contextActions: AppHeaderAction[] | undefined
     rootRoute: string | undefined
     notificationsEnabled?: boolean
+    /** @App(osNotifications): the app opts in to OS-level notifications (osNotifications.ts) */
+    osNotifications?: boolean
     globalSearchEnabled?: boolean
     /** Live UI push is on (mateu.mcp.push.enabled): the UI opens its agent channel (`_agent-channel`)
      *  and the header offers "Connect AI" (`_agent-pair` / `_agent-unpair`). */

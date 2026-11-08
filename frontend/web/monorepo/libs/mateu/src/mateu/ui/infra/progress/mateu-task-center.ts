@@ -10,6 +10,8 @@ import { announce } from '@infra/a11y/announcer.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { etaText } from '@infra/progress/eta.ts'
+import { canOfferOsNotifications, onOsNotificationsChange, requestOsNotifications } from '@infra/notify/osNotifications.ts'
 
 /**
  * The TASK CENTER — the web's surface for the progress pattern (design/progress-and-notifications.md).
@@ -36,6 +38,7 @@ export class MateuTaskCenter extends LitElement {
     @state() private now = Date.now()
 
     private unsubscribe: (() => void) | undefined
+    private unsubscribeOs: (() => void) | undefined
     private ticker: ReturnType<typeof setInterval> | undefined
     private closer: ReturnType<typeof setTimeout> | undefined
     private trap: FocusTrap | undefined
@@ -47,12 +50,15 @@ export class MateuTaskCenter extends LitElement {
         super.connectedCallback()
         this.unsubscribe = taskStore.subscribe((s) => this.onTasks(s))
         this.onTasks(taskStore.state)
+        this.unsubscribeOs = onOsNotificationsChange(() => this.requestUpdate())
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         this.unsubscribe?.()
         this.unsubscribe = undefined
+        this.unsubscribeOs?.()
+        this.unsubscribeOs = undefined
         clearInterval(this.ticker)
         this.ticker = undefined
         clearTimeout(this.closer)
@@ -150,10 +156,13 @@ export class MateuTaskCenter extends LitElement {
 
     private renderMeta(entry: TaskEntry): TemplateResult {
         const steps = stepCountOf(entry.progress)
+        // the server's estimate, only while it runs and only when it has an honest one
+        const eta = isFinished(entry.progress) ? null : etaText(entry.progress.etaSeconds)
         return html`
             <div class="meta">
                 ${steps ? html`<span>${chromeTextf('taskStepCount', steps)}</span>` : nothing}
                 <span>${chromeTextf('taskElapsed', { time: formatElapsed(elapsedSeconds(entry, this.now)) })}</span>
+                ${eta ? html`<span class="eta">${eta}</span>` : nothing}
                 <span class="state state--${entry.progress.state ?? 'running'}">${this.stateLabel(entry)}</span>
             </div>`
     }
@@ -213,6 +222,8 @@ export class MateuTaskCenter extends LitElement {
                 </div>
                 ${listed.length === 0 ? html`<div class="empty">${chromeText('tasksNone')}</div>` : nothing}
                 ${listed.map((entry) => this.renderTask(entry, false))}
+                ${canOfferOsNotifications() ? html`
+                    <button class="link os-notify" @click="${() => void requestOsNotifications()}">${chromeText('osNotificationsEnable')}</button>` : nothing}
             </div>`
     }
 
