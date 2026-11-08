@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ComponentTreeSuppl
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CrudlMapper.mapCrudlToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FieldMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormMapper.mapFormToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPageToDto;
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
@@ -262,8 +261,17 @@ public final class ComponentToFragmentDtoMapper {
           null);
     }
     if (component instanceof FutureComponent futureComponent) {
-      return mapFutureComponentToDto(
-          futureComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      // the same island as an EmbeddedView: the instance's own tree (a component tree's
+      // component()), its state field by field and its own actions. It used to be rendered
+      // reflectively with the raw object as its state and no actions.
+      return mapComponentToDto(
+          null,
+          new EmbeddedView(futureComponent.instance()),
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
       if (componentSupplier instanceof DtoSupplier dtoSupplier) {
