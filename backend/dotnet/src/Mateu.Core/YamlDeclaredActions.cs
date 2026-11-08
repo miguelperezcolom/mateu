@@ -113,17 +113,80 @@ internal static class YamlDeclaredActions
         _ => null,
     };
 
-    /// <summary>The declared source of action <paramref name="id"/> as the ENDPOINT declares it — a
-    /// by-<c>ref</c> surface carries only the name, and whether the call is proxied (the very thing
-    /// the server decides by) lives on the catalogue entry (Java's <c>SeededYamlPage.resolved</c>).</summary>
-    internal static RestDataSourceDto? ResolvedSourceOf(IEnumerable<Declared> declared, string? id) =>
-        declared.FirstOrDefault(a => a.Dto.Id == id)?.Source is { } source ? MateuCatalogs.Resolved(source) : null;
-
     /// <summary>Whether any declared action's call is made by the server (its resolved source is
     /// proxied): the page then answers <c>__restfetch__</c>, and advertises it like Java's
     /// <c>RestSourceSupplier</c> pages do.</summary>
     internal static bool ProxiesAny(IEnumerable<Declared> declared) =>
         declared.Any(a => a.Source is not null && MateuCatalogs.Resolved(a.Source) is { Proxy: true });
+
+    /// <summary>One source a definition-only page declares: its kind on the wire (<c>action</c>,
+    /// <c>options</c>, <c>rows</c>), the id the browser names it by and the source as the ENDPOINT
+    /// declares it (resolved against the catalogue).</summary>
+    internal sealed record DeclaredSource(RestSourceKind Kind, string Id, RestDataSourceDto Source);
+
+    /// <summary>Every source the page declares (Java's <c>SeededYamlPage.declaredRestSources</c>): its
+    /// actions' calls, and — walking the layout — a select's <c>optionsSource</c> (by the field's id),
+    /// a listing's <c>rowsSource</c> (by its id, else <c>crud</c>) and a live kanban's (else
+    /// <c>kanban</c>). Without these a PROXIED listing or select on a classless page had nobody to
+    /// fetch it: the server never advertised <c>__restfetch__</c> and the listing stayed empty.</summary>
+    internal static IReadOnlyList<DeclaredSource> SourcesOf(IEnumerable<Declared> actions, IComponent? layout)
+    {
+        var sources = new List<DeclaredSource>();
+        foreach (var action in actions)
+            if (action.Source is not null && MateuCatalogs.Resolved(action.Source) is { } resolved)
+                sources.Add(new DeclaredSource(RestSourceKind.Action, action.Dto.Id, resolved));
+        CollectSources(layout, sources, new HashSet<object>(ReferenceEqualityComparer.Instance));
+        return sources;
+    }
+
+    private static void CollectSources(object? node, List<DeclaredSource> into, HashSet<object> seen)
+    {
+        if (node is null or string || node.GetType().IsValueType || !seen.Add(node)) return;
+        void Add(RestSourceKind kind, string id, RestDataSource source)
+        {
+            if (MateuCatalogs.Resolved(MateuCatalogs.ToDto(source)) is { } resolved)
+                into.Add(new DeclaredSource(kind, id, resolved));
+        }
+        switch (node)
+        {
+            case FormField { OptionsSource: { } options } field when !string.IsNullOrEmpty(field.FieldId):
+                Add(RestSourceKind.Options, field.FieldId, options);
+                break;
+            case ListingComponent { RowsSource: { } rows } listing:
+                Add(RestSourceKind.Rows, listing.Id ?? "crud", rows); // the listing mapper's default id
+                break;
+            case Kanban { RowsSource: { } cards } kanban:
+                Add(RestSourceKind.Rows, kanban.Id ?? "kanban", cards);
+                break;
+        }
+        if (node is System.Collections.IEnumerable items)
+        {
+            foreach (var item in items) CollectSources(item, into, seen);
+            return;
+        }
+        if (node is not IComponent && node.GetType().Namespace != typeof(IComponent).Namespace) return;
+        foreach (var property in node.GetType().GetProperties())
+        {
+            if (property.GetIndexParameters().Length > 0 || property.Name == "EqualityContract") continue;
+            var type = property.PropertyType;
+            if (type == typeof(string)
+                || (!typeof(IComponent).IsAssignableFrom(type) && !typeof(System.Collections.IEnumerable).IsAssignableFrom(type)
+                    && type.Namespace != typeof(IComponent).Namespace))
+                continue;
+            CollectSources(property.GetValue(node), into, seen);
+        }
+    }
+
+    /// <summary>The source a <c>__restfetch__</c> for <paramref name="kind"/>/<paramref name="id"/>
+    /// names: the one declared with that id first; rows (one per page) fall back to the first of
+    /// their kind (Java's RestSourceResolver over a RestSourceSupplier) — never a client url.</summary>
+    internal static RestDataSourceDto? SourceFor(IReadOnlyList<DeclaredSource> sources, string? kind, string? id)
+    {
+        if (RestSourceKinds.FromWire(kind) is not { } wanted) return null;
+        var ofKind = sources.Where(s => s.Kind == wanted).ToList();
+        return (ofKind.FirstOrDefault(s => s.Id == (id ?? ""))
+                ?? ofKind.FirstOrDefault(_ => wanted is RestSourceKind.Rows or RestSourceKind.Data))?.Source;
+    }
 
     /// <summary>The checks the browser runs before an action marked <c>validationRequired</c>: one per
     /// <c>required: true</c> field of the definition, with the condition and message a Java form's

@@ -835,6 +835,7 @@ Mateu.Uidl.Form property System.String TitlePlaceholder { get;init; }
 Mateu.Uidl.FormEditor ctor(System.String)
 Mateu.Uidl.FormEditor property System.String Value { get;init; }
 Mateu.Uidl.FormField ctor()
+Mateu.Uidl.FormField property Mateu.Uidl.RestDataSource OptionsSource { get;init; }
 Mateu.Uidl.FormField property System.Boolean Autofocus { get;init; }
 Mateu.Uidl.FormField property System.Boolean ReadOnly { get;init; }
 Mateu.Uidl.FormField property System.Boolean Required { get;init; }

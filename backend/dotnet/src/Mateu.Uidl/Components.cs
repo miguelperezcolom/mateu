@@ -74,6 +74,10 @@ public sealed record FormField : ComponentBase
     /// <summary>The columns a radio/checkbox option group lays its options in (Java's
     /// FormField.optionsColumns; 1 by default — a YAML field leaves it unset, 0, unless declared).</summary>
     public int OptionsColumns { get; init; } = 1;
+    /// <summary>Where a select's options come from: a REST source (a catalogue <c>ref</c> or an
+    /// inline endpoint) the renderer fetches — through the server (<c>__restfetch__</c>, by the
+    /// field's id) when the source is proxied (Java's FormField.optionsSource).</summary>
+    public RestDataSource? OptionsSource { get; init; }
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────

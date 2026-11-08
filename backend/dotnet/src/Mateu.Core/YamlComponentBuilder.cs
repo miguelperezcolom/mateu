@@ -256,6 +256,7 @@ internal static class YamlComponentBuilder
                         .Select(opt => new Option(Str(opt, "value") ?? "", Str(opt, "label") ?? Str(opt, "value") ?? ""))
                         .ToList()
                     : [],
+                OptionsSource = SourceOf(map, "optionsSource"),
                 Style = Str(map, "style"),
                 CssClasses = Str(map, "cssClasses"),
             },
@@ -598,6 +599,11 @@ internal static class YamlComponentBuilder
                 Ref = Str(m, "ref")?.Trim() ?? "",
                 Url = Str(m, "url"),
                 Method = Str(m, "method"),
+                // the server's copy keeps them (a proxied call injects ${secret.X} into them); a
+                // proxied source's headers never travel (RestDataSourceDto's wire members)
+                Headers = m.TryGetValue("headers", out var h) && h is IDictionary<object, object> hm
+                    ? hm.ToDictionary(kv => kv.Key.ToString()!, kv => kv.Value?.ToString() ?? "")
+                    : null,
                 Body = Str(m, "body"),
                 ItemsPath = Str(m, "itemsPath"),
                 ValuePath = Str(m, "valuePath"),

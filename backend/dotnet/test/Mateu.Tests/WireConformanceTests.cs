@@ -265,6 +265,8 @@ public class WireConformanceTests
         { "hero-search-filters", typeof(Wire.HeroBooks) },
         // a YAML case: its own specs/ui/ is the handler's specs directory, no class at all
         { "definition-actions", typeof(YamlCase) },
+        { "definition-triggers", typeof(YamlCase) },
+        { "definition-proxied-listing", typeof(YamlCase) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

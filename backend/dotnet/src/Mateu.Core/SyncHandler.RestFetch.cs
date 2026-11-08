@@ -30,9 +30,11 @@ internal sealed partial class SyncHandler
         // that id, resolved against the server's catalogue (Java's SeededYamlPage as a
         // RestSourceSupplier) — the only channel that injects ${secret.X} for such a page. A refused
         // action is not in the caller's copy (and GuardYamlAccess already answered 403).
-        var definitionSource = type is null && kind == "action"
+        // Its listings' rows and its selects' options likewise: what the LAYOUT declares, by the
+        // listing's / field's id — never a client-supplied url.
+        var definitionSource = type is null
                                && PersonalSpec(rq.Route) is { Shell: null } spec && string.IsNullOrEmpty(spec.ModelView)
-            ? YamlDeclaredActions.ResolvedSourceOf(spec.Actions, id)
+            ? YamlDeclaredActions.SourceFor(YamlDeclaredActions.SourcesOf(spec.Actions, spec.Layout), kind, id)
             : null;
         if (type is not null || definitionSource is not null)
         {
