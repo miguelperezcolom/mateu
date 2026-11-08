@@ -175,6 +175,12 @@ class DispatchMixin(MixinBase):
         # (mirrors Java's __restfetch__ reserved action).
         if rq.action_id == "__restfetch__":
             return self._rest_fetch_response(rq)
+        # 0d+. A data-authored shell's PROXIED sources (its pickers, inbox, palette search): the
+        # browser names the ROLE, never a url (Java's RestProxyCalls.appSourceCall).
+        if rq.action_id == "_appsource":
+            from .. import yaml_app_shell
+
+            return yaml_app_shell.app_source_response(self, rq)
 
         # 0d'. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
         # routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that
@@ -254,10 +260,43 @@ class DispatchMixin(MixinBase):
         yaml_spec = self.yaml_specs.load_spec_for(
             rq.route, self.mapper.authorized, locale_of(self.mapper)
         )
+        # A FRESH deep link (consumedRoute "_empty") to a route of a mount whose root is a
+        # `type: AppShell`: the SHELL answers, opening on that route — the page is its content load
+        # (Java's ActionInstanceCreator.wrapsInAppShell).
+        if not rq.action_id and not rq.server_side_type and rq.consumed_route == "_empty":
+            from .. import yaml_app_shell
+
+            mount, mount_home = yaml_app_shell.mount_of(self.routes, rq.route)
+            relative = normalize(rq.route)[len(mount):].strip("/") if mount else normalize(rq.route)
+            if relative and not _is_terminal_route(rq.route):
+                root = self.yaml_specs.load_spec_for(
+                    mount, self.mapper.authorized, locale_of(self.mapper)
+                )
+                if root is not None and isinstance(root.layout, yaml_app_shell.YamlAppShell):
+                    return self.fragment_response(
+                        "",
+                        yaml_app_shell.app_component(
+                            self.mapper, root.layout, mount, mount_home, home_route=relative
+                        ),
+                        rq,
+                        with_title_command=False,
+                    )
         if type_ is None and yaml_spec is not None:
             # A route with no view class → a YAML page. A bare layout renders as a static, unbound
             # page; a page that declares modelView: instantiates that logic class (state + actions)
             # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
+            from .. import yaml_app_shell
+
+            if isinstance(yaml_spec.layout, yaml_app_shell.YamlAppShell):
+                # A `type: AppShell` definition: the App of the mount, named by no class (Java's
+                # YamlAppLoader); it emits no window title of its own, as an @app class does not.
+                mount, mount_home = yaml_app_shell.mount_of(self.routes, rq.route)
+                return self.fragment_response(
+                    "",
+                    yaml_app_shell.app_component(self.mapper, yaml_spec.layout, mount, mount_home),
+                    rq,
+                    with_title_command=False,
+                )
             if not yaml_spec.model_view:
                 # The route's seeds (state:, fixed/default/path params) are the page's state: a
                 # bare layout has nowhere to hold them, so a seeded page is wrapped, as Java's

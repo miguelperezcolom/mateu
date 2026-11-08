@@ -254,6 +254,11 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     if kind == "Form":
         return _form(node, partials, chain)
+    if kind == "AppShell":
+        # a data-authored app shell (Java's YamlAppLoader): mapped to the App wire by the handler
+        from . import yaml_app_shell
+
+        return yaml_app_shell.parse(node, lambda w: _single(w, partials, chain))
     generic = _generic(kind, _record_defaults(kind, node), partials, chain)
     if generic is not None:
         return generic
@@ -624,15 +629,20 @@ def _source(raw: Any):
         return RestDataSource(ref=raw.strip(), value_path="", label_path="", method="")
     if not isinstance(raw, dict):
         return None
+    headers = raw.get("headers")
     return RestDataSource(
         ref=str(raw.get("ref") or "").strip(),
         url=str(raw.get("url") or ""),
         method=str(raw.get("method") or ""),
+        # a proxied source's headers never reach the client (the wire serializer drops them)
+        headers={str(k): str(v) for k, v in headers.items()} if isinstance(headers, dict) else {},
         body=str(raw.get("body") or ""),
         items_path=str(raw.get("itemsPath") or ""),
         value_path=str(raw.get("valuePath") or ""),
         label_path=str(raw.get("labelPath") or ""),
         proxy=bool(raw.get("proxy", False)),
+        # answered instead of the endpoint ONLY in sample mode (never on the wire otherwise)
+        sample=raw.get("sample"),
     )
 
 
