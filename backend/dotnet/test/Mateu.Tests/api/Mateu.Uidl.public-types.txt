@@ -418,6 +418,7 @@ Mateu.Uidl.UseRadioButtonsAttribute
 Mateu.Uidl.UserFacingException
 Mateu.Uidl.VersionAttribute
 Mateu.Uidl.VerticalLayout
+Mateu.Uidl.ViewToolbarButtonAttribute
 Mateu.Uidl.Welcome
 Mateu.Uidl.WelcomeBannerAttribute
 Mateu.Uidl.Wizard

@@ -68,6 +68,20 @@ public abstract class AutoEditableView<T> : EditableView<T, T> where T : class
     public override void Save(T editor) => Persist(editor);
 }
 
+/// <summary>A method of a <see cref="Crud{T}"/> shown as a button on the toolbar of its RECORD's view
+/// page (before Back to list / Edit), dispatched as <c>action-on-view-&lt;method&gt;</c>. A parameter
+/// typed with the entity receives the record shown (its stored values with the page state bound
+/// over them). An answer of nothing, or of the record, re-renders the view page in place; messages
+/// only, the record reloaded with them; anything else maps as any action result. An optional
+/// <see cref="ToolbarAttribute"/> on the same method sets its label/style. (C# analogue of Java's
+/// @ViewToolbarButton.)</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class ViewToolbarButtonAttribute : Attribute
+{
+    /// <summary>Whether the user confirms before it runs (Java's default: true).</summary>
+    public bool ConfirmationRequired { get; set; } = true;
+}
+
 /// <summary>What a <see cref="MasterDetailView"/> shows in the detail pane before a part is picked.
 /// (C# analogue of Java's NoSelection.)</summary>
 public enum NoSelection

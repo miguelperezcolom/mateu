@@ -93,6 +93,39 @@ internal sealed partial class ReflectionMapper
         };
     }
 
+    // ── [ViewToolbarButton] on a crud's record view ────────────────────────────
+
+    /// <summary>The prefix of a crud record view's own toolbar actions (Java's RecordToolbarActions.PREFIX).</summary>
+    internal const string ActionOnViewPrefix = "action-on-view-";
+
+    /// <summary>The crud's [ViewToolbarButton] methods visible to the caller, in declaration order.</summary>
+    internal List<MethodInfo> ViewToolbarMethods(Type crudType) =>
+        crudType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Where(m => !m.IsSpecialName && m.Find<ViewToolbarButtonAttribute>() is not null && Visible(m))
+            .OrderBy(m => m.MetadataToken)
+            .ToList();
+
+    /// <summary>The view page's [ViewToolbarButton] buttons (label: [Toolbar(label)] > [Label] >
+    /// the humanized name; style from [Toolbar(ButtonStyle)]) — Java's ViewToolbarBuilder.</summary>
+    internal List<ButtonDto> ViewToolbarButtons(Type crudType) =>
+        ViewToolbarMethods(crudType).Select(m =>
+        {
+            var toolbar = m.Find<ToolbarAttribute>();
+            var label = toolbar?.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
+            return new ButtonDto(T(label), ActionOnViewPrefix + Naming.CamelCase(m.Name))
+            {
+                ButtonStyle = string.IsNullOrWhiteSpace(toolbar?.ButtonStyle) || toolbar!.ButtonStyle == "none"
+                    ? null : toolbar.ButtonStyle,
+                Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
+            };
+        }).ToList();
+
+    /// <summary>Their actions, advertised with the attribute's confirmation (Java's CrudActionsBuilder).</summary>
+    internal List<ActionDto> ViewToolbarActions(Type crudType) =>
+        ViewToolbarMethods(crudType).Select(m => new ActionDto(ActionOnViewPrefix + Naming.CamelCase(m.Name),
+            ValidationRequired: false,
+            ConfirmationRequired: m.Find<ViewToolbarButtonAttribute>()!.ConfirmationRequired)).ToList();
+
     // ── Master-detail views ────────────────────────────────────────────────────
 
     /// <summary>The wire protocol of a master-detail view (Java's MasterDetailView constants).</summary>

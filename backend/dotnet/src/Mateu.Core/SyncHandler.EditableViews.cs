@@ -116,6 +116,54 @@ internal sealed partial class SyncHandler
             LookupLabels(model.GetType(), model, model), emitWindowTitle: !embedded);
     }
 
+    // ── [ViewToolbarButton] on a crud's record view ────────────────────────────
+
+    /// <summary>Runs a crud's [ViewToolbarButton] method on the record shown (its stored values with
+    /// the page state bound over them; an entity-typed parameter receives it). Nothing or the record
+    /// back → the view page re-rendered in place; messages only → the record RELOADED with them;
+    /// anything else maps as any action result. (Mirrors Java's ActionOnViewActionHandler.)</summary>
+    private UIIncrementDto ActionOnView(object crud, Type crudType, Type element, string? id, string baseRoute,
+        RunActionRqDto rq)
+    {
+        var name = rq.ActionId![ReflectionMapper.ActionOnViewPrefix.Length..];
+        var method = _mapper.ViewToolbarMethods(crudType).FirstOrDefault(m => Naming.CamelCase(m.Name) == name)
+                     ?? throw ActionGuard.NoSuchAction(rq.ActionId);
+        ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
+        // a DETACHED copy: an in-memory Get may hand back the stored instance itself, and the page
+        // state bound over it must not write into the store behind the method's back
+        var record = CopyOf(GetOrNew(crud, crudType, element, id), element);
+        BindState(record, rq.ComponentState);
+        if (id is not null) EntityIds.SetId(record, id);
+        var args = method.GetParameters()
+            .Select(p => p.ParameterType.IsInstanceOfType(record) ? record : null).ToArray();
+        object? result;
+        try
+        {
+            result = method.Invoke(crud, args);
+        }
+        catch (TargetInvocationException failure) when (failure.InnerException is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure.InnerException).Throw();
+            throw;
+        }
+        var route = id is null ? baseRoute : $"{baseRoute.TrimEnd('/')}/{id}";
+        var messages = result switch
+        {
+            Message m => [m],
+            IEnumerable<object> items when items.Any() && items.All(i => i is Message) => items.Cast<Message>().ToList(),
+            _ => (List<Message>?)null,
+        };
+        if (result is null || element.IsInstanceOfType(result) || messages is not null)
+        {
+            var shown = element.IsInstanceOfType(result) ? result!
+                : messages is not null ? GetOrNew(crud, crudType, element, id) // reloaded: the method acted on the store
+                : record;
+            var page = RenderEntity(crudType, element, shown, "view", route, rq);
+            return messages is null ? page : page with { Messages = [.. messages.Select(MessageOf)] };
+        }
+        return MapResult(result, rq);
+    }
+
     // ── Master-detail views ────────────────────────────────────────────────────
 
     private UIIncrementDto HandleMasterDetail(Type type, IMasterDetailView view, string baseRoute, RunActionRqDto rq)

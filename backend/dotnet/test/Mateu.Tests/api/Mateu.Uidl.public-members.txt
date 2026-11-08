@@ -1945,6 +1945,8 @@ Mateu.Uidl.VersionAttribute ctor()
 Mateu.Uidl.VerticalLayout ctor()
 Mateu.Uidl.VerticalLayout property System.Boolean Spacing { get;init; }
 Mateu.Uidl.VerticalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.ViewToolbarButtonAttribute ctor()
+Mateu.Uidl.ViewToolbarButtonAttribute property System.Boolean ConfirmationRequired { get;set; }
 Mateu.Uidl.Welcome ctor()
 Mateu.Uidl.Welcome method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.Welcome property Mateu.Uidl.HeroTone HeroTone { get; }

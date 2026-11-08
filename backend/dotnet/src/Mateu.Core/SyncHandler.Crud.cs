@@ -131,6 +131,9 @@ internal sealed partial class SyncHandler
                 _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
+            // a [ViewToolbarButton] of the record view page (Java's ActionOnViewActionHandler)
+            { } viewAction when viewAction.StartsWith(ReflectionMapper.ActionOnViewPrefix) =>
+                ActionOnView(crud, crudType, element, id ?? RowId(rq, element), baseRoute, rq),
             _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
