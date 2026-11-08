@@ -1,0 +1,24 @@
+id: event-bus
+area: behaviour
+group: communication
+title: Event bus — dispatchEvent and @SubscribeTo scopes
+covers: [behaviour:event-bus-scopes, behaviour:dispatch-event]
+description: |
+  Components talk through named events, never by reaching into each other. An emitter returns
+  `UICommand.dispatchEvent(name, payload)`; a subscriber declares `@SubscribeTo(event, action)` and
+  Mateu runs that action **on the subscriber**, with the payload as parameters. The scope picks
+  what is heard: `DOCUMENT` (default) the whole bus, `COMPONENT` only from an emitter named with
+  `@Emits(name)`, `SELF` only events bubbling up from inside the subscriber.
+
+  Try it: press **Palma: stock changed** — the page hears it (DOCUMENT), the Madrid listener does
+  not (COMPONENT, from `madrid`). Press **Madrid: stock changed** — both hear it. Press
+  **Madrid: inner ping** — *Heard from inside* changes (SELF: the warehouse island is inside the page).
+examples:
+  - title: Warehouses
+    java: io.mateu.explorer.examples.behaviour.eventbus.EventBusDemo
+code:
+  - {label: MadridWarehouse.java, path: src/main/java/io/mateu/explorer/examples/behaviour/eventbus/MadridWarehouse.java}
+  - {label: PalmaWarehouse.java, path: src/main/java/io/mateu/explorer/examples/behaviour/eventbus/PalmaWarehouse.java}
+  - {label: MadridListener.java, path: src/main/java/io/mateu/explorer/examples/behaviour/eventbus/MadridListener.java}
+  - {label: "C#", path: src/main/ports/behaviour/event-bus/EventBus.cs}
+  - {label: Python, path: src/main/ports/behaviour/event-bus/event_bus.py}

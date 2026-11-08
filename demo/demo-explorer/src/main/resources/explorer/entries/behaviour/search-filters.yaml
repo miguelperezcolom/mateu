@@ -1,0 +1,24 @@
+id: search-filters
+area: behaviour
+group: listings
+title: Search, filters, sorting & paging
+covers: [behaviour:search, behaviour:smart-filters, behaviour:sorting-paging]
+description: |
+  An `AutoCrud<Order>` over 50 rows. The listing gets a **smart search bar** for free: type words
+  and press Enter to search (every word must appear, any order), or open **Filter by** to add a
+  condition — each field brings the widget its type asks for: the `status` enum is a multi-select,
+  the `date` a from–to range, the `@RangeFilter` amount a min–max range. Applied conditions are
+  chips you remove with ✕. Sorting (click a header) and paging run on the server over the whole
+  result, and **all of it lives in the URL**. The store implements only `findAll`/`findById`/`save`/
+  `deleteAllById` — the filtering is `CrudStore.find`'s in-memory default (a database store overrides it).
+
+  Try it: open the CRUD, type `palma` and press Enter, add *Status* = Open, sort by *Amount* — then
+  reload the page: the URL keeps the search, the filter and the sort.
+examples:
+  - title: Orders
+    yaml: specs/ui/explorer/behaviour/search-filters/open.yaml
+pages:
+  - {route: x/behaviour/search-filters, viewModel: io.mateu.explorer.examples.behaviour.searchfilters.OrdersCrud}
+code:
+  - {label: Order.java, path: src/main/java/io/mateu/explorer/examples/behaviour/listingdata/Order.java}
+  - {label: Orders.java (store), path: src/main/java/io/mateu/explorer/examples/behaviour/listingdata/Orders.java}

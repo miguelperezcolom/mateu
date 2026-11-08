@@ -1,0 +1,19 @@
+id: master-detail
+area: behaviour
+group: communication
+title: Row selection driving a self-reloading island
+covers: [behaviour:row-selection, behaviour:self-reloading-islands]
+description: |
+  `@OnRowSelected("memberSelected")` on a grid field runs that method with the **clicked row**
+  injected, typed — on a read-only grid too. The method emits `member-selected`; the detail is an
+  independent island (`MemberCard`, its own server-side component) subscribed to it, which loads
+  the member and returns its own new state: **only the island repaints**, the page and the grid do
+  not. `shortcut = "ctrl+shift"` selects rows from the keyboard.
+
+  Try it: click **Grace Hopper** — the card shows her role and bio, and its *rendered at* time
+  changes; press Ctrl+Shift+5 — the fifth member is selected.
+examples:
+  - title: Team
+    java: io.mateu.explorer.examples.behaviour.masterdetail.TeamPage
+code:
+  - {label: MemberCard.java, path: src/main/java/io/mateu/explorer/examples/behaviour/masterdetail/MemberCard.java}

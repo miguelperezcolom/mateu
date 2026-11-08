@@ -1,0 +1,22 @@
+id: rest-listing
+area: behaviour
+group: listings
+title: A listing over a REST source
+covers: [behaviour:rest-listing]
+description: |
+  A YAML `Listing` with a `rowsSource`: the browser calls the endpoint directly — no Java behind
+  the screen. The source is named (`ref: explorer-orders`) and declared once in the REST source
+  catalogue — here by a `RestSourceCatalogSupplier` bean, the code twin of a `sources.yaml` entry.
+  Its URL is a template: the search text, the filters, the sort and the page are interpolated into
+  it, so the **server** pages and sorts over all the rows; `itemsPath` and `totalPath` say where
+  the rows and the total are in the answer. The endpoint is a plain Spring controller
+  (`OrdersApi`); it could be anybody's API.
+
+  Try it: search `turing`, then filter *City* = `Sevilla`; clear both, sort by *Amount* and move to
+  page 2 — each step is one request to `/explorer-api/orders` (see the browser's network tab).
+examples:
+  - title: Orders over REST
+    yaml: specs/ui/explorer/behaviour/rest-listing/orders.yaml
+code:
+  - {label: OrdersSource.java, path: src/main/java/io/mateu/explorer/examples/behaviour/restlisting/OrdersSource.java}
+  - {label: OrdersApi.java, path: src/main/java/io/mateu/explorer/examples/behaviour/restlisting/OrdersApi.java}

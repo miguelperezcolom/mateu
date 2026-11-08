@@ -1,0 +1,19 @@
+# A Listing whose rows come from a REST endpoint (OrdersApi), named in the source catalogue
+# (OrdersSource): the browser calls it directly, and the search text, the City filter, the sort and
+# the page travel in the source's URL template — so the SERVER answers over all 50 rows.
+content:
+  - type: Listing
+    title: Orders over REST
+    style: "width: 100%;"
+    pageSize: 10
+    searchable: true
+    filters:
+      - {type: FormField, id: city, label: City}
+    rowsSource:
+      ref: explorer-orders
+    columns:
+      - {type: GridColumn, id: id, label: Order}
+      - {type: GridColumn, id: customer, label: Customer, sortable: true}
+      - {type: GridColumn, id: city, label: City}
+      - {type: GridColumn, id: date, label: Date, sortable: true}
+      - {type: GridColumn, id: amount, label: Amount, sortable: true}

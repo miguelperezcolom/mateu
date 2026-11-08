@@ -1,0 +1,16 @@
+id: column-widths
+area: behaviour
+group: listings
+title: Column widths
+covers: [behaviour:column-widths]
+description: |
+  `@ColumnWidth("6rem")` on a row field fixes its column's width; `@ColumnWidth("auto")` sizes the
+  column to its content — header and widest cell — so it never truncates, whatever the density.
+  A column without it shares the space left. Cells always ellipsis-truncate, so the width is the
+  lever against cut-off values.
+
+  Try it: the *Id* column is a narrow 6rem, *Carrier* and *Tracking code* show every value in full,
+  and *Destination* takes the rest; narrow the window — the codes stay whole.
+examples:
+  - title: Shipments
+    java: io.mateu.explorer.examples.behaviour.columnwidths.Shipments

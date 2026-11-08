@@ -1,0 +1,23 @@
+id: grid-layouts
+area: behaviour
+group: listings
+title: Listing layouts
+covers: [behaviour:grid-layouts]
+description: |
+  `gridLayout()` says how a listing draws its rows: `table` (also what an undeclared listing is),
+  `list`, `cards`, `masterDetail` (a list beside the selected row's detail) or `tree` (rows with a
+  self-referential `children` list). The same eight planets, three ways (the table is everywhere
+  else in the Explorer) — plus a tree. `@Priority` tells the compact layouts which columns matter:
+  the `identifier` one titles a list item, priorities 1–2 make its caption.
+
+  Try it: in *Master / detail* click **Jupiter** — its fields (95 moons) show beside the list; in
+  *Tree* collapse **Furniture** with its chevron and open it again.
+examples:
+  - title: Cards
+    java: io.mateu.explorer.examples.behaviour.gridlayouts.Planets$AsCards
+  - title: List
+    java: io.mateu.explorer.examples.behaviour.gridlayouts.Planets$AsList
+  - title: Master / detail
+    java: io.mateu.explorer.examples.behaviour.gridlayouts.Planets$AsMasterDetail
+  - title: Tree
+    java: io.mateu.explorer.examples.behaviour.gridlayouts.Catalogue
