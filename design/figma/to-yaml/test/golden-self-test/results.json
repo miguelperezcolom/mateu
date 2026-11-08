@@ -2474,12 +2474,12 @@
  },
  {
   "name": "Mateu/Shell/App",
-  "cell": "Mateu/Shell/App [variant=HAMBURGUER_MENU]",
+  "cell": "Mateu/Shell/App [variant=HAMBURGER_MENU]",
   "status": "ok",
   "warnings": [],
   "value": {
    "type": "AppShell",
-   "variant": "HAMBURGUER_MENU"
+   "variant": "HAMBURGER_MENU"
   }
  },
  {
