@@ -576,6 +576,10 @@ export function idToPath(id: string | null | undefined): NodePath | null {
  */
 export function decorateForPreview(doc: PageDoc, images: readonly ProjectImage[] = []): string {
     const clone = structuredClone(doc.layout)
+    // A bare page's root also carries the PAGE's `actions:`/`triggers:` (a Form template that saves
+    // and cancels). The canvas paints the layout and runs nothing: with them the page would come
+    // back wrapped in a behaviour component the canvas does not draw, and paint blank.
+    if (doc.bare) { delete clone.actions; delete clone.triggers }
     stamp(clone, [])
     // A project image (`/img/hero.jpg`) is served by the app, not by whatever renders the canvas:
     // show it from where the host serves it. The file keeps the authored URL.

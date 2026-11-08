@@ -19,8 +19,7 @@ Figma REST API, converts every screen frame, writes the pages and registers each
 - **Node.js 20 or newer.** The conversion is the same converter the repository tests
   (`design/figma/to-yaml`), shipped inside the plugin and run with your `node` — Maven and the IDEs
   never re-implement it. Node is looked for on the `PATH` and in the usual install folders; point at
-  another one with `-Dfigma.node=…` (Maven), the IDE's Node.js interpreter (IntelliJ, when the
-  JavaScript plugin is installed) or the `mateu.nodePath` setting (VS Code).
+  another one with `-Dfigma.node=…` (Maven) or the `mateu.nodePath` setting (VS Code).
 - **A Figma personal access token.** In Figma: *Settings › Security › Personal access tokens*,
   scope **File content: Read only** — that is all the import needs.
 

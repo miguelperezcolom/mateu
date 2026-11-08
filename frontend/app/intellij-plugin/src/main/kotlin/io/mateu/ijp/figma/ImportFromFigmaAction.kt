@@ -12,8 +12,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.extensions.PluginId
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -133,21 +131,12 @@ class ImportFromFigmaAction : AnAction("Import from Figma…", "Write specs/ui Y
         return typed
     }
 
-    /** The IDE's configured node (JavaScript plugin, when installed), then PATH and the usual folders. */
-    private fun nodeCandidates(project: Project): List<String> {
-        val fromPath = FigmaImport.nodeCandidates(null, System.getenv(), System.getProperty("user.home"), SystemInfo.isWindows)
-        return listOfNotNull(ideNode(project)) + fromPath
-    }
-
-    /** Reflective, so the plugin keeps working without the (Ultimate-only) JavaScript plugin. */
-    private fun ideNode(project: Project): String? = runCatching {
-        val loader = PluginManagerCore.getPlugin(PluginId.getId("JavaScript"))?.pluginClassLoader ?: return null
-        val manager = Class.forName("com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager", true, loader)
-        val instance = manager.getMethod("getInstance", Project::class.java).invoke(null, project)
-        val interpreter = manager.getMethod("getInterpreter").invoke(instance) ?: return null
-        interpreter.javaClass.methods.firstOrNull { it.name == "getInterpreterSystemDependentPath" && it.parameterCount == 0 }
-            ?.invoke(interpreter) as? String
-    }.getOrNull()
+    /** Node on the PATH and in the usual install folders. (The JavaScript plugin's configured
+     *  interpreter is not asked: the plugin manager accessor that finds it is internal API, which
+     *  the Marketplace verifier refuses.) */
+    @Suppress("UNUSED_PARAMETER")
+    private fun nodeCandidates(project: Project): List<String> =
+        FigmaImport.nodeCandidates(null, System.getenv(), System.getProperty("user.home"), SystemInfo.isWindows)
 
     private fun finish(project: Project, out: String, report: FigmaImport.Report) {
         LocalFileSystem.getInstance().refreshAndFindFileByPath(out)?.let { VfsUtil.markDirtyAndRefresh(false, true, true, it) }
