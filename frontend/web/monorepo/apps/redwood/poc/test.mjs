@@ -20,7 +20,7 @@ import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWir
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, runMateuActionSse, callMateu, loadLookups } from './transport.mjs'
+import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, runMateuActionSse, callMateu, loadLookups, isForeignBase } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
   askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
@@ -1882,6 +1882,29 @@ atest('un pod caído no dice nada de la conexión: no hay banda de "sin conexió
     assert.equal(menu[0].unavailable, true)
     assert.equal(connectivity.isOnline(), true, 'un pod que no contesta marcaba toda la app sin conexión')
   } finally { globalThis.fetch = original; connectivity.reset() }
+})
+
+atest('a micro frontend on another origin that is down does not flip the connectivity; the own backend does', async () => {
+  const original = globalThis.fetch
+  const hadLocation = 'location' in globalThis
+  const previousLocation = globalThis.location
+  globalThis.location = { origin: 'http://localhost:9005', pathname: '/' }
+  connectivity.reset()
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    assert.equal(isForeignBase('http://127.0.0.1:59999/remote-down'), true)
+    assert.equal(isForeignBase('http://localhost:9005/fed'), false)
+    assert.equal(isForeignBase('/fed'), false)
+    await callMateu('http://127.0.0.1:59999/remote-down', { route: '', actionId: '' }, { view: null }).catch(() => undefined)
+    assert.equal(connectivity.isOnline(), true, 'a down island marked the whole page offline')
+    await callMateu('http://localhost:9005', { route: '/x', actionId: 'save' }, { view: null }).catch(() => undefined)
+    assert.equal(connectivity.isOnline(), false)
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+    if (hadLocation) globalThis.location = previousLocation
+    else delete globalThis.location
+  }
 })
 
 atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
