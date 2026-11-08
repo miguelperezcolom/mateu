@@ -115,7 +115,7 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   security fixes for **12 months** after 4.0; betas fixed only in the next beta. SECURITY.md's table was
   aligned to it. Platform matrix read from the build: Java 21+ (CI 21), Boot 4.x (4.1), Quarkus 3.x (3.38),
   Micronaut 4.x (4.10), Helidon MP 4.x (4.5), net8.0+net10.0, Python ≥ 3.11 (CI 3.11–3.13 + lowest deps),
-  Expo SDK 57 / RN 0.86, IntelliJ 252–253.*, VS Code ≥ 1.85, Node 24 only to build from source.
+  Expo SDK 57 / RN 0.86, IntelliJ 252+ (verified 252–263), VS Code ≥ 1.85, Node 24 only to build from source.
 - **SBOMs**: `scripts/release-sboms.sh <tag> <dir>` (CycloneDX 1.6 JSON: maven-plugin 2.9.1 aggregate over
   backend/ minus integration-tests/coverage, test scope out; cyclonedx-npm 6.0.1 from the lockfile for
   workspaces mateu-vaadin + mateu, prod only; cyclonedx-bom 7.5.0 over a venv holding the wheel; dotnet

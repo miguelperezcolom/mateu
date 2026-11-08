@@ -54,9 +54,11 @@ repositories {
 // variants (pure local mode). Override with -Pmateu.idePath=/path to reuse a LOCAL install instead
 // (faster, no download — but Ultimate boots in a remote-dev-aware mode).
 val idePath = findProperty("mateu.idePath") as String?
-// 2025.2.6.3 (not 2025.2.5): the 2025.2.5 macOS-aarch64 distribution fails bundled-plugin resolution
-// ("Could not find bundled plugin with ID: 'com.intellij.java'") — this newer 252.x patch resolves it.
-val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.6.3"
+// 2025.2.6.4 (never 2025.2.5: its macOS-aarch64 distribution fails bundled-plugin resolution,
+// "Could not find bundled plugin with ID: 'com.intellij.java'"). It is also the IntelliJ IDEA
+// Community the desktop app (buildInstaller) repackages. JetBrains published no Community build after
+// 2025.3 (2026.x is the unified IntelliJ IDEA distribution), so 252 stays the base until 3.1 decides.
+val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.6.4"
 
 dependencies {
     intellijPlatform {
@@ -90,16 +92,24 @@ intellijPlatform {
         name = "Mateu"
         ideaVersion {
             sinceBuild = "252"
-            // Capped to the platform lines it is verified against (pluginVerification below); raise it
-            // after verifyPlugin passes on the next major — an open range ships untested combinations.
-            untilBuild = "253.*"
+            // OPEN-ENDED: a cap (it was "253.*") made the Marketplace mark every release incompatible
+            // with each new IDE line the day it shipped (2026.1/.2/.3 = builds 261–263). The plugin uses
+            // no internal API, and verifyPlugin (below, run by CI on every PR) checks the floor and every
+            // line since — add the next line to that list when it ships.
+            untilBuild = provider { null }
         }
     }
     // `./gradlew verifyPlugin` runs the JetBrains Plugin Verifier (compatibility, internal/deprecated
-    // API usage, descriptor problems) against the IDEs the Marketplace recommends for this range.
+    // API usage, descriptor problems). With no untilBuild, recommended() would pick only the floor and
+    // the newest release, so the IDEs are named: the sinceBuild floor (Community 252, also the desktop
+    // app's base) and each IntelliJ IDEA line since (2026.x ships as one unified distribution).
     pluginVerification {
         ides {
-            recommended()
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaCommunity, ideVersion)
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaUltimate, "2025.3.6.2")
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdea, "2026.1.5.1")
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdea, "2026.2.4")
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdea, "2026.3")
         }
     }
     // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI, on a `plugins-v*` release).
