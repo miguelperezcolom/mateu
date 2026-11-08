@@ -1,6 +1,7 @@
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
 import { markReadVars, runShellSource, shellSourcesOf, sourcedNotificationsOf } from './globalSearch.mjs'
+import { adoptServerList, markReadLocally, sessionIdsOf, inboxModelOf, withServerList, createInbox, setInboxProviderFactory } from './inbox.mjs'
 // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
 //
 // Inbox (the App's NotificationsSupplier): the header bell with the unread count
@@ -22,32 +23,12 @@ export function notificationListOf(increment) {
   return null
 }
 
-let notificationsProviderFactory = null
-export function setNotificationsProviderFactory(f) { notificationsProviderFactory = f }
+export function setNotificationsProviderFactory(f) { setInboxProviderFactory(f) }
 
-/** The bell's model: unread ones (and their badge), and the entries ready for the list. */
+/** The bell's model for a list (inbox.mjs inboxModelOf): unread ones (and their badge), the entries
+ *  ready for the panel, grouped by category, with the filters. */
 export function notificationsOf(list) {
-  const items = (list || []).map((n, i) => ({
-    _rowNumber: i,
-    id: String(n.id),
-    title: n.title || '',
-    text: n.text || '',
-    when: n.when || '',
-    route: n.route || '',
-    unread: n.unread !== false,
-    titleClass: 'oj-typography-body-md' + (n.unread !== false ? ' oj-typography-bold' : ''),
-  }))
-  const unread = items.filter((n) => n.unread).length
-  return {
-    enabled: true,
-    unread,
-    badge: unread > 9 ? '9+' : String(unread),
-    hasUnread: unread > 0,
-    label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
-    empty: items.length === 0,
-    items,
-    provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
-  }
+  return inboxModelOf(withServerList(createInbox(), list))
 }
 
 // the inbox last listed from a shell SOURCE: "mark as read" acts on it locally (a source may have
@@ -69,7 +50,7 @@ export async function fetchNotifications(base, serverSideType, appState, ids, op
     }
     if (!ids) {
       try { await list() } catch (e) { /* inbox unavailable: keep whatever list we had */ }
-      return notificationsOf(sourcedInbox)
+      return adoptServerList(sourcedInbox)
     }
     const all = ids === 'all'
     const which = all ? sourcedInbox.filter((n) => n.unread).map((n) => n.id) : [].concat(ids).map(String)
@@ -83,32 +64,57 @@ export async function fetchNotifications(base, serverSideType, appState, ids, op
         sourcedInbox = sourcedInbox.map((n) => (local.some((l) => l.id === n.id && !l.unread) ? { ...n, unread: false } : n))
       } catch (e) { /* the server keeps them unread; the next listing says so */ }
     }
-    return notificationsOf(sourcedInbox)
+    return adoptServerList(sourcedInbox)
   }
+  // the session's own entries (an `inbox` message…) are read here: the server does not know them
+  const sessionIds = ids ? sessionIdsOf(ids) : []
+  if (sessionIds.length) markReadLocally(sessionIds)
+  const serverIds = ids === 'all' ? 'all' : ids ? [].concat(ids).map(String).filter((id) => !sessionIds.includes(id)) : null
+  if (ids && serverIds !== 'all' && !serverIds.length) return markReadLocally([])
   const increment = await callMateu(base, {
     route: '',
-    actionId: ids ? '_notifications-read' : '_notifications-list',
+    actionId: serverIds ? '_notifications-read' : '_notifications-list',
     componentState: {},
-    parameters: ids ? { ids } : {},
+    parameters: serverIds ? { ids: serverIds } : {},
     serverSideType: serverSideType || undefined,
     appState: appState || {},
   })
-  return notificationsOf(notificationListOf(increment) || [])
+  const listed = notificationListOf(increment)
+  return listed ? adoptServerList(listed) : markReadLocally([])
 }
 
-// ── toasts with «Undo» ─────────────────────────────────────────────────────────────────────────
+// ── toasts with actions («Undo», «Open»…), sticky ones, deduplicated ones ───────────────────────
 let undoSink = null
 export function setUndoSink(fn) { undoSink = typeof fn === 'function' ? fn : null }
+let toastNavigateSink = null
+/** Where a toast action with a `route` navigates. */
+export function setToastNavigateSink(fn) { toastNavigateSink = typeof fn === 'function' ? fn : null }
 
-/** Separates from the toasts those that can be undone (in place: the chains read the same list). */
+/** A toast that needs JET's oj-message (which can hold buttons and stay): it offers actions, it is
+ *  sticky, or it carries a key (the same key replaces the one on screen). An error or a warning
+ *  with nothing to act on goes to the shell's message band, which already stays until closed. */
+export function isActionToast(t) {
+  if (!t || t.banner) return false
+  if ((t.actions && t.actions.length) || t.undoActionId) return true
+  if (t.variant === 'error' || t.variant === 'warning') return false
+  return !!t.key || t.persistence === 'sticky'
+}
+
+/** Separates from the toasts those that need oj-message (in place: the chains read the same list). */
 export function takeUndoToasts(effects) {
   if (!effects || !Array.isArray(effects.toasts)) return []
-  const undo = effects.toasts.filter((t) => t && t.undoActionId)
+  const undo = effects.toasts.filter(isActionToast)
   if (undo.length) {
-    const rest = effects.toasts.filter((t) => !(t && t.undoActionId))
+    const rest = effects.toasts.filter((t) => !isActionToast(t))
     effects.toasts.splice(0, effects.toasts.length, ...rest)
   }
   return undo
+}
+export const takeActionToasts = takeUndoToasts
+
+/** The toasts with persistence `inbox`: they also land in the session's inbox (inbox.mjs). */
+export function inboxToastsOf(effects) {
+  return ((effects && effects.toasts) || []).filter((t) => t && t.persistence === 'inbox')
 }
 
 /** An error or warning Message is NOT a toast in Redwood: oj-sp-messages-toast only supports
@@ -125,15 +131,23 @@ export function bannerNotificationOf(toast) {
   return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
 }
 
-/** The oj-message message object for a toast with undo. */
+/** The oj-message message object for a toast with actions. */
 export function undoMessageOf(toast) {
+  const sticky = toast.variant === 'error' || toast.persistence === 'sticky'
   return {
     severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
-    summary: toast.text || '',
-    // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12)
-    autoTimeout: toast.variant === 'error' ? 'off' : 10000,
+    summary: toast.title || toast.text || '',
+    ...(toast.title && toast.text ? { detail: toast.text } : {}),
+    // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12); so does a sticky one
+    autoTimeout: sticky ? 'off' : (toast.duration > 0 ? toast.duration : 10000),
     closeAffordance: 'defaults',
   }
+}
+
+/** The actions a toast offers (its `actions`, else its legacy undo). */
+export function toastActionsOf(toast) {
+  if (toast.actions && toast.actions.length) return toast.actions
+  return toast.undoActionId ? [{ label: toast.undoLabel || '', actionId: toast.undoActionId, parameters: toast.undoParameters || {}, route: '', style: 'undo' }] : []
 }
 
 export function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? document : null) {
@@ -150,20 +164,38 @@ export function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? d
     doc.body.appendChild(wrap)
   }
   for (const toast of toasts) {
+    // the same key replaces the message on screen instead of stacking another one
+    if (toast.key) {
+      for (const old of host.querySelectorAll('oj-message')) {
+        if (old.getAttribute('data-key') === toast.key) old.remove()
+      }
+    }
     const msg = doc.createElement('oj-message')
+    if (toast.key) msg.setAttribute('data-key', toast.key)
     msg.message = undoMessageOf(toast)
-    const detail = doc.createElement('div')
-    detail.setAttribute('slot', 'detail')
-    const button = doc.createElement('oj-button')
-    button.setAttribute('chroming', 'borderless')
-    button.className = 'mateu-undo-button'
-    button.textContent = toast.undoLabel || chromeText('undo')
-    button.addEventListener('ojAction', () => {
-      if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
-      if (typeof msg.close === 'function') msg.close()
-    })
-    detail.appendChild(button)
-    msg.appendChild(detail)
+    const actions = toastActionsOf(toast)
+    if (actions.length) {
+      const detail = doc.createElement('div')
+      detail.setAttribute('slot', 'detail')
+      if (toast.title && toast.text) {
+        const text = doc.createElement('div')
+        text.className = 'oj-typography-body-sm'
+        text.textContent = toast.text
+        detail.appendChild(text)
+      }
+      for (const action of actions) {
+        const button = doc.createElement('oj-button')
+        button.setAttribute('chroming', 'borderless')
+        button.className = action.style === 'undo' ? 'mateu-undo-button' : 'mateu-toast-action'
+        button.textContent = action.label || (action.style === 'undo' ? chromeText('undo') : action.actionId || action.route)
+        button.addEventListener('ojAction', () => {
+          if (action.route) { if (toastNavigateSink) toastNavigateSink(action.route) } else if (undoSink) undoSink(action.actionId, action.parameters || {}, {})
+          if (typeof msg.close === 'function') msg.close()
+        })
+        detail.appendChild(button)
+      }
+      msg.appendChild(detail)
+    }
     // closed (by the user or by time), out of the DOM
     msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
     host.appendChild(msg)

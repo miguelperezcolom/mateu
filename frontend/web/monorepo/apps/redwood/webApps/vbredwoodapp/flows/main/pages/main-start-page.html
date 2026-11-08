@@ -2665,17 +2665,9 @@
   </div>
 </oj-dialog>
 
-<!-- Progress dialog for LongTasks (SSE): the chains' watcher (runMateuAction /
-     runMateuIslandAction) opens/updates/closes it as the increments arrive -->
-<oj-dialog id="mateuProgressDialog" cancel-behavior="none" drag-affordance="none">
-  <div slot="header">
-    <span class="oj-dialog-title"><oj-bind-text value="[[ $variables.mateuProgressTitle ]]"></oj-bind-text></span>
-  </div>
-  <div slot="body" style="min-width: 22rem;">
-    <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $variables.mateuProgressText ]]"></oj-bind-text></div>
-    <oj-c-progress-bar style="width: 100%;" value="[[ $variables.mateuProgressValue ]]" max="100"></oj-c-progress-bar>
-  </div>
-</oj-dialog>
+<!-- LongTask progress (SSE): no dialog here any more — the bridge's task center (poc/tasks.mjs)
+     paints the blocking task's oj-dialog and the docked task list, document-wide, so a task outlives
+     the screen that started it -->
 
 <!-- ROW EDITOR of a form list with @DetailFormCustomisation(position = modal):
      the table's "+" or Edit opens the row's form here (bridge.rowEditorOf).

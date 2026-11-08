@@ -167,6 +167,20 @@ public class RunActionUseCase {
     if (APP_SOURCE_ACTION.equals(command.actionId())) {
       return guarded(command, () -> handleAppSource(command));
     }
+    if (io.mateu.core.application.progress.ProgressTasks.CANCEL_ACTION.equals(command.actionId())) {
+      // the user cancels a running task (the renderer's Cancel): no instance to resolve, and only
+      // the caller's own task can be stopped
+      var parameters =
+          command.httpRequest() != null && command.httpRequest().runActionRq() != null
+              ? command.httpRequest().runActionRq().parameters()
+              : null;
+      var taskId = parameters != null ? parameters.get("taskId") : null;
+      return guarded(
+          command,
+          () ->
+              io.mateu.core.application.progress.ProgressTasks.cancel(
+                  taskId != null ? String.valueOf(taskId) : null, command.httpRequest()));
+    }
     return (resolveInstance(command)
             .flatMapMany(
                 instance ->
@@ -245,7 +259,13 @@ public class RunActionUseCase {
                             command)))
         // an embedded micro frontend (MicroFrontend.chrome) is a block of another page: whatever
         // produced them, the window's commands (title, history, favicon) are not its to send
-        .map(increment -> EmbeddedWindowCommands.strip(increment, command.httpRequest()));
+        .map(increment -> EmbeddedWindowCommands.strip(increment, command.httpRequest()))
+        // a task (LongTask) the stream reports is registered while it runs, so its user can cancel
+        // it, and always ends with a terminal Progress (failed / cancelled when it did not finish)
+        .transform(
+            stream ->
+                io.mateu.core.application.progress.ProgressTasks.track(
+                    stream, command.httpRequest()));
   }
 
   /**

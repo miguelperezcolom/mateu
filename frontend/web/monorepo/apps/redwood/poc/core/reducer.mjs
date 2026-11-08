@@ -208,12 +208,26 @@ export function reduceContexts(reg, increment, opts = {}) {
     headerValues: [], // UICommand.updateHeaderValue: [{ id, value }] (appExtras.mjs)
   }
 
-  for (const m of increment.messages || [])
+  for (const m of increment.messages || []) {
+    // what the message offers: its `actions` (Undo is one of them, style `undo`); an older server
+    // sends only the undo* fields — the same action
+    const actions = (Array.isArray(m.actions) ? m.actions : [])
+      .filter((a) => a && (a.actionId || a.route))
+      .map((a) => ({ label: a.label || '', actionId: a.actionId || '', parameters: a.parameters || {}, route: a.route || '', style: a.style || '' }))
+    if (!actions.length && m.undoActionId) actions.push({ label: m.undoLabel || '', actionId: m.undoActionId, parameters: m.undoParameters || {}, route: '', style: 'undo' })
+    const undo = actions.find((a) => a.style === 'undo' && a.actionId)
     effects.toasts.push({
       text: m.text || m.title, variant: m.variant || 'info',
+      ...(m.title && m.text ? { title: m.title } : {}),
+      // toast | sticky | inbox (absent = a toast, or sticky when the server says duration 0)
+      ...(m.persistence ? { persistence: m.persistence } : {}),
+      ...(m.key ? { key: String(m.key) } : {}),
+      ...(actions.length && m.duration ? { duration: m.duration } : {}),
+      ...(actions.length ? { actions } : {}),
       // Message.undoable: the toast carries its «Undo» (notify.mjs paints it with oj-message)
-      ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
+      ...(undo ? { undoActionId: undo.actionId, undoLabel: undo.label || m.undoLabel || 'Undo', undoParameters: undo.parameters || {} } : {}),
     })
+  }
 
   // PageBanner(s) an ACTION returned (Vaadin draws them under the page header): they were left in
   // effects.banners and nothing drew them. Each goes to the shell's message band as a toast marked

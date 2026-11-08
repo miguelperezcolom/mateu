@@ -163,6 +163,9 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
             }
             notification.notify(project)
         }
+        // Backend messages with their persistence/actions/key, long-running tasks as platform
+        // tasks, and the notification inbox in the Notifications tool window.
+        MateuPlatformNotices.install(project, s)
 
         val ctx = AppContext(s)
         // Version skew (io.mateu.ijp.api.BuildSkew): the backend was redeployed, or a refusal came

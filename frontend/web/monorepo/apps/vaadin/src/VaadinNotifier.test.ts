@@ -113,6 +113,27 @@ describe('vaadinNotifier', () => {
         expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 3 }, serverNamed: true }])
     })
 
+    it('a message with several actions draws one button per action (they replace the legacy undo)', () => {
+        const run = vi.fn()
+        vaadinNotifier.show({ text: 'Imported', undoActionId: 'old', title: 'Import',
+            actions: [{ label: 'Open report', run }, { label: 'Undo', run: () => {} }] } as never, document.body)
+        const { n, root } = drawn()
+        expect([...root.querySelectorAll('button')].map(b => b.textContent)).toEqual(['Open report', 'Undo'])
+        expect(root.querySelector('strong')!.textContent).toBe('Import')
+        root.querySelector('button')!.click()
+        expect(run).toHaveBeenCalledTimes(1)
+        expect(n.opened).toBe(false)
+        expect(announce).toHaveBeenCalledWith('Import. Imported', { politeness: 'polite' })
+    })
+
+    it('a sticky message stays until closed; one with the same key replaces the toast on screen', () => {
+        vaadinNotifier.show({ text: 'Syncing…', persistence: 'sticky', key: 'sync' } as never, document.body)
+        const first = drawn().n
+        expect(first.duration).toBe(0)
+        vaadinNotifier.show({ text: 'Synced', key: 'sync', duration: 3000 } as never, document.body)
+        expect(first.opened).toBe(false)
+    })
+
     it('closing the toast removes it from the document', () => {
         vaadinNotifier.show({ text: 'x', onAction: () => {} } as never, document.body)
         const { n } = drawn()

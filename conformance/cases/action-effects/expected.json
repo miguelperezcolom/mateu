@@ -5,12 +5,14 @@
   } ],
   "messages" : [ {
     "duration" : 4000,
+    "persistence" : "toast",
     "position" : "middle",
     "text" : "Saved",
     "title" : "Done",
     "variant" : "success"
   }, {
     "duration" : 0,
+    "persistence" : "sticky",
     "position" : "middle",
     "text" : "Could not notify the warehouse",
     "title" : "Warehouse",

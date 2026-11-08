@@ -107,18 +107,6 @@
       },
       "description": "selectObject del header-general-overview (el DataProvider va DENTRO del objeto)"
     },
-    "mateuProgressTitle": {
-      "type": "string",
-      "defaultValue": ""
-    },
-    "mateuProgressText": {
-      "type": "string",
-      "defaultValue": ""
-    },
-    "mateuProgressValue": {
-      "type": "number",
-      "defaultValue": 0
-    },
     "mateuModalOpen": {
       "type": "boolean",
       "defaultValue": false

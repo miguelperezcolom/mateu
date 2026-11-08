@@ -1992,3 +1992,27 @@ re-projects the foldout) and a navigation starts over.
 
 Tests: `test-pms.mjs` (state rules), `test-dom.mjs` (strip + unfold through `selectedPanelChanged`).
 Evidence: `poc/shots/foldout-open-false-{before,folded,unfolded}.png` (demo-vb `/booking`, 1440×900).
+
+## Progress and notifications as patterns (2026-11-08)
+
+Spec: `design/progress-and-notifications.md`. A `LongTask` no longer streams a server-built Dialog: it
+streams `Progress` commands (the whole task state each time), and `poc/tasks.mjs` keeps a TASK CENTER
+(tasks by `taskId`, several at once). `runMateuActionSse` feeds it every Progress as it arrives and takes
+them out of the increment; once a stream has reported a task a navigation no longer cuts it — the
+progress keeps reaching the center, an `inbox` message lands in the inbox, the call ends stale. Painted
+outside Knockout (`data-oj-binding-provider="none"`): a blocking task → `oj-dialog` + `oj-c-progress-bar`
+(-1 = indeterminate), "12 of 300", elapsed, Background / Cancel, the outcome with its result actions /
+Retry; everything else → the docked list (bottom end) with the running count. Cancel = `_progress-cancel
+{taskId}`; Retry / an actionId result action = the task's action again (the content page while it is the
+same screen, else straight to the backend); a route = in-app navigation. `#mateuProgressDialog`, the
+`mateuProgress*` page variables, `longTaskWatcher` and the `fo-sse-scan-stream` fixture are gone
+(new fixture `progress-scan-stream.json`).
+
+Messages: the reducer reads `actions` (an older server's undo* = one action, style `undo`),
+`persistence` and `key`; a toast with actions, sticky or keyed goes to JET's `oj-message` (one button
+per action, same key replaces), an `inbox` one also lands in the inbox. The inbox (`poc/inbox.mjs`) is
+the server list ∪ the session's entries; the bell popup's body is painted by the bridge
+(`#mateuBellPanel`): filters unread / all / resolved, category headings, entry actions
+(`_notifications-act`), dismiss (`_notifications-dismiss`), detail (`_notifications-open`, painted by
+the content page through `application:mateuChatPreview`) or route; `NotificationsChanged` from the
+`_live-updates` stream upserts / removes / refetches. Tests: `test-progress.mjs` (27).

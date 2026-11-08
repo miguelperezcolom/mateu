@@ -320,7 +320,10 @@ class DispatchMixin(MixinBase):
         # 2b. The notification inbox's app-level actions — dispatched with the app's
         # serverSideType (the same rail as the @app_context pickers' remote search), exempt
         # from regular action resolution.
-        if rq.action_id in ("_notifications-list", "_notifications-read"):
+        if rq.action_id in (
+            "_notifications-list", "_notifications-read", "_notifications-act",
+            "_notifications-dismiss", "_notifications-open",
+        ):
             return self.notifications_action(type_, rq)
 
         # 2c. The command palette's entity search — same app-level rail (mirrors Java's

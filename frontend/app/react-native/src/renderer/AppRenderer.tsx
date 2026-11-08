@@ -25,6 +25,8 @@ import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, type ShellAction } fr
 import { fetchExternalJson } from '../core/restFetch';
 import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHitsOf, type AppSourceHost } from '../core/appSources';
 import { interpolate } from '../core/expressions';
+import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
+import { toastOf } from '../core/componentContext';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
@@ -96,15 +98,6 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   actionCatalogue?: ShellAction[];
 }
 
-/** One inbox entry as served by the _notifications-list / _notifications-read actions. */
-interface AppNotification {
-  id: string;
-  title: string;
-  text?: string | null;
-  route?: string | null;
-  unread: boolean;
-  when?: string | null;
-}
 
 /** One entity hit as served by the app-level _globalsearch action. */
 interface GlobalSearchHit {
@@ -400,6 +393,27 @@ const appSourceHost = (
   serverSideType: appMeta.serverSideType ?? null,
 });
 
+async function runAppLevelIncrement(
+  api: import('../api/MateuApiClient').MateuApiClient,
+  appState: Record<string, unknown>,
+  appMeta: AppMeta,
+  actionId: string,
+  parameters: Record<string, unknown>,
+  initiatorComponentId: string,
+): Promise<unknown> {
+  const route = appMeta.rootRoute ?? appMeta.homeRoute ?? '';
+  return api.runAction({
+    route,
+    consumedRoute: route || '_empty',
+    actionId,
+    serverSideType: appMeta.serverSideType ?? null,
+    initiatorComponentId,
+    componentState: {},
+    appState,
+    parameters,
+  });
+}
+
 async function runAppLevelAction(
   api: import('../api/MateuApiClient').MateuApiClient,
   appState: Record<string, unknown>,
@@ -432,67 +446,153 @@ async function runAppLevelAction(
 function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
   const { api, appState, session } = useAppContext();
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [filter, setFilter] = useState<InboxFilter>('all');
+  const [expanded, setExpanded] = useState<string | null>(null);
+  // the session's inbox: the server's list + this session's own entries (inbox messages, pushes)
+  const [, setRevision] = useState(0);
   const source = appMeta.notificationsSource ?? undefined;
+
+  /** The list a `_notifications-*` answer carries, into the inbox store. */
+  const takeList = useCallback(
+    (increment: unknown): boolean => {
+      for (const fragment of ((increment as { fragments?: { data?: Record<string, unknown> }[] })?.fragments ?? [])) {
+        const list = fragment.data?.['_notifications'];
+        if (Array.isArray(list)) {
+          session.inbox.setServer(list.map(inboxItemOf).filter((i): i is InboxItem => !!i));
+          return true;
+        }
+      }
+      return false;
+    },
+    [session],
+  );
 
   const refresh = React.useCallback(async () => {
     try {
       if (source) {
         const host = appSourceHost(api, session.sources, appState, appMeta);
-        setNotifications(notificationsOf(await runAppSource(host, 'notifications', source, {}), source, session.sources) as AppNotification[]);
+        session.inbox.setServer(
+          notificationsOf(await runAppSource(host, 'notifications', source, {}), source, session.sources)
+            .map(inboxItemOf)
+            .filter((i): i is InboxItem => !!i),
+        );
         return;
       }
-      const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-list', {}, 'notification-bell');
-      for (const fragment of fragments) {
-        const list = fragment.data?.['_notifications'];
-        if (Array.isArray(list)) {
-          setNotifications(list as AppNotification[]);
-          return;
-        }
-      }
+      takeList(await runAppLevelIncrement(api, appState, appMeta, '_notifications-list', {}, 'notification-bell'));
     } catch {
       // inbox unavailable: keep whatever list we had
     }
-  }, [api, appState, appMeta, source, session.sources]);
+  }, [api, appState, appMeta, source, session, takeList]);
+
+  /** An inbox answer's other effects: a detail overlay, a message, a navigation. */
+  const applyAnswer = (increment: unknown) => {
+    const inc = (increment ?? {}) as Record<string, unknown>;
+    for (const fragment of (inc['fragments'] as Record<string, unknown>[] | undefined) ?? []) {
+      const component = fragment['component'] as Record<string, unknown> | undefined;
+      const type = (component?.['metadata'] as Record<string, unknown> | undefined)?.['type'];
+      if (component && (type === 'Drawer' || type === 'Dialog')) {
+        const route = appMeta.rootRoute ?? appMeta.homeRoute ?? '';
+        session.openOverlay(component, fragment['state'], fragment['data'], {
+          route,
+          consumedRoute: route || '_empty',
+          serverSideType: appMeta.serverSideType ?? '',
+        });
+      }
+    }
+    for (const message of (inc['messages'] as Record<string, unknown>[] | undefined) ?? []) {
+      const toast = toastOf(message);
+      if (toast) session.notify(toast.title, toast.text, toast.variant, { duration: toast.duration, sticky: toast.persistence === 'sticky' || undefined, key: toast.key });
+    }
+    for (const command of (inc['commands'] as Record<string, unknown>[] | undefined) ?? []) {
+      if (command['type'] === 'NavigateTo' && typeof command['data'] === 'string') {
+        setOpen(false);
+        onNavigate({ label: '', route: command['data'], consumedRoute: '', serverSideType: '' });
+      }
+    }
+  };
 
   const markRead = async (ids: string[] | 'all') => {
+    const localIds = new Set(session.inbox.items().filter((i) => i.local).map((i) => i.id));
+    session.inbox.markRead(ids);
+    const serverIds = ids === 'all' ? ids : ids.filter((id) => !localIds.has(id));
+    if (serverIds !== 'all' && serverIds.length === 0) return;
     try {
       if (source) {
         // a source with no way to mark read keeps it local: the entry stops being unread here
         const read = appMeta.notificationsReadSource;
         const all = ids === 'all';
-        const list = all ? notifications.map((n) => n.id) : ids;
+        const list = all ? session.inbox.items().map((n) => n.id) : (serverIds as string[]);
         if (read) await runAppSource(appSourceHost(api, session.sources, appState, appMeta), 'notificationsRead', read, markReadVars(list, all));
-        setNotifications((current) => current.map((n) => (all || list.includes(n.id) ? { ...n, unread: false } : n)));
         return;
       }
-      const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-read', { ids }, 'notification-bell');
-      for (const fragment of fragments) {
-        const list = fragment.data?.['_notifications'];
-        if (Array.isArray(list)) {
-          setNotifications(list as AppNotification[]);
-          return;
-        }
-      }
+      takeList(await runAppLevelIncrement(api, appState, appMeta, '_notifications-read', { ids: serverIds }, 'notification-bell'));
     } catch {
       // keep the current list
     }
   };
 
-  // fetch once on mount so the badge knows the unread count
-  React.useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  const entryPressed = async (notification: AppNotification) => {
-    if (notification.unread) await markRead([notification.id]);
-    if (notification.route) {
-      setOpen(false);
-      onNavigate({ label: notification.title, route: notification.route, consumedRoute: '', serverSideType: '' });
+  const dismiss = async (item: InboxItem) => {
+    session.inbox.dismiss([item.id]);
+    if (item.local || source) return;
+    try {
+      takeList(await runAppLevelIncrement(api, appState, appMeta, '_notifications-dismiss', { ids: [item.id] }, 'notification-bell'));
+    } catch {
+      // dismissed here; the server keeps it
     }
   };
 
-  const unread = notifications.filter((n) => n.unread).length;
+  /** One of an entry's actions: a session entry runs it on its screen, a server one on the server. */
+  const act = async (item: InboxItem, action: InboxAction) => {
+    if (item.local) {
+      if (item.unread) session.inbox.markRead([item.id]);
+      item.run?.(action);
+      return;
+    }
+    if (action.route && !action.actionId) {
+      setOpen(false);
+      onNavigate({ label: action.label ?? '', route: action.route, consumedRoute: '', serverSideType: '' });
+      return;
+    }
+    try {
+      const answer = await runAppLevelIncrement(api, appState, appMeta, '_notifications-act', { id: item.id, actionId: action.actionId }, 'notification-bell');
+      takeList(answer);
+      applyAnswer(answer);
+    } catch (e) {
+      session.notify(null, `The action failed: ${(e as Error)?.message ?? e}`, 'error');
+    }
+  };
+
+  // fetch once on mount so the badge knows the unread count; follow the store (pushes, messages)
+  React.useEffect(() => {
+    void refresh();
+    return session.inbox.subscribe((change) => {
+      setRevision((r) => r + 1);
+      if (change?.kind === 'refetch') void refresh();
+    });
+  }, [refresh, session]);
+
+  const entryPressed = async (notification: InboxItem) => {
+    if (notification.unread) await markRead([notification.id]);
+    if (notification.hasDetail && !notification.local) {
+      try {
+        applyAnswer(await runAppLevelIncrement(api, appState, appMeta, '_notifications-open', { id: notification.id }, 'notification-bell'));
+      } catch {
+        // no detail: nothing opens
+      }
+      return;
+    }
+    if (notification.route) {
+      setOpen(false);
+      onNavigate({ label: notification.title, route: notification.route, consumedRoute: '', serverSideType: '' });
+      return;
+    }
+    // no route, no detail: the entry unfolds its whole text
+    setExpanded((e) => (e === notification.id ? null : notification.id));
+  };
+
+  const items = session.inbox.items();
+  const unread = unreadCount(items);
+  const groups = grouped(filtered(items, filter));
 
   return (
     <View>
@@ -520,22 +620,65 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
       />
       {open && (
         <View>
-          {notifications.length === 0 && <Text style={styles.bellEmpty}>No notifications</Text>}
-          {notifications.map((n, i) => (
-            <TouchableOpacity {...buttonA11y()} key={n.id ?? i} style={styles.bellEntry} onPress={() => void entryPressed(n)}>
-              <View style={[styles.bellDot, n.unread && styles.bellDotUnread]} />
-              <View style={styles.bellEntryBody}>
-                <View style={styles.bellEntryTop}>
-                  <Text style={[styles.bellEntryTitle, n.unread && styles.bellEntryTitleUnread]} numberOfLines={1}>
-                    {n.title}
-                  </Text>
-                  {!!n.when && <Text style={styles.bellEntryWhen}>{n.when}</Text>}
+          <View style={styles.bellFilters} accessibilityRole="tablist">
+            {(['unread', 'all', 'resolved'] as InboxFilter[]).map((f) => (
+              <TouchableOpacity
+                key={f}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: filter === f }}
+                style={[styles.bellFilter, filter === f && styles.bellFilterOn]}
+                onPress={() => setFilter(f)}
+              >
+                <Text style={[styles.bellFilterText, filter === f && styles.bellFilterTextOn]}>
+                  {f === 'unread' ? 'Unread' : f === 'all' ? 'All' : 'Resolved'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {groups.length === 0 && <Text style={styles.bellEmpty}>No notifications</Text>}
+          {groups.map((group) => (
+            <View key={group.category || '_'}>
+              {!!group.category && <Text style={styles.bellCategory} accessibilityRole="header">{group.category}</Text>}
+              {group.items.map((n) => (
+                <View key={n.id}>
+                  <View style={styles.bellEntryRow}>
+                    <TouchableOpacity
+                      {...buttonA11y({ label: `${n.title}${n.unread ? ', unread' : ''}${n.resolved ? ', resolved' : ''}${n.when ? `, ${n.when}` : ''}` })}
+                      style={[styles.bellEntry, styles.bellEntryFlex]}
+                      onPress={() => void entryPressed(n)}
+                    >
+                      <View style={[styles.bellDot, n.unread && styles.bellDotUnread, n.variant === 'error' && styles.bellDotError]} />
+                      <View style={styles.bellEntryBody}>
+                        <View style={styles.bellEntryTop}>
+                          <Text style={[styles.bellEntryTitle, n.unread && styles.bellEntryTitleUnread]} numberOfLines={1}>
+                            {n.title}
+                          </Text>
+                          {!!n.when && <Text style={styles.bellEntryWhen}>{n.when}</Text>}
+                        </View>
+                        {!!n.text && <Text style={styles.bellEntryText} numberOfLines={expanded === n.id ? undefined : 1}>{n.text}</Text>}
+                      </View>
+                    </TouchableOpacity>
+                    <IconButton icon="close" size={18} accessibilityLabel={`Dismiss ${n.title}`} onPress={() => void dismiss(n)} />
+                  </View>
+                  {!n.resolved && (n.actions ?? []).length > 0 && (
+                    <View style={styles.bellActions}>
+                      {(n.actions ?? []).map((a, i) => (
+                        <MateuButton
+                          key={`${a.actionId ?? a.route ?? ''}#${i}`}
+                          compact
+                          label={a.label || (a.style === 'undo' ? 'Undo' : '')}
+                          buttonStyle={a.style === 'primary' ? 'primary' : null}
+                          color={a.style === 'danger' ? 'error' : null}
+                          onPress={() => void act(n, a)}
+                        />
+                      ))}
+                    </View>
+                  )}
                 </View>
-                {!!n.text && <Text style={styles.bellEntryText} numberOfLines={1}>{n.text}</Text>}
-              </View>
-            </TouchableOpacity>
+              ))}
+            </View>
           ))}
-          {notifications.length > 0 && (
+          {items.length > 0 && (
             <TouchableOpacity {...buttonA11y()} style={styles.bellMarkAll} disabled={unread === 0} onPress={() => void markRead('all')}>
               <Text style={[styles.bellMarkAllText, unread === 0 && styles.bellMarkAllDisabled]}>Mark all read</Text>
             </TouchableOpacity>
@@ -1255,6 +1398,16 @@ const styles = themed(() => StyleSheet.create({
   bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   bellBadgeText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
   bellEmpty: { color: theme.muted, fontSize: 14, paddingLeft: 32, paddingVertical: 8 },
+  bellFilters: { flexDirection: 'row', gap: 6, paddingHorizontal: 20, paddingVertical: 6 },
+  bellFilter: { paddingHorizontal: 12, minHeight: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.border, justifyContent: 'center' },
+  bellFilterOn: { backgroundColor: theme.primary, borderColor: theme.primary },
+  bellFilterText: { color: theme.ink, fontSize: 13 },
+  bellFilterTextOn: { color: theme.onFill },
+  bellCategory: { color: theme.muted, fontSize: 12, fontWeight: '600', paddingLeft: 20, paddingTop: 10, textTransform: 'uppercase' },
+  bellEntryRow: { flexDirection: 'row', alignItems: 'center' },
+  bellEntryFlex: { flex: 1, paddingRight: 4 },
+  bellActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingLeft: 36, paddingRight: 20, paddingBottom: 8 },
+  bellDotError: { backgroundColor: theme.danger },
   bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 10, paddingLeft: 20, paddingRight: 20, minHeight: theme.minTouch },
   bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
   bellDotUnread: { backgroundColor: theme.primary },

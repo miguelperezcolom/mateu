@@ -197,10 +197,10 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 281 | 251 | 0 | 30 | 0 |
-| `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
+| `mateu-dtos` | `io.mateu.dtos` | 287 | 257 | 0 | 30 | 0 |
+| `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 176 | 163 | 9 | 4 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 333 | 263 | 64 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 335 | 263 | 66 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 35 | 31 | 1 | 3 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 92 | 8 | 2 | 7 |
@@ -208,13 +208,13 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1031** | **833** | **93** | **45** | **60** |
+| **Total** | | **1040** | **839** | **96** | **45** | **60** |
 
 **Experimental types** (the whole type and its members):
 
-- `io.mateu.uidl`: `LiveHeaderValues`
+- `io.mateu.uidl`: `LiveHeaderValues`, `LiveNotifications`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
@@ -236,6 +236,7 @@ same concepts.
 - `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`
 - `io.mateu.uidl.annotations.WizardCompletionAction`: `availableFromStep`
 - `io.mateu.uidl.data.AppHeaderAction`: `route`
+- `io.mateu.uidl.data.AppNotification`: `actions`, `category`, `hasDetail`, `resolved`, `variant`
 - `io.mateu.uidl.data.Calendar`: `dayActionId`, `days`, `view`, `views`
 - `io.mateu.uidl.data.CalendarEvent`: `endDate`, `endTime`, `startTime`
 - `io.mateu.uidl.data.FieldLink`: `presentation`
@@ -243,8 +244,10 @@ same concepts.
 - `io.mateu.uidl.data.GridColumn`: `tones`
 - `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
 - `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `orderField`, `rowsSource`
+- `io.mateu.uidl.data.LongTask`: `background`, `backgroundable`, `cancellable`, `notifyWhenDone`, `onCancel`, `resultAction`, `retryable`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
+- `io.mateu.uidl.data.Message`: `STYLE_UNDO`, `actions`, `key`, `persistence`, `withAction`, `withKey`, `withPersistence`
 - `io.mateu.uidl.data.MetricCard`: `timeframe`
 - `io.mateu.uidl.data.MicroFrontend`: `chrome`, `resolve`, `timeoutMs`
 - `io.mateu.uidl.data.OrgChart`: `display`, `focus`
@@ -252,6 +255,7 @@ same concepts.
 - `io.mateu.uidl.data.PlanningBoard`: `attributeColumns`, `openActionId`, `rangeSelectActionId`, `resizeActionId`
 - `io.mateu.uidl.data.PlanningResource`: `attributes`, `icon`
 - `io.mateu.uidl.data.Popover`: `trigger`
+- `io.mateu.uidl.data.ProgressReporter`: `step`
 - `io.mateu.uidl.data.RecordSwitcher`: `actionId`, `optionsSource`, `route`
 - `io.mateu.uidl.data.ResponsiveGrid`: `asReorderable`, `reorderable`
 - `io.mateu.uidl.data.RestDataSource`: `sample`
@@ -263,12 +267,15 @@ same concepts.
 - `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `confirmOnNavigationIfDirty`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
+- `io.mateu.uidl.interfaces.NotificationsSupplier`: `dismissNotifications`, `notificationDetail`, `onNotificationAction`
 
 **Internal members** of otherwise stable types (`@Internal`: framework plumbing, outside the promise — do not call or override them):
 
 - `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `stateSource`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `currentStepField`
 - `io.mateu.uidl.LiveHeaderValues`: `reset`, `subscribe`
+- `io.mateu.uidl.LiveNotifications`: `subscribe`
+- `io.mateu.uidl.data.LongTask`: `toDto`
 - `io.mateu.uidl.di.MateuBeanProvider`: `setBeanProvider`
 - `io.mateu.uidl.interfaces.HttpRequest`: `storeGetUIRqDto`, `storeRunActionRqDto`
 - `io.mateu.uidl.interfaces.Listing`: `getCrudId`, `handleActionOnRow`

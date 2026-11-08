@@ -55,8 +55,77 @@ public class BackofficeApp implements NotificationsSupplier {
 - The list is fetched per request through the app-level `_notifications-list` action (the same
   rail as the `@AppContext` pickers' remote search), so it can be per-user and always current;
   `_notifications-read` (ids, or `"all"`) marks read and answers the refreshed list.
-- Pair with [long-running jobs](/ux-patterns/long-running-jobs/): when a background task
-  completes, append an inbox entry so the outcome survives the toast.
+- Pair with [long-running jobs](/ux-patterns/long-running-jobs/): a `LongTask` with
+  `.notifyWhenDone()` posts its outcome to the inbox ("Import finished — 3 errors · View").
+
+## Entries you act on 🧪
+
+An entry can be more than a link. Give it a `category` (the panel groups by it), a `variant`
+(severity), `actions` the user runs from the entry, and `hasDetail` when clicking it should open a
+detail the server builds. States: **unread → read → resolved** (acted upon, still listed under
+*Resolved*), or **dismissed** (gone).
+
+```java
+AppNotification.builder()
+    .id("expense-42")
+    .title("Expense to approve")
+    .text("Ana · 312,40 €")
+    .unread(true)
+    .when("5 min ago")
+    .category("Approvals")
+    .variant(NotificationVariant.warning)
+    .actions(List.of(
+        MessageAction.run("Approve", "approve").withStyle("primary"),
+        MessageAction.run("Reject", "reject").withStyle("danger")))
+    .hasDetail(true)
+    .build();
+```
+
+The supplier's optional methods answer them:
+
+```java
+@Override
+public Object onNotificationAction(String id, String actionId, HttpRequest httpRequest) {
+    expenses.decide(id, actionId);                    // check the id is the caller's!
+    inbox.resolve(httpRequest.getUserPrincipal().getName(), id);
+    return Message.success("Expense " + actionId + "d");
+}
+
+@Override
+public void dismissNotifications(List<String> ids, HttpRequest httpRequest) { … }
+
+@Override
+public Object notificationDetail(String id, HttpRequest httpRequest) {
+    return Drawer.builder().headerTitle("Expense 42").content(expenseView(id)).build();
+}
+```
+
+They ride the app-level actions `_notifications-act {id, actionId}` (the answer + the refreshed
+list), `_notifications-dismiss {ids}` and `_notifications-open {id}` (the detail, answered like any
+action — a `Drawer` opens over the page). The panel filters **Unread / All / Resolved**, groups by
+category, marks all read and dismisses per entry; all client-side over the list.
+
+## Pushed, not polled 🧪
+
+With `@App(liveUpdates = true)` the bell updates as soon as something changes. Store the entry,
+then publish it:
+
+```java
+inbox.add(user, entry);
+LiveNotifications.publish(user, entry);      // only the sessions of `user`
+LiveNotifications.publishToAll(announcement); // everyone
+LiveNotifications.remove(user, "expense-42");
+LiveNotifications.refresh(user);              // "fetch the list again"
+```
+
+A change reaches only the sessions whose caller — the identity the host framework authenticated —
+has that name. It travels as a `NotificationsChanged` command on the app's live-updates stream; a
+new unread entry also shows a toast. The same `id` replaces an entry (deduplication). In-process:
+in a cluster, publish on every node.
+
+The inbox a user sees is your list plus what this session added on its own — messages sent with
+persistence `inbox` and pushed entries the list does not have yet — deduplicated by id. Durable
+entries are yours: Mateu ships UI only.
 
 ## In YAML
 
@@ -68,8 +137,13 @@ through the server when the source is `proxy: true`). See
 ## Wire
 
 `AppDto.notificationsEnabled` turns the bell on; the actions answer
-`Data{_notifications: [{id, title, text, route, unread, when}]}` — same contract from the Java,
-.NET and Python servers.
+`Data{_notifications: [{id, title, text, route, unread, when, category, variant, resolved,
+actions, hasDetail}]}` — same contract from the Java, .NET and Python servers. A push is the command
+`NotificationsChanged {notification, removedId}` (both null = refetch).
+
+On **IntelliJ / the desktop app** the entries are the platform's own notifications ("Mateu" group,
+the Notifications tool window), with their actions; on the **phone** the bell lists them with the
+same filters. Operating-system notifications (Web Notifications, phone push) are planned for 3.1.
 
 ## Where it works
 

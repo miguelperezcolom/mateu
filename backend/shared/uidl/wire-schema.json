@@ -3841,11 +3841,46 @@
         }
       }
     },
+    "MessageActionDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        }
+      }
+    },
     "MessageDto" : {
       "type" : "object",
       "properties" : {
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MessageActionDto"
+          }
+        },
         "duration" : {
           "type" : "integer"
+        },
+        "key" : {
+          "type" : "string"
+        },
+        "persistence" : {
+          "$ref" : "#/$defs/MessagePersistenceDto"
         },
         "position" : {
           "$ref" : "#/$defs/NotificationPositionDto"
@@ -3922,6 +3957,10 @@
           "type" : "string"
         }
       }
+    },
+    "MessagePersistenceDto" : {
+      "type" : "string",
+      "enum" : [ "toast", "sticky", "inbox" ]
     },
     "MeterDto" : {
       "type" : "object",
@@ -5926,7 +5965,7 @@
     },
     "UICommandTypeDto" : {
       "type" : "string",
-      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush" ]
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged" ]
     },
     "UIFragmentActionDto" : {
       "type" : "string",

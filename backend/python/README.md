@@ -77,6 +77,27 @@ for the sibling implementation.
 - **Component adapters** (`ComponentAdapter` + `AdaptedView`), **embedded islands** (a field holding
   a routed view), **`layoutDelta:`** pages, **group actions** (`@group_action`), **wizard
   completion actions**, **listing exports** (CSV built in; Excel/PDF through your own `ListingExporter`), class/method-level **`@eyes_only`**.
+- **Progress reporting** (EXPERIMENTAL; design `design/progress-and-notifications.md`) — an action
+  returns `LongTask.create("Importing").background().cancellable().retryable().done(…)
+  .result_action(MessageAction.open("Open report", "/r/1")).notify_when_done().run(work)`, where
+  `work(progress)` is a generator yielding `progress.step(text[, title][, fraction])` or
+  `progress.step(text, done=i, total=n)`. Over `/mateu/v3/sse` every update streams as a `Progress`
+  command (the whole task state, same JSON as Java's `ProgressDto`); over `/mateu/v3/sync` the task
+  runs to the end and answers its merged increments. `_progress-cancel {taskId}` cancels a task of
+  THE SAME CALLER (owner = hash of the identity name + grants; anything else answers an empty
+  increment), the browser closing the stream cancels it too (`on_cancel` runs); a failing step ends
+  the task `failed` with the error boundary's text. Differences from Java: a cancel stops the work
+  BETWEEN two steps (a Python generator cannot be interrupted mid-step), and the starting text
+  `"Starting..."` is not translated (the port has no built-in text catalogue for it).
+- **Notifications** (EXPERIMENTAL) — `Message(...)` gains `persistence` (`MessagePersistence`:
+  toast / sticky / inbox; an error is sticky), `actions` (`MessageAction.run/open`, the undo is one of
+  them with style `undo`) and a dedup `key` (`with_action` / `with_persistence` / `with_key`).
+  `AppNotification` gains `category`, `variant`, `resolved`, `actions`, `has_detail`;
+  `NotificationsSupplier` gains `on_notification_action` (`_notifications-act`),
+  `dismiss_notifications` (`_notifications-dismiss`) and `notification_detail`
+  (`_notifications-open`). `LiveNotifications.publish(principal, item)` / `publish_to_all` /
+  `remove` / `refresh` push `NotificationsChanged` on the `_live-updates` stream of
+  `@app(live_updates=True)`, only to sessions whose identity name is `principal`.
 
 The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_conformance.py`.
 

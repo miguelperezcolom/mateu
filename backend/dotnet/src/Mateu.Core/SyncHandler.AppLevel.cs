@@ -20,14 +20,37 @@ internal sealed partial class SyncHandler
     {
         if (instance is not INotificationsSupplier supplier)
             return Error("the app class does not implement INotificationsSupplier — no inbox to serve");
+        // the entry's detail (a drawer, a dialog…) answered like any action's result
+        if (rq.ActionId == "_notifications-open")
+            return MapResult(supplier.NotificationDetail(StateString(GetState(rq.Parameters, "id")) ?? ""), rq);
+        object? result = null;
         if (rq.ActionId == "_notifications-read")
             supplier.MarkNotificationsRead(ReadIds(supplier, rq));
+        else if (rq.ActionId == "_notifications-dismiss")
+            supplier.DismissNotifications(Ids(rq));
+        else if (rq.ActionId == "_notifications-act")
+        {
+            var id = StateString(GetState(rq.Parameters, "id"));
+            var actionId = StateString(GetState(rq.Parameters, "actionId"));
+            if (id is null || actionId is null) throw new UserFacingException("Which notification, and which action?");
+            result = supplier.OnNotificationAction(id, actionId);
+        }
         var data = new Dictionary<string, object?>
         {
-            ["_notifications"] = supplier.Notifications() ?? [],
+            ["_notifications"] = (supplier.Notifications() ?? []).Select(NotificationDto).ToList(),
         };
-        return UIIncrementDto.Of(fragments:
+        var list = UIIncrementDto.Of(fragments:
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+        return result is null ? list : Merge([MapResult(result, rq), list]);
+    }
+
+    /// <summary>The ids parameter of _notifications-dismiss: a list, or one bare id.</summary>
+    private static List<string> Ids(RunActionRqDto rq)
+    {
+        var raw = GetState(rq.Parameters, "ids");
+        if (raw is JsonElement { ValueKind: JsonValueKind.Array }) return MultiValues(raw);
+        if (raw is not string && raw is IEnumerable<object?> list) return list.Select(v => v?.ToString() ?? "").ToList();
+        return StateString(raw) is { } one ? [one] : [];
     }
 
     internal const string AppContextSearchPrefix = "_appcontext-search-";

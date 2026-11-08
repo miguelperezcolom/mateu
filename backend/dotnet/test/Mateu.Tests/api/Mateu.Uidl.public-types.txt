@@ -242,6 +242,10 @@ Mateu.Uidl.ListingData`1
 Mateu.Uidl.ListingExport
 Mateu.Uidl.Listing`2
 Mateu.Uidl.LiveHeaderValues
+Mateu.Uidl.LiveNotifications
+Mateu.Uidl.LiveNotifications+Change
+Mateu.Uidl.LongTask
+Mateu.Uidl.LongTaskRun
 Mateu.Uidl.LookupAttribute
 Mateu.Uidl.Map
 Mateu.Uidl.MapMarker
@@ -260,6 +264,8 @@ Mateu.Uidl.MenuItemAttribute
 Mateu.Uidl.MergeField
 Mateu.Uidl.MergeRecord
 Mateu.Uidl.Message
+Mateu.Uidl.MessageAction
+Mateu.Uidl.MessagePersistence
 Mateu.Uidl.MessageVariant
 Mateu.Uidl.Meter
 Mateu.Uidl.MetricCard
@@ -310,6 +316,7 @@ Mateu.Uidl.PrimaryColumnAttribute
 Mateu.Uidl.ProcessItem
 Mateu.Uidl.ProcessMonitor
 Mateu.Uidl.ProgressBar
+Mateu.Uidl.ProgressReporter
 Mateu.Uidl.ProgressSteps
 Mateu.Uidl.QueueGroup
 Mateu.Uidl.QueueItem

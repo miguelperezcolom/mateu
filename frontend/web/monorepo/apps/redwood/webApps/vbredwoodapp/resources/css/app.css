@@ -1613,8 +1613,35 @@ oj-sp-dashboard-grid .oj-sp-dashboard-panel-content oj-chart { flex: 1 1 auto; h
 .mateu-bell { position: relative; display: inline-flex; }
 .mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
 .mateu-bell-panel { width: 22rem; max-width: 90vw; }
-.mateu-bell-list { max-height: 24rem; }
-.mateu-undo-button { margin-top: 0.25rem; }
+.mateu-bell-list { max-height: 24rem; overflow-y: auto; }
+.mateu-undo-button, .mateu-toast-action { margin-top: 0.25rem; }
+/* the inbox panel (poc/inbox.mjs): grouped entries, each with its actions and its dismiss */
+.mateu-inbox-list { list-style: none; margin: 0; padding: 0; }
+.mateu-inbox-item { padding: 0.5rem 0; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12)); }
+.mateu-inbox-item:last-child { border-bottom: 0; }
+.mateu-inbox-resolved .mateu-inbox-title { color: var(--oj-core-text-color-secondary, #6f6a64); }
+.mateu-inbox-title { flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+a.mateu-inbox-title:hover, a.mateu-inbox-title:focus-visible { text-decoration: underline; }
+.mateu-inbox-actions { gap: 0.25rem; margin-top: 0.25rem; }
+.mateu-inbox-group { color: var(--oj-core-text-color-secondary, #6f6a64); }
+
+/* the task center (poc/tasks.mjs): the docked task list at the bottom end, above the content */
+.mateu-task-dock { position: fixed; inset-inline-start: 1.5rem; bottom: 1.5rem; z-index: 900;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.mateu-task-dock[hidden], .mateu-task-list[hidden] { display: none; }
+.mateu-task-list { width: 22rem; max-width: calc(100vw - 3rem); max-height: 60vh; overflow-y: auto;
+  background: var(--oj-core-bg-color-content, #fff); border-radius: var(--oj-core-border-radius-lg, 6px);
+  box-shadow: var(--oj-core-box-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.16)); padding: 0.75rem; }
+.mateu-task-item { padding: 0.5rem 0; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12)); }
+.mateu-task-item:last-of-type { border-bottom: 0; }
+.mateu-task { display: flex; flex-direction: column; gap: 0.25rem; }
+.mateu-task-bar { width: 100%; }
+.mateu-task-actions { gap: 0.25rem; margin-top: 0.25rem; }
+.mateu-task-dialog-body { min-width: 22rem; max-width: 90vw; }
+@media (max-width: 599px) {
+  .mateu-task-dock { inset-inline-start: 0.75rem; bottom: 0.75rem; }
+  .mateu-task-dialog-body { min-width: 0; }
+}
 
 /* ── Access keys (@App(accessKeys)): the layer that appears while holding Alt ── */
 .mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }

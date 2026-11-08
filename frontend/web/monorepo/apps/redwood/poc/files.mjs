@@ -1,4 +1,5 @@
-import { takeUndoToasts, showUndoToasts } from './notify.mjs'
+import { takeUndoToasts, showUndoToasts, inboxToastsOf } from './notify.mjs'
+import { noteInboxMessage } from './inbox.mjs'
 import { announce } from './a11y.mjs'
 import { updateHeaderValue } from './appExtras.mjs'
 import { safeHref } from './core/display.mjs'
@@ -204,7 +205,10 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   for (const d of effects.downloads || (effects.download ? [effects.download] : []))
     if (triggerDownload(d, env)) n++
   if (effects.print) printPage(env)
-  // toasts with «Undo» go out through JET's oj-message (notify.mjs), not through the normal toast
+  // a message with persistence `inbox` also lands in the session's inbox (inbox.mjs)
+  for (const t of inboxToastsOf(effects)) ((env && env.mateuInboxMessage) || noteInboxMessage)(t)
+  // toasts with actions («Undo»…), sticky or keyed go out through JET's oj-message (notify.mjs),
+  // not through the normal toast
   const undo = takeUndoToasts(effects)
   if (undo.length && env && env.document) showUndoToasts(undo, env.document)
   // the Announce command: through the live regions installAnnouncer created at boot (polite, or

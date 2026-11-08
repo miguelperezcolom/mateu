@@ -587,6 +587,85 @@ test('a LongTask (sse action) streams: every increment is applied as it arrives'
   assert.equal(renders.at(-1)!.state.done, true);
 });
 
+test('a LongTask streams Progress commands into the session task center: cancel, retry, result actions', async () => {
+  const { c, session, calls } = harness([fragment(ssc({ actions: [{ id: 'importAll', sse: true }] }))]);
+  await c.initialLoad('/orders');
+  announced.length = 0;
+  let streams = 0;
+  (session as any).api.runActionStream = async (_rq: Json, onIncrement: (i: unknown) => void) => {
+    streams++;
+    const base = { taskId: 'task-1', title: 'Import', blocking: false, cancellable: true, retryable: true, state: 'running' };
+    onIncrement({ commands: [{ type: 'Progress', data: { ...base, text: 'Starting...', fraction: null } }] });
+    assert.equal(session.tasks.get('task-1')!.state, 'running', 'on the task center while the stream runs');
+    onIncrement({ commands: [{ type: 'Progress', data: { ...base, text: 'Row 2', done: 2, total: 4, fraction: 0.5 } }] });
+    if (streams === 1) {
+      onIncrement({ commands: [{ type: 'Progress', data: { ...base, state: 'done', text: 'Imported', fraction: 1, resultActions: [{ label: 'Open report', route: '/reports/1' }] } }] });
+    }
+    // the second run ends without saying so: the connection dropped
+  };
+  await c.runAction('importAll', { file: 'a.csv' });
+  const task = session.tasks.get('task-1')!;
+  assert.equal(task.state, 'done');
+  assert.equal(task.text, 'Imported', 'each command is the whole state');
+  assert.equal(task.done, null, 'nothing merged from an earlier step');
+  assert.equal(session.tasks.list().length, 1, 'upserted, not stacked');
+  assert.deepEqual(announced, ['live:Import started', 'live:Import finished: Imported']);
+
+  // Cancel: `_progress-cancel` with the taskId; the answer (cancelled) lands on the task center
+  const t2 = session.tasks;
+  t2.upsert({ ...task, taskId: 'task-2', state: 'running' }, { cancel: undefined });
+  (session as any).api.runAction = (rq: Json) => {
+    calls.push({ kind: 'action', ...rq });
+    return Promise.resolve({ commands: [{ type: 'Progress', data: { taskId: rq.parameters.taskId, title: 'Import', state: 'cancelled' } }] });
+  };
+  task.origin.cancel!();
+  await tick();
+  const cancel = calls.find((x) => x.actionId === '_progress-cancel');
+  assert.deepEqual(cancel?.parameters, { taskId: 'task-1' });
+
+  // a stream that ends without the end of its task: the task failed, and Retry runs the action again
+  session.tasks.dismiss('task-1');
+  await c.runAction('importAll', { file: 'b.csv' });
+  const failed = session.tasks.get('task-1')!;
+  assert.equal(failed.state, 'failed');
+  assert.match(failed.error ?? '', /connection/i);
+  failed.origin.retry!();
+  await tick();
+  assert.equal(streams, 3, 'Retry re-dispatched the same streamed action');
+});
+
+test('a message offers every action, dedups by key, and an inbox message lands in the session inbox', async () => {
+  const { c, notes, calls, session } = harness([{}]);
+  c.applyIncrement({
+    messages: [{
+      variant: 'success', text: '3 rows deleted', persistence: 'inbox', key: 'del-1',
+      actions: [{ style: 'undo', actionId: 'restore', parameters: { ids: [1] } }, { label: 'View', route: '/trash' }],
+      undoActionId: 'restore', undoParameters: { ids: [1] },
+    }],
+  });
+  const opts = notes.at(-1)!.options;
+  assert.deepEqual(opts.actions.map((a: Json) => a.label), ['Undo', 'View'], 'the unlabelled undo is labelled by the renderer');
+  assert.equal(opts.key, 'del-1');
+  opts.actions[0].onPress();
+  await tick();
+  assert.deepEqual(calls.at(-1)!.parameters, { ids: [1] });
+  assert.equal(calls.at(-1)!.actionId, 'restore');
+  const entry = session.inbox.items().find((i) => i.id === 'del-1')!;
+  assert.equal(entry.local, true);
+  assert.equal(entry.title, '3 rows deleted');
+  // an error is sticky, as before
+  c.applyIncrement({ messages: [{ variant: 'error', text: 'Nope' }] });
+  assert.equal(notes.at(-1)!.options.sticky, true);
+});
+
+test('a NotificationsChanged command reaches the session inbox', () => {
+  const { c, session } = harness();
+  c.applyIncrement({ commands: [{ type: 'NotificationsChanged', data: { notification: { id: 'n9', title: 'Approve PO-9', unread: true } } }] });
+  assert.ok(session.inbox.items().find((i) => i.id === 'n9'));
+  c.applyIncrement({ commands: [{ type: 'NotificationsChanged', data: { removedId: 'n9' } }] });
+  assert.ok(!session.inbox.items().find((i) => i.id === 'n9'));
+});
+
 test('a live header value change is announced once; Announce honours assertive', () => {
   const { c } = harness();
   headerValues.seed([{ id: 'businessDate', label: 'Business date', value: '1 Oct' }]);

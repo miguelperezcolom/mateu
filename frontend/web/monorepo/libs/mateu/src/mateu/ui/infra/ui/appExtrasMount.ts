@@ -11,6 +11,9 @@ import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import type { MateuShortcutsHelp } from '@infra/ui/mateu-shortcuts-help.ts'
 import type { MateuIdleWarning } from '@infra/ui/mateu-idle-warning.ts'
 import '@infra/ui/mateu-shortcuts-help.ts'
+import { setTaskCenterHost } from '@infra/progress/taskCenterMount.ts'
+import { inboxStore } from '@infra/notify/inboxStore.ts'
+import { notify } from '@application/Notifier.ts'
 import '@infra/ui/mateu-idle-warning.ts'
 
 /**
@@ -33,6 +36,7 @@ let app: App | undefined
 let help: MateuShortcutsHelp | null = null
 let idle: MateuIdleWarning | null = null
 let keysInstalled = false
+let inboxToastsInstalled = false
 
 /** Runs an app shortcut from wherever it was picked (key, overlay, palette). */
 export const runAppShortcut = (shortcut: AppShortcut, from?: HTMLElement) => {
@@ -68,6 +72,17 @@ export function syncAppExtras(host: Host): void {
     owner = host
     app = md
     const baseUrl = host.baseUrl ?? ''
+
+    // the task center lives in the top shell's tree (its navigation bubbles to mateu-ui from there)
+    setTaskCenterHost(host.renderRoot)
+    // a new unread inbox entry pushed live is announced with a toast
+    if (!inboxToastsInstalled) {
+        inboxToastsInstalled = true
+        inboxStore.onAdded((entry) => {
+            notify({ title: entry.title, text: entry.text ?? '', variant: entry.variant ?? 'info', duration: 5000 },
+                (owner as HTMLElement | null) ?? document.body)
+        })
+    }
 
     // live header values
     seedHeaderValues(md.headerValues)

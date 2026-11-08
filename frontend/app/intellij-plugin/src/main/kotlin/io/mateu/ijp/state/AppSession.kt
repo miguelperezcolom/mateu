@@ -128,6 +128,21 @@ class AppSession(
     var notifier: ((String?, String, String, Pair<String, () -> Unit>?) -> Unit)? = null
 
     /**
+     * Host hook: shows a backend message the platform's way — its persistence (toast / sticky /
+     * inbox), its actions (the callback runs one) and its deduplication key. Unset → [notifier].
+     */
+    var messagePresenter: ((MessageSpec, (NoticeAction) -> Unit) -> Unit)? = null
+
+    /** The session's long-running tasks (`Progress` commands), shown by the host as platform tasks. */
+    val tasks = TaskRelay()
+
+    /** The app's notification inbox (`NotificationsSupplier`), posted by the host to the IDE. */
+    val inbox = InboxSync(this)
+
+    /** Host hook: brings up where the inbox lives (the IDE's Notifications tool window). */
+    var openNotificationsView: (() -> Unit)? = null
+
+    /**
      * Host hook: a version-skew notice ([io.mateu.ijp.api.BuildSkew]) — the backend was redeployed,
      * or a refusal came from a stale screen. The plugin shows a sticky notification with a Reload
      * action; unset → the [notifier] (no reload). Called on the EDT.
@@ -373,11 +388,20 @@ class AppSession(
             }.getOrNull() ?: return@submit
             SwingUtilities.invokeLater {
                 HeaderValues.changesOf(increment).forEach { (id, v) -> updateHeaderValue(id, v) }
+                inbox.applyChanges(InboxItems.changesOf(increment))
                 if (!quiet) {
-                    val messages = increment.path("messages")
-                    if (messages.isArray) for (m in messages) {
-                        val text = m.path("text").asText("")
-                        if (text.isNotBlank()) notifier?.invoke(m.path("title").asText(null), text, m.path("variant").asText("info"), null)
+                    for (spec in MessageSpecs.messagesOf(increment)) {
+                        if (spec.text.isBlank()) continue
+                        val presenter = messagePresenter
+                        if (presenter != null) {
+                            presenter(spec) { action ->
+                                val route = action.route
+                                if (route != null) openAppRoute(spec.title.ifBlank { route }, route)
+                                else action.actionId?.let { runAppAction(it, initiator) }
+                            }
+                        } else {
+                            notifier?.invoke(spec.title.ifBlank { null }, spec.text, spec.variant, null)
+                        }
                     }
                 }
             }
@@ -392,6 +416,7 @@ class AppSession(
         liveReload?.stop()
         liveReload = null
         syncLiveUpdates(false)
+        tasks.closeAll()
         agentChannel?.stop()
         agentChannel = null
         runCatching { idleWatcher?.close() }

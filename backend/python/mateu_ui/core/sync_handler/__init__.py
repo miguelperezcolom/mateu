@@ -115,7 +115,7 @@ from ..agent_push import (
     DEFAULT_RATE_PER_MINUTE,
     AgentSessions,
 )
-from .. import action_guard, islands
+from .. import action_guard, islands, progress
 from ._base import MixinBase
 from .dispatch import DispatchMixin
 from .wizard import WizardHandlerMixin
@@ -330,6 +330,11 @@ class SyncHandler(
 
         if rq.action_id == mfe.CONTENT_SLOTS_ACTION:
             return self._content_slots_response()
+        if rq.action_id == progress.CANCEL_ACTION:
+            # the user cancels a running task: no view to resolve, only the caller's own task
+            task_id = (rq.parameters or {}).get("taskId")
+            identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+            return progress.cancel(None if task_id is None else str(task_id), identity)
         pending, token = mfe.begin_pending()
         try:
             increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))

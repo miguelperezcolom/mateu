@@ -35,7 +35,10 @@ def _chain(error: BaseException):
 
 
 def _message(title: str, text: str) -> dict:
-    return {"variant": "error", "position": "middle", "title": title, "text": text, "duration": 0}
+    return {
+        "variant": "error", "position": "middle", "title": title, "text": text, "duration": 0,
+        "persistence": "sticky",
+    }
 
 
 def describe(

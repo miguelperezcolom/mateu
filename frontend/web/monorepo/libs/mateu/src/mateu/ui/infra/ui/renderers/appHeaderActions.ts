@@ -28,6 +28,8 @@ export const dispatchAppHeaderAction = async (
     metadata: App,
     container: HTMLElement & { baseUrl?: string },
     actionId: string,
+    parameters: Record<string, unknown> = {},
+    callback?: (increment?: unknown) => void,
 ): Promise<void> => {
     const root = ((container as unknown as { renderRoot?: Element | ShadowRoot }).renderRoot ?? container) as Element | ShadowRoot
     const comp = findComponent(root)
@@ -43,10 +45,10 @@ export const dispatchAppHeaderAction = async (
         {},
         metadata.serverSideType ?? '',
         {},
-        {},
+        parameters,
         comp ?? container,
         true,
-        undefined,
+        callback,
         false,
         ''
     )

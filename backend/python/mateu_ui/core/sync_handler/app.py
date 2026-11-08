@@ -133,15 +133,38 @@ class AppHandlerMixin(MixinBase):
                 "the app class does not implement NotificationsSupplier — no inbox to serve"
             )
         supplier = cls()
+        parameters = rq.parameters or {}
+        if rq.action_id == "_notifications-open":
+            # the entry's detail (a drawer, a dialog…) answered like any action's result
+            detail = supplier.notification_detail(self._str_param(parameters, "id") or "", rq)
+            return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
+        answer: UIIncrement | None = None
         if rq.action_id == "_notifications-read":
             supplier.mark_notifications_read(self._notification_read_ids(supplier, rq), rq)
+        elif rq.action_id == "_notifications-dismiss":
+            ids = parameters.get("ids")
+            supplier.dismiss_notifications(
+                [str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]),
+                rq,
+            )
+        elif rq.action_id == "_notifications-act":
+            nid = self._str_param(parameters, "id")
+            action_id = self._str_param(parameters, "actionId")
+            if nid is None or action_id is None:
+                return self.error("Which notification, and which action?")
+            result = supplier.on_notification_action(nid, action_id, rq)
+            answer = self.map_result(result, rq) if result is not None else None
         notifications = supplier.notifications(rq) or []
         data = {"_notifications": [self._notification_json(n) for n in notifications]}
-        return UIIncrement.of(
-            fragments=[
-                UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
-            ]
-        )
+        listed = UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
+        if answer is None:
+            return UIIncrement.of(fragments=[listed])
+        return answer.model_copy(update={"fragments": [*answer.fragments, listed]})
+
+    @staticmethod
+    def _str_param(parameters: dict, key: str) -> str | None:
+        value = parameters.get(key)
+        return None if value is None else str(value)
 
     @staticmethod
     def _notification_read_ids(supplier, rq: RunActionRq) -> list[str]:
@@ -158,6 +181,8 @@ class AppHandlerMixin(MixinBase):
     def _notification_json(n) -> dict[str, Any]:
         """One inbox entry on the wire — {id, title, text, route, unread, when} (mirrors
         AppNotification's JSON shape)."""
+        if hasattr(n, "to_json"):
+            return n.to_json()
         return {
             "id": n.id, "title": n.title, "text": n.text,
             "route": n.route, "unread": n.unread, "when": n.when,

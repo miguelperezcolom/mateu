@@ -2,8 +2,11 @@ import { Service } from "@application/service.ts";
 import { addReferencedRestSources } from "@infra/http/restSourceCatalogue.ts";
 import { AxiosMateuApiClient } from "../infra/http/AxiosMateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
+import type UICommand from "@mateu/shared/apiClients/dtos/UICommand.ts";
 import { appData, appState, upstream } from "@domain/state.ts";
-import { notify } from "@application/Notifier.ts";
+import { showServerMessage } from "@infra/notify/messageToast.ts";
+import { addressed, applyGlobalCommand, taskIdsOf } from "@infra/progress/globalCommands.ts";
+import { taskStore, type TaskOrigin } from "@infra/progress/taskStore.ts";
 import { LitElement } from "lit";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
@@ -72,6 +75,8 @@ export class SSEService implements Service {
         Object.assign(headers, rendererHeaders())
 
         const sseUrl = baseUrl + '/mateu/v3/sse/' + route
+        // the tasks this stream reports: if it ends or breaks before they do, they end failed
+        const streamTasks = new Set<string>()
         fetch(sseUrl, {
             method: 'POST',
             headers,
@@ -80,8 +85,18 @@ export class SSEService implements Service {
             // Every chunk is checked: a stream still running when the user navigated away
             // stops being applied there (staleViewGuard.ts).
             let reader: ReadableStreamDefaultReader<string> | undefined
+            // A stream that reports a TASK (Progress commands) outlives its screen: the task center
+            // keeps showing it wherever the user goes, so it is read to the end — closing it would
+            // cancel the task on the server. Once its screen is gone only its page-level parts
+            // (progress, inbox changes, messages) still apply.
+            let reportsTask = false
+            let screenGone = false
             const dropIfStale = (outcome: 'answered' | 'failed') => {
                 if (options.isStale?.()) {
+                    if (reportsTask) {
+                        screenGone = true
+                        return
+                    }
                     void reader?.cancel().catch(() => undefined)
                     throw new StaleResponse(actionId, outcome)
                 }
@@ -127,12 +142,29 @@ export class SSEService implements Service {
                             // an origin the app does not trust answers through the untrusted strip (R1)
                             const uiIncrement = asAnsweredBy(baseUrl + '/mateu/v3/sse/' + route, parsed)
 
-                            if (callback) {
+                            taskIdsOf(uiIncrement).forEach(id => streamTasks.add(id))
+                            if (!reportsTask && streamTasks.size > 0) {
+                                reportsTask = true
+                                // the task center shows the task from now on (a blocking one as its
+                                // own modal): the page's loading veil and the pressed control are
+                                // released, so the user can go on — or start another task
+                                if (!background) {
+                                    initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
+                                        bubbles: true, composed: true, detail: { actionId },
+                                    }))
+                                }
+                            }
+
+                            if (callback && !screenGone) {
                                 callback(uiIncrement)
                             }
 
+                            const origin = { baseUrl, route: '/' + route, serverSideType, actionId, retry, initiator }
                             if (!callbackonly) {
-                                this.handleUIIncrement(uiIncrement, initiator, callbackToken)
+                                this.handleUIIncrement(uiIncrement, initiator, callbackToken, origin, screenGone)
+                            } else if (reportsTask) {
+                                // the caller handles the answer; the task center still sees its task
+                                (uiIncrement as UIIncrement | undefined)?.commands?.forEach((command: UICommand) => applyGlobalCommand(command, origin))
                             }
 
                             if (uiIncrement.messages && uiIncrement.messages.length == 1) {
@@ -165,7 +197,9 @@ export class SSEService implements Service {
                     }
                 }
             }
-            if (!background) {
+            taskStore.failUnfinished(streamTasks)
+            // (a task stream told it already, when its task first reported)
+            if (!background && !reportsTask) {
                 initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
                     bubbles: true,
                     composed: true,
@@ -183,6 +217,10 @@ export class SSEService implements Service {
             }))
         })
             .catch(reason => {
+            if (streamTasks.size > 0) {
+                // the connection broke under a running task: it ends failed, with what broke
+                taskStore.failUnfinished(streamTasks, (reason as Error)?.message)
+            }
             if (isStaleResponse(reason) || options.isStale?.()) {
                 console.debug?.('mateu: dropped a streamed answer to an action of a view no longer on screen',
                     actionId, serverSideType, baseUrl)
@@ -220,21 +258,21 @@ export class SSEService implements Service {
         return JSON.stringify(reason)
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string,
+                         origin?: TaskOrigin, pageLevelOnly = false) => {
         // first: the components about to render may fetch from the sources they name right away
         addReferencedRestSources(uiIncrement?.restSources)
         uiIncrement?.messages?.forEach(message => {
-            // The Notifier port renders the toast (incl. the undoable variant) design-system-neutrally.
-            notify({
-                text: message.text,
-                position: message.position,
-                variant: message.variant,
-                duration: message.duration,
-                undoLabel: message.undoLabel,
-                undoActionId: message.undoActionId,
-                undoParameters: message.undoParameters,
-            }, initiator)
+            // The Notifier port renders the toast (actions, persistence, key) design-system-neutrally.
+            showServerMessage(message, initiator)
         })
+        // a task's progress and an inbox change belong to the page (the task center, the bell):
+        // they apply wherever the user is now
+        const commands = (uiIncrement?.commands ?? []).filter(command => !applyGlobalCommand(command, { ...origin, initiator }))
+        if (pageLevelOnly) {
+            // a task stream whose screen is gone: only its page-level parts still apply (above)
+            return
+        }
         if (uiIncrement?.banners && uiIncrement.banners.length > 0) {
             document.dispatchEvent(new CustomEvent('page-banners-received', {
                 detail: { banners: uiIncrement.banners, append: uiIncrement.appendBanners ?? false },
@@ -243,9 +281,9 @@ export class SSEService implements Service {
             }))
         }
 
-        uiIncrement?.commands?.forEach(command => {
+        commands.forEach(command => {
             upstream.next({
-                command,
+                command: addressed(command, initiator),
                 fragment: undefined,
                 ui: undefined,
                 error: undefined,

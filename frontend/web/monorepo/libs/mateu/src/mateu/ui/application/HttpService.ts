@@ -5,7 +5,8 @@ import {runActionCommandHandler} from "@domain/commands/runAction/RunActionComma
 import {RunActionCommand} from "@domain/commands/runAction/RunActionCommand";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {Service} from "@application/service.ts";
-import {notify} from "@application/Notifier.ts";
+import {showServerMessage} from "@infra/notify/messageToast.ts";
+import {addressed, applyGlobalCommand} from "@infra/progress/globalCommands.ts";
 import {LitElement} from "lit";
 import {nanoid} from "nanoid";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
@@ -46,17 +47,7 @@ export class HttpService implements Service {
                 composed: true
             }))
         }
-        uiIncrement?.messages?.forEach(message => {
-            notify({
-                text: message.text,
-                position: message.position,
-                variant: message.variant,
-                duration: message.duration,
-                undoLabel: message.undoLabel,
-                undoActionId: message.undoActionId,
-                undoParameters: message.undoParameters,
-            }, initiator)
-        })
+        uiIncrement?.messages?.forEach(message => showServerMessage(message, initiator))
         if (uiIncrement?.banners && uiIncrement.banners.length > 0) {
             document.dispatchEvent(new CustomEvent('page-banners-received', {
                 detail: { banners: uiIncrement.banners, append: uiIncrement.appendBanners ?? false },
@@ -65,8 +56,10 @@ export class HttpService implements Service {
             }))
         }
         uiIncrement?.commands?.forEach(command => {
+            // a task's progress and an inbox change belong to the page (task center, bell)
+            if (applyGlobalCommand(command, { initiator })) return
             upstream.next({
-                command,
+                command: addressed(command, initiator),
                 fragment: undefined,
                 ui: undefined,
                 error: undefined,

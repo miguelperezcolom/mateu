@@ -95,12 +95,49 @@ public class MessageMapper {
         // an ERROR stays until dismissed — in every backend and renderer (owner, 2026-10-12): read
         // in 3 s and gone, the user often never saw why the save failed
         .duration(
-            message.variant() == io.mateu.uidl.data.NotificationVariant.error
+            persistenceOf(message) == io.mateu.dtos.MessagePersistenceDto.sticky
                 ? 0
                 : message.duration() > 0 ? message.duration() : 3000)
         .undoLabel(message.undoLabel())
         .undoActionId(message.undoActionId())
         .undoParameters(message.undoParameters())
+        .persistence(persistenceOf(message))
+        .actions(actionsOf(message))
+        .key(message.key())
         .build();
+  }
+
+  /** As declared; else an error is sticky (see the duration) and anything else a toast. */
+  static io.mateu.dtos.MessagePersistenceDto persistenceOf(Message message) {
+    if (message.persistence() != null) {
+      return io.mateu.dtos.MessagePersistenceDto.valueOf(message.persistence().name());
+    }
+    return message.variant() == io.mateu.uidl.data.NotificationVariant.error
+        ? io.mateu.dtos.MessagePersistenceDto.sticky
+        : io.mateu.dtos.MessagePersistenceDto.toast;
+  }
+
+  /**
+   * The declared actions; an undo set only through the legacy {@code undo*} fields becomes one of
+   * them (style undo), so a renderer reads one list.
+   */
+  static List<io.mateu.dtos.MessageActionDto> actionsOf(Message message) {
+    var actions =
+        new java.util.ArrayList<>(
+            message.actions().stream().map(io.mateu.uidl.data.LongTask::toDto).toList());
+    var undoListed =
+        message.actions().stream()
+            .anyMatch(
+                a -> message.undoActionId() != null && message.undoActionId().equals(a.actionId()));
+    if (message.undoActionId() != null && !undoListed) {
+      actions.add(
+          new io.mateu.dtos.MessageActionDto(
+              message.undoLabel(),
+              message.undoActionId(),
+              message.undoParameters(),
+              null,
+              Message.STYLE_UNDO));
+    }
+    return actions;
   }
 }

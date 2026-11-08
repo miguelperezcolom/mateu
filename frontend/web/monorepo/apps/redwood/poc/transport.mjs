@@ -14,6 +14,8 @@ import { observeWireVersion } from './wireVersion.mjs'
 import { noteDocumentBase } from './files.mjs'
 import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
+import { noteProgress, withoutProgressCommands, isEmptyIncrement, setTaskTransport } from './tasks.mjs'
+import { noteDetachedMessages } from './inbox.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
  *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
@@ -303,10 +305,14 @@ export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
 
 /** SSE action (Action.sse(true), e.g. LongTask): POST {base}/mateu/v3/sse/{route} with
  *  Accept text/event-stream — the response is a STREAM of UIIncrements (data: …\n\n).
- *  Increments are DELIVERED LIVE via `extra.onIncrement(inc)` (async; the LongTask's progress
- *  dialog is painted while the stream advances); if the callback returns
- *  true, the increment is considered CONSUMED and excluded from the returned list. Without a
- *  callback, classic behaviour: full list at the end. */
+ *  Every `Progress` command goes to the TASK CENTER (tasks.mjs) as it arrives and is taken out of
+ *  the increment (one left with nothing else is not delivered). The rest is DELIVERED LIVE via
+ *  `extra.onIncrement(inc)` (async); if the callback returns true, the increment is considered
+ *  CONSUMED and excluded from the returned list. Without a callback, classic behaviour: full list
+ *  at the end.
+ *  A task outlives its screen: once the stream has reported a task, a navigation does not cut it —
+ *  its progress keeps reaching the center, what it would paint on the old screen is dropped (an
+ *  `inbox` message lands in the session's inbox), and the call ends as a stale response. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
   const { onIncrement, ...bodyExtra } = extra || {}
   // tied to the current screen, like callMateu: each increment is checked as it arrives
@@ -335,18 +341,38 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       actionId,
     }),
   }, { actionId, timeoutMillis: -1, view })
+  // who started the task(s) this stream reports: Cancel, Retry and result actions go back there
+  const origin = {
+    base, route: bare ? `/${bare}` : '', actionId, view,
+    parameters: bodyExtra.parameters || {},
+    componentState: componentState || (ctx && ctx.state) || {},
+    serverSideType: bodyExtra.serverSideType || outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+    consumedRoute: bodyExtra.consumedRoute != null ? bodyExtra.consumedRoute : (outbound.consumedRoute || ''),
+    initiatorComponentId: bodyExtra.initiatorComponentId || (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+  }
   const increments = []
   let reader
+  let reportsTasks = false
+  let detached = false
   const handle = async (raw) => {
     const line = raw.trim()
     if (!line.startsWith('data:')) return
-    if (isViewStale(view)) {
+    if (isViewStale(view) && !reportsTasks) {
       if (reader && reader.cancel) reader.cancel().catch(() => undefined)
       throw staleResponseError(actionId)
     }
-    const inc = answeredBy(base, JSON.parse(line.slice(5).trim()))
-    observeWireVersion(inc)
-    adoptReferencedSources(inc)
+    const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
+    observeWireVersion(answer)
+    adoptReferencedSources(answer)
+    if (noteProgress(answer, origin)) reportsTasks = true
+    if (isViewStale(view)) {
+      // the screen that started the task is gone: the task goes on in the center
+      detached = true
+      noteDetachedMessages(answer.messages)
+      return
+    }
+    const inc = withoutProgressCommands(answer)
+    if (inc !== answer && isEmptyIncrement(inc)) return
     const consumed = onIncrement ? await onIncrement(inc) : false
     if (!consumed) increments.push(inc)
   }
@@ -368,8 +394,17 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   } else {
     for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
   }
+  if (detached) throw staleResponseError(actionId)
   return increments
 }
+
+// the task center's way back to the server: a Cancel (sync) or a re-run of a task's action (stream)
+setTaskTransport((kind, origin, body) => (kind === 'cancel'
+  ? callMateu((origin && origin.base) || '', body, { isolated: true })
+  : runMateuActionSse((origin && origin.base) || '', null, body.route, body.actionId, body.componentState, {
+    parameters: body.parameters, serverSideType: body.serverSideType,
+    consumedRoute: body.consumedRoute, initiatorComponentId: body.initiatorComponentId,
+  })))
 
 /**
  * A mediator whose WRAPPER arrives as a chrome App (ClientSide type App) instead of wrapped in a

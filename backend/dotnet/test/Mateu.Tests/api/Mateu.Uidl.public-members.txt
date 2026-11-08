@@ -124,7 +124,12 @@ Mateu.Uidl.AppHeaderAction property System.String Icon { get;init; }
 Mateu.Uidl.AppHeaderAction property System.String Label { get;init; }
 Mateu.Uidl.AppHeaderAction static method Mateu.Uidl.AppHeaderAction Menu(System.String, System.String, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction>)
 Mateu.Uidl.AppNotification ctor(System.String, System.String, System.String, System.String, System.Boolean = True, System.String = null)
+Mateu.Uidl.AppNotification property Mateu.Uidl.MessageVariant? Variant { get;init; }
+Mateu.Uidl.AppNotification property System.Boolean HasDetail { get;init; }
+Mateu.Uidl.AppNotification property System.Boolean Resolved { get;init; }
 Mateu.Uidl.AppNotification property System.Boolean Unread { get;init; }
+Mateu.Uidl.AppNotification property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MessageAction> Actions { get;init; }
+Mateu.Uidl.AppNotification property System.String Category { get;init; }
 Mateu.Uidl.AppNotification property System.String Id { get;init; }
 Mateu.Uidl.AppNotification property System.String Route { get;init; }
 Mateu.Uidl.AppNotification property System.String Text { get;init; }
@@ -919,6 +924,9 @@ Mateu.Uidl.IMicroFrontendResolutionListener abstract method System.Void OnResolu
 Mateu.Uidl.INavigable<TDetail,TId> abstract method TDetail View(TId)
 Mateu.Uidl.INotificationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> Notifications()
 Mateu.Uidl.INotificationsSupplier abstract method System.Void MarkNotificationsRead(System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.INotificationsSupplier virtual method System.Object NotificationDetail(System.String)
+Mateu.Uidl.INotificationsSupplier virtual method System.Object OnNotificationAction(System.String, System.String)
+Mateu.Uidl.INotificationsSupplier virtual method System.Void DismissNotifications(System.Collections.Generic.IReadOnlyList<System.String>)
 Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options(System.String)
 Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
 Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
@@ -1095,6 +1103,33 @@ Mateu.Uidl.LiveHeaderValues static method System.IDisposable Subscribe(System.Ac
 Mateu.Uidl.LiveHeaderValues static method System.Void Publish(System.String, System.String)
 Mateu.Uidl.LiveHeaderValues static method System.Void Reset()
 Mateu.Uidl.LiveHeaderValues static property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Current { get; }
+Mateu.Uidl.LiveNotifications static method System.IDisposable Subscribe(System.Action<Mateu.Uidl.LiveNotifications+Change>)
+Mateu.Uidl.LiveNotifications static method System.Void Publish(System.String, Mateu.Uidl.AppNotification)
+Mateu.Uidl.LiveNotifications static method System.Void PublishToAll(Mateu.Uidl.AppNotification)
+Mateu.Uidl.LiveNotifications static method System.Void Refresh(System.String)
+Mateu.Uidl.LiveNotifications static method System.Void Remove(System.String, System.String)
+Mateu.Uidl.LiveNotifications+Change ctor(System.String, Mateu.Uidl.AppNotification, System.String)
+Mateu.Uidl.LiveNotifications+Change property Mateu.Uidl.AppNotification Notification { get;init; }
+Mateu.Uidl.LiveNotifications+Change property System.String Principal { get;init; }
+Mateu.Uidl.LiveNotifications+Change property System.String RemovedId { get;init; }
+Mateu.Uidl.LongTask const field System.String StartingText
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask Background()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask Backgroundable()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask Cancellable()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask CloseAfter(System.Int32)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask Done(System.String, System.String)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask NotifyWhenDone()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask OnCancel(System.Action)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask ResultAction(Mateu.Uidl.MessageAction)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask Retryable()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask WithCommand(Mateu.Dtos.UICommandDto[])
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask WithProgressBar()
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTask WithStartingText(System.String)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTaskRun Run(System.Func<Mateu.Uidl.ProgressReporter,System.Collections.Generic.IAsyncEnumerable<System.Object>>)
+Mateu.Uidl.LongTask method Mateu.Uidl.LongTaskRun Run(System.Func<Mateu.Uidl.ProgressReporter,System.Threading.CancellationToken,System.Collections.Generic.IAsyncEnumerable<System.Object>>)
+Mateu.Uidl.LongTask static method Mateu.Dtos.MessageActionDto ToDto(Mateu.Uidl.MessageAction)
+Mateu.Uidl.LongTask static method Mateu.Uidl.LongTask Create(System.String)
+Mateu.Uidl.LongTaskRun method System.Collections.Generic.IAsyncEnumerator<System.Object> GetAsyncEnumerator(System.Threading.CancellationToken = null)
 Mateu.Uidl.LookupAttribute ctor()
 Mateu.Uidl.Map ctor()
 Mateu.Uidl.Map property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MapMarker> Markers { get;init; }
@@ -1169,15 +1204,34 @@ Mateu.Uidl.MergeRecord ctor(System.String, System.String, System.String = null)
 Mateu.Uidl.MergeRecord property System.String Caption { get;init; }
 Mateu.Uidl.MergeRecord property System.String Id { get;init; }
 Mateu.Uidl.MergeRecord property System.String Label { get;init; }
+Mateu.Uidl.Message const field System.String StyleUndo
 Mateu.Uidl.Message ctor(System.String, Mateu.Uidl.MessageVariant = Success, System.String = "")
+Mateu.Uidl.Message method Mateu.Uidl.Message WithAction(Mateu.Uidl.MessageAction)
+Mateu.Uidl.Message method Mateu.Uidl.Message WithKey(System.String)
+Mateu.Uidl.Message method Mateu.Uidl.Message WithPersistence(Mateu.Uidl.MessagePersistence)
+Mateu.Uidl.Message property Mateu.Uidl.MessagePersistence? Persistence { get;init; }
 Mateu.Uidl.Message property Mateu.Uidl.MessageVariant Variant { get; }
 Mateu.Uidl.Message property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> UndoParameters { get;init; }
+Mateu.Uidl.Message property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MessageAction> Actions { get;init; }
 Mateu.Uidl.Message property System.Int32 Duration { get;init; }
+Mateu.Uidl.Message property System.String Key { get;init; }
 Mateu.Uidl.Message property System.String Text { get; }
 Mateu.Uidl.Message property System.String Title { get; }
 Mateu.Uidl.Message property System.String UndoActionId { get;init; }
 Mateu.Uidl.Message property System.String UndoLabel { get;init; }
 Mateu.Uidl.Message static method Mateu.Uidl.Message Undoable(System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null)
+Mateu.Uidl.MessageAction ctor(System.String, System.String = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.String = null, System.String = null)
+Mateu.Uidl.MessageAction method Mateu.Uidl.MessageAction WithStyle(System.String)
+Mateu.Uidl.MessageAction property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.MessageAction property System.String ActionId { get;init; }
+Mateu.Uidl.MessageAction property System.String Label { get;init; }
+Mateu.Uidl.MessageAction property System.String Route { get;init; }
+Mateu.Uidl.MessageAction property System.String Style { get;init; }
+Mateu.Uidl.MessageAction static method Mateu.Uidl.MessageAction Open(System.String, System.String)
+Mateu.Uidl.MessageAction static method Mateu.Uidl.MessageAction Run(System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null)
+Mateu.Uidl.MessagePersistence enum Inbox
+Mateu.Uidl.MessagePersistence enum Sticky
+Mateu.Uidl.MessagePersistence enum Toast
 Mateu.Uidl.MessageVariant enum Contrast
 Mateu.Uidl.MessageVariant enum Error
 Mateu.Uidl.MessageVariant enum Info
@@ -1433,6 +1487,12 @@ Mateu.Uidl.ProgressBar property System.Double Value { get;init; }
 Mateu.Uidl.ProgressBar property System.String Text { get;init; }
 Mateu.Uidl.ProgressBar property System.String Theme { get;init; }
 Mateu.Uidl.ProgressBar property System.String ValueKey { get;init; }
+Mateu.Uidl.ProgressReporter method System.Object Step(System.String)
+Mateu.Uidl.ProgressReporter method System.Object Step(System.String, System.Double)
+Mateu.Uidl.ProgressReporter method System.Object Step(System.String, System.Int32, System.Int32)
+Mateu.Uidl.ProgressReporter method System.Object Step(System.String, System.String)
+Mateu.Uidl.ProgressReporter method System.Object Step(System.String, System.String, System.Double)
+Mateu.Uidl.ProgressReporter property Mateu.Dtos.ProgressDto Current { get; }
 Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }

@@ -1020,22 +1020,28 @@ test('runMateuAction: an absolute NavigateTo opens the other console in its own 
   } finally { win.open = realOpen }
 })
 
-test('runMateuAction: a LongTask (sse action) shows its progress dialog live and applies the last answer', async () => {
-  const stream = fx('fo-sse-scan-stream')
+test('runMateuAction: a LongTask (sse action) feeds the task center live and applies the last answer', async () => {
+  const stream = fx('progress-scan-stream')
   const p = page('ps', 'x.Scan', 'Scan', [text('doc')], { actions: [{ id: 'scan', sse: true }] })
   answer(byRoute('/scan'), replace(p))
   let streamed = null
   answer((b, url) => url.includes('/mateu/v3/sse/'), (b) => { streamed = b; return { __sse: stream } })
-  const ctx = newContext()
-  await navigate(ctx, '/scan')
-  assert.deepEqual(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].sseActionIds, ['scan'])
-  await act(ctx, 'scan')
-  assert.ok(streamed, 'it went to the /sse endpoint')
-  const opened = calls.findIndex((c) => c[0] === 'method' && c[1] === '#mateuProgressDialog' && c[2] === 'open')
-  const closed = calls.findIndex((c) => c[0] === 'method' && c[1] === '#mateuProgressDialog' && c[2] === 'close')
-  assert.ok(opened >= 0 && closed > opened, 'opened while streaming, closed at the end')
-  assert.ok(ctx.$page.variables.mateuProgressTitle, 'the dialog shows the task\'s title')
-  assert.equal(typeof ctx.$page.variables.mateuProgressValue, 'number')
+  const seen = []
+  const off = bridge.taskCenter.subscribe((e) => seen.push([e.kind, e.task && e.task.state]))
+  try {
+    const ctx = newContext()
+    await navigate(ctx, '/scan')
+    assert.deepEqual(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].sseActionIds, ['scan'])
+    await act(ctx, 'scan')
+    assert.ok(streamed, 'it went to the /sse endpoint')
+    assert.deepEqual(seen[0], ['started', 'running'])
+    assert.deepEqual(seen[seen.length - 1], ['finished', 'done'])
+    const task = bridge.taskCenter.get('7c1e2a4d-5b6f-4e8a-9c0d-1f2e3a4b5c6d')
+    assert.equal(task.title, 'Documento verificado')
+    assert.equal(task.origin.actionId, 'scan', 'the task remembers the action that started it (Retry)')
+    // no VB dialog any more: the progress is the bridge's
+    assert.equal(calls.some((c) => c[0] === 'method' && c[1] === '#mateuProgressDialog'), false)
+  } finally { off(); bridge.taskCenter.clear() }
 })
 
 test('runMateuAction: @Searchable opens its selector dialog with its first page, and «Add selected» closes it into the host', async () => {

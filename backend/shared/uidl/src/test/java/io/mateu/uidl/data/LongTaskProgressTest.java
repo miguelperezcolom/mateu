@@ -2,20 +2,23 @@ package io.mateu.uidl.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.mateu.dtos.UIFragmentDto;
+import io.mateu.dtos.ProgressDto;
+import io.mateu.dtos.ProgressStateDto;
+import io.mateu.dtos.UICommandTypeDto;
+import io.mateu.dtos.UIIncrementDto;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
 /**
- * What a {@link LongTask}'s work flux streams to its progress dialog: each {@code step} is a state
- * update aimed at that dialog, and the bar only moves when the task asked for one.
+ * What a {@link LongTask}'s stream carries: a {@code Progress} command per update with the WHOLE
+ * state of the task, and the fraction only moves when the task asked for a bar (or counts).
  */
 class LongTaskProgressTest {
 
-  private static List<?> stream(LongTask task) {
-    return task.run(
+  private static List<ProgressDto> stream(LongTask task) {
+    return task
+        .run(
             progress ->
                 Flux.just(
                     progress.step("one"),
@@ -23,37 +26,57 @@ class LongTaskProgressTest {
                     progress.step("three", 0.5),
                     progress.step("four", "Almost", 0.9)))
         .collectList()
-        .block();
+        .block()
+        .stream()
+        .map(LongTaskProgressTest::progressOf)
+        .toList();
   }
 
-  private static Object stateOf(Object item) {
-    assertThat(item).isInstanceOf(UIFragmentDto.class);
-    return ((UIFragmentDto) item).state();
+  private static ProgressDto progressOf(Object item) {
+    assertThat(item).isInstanceOf(UIIncrementDto.class);
+    var command = ((UIIncrementDto) item).commands().get(0);
+    assertThat(command.type()).isEqualTo(UICommandTypeDto.Progress);
+    return (ProgressDto) command.data();
   }
 
   @Test
-  void eachStepUpdatesTheDialogItOpened() {
+  void eachStepIsTheWholeStateOfTheSameTask() {
     var items = stream(LongTask.create("Import").withProgressBar());
 
-    var dialog = (Dialog) items.get(0);
-    for (var step : items.subList(1, 5)) {
-      assertThat(((UIFragmentDto) step).targetComponentId()).isEqualTo(dialog.id());
-    }
-    assertThat(stateOf(items.get(1))).isEqualTo(Map.of("progressText", "one"));
-    assertThat(stateOf(items.get(2)))
-        .isEqualTo(Map.of("progressText", "two", "title", "Importing"));
-    assertThat(stateOf(items.get(3)))
-        .isEqualTo(Map.of("progressText", "three", LongTask.PROGRESS_VALUE_KEY, 0.5));
-    assertThat(stateOf(items.get(4)))
-        .isEqualTo(
-            Map.of("progressText", "four", "title", "Almost", LongTask.PROGRESS_VALUE_KEY, 0.9));
+    assertThat(items).hasSize(6);
+    assertThat(items).extracting(ProgressDto::taskId).containsOnly(items.get(0).taskId());
+    assertThat(items.get(1).text()).isEqualTo("one");
+    assertThat(items.get(1).title()).isEqualTo("Import");
+    assertThat(items.get(2).title()).isEqualTo("Importing");
+    assertThat(items.get(3).fraction()).isEqualTo(0.5);
+    assertThat(items.get(3).title()).isEqualTo("Importing");
+    assertThat(items.get(4).fraction()).isEqualTo(0.9);
+    assertThat(items.get(5).state()).isEqualTo(ProgressStateDto.done);
+    assertThat(items.get(5).fraction()).isEqualTo(1.0);
   }
 
   @Test
-  void withoutAProgressBarTheValueIsNotSent() {
+  void withoutAProgressBarTheTaskStaysIndeterminate() {
     var items = stream(LongTask.create("Import"));
 
-    assertThat(stateOf(items.get(3))).isEqualTo(Map.of("progressText", "three"));
-    assertThat(stateOf(items.get(4))).isEqualTo(Map.of("progressText", "four", "title", "Almost"));
+    assertThat(items).extracting(ProgressDto::fraction).containsOnlyNulls();
+  }
+
+  @Test
+  void aCountMakesItDeterminate() {
+    var items =
+        LongTask.create("Import")
+            .run(progress -> Flux.just(progress.step("12 rows", 12, 300)))
+            .collectList()
+            .block()
+            .stream()
+            .map(LongTaskProgressTest::progressOf)
+            .toList();
+
+    assertThat(items.get(1).done()).isEqualTo(12);
+    assertThat(items.get(1).total()).isEqualTo(300);
+    assertThat(items.get(1).fraction()).isEqualTo(0.04);
+    assertThat(items.get(2).done()).isEqualTo(300);
+    assertThat(items.get(2).fraction()).isEqualTo(1.0);
   }
 }

@@ -202,6 +202,10 @@ from .records import (  # noqa: F401
 from .envelope import (  # noqa: F401
     AgentPushMessage,
     Announcement,
+    AppNotificationDto,
+    MessageActionDto,
+    NotificationsChangedDto,
+    ProgressDto,
     CustomEventRecord,
     Message,
     UICommand,
