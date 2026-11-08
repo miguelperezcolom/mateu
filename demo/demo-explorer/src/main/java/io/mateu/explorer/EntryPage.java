@@ -3,6 +3,7 @@ package io.mateu.explorer;
 import io.mateu.explorer.catalog.Entry;
 import io.mateu.explorer.catalog.ExplorerCatalog;
 import io.mateu.explorer.catalog.UidlCatalog;
+import io.mateu.uidl.Templates;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.EmbeddedView;
@@ -58,7 +59,7 @@ public class EntryPage implements ComponentTreeSupplier {
       content.add(
           Notice.builder()
               .theme("info")
-              .text("Not demonstrable live: " + found.notDemonstrable())
+              .text(literal("Not demonstrable live: " + found.notDemonstrable()))
               .build());
     }
     for (var example : found.examples()) {
@@ -71,9 +72,9 @@ public class EntryPage implements ComponentTreeSupplier {
     }
     var area = catalog.area(found.area()).map(ExplorerCatalog.Area::title).orElse(found.area());
     return Form.builder()
-        .title(found.title())
-        .overline(area)
-        .subtitle(String.join(" · ", found.covers()))
+        .title(literal(found.title()))
+        .overline(literal(area))
+        .subtitle(literal(String.join(" · ", found.covers())))
         .content(content)
         .build();
   }
@@ -126,7 +127,7 @@ public class EntryPage implements ComponentTreeSupplier {
     }
     body.add(live(example));
     return Card.builder()
-        .title(new Text(example.title() == null ? "Live example" : example.title()))
+        .title(new Text(example.title() == null ? "Live example" : literal(example.title())))
         .content(column(body))
         .variants(List.of(io.mateu.uidl.data.CardVariant.outlined))
         .style("width: 100%;")
@@ -172,7 +173,7 @@ public class EntryPage implements ComponentTreeSupplier {
       var text =
           ExplorerCatalog.source(file.path())
               .orElse("// " + file.path() + " was not found in the jar (explorer-src/).");
-      tabs.add(new Tab(label(file), new Markdown(fenced(file.language(), file.path(), text), null, null)));
+      tabs.add(new Tab(literal(label(file)), new Markdown(fenced(file.language(), file.path(), text), null, null)));
     }
     return TabLayout.builder().tabs(tabs).style("width: 100%;").build();
   }
@@ -199,6 +200,17 @@ public class EntryPage implements ComponentTreeSupplier {
       fence += "`";
     }
     return "`" + path + "`\n\n" + fence + language + "\n" + text.stripTrailing() + "\n" + fence + "\n";
+  }
+
+  /**
+   * An entry's own text (title, a card title, a tab label, a notice) shown AS WRITTEN. Those
+   * components are templates — the client evaluates a {@code ${…}} in them against the state, so a
+   * title that talks ABOUT interpolation ("A `${…}` in a label…") painted "… is not defined".
+   * {@link Templates#literal} writes the client's escape (a backslash before the dollar sign). Markdown is NOT a template
+   * on the client (it is shown verbatim, the escape would show), so descriptions and code stay raw.
+   */
+  static String literal(String text) {
+    return Templates.literal(text);
   }
 
   static Component column(List<Component> items) {
