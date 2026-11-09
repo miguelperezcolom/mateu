@@ -65,7 +65,7 @@ exists); run with `-Dmateu.sources.mock=false` to call the real endpoints.
   REST sources https://mateu.io/concepts/data-sources/, the YAML app shell
   https://mateu.io/define/yaml/app-shell/.
 - The authoring schema (every component and its keys):
-  https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.54/backend/shared/uidl/specs-schema.json
+  https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.55/backend/shared/uidl/specs-schema.json
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md.
 - A complete YAML-only CRUD to copy from: `demo/demo-starwars` in https://github.com/miguelperezcolom/mateu
 - MCP: set `mateu.mcp.enabled=true` and the running app serves `POST /mateu/mcp`, so an agent can
