@@ -28,6 +28,9 @@ import {
   SELF_TEST_PAGE, aggregate, childForSlot, otherVariantValue, publishProblems, valueForProperty, variantCombosToTest, variantName,
 } from "./selftest";
 import type { Check, Report } from "./selftest";
+import { SAMPLES_PAGE, SAMPLE_SCREENS, componentsUsed, propertyValues } from "./samples";
+import type { InstancePlan } from "./samples";
+import libraryKeys from "./library-keys.json";
 
 type Sketch = any;
 type Entry = any;
@@ -896,5 +899,148 @@ function resultsTable(report: Report): FrameNode {
   return table;
 }
 
+// ── sample screens ───────────────────────────────────────────────────────────
+
+type LibraryNode = ComponentNode | ComponentSetNode;
+
+/**
+ * The library components the sample screens need, by contract name, found as a designer's file has
+ * them: LOCAL (a duplicate of the Mateu UI Kit, or the library file itself — the `Mateu · …` pages),
+ * else IMPORTED from the enabled library by publish key (src/library-keys.json, `npm run keys`), else
+ * the main component of an instance already in the file. Returns what was found and how.
+ */
+async function findLibraryComponents(names: string[]): Promise<{ found: Map<string, LibraryNode>, how: Record<string, number>, missing: string[] }> {
+  const found = new Map<string, LibraryNode>();
+  const how = { local: 0, imported: 0, fromInstances: 0 };
+  const wanted = new Set(names);
+  for (const page of figma.root.children) {
+    if (!page.name.startsWith('Mateu · ') || page.name === SELF_TEST_PAGE) continue;
+    await page.loadAsync();
+    for (const node of page.children) {
+      if ((node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') && wanted.has(node.name) && !found.has(node.name)) {
+        found.set(node.name, node);
+        how.local++;
+      }
+    }
+  }
+  const keys = libraryKeys as Record<string, { key: string, set: boolean }>;
+  for (const name of names) {
+    if (found.has(name) || !keys[name]) continue;
+    try {
+      const node = keys[name].set
+        ? await figma.importComponentSetByKeyAsync(keys[name].key)
+        : await figma.importComponentByKeyAsync(keys[name].key);
+      found.set(name, node);
+      how.imported++;
+    } catch (e) { /* not published to this user, or another version of the library */ }
+  }
+  if (names.some((n) => !found.has(n))) {
+    await figma.loadAllPagesAsync();
+    for (const inst of figma.root.findAllWithCriteria({ types: ['INSTANCE'] })) {
+      const main = await inst.getMainComponentAsync();
+      if (!main) continue;
+      const owner: LibraryNode = main.parent?.type === 'COMPONENT_SET' ? main.parent : main;
+      if (wanted.has(owner.name) && !found.has(owner.name)) {
+        found.set(owner.name, owner);
+        how.fromInstances++;
+      }
+    }
+  }
+  return { found, how, missing: names.filter((n) => !found.has(n)) };
+}
+
+/**
+ * "Mateu Sample Screens": in a file that uses the Mateu UI Kit, builds the page `Screens (sample)`
+ * with the six screens of src/samples.ts — made only of library instances, the way a designer makes
+ * them: an instance per component, its variant chosen, its properties set in the properties panel
+ * (setProperties), other instances dropped INTO its slots. Download the file and run
+ * `npm run e2e:refresh -- <file URL>` in design/figma/e2e to check them end to end.
+ */
+async function runSampleScreens() {
+  await figma.loadFontAsync(FONT_R);
+  await figma.loadFontAsync(FONT_B);
+  await figma.loadFontAsync(FONT_M);
+
+  const { found, how, missing } = await findLibraryComponents(componentsUsed());
+  if (missing.length > 0) {
+    figma.notify(`The Mateu UI Kit is not in this file (missing ${missing.length}: ${missing.slice(0, 3).join(', ')}…). Duplicate the kit, or enable it as a library, and run again.`, { error: true, timeout: 15000 });
+    console.log('Mateu sample screens: missing components', JSON.stringify(missing));
+    figma.closePlugin();
+    return;
+  }
+
+  let page = figma.root.children.find((p) => p.name === SAMPLES_PAGE) as PageNode | undefined;
+  if (page) {
+    await page.loadAsync();
+    for (const child of [...page.children]) child.remove();
+  } else {
+    page = figma.createPage();
+    page.name = SAMPLES_PAGE;
+  }
+  await figma.setCurrentPageAsync(page);
+
+  const problems: string[] = [];
+  let instances = 0;
+
+  const place = (plan: InstancePlan, path: string): InstanceNode => {
+    const node = found.get(plan.component)!;
+    const instance = (node.type === 'COMPONENT_SET' ? node.defaultVariant : node).createInstance();
+    instances++;
+    const here = `${path} > ${plan.component}`;
+    if (plan.variants && Object.keys(plan.variants).length > 0) {
+      try { instance.setProperties(plan.variants); } catch (e) { problems.push(`${here}: variant ${JSON.stringify(plan.variants)} refused (${(e as Error)?.message ?? e})`); }
+    }
+    const { values, missing: unknown } = propertyValues(Object.keys(instance.componentProperties), plan);
+    for (const name of unknown) problems.push(`${here}: no property "${name}" on the instance`);
+    if (Object.keys(values).length > 0) {
+      try { instance.setProperties(values); } catch (e) { problems.push(`${here}: properties refused (${(e as Error)?.message ?? e})`); }
+    }
+    // fill the slots before the instance goes into its parent's slot: every level is built whole
+    const slots = planEntry(contractEntry(plan.component)).slots;
+    for (const [slotName, children] of Object.entries(plan.slots ?? {})) {
+      const slot = slots.find((s) => s.name === slotName);
+      const target = slot ? slotNodeOf(instance, slot) : null;
+      if (!target) {
+        problems.push(`${here}: no native slot "${slotName}" on the instance`);
+        continue;
+      }
+      for (const child of children) {
+        const placed = place(child, `${here} > ${slotName}`);
+        try {
+          (target as unknown as ChildrenMixin).appendChild(placed);
+        } catch (e) {
+          placed.remove();
+          problems.push(`${here} > ${slotName}: append refused (${(e as Error)?.message ?? e})`);
+        }
+      }
+    }
+    return instance;
+  };
+
+  let x = 0;
+  for (const screen of SAMPLE_SCREENS) {
+    // the note above the frame is a top-level `_` layer: never read as a screen or as content
+    const note = textNode(`${screen.name} — ${screen.description}`, { size: 12, color: LUMO.secondary, name: `_${screen.name} — about` });
+    page.appendChild(note);
+    note.x = x; note.y = 0;
+    const frame = frameNode({ dir: 'VERTICAL', gap: 24, pad: 32, name: screen.name });
+    frame.fills = [solid(LUMO.base)];
+    page.appendChild(frame);
+    frame.x = x; frame.y = 32;
+    for (const plan of screen.instances) frame.appendChild(place(plan, screen.name));
+    x += Math.max(frame.width, 640) + 120;
+  }
+
+  const source = Object.entries(how).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`).join(', ');
+  figma.notify(`Mateu sample screens: ${SAMPLE_SCREENS.length} screens, ${instances} instances (components ${source})${problems.length ? ` — ${problems.length} problems, see the console` : ' ✔'}`, { timeout: 15000, error: problems.length > 0 });
+  console.log('Mateu sample screens', JSON.stringify({ screens: SAMPLE_SCREENS.map((s) => s.name), instances, components: how, problems }));
+  figma.closePlugin();
+}
+
+function contractEntry(name: string): Entry {
+  return (contract as any).components.find((e: Entry) => e.name === name);
+}
+
 if (figma.command === 'selftest') runSelfTest();
+else if (figma.command === 'samples') runSampleScreens();
 else buildLibrary();

@@ -56,6 +56,10 @@ public abstract class ComponentAdapter<T> : IComponentAdapter where T : class
 /// <summary>On a property whose type is a routed view (a <c>[UI]</c> class), the view is embedded as
 /// an independent island WITHOUT its own page chrome: no badges/KPIs, a demoted title, and no card
 /// around a single-section form — so it blends into the host section or tab. (C# analogue of
-/// Java's @Inline on an embedded orchestrator field.)</summary>
+/// Java's @Inline on an embedded orchestrator field.)
+/// <para>On a property holding a plain data object (a nested form), its fields expand straight
+/// into the host section (ids prefixed <c>&lt;field&gt;-</c>) and its [Toolbar]/[Button] methods
+/// sit on the section's title row / under its content; without [Inline] such an object renders
+/// as a sub-form card. (Java's @Inline on a nested form field.)</para></summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class InlineAttribute : Attribute;

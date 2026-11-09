@@ -51,7 +51,13 @@ object MateuPlatformNotices {
     fun install(project: Project, session: AppSession) {
         val keyed = KeyedNotices<Notification>()
         session.messagePresenter = { spec, run -> showMessage(project, spec, run, keyed) }
-        session.tasks.host = PlatformTaskHost(project)
+        session.tasks.host = PlatformTaskHost(project, session)
+        // @App(osNotifications = true): SystemNotifications, which the platform itself gates on the
+        // user's "Use system notifications" setting and on the IDE being in the background
+        session.ideActive = { ApplicationManager.getApplication().isActive }
+        session.osNotifier = { notice ->
+            com.intellij.ui.SystemNotifications.getInstance().notify("Mateu", notice.title, notice.text)
+        }
         session.inbox.presenter = PlatformInboxPresenter(project)
         session.openNotificationsView = {
             ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
@@ -87,7 +93,7 @@ object MateuPlatformNotices {
 }
 
 /** Runs each task as a platform task that follows its [TaskChannel]. */
-private class PlatformTaskHost(private val project: Project) : TaskHost {
+private class PlatformTaskHost(private val project: Project, private val session: AppSession) : TaskHost {
 
     override fun start(first: ProgressTask, channel: TaskChannel, cancel: () -> Unit) {
         ApplicationManager.getApplication().invokeLater {
@@ -138,6 +144,8 @@ private class PlatformTaskHost(private val project: Project) : TaskHost {
     }
 
     override fun finished(task: ProgressTask, runAction: (NoticeAction) -> Unit, retry: (() -> Unit)?) {
+        // a background task that ended while the IDE is not in front: the OS too
+        session.osNotice(io.mateu.ijp.state.OsNotices.Event.TaskFinished(task))
         ApplicationManager.getApplication().invokeLater {
             val locale = MoneyValues.uiLocale()
             val failed = task.state == TaskState.FAILED

@@ -270,6 +270,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         agentPush: !!md.agentPush,
         // The App's NotificationsSupplier → the header bell (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
+        // @App(osNotifications): a new inbox entry / a background task ending also through the OS (osNotify.mjs)
+        osNotifications: !!md.osNotifications,
         // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
         globalSearchEnabled: !!md.globalSearchEnabled,
         // a data-authored shell's inbox and palette search from REST sources (type: AppShell

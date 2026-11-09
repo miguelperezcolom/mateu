@@ -53,7 +53,14 @@ public sealed record ProgressDto(
     long? StartedAt,
     int? CloseAfterSeconds,
     string? Error,
-    IReadOnlyList<MessageActionDto> ResultActions);
+    IReadOnlyList<MessageActionDto> ResultActions)
+{
+    /// <summary>The server's estimate of the seconds left — only for a running, determinate task
+    /// once the observed rate makes it honest (conformance/progress/eta.json); null otherwise, and
+    /// then absent from the wire. (Mirrors io.mateu.dtos.ProgressDto.etaSeconds.) EXPERIMENTAL.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? EtaSeconds { get; init; }
+}
 
 /// <summary>One entry of the notification inbox, as listed (<c>_notifications</c>) and pushed
 /// (<c>NotificationsChanged</c>). (Mirrors io.mateu.dtos.AppNotificationDto.) EXPERIMENTAL.</summary>

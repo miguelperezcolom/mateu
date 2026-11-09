@@ -85,8 +85,9 @@ And it keeps as much of its page header as the value says:
 
 It works the same with `resolve = SERVER`: the host asks the remote as embedded, and the island keeps
 its chrome for every later interaction (which go from the browser straight to the remote). In YAML,
-`chrome: NONE` on a `MicroFrontend`. Both web renderers (Vaadin and Redwood) implement it; the .NET
-and Python ports do not have the option yet.
+`chrome: NONE` on a `MicroFrontend`. Both web renderers (Vaadin and Redwood) implement it, and the .NET
+and Python servers have the option too (`MicroFrontend.Chrome` / `MicroFrontend(chrome=…)`): their
+answers to an embedded island drop the window commands the same way.
 
 ## Resolving it in the server (`resolve = SERVER`)
 
@@ -236,3 +237,5 @@ The other options (`default_timeout_ms`, `self_base_url`, `remote_registry`, `id
 `fragment_cache_store`, `correlation_id_provider`, `resolution_listeners`) are in the server options
 tables of the [Python](/python-user-manual/#server-options) and [.NET](/csharp-user-manual/#server-options)
 manuals.
+
+**See it live in the Explorer:** [MicroFrontend](https://explorer.mateu.io/components/composition/micro-frontend) · [MicroFrontend — CLIENT vs SERVER resolution](https://explorer.mateu.io/distributed/microfrontends/client-vs-server) · [Embedded chrome — NONE / COMPACT / PAGE](https://explorer.mateu.io/distributed/microfrontends/embedded-chrome) · [Fragment cache (varyBy)](https://explorer.mateu.io/distributed/microfrontends/fragment-cache)

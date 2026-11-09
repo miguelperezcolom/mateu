@@ -107,9 +107,9 @@ Rules that keep a page valid:
 - `dataType` is one of: integer, string, number, date, time, dateTime, bool, array, file, status,
   money, component, menu, range, action, actionGroup. There is **no** `decimal`: use `number` or `money`.
 - A stack is `VerticalLayout`, a row is `HorizontalLayout`, fields go in a `FormLayout`.
-- A page bound to a Java view model names it once at the root (`modelView: com.acme.CustomerView`);
+- A page bound to a Java view model names it once at the root (`viewModel: com.acme.CustomerView`);
   its fields' `id`s and buttons' `actionId`s must be that class's members. A page with **no** view
-  model omits `modelView:` entirely.
+  model omits `viewModel:` entirely.
 - A classless page can still read and write through REST: a `Listing` with `rowsSource: { ref: <name> }`,
   and a top-level `actions:` list whose entries (`id` = a button's `actionId`) carry a `restAction`
   with `source: { ref: <name> }`. The named sources live in `sources.yaml` (send it in `files`). A

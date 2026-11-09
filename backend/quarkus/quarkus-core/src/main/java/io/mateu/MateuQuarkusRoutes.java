@@ -469,7 +469,8 @@ public class MateuQuarkusRoutes {
                 response.end(io.vertx.core.buffer.Buffer.buffer(asset.body()));
               });
       router
-          .postWithRegex(java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + ".*")
+          .postWithRegex(
+              java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + "(sync|sse)/.*")
           .order(AFTER_SECURITY + 1)
           .handler(BodyHandler.create())
           .blockingHandler(rc -> run(rc, mount, service));

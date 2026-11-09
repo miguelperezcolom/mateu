@@ -541,6 +541,10 @@ public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOn
     /// <summary>This page's built-in affordances (see <see cref="GeneralOverviewDisplay"/>).</summary>
     protected virtual GeneralOverviewDisplay Display => GeneralOverviewDisplay.Defaults;
 
+    /// <summary>The record switcher's label ("Order", "Employee"…); empty (the default) = no label.
+    /// EXPERIMENTAL. (Java's GeneralOverview.recordLabel.)</summary>
+    protected virtual string RecordLabel => "";
+
     /// <summary>What to show when no record is selected/found.</summary>
     protected virtual IComponent EmptyOverview() => new EmptyState
     {
@@ -557,7 +561,7 @@ public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOn
             Id = Archetypes.IdOf(this), Spacing = true,
             Content =
             [
-                new FormField { FieldId = "record", Label = "", Options = options },
+                new FormField { FieldId = "record", Label = RecordLabel ?? "", Options = options },
                 row is null ? EmptyOverview() : WithInfo(row),
             ],
         };

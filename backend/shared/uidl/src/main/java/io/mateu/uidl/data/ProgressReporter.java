@@ -29,25 +29,6 @@ public class ProgressReporter {
   private final AtomicReference<ProgressDto> current;
   private final boolean progressBar;
 
-  /**
-   * A reporter for the task {@code taskId}, running, with no title yet.
-   *
-   * @deprecated use {@link LongTask#run} instead, which hands the reporter to the work
-   */
-  @Deprecated(since = "3.0-rc.1", forRemoval = true)
-  ProgressReporter(String taskId, boolean progressBar) {
-    this(
-        ProgressDto.builder()
-            .taskId(taskId)
-            .title("")
-            .text("")
-            .state(io.mateu.dtos.ProgressStateDto.running)
-            .blocking(true)
-            .fraction(progressBar ? 0.0 : null)
-            .build(),
-        progressBar);
-  }
-
   ProgressReporter(ProgressDto initial, boolean progressBar) {
     this.current = new AtomicReference<>(initial);
     this.progressBar = progressBar;

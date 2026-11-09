@@ -1,0 +1,25 @@
+id: action-catalogue
+area: behaviour
+group: data
+title: "Action catalogue"
+covers: [behaviour:action-catalogue]
+description: |
+  A client-runnable action — a `restAction` or a flow of `steps` (Navigate, Emit, RunAction,
+  CloseOverlay, MarkClean/MarkDirty) — named **once** in a `type: Actions` file (or
+  `specs/ui/actions.yaml`, or an `ActionCatalogSupplier` bean) and run **by id** from any page, the
+  shell menu or Java. Resolution is owner first: the page's own actions (or a Java action method), then
+  the catalogue, then the server. Ids are global.
+
+  **Try it:** press **Ping the API** — a catalogue restAction: "Pong!", and the answer merged into
+  the page's state ("Last answer: pong at …"); the page declares no actions. Press **Ping (from Java)**
+  in the Java view, which has no such method either. **Go to the Explorer home** runs a catalogue flow.
+examples:
+  - title: "A YAML page naming catalogue ids"
+    route: x/behaviour/action-catalogue/page
+  - title: "A Java view naming the same id"
+    java: io.mateu.explorer.examples.behaviour.actioncatalogue.CatalogueButtons
+pages:
+  - {route: x/behaviour/action-catalogue/page, layout: explorer/behaviour/action-catalogue/page.yaml}
+code:
+  - {label: "YAML · actions.yaml (the catalogue)", path: src/main/resources/specs/ui/explorer/behaviour/action-catalogue/actions.yaml}
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}

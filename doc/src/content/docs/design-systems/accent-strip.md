@@ -29,8 +29,6 @@ their own brand: *"visual elements like the strip and data textures are removed 
 branding"*, and the customer's accent colour goes to the Section dash instead.
 
 A Mateu app is never an Oracle product, so Mateu follows that rule and draws no strip.
-`@App(accentStrip)` and `@App(accentStripSeed)` are deprecated and have no effect, and the strip
-generator `io.mateu.core.infra.AccentStrip` is deprecated for removal.
 
 The Redwood renderer is unaffected. It shows Spectra's page headers exactly as Spectra draws them.
 

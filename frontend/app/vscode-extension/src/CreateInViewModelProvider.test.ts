@@ -11,7 +11,7 @@ import { CreateInViewModelProvider } from './CreateInViewModelProvider'
 
 let ws: string
 const PAGE = [
-    'modelView: com.acme.PersonView',
+    'viewModel: com.acme.PersonView',
     'layout:',
     '  type: FormLayout',
     '  content:',
@@ -68,7 +68,7 @@ describe('CreateInViewModelProvider', () => {
         const name = lineOf(PAGE, 'id: name')
         expect(await p.provideCodeActions(page as any, new vscode.Range(name, 0, name, 0))).toEqual([])
         expect(await p.provideCodeActions(page as any, new vscode.Range(0, 0, 0, 0))).toEqual([])
-        page.text = PAGE.replace('modelView: com.acme.PersonView\n', '')
+        page.text = PAGE.replace('viewModel: com.acme.PersonView\n', '')
         expect(await p.provideCodeActions(page as any, new vscode.Range(0, 0, 8, 0))).toEqual([])
         page.text = PAGE.replace('com.acme.PersonView', 'com.acme.Missing')
         expect(await p.provideCodeActions(page as any, new vscode.Range(0, 0, 8, 0))).toEqual([])

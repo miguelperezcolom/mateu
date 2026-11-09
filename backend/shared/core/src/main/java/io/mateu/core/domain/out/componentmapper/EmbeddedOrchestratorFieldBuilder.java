@@ -237,6 +237,73 @@ public final class EmbeddedOrchestratorFieldBuilder {
   }
 
   /**
+   * An orchestrator (a crud, an editable view…) handed to an {@code EmbeddedView}: the same
+   * independent mediator island a form field of that type becomes, routed relative to ITSELF. It
+   * used to map through the orchestrator's own {@code dto()}, which binds the mediator to the
+   * request's route — the HOST page's — so the island's first load rendered the host inside itself,
+   * which rendered the island again ("request loop detected" / "Not found").
+   *
+   * <p>The island's route is the orchestrator's own (its {@code @UI} or a routes.yaml entry); one
+   * with none is addressed by its type, the route being only the namespace its internal views (list
+   * / record / new) live under — like a {@code @Subresource}.
+   */
+  public static Component embedded(
+      Object orchestrator, String initiatorComponentId, HttpRequest httpRequest) {
+    var type = orchestrator.getClass();
+    var route = routeOf(type);
+    if (route.isEmpty()) {
+      route = registryRouteOf(type);
+    }
+    if (route.isEmpty()) {
+      route = "/_embedded/" + type.getSimpleName();
+    }
+    var componentId =
+        (initiatorComponentId != null ? initiatorComponentId : "")
+            + "_embedded_"
+            + type.getSimpleName();
+    var markedRoute = route + (route.contains("?") ? "&" : "?") + EMBEDDED_MARKER + "=1";
+    Map<String, Object> initialData = new LinkedHashMap<>();
+    initialData.put(EMBEDDED_MARKER, true);
+    seedValueState(orchestrator, initialData);
+    return mediator(type, route, markedRoute, componentId, initialData, httpRequest);
+  }
+
+  /** The mediator app inside its server-side wrapper, which claims the orchestrator's actions. */
+  private static ServerSideComponent mediator(
+      Class<?> type,
+      String route,
+      String markedRoute,
+      String componentId,
+      Map<String, Object> initialData,
+      HttpRequest httpRequest) {
+    var baseUrl = (String) httpRequest.getAttribute("baseUrl");
+    if (baseUrl == null) {
+      baseUrl = "";
+    }
+    var app =
+        AppShell.builder()
+            .clientSideComponentId(componentId + "_app")
+            .serverSideType(type.getName())
+            .homeServerSideType(type.getName())
+            .homeRoute(markedRoute)
+            .homeConsumedRoute(route)
+            .homeBaseUrl(baseUrl)
+            .route(route)
+            .variant(AppVariant.MEDIATOR)
+            .style("width: 100%;")
+            .build();
+    return ServerSideComponent.builder()
+        .id(componentId)
+        .serverSideType(type.getName())
+        .route(markedRoute)
+        .initialData(initialData)
+        .actions(orchestratorActions(type, httpRequest))
+        .children(List.of(app))
+        .style("width: 100%;")
+        .build();
+  }
+
+  /**
    * A sub-resource's header — its title and help line — above its island. The title is left out
    * when it would only repeat what is already on screen: the tab's label, the page's title, or a
    * tab that holds this listing alone (the tab IS its label).
@@ -340,10 +407,20 @@ public final class EmbeddedOrchestratorFieldBuilder {
       return;
     }
     try {
-      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, hostInstance);
-      if (value == null) {
-        return;
-      }
+      seedValueState(
+          io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, hostInstance),
+          initialData);
+    } catch (Exception ignored) {
+      // best effort — an unseedable island still works, it just starts without host context
+    }
+  }
+
+  /** {@link #seedInstanceState} for a value in hand (an EmbeddedView's orchestrator). */
+  private static void seedValueState(Object value, Map<String, Object> initialData) {
+    if (value == null) {
+      return;
+    }
+    try {
       for (Field member : value.getClass().getDeclaredFields()) {
         if (java.lang.reflect.Modifier.isStatic(member.getModifiers())) {
           continue;

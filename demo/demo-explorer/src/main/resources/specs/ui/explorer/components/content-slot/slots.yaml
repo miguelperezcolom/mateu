@@ -1,0 +1,13 @@
+# Content slots as DATA: a place on a screen whose content an editorial CONTENT SERVICE owns.
+# The server asks the content remote (mateu.content-slots.remote) for /content-slots/{key}; when
+# it answers nothing, fails or is too slow, the `fallback` text shows (no fallback: the slot is
+# removed). This app has no content service, so the fallbacks are what you see.
+content:
+  - type: ContentSlot
+    key: explorer.home.announcement
+    description: The banner above the home page — owned by the communications team
+    fallback: "The museum is open every day this week, 10:00–18:00."
+    timeoutMs: 300
+  - type: ContentSlot
+    key: explorer.home.promo
+    description: A promotion; without content and without a fallback it simply is not there

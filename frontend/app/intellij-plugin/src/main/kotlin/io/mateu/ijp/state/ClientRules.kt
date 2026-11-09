@@ -8,6 +8,26 @@ import io.mateu.ijp.api.text
  * the web's applyRules, minus the DOM-bound actions (RunJS / SetCssClass / SetStyle).
  */
 object ClientRules {
+    private val FIELD_FLAGS = setOf("hidden", "disabled", "required", "readOnly")
+
+    /**
+     * The fields a client-side rule currently makes REQUIRED whose value is empty → fieldId to
+     * message (the server's own text for @NotEmpty). A field a rule hides asks nothing.
+     */
+    fun requiredErrors(
+        fieldAttributes: Map<String, Map<String, Any?>>,
+        state: Map<String, Any?>,
+    ): Map<String, String> {
+        val out = LinkedHashMap<String, String>()
+        for ((fieldId, attrs) in fieldAttributes) {
+            if (attrs["required"] != true || Expressions.truthy(attrs["hidden"])) continue
+            val v = state[fieldId]
+            val empty = v == null || (v is String && v.isBlank()) || (v is Collection<*> && v.isEmpty())
+            if (empty) out[fieldId] = "Cannot be empty"
+        }
+        return out
+    }
+
     /**
      * Mutates [state] (SetStateValue / SetDataValue) and [fieldAttributes] (SetAttributeValue),
      * runs RunAction rules through [runAction], and returns true when a value or attribute changed
@@ -60,6 +80,16 @@ object ClientRules {
                         if (state[key] != v) {
                             state[key] = v
                             changed = true
+                        }
+                        // `<field>.hidden|disabled|required|readOnly` is a field attribute too:
+                        // the renderer reads the overrides (a required rule marks the field and
+                        // the save refuses it empty)
+                        if (rule.text("action") == "SetDataValue" && attr in FIELD_FLAGS) {
+                            val attrs = fieldAttributes.getOrPut(fieldName) { HashMap() }
+                            if (attrs[attr] != v) {
+                                attrs[attr] = v
+                                changed = true
+                            }
                         }
                     }
                 }

@@ -59,6 +59,22 @@ object NoticeTexts {
     fun dismiss(locale: Locale) = if (es(locale)) "Descartar" else "Dismiss"
     fun failed(locale: Locale) = if (es(locale)) "Ha fallado" else "Failed"
     fun count(done: Int, total: Int, locale: Locale) = if (es(locale)) "$done de $total" else "$done of $total"
+
+    /**
+     * A running task's ETA (`ProgressDto.etaSeconds`, estimated by the server), worded as
+     * conformance/client/eta-format.json says; null when there is none (never a guess).
+     */
+    fun eta(etaSeconds: Int?, locale: Locale): String? {
+        if (etaSeconds == null || etaSeconds <= 0) return null
+        if (etaSeconds < 60) return if (es(locale)) "menos de un minuto" else "less than a minute left"
+        // round half up, like Math.round; a rounded 60 minutes reads as hours
+        val minutes = maxOf(1, Math.round(etaSeconds / 60.0).toInt())
+        if (etaSeconds < 3600 && minutes < 60) {
+            return if (es(locale)) "unos $minutes min restantes" else "about $minutes min left"
+        }
+        val hours = maxOf(1, Math.round(etaSeconds / 3600.0).toInt())
+        return if (es(locale)) "unas $hours h restantes" else "about $hours h left"
+    }
 }
 
 /** Where a task is in its life (`ProgressStateDto`). */
@@ -100,6 +116,8 @@ data class ProgressTask(
     val closeAfterSeconds: Int?,
     val error: String?,
     val resultActions: List<NoticeAction>,
+    /** The server's estimate of the time left (running, determinate tasks only); null = none. */
+    val etaSeconds: Int? = null,
 ) {
     val indeterminate: Boolean get() = fraction == null
 
@@ -117,6 +135,12 @@ object ProgressTasks {
 
     /** The reserved action that cancels a task the caller owns (parameters `{taskId}`). */
     const val CANCEL_ACTION = "_progress-cancel"
+
+    /** The reserved action that answers the caller's own tasks among `{taskIds}` (reattach). */
+    const val TASKS_ACTION = "_progress-tasks"
+
+    /** The reserved SSE action that streams one of the caller's tasks again (`{taskId}`). */
+    const val RESUME_ACTION = "_progress-resume"
 
     fun of(data: JsonNode?): ProgressTask? {
         if (data == null || !data.isObject) return null
@@ -138,6 +162,7 @@ object ProgressTasks {
             closeAfterSeconds = intOrNull("closeAfterSeconds"),
             error = data.text("error").ifBlank { null },
             resultActions = NoticeAction.listOf(data.path("resultActions")),
+            etaSeconds = intOrNull("etaSeconds"),
         )
     }
 
@@ -154,7 +179,7 @@ object ProgressTasks {
      */
     fun indicatorText(task: ProgressTask): String = io.mateu.ijp.ui.plain(task.title.ifBlank { task.text })
 
-    /** The indicator's second line: the count ("12 of 300") and what it is doing now. */
+    /** The indicator's second line: the count ("12 of 300"), what it is doing now and the ETA. */
     fun indicatorText2(task: ProgressTask, locale: Locale = Locale.getDefault()): String {
         val count = if (task.done != null && task.total != null && task.total > 0) {
             NoticeTexts.count(task.done, task.total, locale)
@@ -162,8 +187,13 @@ object ProgressTasks {
             null
         }
         val now = task.text.takeIf { it.isNotBlank() && it != task.title }
-        return io.mateu.ijp.ui.plain(listOfNotNull(count, now).joinToString(" · "))
+        val eta = if (task.state == TaskState.RUNNING) NoticeTexts.eta(task.etaSeconds, locale) else null
+        return io.mateu.ijp.ui.plain(listOfNotNull(count, now, eta).joinToString(" · "))
     }
+
+    fun tasksParameters(taskIds: Collection<String>): Map<String, Any?> = mapOf("taskIds" to taskIds.toList())
+
+    fun resumeParameters(taskId: String): Map<String, Any?> = mapOf("taskId" to taskId)
 
     /** The result notification's text: what was done, or what went wrong. */
     fun resultText(task: ProgressTask, locale: Locale = Locale.getDefault()): String = when (task.state) {

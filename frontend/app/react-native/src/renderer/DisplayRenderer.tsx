@@ -11,6 +11,7 @@ import { openExternal } from './openExternal';
 import { announce } from '../a11y/a11y';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
+import { RichText } from './FieldWidgets';
 import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanCard, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme, themed } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
@@ -23,7 +24,7 @@ import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggl
 import { factAction } from './factAction';
 import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
 import { foldoutOpenStates } from '../core/foldoutFit';
-import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerCtaLabel, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
+import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -677,7 +678,8 @@ export function FaqRenderer({ component }: { component: unknown }) {
             <Text style={styles.faqQText}>{it.question ?? ''}</Text>
             <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
           </TouchableOpacity>
-          {open[i] && <Text style={styles.faqA}>{it.answer ?? ''}</Text>}
+          {/* the answer is markdown, like on the web and Redwood (it was shown as plain text) */}
+          {open[i] && <View style={styles.faqA}><RichText value={it.answer ?? ''} kind="markdown" /></View>}
         </View>
       ))}
     </View>
@@ -1107,6 +1109,7 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component) as unknown as OfferCard;
   const current = m.current === true;
+  const footer = offerFooterOf(m);
   return (
     <View style={[styles.offerCard, !current && styles.offerCardAccent]}>
       {!!m.image && (
@@ -1124,18 +1127,18 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
             {(m.features ?? []).map((f, i) => <Text key={i} style={styles.offerFeature}>{f}</Text>)}
           </View>
         )}
-        {current ? (
-          !!m.currentLabel && <Text style={styles.offerCurrentLabel}>{m.currentLabel}</Text>
-        ) : (
-          !!m.actionLabel && (
-            <TouchableOpacity {...buttonA11y()}
-              style={[styles.offerCta, m.added === true && styles.offerCtaAdded]}
-              onPress={() => m.actionId && void controller.runAction(m.actionId)}
-            >
-              <Text style={styles.offerCtaText}>{offerCtaLabel(m)}</Text>
-              {!!m.priceLabel && <Text style={styles.offerCtaPrice}>{m.priceLabel}</Text>}
-            </TouchableOpacity>
-          )
+        {footer?.kind === 'current' && !!footer.label && <Text style={styles.offerCurrentLabel}>{footer.label}</Text>}
+        {footer?.kind === 'price' && <Text style={styles.offerPriceOnly}>{footer.price}</Text>}
+        {footer?.kind === 'cta' && (
+          // without an actionId the CTA is drawn INERT (disabled), not dropped
+          <TouchableOpacity {...buttonA11y({ disabled: !footer.enabled })}
+            disabled={!footer.enabled}
+            style={[styles.offerCta, footer.added && styles.offerCtaAdded]}
+            onPress={() => m.actionId && void controller.runAction(m.actionId)}
+          >
+            <Text style={styles.offerCtaText}>{footer.label}</Text>
+            {!!footer.price && <Text style={styles.offerCtaPrice}>{footer.price}</Text>}
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -1470,7 +1473,7 @@ const styles = themed(() => StyleSheet.create({
   faqQ: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
   faqQText: { fontWeight: '600', color: theme.ink, flex: 1 },
   faqChevron: { color: theme.faint, fontSize: 16 },
-  faqA: { paddingHorizontal: 14, paddingBottom: 14, color: theme.muted, lineHeight: 20 },
+  faqA: { paddingHorizontal: 14, paddingBottom: 14 },
   // CalloutCard
   callout: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: 14, borderLeftWidth: 4 },
   calloutIcon: { fontSize: 24 },
@@ -1610,6 +1613,7 @@ const styles = themed(() => StyleSheet.create({
   offerFeatures: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: theme.border, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
+  offerPriceOnly: { fontWeight: '700', textAlign: 'right', marginTop: 4, fontVariant: ['tabular-nums'] },
   offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
   offerCtaText: { color: theme.onFill, fontWeight: '600' },

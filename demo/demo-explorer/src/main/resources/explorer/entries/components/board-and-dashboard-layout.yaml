@@ -1,0 +1,15 @@
+id: board-and-dashboard-layout
+area: components
+group: layout
+title: Board & dashboard layouts
+covers: [component:BoardLayout, component:BoardLayoutRow, component:BoardLayoutItem, component:DashboardLayout, component:DashboardPanel]
+# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+knownIssue: >-
+  Vaadin, 3.0-beta.51: a BoardLayout does not lay out its rows — its items stack (or flow into one grid that ignores the rows).
+examples:
+  - title: In YAML
+    description: "Known issues (3.0-beta.51, Vaadin): The BoardLayout does not lay out its rows: its items stack one under another (and, given the full width, flow into one grid that ignores the rows)."
+    yaml: specs/ui/explorer/components/board-and-dashboard-layout/boards.yaml
+  - title: "A DashboardLayout in Java, with a clickable tile"
+    description: "Click the **Occupancy** tile."
+    java: io.mateu.explorer.examples.components.boards.FluentDashboardLayout

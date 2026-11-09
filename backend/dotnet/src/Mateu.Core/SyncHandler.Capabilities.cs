@@ -64,6 +64,8 @@ internal sealed partial class SyncHandler
             "save" when profile.CanEdit => CapabilitySave(profile, listing, baseRoute, rq),
             "create" when profile.CanCreate => CapabilityCreate(profile, listing, baseRoute, rq),
             "delete" when profile.CanDelete => CapabilityDelete(profile, listing, rq),
+            IRestorable<string>.RestoreAction when profile.CanDelete => UIIncrementDto.Of(
+                fragments: CapabilitySearch(profile, listing, rq).Fragments, messages: [Restore(listing, rq)]),
             "cancel-new" or "cancel-edit" or "cancel-view" when profile.EditInDrawer =>
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "MarkAsClean", null)]),
@@ -82,7 +84,11 @@ internal sealed partial class SyncHandler
                 _ => FragmentResponse(Title(profile.ListingType),
                     _mapper.MapCapabilityListing(profile, baseRoute), rq),
             },
-            { } aid when aid.StartsWith("action-on-row-") => CapabilityActionOnRows(profile, listing, rq),
+            { } aid when aid.StartsWith("action-on-row-") =>
+                CapabilityActionOnRows(profile, listing, rq, aid["action-on-row-".Length..]),
+            // a plain listing dispatches its bulk methods by their own name (Java's Listing.actions)
+            { } aid when ActionGuard.ResolveRowAction(profile.ListingType, aid) is not null =>
+                CapabilityActionOnRows(profile, listing, rq, aid),
             _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
@@ -203,29 +209,35 @@ internal sealed partial class SyncHandler
         var idField = EntityIds.FieldName(profile.RowType);
         var ids = (System.Collections.IList)Activator.CreateInstance(
             typeof(List<>).MakeGenericType(profile.IdType))!;
+        var deleted = new List<string>();
         if (GetState(rq.ComponentState, "crud_selected_items")
             is JsonElement { ValueKind: JsonValueKind.Array } selected)
             foreach (var rowEl in selected.EnumerateArray())
                 if (rowEl.ValueKind == JsonValueKind.Object
                     && rowEl.TryGetProperty(idField, out var idEl)
                     && StateString(idEl) is { } raw)
+                {
                     ids.Add(ToId(raw, profile.IdType));
+                    deleted.Add(raw);
+                }
         profile.DeletableInterface!.GetMethod("DeleteAllById")!.Invoke(listing, [ids]);
         var refreshed = CapabilitySearch(profile, listing, rq);
         return UIIncrementDto.Of(
             fragments: refreshed.Fragments,
-            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
+            // a listing declaring IRestorable offers the way back (W-V-DELETE-FEEDBACK)
+            messages: [RestorableOf(listing.GetType()) is not null && deleted.Count > 0
+                ? UndoableDeleted(deleted)
+                : new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
     /// <summary>A [ListToolbarButton] bulk action on the listing: same dispatch as on cruds —
     /// the selected rows rebuilt as typed row objects fill a List&lt;TRow&gt; parameter; a
     /// null/void result re-runs the capability search.</summary>
-    private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq)
+    private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq, string name)
     {
-        var name = rq.ActionId!["action-on-row-".Length..];
         var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
         if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
-        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
+        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId!);
         var result = method.Invoke(listing, BuildBulkArguments(method, rq));
         return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
     }

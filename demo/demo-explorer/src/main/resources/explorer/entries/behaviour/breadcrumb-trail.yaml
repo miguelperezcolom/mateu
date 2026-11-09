@@ -1,0 +1,18 @@
+id: breadcrumb-trail
+area: behaviour
+group: navigation
+title: Breadcrumbs
+covers: [behaviour:breadcrumbs]
+description: |
+  The breadcrumb trail above a page's title follows the menu by default (every Explorer page shows
+  one). A fixed trail is `@Breadcrumbs({@Breadcrumb(label, url)…})`; one that depends on the record
+  is a `BreadcrumbsSupplier`, where an empty link marks the current page. `@App(backLink = PARENT)`
+  swaps the trail for a single "back to parent" link.
+
+  Try it: open the invoice on its own — the trail reads *Behaviour › Breadcrumbs › Invoice 2026-42 ·
+  Ada Lovelace*; click *Breadcrumbs* to come back here.
+examples:
+  - title: An invoice
+    java: io.mateu.explorer.examples.behaviour.breadcrumbs.InvoicePreview
+pages:
+  - {route: "x/behaviour/breadcrumbs/invoices/:id", viewModel: io.mateu.explorer.examples.behaviour.breadcrumbs.InvoicePage}

@@ -78,7 +78,10 @@ export const routeTargetUrl = (
     if (!route || route.startsWith('/') || route.startsWith('?') || route.startsWith('#')) {
         baseUrl = origin + (pathPrefix ?? '')
     } else {
-        route = (pathPrefix ?? '') + route
+        // a relative route is a segment BELOW the base: joined with a slash. Concatenated as it
+        // was, a mount-relative RouteLink `second` on the YAML mount /yaml-mount pushed
+        // /yaml-mountsecond (and on an @UI("/fed") app, /fedsecond)
+        route = (pathPrefix ?? '') + '/' + route
         if (baseUrl.indexOf('://') < 0) {
             if (!baseUrl.startsWith('/')) {
                 baseUrl = '/' + baseUrl

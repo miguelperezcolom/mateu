@@ -81,3 +81,5 @@ Demo: `demo-admin-panel` → `/e2-demo` (one minute, a 30-second countdown).
 
 - [Session expiry](/ux-patterns/session-expiry/)
 - [Autosave](/ux-patterns/autosave/) — shrink the work an expiry can cost
+
+**See it live in the Explorer:** [Idle-session warning](https://explorer.mateu.io/behaviour/app/idle-session)

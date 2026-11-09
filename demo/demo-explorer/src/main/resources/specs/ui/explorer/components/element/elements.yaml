@@ -1,0 +1,23 @@
+# Raw HTML elements as DATA: a tag `name`, its `attributes`, a text `content` (or markup, with
+# `html: true`). Attributes and content interpolate ${state.x} / ${data.x}.
+content:
+  - type: Element
+    name: div
+    attributes:
+      style: "padding: 1rem; border-radius: 8px; background: linear-gradient(90deg, #1e3a8a, #7c3aed); color: white;"
+    content: "A plain <div>, styled by its attributes."
+  - type: Element
+    name: blockquote
+    html: true
+    attributes: {style: "border-left: 4px solid #f59e0b; margin: 0; padding: .5rem 1rem;"}
+    content: "<em>“I dream of painting and then I paint my dream.”</em><br><small>— Vincent van Gogh</small>"
+  - type: Element
+    name: details
+    html: true
+    content: "<summary>A native &lt;details&gt; element</summary><p>No Mateu component needed for this one.</p>"
+  # an unknown CustomComponent: no renderer registered for it here, so it shows the placeholder
+  - type: CustomComponent
+    name: seat-map
+    props: {rows: 12, seatsPerRow: 20, sold: [A3, A4, C10]}
+    content:
+      - {type: Text, text: "Seat map (needs a renderer registered for 'seat-map')"}

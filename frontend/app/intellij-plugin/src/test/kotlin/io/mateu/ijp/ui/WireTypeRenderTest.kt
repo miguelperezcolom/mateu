@@ -125,7 +125,7 @@ class WireTypeRenderTest : BasePlatformTestCase() {
             "Breadcrumb", "Breadcrumbs", "CarouselLayout", "Chat", "ConfirmDialog", "ContentLayout", "ContextMenu",
             "CookieConsent", "Details", "Dialog", "Directory", "Drawer", "Element", "FormEditor", "FormItem", "Grid",
             "GridColumn", "GridGroupColumn", "Icon", "MasterDetailLayout", "MenuBar", "MessageInput", "MessageList", "MicroFrontend",
-            "NotFound", "Notification", "ResponsiveGrid", "Result", "Stepper", "Tab", "Tooltip", "VirtualList", "Workflow",
+            "NotFound", "Notification", "ResponsiveGrid", "Tab", "Tooltip", "VirtualList", "Workflow",
         )
     }
 }

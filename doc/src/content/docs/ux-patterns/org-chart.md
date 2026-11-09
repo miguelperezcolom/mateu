@@ -71,3 +71,5 @@ How each renderer draws it:
 ## When to use it
 
 Use an `OrgChart` for **top-down hierarchies** you want to see whole — and `display: focus` for people directories and reporting lines that are too big to see whole. For a large, navigable tree (file explorer, deep taxonomy) use a `GridLayout.tree` listing or a tree select instead. Demo: `/orgchart-demo`.
+
+**See it live in the Explorer:** [OrgChart](https://explorer.mateu.io/components/visualisation/org-chart)

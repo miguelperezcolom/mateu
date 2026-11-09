@@ -1,0 +1,32 @@
+# Numbers that matter. KPI = a title/value pair. Stat = label, big value, unit, a delta with its
+# trend and a sparkline. Meter = consumption against a limit, tinted from `warnAt` / `dangerAt` (absolute values).
+# MetricCard = the dashboard KPI tile (trend, timeframe, description); Scoreboard = a band of them.
+# ComparisonCard = two values side by side with the delta.
+content:
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - {type: KPI, title: Occupancy, text: "87%"}
+      - {type: KPI, title: ADR, text: "€ 142"}
+      - {type: KPI, title: RevPAR, text: "€ 124"}
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - {type: Stat, label: Room revenue, value: "184,320", unit: "€", delta: "+12%", trend: up, spark: [120, 135, 128, 150, 162, 171, 184]}
+      - {type: Stat, label: Cancellations, value: "14", delta: "-5", trend: down, spark: [22, 19, 20, 17, 16, 15, 14]}
+      - {type: Stat, label: Avg. stay, value: "2.8", unit: nights, delta: "0", trend: flat}
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - {type: Meter, label: Credit used, value: 420, max: 1500, unit: "€", warnAt: 1050, dangerAt: 1350, style: "min-width: 16rem;"}
+      - {type: Meter, label: Pre-authorisation, value: 1180, max: 1250, unit: "€", warnAt: 875, dangerAt: 1125, caption: "Ask for a top-up", style: "min-width: 16rem;"}
+  - type: Scoreboard
+    metrics:
+      - {type: MetricCard, title: Arrivals, value: "42", trend: up, trendLabel: "+6 vs yesterday", timeframe: Today}
+      - {type: MetricCard, title: Departures, value: "38", trend: neutral, timeframe: Today}
+      - {type: MetricCard, title: In house, value: "196", unit: guests, timeframe: Now}
+      - {type: MetricCard, title: Complaints, value: "2", trend: down, trendLabel: "-3 this week", description: "Both about noise", timeframe: This week}
+  - {type: ComparisonCard, title: Revenue per available room, leftLabel: November 2025, leftValue: "€ 108", rightLabel: November 2026, rightValue: "€ 124", delta: "+14.8%", trend: up}

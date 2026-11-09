@@ -15,9 +15,8 @@ POST /{baseUrl}/mateu/v3/sync/{route}
 Body: { "route": "...", "actionId": "<the load action> | <methodName>", "componentState": { ... } }
 ```
 
-That is the canonical spelling (see [The exchange](/reference/wire-specification/#the-exchange)):
-the request body decides, so older spellings such as `…/mateu/v3/components/_/action` are still
-served the same way.
+See [The exchange](/reference/wire-specification/#the-exchange): the route travels in the path
+(`_no_route` when empty) and in the body, and the body decides.
 
 The response is a `UIIncrementDto` carrying `commands` (navigation, window title, …), `messages`
 (toasts/alerts) and `fragments` (the component tree to render or patch). The same increment shape

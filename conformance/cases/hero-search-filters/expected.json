@@ -1,0 +1,109 @@
+{
+  "commands" : [ {
+    "data" : "Books",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "search"
+      }, {
+        "id" : "action-on-row-*"
+      }, {
+        "id" : "action-on-view-*"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "centered" : true,
+            "subtitle" : "Search the catalogue",
+            "title" : "Find a book",
+            "type" : "HeroSection"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Id",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Title",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "align" : "end",
+                "autoWidth" : true,
+                "dataType" : "integer",
+                "label" : "Pages",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 1.5
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filters" : [ {
+              "colspan" : 1,
+              "dataType" : "string",
+              "fieldId" : "title",
+              "label" : "Title",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            }, {
+              "colspan" : 1,
+              "dataType" : "bool",
+              "fieldId" : "classic",
+              "label" : "Classic",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            } ],
+            "filtersLayout" : "inline",
+            "gridLayout" : "cards",
+            "pageSize" : 10,
+            "searchOnEnter" : true,
+            "searchable" : true,
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "style" : "min-width: min(30rem, 100%); display: block;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "fullWidth" : true,
+          "horizontalAlignment" : "STRETCH",
+          "spacing" : true,
+          "type" : "VerticalLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "landing",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

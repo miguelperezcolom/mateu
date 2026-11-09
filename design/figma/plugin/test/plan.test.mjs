@@ -94,6 +94,20 @@ test('every texts layer is a layer the sketch draws, so its property binds to so
   }
 })
 
+test('every option-bearing field has an `options` TEXT property on its own #prop: layer, defaulting to its name', () => {
+  const choosers = ['select', 'combobox', 'searchable', 'treeSelect', 'listBox', 'multiSelect', 'radio']
+  const optionFields = contract.components.filter((e) => e.yaml?.type === 'FormField' &&
+    [e.mateu?.stereotype, e.yaml.set?.stereotype, ...(e.variants?.stereotype ?? [])].some((s) => choosers.includes(s)))
+  assert.deepEqual(optionFields.map((e) => e.name), ['Mateu/Field/Select', 'Mateu/Field/RadioGroup'])
+  for (const e of optionFields) {
+    const p = planEntry(e).properties.find((x) => x.name === 'options')
+    assert.ok(p, e.name)
+    assert.deepEqual([p.type, p.layer, p.binds, p.marker, p.defaultValue], ['TEXT', PROP_LAYER + 'options', 'characters', true, 'options'], e.name)
+    assert.deepEqual(e.yaml.params.options, { path: 'options', parse: 'options' }, e.name)
+    assert.deepEqual(planPublishProblems(planEntry(e)), [], e.name)
+  }
+})
+
 test('only NAMED slots become native; unnamed sample slots stay illustration', () => {
   const zones = planEntry(entry('Mateu/Layout/ZonesRow'))
   assert.deepEqual(zones.slots.map((s) => s.name), ['content'])

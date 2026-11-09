@@ -63,3 +63,5 @@ Opening, **Show more** and **Hide unpopulated** are client-side state: no server
 
 - [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/)
 - [Bulk actions](/ux-patterns/bulk-actions/) — actions over the selected rows of a listing
+
+**See it live in the Explorer:** [Action panel ("I want to…")](https://explorer.mateu.io/behaviour/actions/action-panel-dispatch) · [ActionPanel ("I want to…")](https://explorer.mateu.io/components/actions-and-navigation/action-panel)

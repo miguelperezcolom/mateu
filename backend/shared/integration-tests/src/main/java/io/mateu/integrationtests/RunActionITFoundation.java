@@ -17,7 +17,7 @@ public class RunActionITFoundation {
             }
             """)
         .when()
-        .post("/hello/mateu/v3/components/_/action")
+        .post("/hello/mateu/v3/sync/_no_route")
         .then()
         .statusCode(200)
         .body("commands", notNullValue())

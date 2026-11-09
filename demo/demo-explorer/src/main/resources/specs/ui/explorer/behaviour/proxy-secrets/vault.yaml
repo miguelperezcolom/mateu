@@ -1,0 +1,15 @@
+# Two listings over the SAME protected endpoint: one through the proxy (the server injects the key
+# from ${secret.DEMO}), one direct from the browser (no secret scope there → refused).
+type: Form
+title: A protected endpoint
+content:
+  - type: Listing
+    title: "Through the proxy (proxy: true)"
+    rowsSource: {ref: behaviour-vault}
+    columns:
+      - {type: GridColumn, id: secretThing, label: Answer}
+  - type: Listing
+    title: Direct from the browser
+    rowsSource: {ref: behaviour-vault-direct}
+    columns:
+      - {type: GridColumn, id: secretThing, label: Answer}

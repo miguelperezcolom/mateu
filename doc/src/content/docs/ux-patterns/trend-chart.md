@@ -40,3 +40,5 @@ The renderer is dependency-free (inline SVG), themes through the standard CSS va
 ## When to use it
 
 Use a `TrendChart` for **one series over time**. For a tiny inline trend use a `Stat` sparkline; for multiple series, axes and interactivity use the `Chart` component. Demo: `/trend-demo`.
+
+**See it live in the Explorer:** [Charts, trends, funnels & heatmaps](https://explorer.mateu.io/components/visualisation/charts)

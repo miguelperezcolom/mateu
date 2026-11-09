@@ -20,15 +20,18 @@ from mateu_ui.uidl import (
     Max,
     Min,
     Pattern,
-    PlainText,
-    ReadOnly,
     Required,
     Length,
     ValidationSupplier,
 )
 
 from .naming import camel_case, humanize
-from .reflection import class_flag, view_fields
+from .reflection import view_fields
+
+
+#: What an open maximum reads as in a length message — Java's ``Integer.MAX_VALUE``, the default of
+#: ``@Size(max)`` — so the three servers say "Size must be between 2 and 2147483647" alike.
+OPEN_LENGTH = 2147483647
 
 
 def _num(value: float) -> str:
@@ -36,15 +39,15 @@ def _num(value: float) -> str:
     return str(int(value)) if float(value).is_integer() else str(value)
 
 
-def field_constraints(f) -> list[tuple[str, str]]:
+def field_constraints(f, prefix: str = "") -> list[tuple[str, str]]:
     """``(condition, message)`` pairs for a field, in Java's order (Length, Min, Max, Pattern, then the
-    not-empty constraint)."""
-    fid = camel_case(f.name)
+    not-empty constraint). ``prefix``: the field lives in an inline nested object (``guest-``)."""
+    fid = prefix + camel_case(f.name)
     ref = f"state['{fid}']"
     out: list[tuple[str, str]] = []
     size = f.marker(Length)
     if size is not None:
-        upper = size.max if size.max is not None else "∞"
+        upper = size.max if size.max is not None else OPEN_LENGTH
         default = f"Size must be between {size.min} and {upper}"
         # a condition HOLDS when the value is valid (it read `x && x.length < min`, true for a value
         # too SHORT); an absent value and one with no length pass, as on the server — Java's
@@ -52,7 +55,7 @@ def field_constraints(f) -> list[tuple[str, str]]:
         sized = f"{ref} == null || {ref} === '' || {ref}.length === undefined || {ref}.length"
         if size.min > 0:
             out.append((f"{sized} >= {size.min}", size.message or default))
-        if size.max is not None:
+        if size.max is not None and size.max < OPEN_LENGTH:
             out.append((f"{sized} <= {size.max}", size.message or default))
     # Bean Validation reads an absent value as valid for Min / Max / Pattern (requiring it is the
     # not-empty constraint's job), so an optional bounded field left empty passes.
@@ -78,21 +81,45 @@ def required_condition(ref: str) -> str:
     return f"{ref} != null && {ref} !== '' && ({ref}.length === undefined || {ref}.length > 0)"
 
 
+def editable(mapper, cls, f) -> bool:
+    """Whether the user can EDIT field ``f`` of ``cls`` (Java's ``PageFormBuilder.isEditable``): not
+    ``ReadOnly()`` / ``PlainText()`` (on the field, or ``@read_only`` / ``@plain_text`` on the class),
+    not locked by a ``ReadOnlyUnless`` (field or class) or a ``DisabledUnless`` the caller does not
+    satisfy. Only these fields carry their constraints — to the client and in the server's re-check:
+    a constraint the user cannot fix would block the submit for ever (conformance cases
+    ``validation-locked``, ``validation-unless``, ``validation-read-only-view``). The server never
+    WRITES the locked ones either (``action_guard.may_write``)."""
+    from mateu_ui.uidl import DisabledUnless, PlainText, ReadOnly, ReadOnlyUnless
+
+    from .reflection import class_flag
+
+    if f.has(ReadOnly) or f.has(PlainText):
+        return False
+    if cls is not None and (
+        class_flag(cls, "__mateu_read_only__", False) or class_flag(cls, "__mateu_plain_text__", False)
+    ):
+        return False
+    if mapper is None:
+        return True
+    return (
+        mapper.authorized(f.marker(ReadOnlyUnless))
+        and mapper.authorized(getattr(cls, "__mateu_read_only_unless__", None))
+        and mapper.authorized(f.marker(DisabledUnless))
+    )
+
+
 def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | None = None) -> list:
-    """The fields a form sends constraints for: the ones it renders as an input the user may edit.
-    A constraint on a field the user cannot type into would block the submit for ever."""
-    view_read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-    plain_class = bool(class_flag(cls, "__mateu_plain_text__", False))
-    if view_read_only:
+    """The fields a form sends constraints for: the ones it renders as an input the user can EDIT
+    (``editable``) — a locked field (``ReadOnly()``, ``PlainText()``, an unauthorized
+    ``ReadOnlyUnless``, a ``@read_only`` class) sends none, as in Java. ``read_only=True`` from the
+    caller — a page that is not a form at all, like a crud record's view page — sends none."""
+    if read_only:
         return []
-    out = []
-    for f in fields if fields is not None else view_fields(cls):
-        if not mapper.visible(f) or f.has(ReadOnly) or f.has(PlainText) or plain_class:
-            continue
-        if not _authorized_to_edit(mapper, f):
-            continue
-        out.append(f)
-    return out
+    return [
+        f
+        for f in (fields if fields is not None else view_fields(cls))
+        if mapper.visible(f) and editable(mapper, cls, f)
+    ]
 
 
 def client_validations(
@@ -108,25 +135,52 @@ def client_validations(
             for v in instance.validations() or []
         ]
     out: list[ValidationRecord] = []
-    for f in validated_fields(mapper, cls, read_only, fields):
-        hidden = f.marker(Hidden)
-        for condition, message in field_constraints(f):
-            if hidden is not None and hidden.value:
-                condition = f"({hidden.value}) || ({condition})"
-            out.append(
-                ValidationRecord(
-                    condition=condition, field_id=camel_case(f.name), message=mapper.T(message)
-                )
-            )
+    _add_client_validations(mapper, cls, instance, read_only, fields, "", out, 0)
     for v in getattr(cls, "__mateu_validations__", ()) or ():
         out.append(ValidationRecord(condition=v.condition, field_id=v.field_id, message=mapper.T(v.message)))
     return out
 
 
-def _authorized_to_edit(mapper, f) -> bool:
-    from mateu_ui.uidl import ReadOnlyUnless
+def _inline_nested(f) -> bool:
+    from mateu_ui.uidl import Inline
 
-    return mapper.authorized(f.marker(ReadOnlyUnless))
+    from .nested_forms import is_nested_form_field
+
+    return f.has(Inline) and is_nested_form_field(f)
+
+
+def _nested_of(instance, f):
+    value = getattr(instance, f.name, None) if instance is not None and not isinstance(instance, type) else None
+    if value is None:
+        try:
+            value = f.type()
+        except Exception:  # noqa: BLE001 - a class that cannot be built without args
+            return None
+    return value
+
+
+def _add_client_validations(mapper, cls, instance, read_only, fields, prefix, out, depth) -> None:
+    """The constraints of ``cls``'s fields under ``prefix``, descending into ``Inline()`` nested
+    objects: their fields render on the page as ``<field>-<nested>`` and are validated with it
+    (Java's ValidationMapper.addFieldValidations)."""
+    for f in validated_fields(mapper, cls, read_only, fields):
+        if _inline_nested(f):
+            nested = _nested_of(instance, f)
+            if nested is not None and not isinstance(nested, ValidationSupplier) and depth < 8:
+                _add_client_validations(
+                    mapper, type(nested), nested, False, None,
+                    prefix + camel_case(f.name) + "-", out, depth + 1,
+                )
+            continue
+        hidden = f.marker(Hidden)
+        for condition, message in field_constraints(f, prefix):
+            if hidden is not None and hidden.value:
+                condition = f"({hidden.value}) || ({condition})"
+            out.append(
+                ValidationRecord(
+                    condition=condition, field_id=prefix + camel_case(f.name), message=mapper.T(message)
+                )
+            )
 
 
 def _is_blank(value: Any) -> bool:
@@ -147,7 +201,7 @@ def field_violations(f, value: Any) -> list[str]:
     if size is not None and hasattr(value, "__len__"):
         n = len(value)
         if n < size.min or (size.max is not None and n > size.max):
-            upper = size.max if size.max is not None else "∞"
+            upper = size.max if size.max is not None else OPEN_LENGTH
             problems.append(size.message or f"Size must be between {size.min} and {upper}")
     numeric = isinstance(value, (int, float)) and not isinstance(value, bool)
     if not numeric:
@@ -188,12 +242,23 @@ def form_violations(mapper, cls, instance) -> list[str]:
     the fields the client checks (a ``Hidden(expr)`` field is the browser's to judge, and a
     ``ValidationSupplier`` replaces the field constraints). The server-side leg of a view action
     the client is told to validate: the browser is not to be trusted, nor the only client."""
+    return _violations(mapper, cls, instance, 0)
+
+
+def _violations(mapper, cls, instance, depth: int) -> list[str]:
     if isinstance(instance, ValidationSupplier):
         return []
     out = []
     for f in validated_fields(mapper, cls):
         hidden = f.marker(Hidden)
         if hidden is not None and hidden.value:
+            continue
+        if _inline_nested(f):
+            # an inline nested object's fields are the page's: checked with the page (Java's
+            # ServerConstraintCheck)
+            nested = getattr(instance, f.name, None)
+            if nested is not None and depth < 8:
+                out.extend(_violations(mapper, type(nested), nested, depth + 1))
             continue
         label = f.marker(Label).value if f.has(Label) else humanize(f.name)
         for message in field_violations(f, getattr(instance, f.name, None)):
@@ -214,6 +279,7 @@ __all__ = [
     "field_violations",
     "form_violations",
     "required_condition",
+    "editable",
     "validated_fields",
     "violations",
 ]

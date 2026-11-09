@@ -1,0 +1,16 @@
+# TEMPLATE ENTRY — a component authorable in YAML, with its Java fluent twin, and a whole page.
+id: button
+area: components
+group: actions-and-navigation
+title: Button & ButtonGroup
+covers: [component:Button, component:ButtonGroup]
+examples:
+  - title: Styles, colours, sizes, icons — in YAML
+    yaml: specs/ui/explorer/components/button/buttons.yaml
+  - title: In Java, with handlers that run
+    description: Press them — each fluent button runs its own lambda on the server.
+    java: io.mateu.explorer.examples.components.button.FluentButtons
+  - title: A ButtonGroup in a page toolbar
+    route: x/components/button/toolbar
+pages:
+  - {route: x/components/button/toolbar, layout: explorer/components/button/toolbar-page.yaml}

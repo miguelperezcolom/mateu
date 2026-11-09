@@ -281,3 +281,5 @@ field renders group subtotal rows, and `@Aggregate` adds per-group and whole-set
 - **Workflow over screens** — act on data without leaving the list
 - **Keyboard-first** — filters respond to Enter (the listing's `searchOnEnter`, on by default)
 - **Recoverability** — filter state, page, and sort survive navigation via URL sync; no Filter Amnesia
+
+**See it live in the Explorer:** [Search, filters, sorting & paging](https://explorer.mateu.io/behaviour/listings/search-filters)

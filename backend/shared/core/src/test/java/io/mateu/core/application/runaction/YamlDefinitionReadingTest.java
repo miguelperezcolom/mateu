@@ -140,7 +140,7 @@ class YamlDefinitionReadingTest {
   }
 
   @Test
-  void theViewModelComesFromTheRouteUnlessTheDefinitionNamesOneAndViewModelBeatsModelView() {
+  void theViewModelComesFromTheRouteUnlessTheDefinitionNamesOne() {
     var files =
         Map.of(
             "app.ui.yaml",
@@ -159,7 +159,7 @@ class YamlDefinitionReadingTest {
             "shared.yaml",
             HELLO,
             "inline.yaml",
-            "viewModel: com.example.Canonical\nmodelView: com.example.Alias\n" + HELLO);
+            "viewModel: com.example.Canonical\n" + HELLO);
     with(
         files,
         loader -> {
@@ -174,9 +174,9 @@ class YamlDefinitionReadingTest {
     var files =
         Map.of(
             "typed.yaml",
-            "modelView: " + Owner.class.getName() + "\npageType: DashBoard\n" + HELLO,
+            "viewModel: " + Owner.class.getName() + "\npageType: DashBoard\n" + HELLO,
             "typo.yaml",
-            "modelView: " + Owner.class.getName() + "\npageType: dashbord\n" + HELLO);
+            "viewModel: " + Owner.class.getName() + "\npageType: dashbord\n" + HELLO);
     with(
         files,
         loader -> {
@@ -198,7 +198,7 @@ class YamlDefinitionReadingTest {
   void aLayoutDeltaIsReadWholeAndOnlyForItsViewModel() {
     var delta =
         """
-        modelView: %s
+        viewModel: %s
         layoutDelta:
           order: [name, email]
           hidden: [internalCode]

@@ -22,13 +22,13 @@ public class YamlAccessTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: sec-admin
-                definition: admin.yaml
+                layout: admin.yaml
                 access: {roles: [admin]}
                 children:
                   - route: users
-                    definition: admin.yaml
+                    layout: admin.yaml
               - route: sec-page
-                definition: page.yaml
+                layout: page.yaml
             """);
         File.WriteAllText(Path.Combine(dir, "admin.yaml"), """
             layout:
@@ -201,9 +201,9 @@ public class YamlAccessTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: sec-catalogue
-                definition: page.yaml
+                layout: page.yaml
               - route: sec-owner
-                definition: owner.yaml
+                layout: owner.yaml
             """);
         File.WriteAllText(Path.Combine(dir, "page.yaml"), """
             layout:
@@ -312,7 +312,7 @@ public class YamlAccessTests
     public void A_guarded_section_in_a_partial_is_applied_like_an_inline_one()
     {
         var dir = Directory.CreateTempSubdirectory("yaml-partial-access-").FullName;
-        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: staff\n    definition: staff.yaml\n");
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: staff\n    layout: staff.yaml\n");
         File.WriteAllText(Path.Combine(dir, "staff.yaml"),
             "layout:\n  type: VerticalLayout\n  content:\n    - {type: Text, text: Public text}\n    - {type: Partial, ref: payroll}\n");
         Directory.CreateDirectory(Path.Combine(dir, "partials"));
@@ -327,5 +327,33 @@ public class YamlAccessTests
         Assert.Contains("Public text", anonymous);
         Assert.DoesNotContain("Secret salary table", anonymous);
         Assert.Contains("Secret salary table", Json(For("hr").Handle(new RunActionRqDto { Route = "/staff" })));
+    }
+
+    /// <summary>YAML drawn INSIDE a code page (a layout bound to a C# view model, pulling a guarded
+    /// partial) keeps its access keys — the parity case of Java's
+    /// <c>JavaPagePartialAccessSyncTest</c>, where a Guest used to see the restricted fields.</summary>
+    [Fact]
+    public void A_guarded_partial_drawn_inside_a_code_page_is_applied_for_the_caller()
+    {
+        var dir = Directory.CreateTempSubdirectory("yaml-code-partial-access-").FullName;
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"),
+            "routes:\n  - route: staff-code\n    layout: staff-code.yaml\n    viewModel: Mateu.Tests.PayrollView\n");
+        File.WriteAllText(Path.Combine(dir, "staff-code.yaml"),
+            "layout:\n  type: VerticalLayout\n  content:\n    - {type: Text, text: Public text}\n    - {type: Partial, ref: payroll}\n");
+        Directory.CreateDirectory(Path.Combine(dir, "partials"));
+        File.WriteAllText(Path.Combine(dir, "partials", "payroll.yaml"),
+            "content:\n  - {type: Text, text: Secret salary table, eyesOnly: {roles: [hr]}}\n"
+            + "  - {type: FormField, id: salary, label: Salary, dataType: number, readOnlyUnless: {roles: [hr]}}\n");
+        SyncHandler For(params string[] roles) =>
+            new(new MateuRegistry(typeof(PayrollView).Assembly),
+                identity: () => roles.Length == 0 ? null : new Identity(Roles: roles),
+                specsDir: dir);
+
+        var guest = Json(For().Handle(new RunActionRqDto { Route = "/staff-code" }));
+        Assert.Contains("Public text", guest);
+        Assert.DoesNotContain("Secret salary table", guest);
+        Assert.DoesNotContain("eyesOnly", guest);
+        Assert.DoesNotContain("readOnlyUnless", guest);
+        Assert.Contains("Secret salary table", Json(For("hr").Handle(new RunActionRqDto { Route = "/staff-code" })));
     }
 }

@@ -40,7 +40,7 @@ describe('Play in Redwood: the editor answers the app\'s backend calls', () => {
 
     it('the bootstrap gets the app shell, a route load gets the screen — never a shell in the shell', async () => {
         await load(buildPlayManifest(files))
-        const boot = answerPlayCall('/mateu/v3/components/_/action', { actionId: '__load__', initiatorComponentId: 'shell' }, resolveBundledLoad, false)
+        const boot = answerPlayCall('/mateu/v3/sync/_no_route', { actionId: '__load__', initiatorComponentId: 'shell' }, resolveBundledLoad, false)
         expect(boot.kind).toBe('answer')
         const shell = (boot as any).json
         expect(typeOf(shell)).toBe('App')

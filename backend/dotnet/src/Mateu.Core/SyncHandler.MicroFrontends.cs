@@ -25,6 +25,21 @@ internal sealed partial class SyncHandler
     /// MateuOptions.SelfBaseUrl says otherwise.</summary>
     public Func<string?>? RequestSelfBaseUrl { get; init; }
 
+    /// <summary>This server's configured base url (<c>MateuOptions.SelfBaseUrl</c>, Java
+    /// <c>mateu.self-base-url</c>): wins over <see cref="RequestSelfBaseUrl"/>, e.g. for a relative
+    /// proxied source url.</summary>
+    public string? SelfBaseUrl { get; init; }
+
+    /// <summary>A RELATIVE proxied url (<c>/api/people</c>) means this app's own origin, as it does
+    /// in the browser on the direct leg: resolved against <see cref="SelfBaseUrl"/>, else the local
+    /// socket — never a request header. Null when neither is known (the call then fails).</summary>
+    internal string? AbsoluteProxyUrl(string url)
+    {
+        if (!url.StartsWith('/') || url.StartsWith("//", StringComparison.Ordinal)) return url;
+        var self = MicroFrontends.MicroFrontendServerResolver.SaneOrigin(SelfBaseUrl ?? RequestSelfBaseUrl?.Invoke());
+        return self is null ? null : self + url;
+    }
+
     /// <summary>The resolver of Resolve.Server micro frontends and content slots (the adapter builds
     /// it from the services and options; null → Mateu's defaults, with no remote registered).</summary>
     public MicroFrontendServerResolver? MicroFrontendResolver { get; init; }

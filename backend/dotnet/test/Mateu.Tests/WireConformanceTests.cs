@@ -36,7 +36,7 @@ public class WireConformanceTests
     /// An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
     /// is a contract break (dropped with every generated id, the ports' CRUD forms shipped with dead
     /// Save/Edit buttons unnoticed).
-    private static JsonNode? Normalise(JsonNode? node, bool inActions = false)
+    internal static JsonNode? Normalise(JsonNode? node, bool inActions = false)
     {
         switch (node)
         {
@@ -101,7 +101,12 @@ public class WireConformanceTests
 
     private static JsonNode Actual(Type view, string? @case = null)
     {
-        var handler = new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
+        // A YAML case (a specs/ui/ directory of its own): the handler reads ITS definitions
+        var specs = @case is null ? null : Path.Combine(Corpus, @case, "specs", "ui");
+        var yaml = specs is not null && Directory.Exists(specs);
+        var handler = yaml
+            ? new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly), specsDir: specs)
+            : new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
         // A case with a request.json is pinned on that (second) request to its fixture type, not on
         // the first load — identical in the three runners.
         var requestFile = @case is null ? null : Path.Combine(Corpus, @case, "request.json");
@@ -111,7 +116,10 @@ public class WireConformanceTests
             var req = JsonNode.Parse(File.ReadAllText(requestFile))!.AsObject();
             rq = new RunActionRqDto
             {
-                ServerSideType = view.FullName,
+                // a request.json naming "serverSideType": null is a FRESH load (no type yet)
+                ServerSideType = yaml ? null
+                    : req.ContainsKey("serverSideType") ? req["serverSideType"]?.GetValue<string>()
+                    : view.FullName,
                 Route = req["route"]?.GetValue<string>() ?? "",
                 ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
                 ActionId = req["actionId"]?.GetValue<string>() ?? "",
@@ -135,7 +143,9 @@ public class WireConformanceTests
         if (@case is not null && MediatedForms.Contains(@case) && normalised["fragments"] is JsonArray forms)
             foreach (var fragment in forms.OfType<JsonObject>())
                 (fragment["component"] as JsonObject)?.Remove("route");
-        return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
+        return @case is not null && Mediated.Contains(@case)
+            ? WithoutMediatorProtocol(normalised, FormStatePinned.Contains(@case))
+            : normalised;
     }
 
     /// <summary>Cases whose Java reference answers the first load with a MEDIATOR shell and the
@@ -148,24 +158,55 @@ public class WireConformanceTests
     /// position in its own state), .NET lists next/back/skip/the completion and keeps
     /// <c>__step</c> — so its actions and state stay out as well.</para>
     private static readonly HashSet<string> Mediated =
-        ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"];
+        ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
+         "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
+         "crud-hidden-constraints-edit", "crud-hidden-constraints-new",
+         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
     /// every side (Java's <c>MEDIATED_FORMS</c>).</summary>
-    private static readonly HashSet<string> MediatedForms = ["crud-new", "crud-edit", "crud-view"];
+    private static readonly HashSet<string> MediatedForms =
+        ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new",
+         "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "editable-view", "editable-view-edit", "view-toolbar-button",
+         "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
-    private static JsonNode WithoutMediatorProtocol(JsonNode increment)
+    /// <summary>Mediated record forms whose FORM state is pinned all the same (Java's
+    /// FORM_STATE_PINNED): the record's field values are the form's, only the <c>_</c>-prefixed
+    /// routing keys are protocol.</summary>
+    private static readonly HashSet<string> FormStatePinned = ["routed-tabs-crud-new"];
+
+    private static void WithoutPrivateKeys(JsonNode? state)
+    {
+        if (state is not JsonObject o) return;
+        foreach (var key in o.Select(kv => kv.Key).Where(k => k.StartsWith('_')).ToList()) o.Remove(key);
+    }
+
+    private static JsonNode WithoutMediatorProtocol(JsonNode increment, bool keepFormState = false)
     {
         if (increment["fragments"] is JsonArray fragments)
             foreach (var fragment in fragments.OfType<JsonObject>())
             {
-                fragment.Remove("state");
+                if (keepFormState)
+                {
+                    WithoutPrivateKeys(fragment["state"]);
+                    WithoutPrivateKeys((fragment["component"] as JsonObject)?["initialData"]);
+                }
+                else fragment.Remove("state");
                 if (fragment["component"] is JsonObject component)
                 {
-                    component.Remove("actions");
-                    component.Remove("initialData");
+                    // the mediator's own actions (create/save, their bubbling) are protocol; a nested
+                    // data object's actions are the FORM's — the record form advertises what its
+                    // sub-forms dispatch (Java's withoutMediatorProtocol)
+                    if (component["actions"] is JsonArray actions)
+                    {
+                        foreach (var a in actions.Where(a =>
+                                     !((a as JsonObject)?["id"]?.GetValue<string>() ?? "").StartsWith("nested-form-action-")).ToList())
+                            actions.Remove(a);
+                        if (actions.Count == 0) component.Remove("actions");
+                    }
+                    if (!keepFormState) component.Remove("initialData");
                     // the mediator's own refresh subscriptions ("mateu-crud:*" events); .NET
                     // re-renders the listing in place
                     if (component["triggers"] is JsonArray triggers)
@@ -196,6 +237,10 @@ public class WireConformanceTests
         { "dashboard", typeof(DashboardPage) },
         { "app-in-code", typeof(AppInCode) },
         { "validation", typeof(ValidatedForm) },
+        { "validation-text", typeof(ValidatedTextForm) },
+        { "validation-locked", typeof(LockedFieldsForm) },
+        { "validation-unless", typeof(LockedByPermissionForm) },
+        { "validation-read-only-view", typeof(ReadOnlyValidatedView) },
         { "stereotypes", typeof(Stereotypes) },
         { "lookup", typeof(LookupForm) },
         { "tree-select", typeof(TreeSelectForm) },
@@ -230,12 +275,70 @@ public class WireConformanceTests
         { "crud-edit", typeof(ProductsCrud) },
         { "crud-view", typeof(ProductsCrud) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "more-components", typeof(Wire.MoreComponentsPage) },
+        { "dialog-placement", typeof(Wire.DialogPlacementPage) },
+        { "action-extras", typeof(Wire.ActionExtrasPage) },
+        { "app-branding", typeof(Wire.BrandedApp) },
+        { "app-back-link", typeof(Wire.BackLinkApp) },
+        { "section-options", typeof(Wire.SectionOptionsForm) },
+        { "crud-hidden-in", typeof(Wire.EmployeesCrud) },
+        { "crud-hidden-in-edit", typeof(Wire.EmployeesCrud) },
+        { "crud-hidden-in-new", typeof(Wire.EmployeesCrud) },
         { "triggers", typeof(Wire.TriggersForm) },
         { "field-help", typeof(Wire.FieldHelpForm) },
         { "field-hints", typeof(Wire.FieldHintsPage) },
         { "page-toolbar", typeof(Wire.PageToolbarForm) },
         { "form-columns", typeof(Wire.FormColumnsForm) },
+        { "auto-save", typeof(Wire.AutoSaveForm) },
+        { "editable-view", typeof(Wire.ProfileView) },
+        { "editable-view-edit", typeof(Wire.ProfileView) },
+        { "view-toolbar-button", typeof(Wire.ViewToolbarProductsCrud) },
+        { "grid-field-detail", typeof(Wire.GridFieldDetail) },
+        { "fluent-crudl-options", typeof(Wire.FluentCrudlOptionsPage) },
+        { "crud-hidden-constraints-edit", typeof(Wire.SeatsCrud) },
+        { "crud-hidden-constraints-new", typeof(Wire.SeatsCrud) },
+        { "hero-search-filters", typeof(Wire.HeroBooks) },
+        { "page-no-breadcrumbs", typeof(Wire.PageNoBreadcrumbs) },
+        { "page-breadcrumbs", typeof(Wire.PageBreadcrumbs) },
+        { "page-back-link-chain", typeof(Wire.BackLinkChainTab) },
+        // a YAML case: its own specs/ui/ is the handler's specs directory, no class at all
+        { "definition-actions", typeof(YamlCase) },
+        { "definition-triggers", typeof(YamlCase) },
+        { "definition-proxied-listing", typeof(YamlCase) },
+        { "definition-path-params", typeof(YamlCase) },
+        { "definition-path-params-seeded", typeof(YamlCase) },
+        { "inline-form", typeof(Wire.InlineForm) },
+        { "inline-form-action", typeof(Wire.InlineForm) },
+        { "bulk-actions", typeof(Wire.BulkProductsCrud) },
+        { "bulk-actions-listing", typeof(Wire.BulkBooks) },
+        { "bulk-actions-unlabeled", typeof(Wire.UnlabeledBulkBooks) },
+        { "wizard-completion-error", typeof(Wire.RefusedSignUpWizard) },
+        { "crud-nested-form", typeof(Wire.PurchaseOrdersCrud) },
+        { "crud-nested-form-action", typeof(Wire.PurchaseOrder) },
+        { "inline-form-rules", typeof(Wire.InlineFormRules) },
+        { "page-back-link-chain-nested", typeof(Wire.BackLinkChainDeliveryTab) },
+        { "page-back-link-code-shell", typeof(Wire.BackLinkChainTab) },
+        { "routed-tabs-master", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-master-on-tab", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-hidden-tab", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-default-child", typeof(Wire.RtSupplierMaster) },
+        { "routed-tabs-tab", typeof(Wire.RtOrdersTab) },
+        { "routed-tabs-segment-tab", typeof(Wire.RtNotesTab) },
+        { "routed-tabs-keys", typeof(Wire.RtVcnPage) },
+        { "routed-tabs-key-in-url", typeof(Wire.RtVcnPage) },
+        { "routed-tabs-deep-link", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-crud-listing", typeof(Wire.RtAccountOrders) },
+        { "routed-tabs-crud-search", typeof(Wire.RtAccountOrders) },
+        { "routed-tabs-crud-new", typeof(Wire.RtAccountOrders) },
+        { "subresource-page", typeof(Wire.RtVcnDetail) },
+        { "subresource-only", typeof(Wire.RtOnlySubnets) },
+        { "subresource-inline-trap", typeof(Wire.RtInlineTrap) },
+        { "subresource-listing", typeof(Wire.RtSubnets) },
+        { "subresource-search", typeof(Wire.RtSubnets) },
     };
+
+    /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>
+    public sealed class YamlCase;
 
     [Fact]
     public void Every_case_of_the_corpus_is_wired()
@@ -262,7 +365,7 @@ public class WireConformanceTests
     public void Dotnet_renders_a_page_for_every_case(string @case, Type view)
     {
         // The floor: whatever the shape differences, the port must answer each case with a page.
-        var fragments = Actual(view)["fragments"] as JsonArray;
+        var fragments = Actual(view, view == typeof(YamlCase) ? @case : null)["fragments"] as JsonArray;
         Assert.True(fragments is { Count: > 0 }, $"'{@case}' produced no fragments");
     }
 
@@ -299,7 +402,7 @@ public class WireConformanceTests
 
     /// <summary>A path-wise diff of two normalised trees (expected vs actual), so a failure says
     /// WHERE the wire differs instead of dumping two documents.</summary>
-    private static void Diff(string path, JsonNode? expected, JsonNode? actual, List<string> diffs)
+    internal static void Diff(string path, JsonNode? expected, JsonNode? actual, List<string> diffs)
     {
         switch (expected, actual)
         {

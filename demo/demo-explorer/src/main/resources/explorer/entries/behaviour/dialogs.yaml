@@ -1,0 +1,17 @@
+id: dialogs
+area: behaviour
+group: overlays
+title: Dialogs and confirmations
+covers: [behaviour:dialogs]
+description: |
+  Return a `Dialog` from an action to show any content in a modal. To confirm before running a
+  method, `@Action(confirmationRequired = true)` with the texts the dialog reads — the method only
+  runs on *yes*. A returned `ConfirmDialog` offers confirm / reject / cancel, each wired to an
+  action of the view.
+
+  Try it: press **Empty trash** and then *Keep it* — nothing happens; press it again and *Empty it*
+  — the toast says so. Press **Publish** and choose *Keep as draft*: *Last answer* becomes
+  `kept as draft`.
+examples:
+  - title: Dialogs
+    java: io.mateu.explorer.examples.behaviour.dialogs.DialogsDemo

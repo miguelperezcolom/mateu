@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing
 from typing import Any
 
 from mateu_ui.dtos import (
@@ -34,6 +35,7 @@ from ._common import (
     _id,
     _field_value,
     _row_cell,
+    with_action_options,
 )
 
 
@@ -54,18 +56,78 @@ def completion_available_from(cls) -> int | None:
     return None
 
 
-def completion_offered_early(cls, current: int, total: int) -> bool:
+def last_regular_step(cls, total: int) -> int:
+    """The last step that is not the read-only result screen."""
+    return total - 1 if completion_method(cls) is not None else total
+
+
+def step_applies(cls, instance, step: int, total: int) -> bool:
+    """Whether ``step`` applies (Java's ``Wizard.stepApplies``): the result step always does."""
+    if step > last_regular_step(cls, total):
+        return True
+    applies = getattr(instance, "step_applies", None)
+    return True if instance is None or applies is None else bool(applies(step))
+
+
+def applicable_steps(cls, instance, total: int) -> list[int]:
+    """The regular (non-result) steps that apply, in order."""
+    return [i for i in range(1, last_regular_step(cls, total) + 1)
+            if step_applies(cls, instance, i, total)]
+
+
+def next_applicable(cls, instance, current: int, total: int) -> int | None:
+    """The next regular step that applies after ``current``, or None."""
+    return next((i for i in applicable_steps(cls, instance, total) if i > current), None)
+
+
+def previous_applicable(cls, instance, current: int, total: int) -> int | None:
+    """The previous step that applies before ``current``, or None."""
+    return next((i for i in reversed(applicable_steps(cls, instance, total)) if i < current), None)
+
+
+def completing_step(cls, instance, total: int) -> int:
+    """The step that runs the completion action: the penultimate one — or, when it does not
+    apply, the last regular step that does (Java's WizardButtonBuilder)."""
+    steps = applicable_steps(cls, instance, total)
+    return steps[-1] if steps else last_regular_step(cls, total)
+
+
+def completion_streams(cls, name: str) -> bool:
+    """Whether the ``@wizard_completion_action`` method answers a ``LongTaskRun`` (its declared
+    return type): its progress streams, so the client must call it over SSE (Java advertises a
+    completion returning a Flux with ``sse``)."""
+    from mateu_ui.uidl.progress import LongTaskRun
+
+    fn = getattr(cls, name, None)
+    try:
+        hints = typing.get_type_hints(fn) if fn is not None else {}
+    except Exception:  # noqa: BLE001 - an unresolvable annotation: fall back to its spelling
+        hints = {}
+    returned = hints.get("return", getattr(fn, "__annotations__", {}).get("return"))
+    if returned is LongTaskRun:
+        return True
+    return isinstance(returned, str) and returned.split(".")[-1].strip("'\"") == "LongTaskRun"
+
+
+def completion_action(cls, name: str) -> Action:
+    """The advertised completion action: validated like Next, over SSE when it streams (its
+    return type, or an ``@action_options(sse=True)``), with its ``@action_options`` knobs."""
+    action = with_action_options(Action(id=camel_case(name), validation_required=True), cls, camel_case(name))
+    return action.model_copy(update={"sse": True}) if completion_streams(cls, name) else action
+
+
+def completion_offered_early(cls, current: int, total: int, instance=None) -> bool:
     """Whether the completion action is offered beside Next on step ``current`` (from its
     ``available_from_step`` on, while a regular next step still exists)."""
     if completion_method(cls) is None:
         return False
     start = completion_available_from(cls)
-    return start is not None and start <= current < total - 1
+    return start is not None and start <= current < completing_step(cls, instance, total)
 
 
-def has_next_step(cls, current: int, total: int) -> bool:
+def has_next_step(cls, current: int, total: int, instance=None) -> bool:
     """Whether Next/Skip lead to another (non-result) step from ``current``."""
-    return current < (total - 1 if completion_method(cls) is not None else total)
+    return next_applicable(cls, instance, current, total) is not None
 
 
 class WizardMapperMixin(MixinBase):
@@ -73,7 +135,7 @@ class WizardMapperMixin(MixinBase):
         display = instance.display()
         out = []
         if (
-            has_next_step(cls, current, total)
+            has_next_step(cls, current, total, instance)
             and instance.step_skippable(current)
             and display.skip.shown()
         ):
@@ -95,7 +157,7 @@ class WizardMapperMixin(MixinBase):
                                    disabled=not display.save_and_close.enabled()),
                     "saveAndClose", [],
                 ))
-        if completion_offered_early(cls, current, total):
+        if completion_offered_early(cls, current, total, instance):
             name, label = completion_method(cls)  # type: ignore[misc]
             out.append(self.client(
                 ButtonMetadata(label=self.T(label), action_id=camel_case(name)), None, [],
@@ -131,7 +193,12 @@ class WizardMapperMixin(MixinBase):
         # on it, and its title travels as result_title — a renderer that shows the finished
         # process as one more screen names it instead of inventing one.
         has_result = completion is not None and total > 1
-        plain_total = total - 1 if has_result else total
+        # Branching (step_applies): the progress shows only the steps that apply.
+        shown_steps = [i for i in range(1, (total - 1 if has_result else total) + 1)
+                       if step_applies(cls, instance, i, total)]
+        plain_total = len(shown_steps)
+        position = shown_steps.index(current) if current in shown_steps else len(
+            [i for i in shown_steps if i < current])
         result_title = (step_title(total) or f"Step {total}") if has_result else None
 
         def bullet_status(i: int) -> str:
@@ -149,7 +216,7 @@ class WizardMapperMixin(MixinBase):
                             title=step_title(i) or f"Step {i}",
                             status=bullet_status(i),
                         )
-                        for i in range(1, plain_total + 1)
+                        for i in shown_steps
                     ],
                     result_title=result_title,
                 ),
@@ -161,7 +228,9 @@ class WizardMapperMixin(MixinBase):
             # step, full on the result step; the current step's title as its text.
             progress = ClientSideComponent(
                 metadata=ProgressBarMetadata(
-                    value=total if result_step else current - 1, max=total, text=step_title(current)
+                    value=(plain_total + 1 if has_result else plain_total) if result_step else position,
+                    max=plain_total + 1 if has_result else plain_total,
+                    text=step_title(current),
                 ),
                 style="width: 100%;",
             )
@@ -183,9 +252,9 @@ class WizardMapperMixin(MixinBase):
         # every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
         back = (
             self.client(ButtonMetadata(label="Back", action_id="back", color="normal"), None, [])
-            if current > 1 else None
+            if previous_applicable(cls, instance, current, total) is not None else None
         )
-        if completion is not None and current == total - 1:
+        if completion is not None and current == completing_step(cls, instance, total):
             name, label = completion
             nxt = self.client(
                 ButtonMetadata(
@@ -198,7 +267,8 @@ class WizardMapperMixin(MixinBase):
         else:
             nxt = self.client(
                 ButtonMetadata(
-                    label="Finish" if current == total else "Next", action_id="next",
+                    label="Next" if has_next_step(cls, current, total, instance) else "Finish",
+                    action_id="next",
                     button_style="primary", color="normal",
                 ),
                 None,
@@ -219,7 +289,7 @@ class WizardMapperMixin(MixinBase):
             # list (mirrors Java's WizardProgressStyle.RAIL).
             counter = ClientSideComponent(
                 metadata=TextMetadata(
-                    text=f"{plain_total if result_step else current} | {plain_total}"
+                    text=f"{plain_total if result_step else position + 1} | {plain_total}"
                 ),
                 style="font-size: 2rem; font-weight: 300; margin: 0 0 1rem; letter-spacing: .1em;",
             )
@@ -231,7 +301,7 @@ class WizardMapperMixin(MixinBase):
                             title=f"Step {i}",
                             status=bullet_status(i),
                         )
-                        for i in range(1, plain_total + 1)
+                        for i in shown_steps
                     ],
                     vertical=True,
                     result_title=result_title,
@@ -292,9 +362,12 @@ class WizardMapperMixin(MixinBase):
                 # Next validates the step on the client first (Java's Wizard.actions)
                 *([] if result_step else [Action(id="next", validation_required=True)]),
                 *(
-                    [Action(id=camel_case(completion[0]), validation_required=True)]
+                    [completion_action(cls, completion[0])]
                     if completion is not None
-                    and (current == total - 1 or completion_offered_early(cls, current, total))
+                    and (
+                        current == completing_step(cls, instance, total)
+                        or completion_offered_early(cls, current, total, instance)
+                    )
                     else []
                 ),
                 # skipping and saving a draft deliberately leave the step incomplete: no client

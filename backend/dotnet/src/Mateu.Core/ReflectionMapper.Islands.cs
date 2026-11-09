@@ -41,9 +41,15 @@ internal sealed partial class ReflectionMapper
     /// <summary>Whether a property renders as an island instead of a field: its type has a
     /// registered adapter, or is a routed view ([UI]) embedded in the host.</summary>
     internal bool IsIslandProperty(PropertyInfo p) =>
-        registry?.AdapterFor(p.PropertyType) is not null || IsEmbeddedView(p.PropertyType);
+        registry?.AdapterFor(p.PropertyType) is not null || IsEmbeddedView(p.PropertyType) || IsComponentProperty(p)
+        || p.Find<SubresourceAttribute>() is not null || IsOrchestratorType(p.PropertyType);
 
-    private static bool IsEmbeddedView(Type t) =>
+    /// <summary>A property typed with a fluent component: the component is drawn in the form (Java's
+    /// ReflectionFormFieldMapper renders a Component field as a CustomField around it) and is never
+    /// state.</summary>
+    internal static bool IsComponentProperty(PropertyInfo p) => typeof(IComponent).IsAssignableFrom(p.PropertyType);
+
+    internal static bool IsEmbeddedView(Type t) =>
         t.IsClass && t != typeof(string) && !typeof(IComponent).IsAssignableFrom(t)
         && t.GetCustomAttribute<UIAttribute>() is not null && t.GetCustomAttribute<AppAttribute>() is null;
 
@@ -51,6 +57,11 @@ internal sealed partial class ReflectionMapper
     /// when the property is no island or holds no value.</summary>
     private ClientSideComponentDto? MapIslandField(PropertyInfo p, object instance, int columns)
     {
+        // an orchestrator held by a property (a sub-listing, a crud): its own island, whatever it holds
+        if (p.Find<SubresourceAttribute>() is not null
+            || (IsOrchestratorType(p.PropertyType) && !IsEmbeddedView(p.PropertyType)
+                && !p.PropertyType.IsInstanceOfType(instance)))
+            return MapOrchestratorField(p, instance, columns, null);
         var value = p.GetValue(instance);
         if (value is null) return null;
         var fieldId = Naming.CamelCase(p.Name);
@@ -65,6 +76,13 @@ internal sealed partial class ReflectionMapper
         else if (IsEmbeddedView(p.PropertyType))
         {
             content = MapEmbeddedIsland(p, value);
+        }
+        else if (value is IComponent fluent)
+        {
+            // the component itself, with ITS style on the cell (Java: CustomField.style(component.style()))
+            return Client(new CustomFieldMetadataDto(T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)),
+                    ComponentMapper.Map(fluent), p.Find<ColspanAttribute>()?.Value ?? columns),
+                Naming.CamelCase(p.Name), []) with { Style = fluent.Style };
         }
         else return null;
         var label = p.Find<InlineAttribute>() != null ? "" : T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
@@ -101,7 +119,9 @@ internal sealed partial class ReflectionMapper
                 initialData[Naming.CamelCase(member.Name)] = t.IsEnum ? memberValue.ToString() : memberValue;
         }
         // the island claims its own actions, so a toolbar click goes to the view, not the host
-        var actions = MapView(type, value, route).Actions;
+        var actions = value is IEditableView editable
+            ? EditableViewActions(type, editable)
+            : MapView(type, value, route).Actions;
         var app = Client(new AppMetadataDto("", "MEDIATOR", [])
         {
             HomeRoute = markedRoute,

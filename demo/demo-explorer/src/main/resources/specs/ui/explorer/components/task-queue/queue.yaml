@@ -1,0 +1,12 @@
+# A task queue as DATA: labelled groups of cards (title, caption, badge chips). A card with an
+# `actionLabel` + `actionId` gets its own button.
+content:
+  - type: TaskQueue
+    groups:
+      - label: Arrivals today
+        items:
+          - {id: g1, title: School group · 28 pupils, caption: "10:00 · Education room", badges: [{label: guided, color: success}], selected: true}
+          - {id: g2, title: Patrons' preview, caption: "18:30 · Main hall", badges: [{label: VIP, color: warning}]}
+      - label: Tomorrow
+        items:
+          - {id: g3, title: Press visit, caption: "09:00 · Gallery 1", badges: [{label: media, color: info}]}

@@ -6,6 +6,8 @@ import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
+import { FULL_WIDTH_STYLE, formItemLabelOf, formItemLabelText, renderMasterDetailLayout as renderStackedMasterDetail } from "@infra/ui/renderers/renderLayouts.ts";
+import MasterDetailLayout from "@mateu/shared/apiClients/dtos/componentmetadata/MasterDetailLayout";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
 import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
@@ -86,6 +88,9 @@ export const renderFormComponent = (form: FormLayout, container: LitElement, com
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormRow) {
         return renderFormRow(form, container, component as ClientSideComponent, baseUrl, state, data, appState, appData)
     }
+    if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormItem) {
+        return renderFormItem(form, container, component as ClientSideComponent, baseUrl, state, data, appState, appData)
+    }
     return form.labelsAside?wrapWithFormItem(container, component, baseUrl, state, data, appState, appData):renderComponent(container, component, baseUrl, state, data, appState, appData)
 }
 
@@ -104,7 +109,45 @@ export const wrapWithFormItem = (container: LitElement, component: Component, ba
 }
 
 
+/**
+ * A FormItem: the components that make up ONE field. With labels aside it is a vaadin-form-item
+ * headed by its first labelled field; otherwise one form-layout cell (as wide as its widest field)
+ * stacking them. It used to fall through to the generic switch: "Unknown metadata type FormItem".
+ */
+export const renderFormItem = (form: FormLayout, container: LitElement, item: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    const children = item.children ?? []
+    const colspan = Math.max(1, ...children.map(child => (child.type == ComponentType.ClientSide
+        && (child as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField
+        && ((child as ClientSideComponent).metadata as FormField).colspan) || 1))
+    const labelled = form.labelsAside ? formItemLabelOf(children) : undefined
+    if (labelled) {
+        const label = formItemLabelText(container, labelled.label)
+        return html`
+            <vaadin-form-item data-colspan="${colspan}" style="${item.style ?? nothing}" class="${item.cssClasses ?? nothing}">
+                <label slot="label">${label}</label>
+                ${children.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, child === labelled.field))}
+            </vaadin-form-item>`
+    }
+    return html`
+        <div data-colspan="${colspan}" style="display: flex; flex-direction: column; gap: var(--lumo-space-s); min-width: 0; ${item.style ?? ''}" class="${item.cssClasses ?? nothing}">
+            ${children.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
+        </div>`
+}
+
+/**
+ * A FormRow keeps its fields on ONE line. vaadin-form-row is only honoured by an AUTO-RESPONSIVE
+ * vaadin-form-layout; in a layout with responsive steps (a fluent/YAML FormLayout with maxColumns)
+ * it was ignored and its fields flowed into the columns like any other. There the row is a band
+ * spanning every column whose fields share the width.
+ */
 export const renderFormRow = (form: FormLayout, container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    if (!form.autoResponsive) {
+        return html`
+            <div data-colspan="${form.maxColumns && form.maxColumns > 0 ? form.maxColumns : 100}"
+                 style="display: flex; gap: var(--vaadin-form-layout-column-spacing, var(--lumo-space-l)); align-items: flex-start; min-width: 0;">
+                ${tab.children?.map(child => html`<div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: stretch;">${renderFormComponent(form, container, child, baseUrl, state, data, appState, appData)}</div>`)}
+            </div>`
+    }
     return html`
         <vaadin-form-row>
             ${tab.children?.map(child => renderFormComponent(form, container, child, baseUrl, state, data, appState, appData))}
@@ -198,6 +241,12 @@ export const renderSplitLayout = (container: LitElement, component: Component, b
 }
 
 export const renderMasterDetailLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    // orientation vertical: the detail BELOW the master, stacked. vaadin-master-detail-layout's
+    // vertical mode sizes the master to 30em and, in a box shorter than that (a `height` style),
+    // turns the detail into an overlay over a grey backdrop — so the stack is drawn as a column.
+    if (((component as ClientSideComponent).metadata as MasterDetailLayout)?.orientation === 'vertical') {
+        return renderStackedMasterDetail(container, component, baseUrl, state, data, appState, appData)
+    }
     const staticDetail = component.children && component.children.length > 1 ? component.children[1] : null
     const dynamicDetail = data?.detailComponent ?? null
     const hasDetail = !!(data?.hasDetail) || !!staticDetail
@@ -443,7 +492,7 @@ export const renderScroller = (container: LitElement, component: Component, base
 
 export const renderFullWidth = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     return html`
-               <div style="width: 100%; ${component.style}" 
+               <div style="${FULL_WIDTH_STYLE} ${component.style ?? ''}"
                     class="${component.cssClasses}"
                     slot="${component.slot??nothing}">
                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}

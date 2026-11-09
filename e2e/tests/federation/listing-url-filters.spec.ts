@@ -14,10 +14,12 @@ import { test, expect, Page } from '@playwright/test';
  *
  * Inside a REMOTE app of a federated shell, which is how ec-demo1 serves its listings.
  */
+// the name is the row's link (the technical id column is left out of a click-to-open listing),
+// so the cell holds a button: read the number off whatever text the cell carries
 const rowIds = async (page: Page) => {
-    const cells = page.locator('vaadin-grid-cell-content').filter({ hasText: /^Remote thing \d$/ })
+    const cells = page.locator('vaadin-grid-cell-content').filter({ hasText: /Remote thing \d/ })
     const texts = await cells.allInnerTexts()
-    return texts.map(text => 't' + text.replace('Remote thing ', '')).sort()
+    return texts.map(text => 't' + /Remote thing (\d)/.exec(text)![1]).sort()
 }
 
 const chip = (page: Page, label: string) => page.locator('mateu-filter-bar .chip').filter({ hasText: label })

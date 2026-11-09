@@ -26,7 +26,7 @@ class PageFabSyncTest {
   public static class FabPage {
     public String name = "Ada";
 
-    @Fab(icon = "vaadin:plus", label = "Add")
+    @Fab(icon = "vaadin:plus", label = "Add person")
     public Message add() {
       return new Message("Added");
     }
@@ -50,6 +50,15 @@ class PageFabSyncTest {
     var fab = component.actions().stream().filter(a -> a.id().equals("add")).findFirst();
     assertThat(fab).as("the FAB's action is advertised").isPresent();
     assertThat(fab.map(ActionDto::validationRequired)).contains(false);
+  }
+
+  @Test
+  void aPageFabIsNamedByItsOwnLabel() throws Exception {
+    var json =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .writeValueAsString(mateu.sync("/page-fab"));
+    // @Fab(label = ...) was ignored: the button was named after the method ("Add")
+    assertThat(json).contains("\"label\":\"Add person\"");
   }
 
   @Test

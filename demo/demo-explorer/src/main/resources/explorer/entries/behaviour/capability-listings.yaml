@@ -1,0 +1,26 @@
+id: capability-listings
+area: behaviour
+group: listings
+title: Capability listings & whole-row click
+covers: [behaviour:capability-listings, behaviour:row-click]
+description: |
+  A listing is a class implementing `Listing<Row>` — one method, `search(SearchRequest)`. Alone it
+  is a grid with sorting and paging, and nothing else (the bare example below). Every further
+  feature is a capability you **declare**: `Searchable` the search box, `Filterable<F>` the filter
+  bar built from `F`, `Navigable` clickable rows and a read-only detail at `/:id`, `Creatable` the
+  New button and `/new`, `Deletable` row selection and Delete — and `Editable` (not declared here,
+  so there is no Edit). On a navigable listing a click **anywhere on the row** opens the record,
+  except on the cells with a click of their own (the checkbox, editors, buttons, links).
+
+  Try it: open the Books page, search `borges`, filter *Pages* from 200 to 600, then click a row's
+  *Author* cell — the book opens. Back on the list, tick a row: it is selected, not opened.
+examples:
+  - title: Nothing declared
+    java: io.mateu.explorer.examples.behaviour.capabilitylistings.BareBooks
+  - title: Searchable, Filterable, Navigable, Creatable, Deletable
+    yaml: specs/ui/explorer/behaviour/capability-listings/open.yaml
+pages:
+  - {route: x/behaviour/capability-listings, viewModel: io.mateu.explorer.examples.behaviour.capabilitylistings.Books}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/capability-listings/Books.cs}
+  - {label: Python, path: src/main/ports/behaviour/capability-listings/books.py}

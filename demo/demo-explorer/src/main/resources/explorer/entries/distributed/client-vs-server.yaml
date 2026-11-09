@@ -1,0 +1,33 @@
+id: client-vs-server
+area: distributed
+group: microfrontends
+title: MicroFrontend — CLIENT vs SERVER resolution
+covers: [distributed:client-vs-server]
+description: |
+  A `MicroFrontend` embeds another app's screen in a page. **Who asks the remote** is `resolve`:
+
+  - `CLIENT` (default) — the page arrives with a placeholder; the browser asks the remote.
+  - `SERVER` — this server asks the remote while it builds the page and puts the answer in
+    `MicroFrontendDto.resolved`: the island is in the **first paint**. Everything after it (here,
+    *Like*) still goes from the browser to the remote — the host never proxies.
+  - A SERVER call has a budget — the remote's `timeout-ms`, or `timeoutMs` on the island; the
+    page's total is capped by `mateu.microfrontends.max-budget-ms` (2000). Past it the call is
+    **cancelled and degraded to CLIENT**: the slow remote (2 s, budget 300 ms) still appears, later.
+  - A remote that is down degrades too, and its error stays inside its island.
+
+  SERVER only asks urls under a **registered remote** (`DistributedRemotesConfig`); the
+  `io.mateu.microfrontends` log has one line per fragment.
+
+  **Try it:** open the page on its own and look at the first `/mateu/v3/sync` answer in the network
+  panel: the SERVER island is inside it, the slow one is fetched by the browser ~2 s later.
+  `SLOW_REMOTE_DELAY_MS=100` on the Java remote and the slow one is embedded too.
+probeAllows: ["ERR_CONNECTION_REFUSED"]   # done on purpose (see the description)
+examples:
+  - title: Four islands, four outcomes
+    java: io.mateu.explorer.examples.distributed.clientvsserver.ClientVsServer
+pages:
+  - {route: x/distributed/client-vs-server, viewModel: io.mateu.explorer.examples.distributed.clientvsserver.ClientVsServer}
+code:
+  - {label: "Java · the registered remotes", path: src/main/java/io/mateu/explorer/examples/distributed/DistributedRemotesConfig.java}
+  - {label: "Java · the fast remote", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/FastFragment.java}
+  - {label: "Java · the slow remote", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/SlowFragment.java}

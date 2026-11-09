@@ -114,3 +114,5 @@ once in [Page templates](/ux-patterns/page-templates/).
 ## When to use it
 
 Use smart search when **searching is the task** but you want a workbench page, not a landing page: record finders, asset/article lookup, cross-team search tools. Prefer [hero search](/ux-patterns/hero-search/) for a distraction-free entry point (public catalogs, home pages), and a plain `AutoCrud`/`Listing` when the user works the collection (edits, exports, dense scanning).
+
+**See it live in the Explorer:** [Smart search page](https://explorer.mateu.io/archetypes/collections/smart-search-page)

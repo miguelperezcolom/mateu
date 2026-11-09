@@ -61,6 +61,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -428,6 +430,79 @@ class WireConformanceTest {
     public int age = 36;
   }
 
+  /**
+   * Text constraints on the wire: {@code @Size} (min and/or max, each bound its own entry, an open
+   * max printed as Integer.MAX_VALUE in the message) and {@code @Pattern} (the regexp verbatim
+   * inside a JS literal), default and custom messages, after a required check — and a
+   * {@code @Hidden("expression")} field whose constraint is relaxed while it is hidden.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-text")
+  @Title("Validated text")
+  public static class ValidatedTextForm {
+    @NotEmpty
+    @Size(min = 3, max = 8)
+    @Pattern(regexp = "^[A-Z]+$")
+    public String code = "ABC";
+
+    @Size(min = 2)
+    public String nickname = "";
+
+    @Size(max = 140)
+    public String bio = "";
+
+    @Size(max = 10, message = "Too long")
+    public String tag = "";
+
+    @Pattern(regexp = "^[0-9]{5}$", message = "Five digits")
+    @Hidden("state['code'] === ''")
+    public String zip = "";
+  }
+
+  /**
+   * Constraints on fields the user cannot type into: a {@code @ReadOnly} and a {@code @PlainText}
+   * field next to an editable one.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-locked")
+  @Title("Locked fields")
+  public static class LockedFieldsForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotEmpty @io.mateu.uidl.annotations.ReadOnly public String code = "A-1";
+
+    @Size(min = 3)
+    @io.mateu.uidl.annotations.PlainText
+    public String caption = "Hello";
+  }
+
+  /**
+   * Constraints on a field locked by permission: a {@code @ReadOnlyUnless(roles = "manager")}
+   * field, for an anonymous caller, and a class-level one locking the rest of the view.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-unless")
+  @Title("Locked by permission")
+  public static class LockedByPermissionForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotEmpty
+    @io.mateu.uidl.annotations.ReadOnlyUnless(roles = "manager")
+    public String notes = "n/a";
+  }
+
+  /** Constraints on a class-level {@code @ReadOnly} view. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-read-only-view")
+  @Title("Read-only view")
+  @io.mateu.uidl.annotations.ReadOnly
+  public static class ReadOnlyValidatedView {
+    @NotEmpty public String name = "Ada";
+
+    @Size(min = 3)
+    public String code = "ABC";
+  }
+
   /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
   @SuppressWarnings("unused")
   @UI("/conformance/stereotypes")
@@ -569,6 +644,905 @@ class WireConformanceTest {
               .confirmActionId("deleteOrder")
               .cancelActionId("keepOrder")
               .build());
+    }
+  }
+
+  public static class Profile {
+    @NotEmpty public String name = "Ada";
+    public String city = "London";
+  }
+
+  /**
+   * An editable view: a read page with an Edit button that flips to the editor and back. Java's
+   * first load is a mediator, so the cases pin its two content loads (view and edit).
+   */
+  @UI("/conformance/editable-view")
+  @Title("Profile")
+  public static class ProfileView
+      extends io.mateu.core.infra.declarative.orchestrators.editableview.AutoEditableView<Profile> {
+    @Override
+    public Profile load(HttpRequest httpRequest) {
+      return new Profile();
+    }
+
+    @Override
+    public void persist(Profile entity, HttpRequest httpRequest) {}
+  }
+
+  /** A CRUD whose record view page leads its toolbar with a method of the crud. */
+  @UI("/conformance/view-toolbar-button")
+  @Title("Products")
+  public static class ProductsWithViewButton
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+
+    @io.mateu.uidl.annotations.ViewToolbarButton(confirmationRequired = true)
+    public Message discontinue(Product product) {
+      return Message.success("Discontinued");
+    }
+  }
+
+  /**
+   * A CRUD whose listing toolbar carries two BULK buttons: one dressed by {@code @Toolbar} (style,
+   * colour, size, order) and confirmed with the {@code @Action} texts, one that needs no selection
+   * — declared in the reverse of their {@code order}.
+   */
+  @UI("/conformance/bulk-actions")
+  @Title("Products")
+  public static class BulkProductsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(confirmationRequired = true)
+    @io.mateu.uidl.annotations.Toolbar(
+        buttonStyle = io.mateu.uidl.data.ButtonStyle.secondary,
+        buttonColor = io.mateu.uidl.data.ButtonColor.error,
+        buttonSize = io.mateu.uidl.data.ButtonSize.small,
+        order = 10)
+    @io.mateu.uidl.annotations.Action(
+        confirmationTitle = "Discontinue products",
+        confirmationMessage = "The selected products leave the catalogue.",
+        confirmationText = "Discontinue them",
+        confirmationDenialText = "Keep them")
+    @io.mateu.uidl.annotations.Label("Discontinue")
+    public Message discontinue(List<Product> selection) {
+      return Message.success(selection.size() + " discontinued");
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(rowsSelectedRequired = false)
+    @io.mateu.uidl.annotations.Toolbar(order = 1)
+    @io.mateu.uidl.annotations.Label("Refresh prices")
+    public Message refreshPrices() {
+      return Message.success("Prices refreshed");
+    }
+  }
+
+  /**
+   * The {@code @Action} knobs the ports gained for 3.0 GA: a streamed background action, a
+   * confirmation with its texts, a link, a client script and a custom event — each on the page's
+   * {@code actions}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/action-extras")
+  @Title("Action extras")
+  public static class ActionExtrasPage {
+    public String name = "Ada";
+
+    // ONE action carrying every knob: Java lists @Action methods in Class.getDeclaredMethods()
+    // order, which the JVM does not specify (it changed between two runs), so a fixture with
+    // several actions would pin an order no server controls
+    @io.mateu.uidl.annotations.Action(
+        sse = true,
+        background = true,
+        confirmationRequired = true,
+        confirmationTitle = "Delete?",
+        confirmationMessage = "It cannot be undone",
+        confirmationText = "Delete",
+        confirmationDenialText = "Keep",
+        href = "https://mateu.io",
+        js = "console.log('hi')",
+        customEventName = "order-picked")
+    public Message act() {
+      return Message.success("Done");
+    }
+  }
+
+  /** An app shell's presentation knobs: a split content area, an accent, the Ask button's brand. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-branding")
+  @Title("Branded app")
+  @io.mateu.uidl.annotations.App(
+      layout = io.mateu.uidl.fluent.AppLayout.SPLIT,
+      accentColor = "#00796b",
+      askLabel = "Ask Mateu",
+      askIcon = "vaadin:question")
+  public static class BrandedApp {
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+  }
+
+  /**
+   * A record master's way back up (the OCI-console style): {@code @App(backLink = PARENT)} draws a
+   * single "← Records" link to the nearest route above that resolves to a screen — labelled with
+   * that screen's title, resolved server-side — and no breadcrumb trail.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-back-link")
+  @Title("Record")
+  @io.mateu.uidl.annotations.App(backLink = io.mateu.uidl.annotations.BackLink.PARENT)
+  public static class BackLinkApp {
+    @io.mateu.uidl.annotations.Menu public String overview = "/a";
+  }
+
+  /** A page that turns the automatic breadcrumb trail off (PageDto.noBreadcrumbs). */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-no-breadcrumbs")
+  @Title("Welcome")
+  @io.mateu.uidl.annotations.NoBreadcrumbs
+  public static class PageNoBreadcrumbs {
+    public String name;
+  }
+
+  /** A page that declares its own breadcrumb trail (PageDto.breadcrumbs). */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-breadcrumbs")
+  @Title("Order 7")
+  @io.mateu.uidl.annotations.Breadcrumbs({
+    @io.mateu.uidl.annotations.Breadcrumb(label = "Home", url = "/"),
+    @io.mateu.uidl.annotations.Breadcrumb(label = "Orders", url = "/orders")
+  })
+  public static class PageBreadcrumbs {
+    public String name;
+  }
+
+  /**
+   * A record master offering "← Parent" ({@code @App(backLink = PARENT)}), bound in code to {@code
+   * /conformance/bl-chain/:customerId} with a child {@code orders} route: the pages under it carry
+   * no breadcrumb trail of their own.
+   */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(backLink = io.mateu.uidl.annotations.BackLink.PARENT)
+  public static class BackLinkChainMaster {
+    public String customerId;
+  }
+
+  /**
+   * The master's {@code orders} tab: its page says noBreadcrumbs (the master's link replaces it).
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkChainTab {
+    public String note = "orders";
+  }
+
+  /**
+   * The master's {@code delivery} tab: a plain nested object drawn as a sub-form in a card — its
+   * page sits in the card's METADATA, and it says noBreadcrumbs too (every page mapped under the
+   * back-link app does).
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkChainDeliveryTab {
+    public String note = "delivery";
+    // not named like the tab: a page titled as its tab's label is deduped (RouteChains.dedupeTitle)
+    public DeliveryInfo shipping = new DeliveryInfo();
+  }
+
+  /**
+   * A master whose "← Parent" link is declared by its CODE shell ({@code AppSupplier}), with no
+   * {@code @App(backLink)}: {@code RouteChains.insideBackLinkApp} reads the class's {@code @App}
+   * only, so the pages under it keep their trail.
+   */
+  @SuppressWarnings("unused")
+  public static class BackLinkShellMaster implements AppSupplier {
+    public String customerId;
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      return AppShell.builder()
+          .title("Back link shell master")
+          .backLink(io.mateu.uidl.annotations.BackLink.PARENT)
+          .build();
+    }
+  }
+
+  /** The routes.yaml-equivalent chain of the back-link cases, authored in code. */
+  public static class ConformanceRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
+    @Override
+    public List<io.mateu.uidl.data.RouteEntry> routes() {
+      return List.of(
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/bl-chain/:customerId",
+              null,
+              BackLinkChainMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", BackLinkChainTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of(
+                      "delivery", BackLinkChainDeliveryTab.class.getName()))),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/bl-shell/:customerId",
+              null,
+              BackLinkShellMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", BackLinkChainTab.class.getName()))));
+    }
+  }
+
+  // ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+  /**
+   * A record master: an {@code App(TABS)} with NO menu of its own, bound in code to {@code
+   * /conformance/rt/customers/:customerId} — its registry children are its tabs, each a page with
+   * its own URL.
+   */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Customer")
+  public static class RtCustomerMaster {
+    public String customerId;
+  }
+
+  /**
+   * The master's {@code orders} tab: labelled by its {@code @Title}, which its page does not
+   * repeat.
+   */
+  @SuppressWarnings("unused")
+  @Title("Orders")
+  public static class RtOrdersTab {
+    public String customerId;
+    public String note = "orders";
+  }
+
+  /** The master's {@code notes} tab: no {@code @Title}, so labelled by its route segment. */
+  @SuppressWarnings("unused")
+  public static class RtNotesTab {
+    public String customerId;
+    public String text = "notes";
+  }
+
+  /** A master naming its default tab ({@code defaultChild: notes}). */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Supplier")
+  public static class RtSupplierMaster {
+    public String supplierId;
+  }
+
+  /**
+   * In-page tabs that are URLs ({@code @Tab(key)}): {@code /conformance/rt/vcn/7/gateways} opens
+   * Gateways; a tab whose flag is off ({@code show}) is not offered.
+   */
+  @SuppressWarnings("unused")
+  @Title("Network")
+  public static class RtVcnPage {
+    public String id;
+
+    @Tab(value = "Subnets", key = "subnets")
+    public String subnetsNote = "subnets";
+
+    @Tab(value = "Gateways", key = "gateways")
+    public String gatewaysNote = "gateways";
+
+    @Tab(value = "Simulator", key = "simulator", show = "simulator")
+    public String simulatorNote = "simulator";
+  }
+
+  /** A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*). */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Account")
+  public static class RtAccountMaster {
+    public String customerId;
+  }
+
+  /** An order of one customer: its {@code customerId} is the master's path parameter. */
+  @SuppressWarnings("unused")
+  public static class RtOrder implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String customerId;
+    public String status;
+
+    public RtOrder() {}
+
+    RtOrder(String id, String customerId, String status) {
+      this.id = id;
+      this.customerId = customerId;
+      this.status = status;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return id == null ? "New order" : "Order " + id;
+    }
+  }
+
+  static final List<RtOrder> RT_ORDERS =
+      List.of(
+          new RtOrder("7-1", "7", "OPEN"),
+          new RtOrder("7-2", "7", "SHIPPED"),
+          new RtOrder("8-1", "8", "OPEN"));
+
+  /**
+   * The master's tab: the orders of ONE customer, the one the route names — its {@code customerId}
+   * comes from the chain's path parameter, its listing filter of that name is read-only (the route
+   * fixes it) and a new order starts with it filled in.
+   */
+  @Title("Orders")
+  public static class RtAccountOrders
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<RtOrder> {
+    public String customerId;
+
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<RtOrder> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<RtOrder> findById(String id) {
+          return RT_ORDERS.stream().filter(o -> o.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(RtOrder entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<RtOrder> findAll() {
+          return RT_ORDERS.stream()
+              .filter(o -> customerId == null || o.customerId.equals(customerId))
+              .toList();
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  // ── @Subresource: a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+  /** A network item: its {@code vcnId} is the parent the listing is scoped to. */
+  @SuppressWarnings("unused")
+  public static class RtNetItem implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String vcnId;
+
+    public RtNetItem() {}
+
+    RtNetItem(String id, String vcnId) {
+      this.id = id;
+      this.vcnId = vcnId;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return id == null ? "New item" : id;
+    }
+  }
+
+  /** The listings of one VCN: the one its {@code vcnId} names. */
+  public abstract static class RtItemsOfVcn
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<RtNetItem> {
+    public String vcnId;
+
+    public abstract List<RtNetItem> all();
+
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<RtNetItem> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<RtNetItem> findById(String id) {
+          return all().stream().filter(i -> i.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(RtNetItem entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<RtNetItem> findAll() {
+          return all().stream().filter(i -> i.vcnId.equals(vcnId)).toList();
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  @Title("Internet gateways")
+  public static class RtInternetGateways extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(new RtNetItem("ig1", "7"));
+    }
+  }
+
+  @Title("NAT gateways")
+  public static class RtNatGateways extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(new RtNetItem("nat1", "7"), new RtNetItem("nat2", "8"));
+    }
+  }
+
+  @Title("Subnets")
+  public static class RtSubnets extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(
+          new RtNetItem("s1", "7"),
+          new RtNetItem("s2", "7"),
+          new RtNetItem("s3", "7"),
+          new RtNetItem("s4", "8"));
+    }
+  }
+
+  /**
+   * A VCN's detail: Details, then Gateways (two listings stacked in their {@code order}, lazy, with
+   * a help line) and Subnets (eager: its row count on the tab, alone in its tab so untitled).
+   */
+  @SuppressWarnings("unused")
+  @Title("VCN")
+  public static class RtVcnDetail {
+    @io.mateu.uidl.annotations.ReadOnly public String id;
+
+    @Tab(value = "Details", key = "details")
+    public String cidr = "10.0.0.0/16";
+
+    @io.mateu.uidl.annotations.Subresource(tab = "gateways", order = 2, context = "vcnId=id")
+    public RtNatGateways nat;
+
+    @io.mateu.uidl.annotations.Subresource(
+        tab = "gateways",
+        order = 1,
+        help = "Gateways to the internet",
+        context = "vcnId=id")
+    public RtInternetGateways internet;
+
+    @io.mateu.uidl.annotations.Subresource(
+        tab = "subnets",
+        load = io.mateu.uidl.annotations.Subresource.Load.EAGER,
+        context = "vcnId=id")
+    public RtSubnets subnets;
+  }
+
+  /** Nothing editable but a sub-resource: it is still a form, and renders its island. */
+  @SuppressWarnings("unused")
+  @Title("Only subnets")
+  public static class RtOnlySubnets {
+    @io.mateu.uidl.annotations.ReadOnly public String id;
+
+    @io.mateu.uidl.annotations.Subresource public RtSubnets subnets;
+  }
+
+  /** The trap: an @Inline orchestrator with no route of its own fails where the cause is. */
+  @SuppressWarnings("unused")
+  @Title("Trap")
+  public static class RtInlineTrap {
+    public String name;
+
+    @io.mateu.uidl.annotations.Inline public RtNatGateways nat;
+  }
+
+  /** The routed-tabs chains, authored in code (the routes.yaml {@code children:} twin). */
+  public static class RoutedTabsRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
+    @Override
+    public List<io.mateu.uidl.data.RouteEntry> routes() {
+      return List.of(
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/customers/:customerId",
+              null,
+              RtCustomerMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", RtOrdersTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of("notes", RtNotesTab.class.getName()),
+                  new io.mateu.uidl.data.RouteEntry(
+                      "audit",
+                      null,
+                      RtNotesTab.class.getName(),
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      "audit"))),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/suppliers/:supplierId",
+              null,
+              RtSupplierMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", RtOrdersTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of("notes", RtNotesTab.class.getName())),
+              null,
+              null,
+              null,
+              null,
+              "notes"),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/vcn/:id", RtVcnPage.class.getName()),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/accounts/:customerId",
+              null,
+              RtAccountMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(io.mateu.uidl.data.RouteEntry.of("orders", RtAccountOrders.class.getName()))),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/net/:id", RtVcnDetail.class.getName()),
+          io.mateu.uidl.data.RouteEntry.of(
+              "conformance/rt/only/:id", RtOnlySubnets.class.getName()),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/trap", RtInlineTrap.class.getName()));
+    }
+  }
+
+  /** The deployment's flags: {@code audit} and {@code simulator} are off, the rest unknown (on). */
+  public static class ConformanceFlags implements io.mateu.uidl.interfaces.FeatureFlags {
+    @Override
+    public Boolean isEnabled(String flag, HttpRequest httpRequest) {
+      return "audit".equals(flag) || "simulator".equals(flag) ? Boolean.FALSE : null;
+    }
+  }
+
+  /** The screen above the back-link app: its title labels the app's "← Parent" link. */
+  @SuppressWarnings("unused")
+  @UI("/conformance")
+  @Title("Records")
+  public static class BackLinkParent {
+    public String name;
+  }
+
+  /**
+   * Section options: the first section pinned while the page scrolls, the second forced to one
+   * column (the form infers two from its eight fields) with a style on its content.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/section-options")
+  @Title("Section options")
+  public static class SectionOptionsForm {
+    @io.mateu.uidl.annotations.Section(value = "Guests", sticky = true)
+    public String lead;
+
+    public String second;
+    public String third;
+    public String fourth;
+
+    @io.mateu.uidl.annotations.Section(value = "Notes", columns = 1, style = "gap: 0;")
+    public String first;
+
+    public String other;
+    public String more;
+    public String last;
+  }
+
+  public record Employee(
+      String id,
+      @io.mateu.uidl.annotations.MainFilter String name,
+      @io.mateu.uidl.annotations.HiddenInList String notes,
+      @io.mateu.uidl.annotations.HiddenInView String salaryBand,
+      @io.mateu.uidl.annotations.HiddenInEditor String createdBy,
+      @io.mateu.uidl.annotations.HiddenInCreate String code)
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New employee";
+    }
+  }
+
+  static final List<Employee> EMPLOYEES =
+      List.of(
+          new Employee("E-1", "Ada", "Likes tea", "B2", "admin", "ADA"),
+          new Employee("E-2", "Grace", "Navy", "B3", "admin", "GRC"));
+
+  /**
+   * A crud whose entity hides fields per surface ({@code @HiddenInList/View/Editor/Create}) and
+   * names its main filter: the listing, and the edit and new forms.
+   */
+  @UI("/conformance/crud-hidden-in")
+  @Title("Employees")
+  public static class EmployeesCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Employee> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Employee> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<Employee> findById(String id) {
+          return EMPLOYEES.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Employee entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<Employee> findAll() {
+          return EMPLOYEES;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  public record Seat(
+      String id,
+      String name,
+      @io.mateu.uidl.annotations.HiddenInCreate @Min(100) @Max(999) Integer code,
+      @io.mateu.uidl.annotations.HiddenInEditor @Min(1) @Max(9) Integer quota)
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New seat";
+    }
+  }
+
+  static final List<Seat> SEATS = List.of(new Seat("S-1", "Front", 101, 2));
+
+  /**
+   * A crud whose hidden-in fields carry constraints: a form that does not render a field sends no
+   * validation for it (and the server does not check it there) — {@code @HiddenInCreate code}'s
+   * bounds are on the edit form only, {@code @HiddenInEditor quota}'s bounds on the create form
+   * only.
+   */
+  @UI("/conformance/crud-hidden-constraints")
+  @Title("Seats")
+  public static class SeatsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Seat> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Seat> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<Seat> findById(String id) {
+          return SEATS.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Seat entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<Seat> findAll() {
+          return SEATS;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  /**
+   * A hero search page over a declarative listing with its own filters type: the centered hero over
+   * the listing, the filters type's fields as the facet bar, results as cards, starting empty.
+   */
+  @UI("/conformance/hero-search-filters")
+  @Title("Books")
+  public static class HeroBooks
+      extends io.mateu.core.infra.declarative.orchestrators.herosearch.HeroSearch<
+          BookFilters, Book> {
+    @Override
+    protected String heroTitle() {
+      return "Find a book";
+    }
+
+    @Override
+    protected String heroSubtitle() {
+      return "Search the catalogue";
+    }
+
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+  }
+
+  /**
+   * An action that opens a placed dialog: draggable, resizable, at a given top/left, with its size
+   * — the members the ports never set before 3.0 GA.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/dialog-placement")
+  @Title("Dialog placement")
+  public static class DialogPlacementPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object openNotes() {
+      return io.mateu.uidl.data.Dialog.builder()
+          .headerTitle("Notes")
+          .content(new io.mateu.uidl.data.Text("Free text"))
+          .top("4rem")
+          .left("2rem")
+          .draggable(true)
+          .resizable(true)
+          .width("30rem")
+          .height("20rem")
+          .modeless(true)
+          .closeButtonOnHeader(true)
+          .build();
+    }
+  }
+
+  /**
+   * A class-level {@code @AutoSave}: every change runs the named action after the debounce — an
+   * {@code AutoSave} trigger with its action id and debounce, and the action advertised (the client
+   * only sends what the component advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/auto-save")
+  @Title("Settings")
+  @io.mateu.uidl.annotations.AutoSave(debounceMillis = 500, action = "persist")
+  public static class AutoSaveForm {
+    public String nickname = "ada";
+    public boolean newsletter;
+
+    @io.mateu.uidl.annotations.Action
+    public Message persist() {
+      return Message.success("Saved");
+    }
+  }
+
+  /**
+   * The last wire component types the ports lacked (3.0 GA parity): layouts (BoardLayout,
+   * CarouselLayout, Container, FullWidth, Scroller, FormItem, FormSubSection, MasterDetailLayout),
+   * navigation (ContextMenu, Directory, MenuBar), the fluent Grid with a column group, the chat and
+   * message pieces, a not-found page, a virtual list, the cookie banner and the two editors. Pins
+   * their member names and where their parts travel.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/more-components")
+  @Title("More components")
+  public static class MoreComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      var t = (java.util.function.Function<String, Component>) io.mateu.uidl.data.Text::new;
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.BoardLayout(
+              "board",
+              List.of(
+                  new io.mateu.uidl.data.BoardLayoutRow(
+                      List.of(
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Sales"), null, null, 2),
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Stock"), null, null, 1)),
+                      null,
+                      null)),
+              null,
+              null),
+          io.mateu.uidl.data.CarouselLayout.builder()
+              .id("carousel")
+              .content(List.of(t.apply("Slide 1"), t.apply("Slide 2")))
+              .auto(true)
+              .duration(4000)
+              .dots(true)
+              .loop(true)
+              .build(),
+          new io.mateu.uidl.data.Container(t.apply("Contained"), null, null),
+          new io.mateu.uidl.data.FullWidth(t.apply("Wide"), null, null),
+          new io.mateu.uidl.data.Scroller(t.apply("Scrolled"), "height: 10rem", null),
+          new io.mateu.uidl.data.FormItem("item", List.of(t.apply("Field")), null, null),
+          new io.mateu.uidl.data.FormSubSection("Address", List.of(t.apply("Street")), null, null),
+          new io.mateu.uidl.data.MasterDetailLayout(
+              "md",
+              t.apply("Master"),
+              t.apply("Detail"),
+              io.mateu.uidl.data.Orientation.horizontal,
+              null,
+              null,
+              null),
+          io.mateu.uidl.data.ContextMenu.builder()
+              .menu(List.of(new io.mateu.uidl.data.RouteLink("/orders", "Orders")))
+              .wrapped(t.apply("Right click me"))
+              .activateOnLeftClick(true)
+              .build(),
+          new io.mateu.uidl.data.Directory(
+              List.of(
+                  new io.mateu.uidl.data.Menu(
+                      "/sales",
+                      "Sales",
+                      List.of(new io.mateu.uidl.data.RouteLink("/sales/orders", "Orders")))),
+              null,
+              null),
+          io.mateu.uidl.fluent.MenuBar.builder()
+              .option(new io.mateu.uidl.data.RouteLink("/home", "Home"))
+              .option(new io.mateu.uidl.data.RouteLink("/help", "Help"))
+              .build(),
+          io.mateu.uidl.data.Grid.builder()
+              .id("grid")
+              .content(
+                  List.of(
+                      io.mateu.uidl.data.GridColumn.builder()
+                          .id("name")
+                          .label("Name")
+                          .dataType(io.mateu.uidl.data.FieldDataType.string)
+                          .build(),
+                      new io.mateu.uidl.data.GridGroupColumn(
+                          "occupancy",
+                          "Occupancy",
+                          null,
+                          null,
+                          List.of(
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("adults")
+                                  .label("Adults")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build(),
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("children")
+                                  .label("Children")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build()))))
+              .page(
+                  new io.mateu.uidl.data.Page<>(
+                      "",
+                      10,
+                      0,
+                      1,
+                      List.of(java.util.Map.of("name", "Ada", "adults", 2, "children", 1))))
+              .rowStripes(true)
+              .build(),
+          new io.mateu.uidl.data.Chat("/chat/sse", null, null, null),
+          new io.mateu.uidl.data.MessageList(
+              "messages",
+              List.of(new io.mateu.uidl.data.MessageListItem("Hello", "Ada")),
+              null,
+              null),
+          new io.mateu.uidl.data.MessageInput("input", "send", null, null),
+          io.mateu.uidl.data.NotFound.builder()
+              .title("Not here")
+              .message("That page does not exist")
+              .backRoute("/")
+              .backLabel("Home")
+              .build(),
+          new io.mateu.uidl.data.VirtualList(
+              new io.mateu.uidl.data.Page<>(
+                  "", 10, 0, 2, List.of(t.apply("Row 1"), t.apply("Row 2"))),
+              null,
+              null),
+          io.mateu.uidl.data.CookieConsent.builder()
+              .message("We use cookies")
+              .dismiss("OK")
+              .position(io.mateu.uidl.data.CookieConsentPosition.Bottom)
+              .build(),
+          new io.mateu.uidl.data.FormEditor("{}", null, null),
+          new io.mateu.uidl.data.Workflow("<bpmn/>", null, null));
     }
   }
 
@@ -795,6 +1769,93 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * A grid field whose row type has a @Details field (the content that opens under a row, behind a
+   * button) and whose row editor is customised: @DetailFormCustomisation (position, columns, style,
+   * theme) + @MasterDetail (the grid's min height while the editor shows).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/grid-field-detail")
+  @Title("Order lines")
+  public static class GridFieldDetail {
+    @io.mateu.uidl.annotations.DetailFormCustomisation(
+        position = io.mateu.uidl.data.FormPosition.bottom,
+        columns = 1,
+        style = "padding: 1rem;",
+        theme = "compact")
+    @io.mateu.uidl.annotations.MasterDetail(minHeightWhenDetailVisible = "20rem")
+    public List<LineRow> lines = new ArrayList<>(List.of(new LineRow("Desk", "Oak")));
+
+    public static class LineRow {
+      public String product = "";
+
+      @io.mateu.uidl.annotations.Details public String notes = "";
+
+      public LineRow() {}
+
+      public LineRow(String product, String notes) {
+        this.product = product;
+        this.notes = notes;
+      }
+    }
+  }
+
+  /**
+   * Every option of the fluent listing (Java's fluent {@code Listing}, the ports' {@code
+   * ListingComponent}) that the ports did not carry before 3.0 GA: page size and first page,
+   * header/footer/pre-search components, the toolbar and group actions, the row detail path and its
+   * button, lazy column rendering, lazy loading, infinite scrolling, the grid cell colours, the
+   * row-selection action, the content height, the listing type, the search switches, grouping, row
+   * tones, drag type and row selection.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/fluent-crudl-options")
+  @Title("Fluent listing options")
+  public static class FluentCrudlOptionsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.fluent.Listing.builder()
+          .id("orders")
+          .title("Orders")
+          .listingType(io.mateu.uidl.fluent.ListingType.card)
+          .column(
+              io.mateu.uidl.data.GridColumn.builder()
+                  .id("customer")
+                  .label("Customer")
+                  .dataType(io.mateu.uidl.data.FieldDataType.string)
+                  .build())
+          .toolbarItem(new io.mateu.uidl.data.Button("Export", "export"))
+          .size(3)
+          .initialPage(2)
+          .headerItem(new io.mateu.uidl.data.Text("Head"))
+          .footerItem(new io.mateu.uidl.data.Text("Foot"))
+          .preSearchItem(new io.mateu.uidl.data.Text("Search to start"))
+          .detailPath("notes")
+          .useButtonForDetail(true)
+          .lazyColumnRendering(true)
+          .lazyLoading(true)
+          .infiniteScrolling(true)
+          .vaadinGridCellBackground("#fafafa")
+          .vaadinGridCellPadding("4px")
+          .onRowSelectionChangedActionId("rowsChanged")
+          .contentHeight("20rem")
+          .searchOnEnter(false)
+          .autoFocusOnSearchText(false)
+          .groupBy("status")
+          .groupAction(new io.mateu.uidl.data.Button("Close group", "closeGroup"))
+          .rowStatusField("status")
+          .dragType("order")
+          .rowsSelectionEnabled(true)
+          .build();
+    }
+  }
+
   /** The StatusList front-office component: labelled status rows — a chip row and an action row. */
   @UI("/conformance/status-list")
   @Title("Status list")
@@ -943,6 +2004,55 @@ class WireConformanceTest {
     public io.mateu.uidl.data.ListingData<Book> search(
         io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
       return books();
+    }
+  }
+
+  /**
+   * A read-only listing (no interaction capability) with the dressed and confirmed bulk button —
+   * only one: a listing advertises its actions in the JVM's method order, which is unspecified.
+   */
+  @UI("/conformance/bulk-actions-listing")
+  @Title("Books")
+  public static class BulkBooks implements io.mateu.uidl.interfaces.Listing<Book> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton(confirmationRequired = true)
+    @io.mateu.uidl.annotations.Toolbar(
+        buttonStyle = io.mateu.uidl.data.ButtonStyle.secondary,
+        buttonColor = io.mateu.uidl.data.ButtonColor.error,
+        buttonSize = io.mateu.uidl.data.ButtonSize.small,
+        order = 10)
+    @io.mateu.uidl.annotations.Action(
+        confirmationTitle = "Withdraw books",
+        confirmationMessage = "The selected books leave the shelves.",
+        confirmationText = "Withdraw them",
+        confirmationDenialText = "Keep them")
+    @io.mateu.uidl.annotations.Label("Withdraw")
+    public Message withdraw(List<Book> selection) {
+      return Message.success(selection.size() + " withdrawn");
+    }
+  }
+
+  /**
+   * A plain listing whose bulk method declares no {@code @Label}: Java labels the button with the
+   * bare method name (not humanised), in the listing's toolbar and in the page header's.
+   */
+  @UI("/conformance/bulk-actions-unlabeled")
+  @Title("Books")
+  public static class UnlabeledBulkBooks implements io.mateu.uidl.interfaces.Listing<Book> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton
+    public Message markRead(List<Book> selection) {
+      return Message.success(selection.size() + " marked");
     }
   }
 
@@ -1115,6 +2225,24 @@ class WireConformanceTest {
   }
 
   /**
+   * A wizard whose completion answers an error {@code Message}: the completion did not happen, so
+   * the wizard stays on its step and the answer is the message alone (no result step).
+   */
+  @UI("/conformance/wizard-completion-error")
+  @Title("Sign up")
+  public static class RefusedSignUpWizard
+      extends io.mateu.core.infra.declarative.orchestrators.wizard.Wizard {
+    public AccountStep account;
+    public PlanStep plan;
+    public DoneStep done;
+
+    @io.mateu.uidl.annotations.WizardCompletionAction
+    public Message signUp() {
+      return Message.error("No seats left on that plan.");
+    }
+  }
+
+  /**
    * Options fetched from a REST endpoint: one field declares the request inline, the other names a
    * catalogue source by {@code ref} (the wire carries the name; the catalogue travels apart).
    */
@@ -1216,6 +2344,137 @@ class WireConformanceTest {
   }
 
   /**
+   * A nested data object: inline into its section ({@code @Inline} — fields {@code supplier-name}…,
+   * the nested class's {@code @Toolbar} on the section title row, its {@code @Button} below the
+   * content, both dispatched as {@code nested-form-action-supplier-<method>}, an
+   * {@code @Action(shortcut)} collected as a component action) and, without {@code @Inline}, a
+   * sub-form in an outlined card.
+   */
+  @SuppressWarnings("unused")
+  public static class SupplierInfo {
+    public String name = "Acme";
+    public String email = "sales@acme.test";
+
+    @io.mateu.uidl.annotations.Toolbar
+    @io.mateu.uidl.annotations.Action(shortcut = "ctrl+alt+v")
+    public Object verify() {
+      return Message.success("Verified " + name);
+    }
+
+    @io.mateu.uidl.annotations.Button
+    public Object contact() {
+      return Message.success("Contacting " + email);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class DeliveryInfo {
+    public String city = "Palma";
+    public int days = 3;
+  }
+
+  /** An {@code @Inline} nested object whose fields carry client-rule annotations. */
+  @SuppressWarnings("unused")
+  public static class ContactInfo {
+    @io.mateu.uidl.annotations.Hidden("state.reference == 'internal'")
+    public String phone = "600 000 000";
+
+    @io.mateu.uidl.annotations.Disabled public String email = "buyer@acme.test";
+  }
+
+  /**
+   * Client rules ({@code @Hidden(expr)}, {@code @Disabled}) are the VIEW's own fields' only: the
+   * page's {@code @Disabled reference} gets its rule, the {@code @Inline} nested object's fields
+   * (drawn as {@code contact-phone}, {@code contact-email}) get none — {@code RuleMapper} reads the
+   * view class's fields, not its nested objects'.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/inline-form-rules")
+  @Title("Inline form rules")
+  public static class InlineFormRules {
+    @io.mateu.uidl.annotations.Disabled public String reference = "PO-1";
+
+    @io.mateu.uidl.annotations.Inline public ContactInfo contact = new ContactInfo();
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/conformance/inline-form")
+  @Title("Inline form")
+  public static class InlineForm {
+    @Section("Order")
+    public String reference = "PO-1";
+
+    @Section("Supplier")
+    @io.mateu.uidl.annotations.Inline
+    public SupplierInfo supplier = new SupplierInfo();
+
+    @Section("Delivery")
+    public DeliveryInfo delivery = new DeliveryInfo();
+  }
+
+  /**
+   * A crud entity holding a plain nested data object ({@link SupplierInfo}, no {@code @Inline}):
+   * its record form draws the object as a sub-form whose {@code @Toolbar}/{@code @Button} methods
+   * are dispatched as {@code nested-form-action-supplier-<method>}. The form is the ENTITY's
+   * server-side component: it advertises those actions and runs them on the nested object hydrated
+   * from the flattened state.
+   */
+  @SuppressWarnings("unused")
+  public static class PurchaseOrder implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String reference;
+    public SupplierInfo supplier = new SupplierInfo();
+
+    public PurchaseOrder() {}
+
+    PurchaseOrder(String id, String reference) {
+      this.id = id;
+      this.reference = reference;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return reference;
+    }
+  }
+
+  static final List<PurchaseOrder> PURCHASE_ORDERS =
+      List.of(new PurchaseOrder("PO-1", "Q3 restock"));
+
+  @UI("/conformance/crud-nested")
+  @Title("Purchase orders")
+  public static class PurchaseOrdersCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<PurchaseOrder> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<PurchaseOrder> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<PurchaseOrder> findById(String id) {
+          return PURCHASE_ORDERS.stream().filter(e -> e.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(PurchaseOrder entity) {
+          return entity.id();
+        }
+
+        @Override
+        public List<PurchaseOrder> findAll() {
+          return PURCHASE_ORDERS;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  /**
    * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
    * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
    * request to the case's fixture type instead of the first load. Identical in the three runners.
@@ -1226,12 +2485,45 @@ class WireConformanceTest {
           java.util.Map.entry("crud-search", ProductsCrud.class),
           java.util.Map.entry("action-effects", ActionEffectsPage.class),
           java.util.Map.entry("drawer", DrawerPage.class),
+          java.util.Map.entry("dialog-placement", DialogPlacementPage.class),
+          java.util.Map.entry("crud-hidden-in-edit", EmployeesCrud.class),
+          java.util.Map.entry("crud-hidden-in-new", EmployeesCrud.class),
+          java.util.Map.entry("crud-hidden-constraints-edit", SeatsCrud.class),
+          java.util.Map.entry("crud-hidden-constraints-new", SeatsCrud.class),
+          java.util.Map.entry("editable-view", ProfileView.class),
+          java.util.Map.entry("editable-view-edit", ProfileView.class),
+          java.util.Map.entry("view-toolbar-button", ProductsWithViewButton.class),
           java.util.Map.entry("rejected-save", RejectedSaveForm.class),
           java.util.Map.entry("error-boundary", FailingActionPage.class),
           java.util.Map.entry("wizard-step-2", SignUpWizard.class),
           java.util.Map.entry("crud-new", ProductsCrud.class),
           java.util.Map.entry("crud-edit", ProductsCrud.class),
-          java.util.Map.entry("crud-view", ProductsCrud.class));
+          java.util.Map.entry("crud-view", ProductsCrud.class),
+          java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
+          java.util.Map.entry("page-back-link-chain-nested", BackLinkChainDeliveryTab.class),
+          java.util.Map.entry("page-back-link-code-shell", BackLinkChainTab.class),
+          java.util.Map.entry("inline-form-action", InlineForm.class),
+          java.util.Map.entry("crud-nested-form", PurchaseOrdersCrud.class),
+          // the record form's own component: its serverSideType is the ENTITY
+          java.util.Map.entry("crud-nested-form-action", PurchaseOrder.class),
+          java.util.Map.entry("wizard-completion-error", RefusedSignUpWizard.class),
+          java.util.Map.entry("routed-tabs-master", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-master-on-tab", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-hidden-tab", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-default-child", RtSupplierMaster.class),
+          java.util.Map.entry("routed-tabs-tab", RtOrdersTab.class),
+          java.util.Map.entry("routed-tabs-segment-tab", RtNotesTab.class),
+          java.util.Map.entry("routed-tabs-keys", RtVcnPage.class),
+          java.util.Map.entry("routed-tabs-key-in-url", RtVcnPage.class),
+          java.util.Map.entry("routed-tabs-deep-link", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-crud-listing", RtAccountOrders.class),
+          java.util.Map.entry("routed-tabs-crud-search", RtAccountOrders.class),
+          java.util.Map.entry("routed-tabs-crud-new", RtAccountOrders.class),
+          java.util.Map.entry("subresource-page", RtVcnDetail.class),
+          java.util.Map.entry("subresource-only", RtOnlySubnets.class),
+          java.util.Map.entry("subresource-inline-trap", RtInlineTrap.class),
+          java.util.Map.entry("subresource-listing", RtSubnets.class),
+          java.util.Map.entry("subresource-search", RtSubnets.class));
 
   private static final List<String> CASES =
       List.of(
@@ -1249,6 +2541,10 @@ class WireConformanceTest {
           "dashboard",
           "app-in-code",
           "validation",
+          "validation-text",
+          "validation-locked",
+          "validation-unless",
+          "validation-read-only-view",
           "stereotypes",
           "lookup",
           "tree-select",
@@ -1287,14 +2583,77 @@ class WireConformanceTest {
           "field-help",
           "field-hints",
           "page-toolbar",
-          "form-columns");
+          "form-columns",
+          "more-components",
+          "auto-save",
+          "dialog-placement",
+          "action-extras",
+          "app-branding",
+          "app-back-link",
+          "section-options",
+          "crud-hidden-in",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button",
+          "grid-field-detail",
+          "fluent-crudl-options",
+          "hero-search-filters",
+          "page-no-breadcrumbs",
+          "page-breadcrumbs",
+          "page-back-link-chain",
+          "definition-actions",
+          "definition-triggers",
+          "definition-proxied-listing",
+          "definition-path-params",
+          "definition-path-params-seeded",
+          "inline-form",
+          "inline-form-action",
+          "bulk-actions",
+          "bulk-actions-listing",
+          "bulk-actions-unlabeled",
+          "wizard-completion-error",
+          "crud-nested-form",
+          "crud-nested-form-action",
+          "inline-form-rules",
+          "page-back-link-chain-nested",
+          "page-back-link-code-shell",
+          "routed-tabs-master",
+          "routed-tabs-master-on-tab",
+          "routed-tabs-hidden-tab",
+          "routed-tabs-default-child",
+          "routed-tabs-tab",
+          "routed-tabs-segment-tab",
+          "routed-tabs-keys",
+          "routed-tabs-key-in-url",
+          "routed-tabs-deep-link",
+          "routed-tabs-crud-listing",
+          "routed-tabs-crud-search",
+          "routed-tabs-crud-new",
+          "subresource-page",
+          "subresource-only",
+          "subresource-inline-trap",
+          "subresource-listing",
+          "subresource-search");
 
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
+    // The YAML cases first, each on a Mateu of its own: booting (and closing) one re-points the
+    // core's process-wide statics, so the shared instance below has to be the last one booted.
+    for (var name : CASES) {
+      if (Files.isDirectory(corpus().resolve(name).resolve("specs"))) {
+        var answer = actualYaml(name);
+        YAML_ANSWERS.put(name, new Object[] {answer, lastRawBytes});
+      }
+    }
     mateu =
-        TestMateu.withUis(
+        TestMateu.withUisAndBeans(
+            List.of(new ConformanceRoutes(), new RoutedTabsRoutes(), new ConformanceFlags()),
             SimpleForm.class,
             PageHeader.class,
             Tabs.class,
@@ -1309,6 +2668,10 @@ class WireConformanceTest {
             DashboardPage.class,
             AppInCode.class,
             ValidatedForm.class,
+            ValidatedTextForm.class,
+            LockedFieldsForm.class,
+            LockedByPermissionForm.class,
+            ReadOnlyValidatedView.class,
             Stereotypes.class,
             LookupForm.class,
             TreeSelectForm.class,
@@ -1342,7 +2705,31 @@ class WireConformanceTest {
             FieldHelpForm.class,
             FieldHintsPage.class,
             PageToolbarForm.class,
-            FormColumnsForm.class);
+            FormColumnsForm.class,
+            MoreComponentsPage.class,
+            AutoSaveForm.class,
+            DialogPlacementPage.class,
+            ActionExtrasPage.class,
+            BrandedApp.class,
+            BackLinkApp.class,
+            BackLinkParent.class,
+            SectionOptionsForm.class,
+            EmployeesCrud.class,
+            ProfileView.class,
+            ProductsWithViewButton.class,
+            GridFieldDetail.class,
+            FluentCrudlOptionsPage.class,
+            SeatsCrud.class,
+            HeroBooks.class,
+            PageNoBreadcrumbs.class,
+            PageBreadcrumbs.class,
+            InlineForm.class,
+            BulkProductsCrud.class,
+            BulkBooks.class,
+            UnlabeledBulkBooks.class,
+            RefusedSignUpWizard.class,
+            InlineFormRules.class,
+            PurchaseOrdersCrud.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1496,7 +2883,9 @@ class WireConformanceTest {
       java.util.Map.of(
           "crud", ProductsCrud.class,
           "crud-grouped", SalesCrud.class,
-          "listing-navigable", NavigableBooks.class);
+          "listing-navigable", NavigableBooks.class,
+          "crud-hidden-in", EmployeesCrud.class,
+          "bulk-actions", BulkProductsCrud.class);
 
   /**
    * Cases loaded by a plain sync whose component is a mediator all the same: the wizard advertises
@@ -1505,9 +2894,88 @@ class WireConformanceTest {
    * every side, exactly as for {@link #MEDIATED}; everything the wizard draws is pinned.
    */
   private static final Set<String> MEDIATOR_PROTOCOL_ONLY =
-      Set.of("wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view");
+      Set.of(
+          "wizard",
+          "wizard-step-2",
+          "crud-new",
+          "subresource-listing",
+          "routed-tabs-crud-new",
+          "routed-tabs-crud-listing",
+          "crud-edit",
+          "crud-view",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
+          "crud-nested-form",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
+
+  /**
+   * A YAML case: its {@code specs/ui/} directory is served as the classpath's {@code specs/ui/**}
+   * (everything else from the test classpath) to a Mateu booted for it alone, and its {@code
+   * request.json} route is loaded — the ports point their specs directory at the same files.
+   */
+  private static JsonNode actualYaml(String name) {
+    try {
+      var request =
+          MAPPER.readTree(Files.readString(corpus().resolve(name).resolve("request.json")));
+      var root = corpus().resolve(name).toUri().toURL();
+      var thread = Thread.currentThread();
+      var previous = thread.getContextClassLoader();
+      var overlay = new SpecsOverlay(root, WireConformanceTest.class.getClassLoader());
+      thread.setContextClassLoader(overlay);
+      try (var yaml = TestMateu.withUis()) {
+        return roundTrip(
+            yaml.run(
+                io.mateu.dtos.RunActionRqDto.builder()
+                    .route(request.path("route").asText(""))
+                    .consumedRoute(
+                        request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
+                    .actionId(request.path("actionId").asText(""))
+                    .componentState(java.util.Map.of())
+                    .build()));
+      } finally {
+        thread.setContextClassLoader(previous);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /** Serves {@code specs/ui/**} from one case directory; everything else from the parent. */
+  static final class SpecsOverlay extends ClassLoader {
+    private final java.net.URLClassLoader specs;
+
+    SpecsOverlay(java.net.URL root, ClassLoader parent) {
+      super(parent);
+      this.specs = new java.net.URLClassLoader(new java.net.URL[] {root}, null);
+    }
+
+    private static boolean isSpec(String name) {
+      return name.startsWith("specs/ui") || name.startsWith("/specs/ui");
+    }
+
+    @Override
+    public java.net.URL getResource(String name) {
+      return isSpec(name) ? specs.getResource(name) : super.getResource(name);
+    }
+
+    @Override
+    public java.util.Enumeration<java.net.URL> getResources(String name) throws IOException {
+      return isSpec(name) ? specs.getResources(name) : super.getResources(name);
+    }
+  }
+
+  /** The YAML cases' answers (and raw sizes), rendered in {@link #boot()}. */
+  private static final java.util.Map<String, Object[]> YAML_ANSWERS = new java.util.HashMap<>();
 
   private static JsonNode actual(String route) {
+    if (YAML_ANSWERS.get(route) instanceof Object[] answer) {
+      lastRawBytes = (Integer) answer[1];
+      return ((JsonNode) answer[0]).deepCopy();
+    }
     var requested = REQUESTED.get(route);
     var requestFile = corpus().resolve(route).resolve("request.json");
     if (requested != null && Files.exists(requestFile)) {
@@ -1528,13 +2996,22 @@ class WireConformanceTest {
                                 ? request.get("consumedRoute").asText()
                                 : null)
                         .actionId(request.path("actionId").asText(""))
-                        .serverSideType(requested.getName())
+                        // a request.json naming "serverSideType": null is a FRESH load (no type
+                        // yet)
+                        .serverSideType(
+                            request.has("serverSideType")
+                                ? (request.get("serverSideType").isNull()
+                                    ? null
+                                    : request.get("serverSideType").asText())
+                                : requested.getName())
                         .componentState(state)
                         .build()));
         if (MEDIATED_FORMS.contains(route)) {
           answer = withoutMediatedRoute(answer);
         }
-        return MEDIATOR_PROTOCOL_ONLY.contains(route) ? withoutMediatorProtocol(answer) : answer;
+        return MEDIATOR_PROTOCOL_ONLY.contains(route)
+            ? withoutMediatorProtocol(answer, FORM_STATE_PINNED.contains(route))
+            : answer;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -1566,7 +3043,22 @@ class WireConformanceTest {
    * answers on is the mediator protocol; everything the form draws is pinned. Identical in the
    * three runners.
    */
-  static final Set<String> MEDIATED_FORMS = Set.of("crud-new", "crud-edit", "crud-view");
+  static final Set<String> MEDIATED_FORMS =
+      Set.of(
+          "crud-new",
+          "subresource-listing",
+          "routed-tabs-crud-new",
+          "routed-tabs-crud-listing",
+          "crud-edit",
+          "crud-view",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "crud-hidden-constraints-edit",
+          "crud-hidden-constraints-new",
+          "crud-nested-form",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   static JsonNode withoutMediatedRoute(JsonNode increment) {
     for (var fragment : increment.path("fragments")) {
@@ -1578,12 +3070,39 @@ class WireConformanceTest {
   }
 
   /** Drops the mediator protocol of a mediated case — identical in the three runners. */
+  /**
+   * Mediated record forms whose FORM state is pinned all the same: the record's field values (what
+   * a new child under a record master starts with — its {@code customerId}) are the form's, only
+   * the mediator's private {@code _}-prefixed routing keys are protocol. Identical in the three
+   * runners.
+   */
+  static final Set<String> FORM_STATE_PINNED = Set.of("routed-tabs-crud-new");
+
   static JsonNode withoutMediatorProtocol(JsonNode increment) {
+    return withoutMediatorProtocol(increment, false);
+  }
+
+  static JsonNode withoutMediatorProtocol(JsonNode increment, boolean keepFormState) {
     for (var fragment : increment.path("fragments")) {
-      ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
+      if (keepFormState) {
+        withoutPrivateKeys(fragment.get("state"));
+        if (fragment.get("component") != null)
+          withoutPrivateKeys(fragment.get("component").get("initialData"));
+      } else {
+        ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
+      }
       if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
-        c.remove("actions");
-        c.remove("initialData");
+        // the mediator's own actions (create/save, their bubbling) are protocol; a nested data
+        // object's actions are the FORM's — the record form advertises what its sub-forms dispatch
+        if (c.get("actions") instanceof com.fasterxml.jackson.databind.node.ArrayNode actions) {
+          for (int i = actions.size() - 1; i >= 0; i--) {
+            if (!actions.get(i).path("id").asText("").startsWith("nested-form-action-")) {
+              actions.remove(i);
+            }
+          }
+          if (actions.isEmpty()) c.remove("actions");
+        }
+        if (!keepFormState) c.remove("initialData");
         // the mediator's own refresh subscriptions ("mateu-crud:*" events — a delete or a drawer
         // save tells the listing to search again); the ports re-render the listing in place
         if (c.get("triggers") instanceof com.fasterxml.jackson.databind.node.ArrayNode triggers) {
@@ -1596,6 +3115,14 @@ class WireConformanceTest {
       }
     }
     return increment;
+  }
+
+  private static void withoutPrivateKeys(JsonNode state) {
+    if (state instanceof com.fasterxml.jackson.databind.node.ObjectNode o) {
+      var names = new java.util.ArrayList<String>();
+      o.fieldNames().forEachRemaining(names::add);
+      names.stream().filter(n -> n.startsWith("_")).forEach(o::remove);
+    }
   }
 
   /** The size of the last increment {@link #roundTrip} serialised, as it travels (UTF-8 bytes). */

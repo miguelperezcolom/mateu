@@ -32,8 +32,7 @@ import java.lang.annotation.Target;
  *
  * <p>{@code @AutoLayout(false)} opts a class out when inference is enabled globally via the {@code
  * mateu.layout.inference.enabled=true} setting (a system property or the {@code
- * MATEU_LAYOUT_INFERENCE_ENABLED} environment variable; the older {@code mateu.layout.inference}
- * still works, deprecated).
+ * MATEU_LAYOUT_INFERENCE_ENABLED} environment variable).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})

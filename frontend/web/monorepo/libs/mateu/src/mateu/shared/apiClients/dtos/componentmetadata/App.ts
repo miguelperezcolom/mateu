@@ -51,6 +51,8 @@ export default interface App extends ComponentMetadata {
     contextActions: AppHeaderAction[] | undefined
     rootRoute: string | undefined
     notificationsEnabled?: boolean
+    /** @App(osNotifications): the app opts in to OS-level notifications (osNotifications.ts) */
+    osNotifications?: boolean
     globalSearchEnabled?: boolean
     /** Live UI push is on (mateu.mcp.push.enabled): the UI opens its agent channel (`_agent-channel`)
      *  and the header offers "Connect AI" (`_agent-pair` / `_agent-unpair`). */
@@ -78,11 +80,6 @@ export default interface App extends ComponentMetadata {
     askIcon?: string
     /** @App(accentColor): the app's brand accent, a CSS colour (not the primary colour); absent = none */
     accentColor?: string
-    /** @deprecated @App(accentStrip): no renderer draws an accent strip any more (Redwood removes its
-     *  colour strip for a custom brand); kept on the wire, read by nobody */
-    accentStrip?: string
-    /** @deprecated never sent any more (the server no longer generates a strip) */
-    generatedAccentStrip?: string
 
     /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
     backRoute?: string

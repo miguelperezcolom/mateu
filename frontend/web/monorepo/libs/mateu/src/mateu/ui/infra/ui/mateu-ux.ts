@@ -22,7 +22,7 @@ import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCo
 import {nanoid} from "nanoid";
 import type UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
-import { embeddingChromeOf } from "@infra/ui/embeddedChrome.ts";
+import { embeddingChromeOf, isWindowless } from "@infra/ui/embeddedChrome.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
@@ -253,9 +253,9 @@ export class MateuUx extends ConnectedElement {
                 this.currentStructureHash = undefined
             }
 
-            // an EMBEDDED micro frontend (MicroFrontend.chrome) moves in place: the address bar
-            // is the host page's
-            if (embeddingChromeOf(this)) return
+            // a micro frontend island (embedded with a chrome or not) moves in place: the address
+            // bar is the host page's
+            if (isWindowless(this)) return
 
             let effectiveRoute = e.detail.route
 
@@ -406,6 +406,27 @@ export class MateuUx extends ConnectedElement {
         }
     }
 
+    private mergedAppState?: { app: unknown, own: unknown, merged: ComponentState }
+
+    /**
+     * The app state this ux's content reads `${appState.x}` from. The top-level ux is handed the
+     * app's store; an EMBEDDED one (a micro frontend) is handed only the island's declared appState,
+     * so what the island's own answers put in the app's store — a route's `appState:` seed — never
+     * reached its page and rendered empty. The island's declared values win over the store. The
+     * merge is memoised by identity, so a re-render hands children the same object (Lit sets an
+     * object property on every render).
+     */
+    effectiveAppState(): ComponentState {
+        const app = appState.value as ComponentState | undefined
+        const own = this.appState
+        if (!app || own === app) return own
+        const cached = this.mergedAppState
+        if (cached && cached.app === app && cached.own === own) return cached.merged
+        const merged = {...app, ...(own ?? {})}
+        this.mergedAppState = {app, own, merged}
+        return merged
+    }
+
     getCustomisedAppState = () => {
         let customisedAppState = {...appState.value}
         if (this.overrides) {
@@ -451,7 +472,7 @@ export class MateuUx extends ConnectedElement {
             if (appOnlyChange) {
                 const child = this.renderRoot.querySelector('mateu-component') as any
                 if (child) {
-                    if (_changedProperties.has('appState')) child.appState = this.appState
+                    if (_changedProperties.has('appState')) child.appState = this.effectiveAppState()
                     if (_changedProperties.has('appData')) child.appData = this.appData
                     return false
                 }
@@ -739,7 +760,7 @@ export class MateuUx extends ConnectedElement {
                    this.baseUrl,
                    this.fragment?.state??{},
                    this.fragment?.data??{},
-                   this.appState,
+                   this.effectiveAppState(),
                    this.appData
            ):nothing}
        `

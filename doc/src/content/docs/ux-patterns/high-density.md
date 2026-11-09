@@ -93,3 +93,5 @@ List<LineItem> lines;
 - **Minimize navigation** — all relevant data visible in one screen, no scrolling or tab-switching
 - **Workflow over screens** — the screen is shaped around the operational task, not the data model
 - **Keyboard-first** — high-density users rely on tab order and keyboard shortcuts; `@Compact` does not affect focus or tab stops
+
+**See it live in the Explorer:** [High density (@Compact)](https://explorer.mateu.io/behaviour/form-layout/compact)

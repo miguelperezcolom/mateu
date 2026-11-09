@@ -113,8 +113,9 @@ export function adoptRenderMessage(msg) {
 export function previewAnswerOf(url, body, fragment) {
   const u = String(url || '')
   if (u.indexOf('/mateu/v3/') < 0) return null
-  if (u.indexOf('/mateu/v3/components/') >= 0) return previewAppIncrement((body && body.initiatorComponentId) || 'shell')
   if (u.indexOf('/mateu/v3/sync/') >= 0) {
+    // the shell's bootstrap is the only __load__ the bridge sends
+    if (body && body.actionId === '__load__') return previewAppIncrement(body.initiatorComponentId || 'shell')
     // a load is actionId '' — anything else (a search, a button) does nothing on a canvas
     if (body && (body.actionId === '' || body.actionId == null)) return previewLoadIncrement(fragment, body)
     return EMPTY_INCREMENT()

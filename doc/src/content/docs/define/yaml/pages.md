@@ -399,9 +399,8 @@ layoutDelta:
     name: { label: "Full name", colspan: 2 }
 ```
 
-> **Vocabulary:** the key that names the view model is **`viewModel:`** (the canonical noun of the
-> [5-noun model](/concepts/routes-and-mounts/)). The older **`modelView:`** is still accepted
-> as a deprecated alias so existing definitions keep working; prefer `viewModel:` in new files.
+> **Vocabulary:** the key that names the view model is **`viewModel:`** (the noun of the
+> [5-noun model](/concepts/routes-and-mounts/)).
 
 A `layout:` is a **snapshot**: it takes the screen out of the inference regime for good, because
 explicit always wins. Add a field to the model afterwards and it does not appear; rename one and the

@@ -392,3 +392,5 @@ from the route) before seeding the island.
 
 - [`@SubscribeTo` / `@Emits` / `@OnRowSelected` reference](/reference/key-annotations/)
 - [Partial Forms](/ux-patterns/partial-forms/)
+
+**See it live in the Explorer:** [Event bus — dispatchEvent and @SubscribeTo scopes](https://explorer.mateu.io/behaviour/communication/event-bus) · [Row selection driving a self-reloading island](https://explorer.mateu.io/behaviour/communication/master-detail)

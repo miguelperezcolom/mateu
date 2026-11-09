@@ -23,9 +23,9 @@ describe('createInViewModel core', () => {
         expect(isValidJavaIdentifier('')).toBe(false)
     })
 
-    it('extracts the modelView + FormField bindings from an envelope page, walking nested layout', () => {
+    it('extracts the viewModel + FormField bindings from an envelope page, walking nested layout', () => {
         const yaml = [
-            'modelView: com.acme.PersonView',
+            'viewModel: com.acme.PersonView',
             'layout:',
             '  type: VerticalLayout',
             '  content:',

@@ -1,0 +1,22 @@
+id: menus-in-code
+area: behaviour
+group: navigation
+title: Menus and routes in code
+covers: [behaviour:menus-in-code]
+description: |
+  When the menu depends on configuration, the user or a database, compute it: a `MenuSupplier` on
+  the app class returns the tree at request time (`Menu` groups, `RouteLink` / `RuleLink` leaves),
+  and a `RouteEntrySupplier` bean authors the routes those leaves open — the full routes.yaml model
+  in code (path params, fixed / default params, view-model-less routes). An `AppSupplier` returns
+  the whole shell (`AppShell.builder()`). Precedence: routes.yaml > code > annotations. The
+  Explorer's own menu and routes are built this way, from its catalogue.
+
+  Try it: in the framed app open **Hotels (3)** and pick *Lisbon* — the page reads *Hotel Lisbon*
+  and its URL ends in `/hotels/lisbon`.
+examples:
+  - title: A chain whose hotels come from data
+    java: io.mateu.explorer.examples.behaviour.menusincode.HotelChainPreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/menusincode/HotelChainApp.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/menusincode/HotelRoutes.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/menusincode/HotelPage.java}

@@ -34,6 +34,10 @@ public class AdapterInstanceFactory implements InstanceFactory {
     if (adapter == null) {
       return Mono.empty();
     }
-    return Mono.justOrEmpty(adapter.deserialize(data, httpRequest));
+    // an adapted view may draw YAML partials/components too: their locked fields stay server-side
+    var writable =
+        io.mateu.core.infra.security.ClientLockedFields.withoutLocked(
+            adapter.type(), data, httpRequest, true);
+    return Mono.justOrEmpty(adapter.deserialize(writable, httpRequest));
   }
 }

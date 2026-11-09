@@ -49,9 +49,15 @@ public record AppMetadataDto(
     /// IAppActionsSupplier); an entry with Children renders as a dropdown.</summary>
     public IReadOnlyList<AppHeaderActionDto> ContextActions { get; init; } = [];
 
-    /// <summary>True when the app class implements INotificationsSupplier — the shell shows the
-    /// header bell, fed by the _notifications-list/_notifications-read app-level actions.</summary>
+    /// <summary>True when the app class implements INotificationsSupplier or declares
+    /// [App(Inbox = true)] — the shell shows the header bell, fed by the _notifications-list/
+    /// _notifications-read app-level actions.</summary>
     public bool NotificationsEnabled { get; init; }
+
+    /// <summary>[App(OsNotifications = true)]: the renderer may raise OS-level notifications (a new
+    /// inbox entry, a background task that finished) while the app is not in front — permission
+    /// asked only from a user gesture. (Mirrors AppDto.osNotifications.) EXPERIMENTAL.</summary>
+    public bool OsNotifications { get; init; }
 
     /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette
     /// also searches ENTITIES through the app-level _globalsearch action.</summary>
@@ -92,6 +98,24 @@ public record AppMetadataDto(
     /// <summary>[App(MobileQr=true)] — the "Open on mobile" header action (a QR code of the app for
     /// the generic Mateu mobile app). EXPERIMENTAL. (Mirrors AppDto.mobileQr.)</summary>
     public bool MobileQr { get; init; }
+
+    /// <summary>The shell's presentation (mirrors io.mateu.dtos.AppDto.accentColor / askLabel /
+    /// askIcon / logo / favicon / drawerClosed / noBreadcrumbs / style / cssClasses / fabs). AccentColor,
+    /// Logo, Favicon, DrawerClosed, Style and CssClasses are declared below with the YAML shell's
+    /// members (shared by both producers).</summary>
+    public string? AskLabel { get; init; }
+    public string? AskIcon { get; init; }
+    public bool NoBreadcrumbs { get; init; }
+
+    /// <summary>[App(BackLink = Parent)]: the route of the "← Parent" link (the nearest route above
+    /// the app that resolves to a screen) and its label (that screen's title); null when there is no
+    /// such route. (Mirrors io.mateu.dtos.AppDto.backRoute / backLabel.)</summary>
+    public string? BackRoute { get; init; }
+    public string? BackLabel { get; init; }
+
+    /// <summary>App-level floating action buttons ([Fab] methods of the app class), stacked above
+    /// the AI FAB on every screen (mirrors AppDto.fabs).</summary>
+    public IReadOnlyList<FabDto> Fabs { get; init; } = [];
 
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
@@ -139,6 +163,43 @@ public record AppMetadataDto(
     /// AI". Null (omitted) otherwise. (Mirrors io.mateu.dtos.AppDto.agentPush.)</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public bool? AgentPush { get; init; }
+
+    // ── What a YAML `type: AppShell` definition declares (Java's AppDto members of the same names);
+    // each omitted when unset, so a class-declared app's wire is unchanged.
+
+    /// <summary>The shell's FLOWS (<c>actions:</c> with <c>steps:</c>), each lowered to commands — a
+    /// menu RuleLink with a RunAction rule runs one in the browser. (Java's AppDto.actions.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ActionDto>? Actions { get; init; }
+
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Logo { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Favicon { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Style { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? CssClasses { get; init; }
+    /// <summary>Start with the drawer collapsed (Java's AppDto.drawerClosed).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DrawerClosed { get; init; }
+    /// <summary>The brand accent, a CSS colour (Java's AppDto.accentColor).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? AccentColor { get; init; }
+    /// <summary>The assistant chat's MCP endpoint (Java's AppDto.mcpUrl).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? McpUrl { get; init; }
+    /// <summary>The assistant chat's upload endpoint (Java's AppDto.uploadUrl).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? UploadUrl { get; init; }
+    /// <summary>The notification inbox fed by REST sources (a YAML shell's <c>notifications:</c>).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public RestDataSourceDto? NotificationsSource { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public RestDataSourceDto? NotificationsReadSource { get; init; }
+    /// <summary>The palette's entity search fed by a REST source (a YAML shell's <c>globalSearch:</c>).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public RestDataSourceDto? GlobalSearchSource { get; init; }
 }
 
 /// <summary>One named entry of the REST source catalogue as it travels to the renderer. Provenance is
@@ -161,7 +222,13 @@ public record ComponentEntryDto(string Name, ComponentDto? Component);
 /// <summary>An application-level context selector shown on the app header: fixes a value for
 /// every screen (the active hotel, the company…). The picked value lives in the app state under
 /// FieldName and travels with every request.</summary>
-public record AppContextSelectorDto(string FieldName, string Label, IReadOnlyList<OptionDto> Options);
+public record AppContextSelectorDto(string FieldName, string Label, IReadOnlyList<OptionDto> Options)
+{
+    /// <summary>Where the options come from when they are not static (a YAML shell's picker over a
+    /// REST source). Omitted when null. (Java's AppContextSelectorDto.optionsSource.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public RestDataSourceDto? OptionsSource { get; init; }
+}
 
 /// <summary>An app-wide keyboard shortcut / quick-launch code: Key and/or Code; it goes to Route or
 /// runs the app-level ActionId. (Mirrors io.mateu.dtos.AppShortcutDto.)</summary>
@@ -177,7 +244,13 @@ public record IdleSessionDto(int TimeoutSeconds, int WarningSeconds, string Sign
 /// <summary>An action button on the app header, next to the app-context selectors. An entry with
 /// Children renders as a dropdown menu: only the children dispatch.</summary>
 public record AppHeaderActionDto(
-    string? ActionId, string Label, string? Icon, IReadOnlyList<AppHeaderActionDto>? Children);
+    string? ActionId, string Label, string? Icon, IReadOnlyList<AppHeaderActionDto>? Children)
+{
+    /// <summary>A route the button navigates to (a YAML shell's header action with <c>route:</c>),
+    /// absolute like a menu route. Omitted when null. (Java's AppHeaderActionDto.route.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Route { get; init; }
+}
 
 public record MenuItemDto(string Label, string Route, string ServerSideType)
 {
@@ -194,6 +267,9 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     public string? ActionId { get; init; }
     public bool Separator { get; init; }
     public bool Visible { get; init; } = true;
+    /// <summary>The option the request route names — a record master's open tab (mirrors
+    /// io.mateu.dtos.MenuOptionDto.selected).</summary>
+    public bool Selected { get; init; }
     public IReadOnlyList<MenuItemDto> Submenus { get; init; } = [];
 
     /// <summary>Federated entry ([RemoteMenu]): the frontend fetches the remote backend's menu
@@ -204,6 +280,15 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
 
     /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
     public bool Explode { get; init; }
+
+    /// <summary>A remote section only: the route prefix the remote's screens live under, as far as
+    /// the shell can tell before the remote answers — its own path, without the groups the shell
+    /// nests it in. (Mirrors io.mateu.dtos.MenuOptionDto.routePrefix.)</summary>
+    public string? RoutePrefix { get; init; }
+
+    /// <summary>A remote section only: true when the shell DECLARED the label, which then wins over
+    /// the one the remote answers with. (Mirrors io.mateu.dtos.MenuOptionDto.shellLabel.)</summary>
+    public bool ShellLabel { get; init; }
 
     /// <summary>Client-side rules this menu entry RUNS when clicked instead of navigating — a menu
     /// method typed Rule / IReadOnlyList&lt;Rule&gt; is a rule leaf, not a route. Empty on a normal

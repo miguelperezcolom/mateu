@@ -96,6 +96,8 @@ class InboxSync(private val session: AppSession) {
 
     private fun publish(diff: InboxDiff, live: Boolean) {
         if (!diff.isEmpty) presenter?.present(diff, live, this)
+        // a new entry pushed while the IDE is not in front: the OS too (@App(osNotifications))
+        if (live) diff.shown.forEach { session.osNotice(OsNotices.Event.InboxEntry(it, live = true)) }
         listeners.forEach { it() }
     }
 

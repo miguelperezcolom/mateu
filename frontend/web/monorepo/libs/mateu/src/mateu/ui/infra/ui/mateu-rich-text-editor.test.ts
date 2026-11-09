@@ -40,11 +40,6 @@ describe('rich text editor', () => {
         expect(toolbar.querySelector('[data-icon="vaadin:link"]')).toBeTruthy()
     })
 
-    it('converts a legacy Quill Delta value to HTML when it opens', async () => {
-        const { root } = await mount({ value: JSON.stringify([{ insert: 'Legacy', attributes: { bold: true } }, { insert: '\n' }]) })
-        expect(root.querySelector('.ProseMirror')!.innerHTML).toContain('<strong>Legacy</strong>')
-    })
-
     it('emits HTML on every edit, and an empty string when cleared', async () => {
         const { editor, changes } = await mount({ value: '<p>a</p>' })
         editor().commands.setContent('<p>b</p>', { emitUpdate: true })

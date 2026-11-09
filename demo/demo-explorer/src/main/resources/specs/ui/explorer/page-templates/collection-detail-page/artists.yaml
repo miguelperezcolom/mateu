@@ -1,0 +1,11 @@
+# CollectionDetailPage with NOTHING selected: no content, so the template shows its `noSelection` slot
+# beside the `list` slot. Picking an artist goes to …/collection-detail-page/<id> (artist.yaml).
+type: Form
+title: Artists
+subtitle: One row per artist across the three museums
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: specs/ui/explorer/page-templates/collection-detail-page/artists-list.yaml}
+  noSelection:
+    - {type: EmptyState, icon: "🎨", title: Pick an artist, description: "Their nationality, lifespan and the works the museums hold."}

@@ -59,3 +59,5 @@ Details.builder()
     .opened(false)
     .build()
 ```
+
+**See it live in the Explorer:** [Card, Details, Tooltip & Popover](https://explorer.mateu.io/components/display/card)

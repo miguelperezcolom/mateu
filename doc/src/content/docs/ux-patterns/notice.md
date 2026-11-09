@@ -70,3 +70,5 @@ Every web renderer (Vaadin, Redwood), React Native and the IntelliJ plugin. Also
 
 - [Callout card](/ux-patterns/callout-card/) — the bigger sibling, with title and CTA block
 - [Status list](/ux-patterns/status-list/) — rows of statuses with icons and actions
+
+**See it live in the Explorer:** [Notices, callouts & empty states](https://explorer.mateu.io/components/display/notices)

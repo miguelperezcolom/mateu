@@ -89,4 +89,12 @@ describe('routeTargetUrl', () => {
     it('resolves an absolute route that already carries the mount', () => {
         expect(path(routeTargetUrl('/books/3', '/books', '/books', origin))).toBe('/books/3')
     })
+
+    it('a relative route is a segment below the mount, on a YAML mount and on an @UI app', () => {
+        // the bug: a RouteLink `second` on the YAML mount /yaml-mount (pathPrefix "") pushed /yaml-mountsecond
+        expect(path(routeTargetUrl('second', '/yaml-mount', '', origin))).toBe('/yaml-mount/second')
+        expect(path(routeTargetUrl('second', '/fed', '/fed', origin))).toBe('/fed/second')
+        expect(path(routeTargetUrl('second', '', '', origin))).toBe('/second')
+        expect(path(routeTargetUrl('a/b?x=1', '/fed', '/fed', origin))).toBe('/fed/a/b?x=1')
+    })
 })

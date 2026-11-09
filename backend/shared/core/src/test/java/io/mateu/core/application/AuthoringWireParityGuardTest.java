@@ -162,10 +162,6 @@ class AuthoringWireParityGuardTest {
               // The app shell — authored via @App/@Menu/@UI + AppSupplier/MenuSupplier, no single
               // authoring record; the wire DTO is composed by the app mapper.
               "AppDto",
-              // Deprecated for removal: nothing produces them (no mapper, no record, no port) —
-              // registered only because the wire is additive within a major.
-              "ResultDto",
-              "StepperDto",
               // Its authoring record (ContentLayout) was removed in 3.0.0; the wire type stays for
               // renderers and for the .NET/Python @Aside path, which still emit it.
               "ContentLayoutDto"));

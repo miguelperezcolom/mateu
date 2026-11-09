@@ -276,6 +276,22 @@ describe('mateu-field: text-like widgets', () => {
         expect((euro.shadowRoot.querySelector('vaadin-select') as any).value).toBe('EUR')
     })
 
+    it('a money field given a plain number (a YAML initialValue, a BigDecimal) shows it and keeps it a number', async () => {
+        const yaml = await mount({ dataType: 'money', initialValue: 250 }, {})
+        const money = yaml.root.querySelector('mateu-money-field') as any
+        await money.updateComplete
+        // it used to read value.value off the number: undefined, so the field showed nothing
+        expect((money.shadowRoot.querySelector('vaadin-number-field') as any).value).toBe('250')
+        money.valueChanged(new CustomEvent('value-changed', { detail: { value: '300' } }))
+        // a number came in, a number goes back (a BigDecimal on the server cannot take an Amount)
+        expect(yaml.changes.at(-1)).toEqual({ value: 300, fieldId: 'f' })
+        document.body.innerHTML = ''
+        const state = await mount({ dataType: 'money' }, { f: '125.50' })
+        const fromState = state.root.querySelector('mateu-money-field') as any
+        await fromState.updateComplete
+        expect((fromState.shadowRoot.querySelector('vaadin-number-field') as any).value).toBe('125.5')
+    })
+
     it('a generic file upload takes its accept from the field attributes', async () => {
         const { root } = await mount({ stereotype: 'fileUpload', attributes: [{ key: 'accept', value: '.pdf' }] }, {})
         expect((root.querySelector('mateu-file-upload') as any).accept).toBe('.pdf')

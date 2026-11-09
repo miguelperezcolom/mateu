@@ -123,6 +123,29 @@ class ProxyHandlerMixin(MixinBase):
         a transport error) answers app_data._restfetchError ``{status, message}`` instead."""
         json_obj: Any = {}
         cls = self.registry.resolve(rq.server_side_type, rq.route)
+        if cls is None:
+            # a definition-only page (no class): the source is the one its OWN `actions:` — or its
+            # layout's listings / selects — declare for that kind and id, resolved against the
+            # server's catalogue (Java's SeededYamlPage as a RestSourceSupplier) — the only channel
+            # that injects ${secret.X} for such a page
+            declared = self._definition_source(rq)
+            if declared is not None:
+                if not declared.proxy and declared.url:
+                    from ..action_guard import MateuForbiddenException
+
+                    raise MateuForbiddenException(
+                        f"Forbidden: __restfetch__ {rq.parameters.get('_sourceKind')}/"
+                        f"{rq.parameters.get('_sourceId')} is not a proxied source"
+                    )
+                if sample_sources.enabled() and declared.sample is not None:
+                    method = (declared.method or "GET").strip().upper()
+                    json_obj = copy.deepcopy(declared.sample) if method in ("", "GET", "HEAD") else {}
+                    return UIIncrement(app_data={"_restfetch": json_obj})
+                try:
+                    json_obj = self._fetch_proxy(declared, _call_state(rq))
+                except ProxyError as e:
+                    return _restfetch_error(e.status, e.detail)
+                return UIIncrement(app_data={"_restfetch": json_obj})
         if cls is not None:
             kind = rq.parameters.get("_sourceKind")
             source_id = rq.parameters.get("_sourceId")
@@ -155,6 +178,13 @@ class ProxyHandlerMixin(MixinBase):
                 )
             elif source is not None:
                 state = _call_state(rq)
+                # A route's fixedParams win over the client's state and the action's parameters on
+                # this leg too (fixed > client state > …, as on the hydrating path): a pin enforced
+                # only when hydrating the view would be a suggestion to a proxied url (Java's
+                # RestProxyCalls.fetch).
+                match = self.routes.match(rq.route) if getattr(self, "routes", None) else None
+                if match is not None:
+                    state.update(match.entry.fixed_params or {})
                 if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
                     return self._for_each_selected_row(source, state)
                 try:
@@ -162,6 +192,23 @@ class ProxyHandlerMixin(MixinBase):
                 except ProxyError as e:
                     return _restfetch_error(e.status, e.detail)
         return UIIncrement(app_data={"_restfetch": json_obj})
+
+    def _definition_source(self, rq: RunActionRq):
+        """The resolved source the definition-only page declares for ``_sourceKind``/``_sourceId``
+        (an action of its ``actions:``, a listing's rows, a select's options), or None when the route
+        has no such page/source (or the caller is refused that action)."""
+        from ..translations import locale_of
+        from ..yaml_spec_loader import definition_sources, source_for
+
+        spec = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
+        if spec is None or spec.model_view:
+            return None
+        kind = rq.parameters.get("_sourceKind")
+        source_id = str(rq.parameters.get("_sourceId") or "")
+        if kind == "action" and source_id in spec.refused_actions:
+            return None
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else None
+        return source_for(definition_sources(spec, resolve), kind, source_id)
 
     def _for_each_selected_row(self, source, state: dict) -> UIIncrement:
         """Bulk (``forEachSelectedRow``): the loop runs HERE, once per selected listing row, each row
@@ -190,6 +237,22 @@ class ProxyHandlerMixin(MixinBase):
         # the rows are gone; the client reloads the listing (successRoute), so no body is needed
         return UIIncrement(app_data={"_restfetch": {}})
 
+    def _own_base_url(self) -> str | None:
+        """This server's origin: the configured ``self_base_url`` (add_mateu / MATEU_SELF_BASE_URL),
+        else the adapter's view of the local socket; None when neither is known."""
+        from .. import microfrontends as mfe
+        from ..request_context import current_request
+
+        resolver = getattr(self, "microfrontends", None)
+        settings = getattr(resolver, "settings", None)
+        configured = getattr(settings, "self_base_url", None) or mfe._sane_self_base_url(
+            os.environ.get("MATEU_SELF_BASE_URL")
+        )
+        if configured:
+            return configured
+        request = current_request()
+        return mfe._sane_self_base_url(getattr(request, "self_base_url", None))
+
     def _fetch_proxy(self, source, state: dict) -> Any:
         """Fetch a resolved source server-side (url/headers/body interpolated) and return its JSON
         (an empty body — a 204 — is an empty object). Raises :class:`ProxyError` on a non-2xx or a
@@ -199,6 +262,19 @@ class ProxyHandlerMixin(MixinBase):
         try:
             # values percent-encoded by position: client state cannot steer the server's request
             url = interpolate_url(source.url or "", lambda expr: self._value_of(expr, state))
+            if url.startswith("/") and not url.startswith("//"):
+                # a RELATIVE url is this app's own endpoint, as on the browser's direct leg:
+                # resolved against the configured self base url, else the local socket — never a
+                # request header (Java RestProxyCalls.absolute)
+                own = self._own_base_url()
+                if own is None:
+                    log.warning(
+                        "Proxy fetch of %r needs this server's base url: set"
+                        " add_mateu(self_base_url=...) / MATEU_SELF_BASE_URL",
+                        template,
+                    )
+                    raise ProxyError(0, "relative url without a self base url")
+                url = own + url
             if not url.lower().startswith(("http://", "https://")):
                 # urllib also opens file:// and ftp:// — a proxy source is an HTTP endpoint only.
                 log.warning("Proxy fetch refused: %r is not an http(s) url", template)

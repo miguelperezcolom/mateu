@@ -93,6 +93,10 @@ class FormFieldMetadata(Wire):
     #: Grid fields: the row field shown as an expandable detail, and whether a button opens it.
     detail_path: str | None = None
     use_button_for_detail: bool = False
+    #: The field's CSS classes (mirrors FormFieldDto.cssClasses).
+    css_classes: str | None = None
+    #: A listing filter the smart search bar shows first (MainFilter(); FormFieldDto.mainFilter).
+    main_filter: bool = False
 
 
 class PairRecord(Wire):
@@ -227,6 +231,38 @@ class CrudMetadata(Wire):
     #: Shown in place of the results until the first search has run (the Redwood
     #: smart-filter-search ``dashboard`` slot); None = none (mirrors CrudlDto.preSearch).
     pre_search: "list[Component] | None" = None
+    #: Grid presentation (mirror CrudlDto's members of the same names): zebra rows, vertical
+    #: column lines, cells that wrap instead of truncating, no outer / row borders, every row
+    #: shown (no inner scroll), headers the user can drag to reorder.
+    row_stripes: bool = False
+    column_borders: bool = False
+    wrap_cell_content: bool = False
+    no_border: bool = False
+    no_row_border: bool = False
+    all_rows_visible: bool = False
+    column_reordering_allowed: bool = False
+    #: The grid's own CSS (mirrors CrudlDto.gridStyle).
+    grid_style: str | None = None
+    #: The route a row opens, with ``${row.x}`` templates (``people/${row.id}``) — a listing
+    #: without a view model's way into a record (mirrors CrudlDto.rowRoute).
+    row_route: str | None = None
+    #: The fluent listing's grid options (mirror CrudlDto's members of the same names): the grid's
+    #: height in rows and its first page, the components above / below the rows, a button opening
+    #: the row detail, lazy column rendering, the cells' background and padding, infinite scrolling,
+    #: lazy loading, several rows selectable with an action on every change, a fixed content height.
+    size: int = 0
+    initial_page: int = 0
+    header: "list[Component] | None" = None
+    footer: "list[Component] | None" = None
+    use_button_for_detail: bool = False
+    lazy_column_rendering: bool = False
+    vaadin_grid_cell_background: str | None = None
+    vaadin_grid_cell_padding: str | None = None
+    infinite_scrolling: bool = False
+    lazy_loading: bool = False
+    multiple_row_selection_enabled: bool = False
+    on_row_selection_changed_action_id: str | None = None
+    content_height: str | None = None
 
 
 class ComponentEntryRecord(Wire):

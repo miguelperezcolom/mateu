@@ -32,12 +32,26 @@ def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
 
 
-def toolbar(arg=None, *, button_style: str | None = None):
+def toolbar(
+    arg=None,
+    *,
+    button_style: str | None = None,
+    button_color: str | None = None,
+    button_size: str | None = None,
+    order: int = 0,
+    separator_before: bool = False,
+):
     """A method exposed as a button on the page header's TOOLBAR (Java's ``@Toolbar``): labelled
     by the decorator's argument, else the humanized method name; styled ``button_style``
-    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default). Advertised
-    as an action like a ``@button``, with client and server validation. Supports ``@toolbar``,
-    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``."""
+    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default),
+    ``button_color`` (normal | success | error | contrast… None = the default colour) and
+    ``button_size`` (small | large… None = the default size), with ``separator_before`` drawing a
+    separator before it and ``order`` placing it among its siblings (ascending). Advertised as an
+    action like a ``@button``, with client and server validation. Supports ``@toolbar``,
+    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``.
+
+    Beside ``@list_toolbar_button`` it only DRESSES the bulk button (Java's ``@Toolbar`` next to
+    ``@ListToolbarButton``): the button stays on the listing toolbar."""
     if callable(arg) and not isinstance(arg, str):  # used bare: arg is the method
         setattr(arg, "__mateu_toolbar__", True)
         return arg
@@ -45,9 +59,23 @@ def toolbar(arg=None, *, button_style: str | None = None):
     def deco(fn):
         setattr(fn, "__mateu_toolbar__", arg or True)
         setattr(fn, "__mateu_toolbar_style__", button_style)
+        setattr(fn, "__mateu_toolbar_look__", ToolbarLook(
+            button_color=button_color, button_size=button_size, order=order,
+            separator_before=separator_before,
+        ))
         return fn
 
     return deco
+
+
+@dataclass(frozen=True)
+class ToolbarLook:
+    """The rest of a ``@toolbar``'s appearance besides its style (Java's ``@Toolbar``)."""
+
+    button_color: str | None = None
+    button_size: str | None = None
+    order: int = 0
+    separator_before: bool = False
 
 
 def action(arg=None):
@@ -175,7 +203,22 @@ def fab(icon: str, label: str | None = None, order: int = 0):
     return deco
 
 
-def action_options(timeout_millis: int = 0, idempotent: bool = False):
+def action_options(
+    timeout_millis: int = 0,
+    idempotent: bool = False,
+    *,
+    background: bool = False,
+    sse: bool = False,
+    href: str | None = None,
+    js: str | None = None,
+    custom_event: str | None = None,
+    custom_event_detail: str | None = None,
+    confirmation_title: str | None = None,
+    confirmation_message: str | None = None,
+    confirmation_text: str | None = None,
+    confirmation_denial_text: str | None = None,
+    confirmation_required: bool = False,
+):
     """Per-action transport knobs. Composes with ``@button``/``@toolbar``/``@fab`` on the same
     method — it says nothing about the UI, only how the CLIENT should call this action.
 
@@ -187,10 +230,30 @@ def action_options(timeout_millis: int = 0, idempotent: bool = False):
     retry it by itself after a transient network failure. Only for genuine reads or naturally
     idempotent writes — when a request times out the client does NOT know whether the server
     processed it, so marking a create idempotent risks a silent duplicate.
+
+    The keyword-only knobs are the rest of Java's ``@Action``: ``background`` (no busy veil / no
+    double-submit lock), ``sse`` (the client calls the streaming endpoint — needed when the action
+    returns a ``LongTask``), ``href`` (the button navigates there), ``js`` (client JavaScript, only
+    run when the page opts into RunJS), ``custom_event`` / ``custom_event_detail`` (a browser
+    custom event dispatched instead of a server call) and the ``confirmation_*`` texts of the
+    confirmation dialog, shown when ``confirmation_required`` (the client asks before sending).
     """
 
     def deco(fn):
         setattr(fn, "__mateu_action_options__", (timeout_millis, idempotent))
+        setattr(fn, "__mateu_action_extras__", {
+            "background": background,
+            "sse": sse,
+            "href": href,
+            "js": js,
+            "custom_event": custom_event,
+            "custom_event_detail": custom_event_detail,
+            "confirmation_title": confirmation_title,
+            "confirmation_message": confirmation_message,
+            "confirmation_text": confirmation_text,
+            "confirmation_denial_text": confirmation_denial_text,
+            "confirmation_required": confirmation_required,
+        })
         return fn
 
     return deco
@@ -239,6 +302,27 @@ def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_sele
         arg,
         "__mateu_list_toolbar_button__",
         lambda label: _ListToolbarButton(label, confirmation_required, rows_selected_required),
+    )
+
+
+@dataclass(frozen=True)
+class _ViewToolbarButton:
+    label: str | None
+    confirmation_required: bool
+
+
+def view_toolbar_button(arg=None, confirmation_required: bool = True):
+    """A toolbar button on a Crud's RECORD VIEW page (before Back to list / Edit) running the
+    decorated crud method on the record shown: a parameter receives the record rebuilt from the
+    page state. Returning None (or the record) re-renders the record page in place; returning only
+    messages shows them over the record RELOADED (``get``); anything else — a navigation, an
+    overlay — maps as a regular action result. Asks for confirmation by default. Supports
+    ``@view_toolbar_button``, ``@view_toolbar_button("Label")`` and keyword flags (mirrors Java's
+    @ViewToolbarButton)."""
+    return _maybe_bare(
+        arg,
+        "__mateu_view_toolbar_button__",
+        lambda label: _ViewToolbarButton(label, confirmation_required),
     )
 
 

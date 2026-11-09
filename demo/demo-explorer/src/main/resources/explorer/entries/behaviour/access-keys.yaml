@@ -1,0 +1,21 @@
+id: access-keys
+area: behaviour
+group: actions
+title: Access keys mode
+covers: [behaviour:access-keys]
+description: |
+  `@App(accessKeys = true)` gives a whole app keyboard access without declaring a single shortcut:
+  holding **Alt** shows a key badge next to every visible button and tab — its declared shortcut,
+  else a letter of its label assigned automatically (initials first, no repeats) — and Alt + that
+  letter presses it. Keys match by physical key, so it works on a Mac too.
+
+  Try it: click inside the framed app, hold **Alt** — badges appear on *Assign room*, *Print card*
+  and *Welcome*; press the letter shown on *Print card*.
+examples:
+  - title: A front desk with access keys
+    java: io.mateu.explorer.examples.behaviour.accesskeys.FrontDeskPreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/accesskeys/FrontDeskApp.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/accesskeys/CheckInPage.java}
+  - {label: "C#", path: src/main/ports/behaviour/access-keys/FrontDeskApp.cs}
+  - {label: Python, path: src/main/ports/behaviour/access-keys/front_desk_app.py}

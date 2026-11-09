@@ -100,7 +100,7 @@ internal static class YamlComponentBuilder
     /// <summary>
     /// Parse a page spec (a file under specs/ui): the declared ModelView class name (or null for a
     /// bare, unbound layout) plus the layout component. Envelope-aware — a `layout:` key holds the
-    /// tree and a `modelView:` key names the logic class the tooling binds it to.
+    /// tree and a `viewModel:` key names the logic class the tooling binds it to.
     /// </summary>
     public static (string? ModelView, IComponent? Layout) ParseSpec(
         string yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
@@ -111,7 +111,7 @@ internal static class YamlComponentBuilder
 
     /// <summary>
     /// Parse a page spec with its <c>layoutDelta:</c>: the ModelView class name (the canonical
-    /// <c>viewModel:</c> or the legacy <c>modelView:</c> key), the explicit layout (a SNAPSHOT —
+    /// <c>viewModel:</c> key), the explicit layout (a SNAPSHOT —
     /// null for a delta-only page) and the delta (empty when none; mirrors Java's
     /// YamlUidlLoader.deltaOf).
     /// </summary>
@@ -149,8 +149,7 @@ internal static class YamlComponentBuilder
         if (root is null) return (null, null, LayoutDelta.Empty);
         var registry = new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None);
         if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []), LayoutDelta.Empty);
-        var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString()
-            : map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
+        var modelView = map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
         var delta = DeltaOf(map);
         // A page that carries a `layoutDelta:` and no `layout:` has NO explicit layout on purpose —
         // that is the whole point of a delta: the view model's INFERRED layout renders and the delta
@@ -247,15 +246,20 @@ internal static class YamlComponentBuilder
                 Stereotype = Str(map, "stereotype") ?? "regular",
                 Required = Bool(map, "required"),
                 ReadOnly = Bool(map, "readOnly"),
+                // Java's YAML FormField: no slider bounds unless declared
+                SliderMin = int.TryParse(Str(map, "sliderMin"), out var sliderMin) ? sliderMin : 0,
+                SliderMax = int.TryParse(Str(map, "sliderMax"), out var sliderMax) ? sliderMax : 0,
+                OptionsColumns = int.TryParse(Str(map, "optionsColumns"), out var optionsColumns) ? optionsColumns : 0,
                 Options = map.TryGetValue("options", out var o) && o is IEnumerable<object> options
                     ? options.OfType<IDictionary<object, object>>()
                         .Select(opt => new Option(Str(opt, "value") ?? "", Str(opt, "label") ?? Str(opt, "value") ?? ""))
                         .ToList()
                     : [],
+                OptionsSource = SourceOf(map, "optionsSource"),
                 Style = Str(map, "style"),
                 CssClasses = Str(map, "cssClasses"),
             },
-            "Button" => new Button(Str(map, "label") ?? "", Str(map, "actionId") ?? "")
+            "Button" => new Button(Str(map, "label") ?? "", ActionIdOf(map))
             {
                 Primary = Str(map, "buttonStyle") == "primary",
                 Disabled = Bool(map, "disabled"),
@@ -270,6 +274,20 @@ internal static class YamlComponentBuilder
             "Form" => BuildForm(map, partials, chain),
             // A reference to a named business component (components.yaml / [BusinessComponent]).
             "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
+            // a panel whose author said neither open: nor autoOpen: did not decide — the renderer opens
+            // it while it fits (Java's YamlUidlMapperFactory default: autoOpen true, open false)
+            // a YAML panel's spans are unset (0) unless declared, as in Java's record
+            "DashboardPanel" when !map.ContainsKey("colSpan") || !map.ContainsKey("rowSpan") =>
+                Generic("DashboardPanel", new Dictionary<object, object>(map)
+                {
+                    ["colSpan"] = map.TryGetValue("colSpan", out var cs) ? cs : 0,
+                    ["rowSpan"] = map.TryGetValue("rowSpan", out var rs) ? rs : 0,
+                }, partials, chain) ?? new Text("Unsupported component: DashboardPanel"),
+            "FoldoutPanel" when !map.ContainsKey("open") && !map.ContainsKey("autoOpen") =>
+                Generic("FoldoutPanel", new Dictionary<object, object>(map) { ["autoOpen"] = true, ["open"] = false }, partials, chain)
+                ?? new Text("Unsupported component: FoldoutPanel"),
+            // the wire type Directory is the C# DirectoryMenu (System.IO.Directory is in every implicit using)
+            "Directory" => Generic(nameof(DirectoryMenu), map, partials, chain),
             var other => Generic(other, map, partials, chain) ?? new Text($"Unsupported component: {other}"),
         };
     }
@@ -378,6 +396,7 @@ internal static class YamlComponentBuilder
         Subtitle = Str(map, "subtitle"),
         NoHeader = Bool(map, "noHeader"),
         Content = Children(map, partials, chain),
+        Template = TemplateOf(map, partials, chain),
         Toolbar = Maps(map, "toolbar").Select(FormButton).ToList(),
         Buttons = Maps(map, "buttons").Select(FormButton).ToList(),
         Overline = Str(map, "overline"),
@@ -419,12 +438,61 @@ internal static class YamlComponentBuilder
     };
 
     private static Button FormButton(IDictionary<object, object> b) =>
-        new(Str(b, "label") ?? "", Str(b, "actionId") ?? "")
+        new(Str(b, "label") ?? "", ActionIdOf(b))
         {
             ButtonStyle = Str(b, "buttonStyle"),
             Disabled = Bool(b, "disabled"),
             Route = RouteLinkOf(b),
         };
+
+    // ── page templates ─────────────────────────────────────────────────────────────────────
+
+    private static readonly Lazy<Dictionary<string, Type>> TemplateTypes = new(() =>
+        typeof(IFormTemplate).Assembly.GetTypes()
+            .Where(t => !t.IsAbstract && typeof(IFormTemplate).IsAssignableFrom(t))
+            .ToDictionary(t => t.Name));
+
+    /// <summary>The <c>template:</c> of a <c>type: Form</c>: the page template it fills, read off the
+    /// template record named by its <c>type:</c> (the YAML type IS the record's name, as in Java's
+    /// schema); its slots are component lists. An unknown type leaves a free page, and says so.</summary>
+    private static IFormTemplate? TemplateOf(IDictionary<object, object> form, Ctx partials, List<string> chain)
+    {
+        if (!form.TryGetValue("template", out var raw) || raw is not IDictionary<object, object> template) return null;
+        var kind = Str(template, "type");
+        if (kind is null || !TemplateTypes.Value.TryGetValue(kind, out var type))
+        {
+            MateuLogging.For("Mateu.Yaml").LogWarning(
+                "Unknown page template '{Template}' ignored — the page renders as a free page (known: {Known})",
+                kind, string.Join(", ", TemplateTypes.Value.Keys.Order()));
+            return null;
+        }
+        return ObjectOf(type, template, partials, chain) as IFormTemplate;
+    }
+
+    /// <summary>The action a YAML button dispatches: its <c>actionId</c>, else derived from its label
+    /// ("Save draft" → <c>saveDraft</c>, Java's Button.resolvedActionId).</summary>
+    private static string ActionIdOf(IDictionary<object, object> button) =>
+        Str(button, "actionId") is { Length: > 0 } declared ? declared : Camelcasize(Str(button, "label"));
+
+    /// <summary>Java's Button.camelcasize: words split at case changes and non-letters, lower-cased,
+    /// joined in camelCase.</summary>
+    internal static string Camelcasize(string? label)
+    {
+        if (string.IsNullOrEmpty(label)) return "";
+        var s = label.Replace('.', ' ');
+        var c = System.Text.RegularExpressions.Regex.Replace(s,
+            "(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", " ").ToLowerInvariant();
+        c = System.Text.RegularExpressions.Regex.Replace(c, "[ ]+", " ");
+        if (c.Length <= 1) return c;
+        var sb = new System.Text.StringBuilder();
+        var pos = 0;
+        foreach (var z in c.Split(' '))
+        {
+            if (pos++ > 0 && z.Length > 0) sb.Append(char.ToUpperInvariant(z[0])).Append(z[1..]);
+            else sb.Append(z);
+        }
+        return sb.ToString();
+    }
 
     /// <summary>The route of a button whose <c>actionable:</c> is a <c>RouteLink</c> (Java's
     /// ButtonMapper.routeOf): the button navigates instead of running an action. Null otherwise.</summary>
@@ -462,6 +530,39 @@ internal static class YamlComponentBuilder
         }).ToList(),
         Filters = Maps(map, "filters").Select(f => Build(f, partials, chain)).OfType<FormField>().ToList(),
         RowsSource = SourceOf(map, "rowsSource"),
+        RowRoute = Str(map, "rowRoute") is { } rowRoute && !string.IsNullOrWhiteSpace(rowRoute) ? rowRoute.Trim() : null,
+        RowStripes = Bool(map, "rowStripes"),
+        ColumnBorders = Bool(map, "columnBorders"),
+        WrapCellContent = Bool(map, "wrapCellContent"),
+        AllRowsVisible = Bool(map, "allRowsVisible"),
+        NoBorder = Bool(map, "noBorder"),
+        NoRowBorder = Bool(map, "noRowBorder"),
+        ColumnReorderingAllowed = Bool(map, "columnReorderingAllowed"),
+        InfiniteScrolling = Bool(map, "infiniteScrolling"),
+        LazyLoading = Bool(map, "lazyLoading"),
+        MultipleRowSelectionEnabled = Bool(map, "multipleRowSelectionEnabled"),
+        OnRowSelectionChangedActionId = Str(map, "onRowSelectionChangedActionId"),
+        GridStyle = Str(map, "gridStyle"),
+        ContentHeight = Str(map, "contentHeight"),
+        ListingType = Str(map, "listingType"),
+        Size = int.TryParse(Str(map, "size"), out var rows) ? rows : 0,
+        InitialPage = int.TryParse(Str(map, "initialPage"), out var first) ? first : 0,
+        Header = Maps(map, "header").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        Footer = Maps(map, "footer").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        PreSearch = Maps(map, "preSearch").Select(c => Build(c, partials, chain)).OfType<IComponent>().ToList(),
+        DetailPath = Str(map, "detailPath"),
+        UseButtonForDetail = Bool(map, "useButtonForDetail"),
+        LazyColumnRendering = Bool(map, "lazyColumnRendering"),
+        VaadinGridCellBackground = Str(map, "vaadinGridCellBackground"),
+        VaadinGridCellPadding = Str(map, "vaadinGridCellPadding"),
+        // Java's fluent Listing: both default on when the YAML says nothing
+        SearchOnEnter = Bool(map, "searchOnEnter", true),
+        AutoFocusOnSearchText = Bool(map, "autoFocusOnSearchText", true),
+        FiltersLayout = Str(map, "filtersLayout"),
+        GroupBy = Str(map, "groupBy"),
+        RowStatusField = Str(map, "rowStatusField"),
+        DragType = Str(map, "dragType"),
+        RowsSelectionEnabled = Bool(map, "rowsSelectionEnabled"),
     };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>
@@ -497,6 +598,11 @@ internal static class YamlComponentBuilder
                 Ref = Str(m, "ref")?.Trim() ?? "",
                 Url = Str(m, "url"),
                 Method = Str(m, "method"),
+                // the server's copy keeps them (a proxied call injects ${secret.X} into them); a
+                // proxied source's headers never travel (RestDataSourceDto's wire members)
+                Headers = m.TryGetValue("headers", out var h) && h is IDictionary<object, object> hm
+                    ? hm.ToDictionary(kv => kv.Key.ToString()!, kv => kv.Value?.ToString() ?? "")
+                    : null,
                 Body = Str(m, "body"),
                 ItemsPath = Str(m, "itemsPath"),
                 ValuePath = Str(m, "valuePath"),

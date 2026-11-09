@@ -7,6 +7,7 @@ from dataclasses import (
     field as dataclass_field,
 )
 from datetime import date
+from enum import Enum
 from typing import (
     Generic,
     Iterable,
@@ -34,6 +35,32 @@ class Pageable:
     sort: tuple[SortSpec, ...] = ()
 
 
+class FilterOperator(Enum):
+    """The condition of a :class:`FilterCriterion` (mirrors ``io.mateu.uidl.data.FilterOperator``)."""
+
+    #: value within [values[0], values[1]], both inclusive
+    between = "between"
+    #: value ≥ values[0]
+    gte = "gte"
+    #: value ≤ values[0]
+    lte = "lte"
+    #: value equal to any of the values
+    in_ = "in"
+
+
+@dataclass(frozen=True)
+class FilterCriterion:
+    """A crud search condition the plain filter values cannot hold — a date/number RANGE or a
+    multi-select IN — with its values already converted to the field's type (dates, numbers, enum
+    members). ``field`` is the entity attribute name. What a criteria-aware :meth:`Crud.find`
+    receives to push ranges and IN lists down to the database (mirrors
+    ``io.mateu.uidl.data.FilterCriterion``)."""
+
+    field: str
+    operator: FilterOperator
+    values: tuple = ()
+
+
 @dataclass(frozen=True)
 class PageResult:
     """One page of results plus the total count — what a database-backed ``Crud.find`` returns
@@ -52,13 +79,21 @@ class Crud(Generic[T]):
     def fetch(self, search: str | None) -> Iterable[T]:
         raise NotImplementedError
 
-    def find(self, search_text: str | None, filters: dict, pageable: Pageable) -> PageResult | None:
+    def find(
+        self, search_text: str | None, filters: dict, pageable: Pageable, criteria: tuple = ()
+    ) -> PageResult | None:
         """Database pushdown: override to run the search+filter+sort+paginate as ONE query
         (count + page inside) and return the page with its real total — the framework then skips
-        its in-memory pipeline entirely. Filters arrive as the raw component state (camelCase
-        keys; range bounds as ``<field>_from``/``<field>_to``, multi-selects as value lists).
-        Default ``None`` = keep the in-memory ``fetch`` pipeline. The Python analogue of Java's
-        ``CrudRepository.find``."""
+        its in-memory pipeline entirely. Default ``None`` = keep the in-memory ``fetch`` pipeline.
+        The Python analogue of Java's ``CrudStore.find``.
+
+        An override that declares the ``criteria`` parameter receives the range and multi-select
+        conditions TYPED, as :class:`FilterCriterion` entries (``between``/``gte``/``lte`` for date
+        and ``RangeFilter`` number ranges, ``in`` for enum multi-selects, values converted to the
+        field's type), and ``filters`` WITHOUT the keys those criteria came from — the plain
+        equality values only (Java's ``FilterCriteriaBuilder``). An override with the older
+        three-parameter signature keeps receiving the raw component state (camelCase keys; range
+        bounds as ``<field>_from``/``<field>_to``, multi-selects as value lists)."""
         return None
 
     def get(self, id: str) -> T | None:
@@ -374,4 +409,22 @@ class Deletable(Generic[I]):
     Delete button — deleting calls :meth:`delete_all_by_id` with the selected ids."""
 
     def delete_all_by_id(self, selected_ids: list, http=None) -> None:
+        raise NotImplementedError
+
+
+class Restorable(Generic[I]):
+    """Interaction capability (EXPERIMENTAL, W-V-DELETE-FEEDBACK): a deletable listing (a
+    :class:`Crud`, a capability listing) that can bring deleted records back. Declaring it makes
+    the delete UNDOABLE: Delete asks for no confirmation, deletes and answers a toast ("2 records
+    deleted") with Undo, which calls :meth:`restore_all_by_id` with the same ids and refreshes the
+    listing. Without it Delete keeps asking first. How records come back is the app's (a soft
+    delete, a trash table…); restore must accept ids it no longer holds. (Java's
+    ``io.mateu.uidl.interfaces.Restorable``, .NET's ``IRestorable<TId>``.)"""
+
+    #: the reserved action an Undo of a delete runs
+    RESTORE_ACTION = "restore-deleted"
+    #: the action parameter carrying the ids to restore
+    RESTORE_IDS = "_restoreIds"
+
+    def restore_all_by_id(self, deleted_ids: list, http=None) -> None:
         raise NotImplementedError

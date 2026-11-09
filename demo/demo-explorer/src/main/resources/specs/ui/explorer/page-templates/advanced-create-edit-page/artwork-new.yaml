@@ -1,0 +1,47 @@
+# AdvancedCreateEditPage: the form's content is the `main` slot (the sections, with the anchor
+# navigator); the `detail` slot is contextual data beside the form. The header is the form's toolbar:
+# a cancel and the primary action — `save` runs NewArtwork.save() (the route's view model).
+type: Form
+title: New artwork
+subtitle: Register a work in the collection
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: x/page-templates/item-overview-page}}
+  - {type: Button, actionId: save, label: Save, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+  detail:
+    - {type: Text, container: h4, text: Before you save}
+    - {type: Text, text: "Check the accession register for duplicates and attach the condition report.", size: s}
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: The work}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: title, label: Title, required: true}
+        - {type: FormField, id: artist, label: Artist, required: true}
+        - {type: FormField, id: year, label: Year, dataType: integer}
+        - type: FormField
+          id: classification
+          label: Classification
+          stereotype: select
+          options:
+            - {value: Painting, label: Painting}
+            - {value: Print, label: Print}
+            - {value: Sculpture, label: Sculpture}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Object}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: medium, label: Medium}
+        - {type: FormField, id: dimensions, label: Dimensions}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Acquisition}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: creditLine, label: Credit line}

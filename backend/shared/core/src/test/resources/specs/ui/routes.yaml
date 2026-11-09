@@ -30,7 +30,7 @@ routes:
   # A route with NO view model: a definition plus client-side data. This is what a fully static
   # deployment looks like — there is no server to ask.
   - route: about
-    definition: about.yaml
+    layout: about.yaml
 
   # Vocabulary (coherence-plan #5): `layout:` is the CANONICAL key for the layout file — the same as
   # the deprecated alias `definition:`. Both bind the RouteEntry's definition.
@@ -39,9 +39,9 @@ routes:
 
   # A definition-only page that declares its own actions: the write half of the DSL.
   - route: yaml-guarded
-    definition: yaml-guarded.yaml
+    layout: yaml-guarded.yaml
   - route: yaml-write
-    definition: yaml-write.yaml
+    layout: yaml-write.yaml
     state:
       name: Leia
   # A definition-only RECORD page: read-only fields whose values arrive raw (249, AVAILABLE).
@@ -54,11 +54,11 @@ routes:
 
   # A definition-only Listing whose Delete acts on the SELECTED rows (bulk restAction).
   - route: bulk-list
-    definition: bulk-list.yaml
+    layout: bulk-list.yaml
 
   # A definition-only page that declares its own triggers: the flow-effect half of the DSL.
   - route: yaml-triggers
-    definition: yaml-triggers.yaml
+    layout: yaml-triggers.yaml
 
   # A parameterised route, and a static sibling that must not be swallowed by it.
   - route: orders/:id
@@ -87,17 +87,17 @@ routes:
   # The definition names no modelView: it is layout only, and the binding lives in the entry. This
   # is what the specs/ui/<route>.yaml convention cannot express — there, layout follows the URL.
   - route: catalog/books
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Books
 
   - route: catalog/films
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Films
 
   # A route that SEEDS the app state on entry (merged under the client's persisted @AppContext),
   # and SOURCES its component data from a named source by ref (reuses the @RestData load path).
   - route: seeded-yaml-detail   # definition-only (no viewModel) route that SEEDS state + a data source
-    definition: seeded-yaml-detail.yaml
+    layout: seeded-yaml-detail.yaml
     data: reportData
     state:
       tab: summary
@@ -116,31 +116,31 @@ routes:
 
   # A definition-only page whose action runs a declared client FLOW (steps).
   - route: yaml-flow
-    definition: yaml-flow.yaml
+    layout: yaml-flow.yaml
 
   # Bare-layout definition with a Card — Phase 6 expander golden source.
   - route: card-def
-    definition: card.yaml
+    layout: card.yaml
 
   # Simple read-only listing (no viewModel) — Phase 6 expander golden source.
   - route: read-listing
-    definition: read-listing.yaml
+    layout: read-listing.yaml
   - route: read-listing-filters
-    definition: read-listing-filters.yaml
+    layout: read-listing-filters.yaml
 
   # The component shapes of the IDE page templates — Phase 6 expander golden sources
   # (TemplateComponentsDefinitionSyncTest).
   - route: template-scoreboard
-    definition: template-scoreboard.yaml
+    layout: template-scoreboard.yaml
 
   - route: template-tabs
-    definition: template-tabs.yaml
+    layout: template-tabs.yaml
 
   - route: template-foldout
-    definition: template-foldout.yaml
+    layout: template-foldout.yaml
 
   - route: template-card-title
-    definition: template-card-title.yaml
+    layout: template-card-title.yaml
 
   # Every display component on one definition-only page (YamlDisplayGallerySyncTest + the
   # expander golden, expandDisplayGallery.test.ts).
@@ -148,18 +148,18 @@ routes:
     layout: display-gallery.yaml
 
   - route: template-form-header
-    definition: template-form-header.yaml
+    layout: template-form-header.yaml
 
   # A collection detail page with one record open (a route that seeds state, like `data:`): it is
   # the template's kind of page — collection — not a form. Used by YamlPageTypeSyncTest.
   - route: page-type-template/:id
-    definition: page-type-template.yaml
+    layout: page-type-template.yaml
     state:
       name: Mars
 
   # A listing page whose route seeds state: served wrapped, it is a collection, not a form.
   # Used by YamlPageTypeSyncTest.
   - route: page-type-listing
-    definition: page-type-listing.yaml
+    layout: page-type-listing.yaml
     state:
       status: open

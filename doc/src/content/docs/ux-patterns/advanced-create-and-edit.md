@@ -273,3 +273,5 @@ in the repository):
   action — the other is a plain button;
 - the page is composed from Spectra pieces rather than wrapped in the `oj-sp-advanced-create-edit`
   container — a decision, not a pending item (see above).
+
+**See it live in the Explorer:** [Advanced create / edit page](https://explorer.mateu.io/page-templates/templates/advanced-create-edit-page)

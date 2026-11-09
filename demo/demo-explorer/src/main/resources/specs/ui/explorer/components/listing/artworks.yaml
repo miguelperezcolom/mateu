@@ -1,0 +1,18 @@
+# A Listing as DATA: a searchable, filterable, paged table over a REST endpoint — with no Java
+# view model at all. The rows come from `rowsSource` (fetched in the browser); without a
+# `totalPath` the listing searches, filters, sorts and pages them itself.
+content:
+  - type: Listing
+    title: Artworks
+    style: "width: 100%;"
+    searchable: true
+    pageSize: 5
+    filters:
+      - {type: FormField, id: artist, label: Artist}
+    rowsSource:
+      url: /explorer-api/listing-artworks
+    columns:
+      - {type: GridColumn, id: title, label: Title, identifier: true, sortable: true}
+      - {type: GridColumn, id: artist, label: Artist, sortable: true}
+      - {type: GridColumn, id: year, label: Year, sortable: true, align: end}
+      - {type: GridColumn, id: status, label: Status, dataType: status, tones: {"On display": success, "On loan": info, "In conservation": warning}}

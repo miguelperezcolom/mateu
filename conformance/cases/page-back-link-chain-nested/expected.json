@@ -1,0 +1,182 @@
+{
+  "commands" : [ {
+    "data" : "Back link chain delivery tab",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "note",
+                        "label" : "Note",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "content" : {
+                          "children" : [ {
+                            "cssClasses" : "mateu-section",
+                            "metadata" : {
+                              "content" : {
+                                "children" : [ {
+                                  "children" : [ {
+                                    "children" : [ {
+                                      "children" : [ {
+                                        "metadata" : {
+                                          "colspan" : 1,
+                                          "dataType" : "string",
+                                          "fieldId" : "shipping-city",
+                                          "label" : "City",
+                                          "optionsColumns" : 1,
+                                          "sliderMax" : 100,
+                                          "stereotype" : "regular",
+                                          "type" : "FormField"
+                                        },
+                                        "type" : "ClientSide"
+                                      } ],
+                                      "metadata" : {
+                                        "type" : "FormRow"
+                                      },
+                                      "type" : "ClientSide"
+                                    }, {
+                                      "children" : [ {
+                                        "metadata" : {
+                                          "colspan" : 1,
+                                          "dataType" : "integer",
+                                          "fieldId" : "shipping-days",
+                                          "label" : "Days",
+                                          "optionsColumns" : 1,
+                                          "sliderMax" : 100,
+                                          "stepButtonsVisible" : true,
+                                          "stereotype" : "regular",
+                                          "type" : "FormField"
+                                        },
+                                        "type" : "ClientSide"
+                                      } ],
+                                      "metadata" : {
+                                        "type" : "FormRow"
+                                      },
+                                      "type" : "ClientSide"
+                                    } ],
+                                    "metadata" : {
+                                      "autoResponsive" : true,
+                                      "expandColumns" : true,
+                                      "maxColumns" : 1,
+                                      "type" : "FormLayout"
+                                    },
+                                    "type" : "ClientSide"
+                                  } ],
+                                  "metadata" : {
+                                    "type" : "VerticalLayout"
+                                  },
+                                  "style" : "width: 100%;",
+                                  "type" : "ClientSide"
+                                } ],
+                                "metadata" : {
+                                  "type" : "Div"
+                                },
+                                "style" : "flex: 1; min-width: 0; width:100%;",
+                                "type" : "ClientSide"
+                              },
+                              "type" : "Card",
+                              "variants" : [ "outlined" ]
+                            },
+                            "type" : "ClientSide"
+                          } ],
+                          "metadata" : {
+                            "level" : 1,
+                            "noBreadcrumbs" : true,
+                            "title" : "Shipping",
+                            "type" : "Page"
+                          },
+                          "type" : "ClientSide"
+                        },
+                        "type" : "Card",
+                        "variants" : [ "outlined" ]
+                      },
+                      "style" : "width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "noBreadcrumbs" : true,
+          "pageTitle" : "Back link chain delivery tab",
+          "pageType" : "form",
+          "title" : "Back link chain delivery tab",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "note" : "delivery",
+        "shipping" : {
+          "city" : "Palma",
+          "days" : 3
+        }
+      },
+      "pageType" : "form",
+      "route" : "/conformance/bl-chain/7",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "note" : "delivery",
+      "shipping" : {
+        "city" : "Palma",
+        "days" : 3
+      },
+      "shipping-city" : "Palma",
+      "shipping-days" : 3
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

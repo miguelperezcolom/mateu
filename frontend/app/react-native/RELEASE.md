@@ -57,6 +57,29 @@ When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g.
 its environment so the hub knows which release the binary carries; without it the app compares only
 wire versions.
 
+## 0d. Pending store build: 1.0.1 (200003) — `expo-notifications`
+
+The OS-level notifications of an app that declares `@App(osNotifications = true)`
+(design/progress-and-notifications.md, "OS-level notifications") added a NATIVE module,
+`expo-notifications` — LOCAL notifications only: no push service, no push token, nothing new leaves
+the device. So this release needs a **new store build** (§1, §2 — the owner builds and submits):
+
+- `expo.version` **1.0.1** (a new runtime: the OTA job must not send this JavaScript to 1.0.0
+  binaries; the code also tolerates a missing module and simply posts nothing there).
+- `android.versionCode` **200003** / `ios.buildNumber` **"200003"** in `app.json` (local and GitHub
+  builds); EAS keeps its own remote counter (`appVersionSource: remote`) — if it is behind, set it
+  with `npx eas-cli build:version:set` before building.
+- New permission: Android 13+ **`POST_NOTIFICATIONS`** (asked at runtime, only when the user taps
+  "Notify me on this device" in the inbox or the task sheet). iOS asks for alert permission the
+  same way; no Info.plist usage string is needed for local notifications. Plugin `expo-notifications`
+  in `app.json` (monochrome icon, default channel `mateu`); `plugins/with-local-notifications-only`
+  drops the iOS push entitlement (`aps-environment`) that plugin adds — no Push capability needed.
+  Checked with `npx expo prebuild --no-install`: the manifest carries POST_NOTIFICATIONS,
+  versionCode 200003 / 1.0.1, Info.plist CFBundleVersion 200003.
+- Store answers: Play Data safety and Apple privacy are unchanged (nothing is collected); in Play's
+  permissions declaration, `POST_NOTIFICATIONS` = notifications the user turned on for the apps they
+  opened.
+
 ## 1. Build
 
 ```bash

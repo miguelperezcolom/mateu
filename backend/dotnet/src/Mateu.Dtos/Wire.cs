@@ -110,7 +110,8 @@ public record CustomEventDto(string EventName, object? Detail);
 
 public record MessageDto(
     string Variant,
-    string Position,
+    // only a hint; null when the message declares none (Java's MessageDto.position)
+    string? Position,
     string Title,
     string Text,
     int Duration,
@@ -282,13 +283,46 @@ public record ActionDto(
     /// action (mirrors io.mateu.dtos.ActionDto.commands).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<UICommandDto>? Commands { get; init; }
+
+    /// <summary>Runs without the busy veil (mirrors io.mateu.dtos.ActionDto.background).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Background { get; init; }
+
+    /// <summary>The confirmation dialog's texts (mirrors io.mateu.dtos.ActionDto.confirmationTexts).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ConfirmationTextsDto? ConfirmationTexts { get; init; }
+
+    /// <summary>A URL the client goes to instead of calling the server (mirrors ActionDto.href).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Href { get; init; }
+
+    /// <summary>A script the client runs instead of calling the server (mirrors ActionDto.js).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Js { get; init; }
+
+    /// <summary>A DOM event the client dispatches instead of calling the server (mirrors ActionDto.customEvent).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CustomEventDto? CustomEvent { get; init; }
 }
+
+/// <summary>Mirrors io.mateu.dtos.ConfirmationTextsDto.</summary>
+public record ConfirmationTextsDto(string? Title, string? Message, string? ConfirmationText, string? DenialText);
 
 /// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
 /// (mirrors io.mateu.dtos.RestActionDto): the renderer fetches <c>Source</c> directly, shows
 /// <c>SuccessMessage</c> as a toast on a 2xx response and — when <c>ResultPath</c> is set — merges
 /// the object at that path in the JSON response into the form state.</summary>
-public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath);
+public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath)
+{
+    /// <summary>Where the client navigates after a successful call — a TEMPLATE (<c>people/${state.id}</c>)
+    /// resolved after the response merges into the state (mirrors io.mateu.dtos.RestActionDto.successRoute).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SuccessRoute { get; init; }
+
+    /// <summary>The call runs once per selected listing row (mirrors RestActionDto.forEachSelectedRow).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool ForEachSelectedRow { get; init; }
+}
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received (mirrors
 /// io.mateu.dtos.OnCustomEventTriggerDto). The event travels as <c>eventName</c>, the member every

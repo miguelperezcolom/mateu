@@ -110,6 +110,29 @@ export class InboxStore {
   private session: InboxItem[] = [];
   private dismissed = new Set<string>();
   private listeners = new Set<(change?: InboxChange) => void>();
+  private newListeners = new Set<(item: InboxItem) => void>();
+
+  /** Whether an id is already an entry here (server list or session). */
+  private knows(id: string): boolean {
+    return this.server.some((s) => s.id === id) || this.session.some((s) => s.id === id);
+  }
+
+  /** Hears every entry that arrives NEW and unread (an inbox Message, a push) — the OS notification. */
+  subscribeNew(listener: (item: InboxItem) => void): () => void {
+    this.newListeners.add(listener);
+    return () => this.newListeners.delete(listener);
+  }
+
+  private announceNew(item: InboxItem, known: boolean): void {
+    if (known || !item.unread || item.resolved) return;
+    for (const l of this.newListeners) {
+      try {
+        l(item);
+      } catch {
+        // a broken listener does not stop the others
+      }
+    }
+  }
 
   /** The list the server answered (it is the truth for what it holds). */
   setServer(items: InboxItem[]): void {
@@ -122,9 +145,11 @@ export class InboxStore {
 
   /** An entry only this session knows (an inbox Message, a pushed entry). Same id = replaces. */
   addSession(item: InboxItem): void {
+    const known = this.knows(item.id);
     this.dismissed.delete(item.id);
     this.session = [...this.session.filter((s) => s.id !== item.id), item];
     this.emit();
+    this.announceNew(item, known);
   }
 
   /** Applies a pushed change; answers it (a `refetch` asks the bell to fetch the list again). */
@@ -135,9 +160,11 @@ export class InboxStore {
         this.server = this.server.map((s, i) => (i === onServer ? change.item : s));
         this.emit(change);
       } else {
+        const known = this.knows(change.item.id);
         this.dismissed.delete(change.item.id);
         this.session = [...this.session.filter((s) => s.id !== change.item.id), change.item];
         this.emit(change);
+        this.announceNew(change.item, known);
       }
     } else if (change.kind === 'remove') {
       this.server = this.server.filter((s) => s.id !== change.id);

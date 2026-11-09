@@ -1,0 +1,244 @@
+{
+  "commands" : [ {
+    "data" : "Section options",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "cssClasses" : "mateu-section mateu-section--sticky",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Guests",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "lead",
+                          "label" : "Lead",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      }, {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "second",
+                          "label" : "Second",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "third",
+                          "label" : "Third",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      }, {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "fourth",
+                          "label" : "Fourth",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 2,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;",
+            "type" : "ClientSide"
+          }, {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Notes",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "first",
+                          "label" : "First",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "other",
+                          "label" : "Other",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "more",
+                          "label" : "More",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "last",
+                          "label" : "Last",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 1,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "gap: 0;",
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;",
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "spacing" : true,
+            "type" : "VerticalLayout"
+          },
+          "style" : "width: 100%;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Section options form",
+          "pageType" : "form",
+          "title" : "Section options",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

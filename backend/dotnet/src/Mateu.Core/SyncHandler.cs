@@ -79,11 +79,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         }
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
+        // the inbox messages of the answer are kept for the caller (IInboxStore)
+        increment = StoreInbox(increment, Principal?.Invoke());
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
-        return pending.Value
+        // — and an EMBEDDED micro frontend's answer never names the window (EmbeddedWindowCommands)
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? await ResolveMicroFrontendsAsync(increment, cancellationToken).ConfigureAwait(false)
-            : increment;
+            : increment, rq);
     }
 
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
@@ -98,14 +101,19 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
         var pending = MicroFrontends.MicroFrontendPending.Begin();
-        var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
-        return pending.Value
+        var increment = StoreInbox(WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl)), Principal?.Invoke());
+        return EmbeddedWindowCommands.Strip(pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
-            : increment;
+            : increment, rq);
     }
 
-    private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>
-        StampFragmentCache(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), LoadActionNormalised(rq));
+    private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl)
+    {
+        // the request route + the deployment's flags, for the routed tabs deep in the mapping
+        using var routed = RoutedTabs.Begin(rq.Route, registry.FeatureFlags, _routes, registry);
+        return StampFragmentCache(WithBackLinkBreadcrumbs(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), rq),
+            LoadActionNormalised(rq));
+    }
 
     private UIIncrementDto HandleCore(RunActionRqDto rq, string? requestBaseUrl)
     {
@@ -119,6 +127,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 0a. The user cancels a running task (the renderer's Cancel on a LongTask): no instance
         // to resolve, and only the caller's own task can be stopped (mirrors Java's ProgressTasks).
         if (rq.ActionId == ProgressTasks.CancelAction) return CancelTask(rq);
+        // 0a'. A reloaded client asks which of its tasks still run (or just ended); over the sync
+        // endpoint a resume answers the same snapshot for its one task (the stream is the SSE leg's)
+        if (rq.ActionId == ProgressTasks.TasksAction) return TasksSnapshot(rq);
+        if (rq.ActionId == ProgressTasks.ResumeAction)
+            return ProgressTasks.Snapshot([StateString(GetState(rq.Parameters, "taskId")) ?? ""], Owner());
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -186,6 +199,30 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
+        // 0f'. A load naming no type (a fresh deep link, a reload) of a TAB of a record master that
+        // is not on screen yet: the master renders it in its slot (Java's
+        // RouteChains.pendingAppAncestor).
+        if (string.IsNullOrEmpty(rq.ActionId) && string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.PendingAppAncestor(_routes, registry, rq.Route, rq.ConsumedRoute) is { } pendingMaster
+            && pendingMaster.GetCustomAttribute<AppAttribute>() is { } pendingApp)
+        {
+            ActionGuard.EnsureViewVisible(pendingMaster);
+            return RenderApp(pendingMaster, pendingApp.Title, rq, requestBaseUrl);
+        }
+
+        // 0f. Routed tabs: an APP the client names by type that the AUTHORED route table binds under
+        // the request route (a record master, a deep link to one of its tabs) renders ITSELF — its
+        // tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's
+        // mount, the app not on screen yet).
+        if (string.IsNullOrEmpty(rq.ActionId) && !string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is not null
+            && registry.TypeByName(rq.ServerSideType) is { } master
+            && master.GetCustomAttribute<AppAttribute>() is { } masterApp)
+        {
+            ActionGuard.EnsureViewVisible(master);
+            return RenderApp(master, masterApp.Title, rq, requestBaseUrl);
+        }
+
         // 1. App shell at the root route. NOT for the shell's content slot loading the home of an
         // app that declares none ("_no_home_route" / "_page"): Java renders the app class as a plain
         // page there (ActionInstanceCreator.isTerminalRoute) — answering the shell again nested it
@@ -210,6 +247,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (ResolveCapability(rq) is { } cap)
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
 
+        // 2a'. An editable view (EditableView / AutoEditableView: view ⇄ /edit) or a master-detail
+        // view (button bar of detail parts) — Java's MultiView orchestrators of the same names.
+        if (ResolveOrchestratedView(rq) is { } orchestrated)
+            return HandleOrchestratedView(orchestrated.Type, orchestrated.BaseRoute, rq);
+
         // The AUTHORED registry answers before the attribute-declared views — explicit beats
         // derived, the same precedence the layout and page inference already use. Its parameters are
         // folded into the component state here, at the single point every downstream step reads:
@@ -227,14 +269,30 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // ReflectionUiIncrementMapper.mapToAppState).
         RouteEntry? routeEntry = null;
         Type? type = null;
-        if (_routes.Match(rq.Route) is { } routeMatch)
+        var clientState = rq.ComponentState;
+        var routeSeeds = false;
+        var routeMatch = _routes.Match(rq.Route);
+        // the type the client names is resolved where it is MOUNTED in the route — the shortest
+        // prefix the authored table binds to it (Java's ActionInstanceCreator.mountOf): a page with
+        // routed in-page tabs on /vcn/7/gateways is the page answering /vcn/7
+        if (!string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } knownMount)
+            routeMatch = _routes.Match(knownMount);
+        if (routeMatch is not null)
         {
-            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, RequestQuery?.Invoke()) };
+            var query = RequestQuery?.Invoke();
+            // What makes a definition-only page's route SEED it (Java's seedBareLayout): a path
+            // parameter alone does not — the browser resolves ${state.x} from the route itself.
+            var e = routeMatch.Entry;
+            routeSeeds = e.Data is not null || e.AppData is not null || e.AppState is { Count: > 0 }
+                         || e.State is { Count: > 0 } || e.DefaultParams.Count > 0 || e.FixedParams.Count > 0
+                         || query is { Count: > 0 };
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, query) };
             routeEntry = routeMatch.Entry;
             if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);
         }
-        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry), rq, routeEntry);
+        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry, clientState, routeSeeds), rq, routeEntry);
     }
 
     /// <summary>The per-request context every step reads: the caller's identity (the gates
@@ -252,6 +310,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
         // what is rendered. Access control is [EyesOnly]/[DisabledUnless] against the identity.
+        ReflectionMapper.SetCurrentRegistry(registry);
         ReflectionMapper.SetCurrentAudience(
             rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
     }
@@ -265,16 +324,46 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     {
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
-        if (_yaml.LoadSpec(rq.Route) is not { DependsOnRequest: true }) return rq;
-        if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
+        if (_yaml.LoadSpec(rq.Route) is not { } spec) return rq;
+        // the business components (components.yaml) lock fields too: they are resolved while the
+        // tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
+        // component of the app is checked, not only the ones this layout names
+        var byPieces = MateuCatalogs.AppWideLockedBy();
+        if (!spec.DependsOnRequest) return WithoutLockedByPieces(rq, byPieces);
+        if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal)
+            return WithoutLockedByPieces(rq, byPieces);
         if (rq.ActionId is { } actionId && personal.RefusedActions.Contains(actionId))
             ActionGuard.Deny($"action '{actionId}' denied by access:");
         if (rq.ActionId == "__restfetch__" && StateString(GetState(rq.Parameters, "_sourceId")) is { } sourceId
             && personal.RefusedActions.Contains(sourceId))
             ActionGuard.Deny($"action '{sourceId}' denied by access:");
-        if (personal.LockedFields.Count == 0 || !personal.LockedFields.Any(rq.ComponentState.ContainsKey)) return rq;
+        // a business component the layout draws only under a section the caller may not see
+        // locks every field it holds, even with no access keys of its own (fail closed)
+        var hidden = AuthoredSources.RefsInTree(spec.Layout);
+        hidden.ExceptWith(AuthoredSources.RefsInTree(personal.Layout));
+        if (hidden.Count > 0)
+        {
+            var merged = new Dictionary<string, string>(MateuCatalogs.AllFieldsOf(hidden));
+            foreach (var (key, component) in byPieces) merged.TryAdd(key, component);
+            byPieces = merged;
+        }
+        return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
+    }
+
+    /// <summary><paramref name="rq"/> without the posted state the business components lock for the caller.</summary>
+    private static RunActionRqDto WithoutLockedByPieces(RunActionRqDto rq, IReadOnlyDictionary<string, string> lockedBy)
+    {
+        var state = rq.ComponentState;
+        var narrowed = MateuCatalogs.WithoutLocked(rq.Route ?? "", state, lockedBy);
+        return ReferenceEquals(narrowed, state) ? rq : rq with { ComponentState = new Dictionary<string, object?>(narrowed) };
+    }
+
+    /// <summary><paramref name="rq"/> without the posted state of the fields <paramref name="locked"/> names.</summary>
+    private static RunActionRqDto WithoutLocked(RunActionRqDto rq, IReadOnlySet<string> locked)
+    {
+        if (locked.Count == 0 || !locked.Any(rq.ComponentState.ContainsKey)) return rq;
         var narrowed = new Dictionary<string, object?>(rq.ComponentState);
-        foreach (var id in personal.LockedFields) narrowed.Remove(id);
+        foreach (var id in locked) narrowed.Remove(id);
         return rq with { ComponentState = narrowed };
     }
 
@@ -286,23 +375,37 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// either from the authored registry or from attributes. Split out so route-scope seeding can
     /// decorate its result once, at every exit. When <paramref name="routeEntry"/> declares Data the
     /// resolved view gets a __restdata__ action + OnLoad trigger injected (the @RestData load path).</summary>
-    private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry)
+    private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry,
+        IReadOnlyDictionary<string, object?> clientState, bool routeSeeds)
     {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
         var yamlSpec = PersonalSpec(rq.Route);
+        // a fresh deep link under a YAML app shell: the shell answers, aimed at the route
+        if (YamlShellDeepLink(rq) is { } deepLink) return deepLink;
         if (type is null && yamlSpec is not null)
         {
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
-            // page; a page that declares modelView: instantiates that logic class (state + actions)
+            // page; a page that declares viewModel: instantiates that logic class (state + actions)
             // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
+            // a `type: AppShell` definition bound to the route: the mount's app (YamlAppShell)
+            if (yamlSpec.Shell is { } shell) return YamlShellResponse(shell, rq);
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
-                return yamlSpec.Layout is { } bare
-                    // the route's seeds (state:, fixed/default/path params, already folded into the
-                    // component state) are the page's state: a seeded bare page is wrapped so it
-                    // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
-                    ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
-                        routeEntry is not null ? rq.ComponentState : null), rq)
-                    : Error($"Route not found: {rq.Route}");
+            {
+                if (yamlSpec.Layout is not { } bare) return Error($"Route not found: {rq.Route}");
+                // the route's seeds (state:, fixed/default params, a query string, already folded
+                // into the component state) are the page's state: a seeded bare page is wrapped so
+                // it carries them, as Java's SeededYamlPage does (they were dropped: ${state.x}
+                // blank). A path parameter ALONE is no seed: that page answers its bare layout, as
+                // Java's seedBareLayout does. Wrapped, the state carries every parameter (path ones
+                // too); with no route entry, the client's own state (Java's componentState).
+                var mapped = WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
+                    routeEntry is not null ? rq.ComponentState : clientState, yamlSpec.TemplatePageType, yamlSpec,
+                    bare, routeSeeds);
+                // the route's PATTERN names the window, never the concrete path's id
+                return FragmentResponse(DefinitionWindowTitle(bare,
+                    mapped is ServerSideComponentDto ? rq.ComponentState : clientState,
+                    routeEntry?.Route ?? rq.Route), mapped, rq);
+            }
             type = registry.TypeByName(yamlSpec.ModelView);
         }
         if (type is null) return Error($"Route not found: {rq.Route}");
@@ -344,6 +447,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
+        // A nested data object's method (nested-form-action-<field>-<method>).
+        if (rq.ActionId?.StartsWith(ReflectionMapper.NestedFormActionPrefix, StringComparison.Ordinal) == true)
+            return RunNestedFormAction(type, instance, rq, layoutOverride);
         // The row editing actions of a list property (grid "+", Edit, Save, Remove, move…).
         if (FieldCrudTarget(type, rq.ActionId) is { } fieldCrud)
             return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
@@ -529,27 +635,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     HomeServerSideType = homeTypeOverride ?? deepLinked.HomeServerSideType,
                 },
             };
-        // The catalogues ride the APP metadata (app-wide configuration, not per response); a
-        // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
-        if (app is { Metadata: AppMetadataDto catalogued })
-        {
-            var sampleMode = SampleMode;
-            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources, withSamples: sampleMode);
-            var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
-            if (sources.Count > 0) caps.Add(Capabilities.RestSources);
-            app = app with
-            {
-                Metadata = catalogued with
-                {
-                    RestSources = sources,
-                    Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
-                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
-                    RequiredCapabilities = caps.ToList(),
-                    MockSources = sampleMode ? true : null,
-                    AgentPush = AgentPush is not null ? true : null,
-                },
-            };
-        }
+        app = WithCatalogues(app);
+        app = WithBackLink(app, ReflectionMapper.BackLinkParent(appType));
+        // a record master the authored table binds under the request route (its tabs, its home)
+        var routedMount = string.IsNullOrEmpty(rq.ActionId)
+            ? RoutedTabs.MountOf(_routes, rq.Route, appType.FullName)
+            : null;
+        if (routedMount is not null && app is { Metadata: AppMetadataDto routedMeta })
+            app = app with { Metadata = AsRoutedMaster(routedMeta, appType, routedMount, rq) };
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount
@@ -557,6 +650,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // falls under this app's [UI] mount. (The .NET shell has no source catalogue, so a ref-only
         // source travels on the wire but is not resolved server-side here.)
         var mount = appType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "";
+        // a routed master is mounted where the authored table binds it (its route PATTERN)
+        if (routedMount is not null && _routes.Match(routedMount) is { } masterMatch)
+            mount = masterMatch.Entry.Route.Trim('/');
         var appMount = mount.Length == 0 ? "" : "/" + mount;
         if (app is { Metadata: AppMetadataDto meta }
             && _routes.Authored().Routes
@@ -581,7 +677,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // backing Screen (a bare menu link / sentinel route), or an unresolvable home keeps the
         // app's own type. Mirrors Java's AppHomeRouteResolver.getHomeServerSideType. Only the
         // conflated TYPE is fixed; the home-fragment mechanism is untouched.
-        if (app is { Metadata: AppMetadataDto homeMeta }
+        if (routedMount is not null && app is { Metadata: AppMetadataDto routedHome })
+        {
+            // the routed master's home is its TAB's screen (Java's RouteChains.screenFor)
+            if (RoutedTabs.ChainLinks(_routes, routedHome.HomeRoute) is { Count: > 0 } chain
+                && chain[^1].Entry.ViewModel is { Length: > 0 } tabType)
+                app = app with { Metadata = routedHome with { HomeServerSideType = tabType } };
+        }
+        else if (app is { Metadata: AppMetadataDto homeMeta }
             && !string.IsNullOrWhiteSpace(homeMeta.HomeRoute)
             && !homeMeta.HomeRoute!.EndsWith("_page", StringComparison.Ordinal)
             && !homeMeta.HomeRoute.EndsWith("_no_home_route", StringComparison.Ordinal)
@@ -600,9 +703,37 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);
     }
 
+    /// <summary>An app the authored route table binds at <paramref name="mount"/> with CHILDREN (a
+    /// record master): an app with no menu of its own offers its visible children as its tabs
+    /// (label = the child's [Title], else its segment), its route is the mount, and its home is the
+    /// rest of the request path — or, reached on its own, its default tab (Java's
+    /// AppMenuBuilder.childRouteTabs + HomeRouteResolver.getHomeRoute).</summary>
+    private AppMetadataDto AsRoutedMaster(AppMetadataDto meta, Type appType, string mount, RunActionRqDto rq)
+    {
+        var requested = "/" + RouteRegistry.Normalize((rq.Route ?? "").Split('?')[0]);
+        var children = RoutedTabs.VisibleChildrenOf(_routes, mount);
+        if (meta.Menu.Count == 0 && children.Count > 0)
+        {
+            var menu = children.Select(child =>
+                new MenuItemDto(RoutedTabs.TabLabel(registry, child.Entry, child.Relative), child.Path, appType.FullName!)
+                {
+                    ConsumedRoute = mount,
+                    Path = child.Relative,
+                    UriPrefix = mount,
+                    Selected = child.Path == requested,
+                }).ToList();
+            meta = meta with { Menu = menu, TotalMenuOptions = menu.Count };
+        }
+        var home = requested.Length > mount.Length
+            ? requested
+            : RoutedTabs.DefaultChildPath(_routes, mount) ?? meta.HomeRoute;
+        return meta with { Route = mount, RootRoute = mount, HomeRoute = home, HomeConsumedRoute = mount };
+    }
+
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
-        var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
+        // Java's DefaultMateuService: no consumed route is "_empty"; an EMPTY one stays ""
+        var route = rq.ConsumedRoute ?? "_empty";
         // A ComponentTreeSupplier view (an archetype, or an [AutoPage]-inferred dashboard/welcome) is
         // NOT a page: Java's ViewTypeClassifier.isPage returns false for it, so no SetWindowTitle
         // command rides the increment. A YAML-bound modelView (layoutOverride) stays a page.
@@ -655,7 +786,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         for (var i = segments.Length - 1; i >= 0; i--)
         {
             var segment = segments[i];
-            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{'))
+            // a concrete path's id ("6") never names the window
+            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{')
+                && !segment.All(char.IsAsciiDigit))
                 return Naming.HumanizeConstant(segment);
         }
         return route ?? "";
@@ -666,18 +799,57 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private string? DeclaredPageTypeFor(string? route, Type type) =>
         PersonalSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.PageType : null;
 
-    /// <summary>A definition-only page that declares a <c>pageType:</c>: the bare layout carries no
-    /// page type, so it is wrapped in a server-side page that does (mirrors Java's
-    /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Undeclared → unchanged.</summary>
+    /// <summary>A definition-only page that declares a <c>pageType:</c>, that its route SEEDS, that
+    /// declares <c>actions:</c> or whose layout names catalogue actions: the bare layout carries none
+    /// of that, so it is wrapped in a server-side page that does (mirrors Java's
+    /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Neither → unchanged.
+    /// <para>The wrapper advertises the DECLARED actions only — never the <c>*</c> wildcard a class
+    /// view advertises, which would claim every id for a server with no behaviour behind it — plus the
+    /// catalogue entries the layout names (OWNER FIRST) and <c>__restfetch__</c> when a declared call
+    /// is proxied; and, like Java's, the client validations of its required fields and the Form's
+    /// <c>confirmOnNavigationIfDirty</c>.</para></summary>
     private static ComponentDto WithDeclaredPageType(
-        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null)
+        ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null,
+        string? templatePageType = null, YamlSpecLoader.Spec? spec = null, IComponent? bare = null,
+        bool? routeSeeds = null)
     {
-        if (pageType is null && (state is null || state.Count == 0)) return layout;
+        var actions = (spec?.Actions ?? []).Select(a => a.Dto).ToList();
+        if (bare is not null)
+        {
+            // the catalogue entries the layout (or the page's own flows) names but does not declare
+            var named = ActionGuard.TreeActionIds(bare)
+                .Concat(actions.SelectMany(a => a.Commands ?? [])
+                    .Where(c => c.Type == "RunAction" && c.Data is IDictionary<string, object> d && d.ContainsKey("actionId"))
+                    .Select(c => ((IDictionary<string, object>)c.Data!)["actionId"].ToString()!));
+            actions.AddRange(ActionRegistry.ReferencedBy(MateuCatalogs.Actions, named,
+                    actions.Select(a => a.Id).Concat(MateuCatalogs.RefusedActions).Concat(spec?.RefusedActions ?? new HashSet<string>()))
+                .Select(ActionRegistry.ToDto));
+        }
+        // a proxied call — a declared action's, or a listing's rows / a select's options read off a
+        // keyed catalogue entry — is the server's to make through __restfetch__, which only a
+        // server-side page answers (Java's SeededYamlPage as a RestSourceSupplier)
+        var proxied = spec is not null
+                      && YamlDeclaredActions.SourcesOf(spec.Actions, bare).Any(s => s.Source.Proxy);
+        var triggers = spec?.Triggers ?? [];
+        var seeds = routeSeeds ?? state is { Count: > 0 };
+        if (pageType is null && !seeds && actions.Count == 0 && triggers.Count == 0 && !proxied)
+            return layout;
+        if (proxied) actions.Add(new ActionDto("__restfetch__", ValidationRequired: false));
+        // wrapped for its seeds: a page that fills a template is the template's kind of page, a
+        // listing is a collection, anything else a form (Java's PageTypeResolver default)
+        pageType ??= templatePageType ?? (bare is ListingComponent ? "collection" : "form");
         var route = (rq.Route ?? "").Split('?')[0].Trim('/');
         return new ServerSideComponentDto(
             "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),
-            "", "/" + route, [layout], new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), [], [], null, null, null)
-        { PageType = pageType };
+            "", string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!, [layout],
+            new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), actions, triggers.ToList(),
+            // ComponentTreeSupplier.style()'s default: the page's reading measure
+            "max-width:900px;margin: auto;", null, null)
+        {
+            PageType = pageType,
+            Validations = YamlDeclaredActions.Validations(bare),
+            ConfirmOnNavigationIfDirty = spec?.ConfirmOnNavigationIfDirty ?? false,
+        };
     }
 
     /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to
@@ -699,6 +871,46 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             && _mapper.Violations(type, instance) is { Count: > 0 } broken)
             throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));
+        return ActionResult(result, rq);
+    }
+
+    /// <summary>Runs <c>nested-form-action-&lt;field&gt;-&lt;method&gt;</c>: the method of the nested
+    /// data object the view's <c>field</c> holds (hydrated from the state, or a fresh one), with the
+    /// same guard as any action — a field that is no nested form, a method that is no declared
+    /// action or a malformed id is refused (Java's RunMethodActionRunner nested-form branch).
+    /// Returning the nested object (or the view) re-renders the view.</summary>
+    private UIIncrementDto RunNestedFormAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
+    {
+        var actionId = rq.ActionId!;
+        var rest = actionId[ReflectionMapper.NestedFormActionPrefix.Length..];
+        var dash = rest.IndexOf('-');
+        if (dash <= 0 || dash == rest.Length - 1) throw ActionGuard.NoSuchAction(actionId);
+        var fieldName = rest[..dash];
+        var methodId = rest[(dash + 1)..];
+        var property = ReflectionMapper.EditableProperties(type)
+            .FirstOrDefault(p => Naming.CamelCase(p.Name) == fieldName && _mapper.IsNestedFormProperty(p));
+        if (property is null || !ActionGuard.Authorized(property.Find<EyesOnlyAttribute>()))
+            throw ActionGuard.NoSuchAction(actionId);
+        var nested = property.GetValue(instance) ?? Activator.CreateInstance(property.PropertyType)!;
+        if (property.CanWrite) property.SetValue(instance, nested);
+        var nestedType = nested.GetType();
+        var method = ActionGuard.ResolveAction(nestedType, nested, methodId, null);
+        if (method is null) throw ActionGuard.NoSuchAction(actionId);
+        ActionGuard.EnsureMayInvoke(nestedType, method, actionId);
+        // advertised validationRequired (a [Button]/[Toolbar] with no [Action]): the server checks too
+        if (method.Find<ActionAttribute>() is null
+            && (method.Find<ButtonAttribute>() != null || method.Find<ToolbarAttribute>() != null)
+            && _mapper.Violations(type, instance) is { Count: > 0 } broken)
+            throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
+        var result = method.Invoke(nested, BuildArguments(method, rq));
+        if (ReferenceEquals(result, nested) || ReferenceEquals(result, instance))
+            return Render(type, instance, rq, layoutOverride);
+        return ActionResult(result, rq);
+    }
+
+    /// <summary>What an action's result answers (shared by view and nested-object actions).</summary>
+    private UIIncrementDto ActionResult(object? result, RunActionRqDto rq)
+    {
         // An action returning a routed view (itself, or the model of the view's next state)
         // re-renders it in place — how a multi-state island switches between its states.
         if (IsRoutedViewResult(result)) return Render(result!.GetType(), result, rq);
@@ -817,7 +1029,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         var actions = msg.Actions.Select(LongTask.ToDto).ToList();
         if (msg.UndoActionId is not null && msg.Actions.All(a => a.ActionId != msg.UndoActionId))
             actions.Add(new MessageActionDto(msg.UndoLabel, msg.UndoActionId, msg.UndoParameters, null, Message.StyleUndo));
-        var dto = new MessageDto(variant, "middle", msg.Title, msg.Text, msg.Duration,
+        var dto = new MessageDto(variant, msg.Position, msg.Title, msg.Text, msg.Duration,
             msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)
         {
             Actions = actions,
@@ -882,7 +1094,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
 
     private static object? StateOf(ComponentDto component) =>
         component is ServerSideComponentDto { InitialData: IReadOnlyDictionary<string, object?> data and { Count: > 0 } }
-            ? data
+            // a nested data object rides nested AND flattened under its prefixed ids (Java's
+            // FormViewSerializer) — the nested fields bind to the flattened keys
+            ? NestedFormState.Flatten(data)
             : null;
 
     /// <summary>Decorates a resolved route's increment with the route entry's APP-SCOPE seeds. State

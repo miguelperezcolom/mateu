@@ -67,6 +67,53 @@ export function undeclaredActionWarnings(files, declared) {
   return warnings
 }
 
+/**
+ * The `options` property of a Select / RadioGroup (contract `yamlConventions.options`): items split
+ * by `;` when the text has one, else by `,`; each a bare label (value = the label slugified) or
+ * `value=Label`. Returns `{options: [{value, label}], problems: [message]}` — a malformed item is a
+ * problem and is left out, an empty one is skipped.
+ */
+export function parseOptions(text) {
+  const options = []
+  const problems = []
+  const seen = new Set()
+  const source = String(text ?? '')
+  for (const raw of source.split(source.includes(';') ? ';' : ',')) {
+    const item = raw.trim()
+    if (item === '') continue
+    let value, label
+    const eq = item.indexOf('=')
+    if (eq >= 0) {
+      value = item.substring(0, eq).trim()
+      label = item.substring(eq + 1).trim()
+      if (value === '' || label === '') {
+        problems.push(`"${item}" needs a value and a label (value=Label)`)
+        continue
+      }
+    } else {
+      label = item
+      value = label
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      if (value === '') {
+        problems.push(`"${item}" makes no value: write it as value=Label`)
+        continue
+      }
+    }
+    if (seen.has(value)) {
+      problems.push(`the value "${value}" is given twice ("${item}" left out)`)
+      continue
+    }
+    seen.add(value)
+    options.push({ value, label })
+  }
+  if (options.length === 0 && problems.length === 0) problems.push(`"${source}" lists no option`)
+  return { options, problems }
+}
+
 /** The contract, indexed for reading instances back. */
 export class Contract {
   constructor(json) {
@@ -320,8 +367,8 @@ export class FigmaToYaml {
 
   /**
    * Params read off an instance: variants; then its TEXT/BOOLEAN component properties (what the
-   * designer sets in Figma's properties panel); then — for instances placed with an older library —
-   * the `#config` layer and the text layers. A param already read is never read again from a lower
+   * designer sets in Figma's properties panel); then the `#config` layer (the plugin's fallback
+   * for a prop Figma refuses as a property) and the text layers. A param already read is never read again from a lower
    * source, so a property bound to a text layer is one value, not two.
    */
   readParams(node, entry) {
@@ -437,6 +484,11 @@ export class FigmaToYaml {
         if (value === null) continue
       }
       if (y.defaults && y.defaults[p.name] === p.value) continue
+      if (s.parse) {
+        const parsed = this.parse(s.parse, value, node, p.name)
+        if (parsed !== undefined) this.put(ctx, s.path, parsed, true)
+        continue
+      }
       if (s.list) {
         const all = lists.get(s.path) ?? []
         all.push(s.key ? { [s.key]: value } : value)
@@ -506,6 +558,17 @@ export class FigmaToYaml {
     return text
   }
 
+  /** A param whose text has a syntax of its own (`parse:` in a param spec); undefined = nothing to write. */
+  parse(kind, text, node, param) {
+    if (kind === 'options') {
+      const { options, problems } = parseOptions(text)
+      for (const m of problems) this.warn(node, `${param}: ${m}`)
+      return options.length ? options : undefined
+    }
+    this.warn(node, `${param}: no parser "${kind}"`)
+    return undefined
+  }
+
   /** Sets `attrs` on every FormField under `obj` (a section's `propertyList`). */
   decorate(obj, attrs) {
     const walk = (v) => {
@@ -534,18 +597,8 @@ export class FigmaToYaml {
   nodes(children) {
     const out = []
     const list = children.filter((c) => c.visible !== false)
-    for (let i = 0; i < list.length; i++) {
-      const child = list[i]
-      // Figma cannot drop layers into an instance: a container (a Section…) whose `content` slot
-      // was left empty takes the siblings that follow it, up to the next such container — the
-      // @Section reading of a design, the same convention modux's importer uses
-      const absorbed = this.absorbsSiblings(child) ? [] : null
-      if (absorbed) {
-        while (i + 1 < list.length && !this.absorbsSiblings(list[i + 1])) absorbed.push(list[++i])
-      }
-      const v = absorbed?.length
-        ? this.instance(child, this.entryOf(child), new Map([['content', absorbed]]))
-        : this.node(child)
+    for (const child of list) {
+      const v = this.node(child)
       if (v === null || v === undefined) continue
       if (isObject(v) && v.into) {
         this.into.push(v)
@@ -554,15 +607,6 @@ export class FigmaToYaml {
       out.push(v)
     }
     return out
-  }
-
-  /** A Section instance with nothing in its `content` slot (other containers keep their siblings). */
-  absorbsSiblings(node) {
-    if (node.type !== 'INSTANCE' || node.name.startsWith('#')) return false
-    const entry = this.entryOf(node)
-    if (entry?.name !== 'Mateu/Layout/Section' || !entry.yaml?.slots?.content) return false
-    // the library's own `#placeholder` caption (and hidden layers) do not count as content
-    return !(this.slotsOf(node).get('content') ?? []).some((c) => c.visible !== false && !c.name.startsWith('#'))
   }
 
   node(node) {

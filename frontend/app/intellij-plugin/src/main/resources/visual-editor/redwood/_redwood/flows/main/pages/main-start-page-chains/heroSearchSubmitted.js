@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{searchText}){const{$application}=context;$application.variables.mateuHs&&($application.variables.mateuHs=Object.assign({},$application.variables.mateuHs,{collection:"on"})),await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText}})}};});
+//# sourceMappingURL=heroSearchSubmitted.js.map

@@ -1,0 +1,19 @@
+id: sections
+area: behaviour
+group: form-layout
+title: Sections
+covers: [behaviour:sections]
+description: |
+  `@Section("Title")` groups the fields that follow it — until the next one — into a titled card.
+  `columns` sets that section's column count, `propertyList` draws read-only label / value rows,
+  `frameless` drops the card (a band that brings its own chrome) and `sticky` pins it while the page
+  scrolls (see *Sections index*). A blank title draws no heading.
+
+  Try it: *Guest* lays its four fields out in two columns; *Document* is a property list; the notice
+  on top is a frameless band.
+examples:
+  - title: A check-in form
+    java: io.mateu.explorer.examples.behaviour.sections.CheckInSections
+code:
+  - {label: "C#", path: src/main/ports/behaviour/sections/CheckInSections.cs}
+  - {label: Python, path: src/main/ports/behaviour/sections/check_in_sections.py}

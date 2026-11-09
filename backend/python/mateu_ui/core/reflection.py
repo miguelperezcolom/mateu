@@ -8,14 +8,16 @@ import inspect
 import types
 import weakref
 from dataclasses import dataclass, field
-from typing import Annotated, Any, Union, get_args, get_origin
+from typing import Annotated, Any, Generic, Union, get_args, get_origin
 
 from mateu_ui.uidl import Crud, Wizard
 
 _log = logging.getLogger("mateu.reflection")
 
 # Base classes whose annotations/members are framework plumbing, not user fields.
-_FRAMEWORK = {Crud.__name__, Wizard.__name__, "Generic", "object"}
+# By IDENTITY: a user class that happens to be called "Generic", "Crud" or "Wizard" is not plumbing
+# (matched by name, its fields silently vanished from the form).
+_FRAMEWORK: frozenset = frozenset({Crud, Wizard, Generic, object})
 
 
 @dataclass
@@ -100,7 +102,7 @@ def view_fields(cls) -> list[FieldInfo]:
     order: list[str] = []
     seen: dict[str, FieldInfo] = {}
     for klass in reversed(cls.__mro__):
-        if klass.__name__ in _FRAMEWORK:
+        if klass in _FRAMEWORK:
             continue
         for name, hint in _local_hints(klass).items():
             base, markers = _split(hint)
@@ -115,7 +117,7 @@ def methods_with(cls, attr: str) -> list[tuple[str, Any]]:
     out: list[tuple[str, Any]] = []
     seen: set[str] = set()
     for klass in cls.__mro__:
-        if klass.__name__ in _FRAMEWORK:
+        if klass in _FRAMEWORK:
             continue
         for name, val in vars(klass).items():
             if name in seen or not callable(val):

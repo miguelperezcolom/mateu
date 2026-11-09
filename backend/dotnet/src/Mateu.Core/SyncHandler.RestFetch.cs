@@ -16,13 +16,29 @@ internal sealed partial class SyncHandler
     /// so the renderer shows an error rather than toasting "Saved" over a write that never happened.</summary>
     private async Task<UIIncrementDto> RestFetchResponseAsync(RunActionRqDto rq, CancellationToken cancellationToken)
     {
+        // the route's parameters over the state on this leg too — FIXED ones win over whatever the
+        // client sent, as on the route load (a pin enforced only in the browser would be a suggestion;
+        // mirrors Java's RouteSegmentUtils applied to the proxied fetch)
+        if (_routes.Match(rq.Route) is { } routeMatch)
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, RequestQuery?.Invoke()) };
         object? json = new Dictionary<string, object?>();
-        if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
+        var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
+        var id = StateString(GetState(rq.Parameters, "_sourceId"));
+        var type = registry.Resolve(rq.ServerSideType, rq.Route);
+        if (type is not null) ActionGuard.EnsureViewVisible(type);
+        // a definition-only page (no class): the source is the one its OWN `actions:` declares for
+        // that id, resolved against the server's catalogue (Java's SeededYamlPage as a
+        // RestSourceSupplier) — the only channel that injects ${secret.X} for such a page. A refused
+        // action is not in the caller's copy (and GuardYamlAccess already answered 403).
+        // Its listings' rows and its selects' options likewise: what the LAYOUT declares, by the
+        // listing's / field's id — never a client-supplied url.
+        var definitionSource = type is null
+                               && PersonalSpec(rq.Route) is { Shell: null } spec && string.IsNullOrEmpty(spec.ModelView)
+            ? YamlDeclaredActions.SourceFor(YamlDeclaredActions.SourcesOf(spec.Actions, spec.Layout), kind, id)
+            : null;
+        if (type is not null || definitionSource is not null)
         {
-            ActionGuard.EnsureViewVisible(type);
-            var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
-            var id = StateString(GetState(rq.Parameters, "_sourceId"));
-            var source = ResolveProxySource(type, rq, kind, id);
+            var source = type is not null ? ResolveProxySource(type, rq, kind, id) : definitionSource;
             // SAMPLE mode (opt-in only): a source carrying sample data answers with it instead of
             // being called — the proxied twin of the browser's short-circuit, so both legs agree. A
             // read gets the sample; a write succeeds without persisting anything.
@@ -131,6 +147,10 @@ internal sealed partial class SyncHandler
         var url = UrlTemplate.Interpolate(source.Url, expr => ValueOf(expr, state, ResolveSecret));
         try
         {
+            // a relative url is this app's own endpoint (it failed as "an invalid request URI")
+            url = AbsoluteProxyUrl(url)
+                  ?? throw new InvalidOperationException(
+                      "a proxied source with a relative url needs this server's base url: set MateuOptions.SelfBaseUrl");
             var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
             using var req = new HttpRequestMessage(new HttpMethod(method), url);
             req.Headers.Accept.ParseAdd("application/json");

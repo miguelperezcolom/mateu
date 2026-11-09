@@ -173,7 +173,7 @@ describe('the editor does not pretend when a delta cannot say it', () => {
 
 describe('a page written as a delta comes back editable', () => {
     const YAML = [
-        'modelView: com.acme.Contact',
+        'viewModel: com.acme.Contact',
         'layoutDelta:',
         '  order:',
         '    - email',

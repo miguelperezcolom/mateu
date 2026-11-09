@@ -42,8 +42,8 @@ export function isValidJavaIdentifier(s: string): boolean {
 }
 
 /**
- * Read a page's `modelView` and every `FormField` binding (id + dataType) from its YAML — envelope
- * form (`modelView:` + `layout:`) or a bare component tree. Walks the whole layout so fields nested
+ * Read a page's view model (`viewModel:`) and every `FormField` binding (id + dataType) from its YAML — envelope
+ * form (`viewModel:` + `layout:`) or a bare component tree. Walks the whole layout so fields nested
  * in sections/tabs/slots are found. A field with no `id:` is skipped (nothing to bind).
  */
 export function extractBindings(yaml: string): PageBindings {
@@ -51,7 +51,7 @@ export function extractBindings(yaml: string): PageBindings {
     try { root = parse(yaml) } catch { return { fields: [] } }
     if (!root || typeof root !== 'object') return { fields: [] }
     const obj = root as Record<string, unknown>
-    const modelView = typeof obj.modelView === 'string' ? obj.modelView : undefined
+    const modelView = typeof obj.viewModel === 'string' ? obj.viewModel : undefined
     const layout = obj.layout ?? obj
     const fields: FieldBinding[] = []
     const seen = new Set<string>()

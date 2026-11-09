@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{A as c,F as l,N as u,j as d}from"./mateu-vaadin.js";var f=864e5;function p(e){let t=/^(\d{4})-(\d{2})-(\d{2})/.exec(e??``);if(!t)return null;let n=new Date(Number(t[1]),Number(t[2])-1,Number(t[3])).getTime();return isNaN(n)?null:n}function m(e){let t=(e??[]).flatMap(e=>{let t=p(e?.start),n=p(e?.end);return t==null||n==null?[]:[{task:e,start:t,end:Math.max(t,n)}]});if(!t.length)return null;let n=Math.min(...t.map(e=>e.start))-f,r=Math.max(...t.map(e=>e.end))+2*f,i=r-n;return{min:n,max:r,span:i,bars:t.map(e=>({...e,leftPct:(e.start-n)/i*100,widthPct:(e.end+f-e.start)/i*100}))}}function h(e,t){let n=new Date(e),r=new Date(t),i=(r.getFullYear()-n.getFullYear())*12+(r.getMonth()-n.getMonth())+1;return i<=18?`month`:i<=54?`quarter`:i<=360?`year`:`decade`}function g(e,t,n=h(e,t)){if(!(t>e))return[];let r=n===`month`?1:n===`quarter`?3:n===`year`?12:120,i=new Date(e),a=n===`month`?i.getMonth():n===`quarter`?i.getMonth()-i.getMonth()%3:0,o=n===`decade`?i.getFullYear()-i.getFullYear()%10:i.getFullYear(),s=new Date(o,a,1),c=[];for(;s.getTime()<t;){let i=new Date(s.getFullYear(),s.getMonth()+r,1),a=Math.max(s.getTime(),e),o=Math.min(i.getTime(),t);o>a&&c.push({label:_(s,n),from:a,to:o}),s=i}return c}function _(e,t){switch(t){case`month`:return e.toLocaleDateString(void 0,{month:`short`,year:`2-digit`});case`quarter`:return`Q${Math.floor(e.getMonth()/3)+1} '${String(e.getFullYear()).slice(-2)}`;case`year`:return String(e.getFullYear());case`decade`:return`${e.getFullYear()}s`}}var v=class extends o{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=r`
+import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{H as c,L as l,R as u,z as d}from"./mateu-vaadin.js";var f=864e5;function p(e){let t=/^(\d{4})-(\d{2})-(\d{2})/.exec(e??``);if(!t)return null;let n=new Date(Number(t[1]),Number(t[2])-1,Number(t[3])).getTime();return isNaN(n)?null:n}function m(e){let t=(e??[]).flatMap(e=>{let t=p(e?.start),n=p(e?.end);return t==null||n==null?[]:[{task:e,start:t,end:Math.max(t,n)}]});if(!t.length)return null;let n=Math.min(...t.map(e=>e.start))-f,r=Math.max(...t.map(e=>e.end))+2*f,i=r-n;return{min:n,max:r,span:i,bars:t.map(e=>({...e,leftPct:(e.start-n)/i*100,widthPct:(e.end+f-e.start)/i*100}))}}function h(e,t){let n=new Date(e),r=new Date(t),i=(r.getFullYear()-n.getFullYear())*12+(r.getMonth()-n.getMonth())+1;return i<=18?`month`:i<=54?`quarter`:i<=360?`year`:`decade`}function g(e,t,n=h(e,t)){if(!(t>e))return[];let r=n===`month`?1:n===`quarter`?3:n===`year`?12:120,i=new Date(e),a=n===`month`?i.getMonth():n===`quarter`?i.getMonth()-i.getMonth()%3:0,o=n===`decade`?i.getFullYear()-i.getFullYear()%10:i.getFullYear(),s=new Date(o,a,1),c=[];for(;s.getTime()<t;){let i=new Date(s.getFullYear(),s.getMonth()+r,1),a=Math.max(s.getTime(),e),o=Math.min(i.getTime(),t);o>a&&c.push({label:_(s,n),from:a,to:o}),s=i}return c}function _(e,t){switch(t){case`month`:return e.toLocaleDateString(void 0,{month:`short`,year:`2-digit`});case`quarter`:return`Q${Math.floor(e.getMonth()/3)+1} '${String(e.getFullYear()).slice(-2)}`;case`year`:return String(e.getFullYear());case`decade`:return`${e.getFullYear()}s`}}var v=class extends o{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=r`
         :host {
             display: block;
             width: 100%;
@@ -75,7 +75,7 @@ import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";im
             opacity: .55;
         }
     
-        ${u}
+        ${d}
     `}render(){let n=m(this.tasks);if(!n)return t``;let r=n.span,i=e=>(e-n.min)/r*100,o=Date.now();return t`
             <div class="frame">
                 <div class="head">${s(`task`)}</div>
@@ -84,19 +84,19 @@ import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";im
                         <div class="month" style="width: ${(e.to-e.from)/r*100}%;">${e.label}</div>
                     `)}
                 </div>
-                ${n.bars.map(({task:r,leftPct:s,widthPct:l})=>t`
+                ${n.bars.map(({task:r,leftPct:s,widthPct:c})=>t`
                         <div class="label" title="${r.title}">${r.title}</div>
                         <div class="lane">
                             ${o>=n.min&&o<=n.max?t`<div class="today" style="left: ${i(o)}%;"></div>`:e}
-                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${a(d(!!this.onTaskSelectionActionId))}
+                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${a(u(!!this.onTaskSelectionActionId))}
                                  aria-label="${r.title}, ${r.start} to ${r.end}${r.progress?`, ${r.progress}% complete`:``}"
                                  class="bar ${this.onTaskSelectionActionId?`clickable`:``}"
                                  title="${r.title} · ${r.start} → ${r.end}${r.progress?` · ${r.progress}%`:``}"
-                                 @click="${()=>this.selectTask(r)}" @keydown="${c(()=>this.selectTask(r))}"
-                                 style="left: ${s}%; width: ${l}%; ${r.color?`--mateu-gantt-fill: ${r.color};`:``}">
+                                 @click="${()=>this.selectTask(r)}" @keydown="${l(()=>this.selectTask(r))}"
+                                 style="left: ${s}%; width: ${c}%; ${r.color?`--mateu-gantt-fill: ${r.color};`:``}">
                                 <div class="fill" style="width: ${r.progress??0}%;"></div>
                             </div>
                         </div>
                     `)}
             </div>
-        `}};l([n({type:Array})],v.prototype,`tasks`,void 0),l([n()],v.prototype,`onTaskSelectionActionId`,void 0),v=l([i(`mateu-gantt`)],v);export{v as MateuGantt};
+        `}};c([n({type:Array})],v.prototype,`tasks`,void 0),c([n()],v.prototype,`onTaskSelectionActionId`,void 0),v=c([i(`mateu-gantt`)],v);export{v as MateuGantt};

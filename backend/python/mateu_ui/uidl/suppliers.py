@@ -9,6 +9,7 @@ from dataclasses import (
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from .components import Breadcrumb
     from .markers import Rule
 
 
@@ -82,6 +83,15 @@ class PeerNavigationSupplier:
     ``None`` to show no arrows. The Python analogue of Java's ``PeerNavigationSupplier``."""
 
     def peers(self) -> "PeerNav | None":
+        raise NotImplementedError
+
+
+class BreadcrumbsSupplier:
+    """Implemented by a page to supply the breadcrumb trail shown above its content (wins over
+    ``@breadcrumbs``); ``None`` declares none. The Python analogue of Java's
+    ``BreadcrumbsSupplier``."""
+
+    def breadcrumbs(self) -> "list[Breadcrumb] | None":
         raise NotImplementedError
 
 
@@ -219,6 +229,9 @@ class AppShell:
     idle_timeout_minutes: int | None = None
     idle_warning_seconds: int | None = None
     idle_sign_out_url: str | None = None
+    #: The way back up from this app (twin of ``@app(back_link)``: ``"PARENT"`` / ``BackLink.PARENT``
+    #: draws one "← Parent" link instead of the breadcrumb trail); None = the decorator decides.
+    back_link: str | None = None
 
 
 class MenuSupplier:

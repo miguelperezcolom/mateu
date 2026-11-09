@@ -606,6 +606,36 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
     }
 
     [Fact]
+    public async Task A_content_slot_declared_in_yaml_is_resolved_like_the_attributes()
+    {
+        // specs/ui/yaml-content-slot.yaml: the YAML twin of [ContentSlot] (Java's YAML ContentSlot)
+        var (increment, _) = await Load("yaml-content-slot");
+        var slot = Assert.Single(MicroFrontends(increment["fragments"]));
+        Assert.Equal(["slot front-office.home.destacado"], Texts(slot["resolved"]));
+        Assert.Equal("/_content-hub", (string?)slot["baseUrl"]);
+        Assert.Contains("/_content-hub/mateu/v3/sync/content-slots/front-office.home.destacado",
+            Requests.Select(r => r["path"]));
+        // the empty one paints its fallback
+        Assert.Contains("Nothing yet", Texts(increment["fragments"]));
+    }
+
+    [Fact]
+    public void A_yaml_content_slot_carries_every_key()
+    {
+        var slot = Assert.IsType<ContentSlot>(Mateu.Core.YamlComponentBuilder.Parse("""
+            type: ContentSlot
+            key: shop.home.banner
+            fallback: Welcome
+            timeoutMs: 250
+            description: The home banner
+            degradeToClient: true
+            style: "width: 100%"
+            """));
+        Assert.Equal(("shop.home.banner", "Welcome", 250, "The home banner", true, "width: 100%"),
+            (slot.Key, slot.Fallback, slot.TimeoutMs, slot.Description, slot.DegradeToClient, slot.Style));
+    }
+
+    [Fact]
     public async Task A_content_slot_with_content_is_painted_in_the_same_response()
     {
         var (increment, _) = await Load("mfe-slot-page");

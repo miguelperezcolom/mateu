@@ -1,0 +1,20 @@
+# WelcomePage: the template draws the page header itself — the form's title is the banner's title,
+# its subtitle the description, its overline the line above, its toolbar the calls to action (the
+# primary first). The content is the template's default slot: the tiles under the banner.
+type: Form
+title: Welcome to the City Museum
+overline: Good morning
+subtitle: Five thousand years of art, three floors, one afternoon.
+toolbar:
+  - {type: Button, label: See an artwork, buttonStyle: primary, actionable: {type: RouteLink, route: x/page-templates/item-overview-page}}
+  - {type: Button, label: Browse the artists, actionable: {type: RouteLink, route: x/page-templates/collection-detail-page}}
+template:
+  type: WelcomePage
+  backgroundColor: dark-sienna
+content:
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - {type: DashboardPanel, title: Open today, subtitle: "10:00 – 18:00", content: {type: Text, text: "Late opening on Fridays until 21:00."}}
+      - {type: DashboardPanel, title: On view, subtitle: Impressions of light, content: {type: Text, text: "64 paintings in galleries 5–6, until 30 April."}}
+      - {type: DashboardPanel, title: Members, subtitle: From €45 a year, content: {type: Text, text: "Free entry, previews and 10% in the shop."}}

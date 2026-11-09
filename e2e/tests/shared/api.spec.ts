@@ -4,8 +4,8 @@ import { test, expect } from '@playwright/test';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const ROOT_API = '/mateu/v3/components/_/action';
-const APP_API  = '/app/mateu/v3/components/_/action';
+const ROOT_API = '/mateu/v3/sync/_no_route';
+const APP_API  = '/app/mateu/v3/sync/_no_route';
 
 async function callAction(request: any, url: string, body: object) {
   const response = await request.post(url, {
@@ -447,7 +447,7 @@ test.describe('MenuApp menu — extended', () => {
 // AllTypesForm — /all-types UI
 // ---------------------------------------------------------------------------
 
-const ALL_TYPES_API = '/all-types/mateu/v3/components/_/action';
+const ALL_TYPES_API = '/all-types/mateu/v3/sync/_no_route';
 const ALL_TYPES_TYPE = 'io.mateu.sample1.AllTypesForm';
 
 test.describe('AllTypesForm API', () => {
@@ -601,7 +601,7 @@ test.describe('Field metadata', () => {
 // ProfileForm — /profile UI  (@ReadOnly, @Stereotype(textarea), @FormLayout, void @Button)
 // ---------------------------------------------------------------------------
 
-const PROFILE_API = '/profile/mateu/v3/components/_/action';
+const PROFILE_API = '/profile/mateu/v3/sync/_no_route';
 const PROFILE_TYPE = 'io.mateu.sample1.ProfileForm';
 
 test.describe('ProfileForm API', () => {
@@ -714,7 +714,7 @@ test.describe('ProfileForm field metadata', () => {
 // StatusDemoForm — /status-demo UI  (enum + @Status/@StatusMapping, multiple @Button)
 // ---------------------------------------------------------------------------
 
-const STATUS_DEMO_API = '/status-demo/mateu/v3/components/_/action';
+const STATUS_DEMO_API = '/status-demo/mateu/v3/sync/_no_route';
 const STATUS_DEMO_TYPE = 'io.mateu.sample1.StatusDemoForm';
 
 test.describe('StatusDemoForm API', () => {
@@ -817,7 +817,7 @@ test.describe('StatusDemoForm field metadata', () => {
 // ItemsCatalog — /items UI  (AutoCrudOrchestrator CRUD listing)
 // ---------------------------------------------------------------------------
 
-const ITEMS_API = '/items/mateu/v3/components/_/action';
+const ITEMS_API = '/items/mateu/v3/sync/_no_route';
 
 function collectCrudl(component: any): any[] {
   const isCrudl = component?.metadata?.columns !== undefined;

@@ -1,0 +1,18 @@
+id: general-overview
+area: archetypes
+group: records
+title: General overview
+covers: [archetype:GeneralOverview]
+description: |
+  Extend `GeneralOverview<Row>`: a record switcher on top (`switcherOptions()`, labelled
+  `recordLabel()`; the first record is selected), the selected record's `overview(row)` below and its
+  contextual `info(row)` panel beside it (`infoWidth()`; `display()` can switch the info slot off or
+  promote it). Switching records re-renders in place.
+examples:
+  - title: Museums
+    java: io.mateu.explorer.examples.archetypes.generaloverview.MuseumOverview
+pages:
+  - {route: x/archetypes/general-overview, viewModel: io.mateu.explorer.examples.archetypes.generaloverview.MuseumOverview}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/general-overview/MuseumOverview.cs}
+  - {label: Python, path: src/main/ports/archetypes/general-overview/museum_overview.py}

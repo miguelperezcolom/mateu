@@ -113,6 +113,7 @@ public final class AppMapper {
             .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
             .agentPush(io.mateu.core.application.agentpush.AgentPush.enabled())
+            .osNotifications(AppShellExtrasMapper.osNotifications(app))
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null
@@ -156,10 +157,8 @@ public final class AppMapper {
 
   private static FabDto toFabDto(Method method) {
     var ann = MetaAnnotations.find(method, Fab.class);
-    var label =
-        MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Label.class)
-            ? MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class).value()
-            : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
+    // the FAB's own label first (it was ignored), then @Label, then the method name
+    var label = translatedFabLabel(method, ann);
     return FabDto.builder()
         .id(method.getName())
         .label(label)
@@ -167,6 +166,19 @@ public final class AppMapper {
         .actionId(method.getName())
         .buttonStyle(ann.buttonStyle().name())
         .build();
+  }
+
+  private static String translatedFabLabel(Method method, Fab ann) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(
+        fabLabel(method, ann));
+  }
+
+  private static String fabLabel(Method method, Fab ann) {
+    return !ann.label().isBlank()
+        ? ann.label()
+        : MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Label.class)
+            ? MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class).value()
+            : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
   }
 
   /**
@@ -233,6 +245,9 @@ public final class AppMapper {
    */
   private static boolean isNotificationsEnabled(AppShell app) {
     if (app.notifications() != null && app.notifications().source() != null) {
+      return true;
+    }
+    if (AppShellExtrasMapper.inbox(app)) {
       return true;
     }
     if (app.serverSideType() == null) {

@@ -1,0 +1,8 @@
+# Knows nothing about where its values come from: the route (routes.yaml next to it) seeds them.
+type: Form
+title: "${state.name}"
+subtitle: "Planet #${state.id}"
+content:
+  - {type: Text, text: "From the route's data: (a source): climate ${state.climate}"}
+  - {type: Text, text: "${state.greeting} hello"}
+  - {type: Text, text: "${appState.explorerTheme} app-wide"}

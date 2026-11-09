@@ -98,6 +98,34 @@ target**; **3.1 drops it**. Move your app to .NET 10 before upgrading to 3.1.
 - **AI**: an MCP surface to operate and author screens, live UI push to an open session, the AI chat
   panel (Follow mode), and the `mateu` Claude Code / Codex plugin with its skills.
 
+## New since the last beta
+
+- **Progress and notifications as patterns.** A `LongTask` reports a task (title, text, fraction or
+  "12 of 300", state) and each renderer shows it its own way: a modal progress when it blocks, a
+  task center for background work, IntelliJ's own background tasks. Tasks can be cancelled (only by
+  the caller who started them), retried, and offer a result action or land in the inbox when done
+  (`@Experimental`). `Message` gains persistence (`toast`, `sticky`, `inbox`), actions and a dedup
+  key; the inbox groups, filters, resolves and acts on entries, and `LiveNotifications.publish`
+  pushes changes to the user's open sessions. Inbox actions only reach the caller's own entries.
+  Java, .NET and Python.
+- **Figma.** The library uses Figma's native slots and component properties for every component, and
+  ships with a self-test. It is published as the
+  [Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777) on Figma
+  Community. **Import from Figma** turns a file into `specs/ui` pages and routes in one step:
+  `mvn io.mateu:mateu-bundle-maven-plugin:figma`, IntelliJ or VS Code. Still a preview.
+- **The Mateu Explorer** — every component, page template, archetype, behaviour and distributed-UI
+  pattern running live with its code, at [explorer.mateu.io](https://explorer.mateu.io) (preview).
+  Building it found and fixed a series of framework bugs.
+- **Performance.** Mateu's own assets are served gzip-compressed by every Java adapter and by the
+  .NET and Python servers: a Vaadin first load on Fast 3G with a 4× CPU slowdown goes from 14.4 s to
+  4.6 s to first content (2.6 MB → 0.65 MB of JavaScript). Static bundles write pre-compressed `.gz`
+  siblings. Record shapes are read once per class, which roughly halves the server time of a simple
+  request. Method and numbers: `design/performance/baseline-2026-11.md`; a first-load budget runs
+  in CI.
+- **Security: locked fields.** A field that a YAML partial or business component locks
+  (`eyesOnly`, `readOnlyUnless`…) never takes a client-posted value, also when the partial is drawn
+  inside a Java page, and access keys are applied per caller. Java, .NET and Python.
+
 ## Upgrading
 
 - **From a 3.0 beta**: set the Mateu version to `3.0.0` (the BOM, `<mateu.version>`, the NuGet and

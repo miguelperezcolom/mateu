@@ -16,6 +16,11 @@ Mateu is a way to define **business UIs once, agnostically**:
 The backend is an option, not the definition. Docs: **https://mateu.io** — start at
 [Choose your path](https://mateu.io/start-here/choose-your-path/).
 
+See everything running: the **[Mateu Explorer](https://explorer.mateu.io)** shows every component,
+page template, archetype and pattern live, next to its code. Designing first? Duplicate the
+**[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)** on Figma
+Community and import your screens as YAML.
+
 ---
 
 ## Why Mateu

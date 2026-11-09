@@ -107,3 +107,5 @@ page-header elements shared by every template are documented once in
 ## When to use it
 
 Use hero search when **searching is the task** and the page is an entry point (public catalogs, pickers, knowledge bases). Prefer a plain `AutoCrud`/`Listing` when the user works the collection (bulk edits, exports, dense scanning).
+
+**See it live in the Explorer:** [Hero search](https://explorer.mateu.io/archetypes/overview/hero-search) · [Hero search page](https://explorer.mateu.io/page-templates/templates/hero-search-page)

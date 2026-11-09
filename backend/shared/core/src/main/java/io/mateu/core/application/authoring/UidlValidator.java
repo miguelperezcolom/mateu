@@ -255,9 +255,7 @@ public final class UidlValidator {
 
     /** The page's own declared action ids, unless a view model is named (it owns the actions). */
     private void prepareActionCheck(MappingNode root, boolean applies) {
-      if (!applies
-          || !blank(scalarText(get(root, "viewModel")))
-          || !blank(scalarText(get(root, "modelView")))) {
+      if (!applies || !blank(scalarText(get(root, "viewModel")))) {
         return;
       }
       declaredActions = new HashSet<>();

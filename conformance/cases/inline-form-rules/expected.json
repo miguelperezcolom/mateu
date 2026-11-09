@@ -1,0 +1,164 @@
+{
+  "commands" : [ {
+    "data" : "Inline form rules",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "reference",
+                        "label" : "Reference",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "content" : {
+                          "children" : [ {
+                            "children" : [ {
+                              "children" : [ {
+                                "metadata" : {
+                                  "colspan" : 1,
+                                  "dataType" : "string",
+                                  "fieldId" : "contact-phone",
+                                  "label" : "Phone",
+                                  "optionsColumns" : 1,
+                                  "sliderMax" : 100,
+                                  "stereotype" : "regular",
+                                  "type" : "FormField"
+                                },
+                                "type" : "ClientSide"
+                              } ],
+                              "metadata" : {
+                                "type" : "FormRow"
+                              },
+                              "type" : "ClientSide"
+                            }, {
+                              "children" : [ {
+                                "metadata" : {
+                                  "colspan" : 1,
+                                  "dataType" : "string",
+                                  "fieldId" : "contact-email",
+                                  "label" : "Email",
+                                  "optionsColumns" : 1,
+                                  "sliderMax" : 100,
+                                  "stereotype" : "regular",
+                                  "type" : "FormField"
+                                },
+                                "type" : "ClientSide"
+                              } ],
+                              "metadata" : {
+                                "type" : "FormRow"
+                              },
+                              "type" : "ClientSide"
+                            } ],
+                            "metadata" : {
+                              "autoResponsive" : true,
+                              "expandColumns" : true,
+                              "maxColumns" : 1,
+                              "type" : "FormLayout"
+                            },
+                            "type" : "ClientSide"
+                          } ],
+                          "metadata" : {
+                            "type" : "VerticalLayout"
+                          },
+                          "style" : "width: 100%;",
+                          "type" : "ClientSide"
+                        },
+                        "type" : "CustomField"
+                      },
+                      "style" : "width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Inline form rules",
+          "pageType" : "form",
+          "title" : "Inline form rules",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "contact" : {
+          "email" : "buyer@acme.test",
+          "phone" : "600 000 000"
+        },
+        "reference" : "PO-1"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "rules" : [ {
+        "action" : "SetDataValue",
+        "expression" : "true",
+        "fieldAttribute" : "disabled",
+        "fieldName" : "reference",
+        "filter" : "true",
+        "result" : "Continue"
+      } ],
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "contact" : {
+        "email" : "buyer@acme.test",
+        "phone" : "600 000 000"
+      },
+      "contact-email" : "buyer@acme.test",
+      "contact-phone" : "600 000 000",
+      "reference" : "PO-1"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

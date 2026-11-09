@@ -123,28 +123,6 @@ public @interface App {
   String accentColor() default "";
 
   /**
-   * Ignored. The accent strip was the Vaadin shell's take on Redwood's colour strip, but Redwood
-   * removes that strip as soon as an app brings its own brand (Redwood Cobranding: "visual elements
-   * like the strip and data textures are removed to avoid conflicting branding"), so no renderer
-   * draws one any more; the app's accent goes to the Section dash instead (see {@link
-   * #accentColor()}).
-   *
-   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
-   *     through {@link #accentColor()}.
-   */
-  @Deprecated(since = "3.0-beta.15", forRemoval = true)
-  String accentStrip() default "";
-
-  /**
-   * Ignored, like {@link #accentStrip()}: Mateu no longer draws an accent strip.
-   *
-   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
-   *     through {@link #accentColor()}.
-   */
-  @Deprecated(since = "3.0-beta.15", forRemoval = true)
-  int accentStripSeed() default 7;
-
-  /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the
    * ones derived automatically from the app's metadata. A host embedding the app checks it provides
    * all of them and reports what is missing instead of rendering a broken screen — compatibility by
@@ -170,6 +148,26 @@ public @interface App {
    */
   @Experimental("live header values (3.0-alpha, E2 patterns)")
   boolean liveUpdates() default false;
+
+  /**
+   * OS-LEVEL NOTIFICATIONS: while the app is not in front, a new unread inbox entry and a
+   * background task that finished are also shown as notifications of the operating system (the Web
+   * Notifications API in a browser, a local notification on a phone, a system notification from the
+   * IDE). Opt-in, and the renderer asks the user's permission only when the user asks for it (a
+   * "Notify me on this device" control in the bell / task center) — never on load.
+   */
+  @Experimental("progress and notifications (3.0)")
+  boolean osNotifications() default false;
+
+  /**
+   * The notification bell without a {@link io.mateu.uidl.interfaces.NotificationsSupplier}: the
+   * inbox lists what the {@link io.mateu.uidl.interfaces.InboxStore} keeps for the caller — every
+   * {@code Message} sent with persistence {@code inbox} to a signed-in user. An app that implements
+   * {@code NotificationsSupplier} has the bell anyway (the store's entries are merged into its
+   * list).
+   */
+  @Experimental("progress and notifications (3.0)")
+  boolean inbox() default false;
 
   /**
    * IDLE-SESSION WARNING: after this many minutes without any activity (keyboard, pointer, scroll —

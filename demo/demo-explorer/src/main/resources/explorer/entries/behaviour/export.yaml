@@ -1,0 +1,21 @@
+id: export
+area: behaviour
+group: listings
+title: Exports (CSV, Excel)
+covers: [behaviour:export]
+description: |
+  `csvExportable()` / `excelExportable()` / `pdfExportable()` ask for the Export buttons. Mateu
+  owns the buttons, the columns, the rows — those of the **current search and filters** — and the
+  download; the file itself is written by a `ListingExporter` bean, because Mateu ships UI only.
+  CSV has a built-in exporter; an Excel or PDF button appears only while an exporter for that
+  format is registered — here `SpreadsheetExporter`, which writes Excel's XML format with no library.
+
+  Try it: open the CRUD, search `madrid`, press **Export CSV** — the file has the Madrid orders
+  only; then **Export Excel** and open `orders.xls`.
+examples:
+  - title: Orders
+    yaml: specs/ui/explorer/behaviour/export/open.yaml
+pages:
+  - {route: x/behaviour/export, viewModel: io.mateu.explorer.examples.behaviour.export.ExportOrdersCrud}
+code:
+  - {label: SpreadsheetExporter.java, path: src/main/java/io/mateu/explorer/examples/behaviour/export/SpreadsheetExporter.java}

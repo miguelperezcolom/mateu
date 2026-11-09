@@ -39,3 +39,5 @@ slice server-side.
 
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — the smart search bar being snapshotted
 - [Bulk actions](/ux-patterns/bulk-actions/) — act on the rows the view surfaces
+
+**See it live in the Explorer:** [Saved views & column chooser](https://explorer.mateu.io/behaviour/listings/saved-views)

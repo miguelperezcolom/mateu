@@ -506,7 +506,7 @@ test('end to end in Node: the properties become the requests the real chains sen
   const sent = []
   globalThis.fetch = async (url, init) => {
     sent.push({ url, body: JSON.parse(init.body || '{}'), headers: init.headers })
-    const body = url.endsWith('/components/_/action') ? fixture('app.json') : fixture('load-form.json')
+    const body = sent[sent.length - 1].body.actionId === '__load__' ? fixture('app.json') : fixture('load-form.json')
     return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } })
   }
   const emitted = []
@@ -530,10 +530,11 @@ test('end to end in Node: the properties become the requests the real chains sen
     })
     await bridge.bootEmbedded(bridge, rt, config)
     // 1. the App of the mount: the bootstrap, with the host's identity
-    assert.equal(sent[0].url, 'https://erp.acme.com/mateu/mateu/v3/components/_/action')
+    assert.equal(sent[0].url, 'https://erp.acme.com/mateu/mateu/v3/sync/_no_route')
+    assert.equal(sent[0].body.actionId, '__load__')
     assert.equal(sent[0].headers.Authorization, 'Bearer host-token')
     // 2. the screen: the composed route, the seed and the app context, with the same identity
-    const load = sent.find((s) => s.url.includes('/mateu/v3/sync/'))
+    const load = sent.find((s) => s.url.includes('/mateu/v3/sync/') && s.body.actionId !== '__load__')
     assert.equal(load.url, 'https://erp.acme.com/mateu/mateu/v3/sync/person/7')
     assert.equal(load.body.route, '/person/7')
     assert.deepEqual(load.body.componentState, { name: 'Seeded' })

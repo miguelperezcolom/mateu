@@ -186,6 +186,11 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   row-gap: 28px;
 }
 
+/* A Badge's icons (iconOnLeft / iconOnRight): inside the chip, the size of its text. */
+.mateu-badge-icon { font-size: 1em; vertical-align: -0.125em; }
+.mateu-badge-icon:first-child { margin-inline-end: 0.3em; }
+.mateu-badge-icon:last-child { margin-inline-start: 0.3em; }
+
 /* Rows of the passenger list: more air than the cockpit grid (they breathe on their own). */
 .mateu-list-item {
   margin-bottom: 40px !important;
@@ -1796,7 +1801,7 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 .mateu-callout { border-inline-start: 4px solid var(--mateu-tone, var(--oj-core-brand-color, #2b6a9e)); margin-block-end: var(--oj-core-spacing-2x, 8px); }
 .mateu-callout-icon { font-size: 28px; color: var(--mateu-tone, var(--oj-core-brand-color, #2b6a9e)); }
 
-.mateu-comments, .mateu-messages, .mateu-files, .mateu-processes, .mateu-result-links, .mateu-directory-links, .mateu-workflow-steps { list-style: none; margin: 0; padding: 0; }
+.mateu-comments, .mateu-messages, .mateu-files, .mateu-processes, .mateu-directory-links, .mateu-workflow-steps { list-style: none; margin: 0; padding: 0; }
 .mateu-comment, .mateu-message { display: flex; gap: 10px; padding-block: 8px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
 .mateu-comment-reply { border-inline-start: 2px solid var(--oj-core-divider-color, #ddd); padding-inline-start: 10px; }
 .mateu-file { gap: 4px; padding-block: 8px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
@@ -1848,14 +1853,10 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 .mateu-bpmn-label, .mateu-bpmn-flow-label { font-size: 12px; fill: var(--oj-core-text-color-primary, #161513); font-family: var(--oj-typography-font-family, sans-serif); }
 
 .mateu-workflow-step { display: flex; gap: 12px; align-items: flex-start; margin-block: 8px; }
-.mateu-workflow-num, .mateu-step-num { flex: 0 0 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+.mateu-workflow-num { flex: 0 0 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
   background: var(--oj-core-brand-color, #2b6a9e); color: var(--oj-core-text-color-inverse, #fff); font-weight: 600; }
 .mateu-workflow-card { flex: 1 1 auto; }
-.mateu-step-header { gap: 10px; }
 
-.mateu-result { border-inline-start: 4px solid var(--mateu-tone, var(--oj-core-divider-color, #ddd)); }
-.mateu-result-icon { font-size: 40px; color: var(--mateu-tone, var(--oj-core-text-color-secondary, #666)); }
-.mateu-result-image { max-width: 12rem; max-height: 12rem; }
 
 .mateu-cookie-consent { position: fixed; inset-inline: 16px; z-index: 900; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   box-shadow: var(--oj-core-box-shadow-lg, 0 8px 24px rgba(0,0,0,.2)); background: var(--oj-core-bg-color-content, #fff); }
@@ -2131,6 +2132,10 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-meter-success { background: var(--oj-core-success-3, rgb(80, 130, 35)); }
 .mateu-meter-warning { background: var(--oj-core-warning-3, rgb(172, 99, 12)); }
 .mateu-meter-error { background: var(--oj-core-danger-3, rgb(199, 70, 52)); }
+/* ProgressBar `theme` (success / error / warning): the bar's fill takes the tone (progressBarAtomOf
+   stamps mateu-tone-*; nothing painted with it, so every bar was the brand colour) */
+oj-progress-bar[class*="mateu-tone-"] { --oj-progress-bar-value-bg-color: var(--mateu-tone); }
+oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color: var(--mateu-tone) !important; }
 /* a StatusItem / status text in the info tone: JET has no oj-text-color-info */
 .mateu-text-info { color: var(--oj-core-info-3, rgb(0, 104, 140)); }
 /* HeroSection in the content (heroAtomOf): `centered` centres its texts, and over an `image` (darkened
@@ -2244,3 +2249,12 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
   border-radius: 4px;
 }
 
+
+/* FullWidth: its buttons fill the row (a plain button bar keeps their natural width) */
+.mateu-buttons-full > oj-button {
+  flex: 1 1 0;
+  margin-inline-start: 0;
+}
+.mateu-buttons-full > oj-button + oj-button {
+  margin-inline-start: var(--oj-core-spacing-1x, 4px);
+}

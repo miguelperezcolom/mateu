@@ -86,3 +86,5 @@ Demo: `demo-admin-panel` → `/record-merge-demo` (also **F9**, or **MRG** in th
 
 - [Optimistic locking](/ux-patterns/optimistic-locking/) — when the conflict is detected
 - [Comparison card](/ux-patterns/comparison-card/) — compare offers rather than records
+
+**See it live in the Explorer:** [RecordMerge (compare & merge)](https://explorer.mateu.io/components/listings-and-data/record-merge)

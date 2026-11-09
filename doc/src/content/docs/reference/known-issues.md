@@ -132,22 +132,17 @@ uses a file picker for photo capture and searches only the loaded options of a s
 
 In 3.0 the .NET and Python servers are **supported with documented gaps**
 ([what that means](/reference/support-policy/#how-mature-each-part-is-in-30)). They emit the same
-wire as Java for the features they support. These Java
-features are **not ported yet**; an app that needs them must be written in Java for now:
+wire as Java for the features they support, held to the conformance corpus with empty
+allow-lists. The gaps documented before 3.0 GA — the static-bundle exporter, `@App(backLink)`, a
+YAML definition's `actions:`, `HeroSearch` with a separate filters type, `@Inline` nested forms, .NET
+length/pattern validation, the fluent listing's grid options, page breadcrumbs and the rest — are
+closed ([what the ports closed](/reference/parity/#what-the-ports-closed-for-30-ga)). What a port
+still cannot declare is listed in [What is still Java-only](/reference/parity/#what-is-still-java-only);
+the port idioms (the same screen reached another way) are in
+[Port idioms](/reference/parity/#port-idioms-same-wire-different-declaration).
 
-- the editable-view orchestrators — `EditableView`, `AutoEditableView`, `MasterDetailView` (a read
-  view with an Edit button that flips to an editor and back). **Workaround:** a CRUD with
-  `editInDrawer`, or a view whose action returns the editor;
-- class-level `@AutoSave` (the archetypes that auto-save, such as `CollectionDetail`, do work);
-- `@ViewToolbarButton` — a CRUD record's view page has the fixed Back / Add another / Edit toolbar;
-- `type: AppShell` YAML definitions — author the shell in code (`AppShell` + `AppSupplier`);
-- the static-bundle exporter (`mateu-bundle:bundle` is a Java build plugin);
-- `Dialog` placement and `draggable`/`resizable`;
-- `@MainFilter`, `@HiddenIn*` and `@Section(sticky, columns, style)`;
-- Python only: a class-level `read_only_unless` — put it on each field.
-
-Listing filters (ranges, multi-select) are applied in memory in both ports; override `find` to push
-them to your database. The complete list is [What is still Java-only](/reference/parity/#what-is-still-java-only).
+Listing filters (ranges, multi-select) are applied in memory in both ports by default; override
+`find` (it receives the typed criteria) to push them to your database.
 
 ### .NET 8 leaves Microsoft support on 2026-11-10
 
@@ -164,6 +159,11 @@ runtime itself stop then. **3.1 drops `net8.0`.**
 - **The IntelliJ plugin supports IntelliJ IDEA 2025.2 and later** (build `252` on, no upper bound).
   Each build is checked by the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and
   2026.3; a later line installs, and joins that list once it ships.
+- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** Apps installed from 3.0-beta.53
+  or earlier (on IntelliJ IDEA Community 2025.2) ask to be reinstalled once, and cannot update in
+  place. Settings and the list of UIs are kept. See [Updates](/native/desktop-app/#updates).
+- **On Linux and Windows the desktop app still shows IntelliJ IDEA's splash screen and About box**,
+  and its launcher files carry IntelliJ's names. Only the macOS app is renamed throughout.
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).

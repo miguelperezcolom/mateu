@@ -31,6 +31,8 @@ internal sealed partial class ReflectionMapper
             "edit" => [new("Cancel", "cancel-edit") { ButtonStyle = "tertiary" }, new("Save", "save") { ButtonStyle = "primary" }],
             _ /* new */ => [new("Cancel", "cancel-new") { ButtonStyle = "tertiary" }, new("Save", "create") { ButtonStyle = "primary" }],
         });
+        // The crud's [ViewToolbarButton] methods lead the view page's toolbar (Java's ViewToolbarBuilder)
+        if (mode == "view") toolbar.InsertRange(0, ViewToolbarButtons(crudType));
         // The edit drawer's "Save and next" (CrudDisplay.SaveAndNext, the Redwood
         // spPrimaryActionAndNext): saves and moves the drawer on to the next row — beside Save
         // (mirrors Java's CrudFormComponentBuilder).
@@ -44,7 +46,7 @@ internal sealed partial class ReflectionMapper
             {
                 TitleIsText = TitledByData(element, entity) ? true : null,
             }, null,
-            DetailContent(entity, mode) ?? FormCards(element, entity, readOnly: mode == "view"))
+            InCrudForm(mode, () => DetailContent(entity, mode) ?? FormCards(element, entity, readOnly: mode == "view")))
             with { Style = "max-width:900px;margin: auto;" };
         // The entity's field values ARE the form state: seed them into initialData (and, via
         // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values
@@ -56,15 +58,19 @@ internal sealed partial class ReflectionMapper
             // mediator above the form for them to bubble to, as in Java), and the web client only
             // SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
             // Saving validates the form on the client first.
-            [.. FieldActions(element), .. toolbar.Select(b => new ActionDto(b.ActionId!,
-                ValidationRequired: b.ActionId is "create" or "save"))],
+            // the entity's nested data objects' actions (nested-form-action-<field>-<method>) lead,
+            // as Java's ActionMapper advertises them on the entity's record form
+            [.. NestedFormActions(element), .. FieldActions(element), .. toolbar.Where(b => !b.ActionId!.StartsWith(ActionOnViewPrefix))
+                .Select(b => new ActionDto(b.ActionId!, ValidationRequired: b.ActionId is "create" or "save")),
+                .. mode == "view" ? ViewToolbarActions(crudType) : []],
             [], "width: 100%;", null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
             // the entity's constraints, checked on the client before Save like on any form (Python
             // parity; without them a required field only failed on the server, with no field marked)
-            Validations = mode == "view" ? [] : MapValidations(element),
+            Validations = mode == "view" ? []
+                : MapValidations(element, EditableProperties(element).Where(p => !HiddenInForm(p, mode)).ToList()),
             // A create/edit form IS a form page (Java's crud forms answer pageType "form") and
             // guards its unsaved changes, like Java's (automatic there): leaving it half-typed asked nothing.
             // A record's view is a detail page (Java's crud view answers "detail"); the crud's own
@@ -120,8 +126,8 @@ internal sealed partial class ReflectionMapper
             .Where(p => readOnly || p.Find<VersionAttribute>() is null).ToList();
         // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
         // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
-        if (props.Any(p => p.Find<TabAttribute>() != null))
-            return [SectionCardOfBody((ClientSideComponentDto)TabLayout(type, props, instance, readOnly))];
+        if (props.Any(p => p.Find<TabAttribute>() != null || p.Find<SubresourceAttribute>() != null))
+            return [SectionCardOfBody(TabbedBody(type, props, instance, readOnly))];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
         var sectionZones = new List<string>();
@@ -167,7 +173,7 @@ internal sealed partial class ReflectionMapper
                 sections.Select((s, i) => (ComponentDto)new ClientSideComponentDto(
                     new DivMetadataDto(), null,
                     [SectionCard(
-                        s.Title, MapFields(s.Props, instance, readOnly),
+                        s.Title, MapFields(s.Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
                         sectionAttrs[i], type, s.Props, titled: true)],
                     FoldedColumnStyle, null, null)).ToList(),
                 null, null, null)];
@@ -185,7 +191,7 @@ internal sealed partial class ReflectionMapper
         // full-width VerticalLayout; a single section is untitled (Java parity).
         var titled = sections.Count > 1;
         var cards = sections.Select((s, i) => (ComponentDto)SectionCard(
-            s.Title, MapFields(s.Props, instance, readOnly),
+            s.Title, MapFields(s.Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
             sectionAttrs[i], type, s.Props, titled)).ToList();
         if (titled)
             return [new ClientSideComponentDto(
@@ -208,7 +214,7 @@ internal sealed partial class ReflectionMapper
     {
         ComponentDto CardOf(int i) =>
             SectionCard(sections[i].Title,
-                MapFields(sections[i].Props, instance, readOnly),
+                MapFields(sections[i].Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
                 sectionAttrs[i], type, sections[i].Props, titled: true);
 
         // Consolidated onto the one responsive grid (coherence-plan #9): each zone is a grid track
@@ -245,32 +251,88 @@ internal sealed partial class ReflectionMapper
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.
     // Developer-declared tabs always carry the alternative group semantics; they are adaptable
     // (renderers may degrade them to an accordion) only when the class opted into [AutoLayout].
-    private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
+    /// <summary>A tabbed form's body: the properties declared BEFORE the first [Tab] in a form layout
+    /// of their own above the tab strip, then the tabs (Java's FormTabArranger noTabFields +
+    /// FormLayoutBuilder).</summary>
+    private List<ComponentDto> TabbedBody(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
-        var tabs = new List<(string name, bool open, List<PropertyInfo> props, List<ClientSideComponentDto> fields)>();
+        // every [Subresource] that opens no [Tab] of its own moves into the tab it names (Java's
+        // Subresources.place)
+        var movable = props.Where(p => p.Find<SubresourceAttribute>() is not null && p.Find<TabAttribute>() is null).ToList();
+        var rest = props.Where(p => !movable.Contains(p)).ToList();
+        var first = rest.FindIndex(p => p.Find<TabAttribute>() is not null);
+        if (first < 0) first = rest.Count;
+        var body = new List<ComponentDto>();
+        if (first > 0)
+        {
+            var columns = FormColumns(type);
+            body.Add(Client(new FormLayoutMetadataDto { MaxColumns = columns }, null,
+                FormRows(MapFields(rest.Take(first).ToList(), instance, readOnly), columns)));
+        }
+        var groups = TabGroups(rest.Skip(first));
+        PlaceSubresources(groups, movable);
+        if (groups.Count > 0) body.Add(TabLayout(type, groups, instance, readOnly));
+        return body;
+    }
+
+    /// <summary>A tab of a tabbed form: its label, [Tab] flags and properties.</summary>
+    private sealed record TabGroup(string Name, bool Open, string? Key, string? Show, List<PropertyInfo> Props);
+
+    /// <summary>Consecutive properties sharing a [Tab] name.</summary>
+    private static List<TabGroup> TabGroups(IEnumerable<PropertyInfo> props)
+    {
+        var groups = new List<TabGroup>();
         var current = "Tab";
         foreach (var p in props)
         {
             var attr = p.Find<TabAttribute>();
             if (attr?.Name is { } n) current = n;
-            if (tabs.Count == 0 || tabs[^1].name != current)
+            if (groups.Count == 0 || groups[^1].Name != current)
                 // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
-                tabs.Add((current, attr?.Open ?? false, new List<PropertyInfo>(), new List<ClientSideComponentDto>()));
-            tabs[^1].props.Add(p);
-            // MapFields: a [SeparatorBefore] inside a tab paints its divider too (it was dropped)
-            tabs[^1].fields.AddRange(MapFields([p], instance, readOnly));
+                groups.Add(new TabGroup(current, attr?.Open ?? false, attr?.Key, attr?.Show, []));
+            groups[^1].Props.Add(p);
         }
+        return groups;
+    }
+
+    private ComponentDto TabLayout(Type type, List<TabGroup> groups, object instance, bool readOnly)
+    {
         // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
         // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
+        // a tab whose Show flag is off is not offered at all, its fields with it (Java's
+        // FormLayoutBuilder + FeatureFlagGate); the tab the URL names (its Key as the route's last
+        // segment) is the open one
+        groups = groups.Where(g => RoutedTabs.Shows(g.Show)).ToList();
+        var routedKey = RoutedTabs.RoutedTabKey(groups.Select(g => g.Key));
         var columns = FormColumns(type);
-        var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
-            new TabMetadataDto(T(tb.name)) { Active = tb.open }, null,
-            [Client(new FormLayoutMetadataDto
+        var tabComps = groups.Select(g =>
+        {
+            var label = T(g.Name);
+            var count = g.Props.Count(p => p.Find<SubresourceAttribute>() is not null);
+            var fields = new List<ClientSideComponentDto>();
+            foreach (var p in g.Props)
             {
-                MaxColumns = columns,
-                LabelsAside = LabelsAsideInference.LabelsAside(tb.props, columns, type, T),
-            }, null, FormRows(tb.fields, columns))])).ToList();
+                if (p.Find<SubresourceAttribute>() is not null || (IsOrchestratorType(p.PropertyType) && !IsEmbeddedView(p.PropertyType)))
+                    fields.Add(MapOrchestratorField(p, instance, columns, (label, count, g.Props.Count)));
+                else
+                    // MapFields: a [SeparatorBefore] inside a tab paints its divider too
+                    fields.AddRange(MapFields([p], instance, readOnly));
+            }
+            return (ComponentDto)Client(
+                new TabMetadataDto(label)
+                {
+                    Active = routedKey is not null ? routedKey == g.Key : g.Open,
+                    RouteKey = string.IsNullOrWhiteSpace(g.Key) ? null : g.Key,
+                    Badge = SubresourceBadge(g.Props, instance),
+                }, null,
+                [Client(new FormLayoutMetadataDto
+                {
+                    MaxColumns = columns,
+                    LabelsAside = LabelsAsideInference.LabelsAside(
+                        g.Props.Where(p => p.Find<SubresourceAttribute>() is null).ToList(), columns, type, T),
+                }, null, FormRows(fields, columns))]);
+        }).ToList();
         var meta = new TabLayoutMetadataDto
         {
             GroupRelationship = "alternative",
@@ -329,12 +391,17 @@ internal sealed partial class ReflectionMapper
     /// (mirrors Java's PageFormBuilder.getFormColumns; see <see cref="FormColumnsInference"/>).</summary>
     internal static int FormColumns(Type? type) => FormColumnsInference.FormColumns(type);
 
+    /// <summary>A section's column count: its [Section(Columns)] when set, else the form's.</summary>
+    private static int SectionColumns(SectionAttribute? section, Type? formType) =>
+        section?.Columns >= 1 ? section.Columns : FormColumns(formType);
+
     private ClientSideComponentDto SectionCard(
         string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null,
         Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false,
         int? columnsOverride = null)
     {
-        var columns = columnsOverride ?? FormColumns(formType);
+        // [Section(Columns = n)] wins over the form's count (Java's SectionFormRenderer.sectionColumns)
+        var columns = columnsOverride ?? (section?.Columns >= 1 ? section.Columns : FormColumns(formType));
         // [Section(PropertyList = true)]: every data field becomes a read-only property row
         // (label left / value right, divider between rows), stacked full-width — so the body is a
         // plain vertical layout instead of the responsive form layout (mirrors Java's
@@ -376,14 +443,22 @@ internal sealed partial class ReflectionMapper
         if (section?.Frameless == true)
             return Client(new DivMetadataDto(), null, [body]) with
             {
-                Style = "flex: 1; min-width: 0; width:100%;",
+                Style = "flex: 1; min-width: 0; width:100%;" + section.Style,
             };
         // A titled section (one of several stacked or zoned sections) carries its title as an <h3>
         // Text inside the Card, and the Card takes the flex style (mirrors Java's SectionFormRenderer
         // when the section has a heading).
         if (titled && !string.IsNullOrWhiteSpace(title))
         {
-            var heading = hasTitleRow
+            // the [Inline] nested objects' triggers: [Toolbar] on the title row, [Button] below
+            // (Java's SectionFormRenderer.buildTitleRow + the button row; multi-section path only)
+            var (inlineToolbar, inlineButtons) = InlineTriggers(props);
+            var heading = inlineToolbar.Count > 0
+                ? SectionTitleRow(title, [.. titleButtons, .. inlineToolbar]) with
+                {
+                    Metadata = new HorizontalLayoutMetadataDto { Spacing = true },
+                }
+                : hasTitleRow
                 ? SectionTitleRow(title, titleButtons)
                 : Client(new TextMetadataDto(T(title!)) { Container = "h3" }, null, []) with
                 {
@@ -393,25 +468,48 @@ internal sealed partial class ReflectionMapper
             {
                 Style = "width: 100%;",
             };
-            var content = Client(new VerticalLayoutMetadataDto(), null, [heading, inner]);
+            var contentChildren = new List<ComponentDto> { heading, inner };
+            if (inlineButtons.Count > 0)
+                contentChildren.Add(Client(new HorizontalLayoutMetadataDto { Spacing = false }, null, inlineButtons) with
+                {
+                    Style = "justify-content: flex-end; width: 100%;",
+                });
+            var content = Client(new VerticalLayoutMetadataDto(), null, contentChildren) with
+            {
+                Style = string.IsNullOrEmpty(section?.Style) ? null : section.Style,
+            };
             return Client(new CardMetadataDto(content), null, []) with
             {
-                CssClasses = "mateu-section",
-                Style = "flex: 1; min-width: 0; width:100%;",
+                CssClasses = SectionCssClasses(section),
+                Style = "flex: 1; min-width: 0; width:100%;" + StickyStyle(section),
             };
         }
         // A single untitled section maps to an outlined Card carrying the "mateu-section" marker
         // class; its body nests under metadata.content as Div → VerticalLayout → body (mirrors Java's
         // SectionFormRenderer / CardMapper). The section TITLE does not travel as a FormSection — the
         // golden simple sections carry no title member on the Card.
-        return SectionCardOfBody(body);
+        return section?.Sticky == true
+            ? SectionCardOfBody(body) with { CssClasses = SectionCssClasses(section), Style = StickyStyle(section) }
+            : SectionCardOfBody(body);
     }
+
+    /// <summary>The marker class every section card carries, plus the sticky one (Java's
+    /// SectionFormRenderer.sectionCssClasses).</summary>
+    private static string SectionCssClasses(SectionAttribute? section) =>
+        "mateu-section" + (section?.Sticky == true ? " mateu-section--sticky" : "");
+
+    /// <summary>A [Section(Sticky = true)] card is pinned while the rest scrolls (Java's stickyStyle).</summary>
+    private static string StickyStyle(SectionAttribute? section) =>
+        section?.Sticky == true ? "position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;" : "";
 
     /// <summary>Wraps an arbitrary body component in an untitled mateu-section Card
     /// (Card → Div → VerticalLayout → body) — the shape a plain form section AND a tabbed form use.</summary>
-    private static ClientSideComponentDto SectionCardOfBody(ClientSideComponentDto body)
+    private static ClientSideComponentDto SectionCardOfBody(ClientSideComponentDto body) =>
+        SectionCardOfBody([body]);
+
+    private static ClientSideComponentDto SectionCardOfBody(IReadOnlyList<ComponentDto> body)
     {
-        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [body]) with
+        var vlayout = Client(new VerticalLayoutMetadataDto(), null, body) with
         {
             Style = "width: 100%;",
         };
@@ -424,7 +522,8 @@ internal sealed partial class ReflectionMapper
 
     private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
-        var fieldId = Naming.CamelCase(p.Name);
+        // inside a nested form the id carries the nested fields' prefix ("supplier-name")
+        var fieldId = PrefixedFieldId(p);
         // [ContentSlot]: a hole for managed content — the property's value is irrelevant, the slot
         // is resolved by the server against the content remote (Java: the @ContentSlot branch of
         // ReflectionFormFieldMapper; see MicroFrontendServerResolver)
@@ -441,7 +540,7 @@ internal sealed partial class ReflectionMapper
         // [Text]: the value shown as a text block bound to the state (Java: the @Text branch of
         // ReflectionFormFieldMapper).
         if (p.Find<TextAttribute>() is { } text)
-            return Client(new TextMetadataDto("${state." + fieldId + "}")
+            return Client(new TextMetadataDto(StateExpression(fieldId))
             {
                 Container = text.Container,
                 Size = text.Size,
@@ -453,7 +552,7 @@ internal sealed partial class ReflectionMapper
         // an IOptionsSupplier view wins (its options may carry Children → tree selects);
         // enums keep contributing their constants
         var options = instance is IOptionsSupplier supplier
-                      && supplier.Options(fieldId) is { Count: > 0 } supplied
+                      && supplier.Options(Naming.CamelCase(p.Name)) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
             : (t.IsEnum ? t : ElementEnum(t)) is { } choices
                 // value = the constant name; label = its [Label], else the name humanized
@@ -466,6 +565,7 @@ internal sealed partial class ReflectionMapper
         var multiline = p.Find<MultilineAttribute>() != null;
         var stereotype = StereotypeOf(p, plainText, multiline);
 
+        // [ReadOnly] on the property locks it (Java's field-level @ReadOnly → readOnly on the wire);
         // [ReadOnlyUnless] (field or class level): read-only unless the caller is authorized.
         var readOnlyByPermission =
             !Authorized(p.Find<ReadOnlyUnlessAttribute>())
@@ -476,7 +576,7 @@ internal sealed partial class ReflectionMapper
             Required = required,
             // A plain-text field carries the "plainText" stereotype, not a readOnly flag — Java does
             // not set readOnly on it (the money-field golden's plainText total has no readOnly).
-            ReadOnly = readOnly || readOnlyByPermission,
+            ReadOnly = readOnly || p.Find<ReadOnlyAttribute>() != null || readOnlyByPermission,
             Multiline = multiline,
             Options = options,
             TreeLeavesOnly = p.Find<TreeSelectAttribute>()?.LeavesOnly ?? false,
@@ -591,6 +691,12 @@ internal sealed partial class ReflectionMapper
                 continue;
             // an island (adapted value / embedded view) keeps its own state, not the host's
             if (IsIslandProperty(p)) continue;
+            // a nested data object travels as a nested map (and, in the fragment state, flattened)
+            if (IsNestedFormProperty(p))
+            {
+                data[Naming.CamelCase(p.Name)] = p.GetValue(instance) is { } nested ? NestedStateOf(nested) : null;
+                continue;
+            }
             data[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
                 ? GridRows(p, rowType, instance)
                 : InitialValueOf(p.GetValue(instance));
@@ -623,7 +729,7 @@ internal sealed partial class ReflectionMapper
         if (method?.ReturnType == typeof(LongTaskRun)) action = action with { Sse = true };
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
-        return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
+        return ActionOptionsOf(action, options);
     }
 
     /// <summary>A [Toolbar] method as a header toolbar button (Java's @Toolbar).</summary>
@@ -633,11 +739,59 @@ internal sealed partial class ReflectionMapper
         var label = toolbar.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
         return new ButtonDto(T(label), Naming.CamelCase(m.Name))
         {
-            ButtonStyle = string.IsNullOrWhiteSpace(toolbar.ButtonStyle) || toolbar.ButtonStyle == "none"
-                ? null : toolbar.ButtonStyle,
+            ButtonStyle = Unset(toolbar.ButtonStyle),
+            Color = Unset(toolbar.ButtonColor),
+            Size = Unset(toolbar.ButtonSize),
+            SeparatorBefore = toolbar.SeparatorBefore,
             Shortcut = m.Find<ShortcutAttribute>()?.Keys,
             Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
         };
+    }
+
+    /// <summary>A [Toolbar] appearance member: blank or "none" means unset, so the renderer keeps
+    /// its default (Java's ToolbarButtons.styleOf/colorOf/sizeOf).</summary>
+    private static string? Unset(string? value) =>
+        string.IsNullOrWhiteSpace(value) || value == "none" ? null : value;
+
+    /// <summary>The [ListToolbarButton] methods of <paramref name="type"/> as listing toolbar
+    /// buttons and their advertised actions (Java's ToolbarButtons.listToolbarButton /
+    /// toolbarAction): dressed by a [Toolbar] on the same method (style, colour, size, separator),
+    /// ordered by its Order (stable), behaving as an [ActionOptions] on it declares —
+    /// confirmation texts, transport knobs — with the placement's confirmation/selection flags
+    /// OR-ed in. Methods the caller may not see are left out (refused on invocation anyway).</summary>
+    /// <para><paramref name="plain"/> (a listing with no interaction capability, Java's
+    /// PageListingBuilder): an unlabelled button carries the bare (camelCased) method name, as
+    /// Java's does there; a crud's or a bridged listing's is humanised and translated.</para>
+    private (List<ButtonDto> Buttons, List<ActionDto> Actions) BulkToolbar(Type type, string prefix, bool bubble,
+        bool plain = false)
+    {
+        var buttons = new List<ButtonDto>();
+        var actions = new List<ActionDto>();
+        foreach (var m in type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
+                                 && Authorized(m.Find<EyesOnlyAttribute>()))
+                     .OrderBy(m => m.Find<ToolbarAttribute>()?.Order ?? 0))
+        {
+            var bulk = m.Find<ListToolbarButtonAttribute>()!;
+            var look = m.Find<ToolbarAttribute>();
+            var actionId = prefix + Naming.CamelCase(m.Name);
+            var declared = m.Find<LabelAttribute>()?.Value;
+            var label = plain ? declared ?? Naming.CamelCase(m.Name) : T(declared ?? Naming.Humanize(m.Name));
+            buttons.Add(new ButtonDto(label, actionId)
+            {
+                ButtonStyle = Unset(look?.ButtonStyle),
+                Color = Unset(look?.ButtonColor),
+                Size = Unset(look?.ButtonSize),
+                SeparatorBefore = look?.SeparatorBefore ?? false,
+                RowsSelectedRequired = bulk.RowsSelectedRequired,
+            });
+            var action = new ActionDto(actionId, ValidationRequired: false,
+                ConfirmationRequired: bulk.ConfirmationRequired,
+                RowsSelectedRequired: bulk.RowsSelectedRequired,
+                Bubble: bubble);
+            actions.Add(m.Find<ActionOptionsAttribute>() is { } options ? ActionOptionsOf(action, options) : action);
+        }
+        return (buttons, actions);
     }
 
     private ButtonDto MapButton(MethodInfo m)
@@ -658,7 +812,8 @@ internal sealed partial class ReflectionMapper
         a.Caption == b.Caption && a.Zone == b.Zone
         && a.PropertyList == b.PropertyList && a.Frameless == b.Frameless
         && a.EditAction == b.EditAction && a.AddAction == b.AddAction
-        && a.ViewMoreAction == b.ViewMoreAction;
+        && a.ViewMoreAction == b.ViewMoreAction
+        && a.Sticky == b.Sticky && a.Columns == b.Columns && a.Style == b.Style;
 
     // ── Section affordances ([Section(EditAction/AddAction/ViewMoreAction)], Java's
     // SectionAffordances): the named methods' wire ids are their camelCase names.
@@ -714,7 +869,7 @@ internal sealed partial class ReflectionMapper
     /// <summary>Maps the section's properties to field DTOs, inserting a full-width separator
     /// above any [SeparatorBefore] property (mirrors Java's FormLayoutBuilder).</summary>
     private List<ClientSideComponentDto> MapFields(
-        IEnumerable<PropertyInfo> props, object instance, bool readOnly = false)
+        IEnumerable<PropertyInfo> props, object instance, bool readOnly = false, int? columns = null)
     {
         var fields = new List<ClientSideComponentDto>();
         foreach (var p in props)
@@ -722,6 +877,14 @@ internal sealed partial class ReflectionMapper
             if (p.Find<SeparatorBeforeAttribute>() != null)
                 fields.Add(Client(new SeparatorMetadataDto(
                     new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
+            // a property holding a fluent component with nothing in it renders nothing (never a field)
+            if (IsComponentProperty(p) && p.GetValue(instance) is null) continue;
+            // a data object: a nested form, spanning the section's row
+            if (IsNestedFormProperty(p))
+            {
+                fields.Add(MapNestedFormField(p, instance, readOnly, columns ?? FormColumns(p.DeclaringType)));
+                continue;
+            }
             fields.Add(IsIslandProperty(p)
                 ? MapIslandField(p, instance, FormColumns(p.DeclaringType)) ?? MapField(p, instance, readOnly)
                 : MapField(p, instance, readOnly));

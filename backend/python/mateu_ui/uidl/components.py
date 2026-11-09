@@ -42,7 +42,8 @@ class SkeletonVariant(Enum):
 class Text(Component):
     """A simple text block. ``size``: "xl" | "l" | "m" | "s" | "xs" — m (or None) applies
     nothing, the rest enlarge/reduce the font. ``no_margins`` drops the container's block
-    margins, independent of ``size``."""
+    margins, independent of ``size``. ``container`` is the element it renders as (div, p, h1…h6,
+    span…; None = div)."""
 
     text: str = ""
     size: str | None = None
@@ -50,6 +51,7 @@ class Text(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    container: str | None = None
 
 
 @dataclass(frozen=True)
@@ -225,6 +227,8 @@ class Button(Component):
     #: ``actionable: {type: RouteLink, route: products}``). Relative to the mount; may carry
     #: ``${state.x}`` templates the browser interpolates. None = the button runs ``action_id``.
     route: str | None = None
+    #: The button colour (normal | success | error | contrast); None = the renderer's default.
+    color: str | None = None
 
 
 @dataclass(frozen=True)
@@ -272,10 +276,67 @@ class ListingComponent(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The route a row opens (``people/${row.id}``, relative to the mount): rows become
+    #: clickable records — Java's ``Listing.rowRoute``.
+    row_route: str | None = None
+    #: Grid presentation (Java's fluent Listing): zebra rows, column lines, wrapping cells, no
+    #: outer / row borders, every row shown, reorderable headers, the grid's own CSS.
+    row_stripes: bool = False
+    column_borders: bool = False
+    wrap_cell_content: bool = False
+    no_border: bool = False
+    no_row_border: bool = False
+    all_rows_visible: bool = False
+    column_reordering_allowed: bool = False
+    grid_style: str | None = None
+    #: The rest of Java's fluent Listing (3.0 GA parity). ``listing_type``: table | card; None =
+    #: table. ``toolbar``: buttons above the rows. ``size``: the grid's height in rows (0 = the
+    #: renderer's own). ``initial_page``: the page shown first (0-based).
+    listing_type: str | None = None
+    toolbar: tuple[Button, ...] = ()
+    size: int = 0
+    initial_page: int = 0
+    #: Components above / below the rows, and what shows in place of the results until the first
+    #: search has run (the Redwood smart-filter-search dashboard slot).
+    header: tuple[Component, ...] = ()
+    footer: tuple[Component, ...] = ()
+    pre_search: tuple[Component, ...] = ()
+    #: The row field that opens under the row instead of being a column, and whether a button
+    #: opens it.
+    detail_path: str | None = None
+    use_button_for_detail: bool = False
+    #: Columns render only when scrolled into view.
+    lazy_column_rendering: bool = False
+    #: The grid cells' background and padding (CSS values).
+    vaadin_grid_cell_background: str | None = None
+    vaadin_grid_cell_padding: str | None = None
+    #: Rows load as the user scrolls / page by page on demand.
+    infinite_scrolling: bool = False
+    lazy_loading: bool = False
+    #: Several rows selectable; ``on_row_selection_changed_action_id`` runs on every change.
+    multiple_row_selection_enabled: bool = False
+    on_row_selection_changed_action_id: str | None = None
+    #: A fixed height for the listing's content (CSS).
+    content_height: str | None = None
+    #: The search runs on Enter (and debounced while typing) and the search box takes the focus
+    #: on opening — both on by default, as in Java.
+    search_on_enter: bool = True
+    auto_focus_on_search_text: bool = True
+    #: How the filters lay out; None = auto (the smart search bar).
+    filters_layout: str | None = None
+    #: The row field the rows are grouped by, and the buttons on every group header row.
+    group_by: str | None = None
+    group_actions: tuple[Button, ...] = ()
+    #: The row field whose value (success | warning | danger | info | neutral) tones the row.
+    row_status_field: str | None = None
+    #: Rows can be dragged onto a DropZone accepting this type; None = not draggable.
+    drag_type: str | None = None
+    #: Row selection checkboxes.
+    rows_selection_enabled: bool = False
 
     def __post_init__(self):
-        object.__setattr__(self, "columns", tuple(self.columns))
-        object.__setattr__(self, "filters", tuple(self.filters))
+        for name in ("columns", "filters", "toolbar", "header", "footer", "pre_search", "group_actions"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
 
 
 @dataclass(frozen=True)
@@ -420,6 +481,39 @@ class Slotted(Component):
 
     slot: str = ""
     content: Component | None = None
+
+
+@dataclass(frozen=True)
+class Tab(Component):
+    """One tab of a :class:`TabLayout`: its ``label`` and the ``content`` it shows; ``active`` makes
+    it the tab selected on first render, ``shortcut`` (e.g. "alt+1") selects it from the keyboard.
+    The Python analogue of ``io.mateu.uidl.data.Tab``."""
+
+    label: str = ""
+    content: Component | None = None
+    active: bool = False
+    shortcut: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class TabLayout(Component):
+    """Tabs — one :class:`Tab` per group, one shown at a time. ``group_relationship``
+    (alternative | sequential | simultaneous) says how the groups relate; ``adaptable`` lets a
+    renderer degrade the tabs (e.g. to an accordion on a narrow screen). The Python analogue of
+    ``io.mateu.uidl.data.TabLayout``."""
+
+    tabs: tuple[Tab, ...] = ()
+    group_relationship: str | None = None
+    adaptable: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "tabs", tuple(self.tabs or ()))
 
 
 @dataclass(frozen=True)
@@ -725,24 +819,30 @@ class ProgressStep:
 
 @dataclass(frozen=True)
 class VerticalLayout(Component):
-    """Lays its children out vertically (the analogue of .NET's fluent VerticalLayout)."""
+    """Lays its children out vertically (the analogue of .NET's fluent VerticalLayout).
+    ``horizontal_alignment`` = START/CENTER/END/STRETCH (None: the renderer's default)."""
 
     content: tuple = ()
     spacing: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    full_width: bool = False
+    horizontal_alignment: str | None = None
 
 
 @dataclass(frozen=True)
 class HorizontalLayout(Component):
-    """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout)."""
+    """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout);
+    ``wrap`` lets the items flow onto the next line."""
 
     content: tuple = ()
     spacing: bool = True
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    wrap: bool = False
+    full_width: bool = False
 
 
 @dataclass(frozen=True)
@@ -774,6 +874,12 @@ class FormField(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: How many columns a radio/checkbox option group spreads over (0 = the renderer's own).
+    options_columns: int = 1
+    #: Where a select's options come from: a REST source (a catalogue ``ref`` or an inline
+    #: endpoint) the renderer fetches — through the server (``__restfetch__``, by the field's id)
+    #: when the source is proxied (Java's FormField.optionsSource).
+    options_source: object | None = None
 
 
 @dataclass(frozen=True)
@@ -1859,10 +1965,26 @@ class MicroFrontend(Component):
     server_side_type: str | None = None
     consumed_route: str | None = None
     action_id: str | None = None
+    #: Set = EMBEDDED in this page, a block rather than a page of its own: it never names the
+    #: window, touches the address bar or the favicon (its requests say so and its server sends
+    #: none of those commands) and draws no breadcrumb; NONE also drops its page header, COMPACT
+    #: keeps only the header actions, PAGE the header as is. None = a top-level micro frontend.
+    #: EXPERIMENTAL; mirrors ``io.mateu.uidl.data.MicroFrontend.chrome``.
+    chrome: "EmbeddedChrome | None" = None
 
     def resolved_by_server(self) -> bool:
         """Whether the host resolves it (``Resolve.SERVER``)."""
         return self.resolve is Resolve.SERVER
+
+
+class EmbeddedChrome(Enum):
+    """How much of its own page chrome an EMBEDDED :class:`MicroFrontend` keeps (any value makes it
+    embedded): ``NONE`` — only the content; ``COMPACT`` — the header's actions, no title; ``PAGE`` —
+    the header as is, no breadcrumb. EXPERIMENTAL; mirrors ``io.mateu.uidl.data.EmbeddedChrome``."""
+
+    NONE = "NONE"
+    COMPACT = "COMPACT"
+    PAGE = "PAGE"
 
 
 class Resolve(Enum):
@@ -1999,6 +2121,13 @@ class Dialog(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The user can move it by its header / resize it from its edges (Java's Dialog.draggable /
+    #: resizable).
+    draggable: bool = False
+    resizable: bool = False
+    #: Where it opens (CSS lengths from the viewport's top / left edge); None = centred.
+    top: str | None = None
+    left: str | None = None
 
 
 @dataclass(frozen=True)
@@ -2044,6 +2173,9 @@ class Form(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The page template the form fills (a ``mateu_ui.uidl.page_templates`` ``FormTemplate``):
+    #: its slots are laid out around the content; None = a free page, its content as written.
+    template: Any = None
 
     def __post_init__(self):
         for name in ("content", "toolbar", "buttons", "badges", "kpis", "banners", "fabs"):
@@ -2203,6 +2335,7 @@ __all__ = [
     "Dialog",
     "MicroFrontend",
     "Resolve",
+    "EmbeddedChrome",
     "ContentSlot",
     "Text",
     "Button",
@@ -2331,5 +2464,13 @@ __all__ = [
     "ResponsiveGrid",
     "Separator",
     "Slotted",
+    "Tab",
+    "TabLayout",
     "VerticalLayout",
 ]
+
+# The last components that were Java-only (3.0): defined in their own module, part of this one.
+from .more_components import *  # noqa: E402,F401,F403
+from .more_components import __all__ as _more_components_all  # noqa: E402
+
+__all__ += _more_components_all

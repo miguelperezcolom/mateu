@@ -1,0 +1,23 @@
+id: partials
+area: behaviour
+group: data
+title: "YAML partials"
+covers: [behaviour:partials]
+description: |
+  A **partial** is a reusable piece with no page — one component or a list of them — used anywhere a
+  component goes with `type: Partial, ref: …` (or `new Partial(…)` from Java). A list partial
+  **splices** into its parent: a form layout gets its fields, not a wrapper. Access keys and
+  `${i18n.…}` inside a partial apply as if written in the page. (Every YAML example in the Explorer is
+  a partial drawn into a Java page, too.)
+
+  **Try it:** the form layout shows Customer plus Street, City and Postcode — the address partial's
+  three fields spliced in as siblings, laid out in the same grid; the VAT notice above and below is one
+  single-component partial used twice.
+examples:
+  - title: "Partials spliced into a page"
+    route: x/behaviour/partials/order
+pages:
+  - {route: x/behaviour/partials/order, layout: explorer/behaviour/partials/order.yaml}
+code:
+  - {label: "YAML · address-block.yaml (a list partial)", path: src/main/resources/specs/ui/explorer/behaviour/partials/address-block.yaml}
+  - {label: "YAML · legal-notice.yaml (a one-component partial)", path: src/main/resources/specs/ui/explorer/behaviour/partials/legal-notice.yaml}

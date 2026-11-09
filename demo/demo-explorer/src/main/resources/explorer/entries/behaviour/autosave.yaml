@@ -1,0 +1,14 @@
+id: autosave
+area: behaviour
+group: forms
+title: Autosave
+covers: [behaviour:autosave]
+description: |
+  `@AutoSave(debounceMillis = …, action = "save")` removes the Save button: every change schedules
+  the action, which runs once the user has been idle for the debounce — a burst of typing is one
+  save, not one per key.
+
+  Try it: type a sentence in **Notes** and stop — a moment later *Last saved* and *Saves* change.
+examples:
+  - title: A draft that saves itself
+    java: io.mateu.explorer.examples.behaviour.autosave.NotesDraft

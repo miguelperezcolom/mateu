@@ -7,7 +7,7 @@
  * forwards every `/mateu/v3/…` call to the editor (postMessage, see play/redwood-play.ts and the
  * frame side in redwood/previewPage.ts) and the editor answers it exactly as a Mateu backend would:
  *
- *  - the shell's bootstrap (`components/_/action`) → the mount root, a fresh load (the app shell);
+ *  - the shell's bootstrap (`sync/_no_route`, actionId `__load__`) → the mount root, a fresh load (the app shell);
  *  - a route LOAD (`sync/<route>`, actionId '') → the route, as the shell's content load (consumed
  *    route '') or a fresh load (`_empty`, a mount with no app shell) — never a shell inside a shell;
  *  - anything else (a button, a search, the notifications bell) → the preview backend, when there
@@ -65,7 +65,7 @@ export function answerPlayCall(url: string, body: Record<string, unknown> | unde
     if (!path) return { kind: 'answer', json: EMPTY() }
     const b = body ?? {}
     const initiator = typeof b.initiatorComponentId === 'string' && b.initiatorComponentId ? b.initiatorComponentId : ''
-    if (path.startsWith('/mateu/v3/components/')) {
+    if (path.startsWith('/mateu/v3/sync/') && b.actionId === '__load__') {
         // the shell's bootstrap: the mount root, as a fresh load (an app shell when the root is one)
         const root = resolve('_no_route', '_empty')
         if (root) return { kind: 'answer', json: aimedAtInitiator(root, initiator || 'shell') }

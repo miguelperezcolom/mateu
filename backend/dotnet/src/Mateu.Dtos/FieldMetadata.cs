@@ -4,6 +4,11 @@ namespace Mateu.Dtos;
 
 public record FormFieldMetadataDto(string FieldId, string DataType, string Label) : ComponentMetadataDto
 {
+    /// <summary>A listing filter shown outside the "Filter by" panel ([MainFilter]; mirrors
+    /// io.mateu.dtos.FormFieldDto.mainFilter). Omitted when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool MainFilter { get; init; }
+
     public string Stereotype { get; init; } = "regular";
     public bool TreeLeavesOnly { get; init; }
     public bool Required { get; init; }
@@ -96,6 +101,23 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public int FormColumns { get; init; }
 
     public string? MinHeightWhenDetailVisible { get; init; }
+
+    /// <summary>Grid fields: the row editor's CSS and theme ([DetailForm]; mirrors
+    /// FormFieldDto.formStyle/formTheme).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FormStyle { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FormTheme { get; init; }
+
+    /// <summary>Grid fields: the row property ([Details] on the row type) that opens under the row
+    /// instead of being a column of its own, and whether a button opens it (mirrors
+    /// FormFieldDto.detailPath/useButtonForDetail).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DetailPath { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool UseButtonForDetail { get; init; }
 
     /// <summary>Generic field attributes (mirrors FormFieldDto.attributes, a list of key/value
     /// pairs) — e.g. the [FileUpload] accept filter travels as {"key":"accept","value":".csv"}.</summary>

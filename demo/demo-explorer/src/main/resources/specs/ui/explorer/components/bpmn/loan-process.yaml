@@ -1,0 +1,41 @@
+# A BPMN 2.0 diagram as DATA: the `xml` (with its diagram interchange section, so the shapes have
+# positions) drawn read-only by bpmn-js.
+content:
+  - type: Bpmn
+    style: "height: 18rem; width: 100%;"
+    xml: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                        id="loan" targetNamespace="https://mateu.io/explorer">
+        <bpmn:process id="artworkLoan" isExecutable="false">
+          <bpmn:startEvent id="requested" name="Loan requested"/>
+          <bpmn:task id="review" name="Curator review"/>
+          <bpmn:exclusiveGateway id="ok" name="Approved?"/>
+          <bpmn:task id="ship" name="Ship the work"/>
+          <bpmn:endEvent id="done" name="On loan"/>
+          <bpmn:endEvent id="rejected" name="Rejected"/>
+          <bpmn:sequenceFlow id="f1" sourceRef="requested" targetRef="review"/>
+          <bpmn:sequenceFlow id="f2" sourceRef="review" targetRef="ok"/>
+          <bpmn:sequenceFlow id="f3" name="yes" sourceRef="ok" targetRef="ship"/>
+          <bpmn:sequenceFlow id="f4" name="no" sourceRef="ok" targetRef="rejected"/>
+          <bpmn:sequenceFlow id="f5" sourceRef="ship" targetRef="done"/>
+        </bpmn:process>
+        <bpmndi:BPMNDiagram id="d">
+          <bpmndi:BPMNPlane id="p" bpmnElement="artworkLoan">
+            <bpmndi:BPMNShape id="s1" bpmnElement="requested"><dc:Bounds x="40" y="82" width="36" height="36"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="s2" bpmnElement="review"><dc:Bounds x="130" y="60" width="110" height="80"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="s3" bpmnElement="ok" isMarkerVisible="true"><dc:Bounds x="295" y="75" width="50" height="50"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="s4" bpmnElement="ship"><dc:Bounds x="400" y="60" width="110" height="80"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="s5" bpmnElement="done"><dc:Bounds x="570" y="82" width="36" height="36"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="s6" bpmnElement="rejected"><dc:Bounds x="302" y="200" width="36" height="36"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="e1" bpmnElement="f1"><di:waypoint x="76" y="100"/><di:waypoint x="130" y="100"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="e2" bpmnElement="f2"><di:waypoint x="240" y="100"/><di:waypoint x="295" y="100"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="e3" bpmnElement="f3"><di:waypoint x="345" y="100"/><di:waypoint x="400" y="100"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="e4" bpmnElement="f4"><di:waypoint x="320" y="125"/><di:waypoint x="320" y="200"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="e5" bpmnElement="f5"><di:waypoint x="510" y="100"/><di:waypoint x="570" y="100"/></bpmndi:BPMNEdge>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>

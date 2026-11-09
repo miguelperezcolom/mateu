@@ -208,6 +208,38 @@ public class BundleWriterTest {
   }
 
   @Test
+  public void textFilesGetAGzipSiblingForHostsThatServePrecompressedFiles() throws Exception {
+    var out = tmp.newFolder("gz").toPath();
+    var js = "console.log('mateu');\n".repeat(200);
+    Files.createDirectories(out.resolve("assets"));
+    Files.writeString(out.resolve("assets/app.js"), js);
+    Files.writeString(out.resolve("index.html"), "<html>" + "<p>x</p>".repeat(300) + "</html>");
+    Files.writeString(out.resolve("tiny.css"), "a{}"); // below the threshold
+    Files.write(out.resolve("logo.png"), new byte[4096]); // not text
+    Files.writeString(out.resolve("_redirects"), "/*    /index.html    200\n".repeat(100));
+    Files.writeString(out.resolve("tiny.css.gz"), "stale"); // left by an earlier build
+
+    var result = BundleWriter.precompress(out);
+
+    assertEquals(2, result.files());
+    assertTrue(result.gzipBytes() < result.rawBytes() / 4);
+    var gz = out.resolve("assets/app.js.gz");
+    try (var in = new java.util.zip.GZIPInputStream(Files.newInputStream(gz))) {
+      assertEquals(js, new String(in.readAllBytes(), StandardCharsets.UTF_8));
+    }
+    // nginx gzip_static answers with the .gz's validators: they match the original's
+    assertEquals(
+        Files.getLastModifiedTime(out.resolve("assets/app.js")), Files.getLastModifiedTime(gz));
+    assertTrue(Files.exists(out.resolve("index.html.gz")));
+    assertFalse(Files.exists(out.resolve("tiny.css.gz")));
+    assertFalse(Files.exists(out.resolve("logo.png.gz")));
+    assertFalse(Files.exists(out.resolve("_redirects.gz")));
+    // a second run is idempotent: no .gz of a .gz
+    assertEquals(2, BundleWriter.precompress(out).files());
+    assertFalse(Files.exists(out.resolve("assets/app.js.gz.gz")));
+  }
+
+  @Test
   public void theBasePathOfABundle() {
     assertEquals("", BundleWriter.basePathOf(""));
     assertEquals("", BundleWriter.basePathOf(null));

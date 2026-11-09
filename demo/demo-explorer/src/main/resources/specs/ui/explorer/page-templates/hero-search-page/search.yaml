@@ -1,0 +1,22 @@
+# HeroSearchPage: the form's title and subtitle are the hero's; its content is the results — a
+# searchable Listing (cards here). On Redwood the page opens as the landing hero and turns into the
+# collection view on the first search. Rows from MuseumApi (/explorer-api/artworks).
+type: Form
+title: Search the collection
+subtitle: An artist, a title, a museum — try “monet”, “print” or “SMK”
+template:
+  type: HeroSearchPage
+  backgroundColor: dark-pine
+content:
+  - type: Listing
+    searchable: true
+    pageSize: 12
+    gridLayout: cards
+    rowsSource:
+      url: /explorer-api/artworks?search=${state.searchText ?? ''}
+      itemsPath: content
+    columns:
+      - {type: GridColumn, id: title, label: Title, identifier: true}
+      - {type: GridColumn, id: artist, label: Artist}
+      - {type: GridColumn, id: museum, label: Museum}
+      - {type: GridColumn, id: status, label: Status, dataType: status}

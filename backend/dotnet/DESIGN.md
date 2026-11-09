@@ -56,8 +56,14 @@ backend/dotnet/
     Mateu.Core/         ← the engine: route registry, reflection mapper (model → component tree),
                           action dispatch, the sync use-case
     Mateu.AspNetCore/   ← AddMateu()/MapMateu() DI + endpoint wiring for ASP.NET Core
+    Mateu.Bundle/       ← `dotnet mateu-bundle`: a launcher that loads the BUILT app (its deps.json)
+                          and runs Mateu.Core.Bundle.MateuBundle of the app's own Mateu.Core — the
+                          static-bundle exporter (a client of SyncHandler: the two loads a browser
+                          makes per route; StaticSafetyCheck/DefinitionInliner/BundleWriter port
+                          Java's; held to Java's manifest by conformance/bundle)
   samples/
     Mateu.Demo/         ← a runnable ASP.NET app with @UI classes (SimpleForm first)
+    Mateu.StaticBundle/ ← a small app that also exports itself (MateuBundle.Run from Program.cs)
   test/
     Mateu.Tests/        ← golden-JSON tests: C# output vs the Java reference response
 ```

@@ -1,0 +1,391 @@
+# demo-explorer — the Mateu Explorer (demo/demo-explorer): every component, page template, archetype,
+# behaviour and distributed-UI pattern, live, with its code. Vaadin renderer. DEPLOYED as a preview
+# on 3.0-beta.51 (2026-11-08); redeploy at rc.1 (deploy/demos/README.md, "The Mateu Explorer").
+#
+# The remote apps the "Distributed UIs" area federates (demo/demo-explorer/remotes; images from
+# deploy/demos/demo-explorer-remotes.Dockerfile) follow the Explorer below, each on its own host:
+# the BROWSER calls them directly (remote menus, micro frontends after the first paint), so they are
+# public, and the Explorer's server calls the same urls (descriptors, resolve = SERVER, content slots).
+# DNS: explorer.mateu.io (A + AAAA → the LB); the remotes ride the existing *.ec1.mateu.io wildcard:
+# explorer-java / explorer-yaml / explorer-static / explorer-python .ec1.mateu.io.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-explorer
+  namespace: mateu-demos
+  labels: { app: demo-explorer }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-explorer }
+  template:
+    metadata:
+      labels: { app: demo-explorer }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-explorer:3.0-beta.51-explorer-20261108
+          env:
+            - { name: SERVER_PORT, value: "8640" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            # where the Distributed UIs area's remotes are (public: the browser calls them too)
+            - { name: EXPLORER_JAVA_REMOTE_URL, value: "https://explorer-java.ec1.mateu.io" }
+            - { name: EXPLORER_YAML_REMOTE_URL, value: "https://explorer-yaml.ec1.mateu.io" }
+            - { name: EXPLORER_STATIC_REMOTE_URL, value: "https://explorer-static.ec1.mateu.io" }
+            - { name: EXPLORER_PYTHON_REMOTE_URL, value: "https://explorer-python.ec1.mateu.io" }
+          ports:
+            - { name: http, containerPort: 8640 }
+          readinessProbe:
+            httpGet: { path: /, port: 8640 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "320Mi", cpu: "50m" }
+            limits:   { memory: "512Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-explorer
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-explorer }
+  ports:
+    - { name: http, port: 8640, targetPort: 8640 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-explorer
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [explorer.mateu.io]
+      secretName: demo-explorer-tls
+  rules:
+    - host: explorer.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-explorer, port: { number: 8640 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-explorer-java-remote
+  namespace: mateu-demos
+  labels: { app: demo-explorer-java-remote }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-explorer-java-remote }
+  template:
+    metadata:
+      labels: { app: demo-explorer-java-remote }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-explorer-java-remote:3.0-beta.51-explorer-20261108
+          env:
+            - { name: JAVA_REMOTE_PORT, value: "8641" }
+            - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
+            - { name: SLOW_REMOTE_DELAY_MS, value: "2000" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+          ports:
+            - { name: http, containerPort: 8641 }
+          readinessProbe:
+            tcpSocket: { port: 8641 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "256Mi", cpu: "20m" }
+            limits:   { memory: "448Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-explorer-java-remote
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-explorer-java-remote }
+  ports:
+    - { name: http, port: 8641, targetPort: 8641 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-explorer-java-remote
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [explorer-java.ec1.mateu.io]
+      secretName: demo-explorer-java-remote-tls
+  rules:
+    - host: explorer-java.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-explorer-java-remote, port: { number: 8641 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-explorer-yaml-remote
+  namespace: mateu-demos
+  labels: { app: demo-explorer-yaml-remote }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-explorer-yaml-remote }
+  template:
+    metadata:
+      labels: { app: demo-explorer-yaml-remote }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-explorer-yaml-remote:3.0-beta.51-explorer-20261108
+          env:
+            - { name: YAML_REMOTE_PORT, value: "8642" }
+            - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+          ports:
+            - { name: http, containerPort: 8642 }
+          readinessProbe:
+            tcpSocket: { port: 8642 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "256Mi", cpu: "20m" }
+            limits:   { memory: "448Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-explorer-yaml-remote
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-explorer-yaml-remote }
+  ports:
+    - { name: http, port: 8642, targetPort: 8642 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-explorer-yaml-remote
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [explorer-yaml.ec1.mateu.io]
+      secretName: demo-explorer-yaml-remote-tls
+  rules:
+    - host: explorer-yaml.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-explorer-yaml-remote, port: { number: 8642 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-explorer-static-remote
+  namespace: mateu-demos
+  labels: { app: demo-explorer-static-remote }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-explorer-static-remote }
+  template:
+    metadata:
+      labels: { app: demo-explorer-static-remote }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-explorer-static-remote:3.0-beta.51-explorer-20261108
+          ports:
+            - { name: http, containerPort: 8080 }
+          readinessProbe:
+            tcpSocket: { port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "16Mi", cpu: "20m" }
+            limits:   { memory: "64Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-explorer-static-remote
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-explorer-static-remote }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-explorer-static-remote
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [explorer-static.ec1.mateu.io]
+      secretName: demo-explorer-static-remote-tls
+  rules:
+    - host: explorer-static.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-explorer-static-remote, port: { number: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-explorer-python-remote
+  namespace: mateu-demos
+  labels: { app: demo-explorer-python-remote }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-explorer-python-remote }
+  template:
+    metadata:
+      labels: { app: demo-explorer-python-remote }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-explorer-python-remote:3.0-beta.51-explorer-20261108
+          env:
+            - { name: PYTHON_REMOTE_PORT, value: "8644" }
+            - { name: PYTHON_REMOTE_HOST, value: "0.0.0.0" }
+            - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
+          ports:
+            - { name: http, containerPort: 8644 }
+          readinessProbe:
+            tcpSocket: { port: 8644 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "64Mi", cpu: "20m" }
+            limits:   { memory: "192Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-explorer-python-remote
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-explorer-python-remote }
+  ports:
+    - { name: http, port: 8644, targetPort: 8644 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-explorer-python-remote
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [explorer-python.ec1.mateu.io]
+      secretName: demo-explorer-python-remote-tls
+  rules:
+    - host: explorer-python.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-explorer-python-remote, port: { number: 8644 } }

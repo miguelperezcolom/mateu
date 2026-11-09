@@ -1,0 +1,49 @@
+{
+  "commands" : [ {
+    "data" : "Mission 6",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "container" : "div",
+            "text" : "Mission ${state.missionId}",
+            "type" : "Text"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "colspan" : 1,
+            "dataType" : "string",
+            "fieldId" : "name",
+            "label" : "Name",
+            "stereotype" : "regular",
+            "type" : "FormField"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "title" : "Mission ${state.missionId}",
+          "type" : "Form"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "missionId" : "6",
+        "tab" : "crew"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "missionId" : "6",
+      "tab" : "crew"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

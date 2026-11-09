@@ -1,0 +1,8 @@
+# A parameterised route: the path parameter `id` lands in the page state.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Order ${state.id}
+subtitle: A deep link into a remote screen keeps the shell's URL
+content:
+  - type: Text
+    text: This screen belongs to the Orders remote; the URL you see is the shell's.

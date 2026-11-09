@@ -1,0 +1,18 @@
+id: data-management
+area: archetypes
+group: collections
+title: Data management
+covers: [archetype:DataManagement]
+description: |
+  Extend `DataManagement` and supply two views of the same data, `gridView()` and `ganttView()`: the
+  toolbar switches between them (`gridLabel()`/`ganttLabel()`), and the active view lives in the page.
+  `endPanel()` and `bottomPanel()` return `DockedPanel`s docked beside and under the data — the toolbar
+  toggles them (`open` is the initial state). Full width.
+examples:
+  - title: Loan plan
+    java: io.mateu.explorer.examples.archetypes.datamanagement.LoanPlan
+pages:
+  - {route: x/archetypes/data-management, viewModel: io.mateu.explorer.examples.archetypes.datamanagement.LoanPlan}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/data-management/LoanPlan.cs}
+  - {label: Python, path: src/main/ports/archetypes/data-management/loan_plan.py}

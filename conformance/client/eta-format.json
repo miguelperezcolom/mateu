@@ -1,0 +1,31 @@
+{
+  "description": "How a renderer words a running task's ETA (ProgressDto.etaSeconds, computed by the server — see conformance/progress/eta.json). null/absent, or a value <= 0, shows NOTHING (never a guess). Run by libs/mateu (the reference, chromeTexts taskEtaUnderMinute/taskEtaMinutes/taskEtaHours), Redwood (poc/i18n.mjs), React Native and IntelliJ.",
+  "rules": [
+    "etaSeconds null, absent, not a number or <= 0: no text",
+    "etaSeconds < 60: under a minute",
+    "etaSeconds < 3600: n = max(1, round(etaSeconds / 60)) minutes (round half up); a rounded 60 reads as hours",
+    "otherwise: n = max(1, round(etaSeconds / 3600)) hours (round half up)"
+  ],
+  "texts": {
+    "en": { "underMinute": "less than a minute left", "minutes": "about {n} min left", "hours": "about {n} h left" },
+    "es": { "underMinute": "menos de un minuto", "minutes": "unos {n} min restantes", "hours": "unas {n} h restantes" }
+  },
+  "cases": [
+    { "etaSeconds": null, "en": null, "es": null },
+    { "etaSeconds": 0, "en": null, "es": null },
+    { "etaSeconds": -5, "en": null, "es": null },
+    { "etaSeconds": 1, "en": "less than a minute left", "es": "menos de un minuto" },
+    { "etaSeconds": 59, "en": "less than a minute left", "es": "menos de un minuto" },
+    { "etaSeconds": 60, "en": "about 1 min left", "es": "unos 1 min restantes" },
+    { "etaSeconds": 89, "en": "about 1 min left", "es": "unos 1 min restantes" },
+    { "etaSeconds": 90, "en": "about 2 min left", "es": "unos 2 min restantes" },
+    { "etaSeconds": 125, "en": "about 2 min left", "es": "unos 2 min restantes" },
+    { "etaSeconds": 150, "en": "about 3 min left", "es": "unos 3 min restantes" },
+    { "etaSeconds": 3569, "en": "about 59 min left", "es": "unos 59 min restantes" },
+    { "etaSeconds": 3570, "en": "about 1 h left", "es": "unas 1 h restantes" },
+    { "etaSeconds": 3600, "en": "about 1 h left", "es": "unas 1 h restantes" },
+    { "etaSeconds": 5399, "en": "about 1 h left", "es": "unas 1 h restantes" },
+    { "etaSeconds": 5400, "en": "about 2 h left", "es": "unas 2 h restantes" },
+    { "etaSeconds": 59880, "en": "about 17 h left", "es": "unas 17 h restantes" }
+  ]
+}

@@ -1,0 +1,7 @@
+# A CRUD is a page with routes of its own (/new, /:id, /:id/edit), so it runs at its own
+# route (x/behaviour/edit-in-drawer) rather than inside this page: this button takes you there.
+content:
+  - type: Button
+    label: "Open “Orders — edit in a drawer” ↗"
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: x/behaviour/edit-in-drawer}

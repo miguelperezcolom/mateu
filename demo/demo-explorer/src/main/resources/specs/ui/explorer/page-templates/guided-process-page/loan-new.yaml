@@ -1,0 +1,35 @@
+# GuidedProcessPage: `steps` (GuidedProcessStep: id, title, description, content). All the steps are
+# ONE form — moving between them keeps what was typed, with no round trip. The toolbar's primary is the
+# process's primary action (`send` runs LoanRequest.send()), its cancel the way out.
+type: Form
+title: Request a loan
+subtitle: Borrow a work for one of your exhibitions
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: x/page-templates/data-management-page}}
+  - {type: Button, actionId: send, label: Request, buttonStyle: primary}
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: work
+      title: The work
+      description: What you want to borrow
+      content:
+        - {type: FormField, id: artwork, label: Artwork, required: true}
+        - {type: FormField, id: borrower, label: Lending museum, required: true}
+    - id: show
+      title: The exhibition
+      description: Where it will hang
+      content:
+        - {type: FormField, id: exhibition, label: Exhibition}
+    - id: dates
+      title: Dates
+      description: From crate to crate
+      content:
+        - {type: FormField, id: leaves, label: Leaves the lender, dataType: date}
+        - {type: FormField, id: returns, label: Back home by, dataType: date}
+    - id: insurance
+      title: Insurance and transport
+      description: Nail to nail
+      content:
+        - {type: FormField, id: insuranceValue, label: Insured for (USD), dataType: number}
+        - {type: FormField, id: courier, label: Courier}

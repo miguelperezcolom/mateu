@@ -79,17 +79,6 @@ public record AppDto(
      */
     String accentColor,
     /**
-     * Deprecated: never sent any more (always null). Redwood removes its colour strip as soon as an
-     * app brings its own brand, so no renderer draws an accent strip; {@code @App(accentStrip)} is
-     * ignored. Kept on the wire because removing a member is a wire break.
-     */
-    String accentStrip,
-    /**
-     * Deprecated: never sent any more (always null) — the server no longer generates an accent
-     * strip (see {@link #accentStrip}).
-     */
-    String generatedAccentStrip,
-    /**
      * The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it travels with the shell rather than on every response.
      */
@@ -175,7 +164,13 @@ public record AppDto(
      * its per-tab agent channel (the {@code _agent-channel} app-level action over the SSE endpoint)
      * and offers "Connect AI" (pairing with an MCP caller). False otherwise.
      */
-    boolean agentPush)
+    boolean agentPush,
+    /**
+     * {@code @App(osNotifications = true)}: the app opts in to OS-level notifications (a new inbox
+     * entry, a background task that finished) while it is not in front. The renderer asks the
+     * user's permission only from a user gesture. False otherwise.
+     */
+    boolean osNotifications)
     implements ComponentMetadataDto {
 
   public AppDto {

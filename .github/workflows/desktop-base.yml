@@ -1,0 +1,172 @@
+# MANUAL CHECK / FALLBACK for the desktop app's base. The release pipeline (desktop.yml) packages
+# IntelliJ IDEA Open Source from JetBrains' intellij-community GitHub Release assets (option B of
+# design/desktop-base-strategy.md). This workflow checks a candidate base before a bump, and builds the
+# base FROM SOURCE should JetBrains ever stop attaching binaries (option C). It never touches a
+# release: no `release:` trigger, no upload to a GitHub Release, artifacts only (a few days' retention).
+#
+# Two candidate bases, both IntelliJ IDEA *Open Source* (Apache-2.0, intellij-community):
+#   oss-release  the binaries JetBrains' bot attaches to each `idea/<version>` release of
+#                JetBrains/intellij-community (.dmg x64/aarch64, .tar.gz, .win.zip, .exe)
+#   from-source  the same distribution built here from the tag, with JetBrains' own recipe
+#                (.github/actions/build_ide in intellij-community: Docker image + installers.cmd)
+# Each base goes through the EXISTING packaging (`buildInstaller`, -Pinstaller.ideArchive), then a
+# smoke test launches the packaged app and checks that the Mateu plugin loaded.
+#
+# Installers are built on CI ONLY: never run buildInstaller on a developer machine (CLAUDE.md, #1000).
+
+name: Desktop base (prototype)
+
+on:
+  push:
+    branches: [desktop/community-from-source]
+    paths: [.github/workflows/desktop-base.yml, .github/workflows/desktop-base-package.yml, frontend/app/intellij-plugin/build.gradle.kts]
+  workflow_dispatch:
+    inputs:
+      ide_tag:
+        description: intellij-community tag (e.g. idea/2026.3, idea/2026.2.4)
+        default: idea/2026.3
+      base:
+        description: Which base to package
+        type: choice
+        options: [both, oss-release, from-source]
+        default: both
+      reuse_run_id:
+        description: Reuse the from-source base of an earlier run of this workflow (its run id) instead of rebuilding
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-base-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IDE_TAG: ${{ inputs.ide_tag || 'idea/2026.3' }}
+  BASE: ${{ inputs.base || 'both' }}
+  REUSE_RUN_ID: ${{ inputs.reuse_run_id || '' }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  # ── from-source: JetBrains' recipe, on a standard ubuntu-latest runner (4 vCPU, 16 GB) ──
+  from-source:
+    if: (inputs.base || 'both') != 'oss-release' && (inputs.reuse_run_id || '') == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Free disk space (the build needs ~60 GB)
+        run: |
+          df -h / /mnt
+          sudo rm -rf /usr/share/dotnet /usr/share/swift /usr/share/miniconda /usr/local/lib/android \
+            /usr/local/share/boost /usr/local/share/powershell /usr/local/share/chromium /usr/local/lib/node_modules \
+            /opt/ghc /opt/hostedtoolcache/CodeQL /opt/hostedtoolcache/Ruby /opt/hostedtoolcache/PyPy \
+            /opt/hostedtoolcache/Python /opt/hostedtoolcache/go /opt/hostedtoolcache/node /opt/microsoft /opt/google \
+            /imagegeneration /var/cache/apt/archives
+          sudo apt-get -y clean
+          docker image prune --all --force || true
+          df -h / /mnt
+      - name: Swap (JetBrains' recipe, the build OOMs with 16 GB RAM + 4 GB swap)
+        run: |
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile /swapfile
+          sudo fallocate -l 30G /mnt/swapfile
+          sudo chmod 600 /mnt/swapfile && sudo mkswap /mnt/swapfile && sudo swapon /mnt/swapfile
+          free -h
+      - name: Check out intellij-community at the tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: JetBrains/intellij-community
+          ref: ${{ env.IDE_TAG }}
+          path: ic
+          persist-credentials: false
+      - name: Check out JetBrains/android at the same tag (the README asks for the same tag)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: JetBrains/android
+          ref: ${{ env.IDE_TAG }}
+          path: ic/android
+          persist-credentials: false
+      # OpenSourceCommunityInstallersBuildTarget always skips the Windows .zip (to spare a GitHub
+      # runner's disk: JetBrains' workflow publishes only the .exe). The desktop app repacks the zip.
+      - name: Keep the Windows .zip
+        run: |
+          f=ic/build/src/OpenSourceCommunityInstallersBuildTarget.kt
+          grep -n 'WINDOWS_ZIP_STEP' "$f"
+          sed -i '/BUILD_STEPS_DISABLED_FOR_GITHUB_ACTIONS: Set<String> = setOf(/,/)/{/BuildOptions.WINDOWS_ZIP_STEP,/d}' "$f"
+          grep -n 'WINDOWS_ZIP_STEP' "$f" || echo "Windows zip step no longer skipped"
+      - name: Build environment (Docker image of the tag)
+        run: |
+          start=$(date +%s)
+          cd ic && docker build . --target intellij_idea --tag intellij_idea
+          echo "docker image: $(( $(date +%s) - start )) s"
+      # JetBrains tags every release twice (idea/2026.3 = idea/263.7307.200); without -Dbuild.number
+      # the build calls itself 263.7307.SNAPSHOT. Arch Linux's intellij-idea-oss passes it the same way.
+      - name: Build number of the tag
+        run: |
+          sha=$(git -C ic rev-parse HEAD)
+          bn=$(git ls-remote --tags https://github.com/JetBrains/intellij-community.git 'refs/tags/idea/2*' \
+            | awk -v s="$sha" '$1 == s { sub("refs/tags/idea/", "", $2); print $2 }' | grep -E '^[0-9]{3}\.[0-9]+\.[0-9]+$' | head -1)
+          echo "build number: ${bn:-none (SNAPSHOT)}"
+          echo "BUILD_NUMBER=$bn" >> "$GITHUB_ENV"
+      - name: Build IntelliJ IDEA Open Source (all OSes, all archs)
+        run: |
+          start=$(date +%s)
+          props=(-Dintellij.build.skip.build.steps=windows_exe_installer)
+          [ -n "$BUILD_NUMBER" ] && props+=("-Dbuild.number=$BUILD_NUMBER")
+          cd ic && docker run --rm --user "$(id -u)" --volume "${PWD}:/community" intellij_idea "${props[@]}"
+          secs=$(( $(date +%s) - start ))
+          echo "installers.cmd: $secs s" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: What it produced
+        if: always()
+        run: |
+          ls -la ic/out/idea-ce/artifacts || true
+          df -h / /mnt; free -h
+          { echo '### from-source artifacts'; echo '```'; ls -la ic/out/idea-ce/artifacts; echo '```'; } >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Pick the bases
+        run: |
+          a=ic/out/idea-ce/artifacts
+          mkdir base
+          pick() { # <glob> <exclude regex> <target>
+            f=$(ls $a/$1 2>/dev/null | grep -Ev "$2" | head -1)
+            [ -n "$f" ] || { echo "::error::no $1 in $a"; return 1; }
+            echo "$f → base/$3"; mv "$f" "base/$3"
+          }
+          pick '*.tar.gz' 'aarch64|no-jbr|jbr|sources' linux.tar.gz
+          pick '*.sit' 'aarch64' macos-intel.sit
+          pick '*-aarch64.sit' '^$' macos-aarch64.sit
+          if ls $a/*.win.zip >/dev/null 2>&1; then
+            pick '*.win.zip' 'aarch64' windows.win.zip
+          else
+            echo "::warning::no .win.zip: repacking the .exe (NSIS) instead"
+            exe=$(ls $a/*.exe | grep -v aarch64 | head -1)
+            mkdir win && 7z x -y -owin "$exe" > /dev/null && rm -rf 'win/$PLUGINSDIR' 'win/Uninstall.exe.nsis'
+            (cd win && zip -qr ../base/windows.win.zip .)
+          fi
+          echo "${IDE_TAG#idea/}" > base/version.txt
+          ls -la base
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with: { name: base-from-source-linux, path: base/linux.tar.gz, retention-days: 7, compression-level: 0 }
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with: { name: base-from-source-windows, path: base/windows.win.zip, retention-days: 7, compression-level: 0 }
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with: { name: base-from-source-macos-intel, path: base/macos-intel.sit, retention-days: 7, compression-level: 0 }
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with: { name: base-from-source-macos-aarch64, path: base/macos-aarch64.sit, retention-days: 7, compression-level: 0 }
+
+  # ── packaging: the existing buildInstaller, handed each base (desktop-base-package.yml) ──
+  # The OSS release base does not wait for the source build.
+  package-oss-release:
+    if: (inputs.base || 'both') != 'from-source'
+    uses: ./.github/workflows/desktop-base-package.yml
+    with:
+      base: oss-release
+      ide_tag: ${{ inputs.ide_tag || 'idea/2026.3' }}
+
+  package-from-source:
+    needs: [from-source]
+    if: always() && (inputs.base || 'both') != 'oss-release' && (needs.from-source.result == 'success' || needs.from-source.result == 'skipped')
+    uses: ./.github/workflows/desktop-base-package.yml
+    with:
+      base: from-source
+      ide_tag: ${{ inputs.ide_tag || 'idea/2026.3' }}
+      base_run_id: ${{ inputs.reuse_run_id || '' }}

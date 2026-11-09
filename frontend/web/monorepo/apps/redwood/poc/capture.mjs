@@ -62,8 +62,8 @@ const stateOf = (increment) => {
 // ── flujos ──────────────────────────────────────────────────────────────────
 console.log(`Capturando contra ${BASE}\n`)
 
-// 1) Shell (bootstrap): the root App is NOT resolved by sync — it arrives through the
-// generic components/_/action endpoint (route '', __load__). The only use of that endpoint.
+// 1) Shell (bootstrap): the root App arrives as a __load__ of the mount root
+// (sync/_no_route, route ''). The only __load__ the bridge sends.
 dump('app', await bootstrapShell(BASE, 'shell'))
 
 // 2) Form: carga + save (state echo mutado) + navigate

@@ -5,6 +5,7 @@ import {
   checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged,
   initialPaymentMethod, initialQueueSelection, isImageAvatar, ledgerTotal, noticeShows, offerCtaLabel,
   ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights,
+  textEmphasis, badgeIconsOf, offerFooterOf,
 } from './displayFigures.ts';
 
 test('sparkline bars span 4..26 over the series range; a flat series sits at the floor', () => {
@@ -97,4 +98,29 @@ test('initial selections and whether a notice shows', () => {
   assert.deepEqual(noticeShows('  ', 0), { hasText: false, shows: false });
   assert.deepEqual(noticeShows(undefined, 2), { hasText: false, shows: true });
   assert.deepEqual(noticeShows('Hi', 0), { hasText: true, shows: true });
+});
+
+test("a Text's variants: b is bold, i italic, none adds nothing", () => {
+  assert.deepEqual(textEmphasis(['b']), { fontWeight: 'bold' });
+  assert.deepEqual(textEmphasis(['i']), { fontStyle: 'italic' });
+  assert.deepEqual(textEmphasis(['b', 'i']), { fontWeight: 'bold', fontStyle: 'italic' });
+  assert.deepEqual(textEmphasis(undefined), {});
+  assert.deepEqual(textEmphasis('b'), {});
+});
+
+test("a Badge's iconOnLeft / iconOnRight become Material icons inside the chip", () => {
+  assert.deepEqual(badgeIconsOf({ iconOnLeft: 'vaadin:check' }), { iconLeft: 'check', iconRight: undefined });
+  assert.deepEqual(badgeIconsOf({ iconOnRight: 'vaadin:arrow-right' }), { iconLeft: undefined, iconRight: 'arrow-right' });
+  assert.deepEqual(badgeIconsOf({}), { iconLeft: undefined, iconRight: undefined });
+});
+
+test('an OfferCard footer: an inert CTA without actionId, the addedLabel once added, a price alone', () => {
+  assert.deepEqual(offerFooterOf({ current: true, currentLabel: 'Your room' }), { kind: 'current', label: 'Your room' });
+  assert.deepEqual(offerFooterOf({ actionLabel: 'Upgrade', priceLabel: '+ 60' }),
+    { kind: 'cta', label: 'Upgrade', price: '+ 60', added: false, enabled: false });
+  assert.deepEqual(offerFooterOf({ added: true, addedLabel: 'Added', priceLabel: '20' }),
+    { kind: 'cta', label: 'Added', price: '20', added: true, enabled: false });
+  assert.deepEqual(offerFooterOf({ actionLabel: 'Go', actionId: 'go' }), { kind: 'cta', label: 'Go', price: undefined, added: false, enabled: true });
+  assert.deepEqual(offerFooterOf({ priceLabel: '142' }), { kind: 'price', price: '142' });
+  assert.equal(offerFooterOf({}), null);
 });

@@ -1,0 +1,21 @@
+# TEMPLATE ENTRY — a behaviour: a Java view running as an independent island (its own actions),
+# with its C# and Python twins (shown, from src/main/ports/).
+id: validation
+area: behaviour
+group: forms
+title: Validation (client + server)
+covers: [behaviour:validation-client, behaviour:validation-server]
+description: |
+  Constraints are declared once — Bean validation in Java, DataAnnotations in C#, `Annotated` markers
+  in Python — and enforced **twice**: in the browser while you type and on submit (the field is marked,
+  focus moves to the first rejected field), and again on the server before a `validationRequired`
+  action runs, so a client that skips the browser checks is refused. A rule only the server knows is
+  a `UserFacingException`, shown as written.
+
+  Try: press **Sign up** with the form empty; then fill it in with the user name `admin`.
+examples:
+  - title: Sign up
+    java: io.mateu.explorer.examples.behaviour.validation.SignUpForm
+code:
+  - {label: "C#", path: src/main/ports/behaviour/validation/SignUpForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/validation/sign_up_form.py}

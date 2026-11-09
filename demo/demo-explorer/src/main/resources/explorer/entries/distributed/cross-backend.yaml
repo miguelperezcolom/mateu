@@ -1,0 +1,22 @@
+id: cross-backend
+area: distributed
+group: federation
+title: A Python remote in the same shell
+covers: [distributed:cross-backend]
+description: |
+  Java, .NET and Python servers speak the same `/mateu/v3/sync` wire, so a shell federates a
+  Python service with a `RemoteMenu` like any other: the console's *Reports* section is
+  `remotes/python-remote` — FastAPI + the `mateu-ui` package from PyPI, `add_mateu(app, views,
+  cors_origins=[…])`.
+
+  **Try it:**
+  `cd remotes/python-remote && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/python main.py`
+  (port `PYTHON_REMOTE_PORT`, default 8644), then open `/fed` → *Reports* → *Sales report* and press
+  *Recompute* — answered by Python.
+examples:
+  - title: The Python remote's Sales report, embedded
+    java: io.mateu.explorer.examples.distributed.crossbackend.CrossBackend
+code:
+  - {label: "Python · the remote", path: remotes/python-remote/main.py}
+  - {label: "requirements.txt", path: remotes/python-remote/requirements.txt}
+  - {label: "Java · the RemoteMenu", path: src/main/java/io/mateu/explorer/examples/distributed/console/FederatedConsole.java}

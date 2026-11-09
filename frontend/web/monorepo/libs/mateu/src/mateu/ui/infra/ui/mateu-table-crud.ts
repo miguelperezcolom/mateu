@@ -24,13 +24,13 @@ import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { notify as showToast } from "@application/Notifier.ts";
+import { proxiedFailureOf, restFailureDuration, restFailureText } from "@infra/http/restFailure.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
-    compactColumns,
     railColumns,
 } from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
@@ -854,12 +854,17 @@ export class MateuTableCrud extends LitElement {
         // at another response field) — not a column, so it is carried through the projection.
         const childrenId = this.effectiveGridLayout === 'tree' ? 'children' : undefined
         const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = viaProxy(src)
-            ? new Promise((resolve) => {
+            ? new Promise((resolve, reject) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: 'rows', _sourceId: this.id },
-                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds, childrenId)),
+                        // a failure the server reports (_restfetchError) is a failure, not an empty page
+                        callback: (uiIncrement: any) => {
+                            const failure = proxiedFailureOf(uiIncrement)
+                            if (failure) reject(failure)
+                            else resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds, childrenId))
+                        },
                         callbackonly: true
                     },
                     bubbles: true,
@@ -902,7 +907,13 @@ export class MateuTableCrud extends LitElement {
                 this.requestUpdate()
                 callback?.()
             })
-            .catch((e) => { console.warn('mateu: external rows fetch failed', e); callback?.() })
+            .catch((e) => {
+                console.warn('mateu: external rows fetch failed', e)
+                // The user is told — a 404/401 on the FIRST load left an empty grid and nothing
+                // else, indistinguishable from a listing with no rows. What the service said wins.
+                showToast({ text: restFailureText(e), variant: 'error', position: 'bottomEnd', duration: restFailureDuration(e) }, this)
+                callback?.()
+            })
     }
 
     fetchMoreElements = (e: CustomEvent) => {
@@ -1194,7 +1205,10 @@ export class MateuTableCrud extends LitElement {
 
         const gridLayout = this.effectiveGridLayout
         const allCols = this.cols
-        const compact = compactColumns(allCols)
+        // the list's item columns: the compact set (identifier, priority 1–2), else the first
+        // columns — the same fallback as the master/detail rail; with no @Priority the list used
+        // to draw blank items
+        const compact = railColumns(allCols)
         // The search result envelope: page + (optionally) whole-set aggregates and per-group
         // summaries — the table layouts pick those up for totals/group rows.
         const listing = this.data[this.id] as ListingData | undefined

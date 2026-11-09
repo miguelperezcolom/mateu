@@ -1,10 +1,10 @@
 type: Routes
 routes:
   - route: ""
-    definition: shell.yaml
+    layout: shell.yaml
   - route: home
-    definition: home.yaml
+    layout: home.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: orders/new
-    definition: new-order.yaml
+    layout: new-order.yaml

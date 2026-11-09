@@ -8,6 +8,18 @@ import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
+ * The grid of a `columns: N` list: AT MOST N columns — each track is at least 1/N of the row minus
+ * the gaps (and 1px of slack for rounding), so an (N+1)th never fits — and fewer on a narrow row,
+ * a track never being narrower than 18rem. The old `minmax(min(18rem, 100%/N - 1.5rem), 1fr)`
+ * only capped the minimum, so `columns: 2` drew three or four columns on a wide page.
+ */
+export const statusGridTemplate = (columns: number): string => {
+    const n = Math.max(1, Math.floor(columns))
+    const gap = 'var(--mateu-status-grid-column-gap, 2.5rem)'
+    return `grid-template-columns: repeat(auto-fit, minmax(max(min(18rem, 100%), calc((100% - ${n - 1} * ${gap}) / ${n} - 1px)), 1fr));`
+}
+
+/**
  * Bordered list of rows with an icon (or a circular initials avatar), a title + muted description,
  * and on the right a status chip (badge palette) and/or a small action button dispatching the
  * item's actionId with the item id. Used for incidents, side-effects checklists, etc. `compact`
@@ -179,11 +191,14 @@ export class MateuStatusList extends LitElement {
         if (stacked) {
             return html`
                 <div class="list stacked ${this.compact ? 'compact' : ''} ${this.columns > 1 ? 'grid' : ''}"
-                     style="${this.columns > 1 ? `grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));` : ''}">
+                     style="${this.columns > 1 ? statusGridTemplate(this.columns) : ''}">
                     ${this.items.map(item => html`
                         <div role=${ifDefined(buttonRole(!!this.rowActionId))} tabindex=${ifDefined(tabStop(!!this.rowActionId))} class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
                              @click="${() => this.rowClicked(item)}" @keydown="${onActivate((e) => { if (e.target === e.currentTarget) this.rowClicked(item) })}">
                             <div class="cell-title-row">
+                                ${item.avatar
+                                    ? html`<span class="avatar">${item.avatar}</span>`
+                                    : item.icon ? html`<span class="icon">${item.icon}</span>` : nothing}
                                 ${heading === 'h4'
                                     ? html`<h4 class="cell-title">${item.title}</h4>`
                                     : html`<h3 class="cell-title">${item.title}</h3>`}

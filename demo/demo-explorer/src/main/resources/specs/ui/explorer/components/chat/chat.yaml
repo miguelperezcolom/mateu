@@ -1,0 +1,6 @@
+# A Chat on a page, as DATA: Mateu draws the conversation; `sseUrl` is YOUR agent endpoint,
+# which receives each message as a POST and answers with a server-sent-events stream.
+content:
+  - type: Chat
+    sseUrl: /explorer-api/docent
+    style: "height: 22rem; width: 100%;"

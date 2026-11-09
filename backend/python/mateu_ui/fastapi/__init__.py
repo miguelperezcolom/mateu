@@ -190,6 +190,8 @@ def add_mateu(
     fragment_cache_store: Any | None = None,
     correlation_id_provider: Any | None = None,
     resolution_listeners: Sequence[Any] | None = None,
+    progress_reattach_grace_seconds: float | None = None,
+    inbox_store: Any | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -255,6 +257,13 @@ def add_mateu(
       (``MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED``, off) serves the reserved ``__content_slots__``
       action. ``remote_registry``, ``identity_strategies``, ``fragment_cache_store``,
       ``correlation_id_provider`` and ``resolution_listeners`` replace / add to Mateu's own.
+    - ``progress_reattach_grace_seconds`` (EXPERIMENTAL) — how long a ``LongTask`` keeps running
+      once nobody watches its stream (the tab reloaded or went away), so the reloaded tab can
+      reattach (``_progress-tasks`` / ``_progress-resume``); then it is cancelled. Default: the
+      ``MATEU_PROGRESS_REATTACH_GRACE_SECONDS`` env var, else 60; 0 = closing the stream cancels the
+      task at once (the old behaviour). A finished task keeps its outcome for the same period.
+    - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
+      users (default: Mateu's bounded in-memory store, lost on restart).
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -288,6 +297,9 @@ def add_mateu(
         correlation_id_provider=correlation_id_provider,
         resolution_listeners=resolution_listeners,
     )
+    progress.configure(progress_reattach_grace_seconds)
+    if inbox_store is not None:
+        handler.inbox_store = inbox_store
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
@@ -402,16 +414,6 @@ def add_mateu(
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
-    # The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
-    # calls POST /mateu/v3/components/_/action, and this port answered it 404 — Redwood could not
-    # render a Python backend at all. The route travels in the body, never in that path.
-    async def component_action(request: Request, rest: str = "") -> Response:
-        return await sync(request, "")
-
-    app.add_api_route(
-        f"{prefix}/mateu/v3/components/{{rest:path}}", component_action, methods=["POST"]
-    )
-
     # Streamed actions: one text/event-stream "data:" event per increment, at the same
     # /mateu/v3/sse/{route} the Java adapters serve. The app-level `_live-updates` action is the
     # open-ended APP EVENT STREAM of @app(live_updates=True): the last published header values
@@ -447,6 +449,10 @@ def add_mateu(
             if not rq.route:
                 rq.route = route
             parsed = rq
+            if rq.action_id == progress.RESUME_ACTION:
+                return await _resume_response(
+                    request, handler, mateu_request, rq, lambda fn: run_bound(mateu_request, fn)
+                )
 
             def first_increment():
                 # a LongTask the action returns hands its stream over here (core.progress)
@@ -479,11 +485,13 @@ def add_mateu(
                 headers=headers,
             )
         if task_streams:
-            # a LongTask: its updates as they come; the browser going away cancels it
+            # a LongTask: its updates as they come. The work runs once, hot, and outlives this
+            # stream for the reattach grace period (a reload resumes it); then it is cancelled.
             return StreamingResponse(
                 _task_stream(
                     request, task_streams[0], event(first), event,
                     lambda fn: run_bound(mateu_request, fn),
+                    progress.task_id_of(first), handler.store_inbox_messages,
                 ),
                 media_type="text/event-stream",
                 headers=headers,
@@ -565,11 +573,21 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
 
+    def presented_by():
+        """The class presenting this mount to the mobile app and the installable app: the @app
+        class, else — a YAML mount — its `type: AppShell` definition (title, else pageTitle)."""
+        if registry.app_type is not None:
+            return registry.app_type
+        from mateu_ui.core import yaml_app_shell
+
+        shell = yaml_app_shell.mount_shell(handler, prefix)
+        return yaml_app_shell.manifest_source(shell) if shell is not None else None
+
     # The UI manifest the generic Mateu mobile app reads (experimental): public and cacheable — a
     # name, an icon, the wire version and, optionally, which OIDC provider the host app trusts.
     async def manifest() -> Response:
         return Response(
-            content=mobile_manifest.manifest_json(registry.app_type),
+            content=mobile_manifest.manifest_json(presented_by()),
             status_code=200,
             headers=mobile_manifest.HEADERS,
         )
@@ -580,7 +598,7 @@ def add_mateu(
     # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
     # a plain def: FastAPI runs it in its threadpool, and reading a packaged file blocks
     def pwa_file(file: str) -> Response:
-        served = pwa.asset(file, prefix, registry.app_type)
+        served = pwa.asset(file, prefix, presented_by())
         if served is None:
             return Response(status_code=404)
         return Response(content=served.body, status_code=200, headers=served.headers)
@@ -674,7 +692,7 @@ def add_mateu(
             title=str(title),
             debug=show_details,
             oracle_cdn=oracle_cdn,
-            app_type=app_type,
+            app_type=presented_by(),
             build_id=lambda: skew.build_id,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
@@ -696,24 +714,88 @@ AGENT_MAX_SECONDS: float = 300
 _END = object()
 
 
-async def _task_stream(request: Request, increments, first: str, event, bound):
+def _task_stream(request: Request, increments, first: str, event, bound, task_id=None,
+                 transform=None):
     """A LongTask's SSE stream (core.progress.stream): its first increment, then each update as
-    the work produces it — the work runs in the threadpool, one step at a time, bound to the
-    request. The browser going away closes the generator, which cancels the task (``on_cancel``)."""
-    finished = False
+    the work produces it. The work runs HOT in its own thread, bound to the request
+    (``progress.HotTask``): this stream is its first subscriber, a resume stream of the same caller
+    may join; the browser going away only unsubscribes — with nobody left the grace period starts
+    and, unless a resume arrives, the task is cancelled (``on_cancel``)."""
+    loop = asyncio.get_running_loop()  # called from the endpoint, on the event loop
+    queue: asyncio.Queue = asyncio.Queue()
+
+    def deliver(item) -> None:
+        try:
+            loop.call_soon_threadsafe(queue.put_nowait, item)
+        except RuntimeError:  # the loop is gone: nobody is reading this stream any more
+            pass
+
+    task = progress.hot(task_id or "", increments, bound, transform)
+    subscription = task.subscribe(deliver)
+    task.start()
+    # handed over as is (not re-yielded): closing the response closes the subscription stream
+    return _subscribed(request, queue, first, event, task, subscription)
+
+
+async def _subscribed(request: Request, queue, first: str | None, event, task, subscription):
+    """Streams what a ``HotTask`` subscription receives until the task ends or the client goes."""
     try:
-        yield first
+        if first is not None:
+            yield first
         while True:
-            increment = await run_in_threadpool(bound, lambda: next(increments, _END))
-            if increment is _END:
-                finished = True
+            try:
+                item = await asyncio.wait_for(queue.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                if await request.is_disconnected():
+                    break
+                continue
+            if item is progress.END:
                 break
-            if await request.is_disconnected():
-                break
-            yield event(increment)
+            yield event(item)
     finally:
-        if not finished:
-            await run_in_threadpool(bound, increments.close)
+        if task is not None:
+            task.unsubscribe(subscription)
+
+
+async def _resume_response(request: Request, handler: SyncHandler, mateu_request, rq, bound) -> Response:
+    """``_progress-resume {taskId}``: the caller's task streamed again — its current state, then
+    its later increments reduced to their page-level parts, until it ends. An unknown or foreign
+    task: an empty stream (indistinguishable)."""
+    import json as json_module
+
+    loop = asyncio.get_running_loop()
+    queue: asyncio.Queue = asyncio.Queue()
+
+    def deliver(item) -> None:
+        try:
+            loop.call_soon_threadsafe(queue.put_nowait, item)
+        except RuntimeError:
+            pass
+
+    task_id = (rq.parameters or {}).get("taskId")
+
+    def subscribe():
+        identity = handler.mapper.identity_provider() if handler.mapper.identity_provider else None
+        return progress.resume(None if task_id is None else str(task_id), identity, deliver)
+
+    first, subscription = await run_in_threadpool(bound, subscribe)
+
+    def event(increment) -> str:
+        return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
+
+    headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+
+    async def single():
+        if first is not None:
+            yield event(first)
+
+    if subscription is None:
+        return StreamingResponse(single(), media_type="text/event-stream", headers=headers)
+    return StreamingResponse(
+        _subscribed(request, queue, event(first), event, progress.hot_task_of(str(task_id)), subscription),
+        media_type="text/event-stream",
+        headers=headers,
+    )
 
 
 async def _agent_stream(request: Request, queue, channel, handler: SyncHandler, first: str, event):
@@ -839,16 +921,37 @@ class MateuUiMiddleware:
         content_type, body, cache_control = answer
         extra = []
         path = scope["path"]
+
+        def header(name: bytes) -> str | None:
+            return next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == name), None)
+
+        is_asset = path != "/" and ui_page.is_asset(path)
+        gzip = False
         # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
         # Vaadin first load); Java's AssetCompression
-        if path != "/" and ui_page.is_asset(path) and ui_page.compressible(path):
+        if is_asset and ui_page.compressible(path):
             extra.append((b"vary", b"Accept-Encoding"))
-            accept_encoding = next(
-                (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept-encoding"), None
-            )
-            if len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(accept_encoding):
-                body = ui_page.gzipped(path, body)
-                extra.append((b"content-encoding", b"gzip"))
+            gzip = len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(header(b"accept-encoding"))
+        # validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
+        renderer = getattr(self, "renderer", None)
+        stamp = renderer.stamp(path) if is_asset and renderer is not None else None
+        if stamp is not None:
+            etag = ui_page.weak_etag(*stamp)
+            if gzip:
+                etag = ui_page.gzip_etag(etag)
+            if etag:
+                extra.append((b"etag", etag.encode("latin-1")))
+            extra.append((b"last-modified", ui_page.http_date(stamp[1]).encode("latin-1")))
+            if ui_page.not_modified(header(b"if-none-match"), header(b"if-modified-since"), etag, stamp[1]):
+                headers = list(extra)
+                if cache_control:
+                    headers.append((b"cache-control", cache_control.encode("latin-1")))
+                await send({"type": "http.response.start", "status": 304, "headers": headers})
+                await send({"type": "http.response.body", "body": b""})
+                return
+        if gzip:
+            body = ui_page.gzipped(path, body)
+            extra.append((b"content-encoding", b"gzip"))
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
         headers.extend(extra)
         if cache_control:

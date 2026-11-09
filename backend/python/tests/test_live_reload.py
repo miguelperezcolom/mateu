@@ -27,7 +27,7 @@ def write(directory: Path, name: str, content: str) -> Path:
 
 
 def test_an_edited_route_table_is_read_again_after_a_change(tmp_path):
-    write(tmp_path, "routes.yaml", "routes:\n  - route: live\n    definition: live.yaml\n")
+    write(tmp_path, "routes.yaml", "routes:\n  - route: live\n    layout: live.yaml\n")
     registry = RouteRegistry(str(tmp_path))
     assert registry.match("live") is not None
     assert registry.match("added") is None
@@ -35,7 +35,7 @@ def test_an_edited_route_table_is_read_again_after_a_change(tmp_path):
     changed = write(
         tmp_path,
         "routes.yaml",
-        "routes:\n  - route: live\n    definition: live.yaml\n  - route: added\n    definition: added.yaml\n",
+        "routes:\n  - route: live\n    layout: live.yaml\n  - route: added\n    layout: added.yaml\n",
     )
     dev_specs.changed([changed])
 

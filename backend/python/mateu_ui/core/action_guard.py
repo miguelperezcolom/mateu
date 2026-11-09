@@ -31,6 +31,7 @@ from typing import Any, Callable, NoReturn
 
 from mateu_ui.uidl import (
     AppActionsSupplier,
+    DisabledUnless,
     EyesOnly,
     OnRowSelected,
     ReadOnlyUnless,
@@ -122,6 +123,20 @@ def resolve_row_action(type_, name: str | None):
     return None
 
 
+VIEW_ACTION_MARKER = "__mateu_view_toolbar_button__"
+
+
+def resolve_view_action(type_, name: str | None):
+    """The ``@view_toolbar_button`` function an ``action-on-view-{name}`` may invoke, or None —
+    never any other method of the crud (the id is wire input)."""
+    if not name or name.startswith("_"):
+        return None
+    for member, val, _klass in _members(type_):
+        if camel_case(member) == name and inspect.isfunction(val) and hasattr(val, VIEW_ACTION_MARKER):
+            return val
+    return None
+
+
 def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     """Enforces the access decorators of a resolved action at invocation: the render path only
     disables/hides the button, the wire can still name the action."""
@@ -178,11 +193,17 @@ def deny(what: str) -> NoReturn:
     raise MateuForbiddenException(f"Forbidden: {what}")
 
 
-def may_write(mapper, f) -> bool:
+def may_write(mapper, f, owner=None) -> bool:
     """Whether the wire may WRITE field ``f``: an ``EyesOnly`` field the caller cannot see or a
-    ``ReadOnlyUnless`` field the caller cannot edit is dropped, keeping the server-side value
+    ``ReadOnlyUnless``/``DisabledUnless`` field the caller cannot edit is dropped, keeping the server-side value
     (mirrors Java's Hydrater)."""
-    return mapper.authorized(f.marker(EyesOnly)) and mapper.authorized(f.marker(ReadOnlyUnless))
+    return (
+        mapper.authorized(f.marker(EyesOnly))
+        and mapper.authorized(f.marker(ReadOnlyUnless))
+        and mapper.authorized(f.marker(DisabledUnless))
+        # a class-level read_only_unless(...) locks every field of the view (.NET's owner check)
+        and mapper.authorized(getattr(owner, "__mateu_read_only_unless__", None))
+    )
 
 
 def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:

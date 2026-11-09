@@ -1,0 +1,23 @@
+# A record master's shell: one "← Parent" link instead of the breadcrumb trail (backLink), its own
+# browser-tab / installed-app name (pageTitle), and two remote sections — one the shell names
+# (its label wins over the remote's: shellLabel), one it does not (the remote's own label replaces
+# the path-derived one), the latter inside a group: its routePrefix is its OWN path, not the group's.
+type: AppShell
+title: Record
+pageTitle: Record · Acme
+backLink: PARENT
+menu:
+  - type: RouteLink
+    label: Overview
+    route: overview
+  - type: RemoteMenu
+    label: Workflow
+    baseUrl: http://console.example/_workflow
+    path: /_workflow
+  - type: Menu
+    label: Admin
+    path: /admin
+    submenu:
+      - type: RemoteMenu
+        baseUrl: http://console.example/_forms
+        path: /forms

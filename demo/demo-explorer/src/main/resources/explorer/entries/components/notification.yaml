@@ -1,0 +1,14 @@
+id: notification
+area: components
+group: overlays
+title: Notification
+covers: [component:Notification]
+description: |
+  A toast: a `title` and a `text`, returned from an action handler. For a toast with a severity, a
+  sticky error or an Undo button, return a `Message` (behaviour › Messages). Also in the C# and
+  Python ports (`Notification(text)` with a `Title`).
+
+  Try both buttons.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.notification.NotificationExamples

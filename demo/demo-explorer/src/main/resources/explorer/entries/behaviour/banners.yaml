@@ -1,0 +1,18 @@
+id: banners
+area: behaviour
+group: form-layout
+title: Page banners
+covers: [behaviour:banners]
+description: |
+  Banners sit under the page header, above the content. A `@Banner(theme, title)` method returns the
+  description (so it can be dynamic); `closeable = true` adds a dismiss button and `timeoutSeconds`
+  dismisses it by itself. A `BannerSupplier` returns them programmatically and wins over the
+  annotations. (Banners returned by an action: see *Banners from actions*.)
+
+  Try it: close the amber banner with its ✕; wait five seconds and the green one goes away.
+examples:
+  - title: Front-desk notices
+    java: io.mateu.explorer.examples.behaviour.banners.MaintenanceNotices
+code:
+  - {label: "C#", path: src/main/ports/behaviour/banners/MaintenanceNotices.cs}
+  - {label: Python, path: src/main/ports/behaviour/banners/maintenance_notices.py}

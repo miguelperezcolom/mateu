@@ -81,10 +81,10 @@ public class ${simpleClassName}MateuController implements MateuController {
         return emitter;
     }
 
-    // Every other v3 call (sync, components/_/action, …). The first segment EXCLUDES "sse", so no
-    // URL is matched by two handler methods: an ambiguous match made Spring answer a CORS preflight
-    // to the SSE path with its permissive built-in config, whatever the application had configured.
-    @PostMapping("v3/{operation:(?!sse$).+}/**")
+    // Every other action: POST v3/sync/{route}. Disjoint from v3/sse/**, so no URL is matched by
+    // two handler methods: an ambiguous match made Spring answer a CORS preflight to the SSE path
+    // with its permissive built-in config, whatever the application had configured.
+    @PostMapping("v3/sync/**")
     public Mono<UIIncrementDto> runStep(
             @RequestBody RunActionRqDto rq,
             HttpServletRequest serverHttpRequest) throws Throwable {

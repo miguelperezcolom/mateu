@@ -5,15 +5,15 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Routes
 routes:
   - route: ""
-    definition: app.yaml
+    layout: app.yaml
   - route: vcns
-    definition: vcns.yaml
+    layout: vcns.yaml
   # One VCN. `data:` names the source that loads it on entry; its url interpolates ${state.id}, which
   # the path parameter seeds.
   - route: vcns/:id
-    definition: vcn.yaml
+    layout: vcn.yaml
     data: vcn
   # The child listing, scoped by the parent id. A LINKED route, not a routed tab: routed tabs are P1
   # of design/maui-parity-plan.md and are not in master yet.
   - route: vcns/:id/subnets
-    definition: subnets.yaml
+    layout: subnets.yaml

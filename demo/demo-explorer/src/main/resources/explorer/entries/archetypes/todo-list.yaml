@@ -1,0 +1,18 @@
+id: todo-list
+area: archetypes
+group: collections
+title: To-do list
+covers: [archetype:TodoList]
+description: |
+  Extend `TodoList<Row>`: pending work as counted buckets of cards — `groupOf(row)` picks the bucket
+  ("Today (2)"), `groupOrder()` orders them, `captionOf`/`badgesOf` fill the card. A click on a card
+  **acts**: `actionOn(row)` returns a message, a component or a `URI` to navigate. With no rows the page
+  shows `emptyState()`.
+examples:
+  - title: Conservation tasks
+    java: io.mateu.explorer.examples.archetypes.todolist.ConservationTasks
+pages:
+  - {route: x/archetypes/todo-list, viewModel: io.mateu.explorer.examples.archetypes.todolist.ConservationTasks}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/todo-list/ConservationTasks.cs}
+  - {label: Python, path: src/main/ports/archetypes/todo-list/conservation_tasks.py}

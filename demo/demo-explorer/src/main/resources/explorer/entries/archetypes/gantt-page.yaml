@@ -1,0 +1,17 @@
+id: gantt-page
+area: archetypes
+group: records
+title: Gantt page
+covers: [archetype:GanttPage]
+description: |
+  Extend `GanttPage` and supply `tasks()`: a full-bleed scheduling canvas, with an optional `detail()`
+  panel docked under it (and `bottomPanel()` for a persistent bottom drawer). A click on a bar opens a
+  side drawer with the task — `taskDrawer`/`taskDetail` are overridable.
+examples:
+  - title: Exhibition schedule
+    java: io.mateu.explorer.examples.archetypes.ganttpage.ExhibitionSchedule
+pages:
+  - {route: x/archetypes/gantt-page, viewModel: io.mateu.explorer.examples.archetypes.ganttpage.ExhibitionSchedule}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/gantt-page/ExhibitionSchedule.cs}
+  - {label: Python, path: src/main/ports/archetypes/gantt-page/exhibition_schedule.py}

@@ -81,3 +81,5 @@ Directory.builder()
     ))
     .build()
 ```
+
+**See it live in the Explorer:** [MenuBar, ContextMenu & Directory](https://explorer.mateu.io/components/actions-and-navigation/menus)

@@ -32,3 +32,5 @@ footers and group subtotal rows follow the visible columns automatically.
 
 - [Saved views](/ux-patterns/saved-views/) — the same per-route personalization for conditions
 - [Totals & row grouping](/ux-patterns/aggregates/) — footers that follow the chosen columns
+
+**See it live in the Explorer:** [Saved views & column chooser](https://explorer.mateu.io/behaviour/listings/saved-views)

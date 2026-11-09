@@ -1,0 +1,16 @@
+id: dashboard-landing-page
+area: page-templates
+group: templates
+title: Dashboard landing page
+covers: [template:DashboardLandingPage]
+description: |
+  `template: {type: DashboardLandingPage}`: the `kpi` slot is the scoreboard — `MetricCard`s — and the
+  form's `content` is the main area, one `DashboardPanel` per chart or list. The header (title, subtitle,
+  `kpis`, `timestamp`) stays the form's. A YAML `Chart` carries its own data.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/dashboard-landing-page
+pages:
+  - {route: x/page-templates/dashboard-landing-page, layout: explorer/page-templates/dashboard-landing-page/dashboard.yaml}

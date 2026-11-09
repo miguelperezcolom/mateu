@@ -12,6 +12,7 @@ from mateu_ui.dtos import (
     UIIncrement,
 )
 from mateu_ui.uidl import (
+    Restorable,
     Creatable,
     Deletable,
     Editable,
@@ -32,6 +33,8 @@ from ..mapper import (
 )
 from ..registry import normalize
 from ._base import MixinBase
+from .crud import _messages_only, _with_messages_of
+from .undo_delete import deleted_message, is_restorable, restore_ids, restored_message
 from ._common import (
     RunActionRq,
     SAVED_IN_DRAWER_EVENT,
@@ -42,6 +45,21 @@ class ListingHandlerMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
     def resolve_crud(self, rq: RunActionRq):
         if rq.server_side_type:
+            # a crud bound in the AUTHORED route table (a record master's tab): mounted at the
+            # shortest prefix of the route bound to it (Java's ActionInstanceCreator.mountOf)
+            from .. import routed_tabs
+
+            mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if mount is not None:
+                bound = self.registry.type_by_name(rq.server_side_type)
+                if bound is not None and crud_element_type(bound) is not None:
+                    return bound, crud_element_type(bound), mount
+            # a sub-resource island (/_subresource/<Host>/<field>): addressed by its type
+            from .. import subresources
+
+            island = subresources.island_crud(self.registry, rq.route, rq.server_side_type)
+            if island is not None and crud_element_type(island[0]) is not None:
+                return island[0], crud_element_type(island[0]), island[1]
             by_name = self.registry.resolve(rq.server_side_type, None)
             if by_name is not None and crud_element_type(by_name) is not None:
                 base = "/" + normalize(getattr(by_name, "__mateu_ui__", ""))
@@ -122,9 +140,13 @@ class ListingHandlerMixin(MixinBase):
         # A selector dialog's row pick: write (id, label) back into the host field.
         if aid == "action-on-row-select" and issubclass(cls, Selector):
             return self.selector_row_selected(view, row_type, rq)
-        # A @list_toolbar_button bulk method declared on the listing itself.
+        # A @list_toolbar_button bulk method declared on the listing itself: a plain listing
+        # dispatches it by the method's own name (Java's Listing.actions), a bridged one — and
+        # any listing, through the open wildcard — as action-on-row-<method>.
         if aid and aid.startswith("action-on-row-"):
-            return self.listing_bulk_action(view, cls, row_type, rq)
+            return self.listing_bulk_action(view, cls, row_type, rq, aid[len("action-on-row-"):])
+        if aid and hasattr(action_guard.resolve_row_action(cls, aid), action_guard.ROW_ACTION_MARKER):
+            return self.listing_bulk_action(view, cls, row_type, rq, aid)
 
         if navigable and aid == "view":
             row_id = self._row_id(rq)
@@ -181,11 +203,20 @@ class ListingHandlerMixin(MixinBase):
             # a create's confirmation offers "Add another" (the drawer closes onto the listing's New)
             return self.navigate_after_create(base_route, rq)
         if deletable and aid == "delete":
-            self._invoke(view.delete_all_by_id, self._selected_ids(rq), rq)
+            deleted = self._selected_ids(rq)
+            self._invoke(view.delete_all_by_id, deleted, rq)
             refreshed = self.listing_search(view, rq)
+            # a listing declaring Restorable offers the way back (W-V-DELETE-FEEDBACK)
             return refreshed.model_copy(update={"messages": [
+                deleted_message(deleted) if is_restorable(view) and deleted else
                 MessageDto(variant="success", position="middle", title="", text="Deleted", duration=3000)
             ]})
+        if deletable and is_restorable(view) and aid == Restorable.RESTORE_ACTION:
+            ids = restore_ids(rq)
+            if ids:
+                self._invoke(view.restore_all_by_id, ids, rq)
+            refreshed = self.listing_search(view, rq)
+            return refreshed.model_copy(update={"messages": [restored_message(len(ids))]})
 
         if aid in (None, ""):
             mode, id_ = self.parse_crud_route(base_route, rq.route)
@@ -246,17 +277,20 @@ class ListingHandlerMixin(MixinBase):
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],
         )
 
-    def listing_bulk_action(self, view, cls, row_type, rq: RunActionRq) -> UIIncrement:
+    def listing_bulk_action(self, view, cls, row_type, rq: RunActionRq, name: str) -> UIIncrement:
         """A @list_toolbar_button bulk action on a capability listing: runs the named method
         with the grid's selected rows rebuilt as typed Row objects; a None result re-runs the
         search so the listing reflects the changes."""
         # Only a @list_toolbar_button method is a bulk row action (security: the id is wire input).
-        fn = action_guard.resolve_row_action(cls, (rq.action_id or "")[len("action-on-row-"):])
+        fn = action_guard.resolve_row_action(cls, name)
         if fn is None:
             action_guard.no_such_action(cls, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)
         method = fn.__get__(view, cls)
         result = method(*self._build_bulk_arguments(method, row_type, rq))
+        if _messages_only(result):
+            # only messages: the rows changed all the same — refresh and tell
+            return _with_messages_of(self.listing_search(view, rq), self.map_result(result, rq))
         if result is not None:
             return self.map_result(result, rq)
         return self.listing_search(view, rq)

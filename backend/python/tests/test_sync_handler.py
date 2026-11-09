@@ -1006,7 +1006,7 @@ def test_yaml_page_binds_its_layout_to_the_declared_modelView():
     spec_file = spec_dir / "yaml-bound-demo.yaml"
     spec_file.write_text(
         f"""
-modelView: {_name(YamlBoundView)}
+viewModel: {_name(YamlBoundView)}
 layout:
   type: VerticalLayout
   content:
@@ -1240,15 +1240,17 @@ def test_app_header_actions_on_the_wire():
     j = json.loads(render(inc))
     app_meta = j["fragments"][0]["component"]["metadata"]
     assert app_meta["contextActions"] == [
-        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None},
+        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None, "route": None},
         {
             "actionId": None,
             "label": "Export",
             "icon": "download",
             "children": [
-                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None},
-                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None},
+                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None, "route": None},
+                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None, "route": None},
             ],
+            # AppHeaderActionDto.route: set only by a data-authored shell's navigating buttons
+            "route": None,
         },
     ]
 
@@ -2103,11 +2105,8 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     assert '"editorType": "select"' in j
     # …enum editors carry their constants as options…
     assert '"editorOptions": [{"value": "OK"' in j
-    # …ReadOnly() columns stay display-only…
-    assert (
-        '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": "regular", '
-        '"captionPath": null, "leadingPath": null, "editable": false'
-    ) in j
+    # …the technical id is not a column at all (the row opens by click: W-V-TABLE-ID)…
+    assert '"id": "id", "label": "Id"' not in j
     # …and the crud advertises the update-row action.
     assert '"update-row"' in j
 
@@ -2124,12 +2123,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null, "background": false, "sse": false, "confirmationTexts": null, "href": null, "js": null, "customEvent": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null, "background": false, "sse": false, "confirmationTexts": null, "href": null, "js": null, "customEvent": null}'
     ) in j
     # The BUTTON carries the selection guard too, so the renderer can disable it while nothing is
     # selected without looking the advertised action up by id (Java's ButtonDto.rowsSelectedRequired).
@@ -2162,7 +2161,7 @@ def test_list_toolbar_button_dispatch_receives_typed_selected_rows_and_researche
     assert '"totalElements": 2' in render(inc)
 
 
-def test_list_toolbar_button_non_none_result_maps_as_usual():
+def test_list_toolbar_button_answering_a_message_shows_it_and_researches():
     inc = handler().handle(
         RunActionRq(
             action_id="action-on-row-restockAll",
@@ -2171,6 +2170,8 @@ def test_list_toolbar_button_non_none_result_maps_as_usual():
     )
     assert len(inc.messages) == 1
     assert inc.messages[0].text == "Restocked"
+    # the rows changed all the same: the listing is searched again (it used to stay stale)
+    assert '"totalElements":' in render(inc)
 
 
 def test_update_row_rebuilds_the_entity_and_saves_it():

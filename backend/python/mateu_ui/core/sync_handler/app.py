@@ -15,6 +15,7 @@ from mateu_ui.uidl import (
     NotificationsSupplier,
 )
 
+from ..mapper.app import back_link_parent
 from ..registry import type_name
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -28,6 +29,7 @@ class AppHandlerMixin(MixinBase):
         rq: RunActionRq | None = None,
         request_base_url: str | None = None,
         home_route_override: str | None = None,
+        routed_mount: str | None = None,
     ) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
         # A reflected (@menu_item-method) app is a @UI-annotated instance → CommandMapper's isPage
@@ -39,6 +41,7 @@ class AppHandlerMixin(MixinBase):
             else [UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))]
         )
         app_component = self.mapper.map_app(app_type, request_base_url)
+        app_component = self.with_back_link(app_component, back_link_parent(app_type))
         # R2 (App ≠ its Home Screen, coherence-plan #5): type the home fragment with the home
         # SCREEN's class when the home route resolves to a DIFFERENT registered type than the app —
         # a multi-screen app whose home is a distinct route. A single-screen app, a home with no
@@ -50,7 +53,17 @@ class AppHandlerMixin(MixinBase):
             # a fresh deep link to one of the app's menu routes: the shell opens ON that route
             # (Java's AppMenuResolver answers the app with the deep-linked route as its home)
             meta.home_route = home_route_override
+        if routed_mount is not None and meta is not None and rq is not None:
+            self._as_routed_master(meta, app_type, routed_mount, rq)
         home_route = getattr(meta, "home_route", None) if meta is not None else None
+        if routed_mount is not None and meta is not None:
+            # the routed master's home is its TAB's screen (Java's RouteChains.screenFor)
+            from .. import routed_tabs
+
+            chain = routed_tabs.chain_links(self.routes, home_route)
+            if chain and chain[-1][0].view_model:
+                meta.home_server_side_type = chain[-1][0].view_model
+            home_route = None
         if home_route and not home_route.endswith("_page") and not home_route.endswith("_no_home_route"):
             home_type = self.registry.resolve(None, home_route)
             if home_type is not None:
@@ -61,6 +74,84 @@ class AppHandlerMixin(MixinBase):
             commands=commands,
             fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
+
+    def _as_routed_master(self, meta, app_type, mount: str, rq: RunActionRq) -> None:
+        """An app the authored route table binds at ``mount`` with CHILDREN (a record master): an
+        app with no menu of its own offers its visible children as its tabs (label = the child's
+        title, else its segment), its route is the mount, and its home is the rest of the request
+        path — or, reached on its own, its default tab (Java's AppMenuBuilder.childRouteTabs +
+        HomeRouteResolver.getHomeRoute + ActionInstanceCreator's app-not-on-screen branch)."""
+        from mateu_ui.dtos import MenuItem
+
+        from .. import routed_tabs
+        from ..registry import normalize
+
+        requested = "/" + normalize(rq.route)
+        children = routed_tabs.visible_children_of(self.routes, mount, self.mapper.authorized)
+        if not meta.menu and children:
+            meta.menu = [
+                MenuItem(
+                    label=routed_tabs.tab_label(self.registry, child.entry, child.relative),
+                    route=child.path,
+                    server_side_type=type_name(app_type),
+                    consumed_route=mount,
+                    path=child.relative,
+                    uri_prefix=mount,
+                    selected=child.path == requested,
+                )
+                for child in children
+            ]
+            meta.total_menu_options = len(meta.menu)
+        meta.route = mount
+        meta.root_route = mount
+        if len(requested) > len(mount):
+            meta.home_route = requested
+        else:
+            default_child = routed_tabs.default_child_path(self.routes, mount, self.mapper.authorized)
+            if default_child is not None:
+                meta.home_route = default_child
+        meta.home_consumed_route = mount
+
+    # ── The "← Parent" link (@app(back_link=PARENT) / a YAML shell's backLink: PARENT) ──
+    def with_back_link(self, app_component, parent: bool):
+        """The app with its "← Parent" link when it asks for one (``parent``): no breadcrumb trail,
+        and the route and title of the nearest route above the app's that resolves to a screen,
+        resolved against what this server serves (Java's AppMapper.parentLink)."""
+        meta = getattr(app_component, "metadata", None)
+        if meta is None or not parent:
+            return app_component
+        meta.no_breadcrumbs = True
+        meta.back_route, meta.back_label = self.parent_link(meta.root_route)
+        return app_component
+
+    def parent_link(self, app_route: str | None) -> tuple[str | None, str | None]:
+        """The "← Parent" link of an app at ``app_route``: the route and label of the nearest route
+        ABOVE it that resolves to a screen — ``/customers`` ("Customers") for ``/customers/7``. The
+        label is the screen's ``@title``, else its last segment humanized. ``(None, None)`` when no
+        route above resolves (an app at its mount's root has none)."""
+        from ..naming import humanize_constant
+
+        path = (app_route or "").rstrip("/")
+        while path.rfind("/") > 0:
+            path = path[: path.rfind("/")]
+            screen = self._screen_at(path)
+            if screen is None:
+                continue
+            title = getattr(screen, "__mateu_title__", None)
+            segment = path[path.rfind("/") + 1:]
+            label = title if isinstance(title, str) and title.strip() else humanize_constant(segment.replace("-", " "))
+            return path, label
+        return None, None
+
+    def _screen_at(self, path: str):
+        """The class answering ``path``: a ``@ui`` route, else a routes.yaml entry bound to a view
+        model (a definition-only route has no class, and no title to label a link with)."""
+        found = self.registry.resolve(None, path)
+        if found is not None:
+            return found
+        match = self.routes.match(path)
+        view_model = match.entry.view_model if match is not None else None
+        return self.registry.type_by_name(view_model) if view_model else None
 
     # ── Idle session & live header values (E2 patterns; mirror Java's runners) ──
     def keep_alive_action(self, cls, rq: RunActionRq) -> UIIncrement:
@@ -125,14 +216,17 @@ class AppHandlerMixin(MixinBase):
     # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
     def notifications_action(self, cls, rq: RunActionRq) -> UIIncrement:
         """The notification inbox's app-level actions: ``_notifications-list`` answers the
-        supplier's current entries as a data-only fragment under ``_notifications`` (per request,
-        so per user); ``_notifications-read`` marks the resolved ids read and answers the
-        REFRESHED list. The fragment targets the initiator, like the lookup searches."""
-        if not (isinstance(cls, type) and issubclass(cls, NotificationsSupplier)):
+        supplier's current entries plus the caller's stored ones (``InboxStore``) as a data-only
+        fragment under ``_notifications`` (per request, so per user); ``_notifications-read`` marks
+        the resolved ids read and answers the REFRESHED list. The fragment targets the initiator,
+        like the lookup searches. An ``@app(inbox=True)`` app without a supplier lists the store."""
+        has_supplier = isinstance(cls, type) and issubclass(cls, NotificationsSupplier)
+        if not has_supplier and not (isinstance(cls, type) and getattr(cls, "__mateu_app_inbox__", False)):
             return self.error(
                 "the app class does not implement NotificationsSupplier — no inbox to serve"
             )
-        supplier = cls()
+        supplier = cls() if has_supplier else None
+        inbox = _Inbox(supplier, self._inbox_principal(), getattr(self, "inbox_store", None), rq)
         parameters = rq.parameters or {}
         # every id the panel sends back comes from the browser: the supplier is only handed ids of
         # the CALLER's own list (what it answers for this request) and only the actions an entry
@@ -140,76 +234,61 @@ class AppHandlerMixin(MixinBase):
         if rq.action_id == "_notifications-open":
             # the entry's detail (a drawer, a dialog…) answered like any action's result
             nid = self._str_param(parameters, "id")
-            entry = self._own_entry(supplier, nid, rq)
+            entry = inbox.supplier_entry(nid)
             if nid is None or entry is None or not getattr(entry, "has_detail", False):
+                return UIIncrement.of()
+            if supplier is None:
                 return UIIncrement.of()
             detail = supplier.notification_detail(nid, rq)
             return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
         answer: UIIncrement | None = None
         if rq.action_id == "_notifications-read":
-            supplier.mark_notifications_read(
-                self._own_ids(supplier, self._notification_read_ids(supplier, rq), rq), rq)
+            inbox.mark_read(self._notification_read_ids(inbox, rq))
         elif rq.action_id == "_notifications-dismiss":
             ids = parameters.get("ids")
-            supplier.dismiss_notifications(
-                self._own_ids(
-                    supplier,
-                    [str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]),
-                    rq,
-                ),
-                rq,
-            )
+            inbox.dismiss([str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]))
         elif rq.action_id == "_notifications-act":
             nid = self._str_param(parameters, "id")
             action_id = self._str_param(parameters, "actionId")
             if nid is None or action_id is None:
                 return self.error("Which notification, and which action?")
-            entry = self._own_entry(supplier, nid, rq)
+            # a stored entry offers no action to run: it is refused like an entry not offering it
+            entry = inbox.supplier_entry(nid)
             if entry is None or not any(
                 getattr(a, "action_id", None) == action_id for a in (getattr(entry, "actions", None) or [])
             ):
                 from ..action_guard import deny
 
                 deny("_notifications-act: the caller's inbox has no entry offering that action")
-            result = supplier.on_notification_action(nid, action_id, rq)
+            result = supplier.on_notification_action(nid, action_id, rq) if supplier is not None else None
             answer = self.map_result(result, rq) if result is not None else None
-        notifications = supplier.notifications(rq) or []
-        data = {"_notifications": [self._notification_json(n) for n in notifications]}
+        data = {"_notifications": [self._notification_json(n) for n in inbox.entries(refresh=True)]}
         listed = UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
         if answer is None:
             return UIIncrement.of(fragments=[listed])
         return answer.model_copy(update={"fragments": [*answer.fragments, listed]})
 
-    @staticmethod
-    def _own_entry(supplier, nid: str | None, rq: RunActionRq):
-        """The caller's own entry ``nid`` (in the list the supplier answers for this request)."""
-        if nid is None:
-            return None
-        return next((n for n in (supplier.notifications(rq) or []) if n is not None and n.id == nid), None)
+    def _inbox_principal(self) -> str | None:
+        """The authenticated caller's name the stored inbox is kept under (None = anonymous)."""
+        identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+        name = getattr(identity, "name", None)
+        return name if name and str(name).strip() else None
 
     @staticmethod
-    def _own_ids(supplier, ids: list[str], rq: RunActionRq) -> list[str]:
-        """``ids`` kept only when they are the caller's own entries."""
-        if not ids:
-            return ids
-        own = {n.id for n in (supplier.notifications(rq) or []) if n is not None}
-        return [i for i in ids if i in own]
-
-    @staticmethod
-    def _str_param(parameters: dict, key: str) -> str | None:
-        value = parameters.get(key)
-        return None if value is None else str(value)
-
-    @staticmethod
-    def _notification_read_ids(supplier, rq: RunActionRq) -> list[str]:
+    def _notification_read_ids(inbox: "_Inbox", rq: RunActionRq) -> list[str]:
         """The ``ids`` parameter: an explicit list, "all" → every currently-unread notification's
         id, or a single bare id."""
         ids = (rq.parameters or {}).get("ids")
         if isinstance(ids, list):
             return [str(v) for v in ids]
         if ids == "all":
-            return [n.id for n in (supplier.notifications(rq) or []) if n.unread]
+            return [n.id for n in inbox.entries() if n.unread]
         return [] if ids is None else [str(ids)]
+
+    @staticmethod
+    def _str_param(parameters: dict, key: str) -> str | None:
+        value = parameters.get(key)
+        return None if value is None else str(value)
 
     @staticmethod
     def _notification_json(n) -> dict[str, Any]:
@@ -280,3 +359,61 @@ class AppHandlerMixin(MixinBase):
                 UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
             ]
         )
+
+
+class _Inbox:
+    """The caller's inbox for one request: the supplier's entries (the app's own) ∪ the caller's
+    stored ones (``InboxStore``), each id routed back to whoever holds it — and only the caller's
+    own ids at all."""
+
+    def __init__(self, supplier, principal: str | None, store, rq: RunActionRq):
+        self.supplier = supplier
+        self.principal = principal
+        self.store = store if principal else None
+        self.rq = rq
+        self._supplied: list | None = None
+        self._stored: list | None = None
+
+    def supplied(self) -> list:
+        if self._supplied is None:
+            listed = self.supplier.notifications(self.rq) if self.supplier is not None else None
+            self._supplied = [n for n in (listed or []) if n is not None]
+        return self._supplied
+
+    def stored(self) -> list:
+        if self._stored is None:
+            self._stored = list(self.store.list(self.principal)) if self.store is not None else []
+        return self._stored
+
+    def entries(self, refresh: bool = False) -> list:
+        """Supplier first; a stored id the supplier already lists is skipped."""
+        if refresh:
+            self._supplied = None
+            self._stored = None
+        supplied = self.supplied()
+        known = {n.id for n in supplied}
+        return [*supplied, *(n for n in self.stored() if n.id not in known)]
+
+    def supplier_entry(self, nid: str | None):
+        if nid is None:
+            return None
+        return next((n for n in self.supplied() if n.id == nid), None)
+
+    def _split(self, ids: list[str]) -> tuple[list[str], list[str]]:
+        supplied = {n.id for n in self.supplied()}
+        stored = {n.id for n in self.stored()} - supplied
+        return [i for i in ids if i in supplied], [i for i in ids if i in stored]
+
+    def mark_read(self, ids: list[str]) -> None:
+        own, kept = self._split(ids)
+        if self.supplier is not None:
+            self.supplier.mark_notifications_read(own, self.rq)
+        if kept and self.store is not None:
+            self.store.mark_read(self.principal, kept)
+
+    def dismiss(self, ids: list[str]) -> None:
+        own, kept = self._split(ids)
+        if self.supplier is not None:
+            self.supplier.dismiss_notifications(own, self.rq)
+        if kept and self.store is not None:
+            self.store.dismiss(self.principal, kept)

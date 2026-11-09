@@ -29,13 +29,15 @@ from enum import Enum  # noqa: E402
 from mateu_ui.dtos import Option  # noqa: E402
 from mateu_ui.uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
 from mateu_ui.uidl.components import Notice, StatusItem, StatusList  # noqa: E402
-from mateu_ui.uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
+from mateu_ui.uidl import DetailForm, Details, Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
+from mateu_ui.uidl import AutoEditableView, Message, auto_save, view_toolbar_button  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_ui.dtos import MenuItem  # noqa: E402
-from mateu_ui.uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
+from mateu_ui.uidl import AppShell, AppSupplier, AppVariant, BackLink, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
 from mateu_ui.uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
 from mateu_ui.uidl import Text as TextField  # noqa: E402
-from mateu_ui.uidl import Max, Min  # noqa: E402
+from mateu_ui.uidl import Length, Max, Min, Pattern, ReadOnly  # noqa: E402
+from mateu_ui.uidl import read_only as read_only_view  # noqa: E402
 from mateu_ui.uidl import EyesOnly, ReadOnlyUnless, button, disabled_unless  # noqa: E402
 
 
@@ -268,6 +270,51 @@ class ValidatedForm:
     age: Annotated[int, Min(18), Max(99)] = 36
 
 
+@ui("/conformance/validation-text")
+@title("Validated text")
+class ValidatedTextForm:
+    """Text constraints: ``Length`` (each declared bound its own entry, an open max printed as
+    Java's Integer.MAX_VALUE) and ``Pattern`` (verbatim in a JS literal), default and custom messages,
+    after the required check — and a ``Hidden(expr)`` field whose constraint is relaxed while hidden."""
+
+    code: Annotated[str, Required(), Length(min=3, max=8), Pattern(r"^[A-Z]+$")] = "ABC"
+    nickname: Annotated[str, Length(min=2)] = ""
+    bio: Annotated[str, Length(max=140)] = ""
+    tag: Annotated[str, Length(max=10, message="Too long")] = ""
+    zip: Annotated[str, Pattern(r"^[0-9]{5}$", message="Five digits"), Hidden("state['code'] === ''")] = ""
+
+
+@ui("/conformance/validation-locked")
+@title("Locked fields")
+class LockedFieldsForm:
+    """Constraints on fields the user cannot type into: Java (the reference) still sends them for a
+    ReadOnly() and a PlainText() field next to an editable one."""
+
+    name: Annotated[str, Required()] = "Ada"
+    code: Annotated[str, Required(), ReadOnly()] = "A-1"
+    caption: Annotated[str, Length(min=3), PlainText()] = "Hello"
+
+
+@ui("/conformance/validation-unless")
+@title("Locked by permission")
+class LockedByPermissionForm:
+    """A field locked by permission (ReadOnlyUnless, anonymous caller) still sends its constraints,
+    as Java's PageFormBuilder.rendersAsInput does."""
+
+    name: Annotated[str, Required()] = "Ada"
+    notes: Annotated[str, Required(), ReadOnlyUnless(roles=("manager",))] = "n/a"
+
+
+@ui("/conformance/validation-read-only-view")
+@title("Read-only view")
+@read_only_view
+class ReadOnlyValidatedView:
+    """A class-level read-only view still sends its constraints (Java's ValidationMapper)."""
+
+    name: Annotated[str, Required()] = "Ada"
+    code: Annotated[str, Length(min=3)] = "ABC"
+
+
 @ui("/conformance/stereotypes")
 @title("Stereotypes")
 class Stereotypes:
@@ -369,6 +416,87 @@ class GenericComponentsPage(ComponentTreeSupplier):
                 header="Delete order?", content=fl.Text(text="This cannot be undone"), can_cancel=True,
                 confirm_text="Delete", confirm_action_id="deleteOrder", cancel_action_id="keepOrder",
             ),
+        ))
+
+
+@ui("/conformance/auto-save")
+@title("Settings")
+@auto_save(debounce_millis=500, action="persist")
+class AutoSaveForm:
+    """A class-level auto_save: the AutoSave trigger names the action and the debounce, and the
+    component advertises the "*" catch-all next to the action."""
+
+    nickname: str = "ada"
+    newsletter: bool | None = None
+
+    def persist(self):
+        return Message("Saved")
+
+
+@ui("/conformance/more-components")
+@title("More components")
+class MoreComponentsPage(ComponentTreeSupplier):
+    """The last wire component types that were Java-only, in one component tree."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_ui.uidl import PageResult
+        from mateu_ui.uidl import components as fl
+
+        def t(text):
+            return fl.Text(text=text)
+
+        return fl.VerticalLayout(content=(
+            fl.BoardLayout(id="board", rows=(fl.BoardLayoutRow(content=(
+                fl.BoardLayoutItem(content=t("Sales"), board_cols=2),
+                fl.BoardLayoutItem(content=t("Stock"), board_cols=1),
+            )),)),
+            fl.CarouselLayout(
+                id="carousel", content=(t("Slide 1"), t("Slide 2")), auto=True, duration=4000,
+                dots=True, loop=True,
+            ),
+            fl.Container(content=t("Contained")),
+            fl.FullWidth(content=t("Wide")),
+            fl.Scroller(content=t("Scrolled"), style="height: 10rem"),
+            fl.FormItem(id="item", content=(t("Field"),)),
+            fl.FormSubSection(title="Address", content=(t("Street"),)),
+            fl.MasterDetailLayout(
+                id="md", master=t("Master"), detail=t("Detail"),
+                orientation=fl.Orientation.horizontal, variant=None,
+            ),
+            fl.ContextMenu(
+                menu=(fl.MenuEntry(label="Orders", path="/orders"),),
+                wrapped=t("Right click me"), activate_on_left_click=True,
+            ),
+            fl.Directory(menu=(fl.MenuEntry(
+                label="Sales", path="/sales",
+                submenu=(fl.MenuEntry(label="Orders", path="/sales/orders"),),
+            ),)),
+            fl.MenuBar(options=(
+                fl.MenuEntry(label="Home", path="/home"), fl.MenuEntry(label="Help", path="/help"),
+            )),
+            fl.Grid(
+                id="grid",
+                content=(
+                    fl.GridColumn(id="name", label="Name", data_type="string"),
+                    fl.GridGroupColumn(id="occupancy", label="Occupancy", columns=(
+                        fl.GridColumn(id="adults", label="Adults", data_type="integer"),
+                        fl.GridColumn(id="children", label="Children", data_type="integer"),
+                    )),
+                ),
+                page=PageResult(content=[{"name": "Ada", "adults": 2, "children": 1}], total_elements=1),
+                row_stripes=True,
+            ),
+            fl.Chat(sse_url="/chat/sse"),
+            fl.MessageList(id="messages", items=(fl.MessageListItem(text="Hello", user_name="Ada"),)),
+            fl.MessageInput(id="input", action_id="send"),
+            fl.NotFound(title="Not here", message="That page does not exist", back_route="/", back_label="Home"),
+            fl.VirtualList(page=PageResult(content=[t("Row 1"), t("Row 2")], total_elements=2)),
+            fl.CookieConsent(message="We use cookies", dismiss="OK", position=fl.CookieConsentPosition.Bottom),
+            fl.FormEditor(value="{}"),
+            fl.Workflow(value="<bpmn/>"),
         ))
 
 
@@ -636,6 +764,60 @@ class ProductsCrud(Crud[Product]):
         pass
 
 
+@ui("/conformance/view-toolbar-button")
+@title("Products")
+class ProductsWithViewButton(ProductsCrud):
+    """The `crud` products with a record-view toolbar method (Java's @ViewToolbarButton)."""
+
+    @view_toolbar_button(confirmation_required=True)
+    def discontinue(self, product: Product):
+        return Message("Discontinued")
+
+
+from mateu_ui.uidl import action_options, list_toolbar_button  # noqa: E402
+
+
+@ui("/conformance/bulk-actions")
+@title("Products")
+class BulkProductsCrud(ProductsCrud):
+    """The `crud` products with two BULK listing buttons: one dressed by ``@toolbar`` and
+    confirmed with the ``@action_options`` texts, one needing no selection — declared in the
+    reverse of their ``order`` (Java's @ListToolbarButton + @Toolbar + @Action)."""
+
+    @list_toolbar_button("Discontinue", confirmation_required=True)
+    @toolbar(button_style="secondary", button_color="error", button_size="small", order=10)
+    @action_options(
+        confirmation_title="Discontinue products",
+        confirmation_message="The selected products leave the catalogue.",
+        confirmation_text="Discontinue them",
+        confirmation_denial_text="Keep them",
+    )
+    def discontinue(self, selection: list[Product]):
+        return Message(f"{len(selection)} discontinued")
+
+    @list_toolbar_button("Refresh prices", rows_selected_required=False)
+    @toolbar(order=1)
+    def refresh_prices(self):
+        return Message("Prices refreshed")
+
+
+class Profile:
+    name: Annotated[str, Required()] = "Ada"
+    city: str = "London"
+
+
+@ui("/conformance/editable-view")
+@title("Profile")
+class ProfileView(AutoEditableView[Profile]):
+    """A read view with an Edit toolbar flipping to the editor (Java's AutoEditableView)."""
+
+    def load(self) -> Profile:
+        return Profile()
+
+    def persist(self, entity: Profile) -> None:
+        pass
+
+
 class Book:
     id: str = ""
     title: str = ""
@@ -658,6 +840,39 @@ BOOKS = [Book("b1", "El Quijote", 863), Book("b2", "Rayuela", 600)]
 class FilteredBooks(Listing[Book], Searchable, Filterable[BookFilters]):
     def search(self, request, http=None):
         return list(BOOKS)
+
+
+@ui("/conformance/bulk-actions-listing")
+@title("Books")
+class BulkBooks(Listing[Book]):
+    """A read-only listing with the dressed and confirmed bulk button."""
+
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+    @list_toolbar_button("Withdraw", confirmation_required=True)
+    @toolbar(button_style="secondary", button_color="error", button_size="small", order=10)
+    @action_options(
+        confirmation_title="Withdraw books",
+        confirmation_message="The selected books leave the shelves.",
+        confirmation_text="Withdraw them",
+        confirmation_denial_text="Keep them",
+    )
+    def withdraw(self, selection: list[Book]):
+        return Message(f"{len(selection)} withdrawn")
+
+
+@ui("/conformance/bulk-actions-unlabeled")
+@title("Books")
+class UnlabeledBulkBooks(Listing[Book]):
+    """A plain listing whose bulk method has no label: Java labels it with the bare method name."""
+
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+    @list_toolbar_button
+    def mark_read(self, selection: list[Book]):
+        return Message(f"{len(selection)} marked")
 
 
 @ui("/conformance/listing-navigable")
@@ -765,6 +980,19 @@ class SignUpWizard(Wizard):
         return {1: "Account", 2: "Plan", 3: "Done"}.get(step)
 
 
+from mateu_ui.uidl import MessageVariant  # noqa: E402
+
+
+@ui("/conformance/wizard-completion-error")
+@title("Sign up")
+class RefusedSignUpWizard(SignUpWizard):
+    """The sign-up wizard whose completion answers an error Message: it stays on its step."""
+
+    @wizard_completion_action("Sign up")
+    def sign_up(self):
+        return Message.error("No seats left on that plan.")
+
+
 @ui("/conformance/rest-source")
 @title("Shipping")
 class RestSourceForm:
@@ -779,7 +1007,7 @@ class RestSourceForm:
 # ── Second requests: what an ACTION answers, not what a first load draws ──────────────────────
 
 from mateu_ui.uidl import MessageVariant, action  # noqa: E402
-from mateu_ui.uidl.components import Drawer, DrawerPosition  # noqa: E402
+from mateu_ui.uidl.components import Dialog, Drawer, DrawerPosition  # noqa: E402
 
 
 @ui("/conformance/action-effects")
@@ -814,6 +1042,131 @@ class DrawerPage:
         )
 
 
+@ui("/conformance/dialog-placement")
+@title("Dialog placement")
+class DialogPlacementPage:
+    """An action opening a modeless dialog placed at top/left, draggable and resizable."""
+
+    name: str = "Ada"
+
+    @action
+    def open_notes(self):
+        return Dialog(
+            header_title="Notes", content=Text("Free text"), top="4rem", left="2rem",
+            draggable=True, resizable=True, width="30rem", height="20rem", modeless=True,
+            close_button_on_header=True,
+        )
+
+
+from mateu_ui.uidl import Crud, HiddenInCreate, HiddenInEditor, HiddenInList, HiddenInView, MainFilter, action_options  # noqa: E402
+
+
+@ui("/conformance/action-extras")
+@title("Action extras")
+class ActionExtrasPage:
+    """The rest of Java's @Action: a streamed background action, a confirmation with its texts, a
+    link, a client script and a custom event."""
+
+    name: str = "Ada"
+
+    # ONE action carrying every knob (Java's @Action order is the JVM's, unspecified)
+    @action
+    @action_options(
+        sse=True, background=True,
+        confirmation_required=True, confirmation_title="Delete?",
+        confirmation_message="It cannot be undone", confirmation_text="Delete",
+        confirmation_denial_text="Keep",
+        href="https://mateu.io", js="console.log('hi')", custom_event="order-picked",
+    )
+    def act(self):
+        return Message("Done")
+
+
+@ui("/conformance/app-branding")
+@app("Branded app", layout="SPLIT", accent_color="#00796b", ask_label="Ask Mateu", ask_icon="vaadin:question")
+class BrandedApp:
+    """An app shell's presentation knobs: a split content area, an accent, the Ask button's brand."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+
+@ui("/conformance/app-back-link")
+@app("Record", back_link=BackLink.PARENT)
+class BackLinkApp:
+    """A record master's way back up: one "← Records" link to the screen above the app instead of
+    the breadcrumb trail."""
+
+    @menu_item("Overview")
+    def overview(self):
+        return None
+
+
+@ui("/conformance")
+@title("Records")
+class BackLinkParent:
+    """The screen above the back-link app: its title labels the link."""
+
+    name: str | None = None
+
+
+@ui("/conformance/section-options")
+@title("Section options")
+class SectionOptionsForm:
+    """The first section pinned while the page scrolls, the second forced to one column with a
+    style on its content."""
+
+    lead: Annotated[str | None, Section("Guests", sticky=True)] = None
+    second: str | None = None
+    third: str | None = None
+    fourth: str | None = None
+    first: Annotated[str | None, Section("Notes", columns=1, style="gap: 0;")] = None
+    other: str | None = None
+    more: str | None = None
+    last: str | None = None
+
+
+class Employee:
+    id: str = ""
+    name: Annotated[str, MainFilter()] = ""
+    notes: Annotated[str, HiddenInList()] = ""
+    salary_band: Annotated[str, HiddenInView()] = ""
+    created_by: Annotated[str, HiddenInEditor()] = ""
+    code: Annotated[str, HiddenInCreate()] = ""
+
+    def __init__(self, id="", name="", notes="", salary_band="", created_by="", code=""):
+        self.id, self.name, self.notes = id, name, notes
+        self.salary_band, self.created_by, self.code = salary_band, created_by, code
+
+    def __str__(self):
+        return self.name if self.name and self.name.strip() else "New employee"
+
+
+EMPLOYEES = [
+    Employee("E-1", "Ada", "Likes tea", "B2", "admin", "ADA"),
+    Employee("E-2", "Grace", "Navy", "B3", "admin", "GRC"),
+]
+
+
+@ui("/conformance/crud-hidden-in")
+@title("Employees")
+class EmployeesCrud(Crud[Employee]):
+    """A crud whose entity hides fields per surface and names its main filter."""
+
+    def fetch(self, search):
+        return list(EMPLOYEES)
+
+    def get(self, id):
+        return next((e for e in EMPLOYEES if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
 @ui("/conformance/rejected-save")
 @title("Rejected save")
 class RejectedSaveForm:
@@ -836,6 +1189,157 @@ class FailingActionPage:
     @action
     def explode(self):
         raise RuntimeError("database is down at db-01")
+
+
+from mateu_ui.uidl import HeroSearchListing  # noqa: E402
+
+
+class Seat:
+    id: str = ""
+    name: str = ""
+    code: Annotated[int | None, HiddenInCreate(), Min(100), Max(999)] = None
+    quota: Annotated[int | None, HiddenInEditor(), Min(1), Max(9)] = None
+
+    def __init__(self, id="", name="", code=None, quota=None):
+        self.id, self.name, self.code, self.quota = id, name, code, quota
+
+    def __str__(self):
+        return self.name if self.name and self.name.strip() else "New seat"
+
+
+SEATS = [Seat("S-1", "Front", 101, 2)]
+
+
+@ui("/conformance/crud-hidden-constraints")
+@title("Seats")
+class SeatsCrud(Crud[Seat]):
+    """A crud whose hidden-in fields carry constraints: a form that does not render a field sends
+    no validation for it, and the server does not check it there."""
+
+    def fetch(self, search):
+        return list(SEATS)
+
+    def get(self, id):
+        return next((e for e in SEATS if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+@ui("/conformance/hero-search-filters")
+@title("Books")
+class HeroBooks(HeroSearchListing[BookFilters, Book]):
+    """A hero search page over a declarative listing with its own filters type."""
+
+    def hero_title(self):
+        return "Find a book"
+
+    def hero_subtitle(self):
+        return "Search the catalogue"
+
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+
+from mateu_ui.uidl import Inline, shortcut, toolbar  # noqa: E402
+
+
+class SupplierInfo:
+    """A nested data object: inlined into its section (its toolbar on the title row, its button
+    below the content, both dispatched as ``nested-form-action-supplier-<method>``)."""
+
+    name: str = "Acme"
+    email: str = "sales@acme.test"
+
+    @toolbar
+    @action
+    @shortcut("ctrl+alt+v")
+    def verify(self):
+        return Message.success(f"Verified {self.name}")
+
+    @button
+    def contact(self):
+        return Message.success(f"Contacting {self.email}")
+
+
+class DeliveryInfo:
+    """A nested data object WITHOUT Inline(): a sub-form in an outlined card."""
+
+    city: str = "Palma"
+    days: int = 3
+
+
+@ui("/conformance/inline-form")
+@title("Inline form")
+class InlineForm:
+    """Inline() nested object + a plain nested object (Java's @Inline / nested sub-form)."""
+
+    reference: Annotated[str, Section("Order")] = "PO-1"
+    supplier: Annotated[SupplierInfo, Section("Supplier"), Inline()] = None  # type: ignore[assignment]
+    delivery: Annotated[DeliveryInfo, Section("Delivery")] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.supplier = SupplierInfo()
+        self.delivery = DeliveryInfo()
+
+
+class ContactInfo:
+    """An Inline() nested object whose fields carry client-rule markers."""
+
+    phone: Annotated[str, Hidden("state.reference == 'internal'")] = "600 000 000"
+    email: Annotated[str, Disabled()] = "buyer@acme.test"
+
+
+@ui("/conformance/inline-form-rules")
+@title("Inline form rules")
+class InlineFormRules:
+    """Client rules are the view's own fields' only (Java's RuleMapper): the nested object's get
+    none."""
+
+    reference: Annotated[str, Disabled()] = "PO-1"
+    contact: Annotated[ContactInfo, Inline()] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.contact = ContactInfo()
+
+
+class PurchaseOrder:
+    """A crud entity holding a plain nested data object (a ``SupplierInfo``, no Inline()): its
+    record form draws it as a sub-form and ADVERTISES its ``nested-form-action-supplier-<method>``
+    actions, which run on the nested object hydrated from the flattened state (Java's)."""
+
+    id: str = ""
+    reference: str = ""
+    supplier: SupplierInfo = None  # type: ignore[assignment]
+
+    def __init__(self, id="", reference=""):
+        self.id, self.reference = id, reference
+        self.supplier = SupplierInfo()
+
+    def __str__(self):
+        return self.reference
+
+
+PURCHASE_ORDERS = [PurchaseOrder("PO-1", "Q3 restock")]
+
+
+@ui("/conformance/crud-nested")
+@title("Purchase orders")
+class PurchaseOrdersCrud(Crud[PurchaseOrder]):
+    def fetch(self, search):
+        return list(PURCHASE_ORDERS)
+
+    def get(self, id):
+        return next((e for e in PURCHASE_ORDERS if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
 
 
 MODULE = sys.modules[__name__]
@@ -919,13 +1423,17 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-new", "crud-edit", "crud-view"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
+
+#: Mediated record forms whose FORM state is pinned all the same (Java's FORM_STATE_PINNED): the
+#: record's field values are the form's, only the _-prefixed routing keys are protocol.
+FORM_STATE_PINNED = {"routed-tabs-crud-new"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -935,13 +1443,33 @@ def without_mediated_route(increment: dict) -> dict:
     return increment
 
 
-def without_mediator_protocol(increment: dict) -> dict:
+def _without_private_keys(state) -> None:
+    if isinstance(state, dict):
+        for key in [k for k in state if str(k).startswith("_")]:
+            state.pop(key)
+
+
+def without_mediator_protocol(increment: dict, keep_form_state: bool = False) -> dict:
     for fragment in increment.get("fragments", []):
-        fragment.pop("state", None)
+        if keep_form_state:
+            _without_private_keys(fragment.get("state"))
+            if isinstance(fragment.get("component"), dict):
+                _without_private_keys(fragment["component"].get("initialData"))
+        else:
+            fragment.pop("state", None)
         component = fragment.get("component")
         if isinstance(component, dict):
-            component.pop("actions", None)
-            component.pop("initialData", None)
+            # the mediator's own actions (create/save, their bubbling) are protocol; a nested data
+            # object's actions are the FORM's — the record form advertises what its sub-forms
+            # dispatch (Java's withoutMediatorProtocol)
+            nested = [
+                a for a in component.pop("actions", None) or []
+                if str(a.get("id", "")).startswith("nested-form-action-")
+            ]
+            if nested:
+                component["actions"] = nested
+            if not keep_form_state:
+                component.pop("initialData", None)
             # the mediator's own refresh subscriptions ("mateu-crud:*" events); this port
             # re-renders the listing in place
             if isinstance(component.get("triggers"), list):
@@ -952,7 +1480,30 @@ def without_mediator_protocol(increment: dict) -> dict:
     return increment
 
 
+class YamlCase:
+    """Stands for "no fixture type": the case is a ``specs/ui/`` directory of its own."""
+
+
+def _yaml_handler(specs: Path) -> SyncHandler:
+    from mateu_ui.core.route_registry import RouteRegistry
+    from mateu_ui.core.yaml_spec_loader import YamlSpecLoader
+
+    handler = SyncHandler(MateuRegistry(MODULE), rest_sources=RestSourceRegistry(directory=str(specs)))
+    handler.routes = RouteRegistry(str(specs))
+    handler.yaml_specs = YamlSpecLoader(str(specs), handler.routes)
+    return handler
+
+
 def actual(view_cls, case: str | None = None) -> dict:
+    specs = CORPUS / case / "specs" / "ui" if case else None
+    if specs is not None and specs.is_dir():
+        # A YAML case: the handler reads ITS definitions, and the request names no type
+        req = json.loads((CORPUS / case / "request.json").read_text())
+        inc = _yaml_handler(specs).handle(RunActionRq(
+            route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
+            action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
+        ))
+        return normalise(inc.model_dump(by_alias=True, mode="json"))
     handler = SyncHandler(
         MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=None)
     )
@@ -965,14 +1516,17 @@ def actual(view_cls, case: str | None = None) -> dict:
             inc = handler.handle(RunActionRq(
                 route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
                 action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
-                server_side_type=type_name(view_cls),
+                # a request.json naming "serverSideType": null is a FRESH load (no type yet)
+                server_side_type=(
+                    req["serverSideType"] if "serverSideType" in req else type_name(view_cls)
+                ),
             ))
         except Exception as error:  # noqa: BLE001 - the adapter's error boundary, as it travels
             inc = error_increment(error, new_correlation_id(), action_id=req.get("actionId"))
         out = normalise(inc.model_dump(by_alias=True, mode="json"))
         if case in MEDIATED_FORMS:
             out = without_mediated_route(out)
-        return without_mediator_protocol(out) if case in MEDIATED else out
+        return without_mediator_protocol(out, case in FORM_STATE_PINNED) if case in MEDIATED else out
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     out = normalise(inc.model_dump(by_alias=True, mode="json"))
     return without_mediator_protocol(out) if case in MEDIATED else out
@@ -983,7 +1537,358 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm)]
+class LineRow:
+    product: str = ""
+    notes: Annotated[str, Details()] = ""
+
+
+@ui("/conformance/grid-field-detail")
+@title("Order lines")
+class GridFieldDetail:
+    """A grid field whose row type has a Details() field and whose row editor is customised."""
+
+    lines: Annotated[
+        list[LineRow],
+        DetailForm(position="bottom", columns=1, style="padding: 1rem;", theme="compact",
+                   min_height_when_detail_visible="20rem"),
+    ] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        row = LineRow()
+        row.product, row.notes = "Desk", "Oak"
+        self.lines = [row]
+
+
+@ui("/conformance/fluent-crudl-options")
+@title("Fluent listing options")
+class FluentCrudlOptionsPage(ComponentTreeSupplier):
+    """Every option of the fluent listing the port did not carry before 3.0 GA, on one listing."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_ui.uidl import components as fl
+
+        return fl.ListingComponent(
+            id="orders",
+            title="Orders",
+            listing_type="card",
+            columns=(fl.ListingColumn(id="customer", label="Customer", data_type="string"),),
+            toolbar=(fl.Button(label="Export", action_id="export"),),
+            size=3,
+            initial_page=2,
+            header=(fl.Text(text="Head"),),
+            footer=(fl.Text(text="Foot"),),
+            pre_search=(fl.Text(text="Search to start"),),
+            detail_path="notes",
+            use_button_for_detail=True,
+            lazy_column_rendering=True,
+            lazy_loading=True,
+            infinite_scrolling=True,
+            vaadin_grid_cell_background="#fafafa",
+            vaadin_grid_cell_padding="4px",
+            on_row_selection_changed_action_id="rowsChanged",
+            content_height="20rem",
+            search_on_enter=False,
+            auto_focus_on_search_text=False,
+            group_by="status",
+            group_actions=(fl.Button(label="Close group", action_id="closeGroup"),),
+            row_status_field="status",
+            drag_type="order",
+            rows_selection_enabled=True,
+        )
+
+
+from mateu_ui.uidl import breadcrumbs, no_breadcrumbs  # noqa: E402
+from mateu_ui.core.route_registry import RouteEntry, RouteEntrySupplier  # noqa: E402
+from mateu_ui.uidl import FeatureFlags  # noqa: E402
+
+
+@ui("/conformance/page-no-breadcrumbs")
+@title("Welcome")
+@no_breadcrumbs
+class PageNoBreadcrumbs:
+    """A page that turns the automatic breadcrumb trail off (page-no-breadcrumbs)."""
+
+    name: str | None = None
+
+
+@ui("/conformance/page-breadcrumbs")
+@title("Order 7")
+@breadcrumbs(("Home", "/"), ("Orders", "/orders"))
+class PageBreadcrumbs:
+    """A page that declares its own breadcrumb trail (page-breadcrumbs)."""
+
+    name: str | None = None
+
+
+@app("Back link chain master", back_link=BackLink.PARENT)
+class BackLinkChainMaster:
+    """A record master offering "← Parent", bound in code to conformance/bl-chain/:customerId with
+    a child ``orders`` route (page-back-link-chain): the pages under it carry no trail."""
+
+    customer_id: str | None = None
+
+
+class BackLinkChainTab:
+    """The master's ``orders`` tab (page-back-link-chain): its page says noBreadcrumbs."""
+
+    note: str | None = "orders"
+
+
+class BackLinkChainDeliveryTab:
+    """The master's ``delivery`` tab (page-back-link-chain-nested): a plain nested object drawn as a
+    sub-form in a card — its page, in the card's metadata, says noBreadcrumbs too."""
+
+    note: str | None = "delivery"
+    shipping: DeliveryInfo = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.shipping = DeliveryInfo()
+
+
+class BackLinkShellMaster(AppSupplier):
+    """A master whose "← Parent" link its CODE shell declares, with no @app(back_link)
+    (page-back-link-code-shell): the pages under it keep their trail, as Java's."""
+
+    customer_id: str | None = None
+
+    def get_app(self) -> AppShell:
+        return AppShell(title="Back link shell master", back_link=BackLink.PARENT)
+
+
+# ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+
+@app("Customer", variant=AppVariant.TABS)
+class RtCustomerMaster:
+    """A record master with no menu of its own: its registry children are its tabs."""
+
+    customer_id: str | None = None
+
+
+@title("Orders")
+class RtOrdersTab:
+    """Labelled by its title, which its page does not repeat."""
+
+    customer_id: str | None = None
+    note: str | None = "orders"
+
+
+class RtNotesTab:
+    """No title: labelled by its route segment."""
+
+    customer_id: str | None = None
+    text: str | None = "notes"
+
+
+@app("Supplier", variant=AppVariant.TABS)
+class RtSupplierMaster:
+    """A master naming its default tab (default_child="notes")."""
+
+    supplier_id: str | None = None
+
+
+@title("Network")
+class RtVcnPage:
+    """In-page tabs that are URLs (Tab(key=…)); a tab whose flag is off (show=…) is not offered."""
+
+    id: str | None = None
+    subnets_note: Annotated[str, Tab("Subnets", key="subnets")] = "subnets"
+    gateways_note: Annotated[str, Tab("Gateways", key="gateways")] = "gateways"
+    simulator_note: Annotated[str, Tab("Simulator", key="simulator", show="simulator")] = "simulator"
+
+
+@app("Account", variant=AppVariant.TABS)
+class RtAccountMaster:
+    """A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*)."""
+
+    customer_id: str | None = None
+
+
+class RtOrder:
+    """An order of one customer: its customer_id is the master's path parameter."""
+
+    id: str = ""
+    customer_id: str | None = None
+    status: str | None = None
+
+    def __init__(self, id="", customer_id=None, status=None):
+        self.id, self.customer_id, self.status = id, customer_id, status
+
+    def __str__(self):
+        return f"Order {self.id}" if self.id else "New order"
+
+
+RT_ORDERS = [RtOrder("7-1", "7", "OPEN"), RtOrder("7-2", "7", "SHIPPED"), RtOrder("8-1", "8", "OPEN")]
+
+
+@title("Orders")
+class RtAccountOrders(Crud[RtOrder]):
+    """The orders of ONE customer, the one the route names."""
+
+    customer_id: str | None = None
+
+    def fetch(self, search):
+        return [o for o in RT_ORDERS if self.customer_id is None or o.customer_id == self.customer_id]
+
+    def get(self, id):
+        return next((o for o in RT_ORDERS if o.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+# ── Subresource(): a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+from mateu_ui.uidl import Subresource  # noqa: E402
+
+
+class RtNetItem:
+    id: str = ""
+    vcn_id: str | None = None
+
+    def __init__(self, id="", vcn_id=None):
+        self.id, self.vcn_id = id, vcn_id
+
+    def __str__(self):
+        return self.id or "New item"
+
+
+class RtItemsOfVcn(Crud[RtNetItem]):
+    """The listings of one VCN: the one its vcn_id names."""
+
+    vcn_id: str | None = None
+
+    def items(self) -> list:
+        return []
+
+    def fetch(self, search):
+        return [i for i in self.items() if i.vcn_id == self.vcn_id]
+
+    def get(self, id):
+        return next((i for i in self.items() if i.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+@title("Internet gateways")
+class RtInternetGateways(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("ig1", "7")]
+
+
+@title("NAT gateways")
+class RtNatGateways(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("nat1", "7"), RtNetItem("nat2", "8")]
+
+
+@title("Subnets")
+class RtSubnets(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("s1", "7"), RtNetItem("s2", "7"), RtNetItem("s3", "7"), RtNetItem("s4", "8")]
+
+
+@title("VCN")
+class RtVcnDetail:
+    """Details, then Gateways (two listings stacked in their order) and Subnets (eager)."""
+
+    id: Annotated[str | None, ReadOnly()] = None
+    cidr: Annotated[str, Tab("Details", key="details")] = "10.0.0.0/16"
+    nat: Annotated[RtNatGateways, Subresource(tab="gateways", order=2, context=("vcnId=id",))] = None  # type: ignore[assignment]
+    internet: Annotated[
+        RtInternetGateways,
+        Subresource(tab="gateways", order=1, help="Gateways to the internet", context=("vcnId=id",)),
+    ] = None  # type: ignore[assignment]
+    subnets: Annotated[RtSubnets, Subresource(tab="subnets", load="EAGER", context=("vcnId=id",))] = None  # type: ignore[assignment]
+
+
+@title("Only subnets")
+class RtOnlySubnets:
+    """Nothing editable but a sub-resource: still a form, rendering its island."""
+
+    id: Annotated[str | None, ReadOnly()] = None
+    subnets: Annotated[RtSubnets, Subresource()] = None  # type: ignore[assignment]
+
+
+@title("Trap")
+class RtInlineTrap:
+    """An Inline() orchestrator with no route of its own fails where the cause is."""
+
+    name: str | None = None
+    nat: Annotated[RtNatGateways, Inline()] = None  # type: ignore[assignment]
+
+
+class RoutedTabsRoutes(RouteEntrySupplier):
+    """The routed-tabs chains, authored in code (Java's RoutedTabsRoutes)."""
+
+    def routes(self):
+        master = "conformance/rt/customers/:customerId"
+        suppliers = "conformance/rt/suppliers/:supplierId"
+        return [
+            RouteEntry(route=master, view_model=type_name(RtCustomerMaster)),
+            RouteEntry(route=master + "/orders", view_model=type_name(RtOrdersTab), parent=master),
+            RouteEntry(route=master + "/notes", view_model=type_name(RtNotesTab), parent=master),
+            RouteEntry(route=master + "/audit", view_model=type_name(RtNotesTab), parent=master, show="audit"),
+            RouteEntry(route=suppliers, view_model=type_name(RtSupplierMaster), default_child="notes"),
+            RouteEntry(route=suppliers + "/orders", view_model=type_name(RtOrdersTab), parent=suppliers),
+            RouteEntry(route=suppliers + "/notes", view_model=type_name(RtNotesTab), parent=suppliers),
+            RouteEntry(route="conformance/rt/vcn/:id", view_model=type_name(RtVcnPage)),
+            RouteEntry(route="conformance/rt/accounts/:customerId", view_model=type_name(RtAccountMaster)),
+            RouteEntry(
+                route="conformance/rt/accounts/:customerId/orders",
+                view_model=type_name(RtAccountOrders),
+                parent="conformance/rt/accounts/:customerId",
+            ),
+            RouteEntry(route="conformance/rt/net/:id", view_model=type_name(RtVcnDetail)),
+            RouteEntry(route="conformance/rt/only/:id", view_model=type_name(RtOnlySubnets)),
+            RouteEntry(route="conformance/rt/trap", view_model=type_name(RtInlineTrap)),
+        ]
+
+
+class ConformanceFlags(FeatureFlags):
+    """The deployment's flags: audit and simulator are off, the rest unknown (on)."""
+
+    def is_enabled(self, flag: str) -> bool | None:
+        return False if flag in ("audit", "simulator") else None
+
+
+class ConformanceRoutes(RouteEntrySupplier):
+    """The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
+    ConformanceRoutes; Python's RouteEntry is flat: the child names its parent)."""
+
+    def routes(self):
+        return [
+            RouteEntry(route="conformance/bl-chain/:customerId", view_model=type_name(BackLinkChainMaster)),
+            RouteEntry(
+                route="conformance/bl-chain/:customerId/orders",
+                view_model=type_name(BackLinkChainTab),
+                parent="conformance/bl-chain/:customerId",
+            ),
+            RouteEntry(
+                route="conformance/bl-chain/:customerId/delivery",
+                view_model=type_name(BackLinkChainDeliveryTab),
+                parent="conformance/bl-chain/:customerId",
+            ),
+            RouteEntry(route="conformance/bl-shell/:customerId", view_model=type_name(BackLinkShellMaster)),
+            RouteEntry(
+                route="conformance/bl-shell/:customerId/orders",
+                view_model=type_name(BackLinkChainTab),
+                parent="conformance/bl-shell/:customerId",
+            ),
+        ]
+
+
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage), ("routed-tabs-deep-link", RtCustomerMaster), ("routed-tabs-crud-listing", RtAccountOrders), ("routed-tabs-crud-search", RtAccountOrders), ("routed-tabs-crud-new", RtAccountOrders), ("subresource-page", RtVcnDetail), ("subresource-only", RtOnlySubnets), ("subresource-inline-trap", RtInlineTrap), ("subresource-listing", RtSubnets), ("subresource-search", RtSubnets)]
 
 
 def test_every_case_of_the_corpus_is_wired():
@@ -1002,7 +1907,7 @@ def test_the_corpus_exists_for_every_case(case, view):
 @pytest.mark.parametrize("case,view", CASES)
 def test_python_renders_a_page_for_every_case(case, view):
     # The floor: whatever the shape differences, the port must answer each case with a page.
-    rendered = actual(view)
+    rendered = actual(view, case if view is YamlCase else None)
     assert rendered.get("fragments"), f"'{case}' produced no fragments"
 
 

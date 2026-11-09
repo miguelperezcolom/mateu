@@ -50,3 +50,5 @@ Tooltip.builder()
     .wrapped(new KPI("Total", "€ 1,234.00"))
     .build()
 ```
+
+**See it live in the Explorer:** [Card, Details, Tooltip & Popover](https://explorer.mateu.io/components/display/card)

@@ -1,0 +1,12 @@
+# A listing that names its endpoint by REF: the url, the paging envelope and the nested-field mapping
+# live once, in sources.yaml (entry `behaviour-planets`).
+type: Listing
+title: Planets
+searchable: true
+pageSize: 5
+rowsSource:
+  ref: behaviour-planets
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true}
+  - {type: GridColumn, id: climate, label: Climate}
+  - {type: GridColumn, id: population, label: Population}

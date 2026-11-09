@@ -1,0 +1,136 @@
+{
+  "commands" : [ {
+    "data" : "Only subnets",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "id",
+                        "label" : "Id",
+                        "optionsColumns" : 1,
+                        "readOnly" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "children" : [ {
+                          "metadata" : {
+                            "colspan" : 1,
+                            "content" : {
+                              "children" : [ {
+                                "metadata" : {
+                                  "homeConsumedRoute" : "/_subresource/RtOnlySubnets/subnets",
+                                  "homeRoute" : "/_subresource/RtOnlySubnets/subnets?_embeddedMediator=1&_hideTitle=1&_lazy=1",
+                                  "layout" : "SINGLE_SLOT",
+                                  "rootRoute" : "_empty",
+                                  "route" : "/_subresource/RtOnlySubnets/subnets",
+                                  "style" : "width: 100%;",
+                                  "type" : "App",
+                                  "variant" : "MEDIATOR"
+                                },
+                                "style" : "width: 100%;",
+                                "type" : "ClientSide"
+                              } ],
+                              "initialData" : {
+                                "_embeddedMediator" : true,
+                                "_hideTitle" : true
+                              },
+                              "route" : "/_subresource/RtOnlySubnets/subnets?_embeddedMediator=1&_hideTitle=1&_lazy=1",
+                              "style" : "width: 100%;",
+                              "type" : "ServerSide"
+                            },
+                            "type" : "CustomField"
+                          },
+                          "style" : "width: 100%;",
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "type" : "FormRow"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "autoResponsive" : true,
+                        "expandColumns" : true,
+                        "maxColumns" : 1,
+                        "type" : "FormLayout"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "label" : "Subnets",
+                      "routeKey" : "subnets",
+                      "type" : "Tab"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "groupRelationship" : "alternative",
+                    "type" : "TabLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Rt only subnets",
+          "pageType" : "form",
+          "title" : "Only subnets",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

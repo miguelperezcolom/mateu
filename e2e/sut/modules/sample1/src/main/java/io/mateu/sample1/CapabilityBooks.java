@@ -42,8 +42,10 @@ public class CapabilityBooks
     ESSAY
   }
 
+  // the book's code is a business code people read: @Label keeps the id a column even though the
+  // rows open by click (W-V-TABLE-ID leaves an unlabelled technical id out)
   public record Book(
-      String id, String title, String author, int pages, LocalDate published, Genre genre) {}
+      @io.mateu.uidl.annotations.Label("Code") String id, String title, String author, int pages, LocalDate published, Genre genre) {}
 
   public record BookFilters(
       String author, NumberRange pages, DateRange published, Set<Genre> genre) {}

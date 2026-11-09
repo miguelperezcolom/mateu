@@ -4,15 +4,30 @@ All notable changes to Mateu. Versions follow the scheme described in
 [Stability & versioning](https://mateu.io/reference/stability-and-versioning/); every release is a
 git tag `vX.Y-…` and a GitHub release whose artifacts are on Maven Central under `io.mateu`.
 
-Upgrading from an earlier alpha? Read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/)
-first — it collects every rename and removal in one place.
-
 This file starts at `v3.0-alpha.400`. For older releases, see the GitHub releases page.
 
 ## [Unreleased]
 
 ### Added
 
+- **The .NET and Python servers close their documented gaps.** Both ports gain the 24 wire
+  component types that were Java-only (`Grid` with column groups, `BoardLayout`, `CarouselLayout`,
+  `Chat`, `MessageList`/`MessageInput`, `ContextMenu`, `MenuBar`, `Directory` — `DirectoryMenu` in
+  C# —, `NotFound`, `VirtualList`, `CookieConsent`, `FormEditor`, `Workflow`…), YAML page templates
+  (`template:`) and `type: AppShell` definitions, a listing's `rowRoute`, the editable views
+  (`EditableView`, `AutoEditableView`, `MasterDetailView`), class-level `AutoSave`,
+  `ViewToolbarButton`, `MainFilter`, `HiddenIn*`, `Section(sticky, columns, style)`, `Dialog`
+  placement, the remaining action knobs (`sse`, `background`, confirmation texts, `href`, `js`,
+  custom events), `MicroFrontend.chrome`, typed filter criteria for a `find` override and a route's
+  `fixedParams` on the proxied leg, a page definition's `actions:`, `triggers:` and proxied
+  listing/select sources, `@App(backLink)` and a YAML shell's `backLink`/`pageTitle`, page
+  breadcrumbs, `@Inline` nested data-object forms, `HeroSearch` with a separate filters type
+  (Python `HeroSearchListing[F, R]`), the fluent listing's grid options and a grid field's row
+  detail, .NET length/pattern validation (`[StringLength]`, `[RegularExpression]`…); Python a
+  class-level `read_only_unless`. **Static bundles from the ports**: `python -m mateu_ui.bundle`
+  and `dotnet mateu-bundle` (the `Mateu.Bundle` tool) write the same bundle as
+  `mateu-bundle:bundle`, held to one golden (`conformance/bundle`). New conformance cases pin all
+  of it in Java, .NET and Python with empty allow-lists.
 - **Progress is a task, shown the platform's way.** A `LongTask` no longer builds a dialog on the
   server: it reports a task (`Progress` command: title, text, fraction or indeterminate, "12 of
   300", state) and each renderer shows it natively — a modal progress for a blocking task, a task
@@ -39,6 +54,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **The Mateu UI Kit says more.** A text or number field can name its stereotype (`email`, `money`…),
   a select or radio group where its options come from, and native slots and component properties
   replace the old `#config` layer. The kit is on [Figma Community](https://www.figma.com/community/file/1701291643502429777).
+- **A task survives a reload.** Reloading the page (or losing the connection, or sending the phone
+  app to the background) no longer cancels a running task: the renderer remembers its tasks for the
+  session, asks the server which are still there (`_progress-tasks`) and follows them again
+  (`_progress-resume`) — the task center fills up again. A task nobody follows is cancelled after a
+  grace period, 60 s by default (`mateu.progress.reattach-grace-seconds`; 0 = the old
+  cancel-on-close). Only the caller who started a task can see or follow it again. `@Experimental`;
+  Java, .NET, Python and every renderer.
+- **"About 2 min left".** A determinate task gets the server's estimate of the time left
+  (`ProgressDto.etaSeconds`), only once the observed rate makes it honest — never for an
+  indeterminate task. Same rules in the three backends (`conformance/progress/eta.json`), worded by
+  every renderer in English and Spanish.
+- **Notifications of the operating system.** `@App(osNotifications = true)`: a new inbox entry and a
+  background task that finished show as OS notifications while the app is not in front — the Web
+  Notifications API (permission asked only when the user clicks "Notify me on this device"), local
+  notifications on the phone app (`expo-notifications`; no push service — a new store build,
+  versionCode 200003), system notifications from IntelliJ. `@Experimental`.
+- **Inbox messages are kept.** A `Message` with persistence `inbox` to a signed-in user is stored
+  (`InboxStore` — implement it to keep entries anywhere; the default is in memory, bounded) and
+  pushed to the user's other sessions, so it is still in the bell after a reload. `@App(inbox =
+  true)` shows the bell without a `NotificationsSupplier`. `@Experimental`; Java, .NET and Python.
 
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
@@ -47,6 +82,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **About Mateu on the phone app.** An ⓘ on the hub's bar shows the app version and build, the Mateu
   release, and which code runs — the built-in bundle or an over-the-air update and when it was
   published. "Check for updates" downloads the latest update and restarts on it at once.
+- **The Vaadin page shows a loader while its bundle downloads.** Before the renderer's JavaScript
+  ran the page painted nothing (about 4 s of a blank screen on a 3G phone); a CSS-only spinner now
+  shows after 0.7 s and goes away when the app starts. It respects dark mode and reduced motion,
+  adds no script (the page still runs under `script-src 'self'`) and is served by the .NET and
+  Python ports too, which use the same page.
+- **Static bundles ship pre-compressed files.** `mateu-bundle:bundle` writes a `.gz` next to every
+  text file (`-Dmateu.bundle.precompress=false` skips it), so nginx `gzip_static`, Caddy
+  `precompressed` or a CDN origin serves them gzipped: the static VCN demo's first load on a 3G
+  phone went from 14.4 s to 4.3 s on such a host. See *Deploy › Static UI › Hosting*.
 
 ### Fixed
 
@@ -56,6 +100,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **A radio group lists the options of its `optionsSource`.** It drew an empty group.
 
 ### Changed
+
+- **A constraint applies only to a field the user can edit.** A `@ReadOnly` or `@PlainText` field,
+  one locked by a `@ReadOnlyUnless`/`@DisabledUnless` the user does not satisfy, and every field of a
+  read-only view no longer carry their constraints to the browser nor have them re-checked on the
+  server: a constraint nobody could fix blocked the submit. The server still never writes those
+  fields. Java, .NET and Python alike (conformance cases `validation-locked`, `validation-unless`,
+  `validation-read-only-view`).
+
+- **Faster requests in apps with many screens.** Route resolution looks the route up in an index
+  built once, instead of asking every `@UI` class on each request, and Mateu's settings are
+  memoised instead of resolved through the framework's configuration on every read (an app whose
+  configuration changes at runtime calls `MateuSettings.refresh()`; a Spring context refresh and
+  Spring Cloud's `EnvironmentChangeEvent` do it for you). In an app with 200 routed classes a
+  warm request is 17–40% faster.
+- **The .NET and Python ports send `ETag` and `Last-Modified` with the renderer's assets** and
+  answer a revalidation with `304 Not Modified`, as the Java adapters do: a repeat visit no longer
+  downloads the bundle again.
+- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** JetBrains stopped publishing
+  IntelliJ IDEA Community after 2025.2. Its open-source successor, IntelliJ IDEA Open Source
+  (Apache-2.0), now comes from the installers JetBrains attaches to the
+  [intellij-community releases](https://github.com/JetBrains/intellij-community/releases). Each
+  download is checked against a pinned SHA-256, and CI starts every packaged app before the release
+  reaches installed apps. Apps installed from an earlier beta ask to be **reinstalled once**; their
+  settings and list of UIs are kept. The Marketplace plugin still supports IntelliJ IDEA 2025.2 and
+  later.
 
 - **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
   was generated as its month and as "Today": it opens on the current month.
@@ -123,12 +192,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Removed
 
-3.0.0 removes the API deprecated during the alphas (`3.0-alpha.*`), as the deprecation policy
-allowed; what was deprecated during the betas stays until 4.0. Each removal is a reviewed exclusion
-of the API check (`backend/api-compat/japicmp-exclusions.properties`). The wire is unchanged: the
-renderers still accept every value a 3.x server ever sent.
+3.0.0 is the first stable release and keeps no compatibility with the 3.0 pre-releases (alphas,
+betas, release candidates): everything they deprecated, and every alias kept for them, is removed.
+Each Java removal is a reviewed exclusion of the API check
+(`backend/api-compat/japicmp-exclusions.properties`) until `3.0.0` itself becomes its baseline.
 
-- **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings) → `HAMBURGER_MENU`.
+- **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings, and on the wire —
+  renderers no longer accept it) → `HAMBURGER_MENU`.
 - **`@KeycloakSecured`** → your framework's authentication (an OIDC login / resource server), or a
   `PrincipalResolver` bean. The annotation processors no longer read it or index it.
 - **`BadgeSupplier`** → `HeaderBadgesSupplier`.
@@ -152,9 +222,33 @@ renderers still accept every value a 3.x server ever sent.
   `RunActionUseCase.SECRET_ENV_PREFIX` / `secretEnvName` → `SecretResolver`.
 - **.NET `[Secured]`, Python `@secured`** → `EyesOnly(permissions = …)` on the class.
 - **Python `Size`** (the length constraint) → `Length`; **Python `components.Step`** → `ProgressStep`.
+- **`@App(accentStrip)`, `@App(accentStripSeed)`** and core's **`AccentStrip`** generator (no effect
+  since no renderer draws a strip) → nothing: remove them; the accent is `@App(accentColor)`.
+- **`AppShell`'s pre-`ai` constructor** → the canonical constructor or `AppShell.builder()`.
+- **The YAML key `definition:`** on a route entry → `layout:`; **the YAML key `modelView:`** on a page
+  definition → `viewModel:`. The old keys are no longer read (nor in the schemas, the IDEs or the
+  visual editor).
+- **The endpoint `POST …/mateu/v3/components/_/action`** → `POST …/mateu/v3/sync/{route}` (every
+  renderer already used it; Redwood and the visual editor moved too). The Java adapters now answer
+  only `v3/sync/**` and `v3/sse/**` for actions, instead of any `v3/<operation>/**`.
+- **The pre-rename Maven ids** (`uidl`, `core`, `mvc-core`, `vaadin-lit`… — the relocation poms and
+  their entries in `mateu-bom`) → the `mateu-*` artifacts.
+- **Python's pre-rename packages** `mateu_uidl`, `mateu_dtos`, `mateu_core`, `mateu_fastapi` →
+  `mateu_ui.uidl`, `mateu_ui.dtos`, `mateu_ui.core`, `mateu_ui.fastapi`.
+- **.NET type forwards** of `RouteEntry`, `IRouteEntrySupplier`, `IMenuSupplier`, `IAppSupplier`,
+  `AppShell` and `MateuForbiddenException` from `Mateu.Core` (they live in `Mateu.Uidl`; source code
+  is unaffected, only binaries built against a pre-release relied on them).
+- **Rich text stored as a Quill Delta** (the pre-release editor's format) is no longer converted: a
+  rich-text value is HTML.
+- **The wire's never-produced types** `Result` and `Stepper`, the `AppDto` members `accentStrip` /
+  `generatedAccentStrip` (never sent) and the unreachable pre-3.0 DTOs of `mateu-dtos`
+  (`JourneyDto`, `ViewDto`, `PageMainContentDto`, `SearchFormDto`, `BadgeColorDto`… — 28 types).
+  `wireVersion` stays `3.0`: no 3.0.0 renderer or server produces or reads any of them.
+- **Figma → YAML**: a Section whose content slot is empty no longer takes the layers that follow it
+  (the convention of libraries older than native slots) — put the fields in the slot.
 
 Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template; deprecated,
-removable in 4.0) and the deprecated wire DTOs.
+removable in 4.0).
 
 ### Experimental
 
@@ -165,7 +259,7 @@ removable in 4.0) and the deprecated wire DTOs.
   `HttpRequest.getRemoteAddress`, `GeneralOverview.recordLabel`/`label` (and `@Internal` on plumbing:
   `forTheClient`, the archetypes' `bindRequest`, `MultiView.wrapView`); .NET: the same features
   through the port's doc-comment convention. The full list per backend is on the
-  [stability page](https://mateu.io/reference/stability-and-versioning/#added-after-the-freeze-experimental-in-300).
+  [stability page](https://mateu.io/reference/stability-and-versioning/#recent-api-experimental-in-300).
 
 ### Fixed
 
@@ -2316,7 +2410,7 @@ The first beta. Everything since the beta candidate (3.0-alpha.426): the last re
 owner decisions, the parity audit and the new-project polish. From here on, API changes follow the
 [stability policy](https://mateu.io/reference/stability-and-versioning/) — add and deprecate, never
 remove silently. Upgrading from an alpha: read
-[Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+Migrating from alpha (a page of the pre-release docs).
 
 ### Behaviour changes
 - **Money follows the UI locale** (3.0-alpha.430). A bare number with the money stereotype is
@@ -2802,7 +2896,7 @@ Security (identity only from the host framework), Mateu ships UI only, documents
 ### Public API
 - **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
   - **Deprecated** (still working; each names its replacement — see
-    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
+    Migrating from alpha (a page of the pre-release docs)):
     `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
     `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
     enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
@@ -2837,7 +2931,7 @@ Security (identity only from the host framework), Mateu ships UI only, documents
   format is registered; a request for a format nobody writes is answered with a message, never a 500.
   CSV keeps its dependency-free built-in writer. Same in the ports: .NET `IListingExporter` (the
   hand-written xlsx / PDF writers are gone), Python `ListingExporter` (the `export` extra with
-  openpyxl / reportlab is gone). See [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+  openpyxl / reportlab is gone). See Migrating from alpha (a page of the pre-release docs).
 - **`agent-cli` and `agent-cli-companion` removed** — the development bridge from the AI chat to a
   local LLM CLI is not UI. The chat panel, its SSE contract and the MCP endpoint stay; the chat no
   longer probes `127.0.0.1:8776` for a local companion (web and Redwood).
@@ -2938,7 +3032,7 @@ Maven artifacts renamed to `mateu-*`; the public API is prepared for the beta.
 
 ## [3.0-alpha.407] — 2026-10-10
 
-GA readiness: nine work streams integrated. Read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/) before upgrading.
+GA readiness: nine work streams integrated. Read Migrating from alpha (a page of the pre-release docs) before upgrading.
 
 ### Breaking
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.

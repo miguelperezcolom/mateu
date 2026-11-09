@@ -1,0 +1,23 @@
+id: rules
+area: behaviour
+group: forms
+title: Rules (hidden, disabled, required)
+covers: [behaviour:rules]
+description: |
+  A rule is an expression over the form's `state`, evaluated **in the browser** on every change —
+  no round trip. `@Hidden("expr")` and `@Disabled("expr")` cover the common cases; any other field
+  attribute (required, min, max, pattern…) is a `Rule` returned by a `RuleSupplier`.
+
+  Try it: tick **Company** — *Company name* and *Vat number* appear; tick **Gift wrap** and *Gift
+  message* becomes editable.
+
+  Known gap (3.0-beta.51): the Vaadin renderer applies only the `hidden` and `disabled` attributes
+  of a rule — the `required` rule below reaches the browser but does not mark the field yet.
+knownIssue: >-
+  Vaadin, 3.0-beta.51: only the `hidden` and `disabled` attributes of a rule are applied — `required` is not.
+examples:
+  - title: Shipping details
+    java: io.mateu.explorer.examples.behaviour.rules.ShippingForm
+code:
+  - {label: "C#", path: src/main/ports/behaviour/rules/ShippingForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/rules/shipping_form.py}

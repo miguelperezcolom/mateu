@@ -440,7 +440,7 @@ export const RICH_ATOM_FLAGS = [
   'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
   'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
   'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
-  'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
+  'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
   // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
   'isNestedListing',

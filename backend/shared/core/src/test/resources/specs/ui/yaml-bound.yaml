@@ -1,6 +1,6 @@
 # A page defined in YAML that declares its ModelView (the inverse of @UISpec): the layout lives
 # here, the behaviour/state in the referenced Java class. Used by YamlModelViewSyncTest.
-modelView: io.mateu.core.application.YamlModelViewSyncTest$GreeterView
+viewModel: io.mateu.core.application.YamlModelViewSyncTest$GreeterView
 layout:
   type: VerticalLayout
   spacing: true

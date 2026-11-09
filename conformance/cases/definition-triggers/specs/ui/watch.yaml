@@ -1,0 +1,40 @@
+# A definition-only page that FIRES actions without a click: no view model anywhere, the triggers
+# sit beside the layout like its actions do. Every member of the Trigger family, once.
+layout:
+  type: VerticalLayout
+  content:
+    - {type: FormField, id: amount, label: Amount, dataType: integer}
+triggers:
+  - type: OnLoadTrigger
+    actionId: preload
+    times: 1
+    timeoutMillis: 250
+    condition: state.amount == null
+    background: true
+  - type: OnCustomEventTrigger
+    actionId: refresh
+    eventName: something-happened
+    source: DOCUMENT
+  - type: OnCustomEventTrigger
+    actionId: follow
+    eventName: picked
+    source: COMPONENT
+    from: picker
+    condition: event.detail.id != null
+  - type: OnValueChangeTrigger
+    actionId: recompute
+    propertyName: amount
+    condition: state.amount > 0
+  - type: OnSuccessTrigger
+    actionId: announce
+    calledActionId: preload
+    timeoutMillis: 100
+  - type: OnErrorTrigger
+    actionId: apologise
+    calledActionId: preload
+  - type: AutoSaveTrigger
+    actionId: save
+    debounceMillis: 500
+  - type: OnCustomEventTrigger
+    actionId: bubbled
+    eventName: from-below

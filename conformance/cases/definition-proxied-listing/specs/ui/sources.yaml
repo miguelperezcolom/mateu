@@ -1,0 +1,18 @@
+# Two keyed endpoints: the server calls them (proxy), so their API key never reaches the browser.
+sources:
+  - name: products
+    source:
+      url: https://api.example/products
+      itemsPath: items
+      totalPath: total
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.PRODUCTS_KEY}
+  - name: categories
+    source:
+      url: https://api.example/categories
+      valuePath: code
+      labelPath: name
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.PRODUCTS_KEY}

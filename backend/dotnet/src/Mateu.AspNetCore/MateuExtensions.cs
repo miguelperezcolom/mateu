@@ -45,6 +45,9 @@ public static class MateuExtensions
         else if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
+        // a task survives its stream for the reattach grace period (process-wide, like the registry)
+        if (options.ProgressReattachGraceSeconds is { } graceSeconds)
+            ProgressTasks.Grace = TimeSpan.FromSeconds(Math.Max(0, graceSeconds));
         var registry0 = new MateuRegistry(assemblies);
         services.AddSingleton(registry0);
         // Version skew (X-Mateu-Build / X-Mateu-Renderer): a startup filter puts the middleware at
@@ -109,12 +112,18 @@ public static class MateuExtensions
                     : new Dictionary<string, string>(),
                 RequestTraceIdentifier = () => accessor.HttpContext?.TraceIdentifier,
                 RequestSelfBaseUrl = () => accessor.HttpContext is { } ctx ? LocalOrigin(ctx) : null,
+                SelfBaseUrl = options.SelfBaseUrl,
                 MicroFrontendResolver = MicroFrontendResolverOf(sp, options),
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
+                // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
+                InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
             };
         });
         return services;
     }
+
+    /// <summary>Mateu's in-memory inbox store, one per process (shared by every mount).</summary>
+    private static readonly InMemoryInboxStore DefaultInboxStore = new();
 
     /// <summary>The client the server-side micro frontend resolution calls remotes with (each call
     /// has its own deadline; this is only the outer bound).</summary>
@@ -162,10 +171,6 @@ public static class MateuExtensions
         // relative baseUrl): the browser resolves it against the page, so the shell keeps working
         // behind a TLS-terminating or Host-rewriting reverse proxy — an origin built from the
         // request the app SAW made the shell load its home from an address the browser can't reach.
-        // The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
-        // calls POST /mateu/v3/components/_/action, which this port answered 404 — Redwood could not
-        // render a .NET backend at all. The route travels in the body, never in that path.
-        app.MapPost(prefix + "/mateu/v3/components/{**rest}", SyncEndpoint).JsonBodiesOnly();
         app.MapPost(prefix + "/mateu/v3/sync/{**route}", SyncEndpoint).JsonBodiesOnly();
 
         async Task SyncEndpoint(HttpContext ctx, SyncHandler handler)
@@ -195,6 +200,8 @@ public static class MateuExtensions
             ctx.Response.Headers.CacheControl = "no-cache";
             async Task Send(UIIncrementDto increment, CancellationToken token)
             {
+                // an embedded micro frontend's stream steps never name the window either
+                increment = EmbeddedWindowCommands.Strip(increment, rq);
                 await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
                 await ctx.Response.Body.FlushAsync(token);
             }
@@ -203,11 +210,26 @@ public static class MateuExtensions
                 await StreamAgentChannel(ctx, rq, handler, Send);
                 return;
             }
+            if (rq.ActionId == ProgressTasks.ResumeAction)
+            {
+                // a reloaded client follows a task of ITS caller again (nothing for anyone else's)
+                try
+                {
+                    await foreach (var step in handler.ResumeTask(rq, ctx.RequestAborted))
+                        await Send(step, ctx.RequestAborted);
+                }
+                catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+                {
+                    // the browser went away again: the task runs on for the grace period
+                }
+                return;
+            }
             if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
             {
                 // An action that answers a LongTask streams its progress (one increment per step,
-                // cancellable with _progress-cancel; closing the stream cancels it); any other
-                // action streams its single increment.
+                // cancellable with _progress-cancel); closing the stream leaves the task running for
+                // the reattach grace period (_progress-resume picks it up), then cancels it. Any
+                // other action streams its single increment.
                 var slot = SyncHandler.BeginStream();
                 var increment = await RunGuarded(ctx, rq, () =>
                     handler.HandleAsync(rq, prefix, ctx.RequestAborted));
@@ -221,12 +243,12 @@ public static class MateuExtensions
                 try
                 {
                     await foreach (var step in handler.ContinueStream(slot,
-                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted))
+                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted, hot: true))
                         await Send(step, ctx.RequestAborted);
                 }
                 catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
                 {
-                    // the browser went away: the task was cancelled with its stream
+                    // the browser went away: a task runs on for the grace period
                 }
                 return;
             }
@@ -277,7 +299,9 @@ public static class MateuExtensions
         app.MapGet(prefix + MobileManifest.Path, async (HttpContext ctx, MateuRegistry registry) =>
         {
             foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
-            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl), ctx.RequestAborted);
+            // a YAML mount (no app class) is presented by its `type: AppShell` definition
+            var shell = ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl);
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell), ctx.RequestAborted);
         });
 
         // The installable web app (Mateu.Core.Pwa): its manifest, service worker, registration script
@@ -285,7 +309,8 @@ public static class MateuExtensions
         app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
         {
             var asset = Pwa.Asset(file, prefix,
-                () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)),
+                () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
+                    ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl)),
                 ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
             if (asset is null)
             {
@@ -355,7 +380,8 @@ public static class MateuExtensions
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
         var versionSkew = app.Services.GetService<VersionSkew>();
         string PwaHead(string html) => Pwa.Served(html, prefix,
-            MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)), versionSkew?.BuildId, pwaOption);
+            MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
+                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
@@ -367,14 +393,31 @@ public static class MateuExtensions
             var path = ctx.Request.Path.Value ?? "/";
             // the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
             // Vaadin first load); Java's AssetCompression
-            if (UiPage.IsAsset(path) && UiPage.IsCompressible(path))
+            var isAsset = path != "/" && UiPage.IsAsset(path);
+            var gzip = false;
+            if (isAsset && UiPage.IsCompressible(path))
             {
                 ctx.Response.Headers.Vary = "Accept-Encoding";
-                if (body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString()))
+                gzip = body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString());
+            }
+            // validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
+            if (isAsset && renderer.Stamp(path) is { } stamp)
+            {
+                var etag = UiPage.WeakEtag(stamp.Size, stamp.ModifiedMs);
+                if (gzip) etag = UiPage.GzipEtag(etag);
+                if (etag is not null) ctx.Response.Headers.ETag = etag;
+                ctx.Response.Headers.LastModified = DateTimeOffset.FromUnixTimeMilliseconds(stamp.ModifiedMs).ToString("R");
+                if (UiPage.NotModified(ctx.Request.Headers.IfNoneMatch.ToString(), ctx.Request.Headers.IfModifiedSince.ToString(), etag, stamp.ModifiedMs))
                 {
-                    body = UiPage.Gzipped(path, body);
-                    ctx.Response.Headers.ContentEncoding = "gzip";
+                    ctx.Response.StatusCode = StatusCodes.Status304NotModified;
+                    if (cacheControl is not null) ctx.Response.Headers.CacheControl = cacheControl;
+                    return;
                 }
+            }
+            if (gzip)
+            {
+                body = UiPage.Gzipped(path, body);
+                ctx.Response.Headers.ContentEncoding = "gzip";
             }
             ctx.Response.StatusCode = StatusCodes.Status200OK;
             ctx.Response.ContentType = contentType;

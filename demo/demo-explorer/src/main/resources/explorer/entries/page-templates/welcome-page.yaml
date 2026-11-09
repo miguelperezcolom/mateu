@@ -1,0 +1,18 @@
+id: welcome-page
+area: page-templates
+group: templates
+title: Welcome page
+covers: [template:WelcomePage]
+description: |
+  A `type: Form` with `template: {type: WelcomePage}`. The template **draws the header itself**: the
+  form's `title` is the banner's title, `subtitle` its description, `overline` the line above and
+  `toolbar` the calls to action (a `primary` one first). The form's `content` is the default slot — the
+  tiles under the banner. `backgroundColor` takes Spectra's `dark-<tone>` (or the bare tone).
+  No server code at all: every button is a `RouteLink`.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/welcome-page
+pages:
+  - {route: x/page-templates/welcome-page, layout: explorer/page-templates/welcome-page/welcome.yaml}

@@ -15,12 +15,11 @@ release are in [Known issues](/reference/known-issues/).
 | **Latest minor of 3.x** (`3.N`) | ✅ in patch releases `3.N.x` | ✅ |
 | **Previous minor** (`3.N-1`) | ❌ — upgrade to the latest minor | ✅ critical and high severity, for **6 months** after `3.N` is released |
 | Older 3.x minors | ❌ | ❌ |
-| **3.0 pre-releases** (`-alpha.N`, `-beta.N`) | only in the next pre-release | only in the next pre-release |
+| **3.0 pre-releases** (`-alpha.N`, `-beta.N`, `-rc.N`) | ❌ — upgrade to `3.0.0` | ❌ — upgrade to `3.0.0` |
 | 1.x / 2.x | ❌ | ❌ |
 
-- **Pre-releases.** Until `3.0.0` is out, fixes ship only in the next beta: there are no patch
-  releases of a beta. Alphas are not supported — upgrade with
-  [Migrating from alpha](/reference/migrating-from-alpha/).
+- **Pre-releases.** The 3.0 alphas, betas and release candidates are not supported: `3.0.0`, the
+  first stable release, replaces them and keeps no compatibility with them.
 - **A minor is a safe upgrade.** A minor release never breaks the public API or the wire (see
   [Stability & versioning](/reference/stability-and-versioning/)), so the fix for a bug in an older
   minor is the upgrade.
@@ -74,6 +73,7 @@ not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 b
 | **Web renderers** (Vaadin, Redwood) | current versions of Chrome, Edge, Firefox and Safari (desktop, and Safari on iOS / Chrome on Android). The Redwood renderer loads Oracle JET from Oracle's CDN, so the browser must reach it |
 | **React Native app** | iOS and Android as supported by Expo SDK 57 (React Native 0.86) |
 | **IntelliJ plugin** | IntelliJ IDEA 2025.2 and later (build `252` on, no upper bound). Verified with the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and 2026.3 |
+| **Desktop app** | macOS (Apple silicon and Intel), Windows x64 and Linux x64. Built on IntelliJ IDEA Open Source 2026.3 (Apache-2.0); the base follows that line's patch releases (2026.3.x), and each change of base asks installed apps to reinstall once |
 | **VS Code extension** | VS Code 1.85 or later |
 | **Node.js** | not needed to *use* Mateu — the renderers ship pre-built inside their jars. Building the renderers, the docs or the e2e suite from source needs Node 24 |
 

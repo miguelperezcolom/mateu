@@ -586,7 +586,7 @@
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBadge ]]">
-                    <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-if test="[[ $current.data.iconLeftClass ]]"><span :class="[[ $current.data.iconLeftClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ $current.data.iconRightClass ]]"><span :class="[[ $current.data.iconRightClass ]]" aria-hidden="true"></span></oj-bind-if></span>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
                     <div class="oj-flex">
@@ -627,7 +627,7 @@
                       <div class="oj-typography-body-sm oj-text-color-success oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.currentLabel ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.priceLabel ]]"></oj-bind-text></div>
                       <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                        <oj-button class="oj-sm-margin-2x-top" chroming="callToAction"
+                        <oj-button class="oj-sm-margin-2x-top" chroming="[[ $current.data.ctaChroming ]]" disabled="[[ $current.data.ctaDisabled ]]"
                           :data-action-id="[[ $current.data.actionId ]]"
                           on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
                       </oj-bind-if>
@@ -656,7 +656,7 @@
                     </oj-bind-for-each>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                    <div :class="[[ $current.data.wrapClass ]]">
+                    <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                     <oj-bind-for-each data="[[ $current.data.items ]]">
                       <template>
                         <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -680,6 +680,9 @@
                           <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                             <div class="oj-flex-item oj-sm-flex-initial">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                 <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                               </oj-bind-if>
@@ -719,6 +722,9 @@
                         <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                           <div class="oj-sm-margin-4x-bottom mateu-list-item">
                             <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                              <!-- the item's avatar, else its icon (stacked items lost both) -->
+                              <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <!-- no avatar: the name is the row's heading (the level below
                                    the section title, which paints as h2); it grows and pushes
                                    the badge to the item's right edge -->
@@ -768,6 +774,7 @@
                             <oj-bind-if test="[[ !!$current.data.avatar ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                             <div class="oj-flex-item">
                               <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -1215,7 +1222,7 @@
                               </div>
                             </oj-label-value>
                           </oj-bind-if>
-                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+                          <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
                           <oj-bind-if test="[[ $current.data.isRichEditor ]]">
                             <oj-label-value label-edge="top">
                               <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
@@ -1732,34 +1739,6 @@
                       </ol>
                     </div>
                   </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isResult ]]">
-                    <div :class="[[ $current.data.panelClass ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
-                        <oj-bind-if test="[[ $current.data.hasImage ]]">
-                          <img class="mateu-result-image oj-sm-margin-6x-end" :src="[[ $current.data.image ]]" alt="">
-                        </oj-bind-if>
-                        <div class="oj-flex-item">
-                          <span class="mateu-result-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                          <h2 class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
-                          <p class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></p>
-                          <ul class="mateu-result-links">
-                            <oj-bind-for-each data="[[ $current.data.links ]]">
-                              <template>
-                                <li>
-                                  <oj-bind-if test="[[ $current.data.isLink ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></oj-bind-if>
-                                  <oj-bind-if test="[[ $current.data.isAction ]]"><oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                                </li>
-                              </template>
-                            </oj-bind-for-each>
-                          </ul>
-                          <oj-bind-if test="[[ $current.data.hasNext ]]">
-                            <oj-bind-if test="[[ $current.data.next.isLink ]]"><a class="oj-button-like" :href="[[ $current.data.next.href ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></a></oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.next.isAction ]]"><oj-button chroming="callToAction" :data-action-id="[[ $current.data.next.actionId ]]" on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.next.label ]]"></oj-bind-text></oj-button></oj-bind-if>
-                          </oj-bind-if>
-                        </div>
-                      </div>
-                    </div>
-                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                     <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
                     <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
@@ -1801,12 +1780,6 @@
                         <li aria-current="page" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.current ]]"></oj-bind-text></li>
                       </ol>
                     </nav>
-                  </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isStepHeader ]]">
-                    <div class="mateu-step-header oj-flex oj-sm-align-items-center oj-sm-margin-4x-top oj-sm-margin-2x-bottom">
-                      <span class="mateu-step-num" aria-hidden="true"><oj-bind-text value="[[ $current.data.number ]]"></oj-bind-text></span>
-                      <h3 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
-                    </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isHero ]]">
                     <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">

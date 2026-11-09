@@ -72,3 +72,5 @@ The drag type travels as a MIME type (`application/x-mateu-<type>`), so a zone c
 drag is still over it — before it may read the data — whether what comes is its kind.
 
 Demo: `demo-vb-pms` → Financials → Windows.
+
+**See it live in the Explorer:** [Drag rows to a drop zone](https://explorer.mateu.io/behaviour/listings/drag-rows)

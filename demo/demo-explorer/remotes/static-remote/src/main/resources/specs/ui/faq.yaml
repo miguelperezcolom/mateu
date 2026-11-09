@@ -1,0 +1,11 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Frequently asked questions
+subtitle: A static bundle — there is no server behind this screen
+content:
+  - type: Faq
+    items:
+      - question: Who serves this page?
+        answer: Nobody — it is a file of a static bundle (manifest.json), expanded in the browser.
+      - question: How did it get into the shell?
+        answer: A RemoteMenu whose baseUrl names the bundle's manifest.json.

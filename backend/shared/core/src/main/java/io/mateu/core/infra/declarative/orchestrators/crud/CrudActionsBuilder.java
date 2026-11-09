@@ -24,6 +24,11 @@ final class CrudActionsBuilder {
       var mayCreate = CrudWriteGate.mayCreate(orchestrator);
       if (CrudWriteGate.mayDelete(orchestrator)) {
         actions.add(Action.builder().id("delete").build());
+        if (orchestrator.restorable()) {
+          // the Undo of an undoable delete (Restorable) bubbles here from the listing's toast
+          actions.add(
+              Action.builder().id(io.mateu.uidl.interfaces.Restorable.RESTORE_ACTION).build());
+        }
       }
       if (mayEdit) {
         actions.add(Action.builder().id("save").build());
@@ -77,13 +82,22 @@ final class CrudActionsBuilder {
         actions.add(Action.builder().id("update-row").build());
       }
       if (CrudWriteGate.mayDelete(orchestrator)) {
+        // an undoable delete (Restorable) asks for no confirmation: its toast offers Undo
         actions.add(
             Action.builder()
                 .id("delete")
-                .confirmationRequired(true)
+                .confirmationRequired(!orchestrator.restorable())
                 .rowsSelectedRequired(true)
                 .bubble(true)
                 .build());
+        if (orchestrator.restorable()) {
+          actions.add(
+              Action.builder()
+                  .id(io.mateu.uidl.interfaces.Restorable.RESTORE_ACTION)
+                  .validationRequired(false)
+                  .bubble(true)
+                  .build());
+        }
       }
       // the Export buttons of the list toolbar (ListRouteResolver): advertised, or dropped
       actions.addAll(io.mateu.uidl.interfaces.Listing.exportActions(orchestrator));

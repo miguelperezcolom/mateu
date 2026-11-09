@@ -1,0 +1,18 @@
+id: header-actions
+area: behaviour
+group: app
+title: "App header actions"
+covers: [behaviour:header-actions]
+description: |
+  The app class implements `AppActionsSupplier`: its `AppHeaderAction`s are buttons on the app header,
+  next to the context pickers. One with children (`AppHeaderAction.menu(...)`) is a dropdown whose
+  children dispatch. They are built per request — the server decides who sees them — and each runs
+  the app method named by its `actionId`.
+
+  **Try it:** press **Sync** on the embedded app's header, then open **Export** and pick **As CSV**.
+examples:
+  - title: "Sync + an Export menu"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.headeractions.HeaderActionsIsland
+code:
+  - {label: "Java · HeaderActionsDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/headeractions/HeaderActionsDemoApp.java}

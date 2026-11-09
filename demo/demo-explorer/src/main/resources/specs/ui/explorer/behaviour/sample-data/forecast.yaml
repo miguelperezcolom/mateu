@@ -1,0 +1,10 @@
+# A listing over an endpoint nobody has built yet (`behaviour-forecast` in sources.yaml carries a
+# `sample:`). Outside sample mode the endpoint is called — and fails; in sample mode the sample answers.
+type: Listing
+title: Forecast
+rowsSource:
+  ref: behaviour-forecast
+columns:
+  - {type: GridColumn, id: day, label: Day, identifier: true}
+  - {type: GridColumn, id: sky, label: Sky}
+  - {type: GridColumn, id: max, label: Max °C}

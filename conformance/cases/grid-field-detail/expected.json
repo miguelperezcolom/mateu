@@ -1,0 +1,153 @@
+{
+  "commands" : [ {
+    "data" : "Order lines",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "lines_create",
+        "validationRequired" : true
+      }, {
+        "id" : "lines_create-and-stay",
+        "validationRequired" : true
+      }, {
+        "id" : "lines_add"
+      }, {
+        "id" : "lines_select"
+      }, {
+        "id" : "lines_selected"
+      }, {
+        "id" : "lines_prev"
+      }, {
+        "id" : "lines_next"
+      }, {
+        "id" : "lines_save",
+        "validationRequired" : true
+      }, {
+        "id" : "lines_remove"
+      }, {
+        "id" : "lines_move-up"
+      }, {
+        "id" : "lines_move-down"
+      }, {
+        "id" : "lines_cancel"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "columns" : [ {
+                          "metadata" : {
+                            "autoWidth" : true,
+                            "dataType" : "string",
+                            "label" : "Product",
+                            "stereotype" : "regular",
+                            "type" : "GridColumn"
+                          },
+                          "type" : "ClientSide"
+                        }, {
+                          "metadata" : {
+                            "autoWidth" : true,
+                            "dataType" : "string",
+                            "label" : "Notes",
+                            "stereotype" : "regular",
+                            "type" : "GridColumn"
+                          },
+                          "type" : "ClientSide"
+                        }, {
+                          "metadata" : {
+                            "actionId" : "lines_select",
+                            "dataType" : "string",
+                            "stereotype" : "button",
+                            "text" : "Edit",
+                            "type" : "GridColumn",
+                            "width" : "3rem"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "dataType" : "array",
+                        "detailPath" : "notes",
+                        "fieldId" : "lines",
+                        "formColumns" : 1,
+                        "formPosition" : "bottom",
+                        "formStyle" : "padding: 1rem;",
+                        "formTheme" : "compact",
+                        "itemIdPath" : "_rowNumber",
+                        "label" : "Lines",
+                        "minHeightWhenDetailVisible" : "20rem",
+                        "onItemSelectionActionId" : "lines_selected",
+                        "optionsColumns" : 1,
+                        "stereotype" : "grid",
+                        "style" : "min-width: 10rem; width: 100%;",
+                        "type" : "FormField",
+                        "useButtonForDetail" : true
+                      },
+                      "style" : "min-width: 10rem; width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Grid field detail",
+          "pageType" : "form",
+          "title" : "Order lines",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "lines" : [ {
+          "notes" : "Oak",
+          "product" : "Desk"
+        } ]
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "lines" : [ {
+        "notes" : "Oak",
+        "product" : "Desk"
+      } ]
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

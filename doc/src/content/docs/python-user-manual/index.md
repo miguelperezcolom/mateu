@@ -41,18 +41,9 @@ pip install "mateu-ui[server]"     # the package + uvicorn (any ASGI server work
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); it
 installs one top-level package, `mateu_ui`, and you import `mateu_ui.uidl` (the authoring API),
 `mateu_ui.dtos` (the wire model), `mateu_ui.core` (the engine) and `mateu_ui.fastapi` (the adapter).
-Versions move in lockstep with the Java artifacts: the `v3.0-beta.N` release publishes `3.0.0bN`.
+Versions move in lockstep with the Java artifacts: the `v3.0.0` release publishes `3.0.0`.
 Python 3.11–3.13 are tested in CI (3.14 has been seen to work too).
 
-:::note[Upgrading from 3.0-alpha.428 or earlier]
-Before 3.0-beta the wheel installed four top-level packages: `mateu_uidl`, `mateu_dtos`,
-`mateu_core` and `mateu_fastapi`. Those imports keep working for the whole 3.x line (they are
-aliases of the same modules, so `mateu_core.mapper.ReflectionMapper is
-mateu_ui.core.mapper.ReflectionMapper`), and each emits one `DeprecationWarning` naming the new path.
-Type checkers only see the new paths. To migrate, replace the prefixes:
-`mateu_uidl` → `mateu_ui.uidl`, `mateu_dtos` → `mateu_ui.dtos`, `mateu_core` → `mateu_ui.core`,
-`mateu_fastapi` → `mateu_ui.fastapi`. The aliases go away in Mateu 4.
-:::
 
 ## Start a new project
 
@@ -669,8 +660,30 @@ server-side proxying:
 @app("Back office")
 @remote_menu("Payments", "https://payments.example.com")           # nests the remote menu
 @remote_menu("Billing", "https://billing.example.com", explode=True)  # inlines its entries
+@remote_menu("", "https://workflow.example.com", path="/workflow")  # the remote names it
 class Shell: ...
 ```
+
+A non-blank label is the shell's: it wins over the one the remote answers with (`shellLabel`). A
+blank one shows the path's last segment until the remote answers with its own. `path` is where the
+remote's screens live in this shell (Java's `@Menu` field name): it travels as the option's
+`routePrefix`, so the renderer knows the active section and the first breadcrumb on a cold load.
+
+### The way back up (`back_link`)
+
+A record master opened from a listing offers ONE "← Parent" link instead of the breadcrumb trail:
+
+```python
+@ui("/customers/7")
+@app("Customer", back_link=BackLink.PARENT)
+class CustomerMaster: ...
+```
+
+The link goes to the nearest route above the app's that resolves to a screen (`/customers`) and is
+labelled with that screen's `@title`, else its last segment humanized — resolved on the server. An
+`AppShell` returned by an `AppSupplier` decides with its own `back_link`; a YAML shell with
+`backLink: PARENT` (its `pageTitle:` names the installed app when it has no `title:`). Java's
+`@App(backLink = PARENT)`.
 
 To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
 
@@ -805,9 +818,12 @@ server: every component of the fluent catalogue, read generically off its proper
 are the component's attributes, camel-cased), plus `Form` pages, partials and `ComponentRef`, and a
 **`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
 `pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
-whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
-(declare the shell in code here — an `@app` class or an `AppSupplier`) and a listing's `rowRoute`. An
-unknown `type:` renders as an "Unsupported component: <type>" text.
+whose `actionable:` is a `RouteLink` navigates; a listing's `rowRoute` opens a record page.
+A `Form` may fill a design-system page template (`template:` — Item overview, Welcome,
+Dashboard landing… laid out exactly as the Java server lays them out), and a `type: AppShell`
+definition bound to the mount route is served as the app shell (menus, flows, widgets, header
+switches, `access:` per caller — or declare the shell in code, an `@app` class or an `AppSupplier`). A definition-only page also reads its definition's `actions:` (client-runnable flows and REST actions; proxied ones run through the server, `${secret.X}` injected).
+An unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
 

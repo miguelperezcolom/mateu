@@ -304,3 +304,5 @@ The full element-by-element review, with code references, is in
   is not shown.
 - No subtitle, timestamp, record switcher, performance title or sticky scoreboard on the archetype.
 - `@Compact` is not read on a dashboard; use `style()`.
+
+**See it live in the Explorer:** [Dashboard](https://explorer.mateu.io/archetypes/overview/dashboard) · [Dashboard landing page](https://explorer.mateu.io/page-templates/templates/dashboard-landing-page)

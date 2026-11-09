@@ -8,7 +8,7 @@
 //
 // v3 (2026-07-24): adjusted to the REAL WIRE (fixtures/real/*.json, captured with capture.mjs
 // against demo/demo-vb on :9005). Observed contract:
-//   - Shell bootstrap: POST {base}/mateu/v3/components/_/action (route '', __load__) → App.
+//   - Shell bootstrap: POST {base}/mateu/v3/sync/_no_route (route '', __load__) → App.
 //     Everything else: POST {base}/mateu/v3/sync/{route|_no_route} with actionId '' for loads.
 //   - `targetComponentId` is the ECHO of the request's `initiatorComponentId` ('' → host), and the
 //     server DERIVES the internal ids from the initiator ('crud1' → 'crud1_app', 'crud1_list'): the

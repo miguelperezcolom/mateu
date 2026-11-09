@@ -106,7 +106,7 @@ public class PartialTests
         // A delta-only page renders the view model's INFERRED layout with the delta re-applied
         // (LayoutDeltaTests); the envelope itself must never be parsed as a component.
         var (modelView, layout) = YamlComponentBuilder.ParseSpec(
-            "modelView: Acme.Contact\nlayoutDelta:\n  order: [b, a]\n");
+            "viewModel: Acme.Contact\nlayoutDelta:\n  order: [b, a]\n");
 
         Assert.Equal("Acme.Contact", modelView);
         Assert.Null(layout);

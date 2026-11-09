@@ -1,0 +1,19 @@
+# A calendar as DATA: `month` is any date of the month to show (the ANCHOR of every view);
+# events sit on their date (an `endDate` spans several days, `startTime`/`endTime` show in the
+# week, day and list views); `days` label and tint date cells; `views` adds a switcher that
+# changes the view in the browser, without a round trip.
+content:
+  - type: Calendar
+    month: "2026-11-09"
+    view: month
+    views: [month, week, list]
+    days:
+      - {date: "2026-11-11", label: Closed, tone: neutral}
+      - {date: "2026-11-21", label: Sold out, tone: danger}
+      - {date: "2026-11-28", label: Late opening, tone: info}
+    events:
+      - {id: e1, title: Curators' meeting, date: "2026-11-03", startTime: "09:30", endTime: "10:30", color: "#2563eb"}
+      - {id: e2, title: Impressionism — preview, date: "2026-11-12", endDate: "2026-11-14", color: "#7c3aed"}
+      - {id: e3, title: School visit, date: "2026-11-10", startTime: "11:00", endTime: "12:30", color: "#16a34a"}
+      - {id: e4, title: Night at the museum, date: "2026-11-21", startTime: "20:00", endTime: "23:00", color: "#dc2626"}
+      - {id: e5, title: Lighting maintenance, date: "2026-11-25", color: "#f59e0b"}

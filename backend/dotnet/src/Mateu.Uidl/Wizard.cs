@@ -45,6 +45,12 @@ public abstract class Wizard
     /// skippable. (Java's Wizard.stepSkippable.)</summary>
     public virtual bool StepSkippable(int step) => false;
 
+    /// <summary>Whether step <paramref name="step"/> (1-based) applies given the answers so far: a
+    /// step that does not is skipped by Next and Back alike and left out of the progress; when the
+    /// penultimate step does not apply, the completion moves to the last step that does. The result
+    /// step always applies. Default: every step applies. (Java's Wizard.stepApplies.)</summary>
+    public virtual bool StepApplies(int step) => true;
+
     /// <summary>Cancelable hook run BEFORE the wizard moves from step <paramref name="from"/> to
     /// step <paramref name="to"/> (1-based; the state is already bound): Next, Back, Skip, a jump to
     /// a visited step and the completion all pass through it. For a completion, <paramref name="to"/>
@@ -60,4 +66,14 @@ public abstract class Wizard
     /// runs <see cref="OnNext"/>(current, resultStep) and lands on its result step. Null (default) =
     /// only on the last step.</summary>
     public virtual int? CompletionAvailableFromStep => null;
+
+    /// <summary>The completion of a <see cref="CompletionActionLabel"/> wizard as a STREAMED task
+    /// (Java: a <c>@WizardCompletionAction</c> returning a Flux, typically a LongTask): when
+    /// non-null, completing runs this task INSTEAD of <see cref="OnNext"/> — its progress streams
+    /// live (the completion action is advertised over SSE) and, once it is over, the wizard lands
+    /// on its result step, built then, so it shows whatever the work set while it ran. A task that
+    /// yields an error <see cref="Message"/> (or fails) leaves the wizard on the step instead.
+    /// Called on every completion, so answer null to complete the ordinary way. Null (default):
+    /// no stream. EXPERIMENTAL.</summary>
+    public virtual LongTaskRun? StreamedCompletion() => null;
 }

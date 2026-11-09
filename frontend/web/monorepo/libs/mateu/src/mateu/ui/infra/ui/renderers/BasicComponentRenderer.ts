@@ -12,6 +12,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { isUnsupportedType, renderUnsupported } from "@infra/ui/renderers/unsupportedRenderer.ts";
 import { renderNeutralTable } from "@infra/ui/renderers/neutralTableRenderer.ts";
+import { sharesThePageWithAnotherListing } from "@infra/ui/listingUrlScope.ts";
 
 export abstract class BasicComponentRenderer implements ComponentRenderer {
 
@@ -19,9 +20,13 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         const metadata = component?.metadata as Crud
         const onValueChanged = (e: CustomEvent) => {
             const { fieldId, value } = e.detail
+            // with another listing on the page, the search/filters stay this listing's own: in the
+            // state around they would reach the other listing too (its chips, not its rows)
+            if (sharesThePageWithAnotherListing(container)) e.stopPropagation()
             container.state = { ...container.state, [fieldId]: value }
         }
         const onFilterResetRequested = (e: CustomEvent) => {
+            if (sharesThePageWithAnotherListing(container)) e.stopPropagation()
             const { fieldIds } = e.detail as { fieldIds: string[] }
             const reset: Record<string, any> = {}
             fieldIds.forEach((id: string) => { reset[id] = undefined })

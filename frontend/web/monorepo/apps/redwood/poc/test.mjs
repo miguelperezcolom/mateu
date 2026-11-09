@@ -20,7 +20,7 @@ import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWir
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, runMateuActionSse, callMateu, loadLookups } from './transport.mjs'
+import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, runMateuActionSse, callMateu, loadLookups, isForeignBase } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
   askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
@@ -65,7 +65,7 @@ import {
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowValueChangeActionOf, rowFieldsOf, rowNestedEditOf, rowNestedOpOf, rowStateOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
-  wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
+  wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, formRefusalOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf, confirmationDefaultsOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
   searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
@@ -721,7 +721,7 @@ test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título, sin acento); TABS con 
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
   // flat TABS (the front office): the bottom bar, intact
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
-  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
 })
 
 test('reduceContexts: el @App(accentColor) no llega a la shell de Redwood', () => {
@@ -753,9 +753,8 @@ test('shellNavOf: HAMBURGER_SECTIONS — la hamburguesa lleva las secciones, cad
   assert.ok(nav.sections.every((s) => !s.hasChildren), 'la hamburguesa sólo lleva el primer nivel')
   assert.equal(nav.sections[3].disabled, true)
   assert.equal(nav.sections[3].hint, 'Audit no está disponible ahora.')
-  // the other variants do not change; HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU
+  // the other variants do not change
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
-  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
   assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).mode, 'subheader')
 })
 
@@ -825,7 +824,7 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })
   assert.deepEqual(nav.items.map((i) => i.id), ['/hello', '/products', '/gestion'])
-  // HAMBURGUER_MENU (explicit in the demo) → left drawer with oj-navigation-list
+  // HAMBURGER_MENU (explicit in the demo) → left drawer with oj-navigation-list
   assert.equal(nav.mode, 'drawer')
   const group = nav.menuTree.find((m) => m.hasChildren)
   assert.equal(group.label, 'Gestion')
@@ -1876,6 +1875,29 @@ atest('un pod caído no dice nada de la conexión: no hay banda de "sin conexió
     assert.equal(menu[0].unavailable, true)
     assert.equal(connectivity.isOnline(), true, 'un pod que no contesta marcaba toda la app sin conexión')
   } finally { globalThis.fetch = original; connectivity.reset() }
+})
+
+atest('a micro frontend on another origin that is down does not flip the connectivity; the own backend does', async () => {
+  const original = globalThis.fetch
+  const hadLocation = 'location' in globalThis
+  const previousLocation = globalThis.location
+  globalThis.location = { origin: 'http://localhost:9005', pathname: '/' }
+  connectivity.reset()
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    assert.equal(isForeignBase('http://127.0.0.1:59999/remote-down'), true)
+    assert.equal(isForeignBase('http://localhost:9005/fed'), false)
+    assert.equal(isForeignBase('/fed'), false)
+    await callMateu('http://127.0.0.1:59999/remote-down', { route: '', actionId: '' }, { view: null }).catch(() => undefined)
+    assert.equal(connectivity.isOnline(), true, 'a down island marked the whole page offline')
+    await callMateu('http://localhost:9005', { route: '/x', actionId: 'save' }, { view: null }).catch(() => undefined)
+    assert.equal(connectivity.isOnline(), false)
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+    if (hadLocation) globalThis.location = previousLocation
+    else delete globalThis.location
+  }
 })
 
 atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
@@ -4210,6 +4232,26 @@ test('wizard: el Next valida los obligatorios del paso antes de salir', () => {
   }), ['holderLastName'])
   // fieldsToValidate restringe
   assert.deepEqual(formErrorsOf(view.sections, {}, ['arrival']), ['arrival'])
+})
+
+// A field a client-side RULE makes required (SetDataValue <field>.required, "the VAT number of a
+// company") is refused empty on save like a declared one; the rule only marked the control.
+test('a field a required rule names is refused empty by a validating action, only while the rule holds', () => {
+  const sections = [{ fields: [
+    { fieldId: 'company', isBoolean: true },
+    { fieldId: 'vatNumber', value: '' },
+  ] }]
+  const rules = [{ filter: 'true', action: 'SetDataValue', fieldName: 'vatNumber',
+    fieldAttribute: 'required', expression: '!!state.company', result: 'Continue' }]
+  assert.deepEqual(formRefusalOf(sections, { company: true }, {}, [], [], rules).missing, ['vatNumber'])
+  assert.deepEqual(formRefusalOf(sections, { company: false }, {}, [], [], rules).missing, [])
+  // the draft is what the user typed
+  assert.deepEqual(formRefusalOf(sections, {}, { company: true, vatNumber: 'B1' }, [], [], rules).missing, [])
+  assert.deepEqual(formRefusalOf(sections, {}, { company: true }, [], [], rules).missing, ['vatNumber'])
+  // a field a rule hides asks nothing
+  const hiding = [...rules, { filter: 'true', action: 'SetDataValue', fieldName: 'vatNumber',
+    fieldAttribute: 'hidden', value: true, result: 'Continue' }]
+  assert.deepEqual(formRefusalOf(sections, { company: true }, {}, [], [], hiding).missing, [])
 })
 
 test('validationOf: la acción exacta gana al comodín, y sin validationRequired no valida', () => {
@@ -6547,6 +6589,20 @@ atest('inline islands: registered from their node with NO request, painted in th
   } finally { globalThis.fetch = original }
 })
 
+atest('inline island: the data it arrives with (an EmbeddedView lookup label) is its context data', async () => {
+  // an EmbeddedView island has no fragment of its own: what its page carries in the fragment's data
+  // (the label of a lookup's stored id) travels on the node — the stored id `g2` was shown raw
+  const reg = iiHostOf()
+  const node = {
+    type: 'ServerSide', id: 'booking-island', serverSideType: 'x.BookingForm', initialData: { guestId: 'g2' },
+    data: { 'guestId-label': 'Alan Turing' }, children: [], actions: [], triggers: [],
+  }
+  const sub = iiInlineIslandOf(node)
+  const next = await iiRegisterInlineIsland('http://x', reg, sub, {})
+  assert.equal(next.contexts['booking-island'].state.guestId, 'g2')
+  assert.equal(next.contexts['booking-island'].data['guestId-label'], 'Alan Turing')
+})
+
 atest('event bus across surfaces: DOCUMENT hears any island, COMPONENT only its `from`, SELF what bubbles from inside', async () => {
   const original = globalThis.fetch
   const sent = []
@@ -7260,7 +7316,7 @@ atest('embedded MicroFrontend resolved in the host: its first paint applies no w
   } finally { globalThis.fetch = original }
 })
 
-atest('a top-level MicroFrontend (no chrome) is as before: no marker, its title reaches the window', async () => {
+atest('a MicroFrontend with no chrome sends no marker, and still never names or moves the host window', async () => {
   const original = globalThis.fetch
   const seen = []
   globalThis.fetch = async (url, init) => {
@@ -7274,10 +7330,33 @@ atest('a top-level MicroFrontend (no chrome) is as before: no marker, its title 
     const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
     assert.ok(seen.every((b) => !('embeddedChrome' in b)))
     assert.equal(reg.contexts[sub.id].outbound.embeddedChrome, undefined)
-    // what made ec-demo1's host page lose its title: a top-level island names the window
-    assert.equal(reg.effects.docTitle, 'Remote title')
-    assert.equal(reg.effects.urlPush, '/remote')
+    // an island is a block of the host page whatever its chrome: a crud row opened inside one
+    // replaced the HOST page's address with the island's record route
+    assert.equal(reg.effects.docTitle, 'Herramientas')
+    assert.equal(reg.effects.urlPush, null)
+    const after = await mfeRunSurfaceAction(reg, sub.id, 'refresh', {}, { appState: {} })
+    assert.equal(after.effects.urlPush, null, 'nor does a later action of the island')
+    assert.deepEqual(after.effects.announcements.map((a) => a.text), ['kept'])
   } finally { globalThis.fetch = original }
+})
+
+atest('a MicroFrontend whose backend fails says so inside its own box, not in the page-wide error band', async () => {
+  const original = globalThis.fetch
+  const settled = []
+  setTransportHooks({ onSettle: (p) => settled.push(p) })
+  globalThis.fetch = async () => ({ ok: false, status: 500, headers: { get: () => null },
+    json: async () => ({}), text: async () => 'boom' })
+  try {
+    const sub = mfeOf({ baseUrl: '/_down', route: '/stock' })
+    const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
+    assert.ok(settled.every((p) => !p.failure), 'the page band hears no failure')
+    const box = reg.contexts[sub.id]
+    assert.ok(box, 'the island has a context of its own')
+    const notice = box.tree.children[0].metadata
+    assert.equal(notice.type, 'Notice')
+    assert.equal(notice.theme, 'danger')
+    assert.match(notice.text, /could not be loaded/)
+  } finally { globalThis.fetch = original; setTransportHooks(null) }
 })
 
 test('embedded MicroFrontend: NONE draws no title nor toolbar, COMPACT only the toolbar, PAGE both — never a breadcrumb', () => {

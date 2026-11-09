@@ -1,0 +1,26 @@
+# A Form is a PAGE: a header (overline, title, subtitle, badges, KPIs, timestamp, toolbar) over its
+# content. Registered as a route by the entry's `pages:`; the entry embeds it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+overline: Reservations
+title: Booking HB-20431
+subtitle: Lucía Fernández · 3 nights · Deluxe sea view
+timestamp: Last updated 8 Nov 2026, 10:42
+badges:
+  - {label: Confirmed, color: success}
+  - {label: Prepaid, color: contrast}
+kpis:
+  - {label: Arrival, value: 14 Nov 2026}
+  - {label: Departure, value: 17 Nov 2026}
+  - {label: Total, value: "€ 1,284.00"}
+toolbar:
+  - {type: Button, label: Back home, actionable: {type: RouteLink, route: home}}
+  - {type: Button, label: Open the Explorer home, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: guest, label: Guest, initialValue: Lucía Fernández}
+      - {type: FormField, id: email, label: Email, stereotype: email, initialValue: lucia.fernandez@example.com}
+      - {type: FormField, id: adults, label: Adults, dataType: integer, initialValue: 2}
+      - {type: FormField, id: notes, label: Notes for reception, stereotype: textarea, colspan: 2}

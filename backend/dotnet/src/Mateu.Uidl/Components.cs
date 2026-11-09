@@ -71,6 +71,13 @@ public sealed record FormField : ComponentBase
     public int SliderMax { get; init; } = 100;
     /// <summary>The increment of a number / slider control; 0 = the control's own.</summary>
     public double Step { get; init; }
+    /// <summary>The columns a radio/checkbox option group lays its options in (Java's
+    /// FormField.optionsColumns; 1 by default — a YAML field leaves it unset, 0, unless declared).</summary>
+    public int OptionsColumns { get; init; } = 1;
+    /// <summary>Where a select's options come from: a REST source (a catalogue <c>ref</c> or an
+    /// inline endpoint) the renderer fetches — through the server (<c>__restfetch__</c>, by the
+    /// field's id) when the source is proxied (Java's FormField.optionsSource).</summary>
+    public RestDataSource? OptionsSource { get; init; }
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────
@@ -1317,6 +1324,69 @@ public sealed record ListingComponent : ComponentBase
     public string? GridLayout { get; init; }
     public bool Compact { get; init; }
     public string? EmptyStateMessage { get; init; }
+    /// <summary>The route a row opens (<c>people/${row.id}</c>, interpolated against the clicked row
+    /// by the renderer): an addressable record page for a listing with no view model. Null = rows do
+    /// not navigate. (Java's fluent Listing.rowRoute.)</summary>
+    public string? RowRoute { get; init; }
+
+    // The table's presentation (Java's fluent Crudl): striped rows, column borders, wrapped cells,
+    // all rows at once (no inner scroll), borders off, draggable column order, infinite scrolling /
+    // lazy loading, several rows selectable (OnRowSelectionChangedActionId runs on every change), an
+    // extra CSS for the grid and a fixed content height.
+    public bool RowStripes { get; init; }
+    public bool ColumnBorders { get; init; }
+    public bool WrapCellContent { get; init; }
+    public bool AllRowsVisible { get; init; }
+    public bool NoBorder { get; init; }
+    public bool NoRowBorder { get; init; }
+    public bool ColumnReorderingAllowed { get; init; }
+    public bool InfiniteScrolling { get; init; }
+    public bool LazyLoading { get; init; }
+    public bool MultipleRowSelectionEnabled { get; init; }
+    public string? OnRowSelectionChangedActionId { get; init; }
+    public string? GridStyle { get; init; }
+    public string? ContentHeight { get; init; }
+
+    // The rest of Java's fluent Listing (3.0 GA parity).
+    /// <summary>table | card; null = table (Java's ListingType → the wire's crudlType).</summary>
+    public string? ListingType { get; init; }
+    /// <summary>Buttons above the rows (Java's Listing.toolbar).</summary>
+    public IReadOnlyList<Button> Toolbar { get; init; } = [];
+    /// <summary>The grid's height in rows; 0 = the renderer's own.</summary>
+    public int Size { get; init; }
+    /// <summary>The page shown first (0-based).</summary>
+    public int InitialPage { get; init; }
+    /// <summary>Components shown above / below the rows.</summary>
+    public IReadOnlyList<IComponent> Header { get; init; } = [];
+    public IReadOnlyList<IComponent> Footer { get; init; } = [];
+    /// <summary>Shown in place of the results until the first search has run (the Redwood
+    /// smart-filter-search dashboard slot); empty = none.</summary>
+    public IReadOnlyList<IComponent> PreSearch { get; init; } = [];
+    /// <summary>The row field that opens under the row instead of being a column, and whether a
+    /// button opens it.</summary>
+    public string? DetailPath { get; init; }
+    public bool UseButtonForDetail { get; init; }
+    /// <summary>Columns render only when scrolled into view.</summary>
+    public bool LazyColumnRendering { get; init; }
+    /// <summary>The grid cells' background and padding (CSS values).</summary>
+    public string? VaadinGridCellBackground { get; init; }
+    public string? VaadinGridCellPadding { get; init; }
+    /// <summary>The search runs on Enter (and debounced while typing); default on.</summary>
+    public bool SearchOnEnter { get; init; } = true;
+    /// <summary>The search box takes the focus on opening; default on.</summary>
+    public bool AutoFocusOnSearchText { get; init; } = true;
+    /// <summary>How the filters lay out; null = auto (the smart search bar).</summary>
+    public string? FiltersLayout { get; init; }
+    /// <summary>The row field the rows are grouped by; null = no grouping.</summary>
+    public string? GroupBy { get; init; }
+    /// <summary>Buttons on every group header row.</summary>
+    public IReadOnlyList<Button> GroupActions { get; init; } = [];
+    /// <summary>The row field whose value (success | warning | danger | info | neutral) tones the row.</summary>
+    public string? RowStatusField { get; init; }
+    /// <summary>Rows can be dragged onto a DropZone accepting this type; null = not draggable.</summary>
+    public string? DragType { get; init; }
+    /// <summary>Row selection checkboxes.</summary>
+    public bool RowsSelectionEnabled { get; init; }
 }
 
 /// <summary>An outlined card wrapping a component.</summary>
@@ -1393,6 +1463,26 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     /// <summary>The time budget of a server resolution, in ms (null = the remote's, else the
     /// default). EXPERIMENTAL.</summary>
     public int? TimeoutMs { get; init; }
+
+    /// <summary>Set, the micro frontend is EMBEDDED: a block of this page, not a page of its own —
+    /// its answers never name the window (title, favicon, history) and its header is drawn per the
+    /// chrome (<see cref="EmbeddedChrome.None"/> no page header, <see cref="EmbeddedChrome.Compact"/>
+    /// actions only, <see cref="EmbeddedChrome.Page"/> no breadcrumb). Null (the default) = a
+    /// top-level page, unchanged. EXPERIMENTAL. (Mirrors io.mateu.uidl.data.MicroFrontend.chrome.)</summary>
+    public EmbeddedChrome? Chrome { get; init; }
+}
+
+/// <summary>How an EMBEDDED <see cref="MicroFrontend"/> draws its page chrome (travels upper case:
+/// <c>NONE</c> | <c>COMPACT</c> | <c>PAGE</c>). EXPERIMENTAL. (C# analogue of
+/// io.mateu.uidl.data.EmbeddedChrome.)</summary>
+public enum EmbeddedChrome
+{
+    /// <summary>No page header at all.</summary>
+    None,
+    /// <summary>The header's actions only.</summary>
+    Compact,
+    /// <summary>The page header without its breadcrumb.</summary>
+    Page,
 }
 
 // ── Popover ────────────────────────────────────────────────────────────────────
@@ -1465,6 +1555,18 @@ public sealed record Dialog : ComponentBase
     public bool NoPadding { get; init; }
     public bool Modeless { get; init; }
     public bool CloseButtonOnHeader { get; init; } = true;
+
+    /// <summary>The user can drag the dialog by its header. (Mirrors io.mateu.uidl.data.Dialog.draggable.)</summary>
+    public bool Draggable { get; init; }
+
+    /// <summary>The user can resize the dialog. (Mirrors io.mateu.uidl.data.Dialog.resizable.)</summary>
+    public bool Resizable { get; init; }
+
+    /// <summary>Where the dialog opens, from the top of the viewport (a CSS length); null = centred.</summary>
+    public string? Top { get; init; }
+
+    /// <summary>Where the dialog opens, from the left of the viewport (a CSS length); null = centred.</summary>
+    public string? Left { get; init; }
 }
 
 /// <summary>Embeds a routed view (a [UI]/[Route] model view — e.g. a <see cref="Wizard"/>) as an
@@ -1581,6 +1683,10 @@ public sealed record Form : ComponentBase
     public RecordSwitcher? RecordSwitcher { get; init; }
     public IReadOnlyList<PageBanner> Banners { get; init; } = [];
     public IReadOnlyList<PageFab> Fabs { get; init; } = [];
+
+    /// <summary>The design-system page template this page FILLS (YAML <c>template:</c>); null = a
+    /// free page, its content as written. See <see cref="IFormTemplate"/>. Experimental (3.0 beta).</summary>
+    public IFormTemplate? Template { get; init; }
 }
 
 // ── Generic building blocks ported from Java (M-A5) ─────────────────────────────

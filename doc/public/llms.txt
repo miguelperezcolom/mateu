@@ -18,6 +18,9 @@ All authoring paths and servers emit one versioned wire model (JSON); every rend
 ## Documentation
 
 Start here:
+- [What's new in 3.0](https://mateu.io/start-here/whats-new/): the positioning and the highlights of the 3.0 line, each with a link
+- [Mateu Explorer](https://explorer.mateu.io): every component, page template, archetype, behaviour and distributed-UI pattern running live, with its code
+- [Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777): the Mateu component library on Figma Community, importable as YAML ([Import from Figma](https://mateu.io/design-systems/figma-import/))
 - [What is Mateu](https://mateu.io/mateu-about/what-is-mateu/): the positioning, with a diagram of authoring paths, renderers and deployments
 - [Choose your path](https://mateu.io/start-here/choose-your-path/): the same screen in YAML, Java, C# and Python; which path fits; the three front doors (IDE wizard, Maven archetype, starters)
 

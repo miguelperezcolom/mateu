@@ -1,0 +1,19 @@
+id: smart-search-page
+area: archetypes
+group: collections
+title: Smart search page
+covers: [archetype:SmartSearchPage]
+description: |
+  Extend `SmartSearchPage<Filters, Row>`: a standalone, search-first page — an intro line
+  (`pageSubtitle()`), the smart search bar and the results, read-only. The `Filters` class gives TYPED
+  facets: a `String` is a text condition, a `Set<Enum>` a multi-select, a `DateRange` a from–to range.
+  It starts empty and shows `preSearchContent()` until the first search (add `@Trigger(OnLoad, "search")`
+  to preload). Click the bar to open "Filter by"; Enter searches.
+examples:
+  - title: Outgoing loans
+    java: io.mateu.explorer.examples.archetypes.smartsearchpage.LoanFinder
+pages:
+  - {route: x/archetypes/smart-search-page, viewModel: io.mateu.explorer.examples.archetypes.smartsearchpage.LoanFinder}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/smart-search-page/LoanFinder.cs}
+  - {label: Python, path: src/main/ports/archetypes/smart-search-page/loan_finder.py}

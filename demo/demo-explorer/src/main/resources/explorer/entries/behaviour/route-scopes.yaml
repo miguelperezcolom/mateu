@@ -1,0 +1,26 @@
+id: route-scopes
+area: behaviour
+group: data
+title: "Route scopes: state / appState / data / appData"
+covers: [behaviour:route-scopes]
+description: |
+  A route in a `type: Routes` file can seed the page it opens, with four scopes: `state` and
+  `appState` (literal values, at the lowest precedence — what the client already holds wins) and
+  `data` / `appData` (a **source** of the catalogue, by name — there is no literal data channel;
+  `data:` is fetched for the page, `appData:` once by the app shell). The page itself knows nothing of
+  where its values come from.
+
+  **Try it:** the page shows planet #1 fetched by the route's `data:` (its `:id` is in the state), plus
+  a line seeded by `state:`; press **Next planet ›** — the same route with another id.
+
+  > **Known issue (3.0-beta.51):** the response carries the route's `appState:` value, but in this
+  > embedded view the `${appState.…}` line renders empty. Reported.
+knownIssue: >-
+  3.0-beta.51: in an embedded view the route's appState reaches the response but ${appState.…} renders empty.
+examples:
+  - title: "A route that seeds its page"
+    java: io.mateu.explorer.examples.behaviour.routescopes.RouteScopesIsland
+code:
+  - {label: "YAML · routes.yaml (the scopes)", path: src/main/resources/specs/ui/explorer/behaviour/route-scopes/routes.yaml}
+  - {label: "YAML · planet.yaml (the page)", path: src/main/resources/specs/ui/explorer/behaviour/route-scopes/planet.yaml}
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}

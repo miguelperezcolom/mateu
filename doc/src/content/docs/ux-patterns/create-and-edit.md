@@ -35,3 +35,5 @@ All of it renders with the same anatomy (page header, color strip, footer action
 - Few fields, fast data entry → **Simple** (default `AutoCrud`).
 - Rich record with grouped content → **Advanced** (`@Section`/`@Zones`/tabs on the same crud).
 - Quick edits where context matters → **Drawer** (`editInDrawer()`).
+
+**See it live in the Explorer:** [AutoCrud](https://explorer.mateu.io/archetypes/collections/auto-crud) · [Crud (capability listing)](https://explorer.mateu.io/archetypes/collections/crud)

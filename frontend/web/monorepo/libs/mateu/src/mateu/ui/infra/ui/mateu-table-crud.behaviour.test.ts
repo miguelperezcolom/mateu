@@ -8,6 +8,8 @@ import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMe
 import { registerExternalJsonMock } from '@infra/http/externalOptions'
 import { writeColumnPrefs } from '../columnPrefsStore'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue'
+import { ExternalRestError } from '@infra/http/serviceMessage'
+import { setNotifier } from '@application/Notifier'
 
 /**
  * mateu-table-crud's behaviour around the rows: the URL as the source of truth for page/sort/
@@ -274,6 +276,36 @@ describe('the crud header and toolbar', () => {
     })
 })
 
+describe('two listings on one page keep their search to themselves', () => {
+    const typeIn = (root: ParentNode, fieldId: string, value: unknown) =>
+        root.querySelector('mateu-filter-bar')!.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { fieldId, value }, bubbles: true, composed: true }))
+
+    it('with another listing on the page, a search stays in its own listing', async () => {
+        const page = document.createElement('div')
+        document.body.appendChild(page)
+        const heard: unknown[] = []
+        page.addEventListener('value-changed', (e) => heard.push((e as CustomEvent).detail))
+        const first = await mount(crud({}, 'artworks'), rows, {}, page)
+        const second = await mount(crud({}, 'loans'), rows, {}, page)
+        typeIn(first.root, 'searchText', 'gogh')
+        // the component around never sees it: it would hand it to the other listing as its state
+        expect(heard).toEqual([])
+        expect(first.el.state.searchText).toBe('gogh')
+        expect(second.el.state.searchText).toBeUndefined()
+    })
+
+    it('a listing alone on its page keeps telling the page (unchanged)', async () => {
+        const page = document.createElement('div')
+        document.body.appendChild(page)
+        const heard: unknown[] = []
+        page.addEventListener('value-changed', (e) => heard.push((e as CustomEvent).detail))
+        const only = await mount(crud(), rows, {}, page)
+        typeIn(only.root, 'searchText', 'ana')
+        expect(heard).toEqual([{ fieldId: 'searchText', value: 'ana' }])
+    })
+})
+
 describe('row actions in the shared layouts', () => {
     const actionCols = [
         col('id', { identifier: true }), col('customer'),
@@ -460,6 +492,28 @@ describe('listings fed by an external endpoint', () => {
         await el.updateComplete
         expect(el.data.crud.page.content[0].children).toEqual([{ id: 'A1.1', customer: 'Child', children: [] }])
         expect(root.textContent).toContain('Child')
+    })
+
+    // The listing whose (first) load failed said nothing at all: a 404 or a 401 left an empty grid
+    // and a console warning. The user is told, with what the service said when it said something.
+    it('a failed fetch is told to the user, with the service\'s own message', async () => {
+        const toasts: { text?: string; variant?: string }[] = []
+        setNotifier({ show: (m: any) => { toasts.push(m) } } as never)
+        registerExternalJsonMock(() => { throw new ExternalRestError(404, 'No such vault') })
+        await mount(external(), undefined)
+        await settle()
+        expect(toasts.map(t => [t.text, t.variant])).toContainEqual(['No such vault', 'error'])
+    })
+
+    it('a failed proxied fetch is told too, never shown as an empty listing that loaded', async () => {
+        const toasts: { text?: string; variant?: string }[] = []
+        setNotifier({ show: (m: any) => { toasts.push(m) } } as never)
+        const { el, actions } = await mount(external({ rowsSource: { url: 'https://api.test/orders', proxy: true } }), undefined)
+        actions().find(a => a.actionId === '__restfetch__')
+            .callback({ appData: { _restfetchError: { status: 401, detail: 'Sign in first' } } })
+        await settle()
+        expect(toasts.map(t => t.text)).toContain('Sign in first')
+        expect(el.data?.crud?.page).toBeUndefined()
     })
 
     it('rows fetched here survive the parent pushing down empty data', async () => {

@@ -1,0 +1,4 @@
+# The case's own route table: one definition-only page (no view model) reading keyed APIs.
+routes:
+  - route: products
+    layout: products.yaml

@@ -1,11 +1,13 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import FaqItem from "@mateu/shared/apiClients/dtos/componentmetadata/FaqItem";
+import './mateu-markdown.ts';
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
- * Dependency-free FAQ accordion: click a question to expand/collapse its answer. Items marked `open`
+ * Dependency-free FAQ accordion: click a question to expand/collapse its answer (markdown, sanitized
+ * by mateu-markdown with the data policy). Items marked `open`
  * start expanded. Open/closed state is local (no server round-trip). DS-neutral, dark-mode aware.
  */
 @customElement('mateu-faq')
@@ -38,6 +40,9 @@ export class MateuFaq extends LitElement {
             color: var(--lumo-secondary-text-color, #555);
             line-height: 1.55;
         }
+        /* the answer's markdown paragraphs: no extra block margin at the edges */
+        .a mateu-markdown > :first-child { margin-top: 0; }
+        .a mateu-markdown > :last-child { margin-bottom: 0; }
     
         ${activatableFocusStyles}
     `
@@ -71,7 +76,7 @@ export class MateuFaq extends LitElement {
                                 <span>${item.question}</span>
                                 <span class="chevron">›</span>
                             </div>
-                            ${open ? html`<div class="a">${item.answer}</div>` : ''}
+                            ${open ? html`<div class="a"><mateu-markdown .content="${item.answer ?? ''}"></mateu-markdown></div>` : ''}
                         </div>
                     `
                 })}

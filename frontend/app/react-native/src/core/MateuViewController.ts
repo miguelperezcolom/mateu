@@ -1,6 +1,6 @@
 import { recordTiming, timed } from './timing.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
-import { applyClientRules } from './clientRules.ts';
+import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
@@ -385,8 +385,12 @@ export class MateuViewController {
           (increment) => this.applyIncrement(increment as Json, origin),
           );
         } finally {
-          // a stream that ended without saying how its tasks ended (the connection dropped): failed
-          this.announceTaskEvents(this.session.tasks.failRunning(origin.taskIds!, 'The connection was lost before the task finished'));
+          // a stream that ended without saying how its tasks ended (the connection dropped): the
+          // server keeps them running for a while — resumed if it still has them, else failed
+          for (const id of origin.taskIds!) this.session.reattach.streamEnded(id);
+          if ([...origin.taskIds!].some((id) => this.session.tasks.get(id)?.state === 'running')) {
+            await this.session.reattach.reattach(this.session.reattachHost());
+          }
         }
         this.polling.actionSucceeded(generation, actionId);
         return true;
@@ -665,7 +669,11 @@ export class MateuViewController {
   }
 
   private collectFieldErrors(): Record<string, string> {
-    return fieldErrorsOf(this.currentValidations, (condition) => this.evalValidationCondition(condition));
+    return {
+      // a field a client-side rule makes required (SetDataValue <field>.required) is checked too
+      ...ruleRequiredErrorsOf(this.fieldAttributes, this.currentComponentState),
+      ...fieldErrorsOf(this.currentValidations, (condition) => this.evalValidationCondition(condition)),
+    };
   }
 
   private evalValidationCondition(condition: string): boolean {
@@ -1026,7 +1034,19 @@ export class MateuViewController {
         // a long-running task (LongTask): upserted in the session's task center by taskId
         const progress = progressOf(cmdData);
         if (!progress) break;
-        origin?.taskIds?.add(progress.taskId);
+        if (origin?.taskIds && !origin.taskIds.has(progress.taskId)) {
+          origin.taskIds.add(progress.taskId);
+          // remembered for this session: if the stream breaks, the task can be resumed
+          if (progress.state === 'running') {
+            this.session.reattach.remember(progress.taskId, {
+              api: this.session.api,
+              route: this.currentRoute,
+              serverSideType: this.resolveActionTarget(origin.actionId) || null,
+            });
+          }
+          this.session.reattach.streamStarted(progress.taskId);
+        }
+        if (progress.state !== 'running') this.session.reattach.forget(progress.taskId);
         const event = this.session.tasks.upsert(progress, {
           cancel: () => void this.cancelTask(progress.taskId),
           retry: origin ? () => void this.runAction(origin.actionId, origin.parameters) : undefined,

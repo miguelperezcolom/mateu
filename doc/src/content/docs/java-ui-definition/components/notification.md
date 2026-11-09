@@ -69,3 +69,5 @@ Form.builder()
     .content(formContent)
     .build()
 ```
+
+**See it live in the Explorer:** [Notification](https://explorer.mateu.io/components/overlays/notification)

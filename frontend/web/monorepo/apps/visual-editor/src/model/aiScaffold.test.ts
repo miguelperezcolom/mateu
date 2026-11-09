@@ -9,7 +9,7 @@ describe('aiScaffold', () => {
         expect(p).toContain('Generate a Mateu page layout as YAML')
         expect(p).toContain('Button, FormField, HorizontalLayout, Text, VerticalLayout') // sorted
         expect(p).toContain('a login form')
-        expect(p).toContain('do NOT emit a `modelView:` key')
+        expect(p).toContain('do NOT emit a `viewModel:` key')
     })
 
     it('weaves in the bound view model and its members when present', () => {

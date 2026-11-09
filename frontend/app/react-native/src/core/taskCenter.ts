@@ -37,6 +37,8 @@ export interface Progress {
   closeAfterSeconds: number | null;
   error: string | null;
   resultActions: TaskAction[];
+  /** The server's estimate of the seconds left (running + determinate only; null = none). */
+  etaSeconds: number | null;
 }
 
 /** What the renderer can do on a task: the closures of the screen that started it. */
@@ -89,7 +91,27 @@ export function progressOf(data: unknown): Progress | null {
     resultActions: Array.isArray(d['resultActions'])
       ? (d['resultActions'] as TaskAction[]).filter((a) => a && typeof a === 'object')
       : [],
+    etaSeconds: state === 'running' ? num(d['etaSeconds']) : null,
   };
+}
+
+const ETA_TEXTS = {
+  en: { underMinute: 'less than a minute left', minutes: 'about {n} min left', hours: 'about {n} h left' },
+  es: { underMinute: 'menos de un minuto', minutes: 'unos {n} min restantes', hours: 'unas {n} h restantes' },
+};
+
+/**
+ * Pure: how a running task's ETA (the server's `etaSeconds`) reads — "about 2 min left" — or '' when
+ * there is none (never a guess). Corpus conformance/client/eta-format.json (en/es by the UI locale).
+ */
+export function etaText(etaSeconds: number | null | undefined, locale: string | null | undefined): string {
+  if (typeof etaSeconds !== 'number' || !Number.isFinite(etaSeconds) || etaSeconds <= 0) return '';
+  const texts = (locale ?? '').toLowerCase().startsWith('es') ? ETA_TEXTS.es : ETA_TEXTS.en;
+  if (etaSeconds < 60) return texts.underMinute;
+  // round half up (Math.round), like every renderer of the corpus
+  const minutes = Math.max(1, Math.round(etaSeconds / 60));
+  if (etaSeconds < 3600 && minutes < 60) return texts.minutes.replace('{n}', String(minutes));
+  return texts.hours.replace('{n}', String(Math.max(1, Math.round(etaSeconds / 3600))));
 }
 
 /** Pure: "12 of 300" when the work is countable, else ''. */
@@ -134,6 +156,7 @@ export const RECENT_FINISHED = 10;
 export class TaskCenter {
   private tasks: Task[] = [];
   private listeners = new Set<() => void>();
+  private eventListeners = new Set<(event: NonNullable<TaskEvent>) => void>();
 
   private readonly now: () => number;
 
@@ -159,9 +182,27 @@ export class TaskCenter {
     else this.tasks.push(task);
     this.trim();
     this.emit();
-    if (!previous && !finished) return { kind: 'started', task };
-    if (finished && (!previous || previous.state === 'running')) return { kind: 'finished', task };
-    return null;
+    let event: TaskEvent = null;
+    if (!previous && !finished) event = { kind: 'started', task };
+    else if (finished && (!previous || previous.state === 'running')) event = { kind: 'finished', task };
+    if (event) this.emitEvent(event);
+    return event;
+  }
+
+  /** Hears every task start / end (the OS notifications of a task finished in the background). */
+  subscribeEvents(listener: (event: NonNullable<TaskEvent>) => void): () => void {
+    this.eventListeners.add(listener);
+    return () => this.eventListeners.delete(listener);
+  }
+
+  private emitEvent(event: NonNullable<TaskEvent>): void {
+    for (const l of this.eventListeners) {
+      try {
+        l(event);
+      } catch {
+        // a broken listener does not stop the others
+      }
+    }
   }
 
   /** A stream that ended without saying how the task ended (the connection dropped): failed. */

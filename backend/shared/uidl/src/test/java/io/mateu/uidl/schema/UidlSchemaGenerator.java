@@ -40,7 +40,7 @@ public final class UidlSchemaGenerator {
    * <ul>
    *   <li>{@code ServerSideComponent} / {@code ModelViewComponent} — wire plumbing: the server
    *       emits them, an author never writes them.
-   *   <li>{@code PageView} — the page envelope. A YAML page is declared with {@code modelView} +
+   *   <li>{@code PageView} — the page envelope. A YAML page is declared with {@code viewModel} +
    *       {@code layout}, so exposing the envelope as a content component too would give two ways
    *       to say the same thing.
    * </ul>
@@ -457,26 +457,17 @@ public final class UidlSchemaGenerator {
   public static ObjectNode generateRoutes() {
     var generator = new UidlSchemaGenerator();
     generator.defineValueRecord(io.mateu.uidl.data.RouteEntry.class);
-    // Vocabulary (coherence-plan #5): `layout:` is the CANONICAL authoring key for the layout file;
-    // `definition:` is a deprecated alias, both accepted by the loader (`layout:` wins). The record
-    // field is `definition` (the wire key), so the reflected schema only knows `definition` — add
-    // `layout` here and mark `definition` deprecated so editors accept and prefer the canonical
-    // key.
+    // `layout:` is the authoring key for the layout file. The record field is `definition` (the
+    // wire key), so the reflected schema only knows `definition` — replace it with `layout` here.
     var routeEntryProps = (ObjectNode) generator.defs.get("RouteEntry").get("properties");
     routeEntryProps
         .putObject("layout")
         .put("type", "string")
         .put(
             "description",
-            "The UI definition (layout) this route renders — the canonical vocabulary of"
-                + " coherence-plan #5. May be omitted when the view model supplies its own tree. A"
+            "The UI definition (layout) this route renders. May be omitted when the view model supplies its own tree. A"
                 + " definition shared by several routes lives in its own file and is named here.");
-    ((ObjectNode) routeEntryProps.get("definition"))
-        .put("deprecated", true)
-        .put(
-            "description",
-            "Deprecated alias of `layout` — kept so existing routes.yaml files keep working. Prefer"
-                + " `layout`; if both are present, `layout` wins.");
+    routeEntryProps.remove("definition");
 
     allowSourceShorthand(routeEntryProps);
 
@@ -675,19 +666,15 @@ public final class UidlSchemaGenerator {
     // Add RouteEntry (and anything it nests) to the shared $defs.
     var routeGen = new UidlSchemaGenerator();
     routeGen.defineValueRecord(io.mateu.uidl.data.RouteEntry.class);
-    // Vocabulary (coherence-plan #5): advertise `layout` as the canonical layout-file key and mark
-    // `definition` deprecated — same as generateRoutes() (the loader accepts both, `layout` wins).
+    // `layout` is the layout-file key, not the record's `definition` — same as generateRoutes().
     var specsRouteEntryProps = (ObjectNode) routeGen.defs.get("RouteEntry").get("properties");
     specsRouteEntryProps
         .putObject("layout")
         .put("type", "string")
         .put(
             "description",
-            "The UI definition (layout) this route renders — the canonical vocabulary of"
-                + " coherence-plan #5. Omit it when the view model supplies its own tree.");
-    ((ObjectNode) specsRouteEntryProps.get("definition"))
-        .put("deprecated", true)
-        .put("description", "Deprecated alias of `layout`; both are accepted, `layout` wins.");
+            "The UI definition (layout) this route renders. Omit it when the view model supplies its own tree.");
+    specsRouteEntryProps.remove("definition");
     routeGen.defs.forEach(defs::set);
 
     var entryList = MAPPER.createObjectNode().put("type", "array");
@@ -780,18 +767,9 @@ public final class UidlSchemaGenerator {
         .put("type", "string")
         .put(
             "description",
-            "Fully-qualified class of the view model this definition binds to (the canonical"
-                + " vocabulary of coherence-plan #5). Omit it on a definition shared by several"
+            "Fully-qualified class of the view model this definition binds to. Omit it on a definition shared by several"
                 + " routes — naming one means it can only ever serve that class. The route entry's"
                 + " `viewModel` is the place for the binding.");
-    pageProps
-        .putObject("modelView")
-        .put("type", "string")
-        .put("deprecated", true)
-        .put(
-            "description",
-            "Deprecated alias of `viewModel` — kept so existing definitions keep"
-                + " working. Prefer `viewModel`; if both are present, `viewModel` wins.");
     pageProps.set("actions", actionList);
     ((ObjectNode) pageProps.get("actions"))
         .put(

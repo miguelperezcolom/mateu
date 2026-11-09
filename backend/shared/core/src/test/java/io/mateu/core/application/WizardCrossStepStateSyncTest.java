@@ -89,11 +89,48 @@ class WizardCrossStepStateSyncTest {
     }
   }
 
+  // A step FIELD named like a field INSIDE its own step class: `artwork` holds a String `artwork`.
+  public static class ArtworkStep implements WizardStep {
+    public String artwork = "";
+    public String medium = "";
+  }
+
+  public static class SculptureStep implements WizardStep {
+    public String plinth = "";
+  }
+
+  public static class LoanStep implements WizardStep {
+    public String lender = "";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/colliding-wizard")
+  @Title("Colliding")
+  public static class CollidingWizard extends Wizard {
+    ArtworkStep artwork = new ArtworkStep();
+    SculptureStep sculpture = new SculptureStep();
+    LoanStep loan = new LoanStep();
+    ResultStep result;
+
+    @Override
+    public boolean stepApplies(String stepFieldName) {
+      return !"sculpture".equals(stepFieldName) || "sculpture".equals(artwork.medium);
+    }
+
+    @WizardCompletionAction
+    @Label("Request")
+    Object request() {
+      result = new ResultStep();
+      result.outcome = artwork.artwork + " in " + artwork.medium + " from " + loan.lender;
+      return null;
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ProbeWizard.class);
+    mateu = TestMateu.withUis(ProbeWizard.class, CollidingWizard.class);
   }
 
   @AfterAll
@@ -154,12 +191,39 @@ class WizardCrossStepStateSyncTest {
     assertThat(thirdState).containsEntry("note", "noted from step 1");
   }
 
+  @Test
+  void aStepFieldNamedLikeAFieldOfItsOwnStepKeepsTheStepsValues() throws Exception {
+    var first = mateu.sync("/colliding-wizard");
+    var s1 = wire(state(first));
+    s1.put("artwork", "The Thinker");
+    s1.put("medium", "sculpture");
+    var second = runOn("/colliding-wizard", CollidingWizard.class, "next", s1);
+    // branching saw the step's answer: the sculpture step applies and is the one shown
+    assertThat(state(second)).containsEntry("position", 1);
+    assertThat(state(second)).containsKey("plinth");
+
+    var s2 = wire(state(second));
+    s2.put("plinth", "marble");
+    var third = runOn("/colliding-wizard", CollidingWizard.class, "next", s2);
+    assertThat(state(third)).containsEntry("position", 2);
+
+    var s3 = wire(state(third));
+    s3.put("lender", "Musée Rodin");
+    var done = runOn("/colliding-wizard", CollidingWizard.class, "request", s3);
+    assertThat(state(done)).containsEntry("outcome", "The Thinker in sculpture from Musée Rodin");
+  }
+
   private UIIncrementDto run(String actionId, Map<String, Object> state) {
+    return runOn("/probe-wizard", ProbeWizard.class, actionId, state);
+  }
+
+  private UIIncrementDto runOn(
+      String route, Class<?> type, String actionId, Map<String, Object> state) {
     return mateu.run(
         RunActionRqDto.builder()
-            .route("/probe-wizard")
+            .route(route)
             .actionId(actionId)
-            .serverSideType(ProbeWizard.class.getName())
+            .serverSideType(type.getName())
             .componentState(state)
             .build());
   }

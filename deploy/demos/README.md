@@ -42,6 +42,31 @@ Same for the museum. The container in these deployments is called `app`
 says «successfully rolled out» about the old image). Their databases live in memory: restarting a
 service re-seeds it, which also clears what a test wrote.
 
+## Memory
+
+The cluster's nodes are small (~2.7 GiB allocatable each), so every JVM here runs with explicit flags
+instead of the images' `-XX:MaxRAMPercentage=75` (which let a JVM grow towards 75 % of its limit and
+never give memory back). Measured on Spring Boot + Mateu (Java 21, Alpine): heap in use is ~40 MB,
+metaspace ~100–115 MB, and the C2 JIT's code cache + arenas cost ~60 MB more than C1 alone.
+
+```
+-XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
+-XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=<192|224>m -Xss512k
+-XX:+ExitOnOutOfMemoryError
+```
+
+- Serial GC (what the JVM picks anyway on 2 CPUs), heap capped at 160 MB and shrunk after GC
+  (`MaxHeapFreeRatio`); single-user demos do not need more.
+- C1 only (`TieredStopAtLevel=1`): lower peak throughput, irrelevant here, and a smaller code cache.
+- `MaxMetaspaceSize` is a guard, not a saving: 192m for the REST services, 224m for the Mateu UIs
+  (the Explorer, the biggest, uses 256m and `-Xmx192m`); `ExitOnOutOfMemoryError` lets Kubernetes
+  restart a JVM that hit it instead of leaving it half alive.
+- Requests follow measured use (+ margin): REST services 288Mi, UI apps 224Mi, Explorer remotes
+  176Mi; limits keep head-room for a heap that fills (416–448Mi, Explorer 512Mi).
+
+Result (2026-11-09): the JVM pods went from 183–333 MiB to ~140–250 MiB each. Re-check after an
+image upgrade with `kubectl top pods`, and the services' `/actuator/prometheus` (`jvm_memory_*`).
+
 ## Deploy
 ```bash
 K="kubectl --context <cluster-context>"
@@ -53,3 +78,57 @@ $K apply -f deploy/demos/k8s/
 $K -n mateu-demos rollout status deploy/swapi deploy/demo-vaadin-webflux --timeout=5m
 ```
 Check certificates: `$K -n mateu-demos get certificate,challenge`.
+
+## The Mateu Explorer (`explorer.mateu.io`)
+`demo/demo-explorer` + the five remotes of its *Distributed UIs* area, all in `k8s/70-demo-explorer.yaml`.
+Live as a **preview on 3.0-beta.51** since 2026-11-08 (tag `3.0-beta.51-explorer-20261108`); redeploy at rc.1.
+
+| deployment | image | host | requests / limits |
+|---|---|---|---|
+| `demo-explorer` (Spring Boot MVC, Vaadin) | `miguelperezcolom/demo-explorer` | `explorer.mateu.io` (own A + AAAA → the LB) | 320Mi / 512Mi |
+| `demo-explorer-java-remote` | `miguelperezcolom/demo-explorer-java-remote` | `explorer-java.ec1.mateu.io` | 256Mi / 448Mi |
+| `demo-explorer-yaml-remote` | `miguelperezcolom/demo-explorer-yaml-remote` | `explorer-yaml.ec1.mateu.io` | 256Mi / 448Mi |
+| `demo-explorer-static-remote` (nginx) | `miguelperezcolom/demo-explorer-static-remote` | `explorer-static.ec1.mateu.io` | 16Mi / 64Mi |
+| `demo-explorer-python-remote` (FastAPI) | `miguelperezcolom/demo-explorer-python-remote` | `explorer-python.ec1.mateu.io` | 64Mi / 192Mi |
+
+The remotes ride the `*.ec1.mateu.io` wildcard (no DNS change). Where they are is ENV, not code: the
+Explorer reads `EXPLORER_{JAVA,YAML,STATIC,PYTHON}_REMOTE_URL` (`examples/distributed/Remotes.java`),
+the remotes allow `EXPLORER_ORIGIN=https://explorer.mateu.io` (their `mateu.cors.allowed-origins` /
+`cors_origins`); the static one answers `Access-Control-Allow-Origin: *`. Measured after the first
+deploy: Explorer ~300Mi, each JVM remote ~170Mi, Python ~80Mi, nginx ~2Mi — the nodes' memory REQUESTS
+sit at 81–95%, so give the next app room before adding one (never raise the fleet limits for it).
+
+Build (JDK 21) and push — the repo has no `.dockerignore`, so build from a context that holds only the
+artifacts, at the same paths the Dockerfiles copy:
+```bash
+V=3.0-beta.51-explorer-$(date +%Y%m%d)
+(cd demo/demo-explorer && mvn -B -ntp clean package -DskipTests -Dmateu.version=3.0-beta.51)
+(cd demo/demo-explorer/remotes && mvn -B -ntp clean package -DskipTests -Dmateu.version=3.0-beta.51)
+C=$(mktemp -d); E=demo/demo-explorer; R=$E/remotes
+mkdir -p $C/$E/target $C/$R/{java-remote,yaml-remote,static-remote}/target $C/$R/python-remote
+cp $E/target/demo-explorer-1.0-SNAPSHOT.jar $C/$E/target/
+cp $R/java-remote/target/explorer-java-remote-1.0-SNAPSHOT.jar $C/$R/java-remote/target/
+cp $R/yaml-remote/target/explorer-yaml-remote-1.0-SNAPSHOT.jar $C/$R/yaml-remote/target/
+cp -R $R/static-remote/target/mateu-bundle $C/$R/static-remote/target/
+cp $R/python-remote/{requirements.txt,main.py} $C/$R/python-remote/
+docker buildx build --platform linux/amd64 -f deploy/demos/demo-explorer.Dockerfile -t miguelperezcolom/demo-explorer:$V --push $C
+for t in java-remote yaml-remote static-remote python-remote; do
+  docker buildx build --platform linux/amd64 -f deploy/demos/demo-explorer-remotes.Dockerfile --target $t \
+    -t miguelperezcolom/demo-explorer-$t:$V --push $C
+done
+```
+Deploy (bump the five `image:` tags in `k8s/70-demo-explorer.yaml` first; every container is `app`):
+```bash
+$K apply -f deploy/demos/k8s/70-demo-explorer.yaml
+$K -n mateu-demos rollout status deploy/demo-explorer deploy/demo-explorer-java-remote \
+  deploy/demo-explorer-yaml-remote deploy/demo-explorer-static-remote deploy/demo-explorer-python-remote --timeout=6m
+$K -n mateu-demos get certificate | grep explorer
+```
+Verify from the outside (Playwright from the repo's `e2e/`):
+```bash
+cd demo/demo-explorer && mvn -q test -Dmateu.version=3.0-beta.51     # writes target/explorer-entries.json
+EXPLORER_URL=https://explorer.mateu.io node e2e/explorer-probe.mjs   # 2026-11-08: 203/206, the 3 known issues
+cd remotes && EXPLORER_URL=https://explorer.mateu.io EXPLORER_JAVA_REMOTE_URL=https://explorer-java.ec1.mateu.io \
+  EXPLORER_STATIC_REMOTE_URL=https://explorer-static.ec1.mateu.io SKIP_REMOTE_RESTART=true node probe.mjs  # 22/22
+```
+(`SKIP_REMOTE_RESTART` skips the version-skew check, which restarts a LOCAL Java remote.)

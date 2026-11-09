@@ -9,7 +9,7 @@ import { kanbanKeyOf, kanbanColumnsOnScreen, kanbanTextOf } from './kanban.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
 // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
 // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
-// Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow, Result,
+// Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow,
 // Directory, CookieConsent, ConfirmDialog, Breadcrumbs, Notification…).
 //
 // Every function here is PURE: wire metadata → an ATOM (a flat object the atoms template paints).
@@ -693,46 +693,6 @@ export function chatAtomOf(m, id) {
   }
 }
 
-// ── Result: the outcome of an operation — icon by type, message, links ─────────────────────────
-const RESULT_LOOKS = {
-  success: ['oj-ux-ico-check-circle-s', 'mateu-tone-success'],
-  info: ['oj-ux-ico-information-s', 'mateu-tone-info'],
-  warning: ['oj-ux-ico-warning-s', 'mateu-tone-warning'],
-  error: ['oj-ux-ico-error-s', 'mateu-tone-danger'],
-  ignored: ['oj-ux-ico-information', ''],
-}
-const destinationOf = (d, interp) => {
-  if (!d) return null
-  const type = str(d.type)
-  const label = interp(str(d.description || d.value || d.id))
-  if (type === 'Url') return { label, href: safeHref(d.value), isLink: !!safeHref(d.value), isAction: false, actionId: '', parameters: {} }
-  if (type === 'ActionId') return { label, href: '', isLink: false, isAction: true, actionId: d.value || d.id || '', parameters: {} }
-  // View / Component / CustomEvent: a route of the app when the value looks like one
-  const route = str(d.value)
-  if (route.startsWith('/')) return { label, href: route, isLink: true, isAction: false, actionId: '', parameters: {} }
-  return { label, href: '', isLink: false, isAction: !!(d.id), actionId: d.id || '', parameters: {} }
-}
-export function resultAtomOf(m, interp = (x) => x) {
-  const look = RESULT_LOOKS[str(m.resultType).toLowerCase()] || RESULT_LOOKS.info
-  const links = (m.interestingLinks || []).map((d) => destinationOf(d, interp)).filter(Boolean)
-  const next = destinationOf(m.nowTo, interp)
-  return {
-    isResult: true,
-    title: interp(str(m.title)),
-    message: interp(str(m.message)),
-    iconClass: look[0],
-    panelClass: 'oj-panel oj-sm-padding-8x mateu-result ' + look[1],
-    image: m.leftSideImageUrl ? elementModuleUrl(str(m.leftSideImageUrl)) : '',
-    hasImage: !!m.leftSideImageUrl,
-    links: keyed(links),
-    hasNext: !!next,
-    next: next || { label: '', href: '', isLink: false, isAction: false, actionId: '', parameters: {} },
-    // the «what next» button sends the atom's own action (the block listener reads the atom)
-    actionId: next && next.isAction ? next.actionId : '',
-    parameters: {},
-  }
-}
-
 // ── CookieConsent: a band fixed to the bottom; installCookieConsent hides it when the cookie
 //    exists and stores the cookie on «dismiss» ──────────────────────────────────────────────
 export function cookieConsentAtomOf(m, interp = (x) => x) {
@@ -1244,6 +1204,8 @@ export function microFrontendOf(m) {
     resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
     // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
     chrome: embeddedChromeOf(m.chrome),
+    // a block of the host page whatever its chrome: never names or moves the window (transport.mjs)
+    windowless: true,
     surface: true,
     lazy: false,
   }

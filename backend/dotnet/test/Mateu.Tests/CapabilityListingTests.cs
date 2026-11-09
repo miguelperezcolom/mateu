@@ -128,6 +128,18 @@ public class BulkBooks : IListing<CapBook>, IDeletable<string>
     public void Archive(List<CapBook> selection) => LastArchived = selection.Select(b => b.Id).ToList();
 }
 
+// A plain listing (no interaction capability) with a bulk method: Java reaches it by its own name.
+[UI("plain-bulk-books"), Title("Plain Bulk Books")]
+public class PlainBulkBooks : IListing<CapBook>
+{
+    public static volatile IReadOnlyList<string>? LastArchived;
+
+    public ListingData<CapBook> Search(SearchRequest request) => ListingData.From(CapBooks.All());
+
+    [ListToolbarButton]
+    public void ArchiveAll(List<CapBook> selection) => LastArchived = selection.Select(b => b.Id).ToList();
+}
+
 /// <summary>The capability model, combination by combination: a listing is a class implementing
 /// IListing (rows only — sorting and pagination come free), and every further feature appears
 /// because the class DECLARES it — ISearchable the search box, IFilterable the filter bar,
@@ -246,8 +258,9 @@ public class CapabilityListingTests
     public void Navigable_makes_rows_clickable_and_serves_the_detail_route()
     {
         var json = Render(Load(typeof(NavigableBooks), "/navigable-books"));
-        // the first column carries the row-open affordance…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\"", json);
+        // the first column carries the row-open affordance — the technical id is not a column
+        // (W-V-TABLE-ID: the row is the link)…
+        Assert.DoesNotContain("\"id\":\"id\",\"label\":\"Id\"", json);
         Assert.Contains("\"actionId\":\"view\"", json);
         // …and still no create/delete chrome — only what was declared
         Assert.DoesNotContain("\"actionId\":\"new\"", json);
@@ -366,6 +379,28 @@ public class CapabilityListingTests
                 ["crud_selected_items"] = El(new[] { new { id = "b1", title = "El Quijote", pages = 863 } }),
             }, null);
         Assert.Equal(["b1"], BulkBooks.LastArchived);
+    }
+
+    [Fact]
+    public void A_plain_listing_reaches_its_bulk_method_by_its_own_name()
+    {
+        var json = Render(Load(typeof(PlainBulkBooks), "/plain-bulk-books"));
+        Assert.Contains("\"actionId\":\"archiveAll\"", json);
+        Assert.DoesNotContain("\"actionId\":\"action-on-row-archiveAll\"", json);
+
+        Run(typeof(PlainBulkBooks), "/plain-bulk-books", "archiveAll",
+            new Dictionary<string, object?>
+            {
+                ["crud_selected_items"] = El(new[] { new { id = "b2", title = "Rayuela", pages = 600 } }),
+            }, null);
+        Assert.Equal(["b2"], PlainBulkBooks.LastArchived);
+        // the open wildcard still reaches it
+        Run(typeof(PlainBulkBooks), "/plain-bulk-books", "action-on-row-archiveAll",
+            new Dictionary<string, object?>
+            {
+                ["crud_selected_items"] = El(new[] { new { id = "b1", title = "El Quijote", pages = 863 } }),
+            }, null);
+        Assert.Equal(["b1"], PlainBulkBooks.LastArchived);
     }
 
     // ── Crud<T> = a listing with every capability declared ────────────────────

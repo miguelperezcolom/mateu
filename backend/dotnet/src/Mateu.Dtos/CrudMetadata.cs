@@ -7,6 +7,37 @@ public record CrudMetadataDto(
     IReadOnlyList<GridColumnDto> Columns,
     IReadOnlyList<ButtonDto> Toolbar) : ComponentMetadataDto
 {
+    /// <summary>The table's presentation (mirrors io.mateu.dtos.CrudlDto.rowStripes, columnBorders,
+    /// wrapCellContent, allRowsVisible, noBorder, noRowBorder, columnReorderingAllowed,
+    /// infiniteScrolling, lazyLoading, multipleRowSelectionEnabled, onRowSelectionChangedActionId,
+    /// gridStyle, contentHeight); omitted at their defaults.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool RowStripes { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool ColumnBorders { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool WrapCellContent { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool AllRowsVisible { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool NoBorder { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool NoRowBorder { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool ColumnReorderingAllowed { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool InfiniteScrolling { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool LazyLoading { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] public bool MultipleRowSelectionEnabled { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public string? OnRowSelectionChangedActionId { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public string? GridStyle { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public string? ContentHeight { get; init; }
+
+    /// <summary>The fluent listing's grid options (mirror CrudlDto.size, initialPage,
+    /// useButtonForDetail, lazyColumnRendering, vaadinGridCellBackground, vaadinGridCellPadding,
+    /// header, footer); omitted at their defaults.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int Size { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int InitialPage { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool UseButtonForDetail { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool LazyColumnRendering { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? VaadinGridCellBackground { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? VaadinGridCellPadding { get; init; }
+    /// <summary>Components shown above / below the rows.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public IReadOnlyList<ComponentDto>? Header { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public IReadOnlyList<ComponentDto>? Footer { get; init; }
+
     public string? Subtitle { get; init; }
     public bool Searchable { get; init; } = true;
     public bool CanEdit { get; init; }
@@ -63,6 +94,12 @@ public record CrudMetadataDto(
     /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
     /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
     public RestDataSourceDto? RowsSource { get; init; }
+
+    /// <summary>The way IN to a record from a listing with no view model behind it: a route template
+    /// (<c>people/${row.id}</c>) the renderer interpolates against the clicked row and navigates to —
+    /// the whole row opens it. Omitted when null. (Java's CrudlDto.rowRoute.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? RowRoute { get; init; }
 
     /// <summary>Rows can be dragged onto a DropZone accepting this type ([DragRows]); null = not
     /// draggable (mirrors CrudlDto.dragType).</summary>

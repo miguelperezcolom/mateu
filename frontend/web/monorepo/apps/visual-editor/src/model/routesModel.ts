@@ -12,10 +12,8 @@ import { parse, stringify } from 'yaml'
  */
 export interface RouteRow {
     route: string
-    /** The layout file this route renders — authored as `layout:` (canonical) or `definition:` (alias). */
+    /** The layout file this route renders — authored as `layout:`. */
     definition?: string
-    /** Which key the layout was authored under, so a round trip never renames it. New rows use `layout`. */
-    layoutKey?: 'layout' | 'definition'
     viewModel?: string
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
@@ -48,13 +46,11 @@ export function isRoutesYaml(yaml: string): boolean {
     return type === 'Routes' || Array.isArray((root as any).routes)
 }
 
-const KNOWN = ['route', 'definition', 'layout', 'viewModel', 'fixedParams', 'defaultParams', 'data', 'defaultChild', 'children']
+const KNOWN = ['route', 'layout', 'viewModel', 'fixedParams', 'defaultParams', 'data', 'defaultChild', 'children']
 
 function toRow(entry: any): RouteRow {
     const row: RouteRow = { route: typeof entry?.route === 'string' ? entry.route : '' }
-    // `layout` is canonical and wins over its deprecated alias when both are present (as the loader does).
-    if (typeof entry?.layout === 'string') { row.definition = entry.layout; row.layoutKey = 'layout' }
-    else if (typeof entry?.definition === 'string') { row.definition = entry.definition; row.layoutKey = 'definition' }
+    if (typeof entry?.layout === 'string') row.definition = entry.layout
     if (typeof entry?.viewModel === 'string') row.viewModel = entry.viewModel
     if (entry?.fixedParams && typeof entry.fixedParams === 'object') row.fixedParams = entry.fixedParams
     if (entry?.defaultParams && typeof entry.defaultParams === 'object') row.defaultParams = entry.defaultParams
@@ -64,8 +60,6 @@ function toRow(entry: any): RouteRow {
     const extra: Record<string, unknown> = {}
     if (entry && typeof entry === 'object') {
         for (const k of Object.keys(entry)) if (!KNOWN.includes(k)) extra[k] = entry[k]
-        // An entry carrying BOTH keys keeps the alias it also had (the loader ignores it; we don't drop it).
-        if (typeof entry.layout === 'string' && 'definition' in entry) extra.definition = entry.definition
     }
     if (Object.keys(extra).length) row.extra = extra
     return row
@@ -90,7 +84,7 @@ export function parseRoutes(yaml: string): RoutesDoc {
 
 function rowToRaw(row: RouteRow): Record<string, unknown> {
     const out: Record<string, unknown> = { route: row.route ?? '' }
-    if (row.definition) out[row.layoutKey ?? 'layout'] = row.definition
+    if (row.definition) out.layout = row.definition
     if (row.viewModel) out.viewModel = row.viewModel
     if (row.data !== undefined && row.data !== '') out.data = row.data
     if (row.fixedParams && Object.keys(row.fixedParams).length) out.fixedParams = row.fixedParams
@@ -130,8 +124,8 @@ export function flattenRoutes(rows: RouteRow[], prefix = ''): (RouteRow & { abso
  * by default — the routes half of the «master with routed tabs» recipe (route-registry.md).
  */
 export function masterWithTabs(route: string, tabs: string[]): RouteRow {
-    const children: RouteRow[] = tabs.map((t) => ({ route: t, definition: `${t}.yaml`, layoutKey: 'layout' }))
-    return { route, definition: 'master.yaml', layoutKey: 'layout', defaultChild: tabs[0], children }
+    const children: RouteRow[] = tabs.map((t) => ({ route: t, definition: `${t}.yaml` }))
+    return { route, definition: 'master.yaml', defaultChild: tabs[0], children }
 }
 
 /** Parse a `key=value, key2=value2` string into a param map, coercing obvious booleans/numbers. */

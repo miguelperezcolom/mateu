@@ -109,13 +109,21 @@ fun renderFaq(metadata: JsonNode): JComponent {
         val row = verticalPanel(2)
         row.border = JBUI.Borders.emptyBottom(6)
         row.addStacked(JBLabel(plain(item.text("question"))).apply { font = font.deriveFont(Font.BOLD) }, 2)
-        row.addStacked(JBLabel("<html>${SafeHtml.sanitize(item.text("answer"))}</html>").apply {
+        // the answer is markdown, like the web's and Redwood's (it was shown as plain text)
+        row.addStacked(JBLabel("<html>${SafeHtml.sanitize(faqAnswerBody(item.text("answer")))}</html>").apply {
             foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(row, 6)
     }
     return panel
 }
+
+/** A Faq answer (markdown) as the label's html. */
+internal fun faqAnswerHtml(answer: String): String = markdownToHtml(answer)
+
+/** The answer's markdown as the BODY of a label's html (the label adds its own `<html>`). */
+internal fun faqAnswerBody(answer: String): String =
+    faqAnswerHtml(answer).removePrefix("<html><body>").removeSuffix("</body></html>").removeSuffix("<br>")
 
 /** CalloutCard: a themed call-to-action block (icon + title + description + CTA button) on Swing. */
 fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {

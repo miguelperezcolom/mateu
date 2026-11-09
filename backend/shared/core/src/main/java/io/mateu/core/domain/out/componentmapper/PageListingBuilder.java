@@ -128,7 +128,8 @@ public class PageListingBuilder {
         || !listing.supportsAction("view")) {
       return rawColumns;
     }
-    var list = new java.util.ArrayList<GridContent>(rawColumns);
+    // the row opens the record: its technical id is no longer the link, nor a column
+    var list = TechnicalIdColumn.withoutTechnicalId(getRowClass(instance), rawColumns);
     if (list.isEmpty() || !(list.get(0) instanceof io.mateu.uidl.data.GridColumn first)) {
       return rawColumns;
     }
@@ -193,7 +194,14 @@ public class PageListingBuilder {
    */
   private static String getRestListingRowRoute(Object instance) {
     var a = MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RestListing.class);
-    return a == null || a.rowRoute().isBlank() ? null : a.rowRoute();
+    if (a != null && !a.rowRoute().isBlank()) {
+      return a.rowRoute();
+    }
+    // @RowRoute on a plain Listing: only the CRUD path (ListRouteResolver) used to read it, so the
+    // rows of a listing with no interaction capabilities did nothing
+    var rowRoute =
+        MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RowRoute.class);
+    return rowRoute == null || rowRoute.value().isBlank() ? null : rowRoute.value();
   }
 
   /**

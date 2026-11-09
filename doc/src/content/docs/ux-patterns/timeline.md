@@ -46,3 +46,5 @@ in the template's action menu.
 ## When to use it
 
 Use a Timeline to **narrate** a sequence of past events. The `timestamp` is a free-form label (`"2h ago"`, `"Mar 3 14:20"`) so you format it however you like. For editable/interactive histories, make entries `actionId`-clickable and open a detail view. Demo: `/timeline-demo`.
+
+**See it live in the Explorer:** [Timeline, comments & files](https://explorer.mateu.io/components/display/activity)

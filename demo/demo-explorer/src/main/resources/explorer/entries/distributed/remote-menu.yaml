@@ -1,0 +1,38 @@
+id: remote-menu
+area: distributed
+group: federation
+title: RemoteMenu federation & deep links
+covers: [distributed:remote-menu, distributed:remote-deep-links]
+description: |
+  The federated console (`/fed`) has ONE local page; the rest of its menu belongs to other
+  deployments, fetched **at run time** with `RemoteMenu`: Inventory (a Java app), Orders (a
+  YAML-only app), the Help Center (a static bundle) and, when it runs, Reports (Python).
+
+  - Each remote answers several top-level entries, and the RemoteMenu has a `label`: they are
+    merged into **one group named like it**, under its `path` (`/inventory`, `/orders`…).
+  - The shell's server reads each remote's descriptor; then the **browser** loads the screens from
+    the remote directly and sends its actions there — so every remote lists the shell's origin in
+    `mateu.cors.allowed-origins`.
+  - **Deep links**: the URL stays on the shell (`/fed/inventory/stock`), so a reload, a bookmark or
+    a shared link opens the remote screen inside the shell.
+
+  **Try it:** open `/fed`, open the *Inventory* group → *Stock*, press *Reserve one* (it runs in
+  the Java remote). Reload — you are still on `/fed/inventory/stock`. Open `/fed/orders/order/o-2`
+  directly.
+
+  > **Known issue (3.0-beta.51):** A fresh deep link or a reload of a remote screen is loaded from the SHELL with the remote app's
+  > type and answers 403 (reaching it from the menu works); a leaf of a YAML-only remote is sent
+  > with the shell's type, and the remote answers 403. Reported.
+knownIssue: >-
+  3.0-beta.51: a fresh deep link / reload of a remote screen (/fed/stock) is loaded from the shell with the remote app's serverSideType (403; clicking the menu works), and a leaf of a YAML-only remote is sent with the shell's serverSideType (the remote answers 403).
+examples:
+  - title: The console and three deep links
+    java: io.mateu.explorer.examples.distributed.remotemenu.RemoteMenuLinks
+code:
+  - {label: "Java · the shell", path: src/main/java/io/mateu/explorer/examples/distributed/console/FederatedConsole.java}
+  - {label: "Java · where the remotes are", path: src/main/java/io/mateu/explorer/examples/distributed/Remotes.java}
+  - {label: "Java · the Inventory remote's app", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/inventory/InventoryApp.java}
+  - {label: "YAML · the Orders remote's app shell", path: remotes/yaml-remote/src/main/resources/specs/ui/orders-app.yaml}
+  - {label: "YAML · the Orders remote's routes", path: remotes/yaml-remote/src/main/resources/specs/ui/routes.yaml}
+  - {label: "application.properties · Inventory (CORS)", path: remotes/java-remote/src/main/resources/application.properties}
+  - {label: "application.properties · Orders (CORS)", path: remotes/yaml-remote/src/main/resources/application.properties}

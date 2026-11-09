@@ -1,0 +1,6 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: About orders
+content:
+  - type: Text
+    text: Orders is authored in YAML only and served by its own Spring Boot app.

@@ -34,7 +34,7 @@ public sealed record SearchRequest
 
     /// <summary>The raw component state the request was built from (camelCase keys; range bounds
     /// as &lt;field&gt;_from/&lt;field&gt;_to, multi-selects as value lists) — what a database
-    /// pushdown (<see cref="Crud{T}.Find"/>) filters by. Empty when the request was built by hand.</summary>
+    /// pushdown (<c>Crud&lt;T&gt;.Find</c>) filters by. Empty when the request was built by hand.</summary>
     public IReadOnlyDictionary<string, object?> FilterState { get; init; } =
         new Dictionary<string, object?>();
 
@@ -180,6 +180,24 @@ public interface ICreatable<TForm, TId>
 public interface IDeletable<TId>
 {
     void DeleteAllById(IReadOnlyList<TId> selectedIds);
+}
+
+/// <summary>Interaction capability: a deletable listing (a <c>Crud&lt;T&gt;</c>, a capability listing)
+/// that can bring deleted records back. Declaring it makes the delete UNDOABLE: Delete asks for no
+/// confirmation, deletes and answers a toast ("2 records deleted") with Undo, which calls
+/// <see cref="RestoreAllById"/> with the same ids and refreshes the listing. Without it Delete keeps
+/// asking first. How records come back is the app's (soft delete, a trash table…); restore must
+/// accept ids it no longer holds. (Mirrors Java's <c>io.mateu.uidl.interfaces.Restorable</c>.)
+/// EXPERIMENTAL (W-V-DELETE-FEEDBACK).</summary>
+public interface IRestorable<TId>
+{
+    /// <summary>The reserved action an Undo of a delete runs (Java's Restorable.RESTORE_ACTION).</summary>
+    public const string RestoreAction = "restore-deleted";
+
+    /// <summary>The action parameter carrying the ids to restore (Java's Restorable.RESTORE_IDS).</summary>
+    public const string RestoreIds = "_restoreIds";
+
+    void RestoreAllById(IReadOnlyList<TId> deletedIds);
 }
 
 // ── The capability-token vocabulary (C# mirror of Java's io.mateu.uidl.Capabilities) ──

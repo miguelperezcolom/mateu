@@ -36,9 +36,9 @@ export function buildScaffoldPrompt(description: string, knownTypes: string[], c
         lines.push(`- This page is bound to the data source \`${context.modelView}\`. Bind fields/buttons to its members ONLY.`)
         if (context.fields?.length) lines.push('  Available fields: ' + context.fields.join(', ') + '.')
         if (context.actions?.length) lines.push('  Available actions: ' + context.actions.join(', ') + '.')
-        lines.push('- Do NOT emit a `modelView:` key (it is already bound).')
+        lines.push('- Do NOT emit a `viewModel:` key (it is already bound).')
     } else {
-        lines.push('- Classless page: do NOT emit a `modelView:` key.')
+        lines.push('- Classless page: do NOT emit a `viewModel:` key.')
     }
     lines.push('')
     lines.push('Describe the screen to build:')

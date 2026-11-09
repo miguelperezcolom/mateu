@@ -1,0 +1,20 @@
+id: item-overview-page
+area: page-templates
+group: templates
+title: Item overview page
+covers: [template:ItemOverviewPage]
+description: |
+  `template: {type: ItemOverviewPage}` — one record, read-only. `photo {src}` (4:3) or `avatar {src,
+  initials}` (round) is the item's image; the `body` and `footer` slots fill the overview panel; the
+  form's `content` is the `main` slot (a single `TabLayout` becomes the template's tabs). The form's
+  title, subtitle and first badge are the item's; its primary toolbar button is the panel's **edit**.
+
+  The values are the route's **view model** (`WaterLilies.java`): a route can bind a YAML layout and a
+  Java class independently, so the layout stays pure YAML (`${state.title}`, `FormField id`s).
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/item-overview-page
+pages:
+  - {route: x/page-templates/item-overview-page, layout: explorer/page-templates/item-overview-page/artwork.yaml, viewModel: io.mateu.explorer.examples.pagetemplates.itemoverviewpage.WaterLilies}

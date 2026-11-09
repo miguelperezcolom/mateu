@@ -2,7 +2,7 @@ import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import type { AppShortcut } from '@mateu/shared/apiClients/dtos/componentmetadata/AppShellExtras.ts'
 import { appShortcutFor, isHelpKey, isTypingTarget } from '@infra/ui/appShortcuts.ts'
-import { installHeaderValuesWatcher, seedHeaderValues } from '@infra/ui/headerValues.ts'
+import { forgetDetachedHeaderScopes, installHeaderValuesWatcher, seedHeaderValues } from '@infra/ui/headerValues.ts'
 import { syncLiveUpdates } from '@infra/ui/liveUpdates.ts'
 import { syncAgentChannel } from '@infra/ui/agentChannel.ts'
 import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
@@ -14,6 +14,7 @@ import '@infra/ui/mateu-shortcuts-help.ts'
 import { setTaskCenterHost } from '@infra/progress/taskCenterMount.ts'
 import { inboxStore } from '@infra/notify/inboxStore.ts'
 import { notify } from '@application/Notifier.ts'
+import { syncOsNotifications } from '@infra/notify/osNotifications.ts'
 import '@infra/ui/mateu-idle-warning.ts'
 
 /**
@@ -68,7 +69,13 @@ const onKeydown = (e: KeyboardEvent) => {
 export function syncAppExtras(host: Host): void {
     const md = (host.component as ClientSideComponent | undefined)?.metadata as App | undefined
     if (!md || md.variant === 'MEDIATOR') return
-    if (owner && owner !== host && owner.isConnected) return // another top shell owns them
+    // live header values: EVERY app shell on screen declares its own — an app embedded under
+    // another shell (a MicroFrontend of a whole app) included, which drew none while the top
+    // shell owned the store
+    forgetDetachedHeaderScopes()
+    seedHeaderValues(md.headerValues, host)
+    installHeaderValuesWatcher()
+    if (owner && owner !== host && owner.isConnected) return // another top shell owns the rest
     owner = host
     app = md
     const baseUrl = host.baseUrl ?? ''
@@ -84,9 +91,9 @@ export function syncAppExtras(host: Host): void {
         })
     }
 
-    // live header values
-    seedHeaderValues(md.headerValues)
-    installHeaderValuesWatcher()
+    // OS-level notifications (@App(osNotifications)): new inbox entries and background tasks that
+    // finish while the tab is hidden
+    syncOsNotifications(md, host)
     syncLiveUpdates(md, baseUrl)
 
     // live UI push: what an agent connected through MCP sends to this tab

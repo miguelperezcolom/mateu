@@ -1,0 +1,14 @@
+# A planning board as DATA: resources (rows, grouped), a date range (columns) and blocks placed on
+# a resource between two dates. Without moveActionId/selectActionId it is a read-only picture.
+content:
+  - type: PlanningBoard
+    from: "2026-11-02"
+    to: "2026-11-15"
+    resources:
+      - {id: v1, label: Van 1 · Climate-controlled, group: Fleet}
+      - {id: v2, label: Van 2, group: Fleet}
+      - {id: c1, label: Crate store, group: Storage}
+    blocks:
+      - {id: x1, resourceId: v1, start: "2026-11-03", end: "2026-11-05", label: To the Louvre, color: "#2563eb"}
+      - {id: x2, resourceId: v2, start: "2026-11-06", end: "2026-11-06", label: Local pickup, color: "#16a34a"}
+      - {id: x3, resourceId: c1, start: "2026-11-02", end: "2026-11-12", label: Crates for "Water Lilies", color: "#f59e0b"}

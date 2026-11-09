@@ -45,7 +45,8 @@ from ..naming import (
 from mateu_ui.uidl import GroupActionVisibility
 
 from ..reflection import methods_with, view_fields
-from ..validation import violations
+from ..validation import editable, violations
+from ..mapper.crud_modes import hidden_in_current_form
 from ._base import MixinBase
 from ._common import (
     _by_attr,
@@ -283,7 +284,15 @@ class SearchHandlerMixin(MixinBase):
                 for s in sort
             ),
         )
-        found = crud.find(self.search_text(rq), state, pageable)
+        # a find declaring `criteria` gets the ranges / multi-selects TYPED and the equality values
+        # without their keys (Java's FilterCriteriaBuilder); an older 3-parameter one, the raw state
+        from .. import filter_criteria
+
+        if filter_criteria.accepts_criteria(crud.find):
+            criteria, example = filter_criteria.extract(element, state)
+            found = crud.find(self.search_text(rq), example, pageable, criteria=criteria)
+        else:
+            found = crud.find(self.search_text(rq), state, pageable)
         if found is not None:
             rows = _numbered(
                 [self._row_dict(item, props) for item in found.content], pageable.page, pageable.size
@@ -563,22 +572,32 @@ class SearchHandlerMixin(MixinBase):
         return "Deleted"
 
     @staticmethod
-    def required_missing(entity, element) -> list[str]:
+    def required_missing(entity, element, mapper=None) -> list[str]:
+        """The labels of the required fields left empty — only the ones the user can edit
+        (``validation.editable``: a locked one carries no constraint)."""
         out = []
         for f in view_fields(element):
-            if f.has(Required):
+            if f.has(Required) and not hidden_in_current_form(f) and editable(mapper, element, f):
                 v = getattr(entity, f.name, None)
                 if v is None or (isinstance(v, str) and v.strip() == ""):
                     out.append(f.marker(Label).value if f.has(Label) else humanize(f.name))
         return out
 
     @staticmethod
-    def constraint_violations(entity, element) -> list[str]:
+    def constraint_violations(entity, element, mapper=None) -> list[str]:
         """``"<label>: <message>"`` for every Min/Max/Size/Pattern constraint the entity breaks —
-        the server-side leg of the client-side validations (Required() is reported separately)."""
+        the server-side leg of the client-side validations (Required() is reported separately).
+        A field the crud record form being checked does not render (``HiddenInCreate()`` on a
+        create, ``HiddenInEditor()`` on an edit) is skipped: the client sent no validation for
+        it (Java's ServerConstraintCheck → PageFormBuilder.rendersAsInput), and so is one the user
+        cannot edit (``validation.editable`` — Java's PageFormBuilder.isEditable)."""
+        fields = [
+            f for f in view_fields(element)
+            if not hidden_in_current_form(f) and editable(mapper, element, f)
+        ]
         return [
             f"{label}: {message}"
-            for label, message in violations(entity, element)
+            for label, message in violations(entity, element, fields)
             if message != "Cannot be empty"
         ]
 

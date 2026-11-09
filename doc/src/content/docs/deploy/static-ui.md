@@ -46,8 +46,7 @@ usual meaning of the word (available/active → success, provisioning/updating �
 failed/terminated → error).
 
 Inner routes are data: `@UI("")` declares the mount (the app shell); `specs/ui/routes.yaml` binds the
-routes inside it — to a Java view model (`viewModel:`) or to a definition only (`layout:`; the older
-key `definition:` is a deprecated alias).
+routes inside it — to a Java view model (`viewModel:`) or to a definition only (`layout:`).
 
 ## Two ways to build it
 
@@ -77,6 +76,47 @@ pre-rendered; edit a definition in `manifest.json`, refresh, see it.
 
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
+
+### From Python or .NET
+
+The two ports ship the same exporter. Each renders every route **in process, through its own sync
+handler** (no server is started) and writes the same bundle — the same `manifest.json` (both loads
+of a route under an app shell, `:param` templates, the route table, the source, action and
+translation catalogues), the same `index.html`, PWA files, `mateu/v3/manifest` and `_redirects`.
+The renderer is the `io.mateu:mateu-vaadin` jar (or its extracted `static/` folder), exactly what
+`MATEU_UI` points at when the port serves the UI itself.
+
+```bash
+# Python — the sources are what add_mateu(app, …) takes (modules, or module:Class)
+python -m mateu_ui.bundle my_app.views --ui mateu-vaadin.jar --out dist --static
+
+# a YAML-only app: no sources, just the specs directory
+python -m mateu_ui.bundle --specs specs/ui --ui mateu-vaadin.jar --out dist --static --specs-only
+```
+
+```bash
+# .NET — the Mateu.Bundle tool loads the BUILT app (dotnet build first) and runs the app's own
+# Mateu.Core, so the exporter always matches the version the app runs
+dotnet tool install --global Mateu.Bundle   # once (or a local tool: dotnet new tool-manifest first)
+dotnet mateu-bundle --ui mateu-vaadin.jar --out dist --static          # in the project directory
+dotnet mateu-bundle --app bin/Release/net8.0/MyApp.dll --ui … --out dist
+```
+
+…or let the app export itself, before it builds its web host (no tool needed):
+
+```csharp
+if (args is ["bundle", ..]) return MateuBundle.Run(args[1..], Assembly.GetExecutingAssembly());
+// dotnet run -- bundle --ui mateu-vaadin.jar --out dist --static
+```
+
+The options are the goal's: `--out`, `--specs`, `--base-url`, `--title`, `--static` (the
+[static-safety report](#the-static-safety-report), same rules), `--specs-only`,
+`--include-param-routes`, `--environment <name>`, `--mock`, `--route` (repeatable allow-list),
+`--no-pwa`, `--fail-on-empty`, `--fail-on-skipped`. A Python or C# action method without
+`@rest_action` / `[RestAction]`, a `Listing` without `@rest_listing` / `[RestListing]` and a `Crud`
+are what the report flags in the ports. The three exporters are held to one golden
+(`conformance/bundle`), and `e2e/port-bundle-probe.mjs` serves any exported bundle statically and
+checks the Vaadin renderer paints it.
 
 ## Develop with live reload
 
@@ -222,7 +262,24 @@ create, edit and delete go through the `demo/demo-starwars` backend, which holds
   (`Access-Control-Allow-Origin`, and `-Methods`/`-Headers` for writes and custom headers). The
   zero-code alternative is a **same-origin reverse proxy** at the CDN (route `/api/*` to the API) —
   then the sources use relative URLs and there is no CORS at all.
-- **Re-pointing** an environment is an edit of `sources` in `manifest.json`.
+- **Re-pointing** an environment is an edit of `sources` in `manifest.json` — then re-create (or
+  delete) `manifest.json.gz`, or a host serving pre-compressed files keeps sending the old one.
+- **Compression.** The bundle ships a pre-compressed `<file>.gz` next to every text file of at
+  least 1 KB (JavaScript, CSS, HTML, JSON, SVG…; best gzip level, same modification time as the
+  original), so the host sends them compressed without compressing on every request. A Vaadin first
+  load is ~2.6 MB of JavaScript raw and ~0.65 MB gzipped: on a phone that is the difference between
+  ~14 s and ~5 s to the first screen. Most CDNs compress on their own; for a host that serves files
+  as they are, turn the pre-compressed ones on — nginx:
+
+  ```nginx
+  gzip_static on;   # serve app.js.gz for app.js when the browser accepts gzip
+  gzip on;          # and compress on the fly what has no .gz
+  gzip_types application/json application/javascript text/css image/svg+xml;
+  gzip_vary on;
+  ```
+
+  Caddy: `file_server { precompressed gzip }`. No Brotli files are written (the JDK has no
+  encoder). `-Dmateu.bundle.precompress=false` skips them.
 
 ## Install as a desktop or phone app
 

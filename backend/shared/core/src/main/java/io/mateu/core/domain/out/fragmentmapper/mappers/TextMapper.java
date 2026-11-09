@@ -5,6 +5,7 @@ import io.mateu.dtos.TextContainerDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.uidl.data.Text;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class TextMapper {
@@ -16,7 +17,10 @@ public class TextMapper {
             text.attributes(),
             text.text(),
             text.size() != null ? text.size().name() : null,
-            text.noMargins()),
+            text.noMargins(),
+            text.variants() == null
+                ? null
+                : text.variants().stream().filter(Objects::nonNull).map(Enum::name).toList()),
         text.id() != null ? text.id() : UUID.randomUUID().toString(),
         List.of(),
         text.style(),

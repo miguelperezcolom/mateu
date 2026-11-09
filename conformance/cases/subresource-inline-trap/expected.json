@@ -1,0 +1,11 @@
+{
+  "messages" : [ {
+    "duration" : 0,
+    "persistence" : "sticky",
+    "position" : "middle",
+    "text" : "An unexpected error occurred. Reference: <ref>",
+    "title" : "Something went wrong",
+    "variant" : "error"
+  } ],
+  "wireVersion" : "3.0"
+}

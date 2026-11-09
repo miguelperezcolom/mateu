@@ -1,0 +1,16 @@
+id: drop-zone
+area: components
+group: listings-and-data
+title: DropZone (drag rows to a destination)
+covers: [component:DropZone]
+description: |
+  A place to DROP rows dragged from a listing. The listing declares a drag type (`dragType` on the
+  fluent/YAML `Listing`, `@DragRows("artwork")` on a listing class) and its rows become draggable —
+  the checked ones, or the row under the pointer. A `DropZone` that `accept`s that type runs its
+  `actionId` with its `parameters` plus `_draggedIds` (and `_dragType`). It is a titled box that can
+  hold any content.
+
+  Try: drag an artwork (or several checked ones) onto a crate.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.dropzone.PackLoans

@@ -21,6 +21,27 @@ def normalize(route: str | None) -> str:
     return "" if r in ("", "_empty", "_no_route", "_no_home_route") else r
 
 
+def _flatten_sources(sources) -> list:
+    """The modules and classes to register: ``add_mateu(app, A, B)``, ``add_mateu(app, [A, B])``
+    and any nesting of lists/tuples/sets alike.
+
+    A list used to be neither a module nor a class, so it was skipped WITHOUT A WORD and every
+    route answered "Route not found". Anything that is not a module, a class or a collection of
+    them now fails the registration, naming what it got."""
+    flat: list = []
+    for src in sources:
+        if isinstance(src, (ModuleType, type)):
+            flat.append(src)
+        elif isinstance(src, (list, tuple, set, frozenset)):
+            flat.extend(_flatten_sources(src))
+        else:
+            raise TypeError(
+                "add_mateu/MateuRegistry takes modules and classes (or lists of them); got "
+                f"{type(src).__name__}: {src!r}"
+            )
+    return flat
+
+
 class MateuRegistry:
     def __init__(self, *sources: ModuleType | type):
         self._by_route: dict[str, type] = {}
@@ -34,6 +55,9 @@ class MateuRegistry:
         # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
         # (routes.yaml wins over them). Mirrors .NET's MateuRegistry.SuppliedRoutes.
         self.supplied_routes: list = []
+        #: FeatureFlags instances found among the sources: they answer the ``show`` of a routed
+        #: tab and of an in-page Tab (Java's FeatureFlags beans).
+        self.feature_flags: list = []
         #: Every class found among the sources (they may carry @rest_source / @business_component
         #: declarations, which belong to the app whatever class they sit on).
         self.classes: list[type] = []
@@ -68,11 +92,11 @@ class MateuRegistry:
         #: The ContentSlot fields of the registered classes, by key (a malformed or repeated key
         #: fails the registration — the port's twin of Java's compile error).
         self.content_slots: dict = {}
-        for src in sources:
+        for src in _flatten_sources(sources):
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
                     self._register(cls)
-            elif isinstance(src, type):
+            else:
                 self._register(src)
 
     @property
@@ -100,6 +124,7 @@ class MateuRegistry:
             self._by_route[normalize(route)] = cls
             self._by_name[type_name(cls)] = cls
         self._register_route_supplier(cls)
+        self._register_feature_flags(cls)
 
     def _register_microfrontend_parts(self, cls: type) -> None:
         from mateu_ui.uidl import remote
@@ -158,6 +183,19 @@ class MateuRegistry:
                         f"{previous.declared_in}.{previous.field}: a key names one slot of the application"
                     )
                 self.content_slots[slot.key] = slot
+
+    def _register_feature_flags(self, cls: type) -> None:
+        """A FeatureFlags subclass answers the deployment's flags; a broken one is skipped."""
+        from mateu_ui.uidl.feature_flags import FeatureFlags
+
+        if not (isinstance(cls, type) and issubclass(cls, FeatureFlags)) or cls is FeatureFlags:
+            return
+        if any(type(f) is cls for f in self.feature_flags):
+            return
+        try:
+            self.feature_flags.append(cls())
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("FeatureFlags %s could not be registered (%s)", cls.__name__, e)
 
     def _register_route_supplier(self, cls: type) -> None:
         """A RouteEntrySupplier subclass contributes its routes to the code-authored half. A broken
@@ -277,7 +315,7 @@ class MateuRegistry:
 
     def type_by_name(self, full_name: str | None) -> type | None:
         """Resolve any class by full name (``module.QualName``) — used to instantiate a YAML page's
-        declared ``modelView:`` logic class, which need not be a registered @ui view."""
+        declared ``viewModel:`` logic class, which need not be a registered @ui view."""
         if not full_name:
             return None
         if full_name in self._by_name:

@@ -83,3 +83,5 @@ new Text("id", "text")
 new Text("id", "text", TextContainer.h2)
 new Text("id", "text", List.of(TextVariant.i))
 ```
+
+**See it live in the Explorer:** [Text, Markdown, links & lists](https://explorer.mateu.io/components/display/text)

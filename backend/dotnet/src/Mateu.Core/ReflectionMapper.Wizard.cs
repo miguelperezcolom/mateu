@@ -28,24 +28,29 @@ internal sealed partial class ReflectionMapper
         // Wizard.component() (pinned by the conformance corpus, case "wizard").
         var titleText = Client(new TextMetadataDto(title) { Container = "h2" }, null, []) with { Style = "margin: 0;" };
         var progressStyle = type.Find<WizardProgressAttribute>()?.Style;
+        // Branching (Wizard.StepApplies): the progress shows only the steps that apply.
+        var shownSteps = Enumerable.Range(1, completion is not null && total > 1 ? total - 1 : total)
+            .Where(i => WizardBranching.Applies(wizard, i, total)).ToList();
+        var position = shownSteps.IndexOf(current) is var at && at >= 0 ? at : shownSteps.Count(i => i < current);
         StepDto Bullet(int i) => new($"step-{i}", wizard?.StepTitle(i) ?? $"Step {i}", null,
             i < current || onResult ? "done" : i == current ? "current" : "upcoming");
         // The progress shows the steps of the process; the result screen is none of them (Java's
         // Wizard.stepItems): with a completion the last step is left out, and its title travels
         // as ResultTitle for the renderer that shows the finished process as one more screen.
         var hasResult = completion is not null && total > 1;
-        var plainTotal = hasResult ? total - 1 : total;
+        var plainTotal = shownSteps.Count;
+        var barMax = hasResult ? plainTotal + 1 : plainTotal;
         var resultTitle = hasResult ? wizard?.StepTitle(total) ?? $"Step {total}" : null;
         // [WizardProgress("steps")]: connected step bullets instead of the progress bar
         // (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         var progress = progressStyle == "steps"
-            ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, plainTotal).Select(Bullet).ToList())
+            ? Client(new ProgressStepsMetadataDto(shownSteps.Select(Bullet).ToList())
                 { ResultTitle = resultTitle }, "fieldId", [])
                 with { Style = "width: 100%;" }
             // Java's ProgressBar: value = the steps already done (0 on the first one), max = every
             // step, full on the result step; the current step's title as its text.
-            : Client(new ProgressBarMetadataDto(onResult ? total : current - 1)
-                { Max = total, Text = wizard?.StepTitle(current) }, null, []) with { Style = "width: 100%;" };
+            : Client(new ProgressBarMetadataDto(onResult ? barMax : position)
+                { Max = barMax, Text = wizard?.StepTitle(current) }, null, []) with { Style = "width: 100%;" };
         // The current step's form: the regular section card of a form (Java's stepForm), under a
         // spacer Div.
         var card = Client(new DivMetadataDto(), null,
@@ -57,11 +62,13 @@ internal sealed partial class ReflectionMapper
             };
         // no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
         // every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
-        ComponentDto? back = current > 1
+        ComponentDto? back = WizardBranching.Previous(wizard, current, total) is not null
             ? Client(new ButtonMetadataDto("Back", "back") { Color = "normal" }, null, [])
             : null;
-        var completing = completion is not null && current == total - 1;
-        var nextLabel = completing ? completion! : current == total ? "Finish" : "Next";
+        var completing = completion is not null && current == WizardBranching.Completing(wizard, total);
+        var streamsCompletion = completing && StreamsCompletion(wizard!);
+        var nextLabel = completing ? completion!
+            : WizardBranching.Next(wizard, current, total) is null ? "Finish" : "Next";
         // the completion button dispatches the wizard's CompletionActionId (Java: the
         // @WizardCompletionAction method's name); "next" by default
         var nextId = completing ? wizard!.CompletionActionId : "next";
@@ -74,8 +81,8 @@ internal sealed partial class ReflectionMapper
         if (!onResult && wizard is not null)
         {
             var display = wizard.Display;
-            var lastPlain = completion is not null ? total - 2 : total - 1;
-            if (current <= lastPlain && wizard.StepSkippable(current) && display.Skip.Shown())
+            if (WizardBranching.Next(wizard, current, total) is not null && wizard.StepSkippable(current)
+                && display.Skip.Shown())
             {
                 barButtons.Add(Client(new ButtonMetadataDto(T("Skip"), "skip")
                     { ButtonStyle = "tertiary", Disabled = !display.Skip.Enabled() }, "skip", []));
@@ -97,11 +104,11 @@ internal sealed partial class ReflectionMapper
                 }
             }
             // a user with nothing more to add can finish early, beside Next (not instead of it)
-            var completionStep = completion is not null ? total - 1 : total;
+            var completionStep = WizardBranching.Completing(wizard, total);
             if (wizard.CompletionAvailableFromStep is { } from && current >= from && current < completionStep)
             {
                 barButtons.Add(Client(new ButtonMetadataDto(T(completion ?? "Finish"), "complete"), "complete", []));
-                extraActions.Add(new ActionDto("complete"));
+                extraActions.Add(new ActionDto("complete") { Sse = completion is not null && StreamsCompletion(wizard) });
             }
         }
         barButtons.Add(next);
@@ -112,10 +119,10 @@ internal sealed partial class ReflectionMapper
             // [WizardProgress("rail")]: the Redwood Guided Process rail — the step form on the
             // left, a sticky right band with a big current|total counter over the vertical step
             // list (mirrors Java's WizardProgressStyle.RAIL).
-            var counter = Client(new TextMetadataDto($"{(onResult ? plainTotal : current)} | {plainTotal}"), null, []) with
+            var counter = Client(new TextMetadataDto($"{(onResult ? plainTotal : position + 1)} | {plainTotal}"), null, []) with
                 { Style = "font-size: 2rem; font-weight: 300; margin: 0 0 1rem; letter-spacing: .1em;" };
             var steps = Client(new ProgressStepsMetadataDto(
-                Enumerable.Range(1, plainTotal).Select(Bullet).ToList(), Vertical: true)
+                shownSteps.Select(Bullet).ToList(), Vertical: true)
                 { ResultTitle = resultTitle }, "fieldId", []);
             var rail = Client(new VerticalLayoutMetadataDto(), null, [counter, steps]) with
             {
@@ -152,9 +159,16 @@ internal sealed partial class ReflectionMapper
             // Wizard.actions + its catch-all): unadvertised, neither did anything in the web client.
             [.. FieldActions(currentProps), .. extraActions,
                 .. (onResult ? Array.Empty<ActionDto>()
-                    : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false),
-                        .. (completion is not null && current == total - 1 && wizard!.CompletionActionId != "next"
-                            ? [new ActionDto(wizard.CompletionActionId, ValidationRequired: true)]
+                    : [new ActionDto("next", ValidationRequired: true)
+                        {
+                            // on the completion step "next" IS the completion (the default id)
+                            Sse = streamsCompletion && wizard!.CompletionActionId == "next",
+                        },
+                        new ActionDto("back", ValidationRequired: false),
+                        .. (completing && wizard!.CompletionActionId != "next"
+                            // a streamed completion is called over SSE, or the client waits for
+                            // the whole stream and the progress never shows (Java's Wizard.actions)
+                            ? [new ActionDto(wizard.CompletionActionId, ValidationRequired: true) { Sse = streamsCompletion }]
                             : Array.Empty<ActionDto>())])],
             // a wizard is a component tree in Java: the tree envelope's default container style
             [], "max-width:900px;margin: auto;", null, null)
@@ -165,4 +179,10 @@ internal sealed partial class ReflectionMapper
             Validations = onResult ? [] : MapValidations(type, currentProps),
         };
     }
+
+    /// <summary>Whether <paramref name="wizard"/> overrides <see cref="Wizard.StreamedCompletion"/>:
+    /// its completion is then called over SSE, or the client waits for the whole stream and the
+    /// progress never shows (Java advertises a completion returning a Flux with sse).</summary>
+    internal static bool StreamsCompletion(Wizard wizard) =>
+        wizard.GetType().GetMethod(nameof(Wizard.StreamedCompletion), Type.EmptyTypes)?.DeclaringType != typeof(Wizard);
 }

@@ -7,7 +7,12 @@ from typing import Any
 
 import dataclasses
 
+from .. import page_templates, routed_tabs
+from ..naming import camelcasize
+
 from mateu_ui.dtos import (
+    TabLayoutMetadata,
+    TabMetadata,
     Badge,
     CardMetadata,
     Banner,
@@ -173,7 +178,7 @@ class ComponentMapperMixin(MixinBase):
             # RecursionError).
             chain = _RESOLVING.get()
             entry = (
-                self.components.get(c.ref)
+                self.components.get_for(c.ref, self.authorized)
                 if self.components is not None and c.ref not in chain and len(chain) < _MAX_REF_DEPTH
                 else None
             )
@@ -429,13 +434,34 @@ class ComponentMapperMixin(MixinBase):
             ]
             return self._fluent_client(TimelineMetadata(items=items), c)
         if isinstance(c, fluent.VerticalLayout):
-            out = self._fluent_client(VerticalLayoutMetadata(spacing=c.spacing), c)
+            out = self._fluent_client(
+                VerticalLayoutMetadata(
+                    spacing=c.spacing,
+                    full_width=c.full_width,
+                    horizontal_alignment=c.horizontal_alignment,
+                ),
+                c,
+            )
             out.children = [self.map_component(child) for child in c.content]
             return out
         if isinstance(c, fluent.HorizontalLayout):
-            out = self._fluent_client(HorizontalLayoutMetadata(spacing=c.spacing), c)
+            out = self._fluent_client(
+                HorizontalLayoutMetadata(spacing=c.spacing, wrap=c.wrap, full_width=c.full_width), c
+            )
             out.children = [self.map_component(child) for child in c.content]
             return out
+        if isinstance(c, fluent.TabLayout):
+            return self._fluent_client(
+                TabLayoutMetadata(group_relationship=c.group_relationship, adaptable=c.adaptable),
+                c,
+                [self.map_component(tab) for tab in c.tabs],
+            )
+        if isinstance(c, fluent.Tab):
+            return self._fluent_client(
+                TabMetadata(label=self.T(c.label), active=c.active, shortcut=c.shortcut or None),
+                c,
+                [self.map_component(c.content)] if c.content is not None else [],
+            )
         if isinstance(c, fluent.FormField):
             return self._fluent_client(
                 FormFieldMetadata(
@@ -453,6 +479,9 @@ class ComponentMapperMixin(MixinBase):
                     slider_min=c.slider_min,
                     slider_max=c.slider_max,
                     step=c.step,
+                    options_columns=c.options_columns,
+                    css_classes=c.css_classes,
+                    options_source=self._fluent_rest_source(c.options_source),
                 ),
                 c,
             )
@@ -630,8 +659,11 @@ class ComponentMapperMixin(MixinBase):
                 c,
             )
         if isinstance(c, fluent.Form):
+            # a page that fills a template lays its slots out around the content (PageTemplates)
             return self._fluent_client(
-                self._form_header(c), c, [self.map_component(child) for child in c.content]
+                self._form_header(c),
+                c,
+                [self.map_component(child) for child in page_templates.content_of(c)],
             )
         if isinstance(c, fluent.EntityHeader):
             meta = EntityHeaderMetadata(
@@ -929,6 +961,7 @@ class ComponentMapperMixin(MixinBase):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
                 button_style=c.button_style, parameters=c.parameters, route=c.route,
+                color=c.color,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.ListingComponent):
@@ -955,7 +988,7 @@ class ComponentMapperMixin(MixinBase):
                 for col in c.columns
             ]
             meta = CrudMetadata(
-                title=self.T(c.title) if c.title else None,
+                title=routed_tabs.dedupe_title(self.T(c.title)) if c.title else None,
                 subtitle=self.T(c.subtitle) if c.subtitle else None,
                 columns=grid_columns,
                 searchable=c.searchable,
@@ -965,6 +998,34 @@ class ComponentMapperMixin(MixinBase):
                 grid_layout=c.grid_layout or "auto",
                 compact=c.compact,
                 empty_state_message=c.empty_state_message,
+                row_route=c.row_route,
+                grid_style=c.grid_style,
+                **{flag: getattr(c, flag) for flag in _LISTING_FLAGS},
+                crudl_type=c.listing_type or "table",
+                toolbar=[self._form_button(b) for b in c.toolbar],
+                size=c.size,
+                initial_page=c.initial_page,
+                header=[self.map_component(h) for h in c.header] or None,
+                footer=[self.map_component(f) for f in c.footer] or None,
+                pre_search=[self.map_component(p) for p in c.pre_search] or None,
+                detail_path=c.detail_path,
+                use_button_for_detail=c.use_button_for_detail,
+                lazy_column_rendering=c.lazy_column_rendering,
+                vaadin_grid_cell_background=c.vaadin_grid_cell_background,
+                vaadin_grid_cell_padding=c.vaadin_grid_cell_padding,
+                infinite_scrolling=c.infinite_scrolling,
+                lazy_loading=c.lazy_loading,
+                multiple_row_selection_enabled=c.multiple_row_selection_enabled,
+                on_row_selection_changed_action_id=c.on_row_selection_changed_action_id,
+                content_height=c.content_height,
+                search_on_enter=c.search_on_enter,
+                auto_focus_on_search_text=c.auto_focus_on_search_text,
+                filters_layout=c.filters_layout or "auto",
+                group_by=c.group_by,
+                group_actions=[self._form_button(b) for b in c.group_actions],
+                row_status_field=c.row_status_field,
+                drag_type=c.drag_type,
+                rows_selection_enabled=c.rows_selection_enabled,
             )
             out = self._fluent_client(meta, c)
             out.id = c.id or "crud"
@@ -975,7 +1036,8 @@ class ComponentMapperMixin(MixinBase):
             # container:"div" on the wire (a non-empty default the conformance normaliser keeps).
             return self._fluent_client(
                 TextMetadata(
-                    text=self.T(c.text), container="div", size=c.size, no_margins=c.no_margins
+                    text=self.T(c.text), container=c.container or "div", size=c.size,
+                    no_margins=c.no_margins,
                 ),
                 c,
             )
@@ -1052,6 +1114,7 @@ class ComponentMapperMixin(MixinBase):
                     ("server_side_type", c.server_side_type),
                     ("consumed_route", c.consumed_route),
                     ("action_id", c.action_id),
+                    ("chrome", c.chrome.value if c.chrome is not None else None),
                 )
                 if value is not None
             }
@@ -1129,6 +1192,10 @@ class ComponentMapperMixin(MixinBase):
                 no_padding=c.no_padding,
                 modeless=c.modeless,
                 close_button_on_header=c.close_button_on_header,
+                draggable=c.draggable,
+                resizable=c.resizable,
+                top=c.top,
+                left=c.left,
             )
             return self._fluent_client(meta, c)
         # Generic building blocks ported from Java (M-A5) — same shapes as Java's ElementMapper,
@@ -1202,6 +1269,9 @@ class ComponentMapperMixin(MixinBase):
                 ),
                 id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
             )
+        more = self.map_more_component(c)
+        if more is not None:
+            return more
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
 
     def map_embedded_view(self, view):
@@ -1216,11 +1286,25 @@ class ComponentMapperMixin(MixinBase):
             return self.map_component(view)
         cls = type(view)
         route = "/" + normalize(getattr(cls, "__mateu_ui__", ""))
+        # an object a ComponentAdapter renders is drawn BY ITS ADAPTER, as it is as a route or a
+        # form field (it used to be reflected field by field — no adapter components or actions)
+        adapter = self.adapter_of(view)
+        if adapter is not None:
+            return self.map_adapted(view, adapter, route)
         if isinstance(view, Wizard):
             # The embedded wizard opens on its first step; its "next"/"back" buttons carry the
             # wizard's own serverSideType so navigation routes back to it.
             return self.map_wizard(cls, view, route, 1)
-        return self.map_view(cls, view, route)
+        mapped = self.map_view(cls, view, route)
+        # an island is a block of the host page, not a page: the automatic breadcrumb trail would
+        # trace the HOST's menu and address above it (a trail the view DECLARES is still drawn) —
+        # Java's EmbeddedView branch; a composed (tree-supplier) view gets no page of its own there
+        from mateu_ui.uidl import ComponentTreeSupplier
+        from ..page_breadcrumbs import breadcrumbs_off
+
+        if not isinstance(view, ComponentTreeSupplier):
+            breadcrumbs_off(mapped, deep=False)
+        return mapped
 
     def _comment(self, cm) -> CommentRecord:
         return CommentRecord(
@@ -1243,16 +1327,32 @@ class ComponentMapperMixin(MixinBase):
             children=[self._org_node(child) for child in n.children],
         )
 
+    def _form_button(self, b) -> Button:
+        # Java's FormMapper.mapToButtonDto: the resolved action id (declared, else derived from
+        # the label), the style/colour a well-known id implies, the route of a RouteLink button
+        action_id = b.action_id or camelcasize(b.label) or ""
+        style = b.button_style
+        if style is None and action_id in ("save", "create"):
+            style = "primary"
+        elif style is None and (
+            action_id.startswith("cancel") or action_id in ("back", "backToList")
+        ):
+            style = "tertiary"
+        color = getattr(b, "color", None)
+        if color in (None, "normal", "none"):
+            deleting = action_id in ("delete", "delete-edit") or action_id.startswith("delete-")
+            color = "error" if deleting else None
+        return Button(
+            label=self.T(b.label), action_id=action_id, disabled=b.disabled,
+            button_style=style, color=color, route=getattr(b, "route", None),
+        )
+
     def _form_header(self, c) -> FormMetadata:
         """A fluent Form's header as the "Form" wire metadata — the same field names a reflected
         page carries on PageMetadata (mirrors Java's FormMapper). An element the form does not
         declare stays None / empty."""
 
-        def button(b) -> Button:
-            return Button(
-                label=self.T(b.label), action_id=b.action_id, disabled=b.disabled,
-                button_style=b.button_style,
-            )
+        button = self._form_button
 
         switcher = None
         sw = c.record_switcher
@@ -1270,11 +1370,12 @@ class ComponentMapperMixin(MixinBase):
                 route=getattr(sw, "route", None),
             )
         peer = c.peer_nav
+        owns_header = page_templates.owns_header(c)
         return FormMetadata(
             title=self._opt_t(c.title),
             subtitle=self._opt_t(c.subtitle),
-            no_header=c.no_header,
-            toolbar=[button(b) for b in c.toolbar],
+            no_header=c.no_header or owns_header,
+            toolbar=[] if owns_header else [button(b) for b in c.toolbar],
             buttons=[button(b) for b in c.buttons],
             overline=self._opt_t(c.overline),
             title_placeholder=self._opt_t(c.title_placeholder),
@@ -1316,6 +1417,7 @@ class ComponentMapperMixin(MixinBase):
                 next_route=peer.next_route,
             ),
             switcher=switcher,
+            template=page_templates.record_of(c.template),
         )
 
     @staticmethod
@@ -1420,6 +1522,9 @@ class ComponentMapperMixin(MixinBase):
                 return
             if type(node).__name__ == "ServerSideComponent":
                 return
+            # an Element's `on` maps a DOM event to an action id of the view, like an action_id
+            if type(node).__name__ == "Element" and isinstance(getattr(node, "on", None), dict):
+                out.extend(v for v in node.on.values() if isinstance(v, str) and v)
             package = ".".join((getattr(type(node), "__module__", "") or "").split(".")[:2])
             if package not in {"mateu_ui.uidl", "mateu_ui.dtos", "mateu_ui.core"}:
                 return
@@ -1535,3 +1640,7 @@ def _record_merge_metadata(c) -> RecordMergeMetadata:
         parameters=c.parameters,
         differences_only=c.differences_only,
     )
+
+
+#: The fluent listing's grid presentation flags, carried to CrudMetadata as they are.
+_LISTING_FLAGS = ("row_stripes", "column_borders", "wrap_cell_content", "no_border", "no_row_border", "all_rows_visible", "column_reordering_allowed")

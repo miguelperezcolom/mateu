@@ -97,3 +97,12 @@ export function stepLook(status: string | undefined, index: number): {
     glyph: done ? '✓' : String(index + 1),
   };
 }
+
+/** A ProgressBar's fill by its wire theme: success, error/danger, warning; anything else primary. */
+export function progressBarColor(themeName?: string): string {
+  const t = (themeName ?? '').trim().toLowerCase();
+  if (t === 'success') return theme.success;
+  if (t === 'error' || t === 'danger') return theme.danger;
+  if (t === 'warning') return theme.warning;
+  return theme.primary;
+}

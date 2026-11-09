@@ -119,12 +119,10 @@ flowchart LR
   a toggle for yes/no ones), next to its variants. Its texts (`label`, `title`, `subtitle`, a
   placeholder) are text properties too, bound to the layer you see: editing either is the same
   value. Repeated rows are named after their layer (`Title1`, `Title2`).
-- **Order of reading**: the variants; then the properties; then — for instances placed with an
-  older library — the `#config` text line (`fieldId=email; required=true`) and the text layers. A
-  property wins over the same key in `#config`. A text still showing its placeholder is not read.
-- **Older libraries keep working.** Before native slots, an instance took no new layers, so a
-  Section read the layers that **follow** it in the same frame, up to the next Section, when its
-  content slot was empty. The converters still read it that way, and still read `#config`.
+- **Order of reading**: the variants; then the properties; then the `#config` text line
+  (`fieldId=email; required=true`, the plugin's fallback for a prop Figma refuses as a property) and
+  the text layers. A property wins over the same key in `#config`. A text still showing its
+  placeholder is not read.
 
 ### How a design is read
 
@@ -214,6 +212,12 @@ cd design/figma/to-yaml && npm run self-test -- library.json
 
 converts every instance of that page on its own and fails unless each one becomes a valid component
 with no warning (Java archetypes are listed, not failed).
+
+The self-test checks the components one by one. A third command, **Mateu Sample Screens**, checks
+them as a designer uses them: in any file with the kit it composes six realistic screens out of
+library instances (a form, an item overview, a listing, a dashboard, a guided process, a welcome
+page), and the repository converts, serves and clicks through the same six screens in CI. See
+[Check the whole pipeline](/design-systems/figma-guide/#check-the-whole-pipeline-end-to-end).
 
 ### Generating code (modux)
 

@@ -1,0 +1,21 @@
+id: live-header-values
+area: behaviour
+group: app
+title: "Live header values"
+covers: [behaviour:live-header-values]
+description: |
+  Values on the app header that change while you look at them — a business date, a counter.
+  `HeaderValuesSupplier` gives their initial value; `UICommand.updateHeaderValue(id, value)` changes one
+  in this browser (all its tabs); `LiveHeaderValues.publish(id, value)` changes it in **every** open
+  session, which listens on one event stream per browser once `@App(liveUpdates = true)`.
+
+  **Try it:** open the app on its own (the link — an app embedded in a page does not draw its header
+  values) in TWO windows. In one, press **Close the day**: the business date moves in both. **One more
+  arrival** bumps the count everywhere; **Only in this browser** changes it without telling anybody.
+examples:
+  - title: "Business date + arrivals"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.liveheadervalues.LiveHeaderIsland
+code:
+  - {label: "Java · LiveHeaderDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/liveheadervalues/LiveHeaderDemoApp.java}
+  - {label: "Java · FrontDesk", path: src/main/java/io/mateu/explorer/examples/behaviour/liveheadervalues/FrontDesk.java}

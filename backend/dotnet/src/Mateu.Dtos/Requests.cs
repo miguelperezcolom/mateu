@@ -23,11 +23,22 @@ public record ButtonDto(string Label, string ActionId)
     /// none.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Color { get; init; }
+    /// <summary>The button's size (Java's ButtonDto.size); omitted when none.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Size { get; init; }
+    /// <summary>Draws a separator before the button (Java's ButtonDto.separatorBefore); omitted
+    /// when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool SeparatorBefore { get; init; }
     // A bulk action (a [ListToolbarButton]): the renderer disables the button while no row is
     // selected. On the BUTTON so no renderer has to look the advertised action up by id (mirrors
     // Java's ButtonDto.rowsSelectedRequired). Omitted when false, so other buttons' wire is unchanged.
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool RowsSelectedRequired { get; init; }
+    /// <summary>A route the button NAVIGATES to on the client (Java's ButtonDto.route — a toolbar
+    /// button whose actionable is a RouteLink). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Route { get; init; }
 }
 
 // ── ModelView bindable contract (mirrors io.mateu.dtos.ModelViewContractDto) ────
@@ -63,4 +74,14 @@ public record RunActionRqDto
     /// the server omits the component and replies with only state/data. Null = full structure.
     /// (Mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash.)</summary>
     public string? KnownStructureHash { get; init; }
+
+    /// <summary>The chrome of the EMBEDDED micro frontend that sends this request (<c>NONE</c> |
+    /// <c>COMPACT</c> | <c>PAGE</c>); null/blank = a top-level request. An embedded island is a block
+    /// of another page, so its answers carry no window commands (SetWindowTitle, SetFavicon,
+    /// PushStateToHistory). EXPERIMENTAL. (Mirrors io.mateu.dtos.RunActionRqDto.embeddedChrome.)</summary>
+    public string? EmbeddedChrome { get; init; }
+
+    /// <summary>Whether the request comes from an embedded micro frontend.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool Embedded => !string.IsNullOrWhiteSpace(EmbeddedChrome);
 }

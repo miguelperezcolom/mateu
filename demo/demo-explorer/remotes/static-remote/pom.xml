@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.2</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo.explorer</groupId>
+    <artifactId>explorer-static-remote</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>explorer-static-remote</name>
+    <description>A YAML-only Help Center shipped as a STATIC bundle (mateu-bundle, specsOnly): the
+        deliverable is target/mateu-bundle (index.html + manifest.json + the renderer's assets), served
+        as plain files by ../serve-static.mjs (default port 8643) — no backend at all. The Explorer's
+        federated console reaches it with a RemoteMenu whose baseUrl names its manifest.json.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <mateu.version>3.0-beta.51</mateu.version>
+    </properties>
+
+    <dependencies>
+        <!-- needed at BUILD time only: the bundle goal renders the specs with the real loader and
+             takes the renderer's static files from the mateu-vaadin jar -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.mateu</groupId>
+                <artifactId>mateu-bundle-maven-plugin</artifactId>
+                <version>${mateu.version}</version>
+                <configuration>
+                    <basePackages>io.mateu.explorer.staticremote</basePackages>
+                    <pageTitle>Help Center (static)</pageTitle>
+                    <!-- ship the raw definitions, expanded in the browser -->
+                    <specsOnly>true</specsOnly>
+                    <!-- fail the build on anything that would need a server -->
+                    <staticOnly>true</staticOnly>
+                    <skipParamRoutes>false</skipParamRoutes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bundle</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

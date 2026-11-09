@@ -72,7 +72,7 @@ describe('quickStarts', () => {
     })
 
     it('wireAction on a bound page adds only the Button (the @Action lives in the ViewModel)', () => {
-        const doc = wireAction(page('modelView: com.acme.V\nlayout:\n  type: VerticalLayout\n  content: []\n'), 'Save', 'save')
+        const doc = wireAction(page('viewModel: com.acme.V\nlayout:\n  type: VerticalLayout\n  content: []\n'), 'Save', 'save')
         expect((doc.layout.content ?? [])[0]).toMatchObject({ type: 'Button', actionId: 'save' })
         expect(doc.rest?.actions).toBeUndefined() // no page-level action scaffolded when bound
     })

@@ -84,3 +84,5 @@ explains it.
 | [ContentSlot](content-slot/) | Managed content resolved in the server, with fallback |
 | [Element](element/) | Raw HTML element |
 | [TreeGrid](tree-grid/) | Hierarchical tree grid |
+
+**See it live in the Explorer:** [All components](https://explorer.mateu.io/components/overview)

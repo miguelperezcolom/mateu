@@ -325,7 +325,9 @@ class CrudSyncTest {
     var component = (io.mateu.dtos.ServerSideComponentDto) increment.fragments().get(0).component();
     var columnIds = new ArrayList<String>();
     collectColumns(component, columnIds);
-    org.assertj.core.api.Assertions.assertThat(columnIds).contains("id", "name", "units", "active");
+    org.assertj.core.api.Assertions.assertThat(columnIds).contains("name", "units", "active");
+    // the rows open by click: the technical id is not a column (W-V-TABLE-ID)
+    org.assertj.core.api.Assertions.assertThat(columnIds).doesNotContain("id");
     org.assertj.core.api.Assertions.assertThat(component.actions())
         .extracting(io.mateu.dtos.ActionDto::id)
         .contains("search", "delete")

@@ -1,0 +1,27 @@
+id: static-bundle
+area: distributed
+group: mounts
+title: Static bundles (no backend)
+covers: [distributed:static-bundle]
+description: |
+  A UI authored in YAML can ship **without a backend**: `mateu-bundle:bundle` writes
+  `target/mateu-bundle` — `index.html`, `manifest.json` and the renderer's assets — and any file
+  server or CDN serves it. With `specsOnly` the definitions travel raw and the browser expands
+  them; `staticOnly` fails the build on anything that would need a server (an action with no
+  `restAction`, a Java view model…).
+
+  The Help Center (`remotes/static-remote`) is one: its only Java is a `main` the build uses to
+  load the specs. `remotes/serve-static.mjs` stands in for the CDN (plain files, `CORS *`).
+
+  **Try it:** `cd remotes && mvn -pl static-remote package && node serve-static.mjs`, then open
+  http://localhost:8643 and the deep link `/contact` (the SPA fallback answers it).
+examples:
+  - title: The Help Center bundle
+    java: io.mateu.explorer.examples.distributed.staticbundle.StaticBundle
+code:
+  - {label: "pom.xml · mateu-bundle", path: remotes/static-remote/pom.xml}
+  - {label: "YAML · the mount", path: remotes/static-remote/src/main/resources/specs/ui/help.ui.yaml}
+  - {label: "YAML · routes", path: remotes/static-remote/src/main/resources/specs/ui/routes.yaml}
+  - {label: "YAML · app shell", path: remotes/static-remote/src/main/resources/specs/ui/help-app.yaml}
+  - {label: "YAML · faq", path: remotes/static-remote/src/main/resources/specs/ui/faq.yaml}
+  - {label: "serve-static.mjs", path: remotes/serve-static.mjs}

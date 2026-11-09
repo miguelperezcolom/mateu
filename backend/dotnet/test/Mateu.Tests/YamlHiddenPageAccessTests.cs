@@ -37,13 +37,13 @@ public class YamlHiddenPageAccessTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: payroll
-                definition: payroll.yaml
+                layout: payroll.yaml
                 viewModel: Mateu.Tests.PayrollView
               - route: payroll-bare
-                definition: payroll-bare.yaml
+                layout: payroll-bare.yaml
                 viewModel: Mateu.Tests.PayrollView
               - route: payroll-locked
-                definition: payroll-locked.yaml
+                layout: payroll-locked.yaml
                 viewModel: Mateu.Tests.PayrollView
             """);
         File.WriteAllText(Path.Combine(dir, "payroll.yaml"), """

@@ -9,6 +9,11 @@ export default interface ServerSideComponent extends Component {
     serverSideType: string | undefined
     route: string | undefined
     initialData: unknown
+    /**
+     * The data an island delivered inside another page's answer (an EmbeddedView) renders with —
+     * what a page carries in its fragment's data (a lookup's `<field>-label`). Absent otherwise.
+     */
+    data?: unknown
     triggers: Trigger[] | undefined
     actions: Action[] | undefined
     rules: Rule[]

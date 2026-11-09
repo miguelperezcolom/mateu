@@ -81,7 +81,7 @@ class WireTypeParityTest : TestCase() {
         assertTrue("wire schema not found at ${schema.absolutePath}", schema.exists())
         val wire = wireTypes()
         assertTrue("suspiciously few wire types: ${wire.size}", wire.size > 100)
-        assertEquals(setOf("Result", "Stepper"), deprecatedWireTypes())
+        assertEquals(emptySet<String>(), deprecatedWireTypes())
         val missing = wire - handledTypes()
         assertTrue(
             "Wire component types with no case in ComponentRenderer (add a Swing rendering): ${missing.sorted()}",

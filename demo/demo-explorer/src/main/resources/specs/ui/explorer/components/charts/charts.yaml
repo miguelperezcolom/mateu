@@ -1,0 +1,70 @@
+# Charts as DATA. A Chart is Chart.js underneath: pick a chartType, give it labels and datasets.
+# TrendChart (a sparkline), Funnel (stages) and Heatmap (a calendar of values) are lighter,
+# purpose-built visualisations that need no chart options at all.
+content:
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - type: Chart
+        chartType: bar
+        style: "height: 240px; width: 22rem;"
+        chartOptions: {maintainAspectRatio: false}
+        chartData:
+          labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+          datasets:
+            - {label: Visitors, data: [1200, 980, 1100, 1350, 1800, 2600, 2400]}
+            - {label: Members, data: [300, 250, 280, 320, 410, 690, 640]}
+      - type: Chart
+        chartType: line
+        style: "height: 240px; width: 22rem;"
+        chartOptions: {maintainAspectRatio: false}
+        chartData:
+          labels: [Jan, Feb, Mar, Apr, May, Jun]
+          datasets:
+            - {label: Online tickets (%), data: [41, 44, 48, 52, 55, 61]}
+      - type: Chart
+        chartType: doughnut
+        style: "height: 240px; width: 22rem;"
+        chartOptions: {maintainAspectRatio: false}
+        chartData:
+          labels: [Paintings, Sculpture, Photography, Textiles]
+          datasets:
+            - {label: Pieces on display, data: [412, 138, 96, 41]}
+      - type: Chart
+        chartType: radar
+        style: "height: 240px; width: 22rem;"
+        chartOptions: {maintainAspectRatio: false}
+        chartData:
+          labels: [Light, Humidity, Temperature, Vibration, Dust]
+          datasets:
+            - {label: Gallery 3 risk, data: [3, 4, 2, 1, 3]}
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - {type: TrendChart, title: "Daily visitors (14 days)", values: [820, 910, 870, 1020, 1180, 1500, 1460, 990, 1040, 1100, 1210, 1390, 1720, 1650], color: "#2563eb", area: true, style: "width: 20rem;"}
+      - {type: TrendChart, title: "Average queue (min)", values: [14, 12, 15, 11, 9, 8, 7, 9, 6, 5], color: "#16a34a", style: "width: 20rem;"}
+  - type: Funnel
+    stages:
+      - {label: Visited the website, value: 52000}
+      - {label: Opened the ticket page, value: 18400}
+      - {label: Started checkout, value: 7300}
+      - {label: Bought a ticket, value: 5100, color: "#16a34a"}
+  - type: Heatmap
+    cells:
+      - {date: "2026-10-01", value: 3, label: "3 school groups"}
+      - {date: "2026-10-02", value: 5}
+      - {date: "2026-10-03", value: 1}
+      - {date: "2026-10-06", value: 6, label: "6 school groups"}
+      - {date: "2026-10-07", value: 8}
+      - {date: "2026-10-08", value: 4}
+      - {date: "2026-10-09", value: 7}
+      - {date: "2026-10-10", value: 2}
+      - {date: "2026-10-13", value: 9, label: "9 school groups — peak"}
+      - {date: "2026-10-14", value: 6}
+      - {date: "2026-10-15", value: 5}
+      - {date: "2026-10-16", value: 3}
+      - {date: "2026-10-20", value: 4}
+      - {date: "2026-10-21", value: 7}
+      - {date: "2026-10-22", value: 6}
+      - {date: "2026-10-27", value: 2}
+      - {date: "2026-10-28", value: 1}

@@ -1,0 +1,9 @@
+{
+  "bundle" : "manifest.json",
+  "icon" : "/images/bundle-logo.svg",
+  "minAppVersion" : "1.0.0",
+  "name" : "Bundle conformance",
+  "shortName" : "Bundle conformance",
+  "themeColor" : "#0a7d5a",
+  "wireVersion" : "3.0"
+}

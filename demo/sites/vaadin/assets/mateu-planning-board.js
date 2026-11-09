@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{F as c,M as l,k as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
+import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{n as s}from"./chromeTexts.js";import{B as c,H as l,I as u}from"./mateu-vaadin.js";var d,f=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),p=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},m=class extends o{static{d=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=i`
         :host {
             display: block;
             width: 100%;
@@ -180,9 +180,9 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                 `)}
                 ${o}
             </div>
-        `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),c=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null;return t`
+        `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),l=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null;return t`
             <div class="label" title="${n.label??``}">
-                <span class="res-name">${n.icon?l(n.icon):e}${n.label}</span>
+                <span class="res-name">${n.icon?c(n.icon):e}${n.label}</span>
                 ${this.attributeColumns.map((e,r)=>t`<span class="attr">${(n.attributes??[])[r]??``}</span>`)}
             </div>
             <div class="lane" data-resource-id="${n.id}">
@@ -194,7 +194,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                     ${i.map(e=>t`<div class="cell ${this.isWeekend(e)?`weekend`:``}"></div>`)}
                 </div>
                 ${a==null?e:t`<div class="today-line" style="left: ${(a+.5)*o}%;"></div>`}
-                ${s.map(n=>{let i=d.daysBetween(r.from,d.parse(n.start)),a=d.daysBetween(r.from,d.parse(n.end));if(a<0||i>=r.days)return e;let s=Math.max(0,i),c=Math.min(r.days-1,a),f=this.drag?.moved&&this.drag.blockId===n.id,p=this.resize?.blockId===n.id?this.resize:null,m=p?Math.max(0,p.startIdx):s,h=p?Math.min(r.days-1,p.endIdx):c,g=n.summary??`${n.label??``} · ${n.start} → ${n.end}${n.status?` · ${n.status}`:``}`;return t`
+                ${s.map(n=>{let i=d.daysBetween(r.from,d.parse(n.start)),a=d.daysBetween(r.from,d.parse(n.end));if(a<0||i>=r.days)return e;let s=Math.max(0,i),l=Math.min(r.days-1,a),f=this.drag?.moved&&this.drag.blockId===n.id,p=this.resize?.blockId===n.id?this.resize:null,m=p?Math.max(0,p.startIdx):s,h=p?Math.min(r.days-1,p.endIdx):l,g=n.summary??`${n.label??``} · ${n.start} → ${n.end}${n.status?` · ${n.status}`:``}`;return t`
                         <div class="block ${this.selectActionId?`clickable`:``} ${this.moveActionId?`draggable`:``} ${f?`dragging`:``}"
                              title="${g}"
                              style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${u(n.color)?`--mateu-planning-block-ink: ${u(n.color)};`:``}`:``}"
@@ -206,15 +206,15 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                         >${this.resizeActionId?t`<span class="handle start"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`start`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
-                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?l(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
+                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?c(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`end`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
                                 @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}</div>
                     `})}
                 ${this.range&&this.range.resourceId===n.id?(()=>{let{startIdx:e,endIdx:n}=f(this.range.anchorIdx,this.range.currentIdx);return t`<div class="range" style="left: ${e*o}%; width: ${(n-e+1)*o}%;"></div>`})():e}
-                ${c?t`
+                ${l?t`
                     <div class="ghost"
-                         style="left: ${c.targetStartIdx*o}%; width: ${Math.min(c.duration,r.days-c.targetStartIdx)*o}%;"></div>
+                         style="left: ${l.targetStartIdx*o}%; width: ${Math.min(l.duration,r.days-l.targetStartIdx)*o}%;"></div>
                 `:e}
             </div>
-        `}};c([n({type:Array})],m.prototype,`resources`,void 0),c([n({type:Array})],m.prototype,`blocks`,void 0),c([n()],m.prototype,`from`,void 0),c([n()],m.prototype,`to`,void 0),c([n()],m.prototype,`moveActionId`,void 0),c([n()],m.prototype,`selectActionId`,void 0),c([n({type:Array})],m.prototype,`attributeColumns`,void 0),c([n()],m.prototype,`resizeActionId`,void 0),c([n()],m.prototype,`openActionId`,void 0),c([n()],m.prototype,`rangeSelectActionId`,void 0),c([r()],m.prototype,`resize`,void 0),c([r()],m.prototype,`range`,void 0),c([r()],m.prototype,`drag`,void 0),m=d=c([a(`mateu-planning-board`)],m);export{m as MateuPlanningBoard,f as rangeOf,p as resizedDays};
+        `}};l([n({type:Array})],m.prototype,`resources`,void 0),l([n({type:Array})],m.prototype,`blocks`,void 0),l([n()],m.prototype,`from`,void 0),l([n()],m.prototype,`to`,void 0),l([n()],m.prototype,`moveActionId`,void 0),l([n()],m.prototype,`selectActionId`,void 0),l([n({type:Array})],m.prototype,`attributeColumns`,void 0),l([n()],m.prototype,`resizeActionId`,void 0),l([n()],m.prototype,`openActionId`,void 0),l([n()],m.prototype,`rangeSelectActionId`,void 0),l([r()],m.prototype,`resize`,void 0),l([r()],m.prototype,`range`,void 0),l([r()],m.prototype,`drag`,void 0),m=d=l([a(`mateu-planning-board`)],m);export{m as MateuPlanningBoard,f as rangeOf,p as resizedDays};

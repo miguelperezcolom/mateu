@@ -1,0 +1,24 @@
+id: stereotype-lookup
+area: behaviour
+group: forms
+title: Lookups (foreign keys)
+covers: [behaviour:stereotype-lookup]
+description: |
+  `@Lookup(search = …, label = …)` is a foreign key: the field stores an **id**, the user searches
+  by **name**. The `LookupOptionsSupplier` pages through candidates on the server as the user types
+  (the list can be huge); the `LookupLabelSupplier` turns a stored id back into readable text.
+
+  Try it: on the page of its own the field opens showing *Alan Turing* (the stored id is `g2`); open
+  it, pick *Grace Hopper* and press **Book** — the server receives `g3`.
+
+  Known gap (3.0-beta.51): embedded as an island (the first example) the stored id is shown raw
+  (`g2`) — the label supplier is not applied there.
+knownIssue: >-
+  3.0-beta.51: embedded as an island the stored lookup id is shown raw — the label supplier is not applied.
+examples:
+  - title: A guest lookup
+    java: io.mateu.explorer.examples.behaviour.stereotypelookup.BookingForm
+  - title: The same form, as a page of its own
+    route: x/behaviour/stereotype-lookup/booking
+pages:
+  - {route: x/behaviour/stereotype-lookup/booking, viewModel: io.mateu.explorer.examples.behaviour.stereotypelookup.BookingForm}

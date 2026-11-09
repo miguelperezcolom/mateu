@@ -27,6 +27,11 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * slot="panel-N".
  */
 /** The nearest ancestor that scrolls vertically (across shadow roots), or the document's. */
+/** The author set a height (or a max-height) on the layout through its `style`. */
+export function declaresHeight(el: HTMLElement): boolean {
+    return !!(el.style.height || el.style.maxHeight)
+}
+
 function scrollParentOf(el: Element): Element | null {
     let node: Node | null = el
     while (node) {
@@ -280,6 +285,14 @@ export class MateuVaadinFoldout extends LitElement {
     // (the foldout page has no definite-height ancestor to inherit from), so no gap is left below.
     private _fit = () => {
         this._applyOpen()
+        // A height the author declared on the layout (its `style`) wins: the viewport fill is only
+        // for a foldout that IS the page. It used to be applied as a min-height regardless, so a
+        // foldout near the top of a page ignored `height: 24rem` and ran down to the viewport bottom.
+        if (declaresHeight(this)) {
+            this.style.setProperty('--mateu-foldout-fill', '0px')
+            this._syncPin()
+            return
+        }
         const top = this.getBoundingClientRect().top
         const base = Math.max(240, window.innerHeight - top)
         this.style.setProperty('--mateu-foldout-fill', `${base}px`)

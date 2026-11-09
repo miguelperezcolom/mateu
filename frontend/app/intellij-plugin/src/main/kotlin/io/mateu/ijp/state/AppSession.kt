@@ -136,6 +136,146 @@ class AppSession(
     /** The session's long-running tasks (`Progress` commands), shown by the host as platform tasks. */
     val tasks = TaskRelay()
 
+    /** The tasks this app's streams reported, kept for the IDE session (reattach, see [TaskReattach]). */
+    val taskLedger: TaskLedger = TaskLedgers.of(baseUrl)
+
+    /** `@App(osNotifications = true)` (App metadata `osNotifications`): see [OsNotices]. */
+    @Volatile var osNotifications: Boolean = false
+
+    /** Host hook: posts an OS-level notification (title, text — plain); unset → none. */
+    var osNotifier: ((OsNotices.Notice) -> Unit)? = null
+
+    /** Host hook: whether an IDE window has the focus (unset → assumed in front: nothing pops). */
+    var ideActive: () -> Boolean = { true }
+
+    private val osPosted = OsNotices.Posted()
+
+    /** An event that may deserve an OS notification ([OsNotices]): posted once, when it does. */
+    fun osNotice(event: OsNotices.Event) {
+        val post = osNotifier ?: return
+        if (!OsNotices.shouldNotify(osNotifications, ideActive(), event)) return
+        if (!osPosted.first(OsNotices.keyOf(event))) return
+        runCatching { post(OsNotices.noticeOf(event)) }
+    }
+
+    /** A stream reported these task updates (from [route]/[serverSideType]): the ledger follows them. */
+    fun observeTasks(tasks: List<ProgressTask>, route: String?, serverSideType: String?) {
+        for (task in tasks) taskLedger.observe(task, TaskOriginEntry(task.taskId, baseUrl, route, serverSideType))
+    }
+
+    /**
+     * The stream that carried [taskIds] ended. A task it left running keeps going on the server for a
+     * grace period: it is resumed (`_progress-resume`); one that cannot be stops being followed.
+     */
+    fun streamEnded(taskIds: Collection<String>) {
+        val lost = tasks.unfinished(taskIds)
+        val resumable = lost.mapNotNull { taskLedger.get(it) }.filter { it.taskId !in reattaching }
+        tasks.streamEnded(taskIds.filterNot { id -> id in reattaching || resumable.any { it.taskId == id } })
+        resumable.forEach { resume(it) }
+    }
+
+    /**
+     * The app (re)loaded: the remembered tasks no stream feeds any more are asked for
+     * (`_progress-tasks`); the server answers the caller's own ones — shown again — and each still
+     * running is resumed. Ids not answered are forgotten.
+     */
+    fun reattachTasks() {
+        // a task already being picked up (an earlier reload, a resume in flight) is not asked twice
+        val asked = TaskReattach.lost(taskLedger) { tasks.isFollowing(it) || it in reattaching }
+            .filter { reattaching.add(it.taskId) }
+        if (asked.isEmpty()) return
+        val first = asked.first()
+        executor.submit {
+            val answer = runCatching {
+                apiClient.runAction(
+                    first.route, "", ProgressTasks.TASKS_ACTION, first.serverSideType, "mateu-task-center",
+                    emptyMap(), appState, ProgressTasks.tasksParameters(asked.map { it.taskId }),
+                )
+            }.onFailure { println("[Mateu] reattach failed: ${it.message}") }.getOrNull()
+            if (answer == null) {
+                asked.forEach { reattaching.remove(it.taskId) }
+                return@submit
+            }
+            val plan = TaskReattach.plan(asked, ProgressTasks.commandsOf(answer))
+            taskLedger.forget(plan.forget)
+            plan.forget.forEach { reattaching.remove(it) }
+            SwingUtilities.invokeLater {
+                plan.report.forEach { reportReattached(it, answer) }
+                plan.resume.forEach { resume(it) }
+            }
+        }
+    }
+
+    /** Streams one task again (`_progress-resume`): its page-level parts are applied as they come. */
+    private fun resume(entry: TaskOriginEntry) {
+        reattaching.add(entry.taskId)
+        executor.submit {
+            val seen = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+            seen.add(entry.taskId)
+            runCatching {
+                apiClient.runActionStream(
+                    entry.route, "", ProgressTasks.RESUME_ACTION, entry.serverSideType, "mateu-task-center",
+                    emptyMap(), appState, ProgressTasks.resumeParameters(entry.taskId),
+                ) { increment ->
+                    val reported = ProgressTasks.commandsOf(increment)
+                    reported.forEach { seen.add(it.taskId) }
+                    observeTasks(reported, entry.route, entry.serverSideType)
+                    SwingUtilities.invokeLater { applyResumed(increment) }
+                }
+            }.onFailure { println("[Mateu] resume of task ${entry.taskId} failed: ${it.message}") }
+            // a resume that ends before its task does is not resumed again (until the next reload)
+            SwingUtilities.invokeLater {
+                tasks.streamEnded(seen)
+                reattaching.remove(entry.taskId)
+            }
+        }
+    }
+
+    /** Task ids a `_progress-tasks` / `_progress-resume` of this session is handling right now. */
+    private val reattaching: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /** A resume stream's increment: only its page-level parts (tasks, messages, inbox changes). */
+    private fun applyResumed(increment: com.fasterxml.jackson.databind.JsonNode) {
+        for (task in TaskReattach.resumed(ProgressTasks.commandsOf(increment))) reportReattached(task, increment)
+        for (spec in MessageSpecs.messagesOf(increment)) {
+            if (spec.text.isBlank()) continue
+            messagePresenter?.invoke(spec) { runReattachedAction(it) }
+            osNotice(OsNotices.Event.InboxMessage(spec))
+        }
+        inbox.applyChanges(InboxItems.changesOf(increment))
+    }
+
+    private fun reportReattached(task: ProgressTask, increment: com.fasterxml.jackson.databind.JsonNode?) {
+        tasks.report(
+            task, increment,
+            cancel = { cancelReattached(task) },
+            runAction = { runReattachedAction(it) },
+            retry = null,
+        )
+        if (task.state.terminal) taskLedger.forget(listOf(task.taskId))
+    }
+
+    /** A reattached task's actions: only a route (the screen that could run an action id is gone). */
+    private fun runReattachedAction(action: NoticeAction) {
+        val route = action.route ?: return
+        openViewHandler?.invoke(action.label ?: route, route, "", null, null)
+    }
+
+    private fun cancelReattached(task: ProgressTask) {
+        val entry = taskLedger.get(task.taskId)
+        executor.submit {
+            val answer = runCatching {
+                apiClient.runAction(
+                    entry?.route, "", ProgressTasks.CANCEL_ACTION, entry?.serverSideType, "mateu-task-center",
+                    emptyMap(), appState, ProgressTasks.cancelParameters(task),
+                )
+            }.getOrNull() ?: return@submit
+            SwingUtilities.invokeLater {
+                ProgressTasks.commandsOf(answer).forEach { reportReattached(TaskReattach.reattached(it), answer) }
+            }
+        }
+    }
+
     /** The app's notification inbox (`NotificationsSupplier`), posted by the host to the IDE. */
     val inbox = InboxSync(this)
 
@@ -180,6 +320,13 @@ class AppSession(
      *  A Crud listing is placed in the bottom tool window; anything else in a central editor tab. */
     var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
+    /** Like [openViewHandler] for content of ANOTHER backend: (label, route, consumedRoute, sst,
+     *  actionId, baseUrl) — a remote menu option, or a remote screen mounted as the home. */
+    var openRemoteViewHandler: ((String, String?, String?, String?, String?, String) -> Unit)? = null
+
+    /** The app's `homeBaseUrl` (AppDto): absolute when the server mounted a REMOTE screen as the home. */
+    var homeBaseUrl: String? = null
+
     /** Like [openViewHandler] but for a **row detail** — always opens in a central editor tab, even
      *  when the detail form contains nested grids (which would otherwise look like a Crud listing). */
     var openDetailHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
@@ -208,6 +355,15 @@ class AppSession(
     fun openMenuEntry(item: com.fasterxml.jackson.databind.JsonNode) {
         fun t(f: String) = item.path(f).takeIf { it.isTextual }?.asText() ?: ""
         if (!ShellFlows.isRuleLeaf(item)) {
+            // an option of another backend (a remote menu's leaf) loads from there, naming its own
+            // view type or none — never the shell's (ContentTarget)
+            val remote = openRemoteViewHandler
+            if (remote != null && ContentTarget.isForeign(t("baseUrl"), baseUrl)) {
+                remote(t("label"), t("route"), t("consumedRoute"),
+                    ContentTarget.optionServerSideType(t("serverSideType"), t("baseUrl"), baseUrl, appServerSideType),
+                    t("actionId"), ContentTarget.optionBase(t("baseUrl"), baseUrl))
+                return
+            }
             openViewHandler?.invoke(t("label"), t("route"), t("consumedRoute"), t("serverSideType"), t("actionId"))
             return
         }

@@ -12,14 +12,18 @@ namespace Mateu.Core;
 internal sealed partial class SyncHandler
 {
     /// <summary>The notification inbox's app-level actions (mirrors Java's
-    /// NotificationsActionRunner): _notifications-list answers the supplier's current list as a
-    /// data-only fragment keyed _notifications; _notifications-read marks the ids parameter (an
-    /// explicit list, "all" → every currently-unread id, or one bare id) read and answers the
-    /// REFRESHED list the same way.</summary>
-    private static UIIncrementDto Notifications(object instance, RunActionRqDto rq)
+    /// NotificationsActionRunner): _notifications-list answers the caller's current list — the
+    /// supplier's entries, then those the inbox store keeps for the caller — as a data-only fragment
+    /// keyed _notifications; _notifications-read marks the ids parameter (an explicit list, "all" →
+    /// every currently-unread id, or one bare id) read and answers the REFRESHED list the same way.
+    /// An [App(Inbox = true)] app with no supplier lists the store only.</summary>
+    private UIIncrementDto Notifications(object instance, RunActionRqDto rq)
     {
-        if (instance is not INotificationsSupplier supplier)
+        var supplier = instance as INotificationsSupplier;
+        if (supplier is null && instance.GetType().Find<AppAttribute>()?.Inbox != true)
             return Error("the app class does not implement INotificationsSupplier — no inbox to serve");
+        var principal = Principal?.Invoke();
+        var inbox = new CallerInbox(supplier, string.IsNullOrWhiteSpace(principal) ? null : InboxStore, principal);
         // every id the panel sends back comes from the browser: the supplier is only handed ids of
         // the CALLER's own list (what it answers for this request) and only the actions an entry
         // offers — an app that looks entries up by id alone must not open another user's inbox
@@ -27,42 +31,81 @@ internal sealed partial class SyncHandler
         {
             // the entry's detail (a drawer, a dialog…) answered like any action's result
             var openId = StateString(GetState(rq.Parameters, "id"));
-            if (OwnEntry(supplier, openId) is not { HasDetail: true }) return UIIncrementDto.Of();
+            if (supplier is null || inbox.Own(openId) is not { HasDetail: true }) return UIIncrementDto.Of();
             return MapResult(supplier.NotificationDetail(openId!), rq);
         }
         object? result = null;
         if (rq.ActionId == "_notifications-read")
-            supplier.MarkNotificationsRead(OwnIds(supplier, ReadIds(supplier, rq)));
+            inbox.MarkRead(inbox.OwnIds(ReadIds(inbox, rq)));
         else if (rq.ActionId == "_notifications-dismiss")
-            supplier.DismissNotifications(OwnIds(supplier, Ids(rq)));
+            inbox.Dismiss(inbox.OwnIds(Ids(rq)));
         else if (rq.ActionId == "_notifications-act")
         {
             var id = StateString(GetState(rq.Parameters, "id"));
             var actionId = StateString(GetState(rq.Parameters, "actionId"));
             if (id is null || actionId is null) throw new UserFacingException("Which notification, and which action?");
-            if (OwnEntry(supplier, id) is not { } entry || entry.Actions.All(a => a.ActionId != actionId))
+            // a stored entry offers no actionId action: only the supplier's entries can be acted upon
+            if (supplier is null || inbox.Own(id) is not { } entry || entry.Actions.All(a => a.ActionId != actionId))
                 ActionGuard.Deny("_notifications-act: the caller's inbox has no entry offering that action");
-            result = supplier.OnNotificationAction(id, actionId);
+            result = supplier!.OnNotificationAction(id, actionId);
         }
         var data = new Dictionary<string, object?>
         {
-            ["_notifications"] = (supplier.Notifications() ?? []).Select(NotificationDto).ToList(),
+            ["_notifications"] = inbox.All().Select(NotificationDto).ToList(),
         };
         var list = UIIncrementDto.Of(fragments:
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
         return result is null ? list : Merge([MapResult(result, rq), list]);
     }
 
-    /// <summary>The caller's own entry <paramref name="id"/> (in the list the supplier answers now).</summary>
-    private static AppNotification? OwnEntry(INotificationsSupplier supplier, string? id) =>
-        id is null ? null : (supplier.Notifications() ?? []).FirstOrDefault(n => n is not null && n.Id == id);
-
-    /// <summary><paramref name="ids"/> kept only when they are the caller's own entries.</summary>
-    private static List<string> OwnIds(INotificationsSupplier supplier, List<string> ids)
+    /// <summary>The caller's inbox as one list: the supplier's entries (they win), then the store's.
+    /// Read/dismiss go to whichever holds each id.</summary>
+    private sealed class CallerInbox(INotificationsSupplier? supplier, IInboxStore? store, string? principal)
     {
-        if (ids.Count == 0) return ids;
-        var own = (supplier.Notifications() ?? []).Where(n => n is not null).Select(n => n.Id).ToHashSet();
-        return ids.Where(own.Contains).ToList();
+        private List<AppNotification> Supplied() =>
+            (supplier?.Notifications() ?? []).Where(n => n is not null).ToList();
+
+        private List<AppNotification> Stored() => store is null ? [] : store.List(principal!).ToList();
+
+        public List<AppNotification> All()
+        {
+            var supplied = Supplied();
+            var ids = supplied.Select(n => n.Id).ToHashSet();
+            return supplied.Concat(Stored().Where(n => !ids.Contains(n.Id))).ToList();
+        }
+
+        /// <summary>The caller's own entry <paramref name="id"/> (in the list answered now).</summary>
+        public AppNotification? Own(string? id) => id is null ? null : All().FirstOrDefault(n => n.Id == id);
+
+        /// <summary><paramref name="ids"/> kept only when they are the caller's own entries.</summary>
+        public List<string> OwnIds(List<string> ids)
+        {
+            if (ids.Count == 0) return ids;
+            var own = All().Select(n => n.Id).ToHashSet();
+            return ids.Where(own.Contains).ToList();
+        }
+
+        public void MarkRead(List<string> ids)
+        {
+            var (stored, supplied) = Split(ids);
+            if (stored.Count > 0) store!.MarkRead(principal!, stored);
+            supplier?.MarkNotificationsRead(supplied);
+        }
+
+        public void Dismiss(List<string> ids)
+        {
+            var (stored, supplied) = Split(ids);
+            if (stored.Count > 0) store!.Dismiss(principal!, stored);
+            supplier?.DismissNotifications(supplied);
+        }
+
+        private (List<string> Stored, List<string> Supplied) Split(List<string> ids)
+        {
+            var supplierIds = Supplied().Select(n => n.Id).ToHashSet();
+            var storeIds = Stored().Select(n => n.Id).ToHashSet();
+            return (ids.Where(id => !supplierIds.Contains(id) && storeIds.Contains(id)).ToList(),
+                ids.Where(supplierIds.Contains).ToList());
+        }
     }
 
     /// <summary>The ids parameter of _notifications-dismiss: a list, or one bare id.</summary>
@@ -143,13 +186,14 @@ internal sealed partial class SyncHandler
 
     /// <summary>The ids parameter of _notifications-read: an explicit list, "all" → every
     /// currently-unread notification's id, or a single bare id.</summary>
-    private static List<string> ReadIds(INotificationsSupplier supplier, RunActionRqDto rq)
+    private static List<string> ReadIds(CallerInbox inbox, RunActionRqDto rq)
     {
         var raw = GetState(rq.Parameters, "ids");
         if (raw is JsonElement { ValueKind: JsonValueKind.Array }) return MultiValues(raw);
+        if (raw is not string && raw is IEnumerable<object?> list) return list.Select(v => v?.ToString() ?? "").ToList();
         var text = StateString(raw);
         if (text == "all")
-            return (supplier.Notifications() ?? []).Where(n => n.Unread).Select(n => n.Id).ToList();
+            return inbox.All().Where(n => n.Unread).Select(n => n.Id).ToList();
         return text is null ? [] : [text];
     }
 }

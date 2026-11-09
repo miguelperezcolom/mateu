@@ -1,0 +1,18 @@
+id: field-types-basic
+area: behaviour
+group: forms
+title: Every basic field type
+covers: [behaviour:field-types-basic]
+description: |
+  The widget comes from the field's **type** — text, integer, decimal, boolean, date, time,
+  date-time — and `@Stereotype` asks for another one on the same type: email, password, textarea,
+  link, toggle, stars, slider (`@SliderMin`/`@SliderMax`), colour…
+
+  Try it: give **Rating** five stars, drag **Volume**, pick a **Date** and press **Show** — the
+  server reads the typed values.
+examples:
+  - title: All of them
+    java: io.mateu.explorer.examples.behaviour.fieldtypesbasic.EveryBasicField
+code:
+  - {label: "C#", path: src/main/ports/behaviour/field-types-basic/EveryBasicField.cs}
+  - {label: Python, path: src/main/ports/behaviour/field-types-basic/every_basic_field.py}

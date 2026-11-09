@@ -15,6 +15,17 @@ internal sealed partial class SyncHandler
     // ── CRUD ───────────────────────────────────────────────────────────────────
     private (Type Type, Type Element, string BaseRoute)? ResolveCrud(RunActionRqDto rq)
     {
+        // a crud bound in the AUTHORED route table (a record master's tab): mounted at the shortest
+        // prefix of the route bound to it (Java's ActionInstanceCreator.mountOf)
+        if (!string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } mount
+            && registry.TypeByName(rq.ServerSideType) is { } bound
+            && ReflectionMapper.CrudElementType(bound) is { } boundElement)
+            return (bound, boundElement, mount);
+        // a sub-resource island (/_subresource/<Host>/<property>): addressed by its type
+        if (RoutedTabs.IslandCrud(registry, rq.Route, rq.ServerSideType) is { } island
+            && ReflectionMapper.CrudElementType(island.Type) is { } islandElement)
+            return (island.Type, islandElement, island.BaseRoute);
         if (!string.IsNullOrEmpty(rq.ServerSideType) && registry.Resolve(rq.ServerSideType, null) is { } byName
             && ReflectionMapper.CrudElementType(byName) is { } el1)
             return (byName, el1, "/" + (byName.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? ""));
@@ -61,6 +72,15 @@ internal sealed partial class SyncHandler
     {
         ActionGuard.EnsureViewVisible(crudType);
         var crud = Activator.CreateInstance(crudType)!;
+        // a crud inside a record master's tab gets the chain's path parameters (its customerId), and
+        // the request state hydrates its own properties (a sub-resource's parent context) — Java's
+        // mountOf + the orchestrator hydrated from the component state
+        foreach (var (p, v) in RoutedTabs.ScopeValuesFor(crudType)) SetSimple(p, crud, v);
+        foreach (var p in crudType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                     .Concat(OwnBaseProperties(crudType)))
+            if (p.CanWrite && p.GetIndexParameters().Length == 0 && p.GetValue(crud) is null
+                && rq.ComponentState.TryGetValue(Naming.CamelCase(p.Name), out var raw) && raw is not null)
+                SetSimple(p, crud, raw);
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
 
         // The row editing actions of a list property of the entity form (Java resolves the list on
@@ -71,6 +91,16 @@ internal sealed partial class SyncHandler
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
         // A [Searchable] field on the entity form opens its selector dialog.
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(element, rq);
+        // A nested data object of the ENTITY (its record form's sub-form): Java's record form is
+        // the entity's own server-side component, so the method runs on the entity's nested object
+        // hydrated from the form's flattened state (RunMethodActionRunner). A detached copy: an
+        // in-memory Get may hand out the stored instance itself, and an action must persist nothing.
+        if (rq.ActionId?.StartsWith(ReflectionMapper.NestedFormActionPrefix, StringComparison.Ordinal) == true)
+        {
+            var entity = id is null ? New(element) : CopyOf(GetOrNew(crud, crudType, element, id), element);
+            BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
+            return RunNestedFormAction(element, entity, rq, null);
+        }
 
         // the WRITES the crud does not offer are refused (403), not only undrawn (mirrors Java's
         // CrudWriteGate): a [ReadOnly] crud, CanCreate/CanEdit/CanDelete narrowed, a Disabled/Off
@@ -79,6 +109,9 @@ internal sealed partial class SyncHandler
         // the crud does not allow used to open its form and only refuse the save)
         if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete" or "new" or "edit")
             EnsureWriteAllowed(crud, crudType, rq.ActionId);
+        // the Undo of a delete is gated like the delete it reverses
+        else if (rq.ActionId == IRestorable<string>.RestoreAction)
+            EnsureWriteAllowed(crud, crudType, "delete");
         else if (string.IsNullOrEmpty(rq.ActionId) && mode is "new" or "edit")
             EnsureWriteAllowed(crud, crudType, mode);
 
@@ -95,6 +128,9 @@ internal sealed partial class SyncHandler
                 Error($"Action not available: {rq.ActionId}"),
             // Delete on the LISTING: the rows selected in the grid (Java's DeleteActionHandler)
             "delete" when id is null => DeleteSelected(crud, element, rq),
+            // the Undo of an undoable delete (IRestorable): restore, then the listing searches again
+            IRestorable<string>.RestoreAction => UIIncrementDto.Of(
+                fragments: CrudSearch(crud, element, rq).Fragments, messages: [Restore(crud, rq)]),
             "delete" => Navigate(baseRoute, Delete(crud, id), rq),
             // Crud.CsvExportable / ExcelExportable / PdfExportable: only a crud that offers the
             // export answers its export-* action (the id is wire input).
@@ -131,6 +167,9 @@ internal sealed partial class SyncHandler
                 _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
+            // a [ViewToolbarButton] of the record view page (Java's ActionOnViewActionHandler)
+            { } viewAction when viewAction.StartsWith(ReflectionMapper.ActionOnViewPrefix) =>
+                ActionOnView(crud, crudType, element, id ?? RowId(rq, element), baseRoute, rq),
             _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
@@ -149,8 +188,24 @@ internal sealed partial class SyncHandler
         if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
         var result = method.Invoke(crud, BuildBulkArguments(method, rq));
-        return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
+        if (result is null) return CrudSearch(crud, element, rq);
+        // A result that only TELLS the user something (a Message, or a list of them) changed the
+        // rows all the same: the listing is searched again and the messages ride along — it used to
+        // keep showing the stale rows. Anything else is the method's own answer.
+        if (MessagesOnly(result))
+        {
+            var refreshed = CrudSearch(crud, element, rq);
+            var told = MapResult(result, rq);
+            return refreshed with { Messages = [.. refreshed.Messages, .. told.Messages] };
+        }
+        return MapResult(result, rq);
     }
+
+    private static bool MessagesOnly(object result) =>
+        result is Message
+        || (result is System.Collections.IEnumerable items and not string
+            && items.Cast<object>().ToList() is { Count: > 0 } list
+            && list.All(item => item is Message));
 
     /// <summary>Fills a bulk method's parameters: a List&lt;T&gt;/IReadOnlyList&lt;T&gt;
     /// parameter receives the selected rows rebuilt as typed entities (the same New+BindState
@@ -202,8 +257,10 @@ internal sealed partial class SyncHandler
         return parts.Length >= 2 && parts[1] == "edit" ? ("edit", parts[0]) : ("view", parts[0]);
     }
 
+    // an island's listing is a block of the host page: it does not name the window
     private UIIncrementDto RenderCrudList(Type crudType, object crud, string baseRoute, RunActionRqDto rq) =>
-        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq);
+        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq,
+            emitWindowTitle: RoutedTabs.RequestRoute?.Contains(ReflectionMapper.EmbeddedMarker, StringComparison.Ordinal) != true);
 
     private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq) =>
         FragmentResponse(_mapper.TitleOf(element, entity), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
@@ -285,19 +342,24 @@ internal sealed partial class SyncHandler
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
-        // Versioned entities bind onto a DETACHED copy: an in-memory Get may return the live
-        // stored instance by reference, and a rejected (stale) save must persist NOTHING.
         var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
         var storedVersion = StoredVersionOf(stored);
-        var entity = stored is null ? New(element)
-            : storedVersion is null ? stored
-            : CopyOf(stored, element);
-        BindState(entity, rq.ComponentState);
+        // The edit binds onto a DETACHED copy: an in-memory Get may return the live stored instance
+        // by reference, and a refused save (stale version, a missing or broken constraint) must
+        // persist NOTHING.
+        var entity = stored is null ? New(element) : CopyOf(stored, element);
+        // a field the form did not render ([HiddenInEditor] / [HiddenInCreate]) keeps its value
+        BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
         if (id is not null) EntityIds.SetId(entity, id);
 
-        var missing = RequiredMissing(entity, element);
+        var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
+        // and the length / range / pattern constraints the form checked — over the fields it
+        // rendered, the browser being neither trusted nor the only client (Java's ServerConstraintCheck)
+        var broken = _mapper.CrudConstraintViolations(element, entity, id is null ? "new" : "edit");
+        if (broken.Count > 0)
+            return Error(string.Join("; ", broken));
 
         // Optimistic locking ([Version] property): reject the editor save when someone else saved
         // in between (unless _forceOverwrite), bump the version otherwise — both no-ops without a
@@ -419,9 +481,15 @@ internal sealed partial class SyncHandler
         }
         BindState(entity, row.Where(e => Writable(e.Key)).ToDictionary(e => e.Key, e => e.Value));
         EntityIds.SetId(entity, id!);
-        var missing = RequiredMissing(entity, element);
+        // the row is the EDIT form's record: a [HiddenInEditor] field is not the user's to fill, and
+        // the constraints the editor checks are checked here too (Java's FilteredAutoCrud.updateRow
+        // → ServerConstraintCheck)
+        var missing = RequiredMissing(entity, element, creating: false);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
+        var broken = _mapper.CrudConstraintViolations(element, entity, "edit");
+        if (broken.Count > 0)
+            return Error(string.Join("; ", broken));
 
         // Optimistic locking ([Version] property): Overwrite re-sends the SAME edited row (the
         // button's parameters merge into the action request), Reload re-runs the search.
@@ -538,7 +606,43 @@ internal sealed partial class SyncHandler
         }, rq);
     }
 
-    private static object New(Type element) => Activator.CreateInstance(element)!;
+    private static object New(Type element)
+    {
+        var entity = Activator.CreateInstance(element)!;
+        // under a record master, a new child starts with its properties named like the chain's path
+        // parameters filled in (Java's FilteredAutoCrud.buildCreationForm + scopeValuesFor)
+        foreach (var (p, v) in RoutedTabs.ScopeValuesFor(element)) SetSimple(p, entity, v);
+        return entity;
+    }
+
+    /// <summary>The public properties an APPLICATION base class of the crud declares (between it
+    /// and Mateu's Crud&lt;T&gt;).</summary>
+    private static IEnumerable<PropertyInfo> OwnBaseProperties(Type crudType)
+    {
+        for (var t = crudType.BaseType; t is not null && t.Assembly != typeof(Crud<>).Assembly; t = t.BaseType)
+            foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                yield return p;
+    }
+
+    /// <summary>Sets a simple property from a wire value (a string, a number, a JsonElement).</summary>
+    private static void SetSimple(PropertyInfo p, object target, object? value)
+    {
+        if (value is null || !p.CanWrite) return;
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        try
+        {
+            object? converted = value is System.Text.Json.JsonElement el
+                ? System.Text.Json.JsonSerializer.Deserialize(el.GetRawText(), t)
+                : t.IsInstanceOfType(value) ? value
+                : t.IsEnum ? Enum.Parse(t, value.ToString()!, true)
+                : Convert.ChangeType(value, t, System.Globalization.CultureInfo.InvariantCulture);
+            p.SetValue(target, converted);
+        }
+        catch (Exception)
+        {
+            // a value that does not fit the property is no context
+        }
+    }
 
     private static object GetOrNew(object crud, Type crudType, Type element, string? id) =>
         (id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null) ?? New(element);
@@ -554,21 +658,32 @@ internal sealed partial class SyncHandler
     private static UIIncrementDto DeleteSelected(object crud, Type element, RunActionRqDto rq)
     {
         var idField = EntityIds.FieldName(element);
+        var deleted = new List<string>();
         if (GetState(rq.ComponentState, "crud_selected_items")
             is JsonElement { ValueKind: JsonValueKind.Array } selected)
             foreach (var row in selected.EnumerateArray())
                 if (row.ValueKind == JsonValueKind.Object
                     && row.TryGetProperty(idField, out var idEl)
                     && StateString(idEl) is { } rowId)
+                {
                     Delete(crud, rowId);
+                    deleted.Add(rowId);
+                }
         var refreshed = CrudSearch(crud, element, rq);
         return UIIncrementDto.Of(
             fragments: refreshed.Fragments,
-            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
+            // a crud declaring IRestorable offers the way back (W-V-DELETE-FEEDBACK)
+            messages: [RestorableOf(crud.GetType()) is not null && deleted.Count > 0
+                ? UndoableDeleted(deleted)
+                : new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
-    private static List<string> RequiredMissing(object entity, Type element) =>
+    private static List<string> RequiredMissing(object entity, Type element, bool? creating = null) =>
         ReflectionMapper.EditableProperties(element)
+            // a field the form did not render cannot be asked for (Java's ServerConstraintCheck)
+            .Where(p => creating is null || !ReflectionMapper.HiddenInForm(p, creating.Value ? "new" : "edit"))
+            // nor one the user cannot edit: a locked field carries no constraint
+            .Where(p => ReflectionMapper.IsEditable(element, p))
             .Where(p => p.Find<RequiredAttribute>() != null
                         && string.IsNullOrWhiteSpace(p.GetValue(entity)?.ToString()))
             .Select(p => p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))

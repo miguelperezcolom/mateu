@@ -105,7 +105,7 @@ internal sealed partial class ReflectionMapper
         // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
         // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
-            .Where(p => GridRowType(p) is null && Visible(p))
+            .Where(p => GridRowType(p) is null && Visible(p) && !HiddenInList(p))
             .Select(p => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -120,7 +120,18 @@ internal sealed partial class ReflectionMapper
             }))
             .Select(c => AsListingColumn(WithFieldType(c, row), row))
             .ToList();
-        var actions = new List<ActionDto> { new("search") };
+        // HeroSearch<TFilters,TRow> is Java's HeroSearch<Filters, Row>: a PLAIN listing (no
+        // interaction capability), so it advertises a non-validating search and the open row/view
+        // wildcards, its title is the page's (none on the listing) and its filters lay out inline.
+        var hero = instance as IHeroSearch;
+        var actions = hero is null
+            ? new List<ActionDto> { new("search") }
+            :
+            [
+                new("search", ValidationRequired: false),
+                new("action-on-row-*", ValidationRequired: false),
+                new("action-on-view-*", ValidationRequired: false),
+            ];
         var toolbar = new List<ButtonDto>();
         AddExportButtons(instance, toolbar, actions);
         if (IsSelector(viewType))
@@ -141,9 +152,10 @@ internal sealed partial class ReflectionMapper
             actions.Add(new ActionDto("action-on-row-" + button.ActionId, ValidationRequired: false));
         var gridLayout = viewType.GetMethod("GridLayout")!
             .Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(hero is null ? RoutedTabs.DedupeTitle(title) : null, columns, toolbar)
         {
             CanEdit = false,
+            FiltersLayout = hero is null ? "auto" : "inline",
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
@@ -162,16 +174,27 @@ internal sealed partial class ReflectionMapper
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
         }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
         var pageChildren = new List<ComponentDto>();
+        // HeroSearch<TFilters,TRow>: the centered hero over the listing (as on the crud one)
+        if (hero is not null)
+            pageChildren.Add(Client(new HeroSectionMetadataDto(
+                hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), "hero", []));
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
         pageChildren.Add(crud);
         // [Compact]: the page carries the high-density preset + --mateu-compact:1, as a [Compact] view
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
-            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
+        var page = hero is not null
+            // Java's HeroSearch is a ComponentTreeSupplier: hero + listing in a full-width
+            // STRETCH vertical layout, no page frame
+            ? Client(new VerticalLayoutMetadataDto
+                {
+                    Spacing = true, HorizontalAlignment = "STRETCH", FullWidth = true,
+                }, null, pageChildren)
+            : Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
+                with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
-        var triggers = smartSearch is null ? new List<TriggerDto> { PreloadSearch() } : [];
+        var triggers = smartSearch is null && hero is null ? new List<TriggerDto> { PreloadSearch() } : [];
         return new ServerSideComponentDto(
-            Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
+            Guid.NewGuid().ToString(), viewType.FullName!, hero is null ? route : "_empty", [page],
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             PageWidth = PageWidthOf(viewType, instance),
@@ -189,7 +212,7 @@ internal sealed partial class ReflectionMapper
         return arg.IsEnum ? arg : null;
     }
 
-    private static List<FormFieldMetadataDto> MapListingFilters(Type filters) =>
+    private static List<FormFieldMetadataDto> MapListingFilters(Type filters) => WithMainFilters(filters,
         EditableProperties(filters)
             .Select(p =>
             {
@@ -217,7 +240,23 @@ internal sealed partial class ReflectionMapper
                 // a filter lays out no options grid: Java sends no optionsColumns for one
                 return new FormFieldMetadataDto(id, InferDataType(t, p), label) { OptionsColumns = 0 };
             })
-            .ToList();
+            .ToList());
+
+    /// <summary>W-V-TABLE-ID: a listing whose rows open by click leaves its TECHNICAL id out of the
+    /// columns — the row is the link now, and a generated id tells the user nothing. The id is the
+    /// DECLARED one (<c>[Id]</c>, else <c>Id</c>), whatever its type; a <c>[Label]</c> on it keeps it
+    /// (a business code the developer named), and the only column always stays. The row data keeps
+    /// the id. Same rule as Java's <c>TechnicalIdColumn</c> and Python's <c>without_technical_id</c>.</summary>
+    internal static List<PropertyInfo> WithoutTechnicalId(
+        IEnumerable<PropertyInfo> properties, Type rowType, bool rowsClickable)
+    {
+        var list = properties.ToList();
+        if (!rowsClickable || list.Count < 2) return list;
+        var id = EntityIds.PropertyOf(rowType);
+        if (id is null || id.GetCustomAttribute<LabelAttribute>(inherit: true) is not null) return list;
+        list.RemoveAll(p => p.Name == id.Name);
+        return list;
+    }
 
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {
@@ -244,8 +283,7 @@ internal sealed partial class ReflectionMapper
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
-        var columns = EditableProperties(element)
-            .Where(Visible)
+        var columns = WithoutTechnicalId(EditableProperties(element).Where(p => Visible(p) && !HiddenInList(p)), element, rowsClickable)
             .Select((p, index) =>
             {
                 var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
@@ -298,32 +336,24 @@ internal sealed partial class ReflectionMapper
         if (canDelete && display.Delete.Shown())
         {
             toolbar.Add(new ButtonDto("Delete", "delete") { Disabled = !display.Delete.Enabled(), Color = "error" });
-            // the client asks for confirmation and needs a selection (Java's CrudActionsBuilder)
+            // the client asks for confirmation and needs a selection (Java's CrudActionsBuilder) —
+            // unless the crud can undo it (IRestorable): then its toast offers Undo instead
+            var restorable = SyncHandler.RestorableOf(viewType) is not null;
             actions.Add(new ActionDto("delete", ValidationRequired: false,
-                ConfirmationRequired: true, RowsSelectedRequired: true));
+                ConfirmationRequired: !restorable, RowsSelectedRequired: true));
+            if (restorable) actions.Add(new ActionDto(IRestorable<string>.RestoreAction, ValidationRequired: false));
         }
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
-        // [ListToolbarButton] methods: BULK list actions — a listing toolbar button dispatching
-        // action-on-row-<method> over the grid's selected rows; the action advertises the
-        // confirmation/selection-required flags the frontend enforces (mirrors Java's
-        // Crud.addButtonsToList + CrudActionsBuilder).
-        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
-                                 && Authorized(m.Find<EyesOnlyAttribute>())))
-        {
-            var bulk = m.Find<ListToolbarButtonAttribute>()!;
-            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
-            {
-                RowsSelectedRequired = bulk.RowsSelectedRequired,
-            });
-            actions.Add(new ActionDto(actionId, ValidationRequired: false,
-                ConfirmationRequired: bulk.ConfirmationRequired,
-                RowsSelectedRequired: bulk.RowsSelectedRequired,
-                Bubble: true));
-        }
-        var crudComponent = Client(new CrudMetadataDto(title, columns, toolbar)
+        // [ListToolbarButton] methods: BULK list actions — listing toolbar buttons dispatching
+        // action-on-row-<method> over the grid's selected rows, LEADING the toolbar (Java's
+        // Crud.addButtonsToList + CrudActionsBuilder, run before the built-in buttons).
+        var (bulkButtons, bulkActions) = BulkToolbar(viewType, "action-on-row-", bubble: true);
+        toolbar.InsertRange(0, bulkButtons);
+        actions.AddRange(bulkActions);
+        // a sub-resource island's listing draws no title: the host draws it above the island
+        var crudComponent = Client(new CrudMetadataDto(RoutedTabs.HidesListingTitle() ? null : RoutedTabs.DedupeTitle(title),
+            columns, toolbar)
         {
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
@@ -370,8 +400,9 @@ internal sealed partial class ReflectionMapper
         // declaring none stays a plain listing page: the title is the PAGE's, the filters lay out
         // inline and it is not routed through a crud (route "_empty").
         var bridged = profile.CanView || profile.CanEdit || profile.CanCreate || profile.CanDelete;
-        var columns = EditableProperties(profile.RowType)
-            .Where(p => GridRowType(p) is null && Visible(p))
+        var columns = WithoutTechnicalId(
+                EditableProperties(profile.RowType).Where(p => GridRowType(p) is null && Visible(p) && !HiddenInList(p)),
+                profile.RowType, rowsClickable)
             .Select((p, index) => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -409,8 +440,10 @@ internal sealed partial class ReflectionMapper
         if (profile.CanDelete)
         {
             toolbar.Add(new ButtonDto("Delete", "delete") { Color = "error" });
+            var restorable = SyncHandler.RestorableOf(viewType) is not null;
             actions.Add(new ActionDto("delete", ValidationRequired: false,
-                ConfirmationRequired: true, RowsSelectedRequired: true));
+                ConfirmationRequired: !restorable, RowsSelectedRequired: true));
+            if (restorable) actions.Add(new ActionDto(IRestorable<string>.RestoreAction, ValidationRequired: false));
         }
         if (profile.CanEdit)
         {
@@ -419,24 +452,15 @@ internal sealed partial class ReflectionMapper
             actions.Add(new ActionDto("cancel-edit", ValidationRequired: false));
         }
         if (profile.CanView) actions.Add(new ActionDto("cancel-view", ValidationRequired: false));
-        // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source).
-        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
-                                 && Authorized(m.Find<EyesOnlyAttribute>())))
-        {
-            var bulk = m.Find<ListToolbarButtonAttribute>()!;
-            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
-            {
-                RowsSelectedRequired = bulk.RowsSelectedRequired,
-            });
-            actions.Add(new ActionDto(actionId, ValidationRequired: false,
-                ConfirmationRequired: bulk.ConfirmationRequired,
-                RowsSelectedRequired: bulk.RowsSelectedRequired,
-                Bubble: true));
-        }
+        // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source),
+        // LEADING the toolbar. A bridged listing (a CRUD) reaches them as action-on-row-<method>
+        // and lets them bubble (Java's CapabilityCrud → Crud.addButtonsToList); a plain one by
+        // the method's own name, right after search (Java's Listing.actions + PageListingBuilder).
+        var (bulkButtons, bulkActions) = BulkToolbar(viewType, bridged ? "action-on-row-" : "", bubble: bridged, plain: !bridged);
+        toolbar.InsertRange(0, bulkButtons);
+        actions.InsertRange(1, bulkActions);
         var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(bridged ? title : null, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(bridged ? RoutedTabs.DedupeTitle(title) : null, columns, toolbar)
         {
             Searchable = profile.Searchable,
             FiltersLayout = bridged ? "auto" : "inline",
@@ -453,7 +477,9 @@ internal sealed partial class ReflectionMapper
         var page = bridged
             ? Client(new PageMetadataDto(null, null, null, [], []), null, [crud])
                 with { Style = compact ? CompactStyle : CrudFullWidthStyle }
-            : Client(new PageMetadataDto(title, T(Naming.Humanize(viewType.Name)), null, [], [])
+            // the page header shows the title and the listing's bulk buttons on one line (Java's
+            // ReflectionPageMapper.listingPageToolbar)
+            : Client(new PageMetadataDto(title, T(Naming.Humanize(viewType.Name)), null, bulkButtons, [])
                 { PageType = PageTypeOf(viewType) }, null, [crud])
                 with { Style = compact ? CompactStyle : null };
         return new ServerSideComponentDto(
@@ -563,7 +589,7 @@ internal sealed partial class ReflectionMapper
     /// column labels (mirrors Java's ExportActionRunner.buildExportColumns).</summary>
     internal List<(PropertyInfo Property, string Label)> ExportColumns(Type element) =>
         EditableProperties(element)
-            .Where(Visible)
+            .Where(p => Visible(p) && !HiddenInList(p))
             .Select(p => (p, p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
             .ToList();
 
@@ -571,7 +597,16 @@ internal sealed partial class ReflectionMapper
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to
     /// multi-selects (IN) with their constants as options, temporals to from–to date ranges,
     /// [RangeFilter] numerics to min–max ranges.</summary>
-    private static List<FormFieldMetadataDto> MapCrudFilters(Type element) =>
+    // a filter named like a path parameter of the route's chain (or an island's scope) is fixed by
+    // where the listing is mounted, not chosen by the user (Java's CrudlMapper.routeScope)
+    private static List<FormFieldMetadataDto> MapCrudFilters(Type element)
+    {
+        var scope = RoutedTabs.RouteScope();
+        var filters = MapCrudFiltersUnscoped(element);
+        return scope.Count == 0 ? filters : filters.Select(f => scope.Contains(f.FieldId) ? f with { ReadOnly = true } : f).ToList();
+    }
+
+    private static List<FormFieldMetadataDto> MapCrudFiltersUnscoped(Type element) => WithMainFilters(element,
         EditableProperties(element)
             .Select(p => (Property: p, Type: Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType))
             .Where(x => x.Type.IsEnum || x.Type == typeof(string) || x.Type == typeof(bool)
@@ -597,7 +632,7 @@ internal sealed partial class ReflectionMapper
                     OptionsColumns = 0,
                 };
             })
-            .ToList();
+            .ToList());
 
     /// <summary>The in-place editor widget for an [InlineEditing] column (mirrors Java's
     /// GridColumnBuilder.getEditorType): enums edit as a select, [Money] as a number, the rest by
@@ -660,12 +695,12 @@ internal sealed partial class ReflectionMapper
     /// GridColumnBuilder.getFormFieldForArray.</summary>
     private ClientSideComponentDto MapGridField(PropertyInfo p, Type rowType, object instance, bool readOnly)
     {
-        var fieldId = Naming.CamelCase(p.Name);
+        var fieldId = PrefixedFieldId(p);
         // [InlineEditing] on the grid property: cells edit in place, commits accumulate in the
         // form state (the frontend's renderEditableCell form-grid path) and save with the form.
         var inline = !readOnly && p.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(rowType)
-            .Where(Visible)
+            .Where(c => Visible(c) && !HiddenInList(c))
             .Select(c =>
             {
                 var editable = inline && c.Find<ReadOnlyAttribute>() == null;
@@ -708,6 +743,11 @@ internal sealed partial class ReflectionMapper
                 Width = "3rem",
             }));
         var onRow = p.Find<OnRowSelectedAttribute>();
+        var detailForm = p.Find<DetailFormAttribute>();
+        var detailPath = rowType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(r => r.GetCustomAttribute<DetailsAttribute>() is not null) is { } details
+            ? Naming.CamelCase(details.Name)
+            : null;
         const string gridStyle = "min-width: 10rem; width: 100%;";
         // The rows ride in the component state (initialData), not as a per-field initialValue —
         // the field-crud actions rewrite that state list.
@@ -720,15 +760,24 @@ internal sealed partial class ReflectionMapper
             ItemIdPath = "_rowNumber",
             InlineEditing = inline,
             OnItemSelectionActionId = onRow is not null
-                ? Naming.CamelCase(onRow.Value)
+                // inside a nested object the row click runs the nested object's method
+                ? FieldPrefix.Length > 0
+                    ? NestedFormActionPrefix + FieldPrefix + Naming.CamelCase(onRow.Value)
+                    : Naming.CamelCase(onRow.Value)
                 // without [OnRowSelected] an editable grid keeps the legacy detail-edit binding
                 : readOnly ? null : fieldId + "_selected",
             RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,
             Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
             Style = gridStyle,
-            FormPosition = "right",
-            FormColumns = FormColumns(rowType),
-            MinHeightWhenDetailVisible = "16rem",
+            // [DetailForm] customises the row editor (Java's @DetailFormCustomisation + @MasterDetail)
+            FormPosition = detailForm?.Position ?? "right",
+            FormColumns = detailForm is { Columns: > 0 } ? detailForm.Columns : FormColumns(rowType),
+            FormStyle = detailForm?.Style,
+            FormTheme = detailForm?.Theme,
+            MinHeightWhenDetailVisible = detailForm?.MinHeightWhenDetailVisible ?? "16rem",
+            // the row type's [Details] property opens under the row, behind a button
+            DetailPath = detailPath,
+            UseButtonForDetail = detailPath is not null,
             SliderMax = 0,
         };
         return Client(meta, fieldId, []) with { Style = gridStyle };

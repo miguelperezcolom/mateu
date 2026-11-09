@@ -1,12 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { AppState, Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, IconButton, ProgressBar, Surface, Text as PaperText } from 'react-native-paper';
 import { useAppContext } from '../context/AppContext';
 import { theme, themed } from '../theme';
 import { MateuButton } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
-import { elapsedText, progressA11yValue, stepCountText, stripLabel, type Task, type TaskAction } from '../core/taskCenter';
+import { elapsedText, etaText, progressA11yValue, stepCountText, stripLabel, type Task, type TaskAction } from '../core/taskCenter';
+import { uiLocale } from '../core/money';
+import { localNotifier, wireOsNotifications, type NotificationPermission } from '../core/osNotifications';
+import type { MateuSession } from '../core/MateuSession';
+
+const inFront = () => AppState.currentState === 'active' || AppState.currentState == null;
+
+/**
+ * The session's background life: its OS notifications (posted while the app is not in front, opened
+ * on tap in THIS UI) and the reattach of its tasks when the app comes back to the foreground (a
+ * stream the OS cut while the phone slept: the server kept the task running, core/taskReattach.ts).
+ */
+export function useTaskLifecycle(session: MateuSession): void {
+  useEffect(() => wireOsNotifications(session, inFront), [session]);
+  useEffect(() => localNotifier().onOpened(({ route, scope }) => {
+    if (scope !== session.api.baseUrl) return;
+    if (route) session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
+  }), [session]);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void session.reattach.foreground(session.reattachHost());
+    });
+    return () => sub.remove();
+  }, [session]);
+}
+
+/** "Notify me on this device": shown while the app opted in and the OS has not been asked yet. */
+export function NotifyOnThisDevice({ session }: { session: MateuSession }) {
+  const [permission, setPermission] = useState<NotificationPermission>('unavailable');
+  useEffect(() => {
+    let alive = true;
+    if (session.osNotifications) void localNotifier().permission().then((p) => alive && setPermission(p));
+    return () => { alive = false; };
+  }, [session, session.osNotifications]);
+  if (!session.osNotifications || permission !== 'undetermined') return null;
+  return (
+    <MateuButton label="Notify me on this device" buttonStyle="tertiary" icon="bell-outline"
+      accessibilityLabel="Notify me on this device when something finishes or arrives"
+      // asked ONLY here, from the user's tap
+      onPress={() => void localNotifier().request().then(setPermission)} />
+  );
+}
 
 /**
  * The session's TASK CENTER on a phone (design/progress-and-notifications.md): a blocking task the
@@ -19,6 +60,7 @@ import { elapsedText, progressA11yValue, stepCountText, stripLabel, type Task, t
 export function TaskHost({ visible = true }: { visible?: boolean }) {
   const { session } = useAppContext();
   const tasks = session.tasks;
+  useTaskLifecycle(session);
   const [, setRevision] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -89,6 +131,7 @@ export function TaskHost({ visible = true }: { visible?: boolean }) {
             <View style={styles.sheet}>
               <View style={styles.sheetHeader}>
                 <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.flex}>Tasks</PaperText>
+                <NotifyOnThisDevice session={session} />
                 {counts.finished > 0 && <MateuButton label="Clear finished" buttonStyle="tertiary" onPress={() => tasks.clearFinished()} />}
                 <IconButton icon="close" accessibilityLabel="Close tasks" onPress={() => setSheetOpen(false)} />
               </View>
@@ -110,6 +153,8 @@ function TaskBody({ task, now }: { task: Task; now: number }) {
   const count = stepCountText(task);
   const since = task.startedAt ?? task.seenAt;
   const elapsed = elapsedText(since, task.finishedAt ?? now);
+  // the server's estimate, only while it runs and only when it has an honest one
+  const eta = task.state === 'running' ? etaText(task.etaSeconds, uiLocale()) : '';
   return (
     <View style={styles.body}>
       {!!task.text && <PaperText style={styles.text}>{task.text}</PaperText>}
@@ -122,7 +167,7 @@ function TaskBody({ task, now }: { task: Task; now: number }) {
           {task.state === 'done' ? 'Finished' : task.state === 'failed' ? `Failed${task.error ? `: ${task.error}` : ''}` : 'Cancelled'}
         </PaperText>
       )}
-      <PaperText style={styles.meta}>{[count, elapsed].filter(Boolean).join(' · ')}</PaperText>
+      <PaperText style={styles.meta}>{[count, elapsed, eta].filter(Boolean).join(' · ')}</PaperText>
     </View>
   );
 }

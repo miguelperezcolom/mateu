@@ -1,0 +1,21 @@
+# A kanban board as DATA: columns with an accent colour, cards with a description and a badge.
+# Without a moveActionId it is a read-only picture of the process.
+content:
+  - type: Kanban
+    columns:
+      - id: requested
+        title: Loan requested
+        color: "#64748b"
+        cards:
+          - {id: l1, title: Sunflowers, description: Tate Modern · 3 months, badge: new}
+          - {id: l2, title: The Scream, description: MoMA · 6 weeks}
+      - id: approved
+        title: Approved
+        color: "#2563eb"
+        cards:
+          - {id: l3, title: Las Meninas, description: Louvre · 2 months, badge: insured}
+      - id: shipped
+        title: Shipped
+        color: "#16a34a"
+        cards:
+          - {id: l4, title: The Kiss, description: Rijksmuseum · in transit, badge: fragile, color: "#dc2626"}

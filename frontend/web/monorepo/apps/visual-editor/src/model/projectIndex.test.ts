@@ -7,9 +7,9 @@ const files: ProjectFile[] = [
         path: 'routes.yaml',
         content:
             'type: Routes\nroutes:\n' +
-            '  - route: ""\n    definition: app.yaml\n' +
-            '  - route: orders\n    definition: orders.yaml\n' +
-            '  - route: users\n    definition: users.yaml\n' +
+            '  - route: ""\n    layout: app.yaml\n' +
+            '  - route: orders\n    layout: orders.yaml\n' +
+            '  - route: users\n    layout: users.yaml\n' +
             '  - route: tasks\n    viewModel: com.acme.TaskCrud\n',
     },
     { path: 'app.yaml', content: 'type: AppShell\ntitle: Back office\n' },

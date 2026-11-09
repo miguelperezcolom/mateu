@@ -142,6 +142,8 @@ const en = {
     import: 'Import',
     itemsFound: '{count} items found.',
     // field widgets
+    // a field a client-side rule makes required (the server's own text for @NotEmpty)
+    fieldRequired: 'Cannot be empty',
     upload: 'Upload',
     replace: 'Replace',
     useImageUrl: 'Use a URL',
@@ -216,6 +218,12 @@ const en = {
     taskFailedAnnounce: '{title}: failed',
     taskCancelledAnnounce: '{title}: cancelled',
     taskCancelFailed: 'Could not cancel the task.',
+    // a running task's ETA (ProgressDto.etaSeconds — conformance/client/eta-format.json)
+    taskEtaUnderMinute: 'less than a minute left',
+    taskEtaMinutes: 'about {n} min left',
+    taskEtaHours: 'about {n} h left',
+    // OS-level notifications (@App(osNotifications)), asked for only from this control
+    osNotificationsEnable: 'Notify me on this device',
     // command center
     commandCenter: 'Command center',
     commandCenterHint: 'Search and navigate (⌘K)',
@@ -297,6 +305,7 @@ const en = {
     offlineBanner: 'No connection — changes you make now will not be saved.',
     connectionRestored: 'Connection restored.',
     failOffline: 'No connection. Your changes have not been sent — check your network and try again.',
+    failRemoteUnreachable: 'This part of the page could not be loaded: its service does not answer.',
     failTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
     failServer: 'The server could not complete the request{status}. Please try again.',
     failUnauthorized: 'Your session is no longer valid. Please sign in again.',
@@ -470,6 +479,7 @@ const es: Catalogue = {
     loadingMore: 'Cargando más…',
     import: 'Importar',
     itemsFound: '{count} elementos encontrados.',
+    fieldRequired: 'No puede estar vacío',
     upload: 'Subir',
     replace: 'Reemplazar',
     useImageUrl: 'Usar una URL',
@@ -539,6 +549,10 @@ const es: Catalogue = {
     taskFailedAnnounce: '{title}: ha fallado',
     taskCancelledAnnounce: '{title}: cancelada',
     taskCancelFailed: 'No se pudo cancelar la tarea.',
+    taskEtaUnderMinute: 'menos de un minuto',
+    taskEtaMinutes: 'unos {n} min restantes',
+    taskEtaHours: 'unas {n} h restantes',
+    osNotificationsEnable: 'Avisarme en este dispositivo',
     commandCenter: 'Centro de mando',
     commandCenterHint: 'Buscar y navegar (⌘K)',
     commandCenterPlaceholder: 'Buscar pantallas, datos y acciones…',
@@ -615,6 +629,7 @@ const es: Catalogue = {
     offlineBanner: 'Sin conexión: lo que cambies ahora no se guardará.',
     connectionRestored: 'Conexión restablecida.',
     failOffline: 'Sin conexión. Tus cambios no se han enviado: revisa la red e inténtalo de nuevo.',
+    failRemoteUnreachable: 'No se ha podido cargar esta parte de la página: su servicio no responde.',
     failTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
     failServer: 'El servidor no pudo completar la petición{status}. Inténtalo de nuevo.',
     failUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',

@@ -70,6 +70,10 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     fun openView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = false)
 
+    /** A menu entry / home of ANOTHER backend → a view whose context runs against that backend. */
+    fun openRemoteView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, baseUrl: String) =
+        open(label, route, consumedRoute, serverSideType, actionId, preferEditor = false, baseUrl = baseUrl)
+
     /** Row detail → always a central editor tab (even if the form embeds grids). */
     fun openDetail(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = true)
@@ -98,17 +102,17 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         FileEditorManager.getInstance(project).closeFile(file)
     }
 
-    private fun open(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, preferEditor: Boolean) {
+    private fun open(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, preferEditor: Boolean, baseUrl: String? = null) {
         // navigating anywhere (even back to the same entry) shows the real screen again
         closePreview()
         // "New" views are never cached/re-focused: every New opens a FRESH editor tab, so several
         // drafts can be edited side by side (each with its own context and state).
         val cacheable = !route.orEmpty().trimEnd('/').endsWith("/new")
-        val key = "${serverSideType.orEmpty()}::${route.orEmpty()}"
+        val key = "${baseUrl.orEmpty()}::${serverSideType.orEmpty()}::${route.orEmpty()}"
         if (cacheable) focusByKey[key]?.let { it(); return }
 
         val title = label.ifBlank { route ?: "View" }
-        val ctx = AppContext(session)
+        val ctx = AppContext(io.mateu.ijp.ui.remoteSession(session, baseUrl))
         val panel = ctx.newSlot()
         ctx.contentPane = panel
         // Both hosts (editor header / tool window title) show the view's toolbar natively.
@@ -149,6 +153,8 @@ class MateuViewManager(private val project: Project, private val session: AppSes
             ctx.setDirtyState(false)
             ctx.navigate(ctx.currentRoute, ctx.currentConsumedRoute, ctx.currentServerSideType, null)
         }
+        // the tasks of this IDE session no stream follows any more are picked up again
+        session.reattachTasks()
     }
 
     /** Crud listing → a tab in the bottom "Mateu" results tool window; actions on the title bar. */

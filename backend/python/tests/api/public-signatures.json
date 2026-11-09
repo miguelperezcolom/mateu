@@ -71,6 +71,15 @@
     ]
    ]
   },
+  "AdvancedCreateEditPage": {
+   "class": [
+    [
+     "detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Aggregate": {
    "class": [
     [
@@ -274,6 +283,11 @@
      "idle_sign_out_url",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "back_link",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -352,6 +366,35 @@
     ]
    ]
   },
+  "AutoEditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "load": [],
+    "persist": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
+   }
+  },
+  "BackLink": {
+   "enum": [
+    "BREADCRUMBS",
+    "PARENT"
+   ]
+  },
   "BadgeInHeader": {
    "class": [
     [
@@ -373,6 +416,12 @@
     "SUCCESS",
     "WARNING"
    ]
+  },
+  "BreadcrumbsSupplier": {
+   "class": [],
+   "members": {
+    "breadcrumbs": []
+   }
   },
   "BulletedList": {
    "class": []
@@ -598,6 +647,20 @@
     ]
    }
   },
+  "CollectionDetailPage": {
+   "class": [
+    [
+     "list",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_selection",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Colspan": {
    "class": [
     [
@@ -757,6 +820,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
@@ -827,6 +895,15 @@
     "style": []
    }
   },
+  "DashboardLandingPage": {
+   "class": [
+    [
+     "kpi",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "DataManagement": {
    "class": [],
    "members": {
@@ -842,6 +919,20 @@
     "toggle_bottom_panel": [],
     "toggle_end_panel": []
    }
+  },
+  "DataManagementPage": {
+   "class": [
+    [
+     "end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "bottom",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "DateRange": {
    "class": [
@@ -937,6 +1028,28 @@
      true
     ]
    ]
+  },
+  "DetailPart": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Details": {
+   "class": []
   },
   "Disabled": {
    "class": []
@@ -1141,6 +1254,21 @@
     ]
    }
   },
+  "EditableView": {
+   "class": [],
+   "members": {
+    "editor": [],
+    "read_only": [],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "view": []
+   }
+  },
   "Emit": {
    "class": [
     [
@@ -1251,6 +1379,18 @@
      true
     ]
    ]
+  },
+  "FeatureFlags": {
+   "class": [],
+   "members": {
+    "is_enabled": [
+     [
+      "flag",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
   },
   "FieldType": {
    "class": [
@@ -1390,6 +1530,33 @@
     ]
    ]
   },
+  "FilterCriterion": {
+   "class": [
+    [
+     "field",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "operator",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FilterOperator": {
+   "enum": [
+    "between",
+    "gte",
+    "in_",
+    "lte"
+   ]
+  },
   "Filterable": {
    "class": [],
    "members": {
@@ -1426,6 +1593,23 @@
     ],
     "style": []
    }
+  },
+  "FoldoutPage": {
+   "class": [
+    [
+     "overview",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "orientation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FormTemplate": {
+   "class": []
   },
   "FragmentCachePolicy": {
    "class": [
@@ -1595,6 +1779,7 @@
       false
      ]
     ],
+    "record_label": [],
     "style": [],
     "switcher_options": []
    }
@@ -1615,6 +1800,15 @@
    "members": {
     "defaults": []
    }
+  },
+  "GeneralOverviewPage": {
+   "class": [
+    [
+     "info",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "GlobalSearchResult": {
    "class": [
@@ -1691,6 +1885,39 @@
     ],
     [
      "hidden_actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GuidedProcessPage": {
+   "class": [
+    [
+     "steps",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GuidedProcessStep": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -1782,6 +2009,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
@@ -1819,6 +2051,49 @@
     "save_and_next_label": []
    }
   },
+  "HeroSearchListing": {
+   "class": [
+    [
+     "selector",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "filters": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "grid_layout": [],
+    "hero_image": [],
+    "hero_subtitle": [],
+    "hero_title": [],
+    "search": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "HeroSearchPage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "HeroTone": {
    "enum": [
     "auto",
@@ -1841,6 +2116,18 @@
      true
     ]
    ]
+  },
+  "HiddenInCreate": {
+   "class": []
+  },
+  "HiddenInEditor": {
+   "class": []
+  },
+  "HiddenInList": {
+   "class": []
+  },
+  "HiddenInView": {
+   "class": []
   },
   "HomeRouteSupplier": {
    "class": [],
@@ -1877,6 +2164,113 @@
     ]
    ]
   },
+  "InMemoryInboxStore": {
+   "class": [
+    [
+     "max_per_principal",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_principals",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "add": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "dismiss": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "mark_read": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "InboxStore": {
+   "class": [],
+   "members": {
+    "add": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "dismiss": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "mark_read": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Inline": {
    "class": []
   },
@@ -1890,6 +2284,30 @@
     "panel_width": [],
     "style": []
    }
+  },
+  "ItemOverviewPage": {
+   "class": [
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "photo",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "KeepAliveHandler": {
    "class": [],
@@ -2272,6 +2690,9 @@
     ]
    }
   },
+  "MainFilter": {
+   "class": []
+  },
   "MarkClean": {
    "class": [],
    "members": {
@@ -2282,6 +2703,15 @@
    "class": [],
    "members": {
     "to_command": []
+   }
+  },
+  "MasterDetailView": {
+   "class": [],
+   "members": {
+    "header": [],
+    "load": [],
+    "no_selection": [],
+    "title": []
    }
   },
   "Max": {
@@ -2382,9 +2812,35 @@
      "key",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ],
    "members": {
+    "contrast": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "error": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "success": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
     "to_wire": [],
     "undoable": [
      [
@@ -2401,6 +2857,13 @@
       "undo_parameters",
       "POSITIONAL_OR_KEYWORD",
       true
+     ]
+    ],
+    "warning": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
      ]
     ],
     "with_action": [
@@ -2586,6 +3049,15 @@
   "Multiline": {
    "class": []
   },
+  "MultimediaContentPage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "NavLink": {
    "class": [
     [
@@ -2638,6 +3110,9 @@
    "members": {
     "to_command": []
    }
+  },
+  "NoSelection": {
+   "class": []
   },
   "NotificationChange": {
    "class": [
@@ -3381,6 +3856,23 @@
     "declared_rest_sources": []
    }
   },
+  "Restorable": {
+   "class": [],
+   "members": {
+    "restore_all_by_id": [
+     [
+      "deleted_ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
   "RowStatus": {
    "class": []
   },
@@ -3541,6 +4033,21 @@
      "view_more_action",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "sticky",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -3690,6 +4197,45 @@
     ]
    ]
   },
+  "Subresource": {
+   "class": [
+    [
+     "tab",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "help",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "load",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show_title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "context",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "SubscriptionSource": {
    "enum": [
     "COMPONENT",
@@ -3712,6 +4258,30 @@
     ],
     [
      "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TemplateImage": {
+   "class": [
+    [
+     "src",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "initials",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -4014,6 +4584,15 @@
     "style": []
    }
   },
+  "WelcomePage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Wizard": {
    "class": [],
    "members": {
@@ -4039,6 +4618,13 @@
      ],
      [
       "to_step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "step_applies": [
+     [
+      "step",
       "POSITIONAL_OR_KEYWORD",
       false
      ]
@@ -4100,6 +4686,61 @@
     [
      "idempotent",
      "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "background",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "sse",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "href",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "js",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "custom_event",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "custom_event_detail",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "confirmation_title",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "confirmation_message",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "confirmation_text",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "confirmation_denial_text",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "confirmation_required",
+     "KEYWORD_ONLY",
      true
     ]
    ]
@@ -4189,6 +4830,41 @@
      "mobile_qr",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "os_notifications",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "inbox",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "layout",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "accent_color",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "ask_label",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "ask_icon",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "back_link",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },
@@ -4257,6 +4933,20 @@
     ]
    ]
   },
+  "auto_save": {
+   "function": [
+    [
+     "debounce_millis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "banner": {
    "function": [
     [
@@ -4268,6 +4958,15 @@
      "title_",
      "POSITIONAL_OR_KEYWORD",
      true
+    ]
+   ]
+  },
+  "breadcrumbs": {
+   "function": [
+    [
+     "crumbs",
+     "VAR_POSITIONAL",
+     false
     ]
    ]
   },
@@ -4556,6 +5255,9 @@
     ]
    ]
   },
+  "no_breadcrumbs": {
+   "function": []
+  },
   "overline": {
    "function": [
     [
@@ -4589,6 +5291,30 @@
   "read_only": {
    "function": []
   },
+  "read_only_unless": {
+   "function": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "remote_menu": {
    "function": [
     [
@@ -4608,6 +5334,11 @@
     ],
     [
      "explode",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "path",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -4911,6 +5642,26 @@
      "button_style",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "button_color",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "button_size",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "order",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "separator_before",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },
@@ -4988,6 +5739,20 @@
      "message",
      "POSITIONAL_OR_KEYWORD",
      false
+    ]
+   ]
+  },
+  "view_toolbar_button": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirmation_required",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -5380,6 +6145,73 @@
     ]
    ]
   },
+  "BoardLayout": {
+   "class": [
+    [
+     "rows",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "BoardLayoutItem": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "board_cols",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "BoardLayoutRow": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Bpmn": {
    "class": [
     [
@@ -5515,6 +6347,11 @@
     ],
     [
      "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -5753,6 +6590,100 @@
     ]
    ]
   },
+  "CarouselLayout": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "alt",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "animating",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "auto",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "direction",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disable_swipe",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disable_keys",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "duration",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "dots",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "loop",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "nav",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Chart": {
    "class": [
     [
@@ -5810,6 +6741,30 @@
     ],
     [
      "data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Chat": {
+   "class": [
+    [
+     "sse_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "upload_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -6075,6 +7030,25 @@
     ]
    ]
   },
+  "Container": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "ContentSlot": {
    "class": [
     [
@@ -6112,6 +7086,94 @@
      "POSITIONAL_OR_KEYWORD",
      true
     ]
+   ]
+  },
+  "ContextMenu": {
+   "class": [
+    [
+     "menu",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrapped",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "activate_on_left_click",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CookieConsent": {
+   "class": [
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "dismiss",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cookie_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "learn_more",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "learn_more_link",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CookieConsentPosition": {
+   "enum": [
+    "Bottom",
+    "BottomLeft",
+    "BottomRight",
+    "Top",
+    "TopLeft",
+    "TopRight"
    ]
   },
   "CustomComponent": {
@@ -6304,6 +7366,45 @@
     ],
     [
      "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "draggable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "resizable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "top",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "left",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Directory": {
+   "class": [
+    [
+     "menu",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -6514,6 +7615,13 @@
      "POSITIONAL_OR_KEYWORD",
      true
     ]
+   ]
+  },
+  "EmbeddedChrome": {
+   "enum": [
+    "COMPACT",
+    "NONE",
+    "PAGE"
    ]
   },
   "EmbeddedView": {
@@ -7039,6 +8147,30 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "template",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FormEditor": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -7116,6 +8248,83 @@
     ],
     [
      "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options_columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options_source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FormItem": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FormSubSection": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FullWidth": {
+   "class": [
+    [
+     "content",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -7232,6 +8441,273 @@
     ],
     [
      "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Grid": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "page",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tree",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrap_cell_content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "compact",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_border",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_row_border",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "column_borders",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_stripes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_background",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_padding",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GridColumn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "stereotype",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "align",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sortable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sorting_property",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filterable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "frozen",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "frozen_to_end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "auto_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "flex_grow",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "resizable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tooltip_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "caption_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "leading_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "priority",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "identifier",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "editable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "editor_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "editor_options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "weight",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "aggregate",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "line",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tones",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value_labels",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GridGroupColumn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -7383,6 +8859,16 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrap",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -7736,6 +9222,176 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "row_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_stripes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "column_borders",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrap_cell_content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_border",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_row_border",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "all_rows_visible",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "column_reordering_allowed",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "grid_style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "listing_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "toolbar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "initial_page",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "pre_search",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "detail_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "use_button_for_detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lazy_column_rendering",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_background",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_padding",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "infinite_scrolling",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lazy_loading",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "multiple_row_selection_enabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "on_row_selection_changed_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content_height",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "search_on_enter",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "auto_focus_on_search_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filters_layout",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_by",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_status_field",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "drag_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows_selection_enabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -7826,6 +9482,45 @@
    "class": [
     [
      "markdown",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MasterDetailLayout": {
+   "class": [
+    [
+     "master",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "orientation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "variant",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -7995,6 +9690,143 @@
     ]
    ]
   },
+  "MenuBar": {
+   "class": [
+    [
+     "options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MenuEntry": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "submenu",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled_on_click",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "class_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "item_data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "component",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "separator",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MenuSeparator": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "submenu",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled_on_click",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "class_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "item_data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "component",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "separator",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "MergeField": {
    "class": [
     [
@@ -8057,6 +9889,88 @@
     ],
     [
      "caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MessageInput": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MessageList": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MessageListItem": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "user_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "time",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "user_img",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "user_abbr",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "user_color_index",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -8243,11 +10157,55 @@
      "action_id",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "chrome",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ],
    "members": {
     "resolved_by_server": []
    }
+  },
+  "NotFound": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "back_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "back_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "Notice": {
    "class": [
@@ -9352,6 +11310,25 @@
     ]
    ]
   },
+  "Scroller": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Separator": {
    "class": [
     [
@@ -9614,6 +11591,79 @@
     ]
    ]
   },
+  "Tab": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "active",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "shortcut",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TabLayout": {
+   "class": [
+    [
+     "tabs",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_relationship",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "adaptable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "TaskProgress": {
    "class": [
     [
@@ -9771,6 +11821,11 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "container",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -9924,6 +11979,54 @@
     ],
     [
      "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "horizontal_alignment",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "VirtualList": {
+   "class": [
+    [
+     "page",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Workflow": {
+   "class": [
+    [
+     "value",
      "POSITIONAL_OR_KEYWORD",
      true
     ],

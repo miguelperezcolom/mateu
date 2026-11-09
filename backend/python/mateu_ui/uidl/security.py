@@ -105,6 +105,21 @@ def eyes_only(roles=(), groups=(), scopes=(), permissions=()):
     return deco
 
 
+def read_only_unless(roles=(), groups=(), scopes=(), permissions=()):
+    """Class-level ``ReadOnlyUnless`` (Java's / .NET's ``@ReadOnlyUnless`` on a type): EVERY field
+    of the view renders read-only unless the caller is authorized, and the wire never writes them
+    for an unauthorized caller (they keep their server-side values). Same matching as the field
+    marker: AND across declared dimensions, OR within each; no identity → unauthorized."""
+
+    gate = ReadOnlyUnless(roles=roles, groups=groups, scopes=scopes, permissions=permissions)
+
+    def deco(cls):
+        cls.__mateu_read_only_unless__ = gate
+        return cls
+
+    return deco
+
+
 def disabled_unless(roles=(), groups=(), scopes=(), permissions=()):
     """Method decorator: the button is disabled unless the caller is authorized."""
 

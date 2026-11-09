@@ -147,6 +147,24 @@ Enter on a focused row opens it too, and a navigable row shows a pointer cursor.
 
 A table whose rows expand a `@Details` panel on click keeps that click for expanding; the record then opens from its id link.
 
+### The technical id is not a column
+
+Once the whole row opens the record, the id column has no job left — it was the link — and a
+generated id (`…-54211fd5db0c`, `4711`) tells the user nothing. So on a listing whose rows open by
+click, the **reflected column of the row's declared id is left out**, and the first remaining column
+becomes the row's link. The row data keeps the id: opening, selecting and deleting still read it.
+
+The rule, the same in Java, .NET and Python:
+
+- only a listing whose rows open by click (a `Navigable` listing, any CRUD, `editInDrawer`);
+- only the row's **declared** id — the field marked `@PrimaryKey`, else the field named `id`
+  (.NET `[Id]` / `Id`, Python `id`) — whatever its type; when the row has neither, Mateu falls back
+  to the first field as the id, and that field is a business field: it stays;
+- a **`@Label` on the id keeps it** — you named the column, so you want it shown (a business code:
+  `@Label("Code") String id`; .NET `[Label("Code")]`, Python `Annotated[str, Label("Code")]`);
+- never the only column, and never a column you list yourself (a fluent or YAML `Listing`'s
+  `columns:` are shown as written).
+
 ### A row that opens somewhere else: a `rowRoute` that is a URL
 
 A `rowRoute` is normally a route of the app (`people/${row.id}`). When it resolves to a **whole URL** — it starts with a scheme such as `https://`, or with `//` — the row leaves the app instead: a click opens that URL in a **new tab** (on React Native, in the phone's browser; in the IntelliJ plugin, in the system browser), and the app stays where it was. A row whose items have no page of their own can point at one that exists elsewhere:
@@ -196,6 +214,40 @@ public class Books implements Listing<Book>, Editable<Book, String> {
 When the class declares **both** `Navigable` and `Editable`, the flow is the classic one instead: row click → read-only detail at `/:id` → Edit button → form at `/:id/edit`.
 
 Add `Creatable<Book, String>` (`creationForm()` + `create()`) for the New button and `Deletable<String>` (`deleteAllById(ids, http)`) for selection + Delete — each is independent of the others.
+
+### Undoable delete — `Restorable` (experimental)
+
+A listing that can bring deleted records back declares `Restorable<Id>` next to `Deletable<Id>`.
+Delete then **asks for no confirmation**: it deletes, and answers a toast — *"2 records deleted"* —
+with an **Undo** button. Undo calls `restoreAllById(ids, http)` with the same ids and the listing
+searches again (*"2 records restored"*). Without `Restorable`, Delete keeps asking first.
+
+```java
+@UI("/notes")
+public class NotesCrud extends AutoCrud<Note> implements Restorable<String> {
+
+    @Override
+    public CrudStore<Note> store() { return notes; }
+
+    @Override
+    public void restoreAllById(List<String> ids, HttpRequest httpRequest) {
+        notes.restore(ids);   // e.g. clear a soft-delete flag
+    }
+}
+```
+
+The same declaration works on an `AutoCrud`, a `Crud` and any capability listing; .NET declares
+`IRestorable<TId>` (`RestoreAllById(ids)`) and Python `Restorable[str]` (`restore_all_by_id(ids)`).
+Mateu ships UI only: how a record comes back is yours — a soft-delete flag, a trash table, a store
+that keeps the removed rows for a while. Restore must accept ids it no longer holds (the toast may
+be clicked late) and must not bring back what the caller could not delete; the server already
+refuses the Undo of a CRUD that may not delete. The Undo runs the reserved action
+`restore-deleted` with the ids in `_restoreIds` (`Restorable.RESTORE_ACTION` / `RESTORE_IDS`), on
+every renderer that shows [undoable toasts](/ux-patterns/undo/).
+
+Why a capability on the listing rather than a default method on `CrudStore`: Mateu has to know
+**before** deleting whether an Undo can be offered (that is what drops the confirmation), and a
+default method that throws can only be discovered by calling it — after the rows are gone.
 
 ---
 

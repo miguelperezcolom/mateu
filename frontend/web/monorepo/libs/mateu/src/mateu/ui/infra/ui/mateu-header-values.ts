@@ -1,5 +1,5 @@
 import { css, html, LitElement, nothing } from 'lit'
-import { customElement, state } from 'lit/decorators.js'
+import { customElement, property, state } from 'lit/decorators.js'
 import { headerValuesList, onHeaderValuesChanged } from '@infra/ui/headerValues.ts'
 
 /**
@@ -10,6 +10,10 @@ import { headerValuesList, onHeaderValuesChanged } from '@infra/ui/headerValues.
  */
 @customElement('mateu-header-values')
 export class MateuHeaderValues extends LitElement {
+
+    /** The ids of the shell this element is on (its declared values): an app embedded under another
+     *  shell paints ITS values, not the top shell's too. Unset = every value in the store. */
+    @property({ attribute: false }) ids: string[] | undefined
 
     @state() private version = 0
     private previous = new Map<string, string>()
@@ -41,6 +45,7 @@ export class MateuHeaderValues extends LitElement {
     render() {
         void this.version
         const values = headerValuesList()
+            .filter((v) => !this.ids || this.ids.includes(v.id))
         if (!values.length) return nothing
         return html`${values.map((v) => html`
             <span class="value ${this.changed.has(v.id) ? 'changed' : ''}" data-header-value="${v.id}">

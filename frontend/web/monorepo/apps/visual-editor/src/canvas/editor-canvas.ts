@@ -451,7 +451,7 @@ export class EditorCanvas extends LitElement {
             // the inlined roots keep the reference's ve- id, so a partial stays one selectable node
             const tree = resolveForCanvas(parse(yaml), this.files) as Record<string, unknown>
             const spec: DefinitionSpec = this.doc?.modelView
-                ? { modelView: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
+                ? { viewModel: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
                 : (tree as DefinitionSpec)
             if (!isClientExpandable(spec)) {
                 if (fallback) return false

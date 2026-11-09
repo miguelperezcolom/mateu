@@ -82,3 +82,5 @@ new AvatarGroup(teamMembers.stream()
     4   // show at most 4, then "+N"
 )
 ```
+
+**See it live in the Explorer:** [Images, icons, avatars & badges](https://explorer.mateu.io/components/display/media-and-badges)

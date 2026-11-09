@@ -1,0 +1,9 @@
+# The mount. Everything in this folder is hand-written and stays put; the PAGES are not here: they
+# are converted from a Figma file (design/figma/e2e/*.figma.json) by bin/run.mjs and put on the
+# classpath with -Dloader.path, one fixture at a time.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+home: welcome
+routes:
+  - routes.yaml

@@ -50,6 +50,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
           new NewActionHandler(),
           new PersistActionHandler(),
           new DeleteEditActionHandler(),
+          new RestoreDeletedActionHandler(),
           new EditActionHandler(),
           new ActionOnRowActionHandler(),
           new ActionOnViewActionHandler(),
@@ -345,6 +346,26 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * this method. Override it too whenever the route id needs decoding/normalising before the
    * lookup.
    */
+  /**
+   * Whether a delete here can be undone: the crud (or, bridged, its listing) declares {@link
+   * io.mateu.uidl.interfaces.Restorable}. Then Delete asks for no confirmation and answers an
+   * undoable toast instead (W-V-DELETE-FEEDBACK).
+   */
+  @io.mateu.uidl.annotations.Internal
+  public boolean restorable() {
+    return behaviourSource() instanceof io.mateu.uidl.interfaces.Restorable<?>;
+  }
+
+  /**
+   * Brings deleted records back through the declared {@link io.mateu.uidl.interfaces.Restorable}.
+   */
+  @io.mateu.uidl.annotations.Internal
+  @SuppressWarnings("unchecked")
+  public void restoreDeleted(List<IdType> ids, HttpRequest httpRequest) {
+    ((io.mateu.uidl.interfaces.Restorable<IdType>) behaviourSource())
+        .restoreAllById(ids, httpRequest);
+  }
+
   @SuppressWarnings("unchecked")
   public IdType toId(String id) {
     return (IdType) CrudIdConverter.convert(id, idClass(), getClass());

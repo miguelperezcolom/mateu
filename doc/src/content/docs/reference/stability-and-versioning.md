@@ -3,41 +3,37 @@ title: "Stability & versioning"
 description: "What counts as Mateu's public API, how versions are numbered, how long a deprecated API stays, and the compatibility rules of the wire."
 ---
 
-From the **3.0 beta** on, Mateu commits to the rules on this page. Before it — the 3.0 alphas — the
-API changed in place; [Migrating from alpha](/reference/migrating-from-alpha/) lists everything that
-did.
+**3.0.0 is Mateu's first stable release**, and from it on Mateu commits to the rules on this page.
+The 3.0 pre-releases (alphas, betas, release candidates) were previews: 3.0.0 keeps no
+compatibility with them — anything they deprecated is gone, and an app written against one is
+upgraded to 3.0.0 once, with the compiler as its guide.
 
 ## Version numbers
 
 - Releases are tagged `vMAJOR.MINOR[-qualifier.N]` and published to Maven Central under `io.mateu`,
-  every artifact named `mateu-*` (`mateu-uidl`, `mateu-mvc`, `mateu-vaadin`…; the pre-beta ids are
-  relocation poms — see [Migrating from alpha](/reference/migrating-from-alpha/#maven-artifacts)),
-  with the tag's version (`3.0-alpha.406`, `3.0-beta.1`, `3.0.0`, `3.1.0`…). Every module of one
+  every artifact named `mateu-*` (`mateu-uidl`, `mateu-mvc`, `mateu-vaadin`…), with the tag's
+  version (`3.0.0`, `3.0.1`, `3.1.0`…). Every module of one
   release shares that version — never mix versions of `io.mateu` artifacts in one app.
 - **Major** (`3` → `4`): may break the public API or the wire. Announced in advance, with a migration
   guide.
 - **Minor** (`3.0` → `3.1`): new features; **no breaking change** to the public API or the wire.
   May deprecate.
 - **Patch** (`3.0.0` → `3.0.1`): fixes only.
-- **Pre-releases** (`-alpha.N`, `-beta.N`): alphas may break anything; betas follow the
-  deprecation policy below, except for fixes to defaults that were a security problem.
+- **Pre-releases** (`-rc.N` of a coming minor or major): previews of that release, outside the
+  promise — they may change anything until the release itself.
 
-### What "beta" means
-
-The first beta freezes the public surface listed under [What is public API](#what-is-public-api).
-From that tag on:
+The promise covers the public surface listed under [What is public API](#what-is-public-api):
 
 - **Stable API changes only through deprecation.** A replacement is added, the old element is
-  marked deprecated (naming the replacement) and **both work side by side for at least one
-  release** — deprecated in `3.0-beta.N`, removable in `3.0-beta.N+1` at the earliest; once `3.0.0`
-  is out, the one-minor rule below applies. Nothing stable is renamed in place.
-- **Experimental API can change** in any beta (and later in any minor) — that is what the marker is
-  for. The [list below](#stable-and-experimental-api-by-package) is the exact boundary.
+  marked deprecated (naming the replacement) and both work side by side for at least one minor
+  ([Deprecation policy](#deprecation-policy)). Nothing stable is renamed in place.
+- **Experimental API can change** in any minor — that is what the marker is for. The
+  [list below](#stable-and-experimental-api-by-package) is the exact boundary.
 - The **wire** stays additive within `wireVersion` 3.x (see [Wire compatibility](#wire-compatibility)),
   and YAML keys follow the same add-then-deprecate rule as Java names.
-- **The promise is enforced by the build**, not only stated: from `3.0-beta.1` on, an incompatible
-  change to the stable API fails CI in all three backends — Java (japicmp), .NET (the pinned public
-  surface of `Mateu.Uidl`) and Python (the pinned exports and signatures of `mateu_ui.uidl`). See
+- **The promise is enforced by the build**, not only stated: an incompatible change to the stable
+  API fails CI in all three backends — Java (japicmp), .NET (the pinned public surface of
+  `Mateu.Uidl`) and Python (the pinned exports and signatures of `mateu_ui.uidl`). See
   [Enforcement](#enforcement).
 
 ## What is public API
@@ -159,7 +155,7 @@ Experimental today:
 | The **new YAML authoring catalogues** | field types (`types.yaml`: `FieldTypeEntry`, `FieldTypeCatalog`, `FieldTypeCatalogSupplier`, `GridColumn.tones`), translations (`Translations`, `TranslationsSupplier`), environments (`Environment`), YAML access keys (`Access`), the project descriptor (`ProjectSettings`, `ProjectRenderer`) and sample data on REST sources (`RestDataSource.sample`, `RestSourceEntry.sample`) — the YAML shapes and the Java types behind them |
 | **Development tooling** | live reload (dev mode, `/mateu/dev/*`), the Redwood embedded `<mateu-ui>` JET component |
 | The **Figma design-to-code pipeline** | the contract packaged at `META-INF/mateu/contract.json` in the uidl jar, the Figma plugin and the modux importer/codegen |
-| The **pattern-gap and PMS-parity features** of `3.0-alpha.409` — weeks old, not yet proven in production | the archetype display options (`Toggle`, `CrudDisplay`, `WizardDisplay`, `GeneralOverviewDisplay`), wizard drafts and navigation hooks (`Draftable`, `stepSkippable`, `beforeStepNavigate`, `@WizardCompletionAction(availableFromStep)`), the record switcher (`RecordSwitcher`, `RecordSwitcherSupplier`), docked panels (`DockedPanel`), the `@Section` affordances (`editAction`/`addAction`/`viewMoreAction`), hero tones, screen-reader announcements (`UICommand.announce`), pre-search content, the action panel, the matrix grid, map markers, drag rows to a drop zone, access keys, card menus, calendar views, hover popovers and cell tooltips, row tones, reorderable dashboards and the shared action catalogue (`actions.yaml`, `ActionCatalog`) |
+| The **pattern-gap and PMS-parity features** — not yet proven in production | the archetype display options (`Toggle`, `CrudDisplay`, `WizardDisplay`, `GeneralOverviewDisplay`), wizard drafts and navigation hooks (`Draftable`, `stepSkippable`, `beforeStepNavigate`, `@WizardCompletionAction(availableFromStep)`), the record switcher (`RecordSwitcher`, `RecordSwitcherSupplier`), docked panels (`DockedPanel`), the `@Section` affordances (`editAction`/`addAction`/`viewMoreAction`), hero tones, screen-reader announcements (`UICommand.announce`), pre-search content, the action panel, the matrix grid, map markers, drag rows to a drop zone, access keys, card menus, calendar views, hover popovers and cell tooltips, row tones, reorderable dashboards and the shared action catalogue (`actions.yaml`, `ActionCatalog`) |
 
 The exact list, type by type, is [generated from the code](#stable-and-experimental-api-by-package).
 
@@ -168,11 +164,10 @@ editor and the VS Code extension — and the .NET and Python servers are **suppo
 gaps**; [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30) says what
 that means.
 
-### Added after the freeze: experimental in 3.0.0
+### Recent API: experimental in 3.0.0
 
-Everything that joined the public API after the freeze (`3.0-beta.1`) and before `3.0.0` is
-**experimental in 3.0.0**: it shipped in betas, weeks old, and keeps the freedom to change in a
-3.x minor. Most of it was marked when it landed (the page templates, the micro frontends resolved in
+The API that joined Mateu in the last weeks before `3.0.0` is **experimental in 3.0.0**: it is
+young and keeps the freedom to change in a 3.x minor. Most of it was marked when it landed (the page templates, the micro frontends resolved in
 the server and `@ContentSlot`, the kanban drag and order, the org chart in focus, the hero
 overline…); the GA review marked the rest:
 
@@ -203,7 +198,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 14 | 4 | 0 | 0 | 10 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 13 | 0 | 0 | 0 | 13 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 14 | 0 | 0 | 0 | 14 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 9 | 0 | 0 | 0 | 9 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.datamanagement` | 1 | 1 | 0 | 0 | 0 |
@@ -219,18 +214,18 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 287 | 257 | 0 | 30 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 257 | 257 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 330 | 263 | 66 | 1 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 91 | 9 | 0 | 7 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 91 | 11 | 0 | 7 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 2 | 0 | 0 | 0 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1025** | **837** | **98** | **31** | **59** |
+| **Total** | | **998** | **837** | **100** | **1** | **60** |
 
 **Experimental types** (the whole type and its members):
 
@@ -238,7 +233,7 @@ same concepts.
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
 - `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
 
 **Experimental members** of otherwise stable types:
@@ -253,7 +248,7 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroOverline`, `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
 - `io.mateu.uidl.annotations.AI`: `followLabel`, `followingLabel`
-- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`
+- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `inbox`, `liveUpdates`, `mobileQr`, `osNotifications`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`
@@ -302,7 +297,7 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.MultiView`: `wrapView`
 - `io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail`: `bindRequest`
-- `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `stateSource`
+- `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `restorable`, `restoreDeleted`, `stateSource`
 - `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.todolist.TodoList`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `currentStepField`
@@ -340,41 +335,12 @@ compatibility check skips them, and they may change in any release. The extensio
   switch to keep the old behaviour for at least that minor. Security fixes are the exception: an
   insecure default can change in a patch, and the release notes say how to opt back in.
 
-### Removed in 3.0.0
-
-`3.0.0` removed the API deprecated during the alphas (`3.0-alpha.*`); what was deprecated during the
-betas stays, deprecated, until 4.0. Each removal is recorded as a reviewed exclusion of the
-compatibility check (`backend/api-compat/japicmp-exclusions.properties`) and in the CHANGELOG.
-
-| Removed | Deprecated in | Use instead |
-|---|---|---|
-| `AppVariant.HAMBURGUER_MENU` (Java, YAML `variant:`, .NET/Python strings) | 3.0-alpha.410 | `HAMBURGER_MENU` (the wire DTO keeps both spellings; renderers accept both) |
-| `@GenericClass` | 3.0-alpha.410 | declare the field with its type argument |
-| `io.mateu.uidl.annotations.ActionType` | 3.0-alpha.410 | `@Toolbar` / `@Button` / `@Hidden` |
-| `ActionPosition`, `ActionStereotype`, `ActionThemeVariant` | 3.0-alpha.410 | `ButtonStyle` / `ButtonColor` / `ButtonVariant` |
-| `Binding`, `BindingSource`, `ClientSideEvent`, `Destination` | 3.0-alpha.410 | binding by convention; `UICommand.dispatchEvent` + `@SubscribeTo`; `UICommand.navigateTo` |
-| `ListAdapter` | 3.0-alpha.410 | `Listing<Row>` |
-| `io.mateu.uidl.layout.ColumnLayoutSelector` | 3.0-alpha.410 | `gridLayout()` |
-| `ContentLayout` (Java, .NET, Python, YAML) | 3.0-alpha.348 | `ResponsiveGrid` with named areas |
-| `@List` (`io.mateu.uidl.annotations.List`) | 3.0-alpha.426 | `@BulletedList` |
-| `BadgeSupplier` | 3.0-alpha.412 | `HeaderBadgesSupplier` |
-| `Button.getActionId()` | 3.0-alpha.412 | `Button.resolvedActionId()` |
-| `@KeycloakSecured` | 3.0-alpha.412 | your framework's authentication, or a `PrincipalResolver` |
-| the settings `mateu.layout.inference`, `mateu.page.inference.disabled` (.NET `Mateu.LayoutInference`, `Mateu.PageInference.Disabled`) | 3.0-alpha.412 | `mateu.layout.inference.enabled`, `mateu.page.inference.enabled` |
-| core `JwtExtractor` | 3.0-alpha.425 | `IdentityResolver` |
-| core `application.runaction.DeclaredRestMethod` | 3.0-alpha.425 | `io.mateu.core.domain.DeclaredRestMethod` |
-| the static `wrap`/`getState`/`withoutRestricted`/`getAppRoute` of `ComponentStateHelper` and `RunActionUseCase`, `RunActionUseCase.SECRET_ENV_PREFIX` / `secretEnvName` | 3.0-alpha.425 | `io.mateu.core.domain.ComponentState`, `SecretResolver` |
-| .NET `[Secured]`, Python `@secured` | 3.0-alpha.412 | `EyesOnly(permissions = …)` |
-| Python `Size` (length constraint) | 3.0-alpha.412 | `Length` |
-| Python `components.Step` | 3.0-alpha.426 | `ProgressStep` |
-
-Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template — deprecated,
-removable in 4.0), the deprecated wire DTOs (`io.mateu.dtos`, versioned by the wire, not the Java
-API), and the YAML key aliases `definition:` / `modelView:`.
+`DashboardLayout` is the one deprecated element 3.0.0 ships: the `DashboardLandingPage` template
+still lays its panels out with it, so it stays (removable in 4.0); author `ResponsiveGrid` instead.
 
 ## Enforcement
 
-**The 3.x public API is frozen from `3.0-beta.1` on**, and the build enforces it in every backend.
+**The 3.x public API is frozen from `3.0.0` on**, and the build enforces it in every backend.
 An incompatible change to a stable element fails the pull request's checks (the `backend-tests` and
 `python` jobs) and tells you how to make it compatible instead: **add + deprecate** — add the
 replacement next to the old element, keep the old one working and mark it deprecated naming the
@@ -420,7 +386,9 @@ summary.
 - **`backend/api-compat/japicmp-exclusions.properties`** is the reviewed allowlist: adding an entry
   is how an intentional break (the end of a deprecation period, a major release) gets through; the
   comment block above the list names the release or PR that accepted each group, and the list is
-  reset to its sentinel whenever the baseline moves. The [Internal](#stable-and-experimental-api-by-package)
+  reset to its sentinel whenever the baseline moves. Until `3.0.0` is on Maven Central the baseline
+  is the last pre-release and the list records the pre-GA clean-up; once it is, `3.0.0` becomes the
+  baseline and the list starts empty — the promise is measured from `3.0.0`. The [Internal](#stable-and-experimental-api-by-package)
   types are excluded from the check.
 - Marking an existing stable API `@Experimental` or `@Internal` is itself reported as a removal —
   japicmp drops the annotated element on the new side only — so an API cannot leave the promise
@@ -429,9 +397,6 @@ summary.
   report-only, to read the full japicmp report of a break (a failing run stops before writing it);
   `-Dmateu.japicmp.skip=true` skips it, e.g. offline — the baseline jar comes from Maven Central.
   Neither is for a pull request: CI runs the default.
-
-Until the beta the check was report-only — the alphas changed the API in place, and
-[Migrating from alpha](/reference/migrating-from-alpha/) is the record of it.
 
 ## Wire compatibility
 

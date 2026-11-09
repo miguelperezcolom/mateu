@@ -1,0 +1,12 @@
+type: Translations
+locale: en
+messages:
+  explorer:
+    i18n:
+      appTitle: Translations demo
+      title: Say hello
+      name: Your name
+      greet: Greet me
+      yamlTitle: A page written in YAML
+      intro: "Every text on this page is an i18n key, resolved on the server for the request's language."
+      save: Save

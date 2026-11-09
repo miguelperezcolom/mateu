@@ -1,7 +1,7 @@
 // The client-side rule engine (clientRules.ts).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyClientRules } from './clientRules.ts';
+import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 
 type Json = Record<string, any>;
 const run = (rules: Json[], state: Json = {}, attrs: Record<string, Json> = {}) => {
@@ -56,4 +56,21 @@ test('RunAction runs, an empty id does not; Stop ends the pass; unknown actions 
   assert.deepEqual(r.ran, ['refresh']);
   assert.equal('late' in r.state, false);
   assert.equal(r.changed, false);
+});
+
+// The `required` rule (SetDataValue on <field>.required — "the VAT number of a company") reached
+// the state as `vatNumber.required` and nothing read it: no asterisk, and an empty value was saved.
+test('SetDataValue on a field attribute also overrides the field, so the renderers see it', () => {
+  const rule = { action: 'SetDataValue', fieldName: 'vatNumber', fieldAttribute: 'required', expression: '!!state.company' };
+  const on = run([rule], { company: true });
+  assert.deepEqual(on.attrs, { vatNumber: { required: true } });
+  const off = run([rule], { company: false }, on.attrs);
+  assert.deepEqual(off.attrs, { vatNumber: { required: false } });
+});
+
+test('a field a rule makes required is refused empty; a value or a hiding rule lets it go', () => {
+  assert.deepEqual(ruleRequiredErrorsOf({ vatNumber: { required: true } }, { vatNumber: '' }), { vatNumber: 'Cannot be empty' });
+  assert.deepEqual(ruleRequiredErrorsOf({ vatNumber: { required: true } }, { vatNumber: 'B1' }), {});
+  assert.deepEqual(ruleRequiredErrorsOf({ vatNumber: { required: false } }, {}), {});
+  assert.deepEqual(ruleRequiredErrorsOf({ vatNumber: { required: true, hidden: true } }, {}), {});
 });

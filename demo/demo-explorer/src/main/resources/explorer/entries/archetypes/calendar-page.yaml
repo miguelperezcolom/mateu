@@ -1,0 +1,19 @@
+id: calendar-page
+area: archetypes
+group: collections
+title: Calendar page
+covers: [archetype:CalendarPage]
+description: |
+  Extend `CalendarPage` and supply `events(month)`: the archetype draws the calendar toolbar (‹ Today ›),
+  keeps the shown period in the page and re-fetches on navigation. Hooks shown: `views()` (more than one
+  → a month / week / day / list switcher), `days(from, to)` (a label and tone per date — closed on
+  Mondays), `daysClickable()` + `actionOnDay(date)`, `actionOn(event)` for an event click and
+  `showCreate()` + `createAction()` for the "+ Create" button.
+examples:
+  - title: Exhibition calendar
+    java: io.mateu.explorer.examples.archetypes.calendarpage.ExhibitionCalendar
+pages:
+  - {route: x/archetypes/calendar-page, viewModel: io.mateu.explorer.examples.archetypes.calendarpage.ExhibitionCalendar}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/calendar-page/ExhibitionCalendar.cs}
+  - {label: Python, path: src/main/ports/archetypes/calendar-page/exhibition_calendar.py}

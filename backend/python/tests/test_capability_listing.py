@@ -150,6 +150,21 @@ class BulkBooks(Listing[Book], Deletable[str]):
         BulkBooks.last_archived = [b.id for b in selection]
 
 
+@ui("plain-bulk-books")
+class PlainBulkBooks(Listing[Book]):
+    """A plain listing (no interaction capability) with a bulk method: Java reaches it by the
+    method's own name."""
+
+    last_archived: list[str] | None = None
+
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+    @list_toolbar_button()
+    def archive_all(self, selection: list[Book], http=None):
+        PlainBulkBooks.last_archived = [b.id for b in selection]
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -380,3 +395,19 @@ def test_bulk_methods_declared_on_the_listing_become_toolbar_buttons_and_are_inv
         {"crud_selected_items": [{"id": "b1", "title": "El Quijote", "pages": 863}]},
     )
     assert BulkBooks.last_archived == ["b1"]
+
+
+def test_a_plain_listing_reaches_its_bulk_method_by_its_own_name():
+    crudl = listing_of(load("plain-bulk-books"))
+    assert toolbar_action_ids(crudl) == ["archiveAll"]
+    run(
+        PlainBulkBooks, "plain-bulk-books", "archiveAll",
+        {"crud_selected_items": [{"id": "b2", "title": "Rayuela", "pages": 600}]},
+    )
+    assert PlainBulkBooks.last_archived == ["b2"]
+    # the open wildcard still reaches it
+    run(
+        PlainBulkBooks, "plain-bulk-books", "action-on-row-archiveAll",
+        {"crud_selected_items": [{"id": "b1", "title": "El Quijote", "pages": 863}]},
+    )
+    assert PlainBulkBooks.last_archived == ["b1"]

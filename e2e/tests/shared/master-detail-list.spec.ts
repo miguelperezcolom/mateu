@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
  * fix relies on.
  */
 
-const API = '/master-detail-list/mateu/v3/components/_/action';
+const API = '/master-detail-list/mateu/v3/sync/_no_route';
 const TYPE = 'io.mateu.sample1.MasterDetailListForm';
 
 async function callAction(request: any, body: object) {

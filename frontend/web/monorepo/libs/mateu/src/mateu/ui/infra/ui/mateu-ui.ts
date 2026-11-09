@@ -26,6 +26,7 @@ import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
+import { rememberedTasks } from '@infra/progress/taskMemory.ts'
 
 // A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
 // (before any request carries the id) whether another tab holds it, and take a fresh one if so.
@@ -203,6 +204,11 @@ export class MateuUi extends LitElement {
             // Development mode only (the page carries <meta name="mateu-dev">): re-render on
             // spec edits, IDE reload requests and server restarts. A no-op otherwise.
             installLiveReload(this)
+            // tasks this tab's streams started before a reload are still running on the server for
+            // a grace period: pick them up again (reattach.ts — loaded only when there are any)
+            if (rememberedTasks().length > 0) {
+                void import('@infra/progress/reattach.ts').then((m) => m.reattachTasks()).catch(() => undefined)
+            }
         } else {
             if (this.route) {
                 this.consumedRoute = ''

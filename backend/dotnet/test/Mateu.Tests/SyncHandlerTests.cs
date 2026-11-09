@@ -2337,8 +2337,8 @@ public class SyncHandlerTests
         Assert.Contains("\"editorType\":\"select\"", json);
         // …enum editors carry their constants as options…
         Assert.Contains("\"editorOptions\":[{\"value\":\"Ok\"", json);
-        // …[ReadOnly] columns stay display-only…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":false", json);
+        // …the technical id is not a column at all (the row opens by click: W-V-TABLE-ID)…
+        Assert.DoesNotContain("\"id\":\"id\",\"label\":\"Id\"", json);
         // …and the crud advertises the update-row action.
         Assert.Contains("update-row", json);
     }
@@ -2401,7 +2401,7 @@ public class SyncHandlerTests
     }
 
     [Fact]
-    public void List_toolbar_button_non_null_result_maps_as_usual()
+    public void List_toolbar_button_answering_a_message_shows_it_and_researches()
     {
         var inc = Handler().Handle(new RunActionRqDto
         {
@@ -2410,6 +2410,8 @@ public class SyncHandlerTests
         });
 
         Assert.Equal("Restocked", Assert.Single(inc.Messages).Text);
+        // the rows changed all the same: the listing is searched again (it used to stay stale)
+        Assert.Contains("\"totalElements\":", Render(inc));
     }
 
     [Fact]
@@ -3370,7 +3372,7 @@ public class SyncHandlerSpecsFileTests
         Directory.CreateDirectory(dir);
         var file = Path.Combine(dir, "yaml-bound-demo.yaml");
         File.WriteAllText(file, """
-            modelView: Mateu.Tests.YamlBoundView
+            viewModel: Mateu.Tests.YamlBoundView
             layout:
               type: VerticalLayout
               content:

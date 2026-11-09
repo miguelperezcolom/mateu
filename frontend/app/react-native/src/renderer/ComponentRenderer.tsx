@@ -4,11 +4,13 @@ import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
+import { wireButtonAlignSelf } from '../core/phoneLayout';
 import { useButtonPress } from './useButtonPress';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { buttonGroupMembers } from '../core/buttonGroup';
 import { RichText } from './FieldWidgets';
+import { textEmphasis } from './displayFigures';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
@@ -56,7 +58,7 @@ import {
   DetailsRenderer, DirectoryRenderer, DrawerInlineRenderer, ElementRenderer, FormEditorRenderer, GridColumnRenderer,
   GridRenderer, IconRenderer, LabelledChildrenRenderer, MasterDetailRenderer, MenuBarRenderer, MessageInputRenderer,
   MessageListRenderer, NestedAppRenderer, NotFoundRenderer, NotificationRenderer, ResponsiveGridRenderer,
-  ResultRenderer, StepperRenderer, TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
+  TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
 } from './WireComponents';
 
 interface Props {
@@ -111,7 +113,11 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
   );
 }
 
+/** Set by a FullWidth: the wire buttons it holds stretch across the row (wireButtonAlignSelf). */
+const FullWidthContext = React.createContext(false);
+
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
+  const inFullWidth = React.useContext(FullWidthContext);
   const controller = useViewController();
   const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
@@ -204,7 +210,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           color={metadata['color'] as string | undefined}
           disabled={disabled}
           onPress={onPress}
-          style={styles.wireButton}
+          style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
         />
       );
     }
@@ -217,15 +223,17 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // RN-17: a Text in an h1–h6 container IS a heading (a wizard's title arrives as an h2): it
       // gets a heading's size and weight and is exposed as a header to the screen reader's
       // heading navigation — it used to render as body text, flush against the screen edge.
+      // variants: b = bold, i = italic
+      const emphasis = textEmphasis(metadata['variants']);
       const level = headingLevel(metadata['container'] as string | undefined);
       if (level > 0) {
         return (
-          <Text style={[styles.heading, { fontSize: HEADING_SIZES[level - 1] }, size ? { fontSize: size } : null]} {...headingA11y(level)}>
+          <Text style={[styles.heading, { fontSize: HEADING_SIZES[level - 1] }, size ? { fontSize: size } : null, emphasis]} {...headingA11y(level)}>
             {text}
           </Text>
         );
       }
-      return <Text style={[styles.text, size ? { fontSize: size } : null]}>{text}</Text>;
+      return <Text style={[styles.text, size ? { fontSize: size } : null, emphasis]}>{text}</Text>;
     }
 
     // A horizontal divider line (<hr>) separating contents inside a section or form.
@@ -244,8 +252,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <AccordionRenderer component={component} state={state} />;
     case 'SplitLayout':
       return <SplitRenderer component={component} state={state} />;
-    case 'Scroller':
+    // FULL WIDTH: what it holds spans the row — a button in it fills the row (it kept its natural width)
     case 'FullWidth':
+      return (
+        <FullWidthContext.Provider value>
+          <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+        </FullWidthContext.Provider>
+      );
+    case 'Scroller':
     case 'Container':
     case 'Div':
       return (
@@ -432,16 +446,12 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Tab':
     case 'AccordionPanel':
       return <LabelledChildrenRenderer component={component} state={state} data={data} />;
-    case 'Stepper':
-      return <StepperRenderer component={component} state={state} data={data} />;
     case 'Chat':
       return <ChatRenderer metadata={metadata} />;
     case 'MessageList':
       return <MessageListRenderer metadata={metadata} />;
     case 'MessageInput':
       return <MessageInputRenderer metadata={metadata} />;
-    case 'Result':
-      return <ResultRenderer metadata={metadata} />;
     case 'NotFound':
       return <NotFoundRenderer metadata={metadata} />;
     case 'Drawer':

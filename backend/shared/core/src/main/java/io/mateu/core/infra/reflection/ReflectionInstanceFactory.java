@@ -92,6 +92,9 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   }
 
   public <T> T newInstance(Class<T> c, Map<String, Object> data, HttpRequest httpRequest) {
+    // The fields the YAML partials/components this view draws hide or lock for the caller are
+    // dropped BEFORE any of the state is written — by a setter, a constructor or a builder alike.
+    data = io.mateu.core.infra.security.ClientLockedFields.withoutLocked(c, data, httpRequest);
     try {
       return newInstanceInner(c, data, httpRequest);
     } catch (InvocationTargetException e) {

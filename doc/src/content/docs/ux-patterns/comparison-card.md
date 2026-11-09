@@ -40,3 +40,5 @@ The values are plain strings, so format them however you like (currency, percent
 ## When to use it
 
 Use a `ComparisonCard` for **exactly two values whose difference is the point**. For a single KPI with a trend badge use `Stat` or `MetricCard`; for many metrics at once use a `Scoreboard` or `Dashboard`; for tiered plans use `PricingTable`. Demo: `/comparison-demo`.
+
+**See it live in the Explorer:** [KPIs, stats & meters](https://explorer.mateu.io/components/status-and-kpis/kpis)

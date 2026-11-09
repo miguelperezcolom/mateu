@@ -70,6 +70,9 @@ class ComponentRenderer(val ctx: AppContext) {
                     "s" -> label.font = label.font.deriveFont(label.font.size2D * 0.875f)
                     "xs" -> label.font = label.font.deriveFont(label.font.size2D * 0.78f)
                 }
+                // variants: b = bold, i = italic (on top of a heading's own bold)
+                val emphasis = textEmphasis(metadata.get("variants"))
+                if (emphasis != Font.PLAIN) label.font = label.font.deriveFont(label.font.style or emphasis)
             }
             // A horizontal divider line (<hr>) separating contents inside a section or form.
             "Separator" -> javax.swing.JSeparator()
@@ -137,9 +140,8 @@ class ComponentRenderer(val ctx: AppContext) {
             "ContentLayout" -> renderContentLayout(this, component, metadata, state, data)
             "ResponsiveGrid" -> renderResponsiveGrid(this, component, metadata, state, data)
             "FormItem" -> renderFormItem(this, component, state, data)
-            // A Tab / AccordionPanel outside its TabLayout / AccordionLayout; a bare Stepper groups its children.
+            // A Tab / AccordionPanel outside its TabLayout / AccordionLayout.
             "Tab", "AccordionPanel" -> renderTitledChildren(this, component, metadata, state, data)
-            "Stepper" -> renderChildren(component, state, data)
             // ── navigation ──
             "Breadcrumbs", "Breadcrumb" -> renderBreadcrumbs(ctx, metadata)
             "MenuBar" -> renderMenuBar(ctx, metadata)
@@ -158,7 +160,6 @@ class ComponentRenderer(val ctx: AppContext) {
             "Details" -> renderDetails(this, metadata, state, data)
             "Tooltip" -> renderTooltip(this, metadata, state, data)
             "Notification" -> renderNotification(metadata)
-            "Result" -> renderResult(ctx, metadata)
             "NotFound" -> renderNotFound(ctx, metadata)
             "CookieConsent" -> renderCookieConsent(metadata)
             "Element" -> renderElement(ctx, metadata)
@@ -275,4 +276,10 @@ internal fun headingScale(container: String): Float? = when (container.trim().lo
     "h5" -> 1.05f
     "h6" -> 1.0f
     else -> null
+}
+
+/** A Text's wire `variants` as a font style mask: b → BOLD, i → ITALIC, none → PLAIN. */
+internal fun textEmphasis(variants: com.fasterxml.jackson.databind.JsonNode?): Int {
+    val names = variants?.takeIf { it.isArray }?.map { it.asText() }.orEmpty()
+    return (if ("b" in names) Font.BOLD else 0) or (if ("i" in names) Font.ITALIC else 0)
 }

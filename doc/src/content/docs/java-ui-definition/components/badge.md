@@ -107,3 +107,5 @@ new HorizontalLayout(
     Badge.builder().text("Shipped").color(BadgeColor.normal.name()).pill(true).build()
 )
 ```
+
+**See it live in the Explorer:** [Images, icons, avatars & badges](https://explorer.mateu.io/components/display/media-and-badges)

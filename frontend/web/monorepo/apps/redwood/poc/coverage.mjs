@@ -37,7 +37,7 @@ export const REDWOOD_COVERAGE = {
   Div: { status: 'layout' },
   ContentLayout: { status: 'layout' },
   ResponsiveGrid: { status: 'full', note: 'fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→)' },
-  BoardLayout: { status: 'layout', note: 'children stacked, not a board' },
+  BoardLayout: { status: 'layout', note: 'rows of column-blocks by boardCols' },
   BoardLayoutRow: { status: 'part', note: 'of BoardLayout' },
   BoardLayoutItem: { status: 'part', note: 'of BoardLayout' },
   CarouselLayout: { status: 'full', note: 'an image gallery is an oj-film-strip; other slides one at a time with a ‹ › pager and dots (client-side)' },
@@ -126,8 +126,6 @@ export const REDWOOD_COVERAGE = {
   Bpmn: { status: 'full', note: 'an SVG drawn from its BPMN-DI (or laid out by its flows): bpmn-js is not under a permissive licence' },
   Workflow: { status: 'partial', note: 'read only: the definition as a numbered flow of steps; the web designer edits it' },
   FormEditor: { status: 'partial', note: 'read only: the defined form previewed with the real field widgets; the web designer edits it' },
-  Stepper: { status: 'full', note: 'a numbered step header per child, its content below' },
-  Result: { status: 'full', note: 'oj-panel with the icon of its type, message, links and the what-next action' },
   Directory: { status: 'full', note: 'a column per group with its links (in-app routes navigate inside the shell)' },
   MicroFrontend: { status: 'full', note: 'loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it; with a chrome (embedded) it applies no window title/history/favicon, marks its requests (embeddedChrome) and keeps none (NONE), only the toolbar (COMPACT) or all (PAGE) of its page header' },
 }

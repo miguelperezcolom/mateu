@@ -7,10 +7,6 @@ description: "Interface for providing CRUD data access to AutoCrud."
 
 It is a **data-access port** — a thin adapter over persistence. The name "repository" is reserved for domain-aggregate repositories, which is why this port is called `CrudStore`.
 
-## Deprecated alias
-
-The former names `CrudRepository`/`CompositionCrudRepository` (and the `AutoCrud` override method `repository()`) were **removed** after a deprecation period — use `CrudStore`/`CompositionCrudStore` and override `store()`.
-
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
 in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
@@ -50,6 +46,10 @@ public interface CrudStore<T extends Identifiable> {
 | `findAll()` | Return all entities for the listing view |
 | `deleteAllById(ids)` | Delete every entity whose ID appears in the list |
 | `find(searchText, filters, pageable)` | Search, filter, sort and paginate in one call, returning a [`Page<T>`](#the-find-method). **Has a default** implementation (in-memory over `findAll()`), so you only override it for DB-side paging. |
+
+A delete the user can undo is not a store method: the `AutoCrud` declares `Restorable<String>` and
+hands the ids to the store (a soft delete, a trash table) — see
+[Undoable delete](/java-user-manual/build/capability-listings/#undoable-delete--restorable-experimental).
 
 ## Full example
 

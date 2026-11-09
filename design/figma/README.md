@@ -78,8 +78,7 @@ console logs the same as JSON.
 - **Slots** are native Figma slots drawn dashed with a `#placeholder` caption (never read): drag
   instances into them. A frame named `slot:<name>` NEXT TO the page-template instance in the screen
   frame fills it too; other siblings are `content`. The page toolbar is the `toolbar` slot (Button
-  instances, the primary first). With a library older than native slots, a Section whose content
-  slot is empty takes the layers that follow it (up to the next Section).
+  instances, the primary first).
 - A screen with a `Mateu/Page Templates/<FormTemplate>` instance is a templated page; one without
   is a free page (a `Mateu/Page/Header` instance gives its title/subtitle/toolbar).
 - A frame named `partial:<ref>` is written once to `partials/<ref>.yaml` and referenced.
@@ -119,6 +118,25 @@ manifest with no Java (rows as files of the site, so a reload never depends on s
 (through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
 tag in `src/renderer.json`: bump it after a release (the tag and its `files` list, from `git ls-tree -r --name-only <tag> backend/shared/frontend/vaadin-lit/src/main/resources/static`). `bin/build-site.mjs` makes the same site with no
 Figma around. Guide: `design-systems/figma-guide.md`, section 6.
+## End to end: sample screens (`plugin` command + `e2e/`)
+
+The plugin's **Mateu Sample Screens** command (`plugin/src/samples.ts` = the pure plan, tested in
+`plugin/test/samples.test.mjs`; the Figma calls in `code.ts` `runSampleScreens`) builds, in any file
+that has the library — local `Mateu · …` pages (a duplicate of the Community kit), else imported by
+publish key (`plugin/src/library-keys.json`, rewritten by `npm run keys -- library.json` after every
+regenerate + publish), else from instances already in the file — a page `Screens (sample)` with six
+frames made only of library instances: `contact` (free form), `artwork` (ItemOverviewPage),
+`artworks` (Listing), `dashboard` (DashboardLandingPage), `onboarding` (GuidedProcessPage),
+`welcome` (WelcomePage).
+
+`e2e/` checks them with no Figma: every `e2e/*.figma.json` (`sample-screens.figma.json`, built
+from the same plan by `npm run fixture` in the REST shape of the owner's file; and
+`downloaded-sample-screens.figma.json`, a real download, when present — `npm run e2e:refresh -- <file
+URL|key>`, token from `FIGMA_TOKEN` / `~/.mateu-secrets/figma-token`) is converted by `to-yaml`,
+served by `e2e/app` (Spring Boot YAML app at the release `starters/yaml` pins, its hand-written
+routes/sources/actions + a sample API; the pages are added with `-Dloader.path`, so one jar serves
+every fixture) on a free port, and driven by Playwright (`e2e/tests`). `npm test` (no JVM) / `npm
+run e2e` / `npm run e2e:serve`. CI: `examples.yml` job `figma-e2e`.
 
 ## Reading back (modux)
 

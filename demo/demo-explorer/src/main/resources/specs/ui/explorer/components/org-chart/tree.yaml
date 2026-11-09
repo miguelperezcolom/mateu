@@ -1,0 +1,39 @@
+# An org chart as DATA: one root node whose `children` nest as deep as needed. `display: tree`
+# (the default) draws the whole tree; `display: focus` shows one node, its managers above and its
+# reports below, and moving the focus happens in the browser.
+content:
+  - type: OrgChart
+    root:
+      id: director
+      title: Elena Ruiz
+      subtitle: Museum director
+      color: "#2563eb"
+      children:
+        - id: collections
+          title: Marco Bianchi
+          subtitle: Head of collections
+          children:
+            - {id: paintings, title: Aiko Tanaka, subtitle: Curator · Paintings}
+            - {id: sculpture, title: Jonas Berg, subtitle: Curator · Sculpture}
+        - id: conservation
+          title: Fatima Haddad
+          subtitle: Head of conservation
+          children:
+            - {id: lab, title: Liam O'Connor, subtitle: Conservator}
+        - {id: visitors, title: Sofia Lindqvist, subtitle: Head of visitor services, color: "#16a34a"}
+  - {type: Text, text: "The same tree, in focus on a curator:", container: h4}
+  - type: OrgChart
+    display: focus
+    focus: paintings
+    root:
+      id: director
+      title: Elena Ruiz
+      subtitle: Museum director
+      children:
+        - id: collections
+          title: Marco Bianchi
+          subtitle: Head of collections
+          children:
+            - {id: paintings, title: Aiko Tanaka, subtitle: Curator · Paintings}
+            - {id: sculpture, title: Jonas Berg, subtitle: Curator · Sculpture}
+        - {id: visitors, title: Sofia Lindqvist, subtitle: Head of visitor services}

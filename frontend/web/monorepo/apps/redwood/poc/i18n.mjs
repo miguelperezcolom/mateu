@@ -62,6 +62,7 @@ export const CHROME_TEXTS = {
     calendarEvents: '{count} events',
     hideUnpopulated: 'Hide unpopulated',
     mapUnavailable: 'The map could not be loaded.',
+    surfaceUnavailable: 'This part of the page could not be loaded.',
     // ── shell ──
     menu: 'Menu',
     context: 'Context',
@@ -296,6 +297,12 @@ export const CHROME_TEXTS = {
     taskFinished: '{title}: done',
     taskFailedAnnounce: '{title} failed: {error}',
     taskCancelledAnnounce: '{title} cancelled',
+    // a running task's ETA, estimated by the server (conformance/client/eta-format.json)
+    taskEtaUnderMinute: 'less than a minute left',
+    taskEtaMinutes: 'about {n} min left',
+    taskEtaHours: 'about {n} h left',
+    // OS-level notifications (osNotify.mjs): asked for only from this control
+    osNotifyEnable: 'Notify me on this device',
     // ── inbox (inbox.mjs) ──
     inboxUnread: 'Unread',
     inboxAll: 'All',
@@ -350,6 +357,7 @@ export const CHROME_TEXTS = {
     calendarEvents: '{count} eventos',
     hideUnpopulated: 'Ocultar vacías',
     mapUnavailable: 'No se ha podido cargar el mapa.',
+    surfaceUnavailable: 'No se ha podido cargar esta parte de la página.',
     menu: 'Menú',
     context: 'Contexto',
     workContext: 'Contexto de trabajo',
@@ -573,6 +581,10 @@ export const CHROME_TEXTS = {
     taskFinished: '{title}: terminada',
     taskFailedAnnounce: '{title} ha fallado: {error}',
     taskCancelledAnnounce: '{title} cancelada',
+    taskEtaUnderMinute: 'menos de un minuto',
+    taskEtaMinutes: 'unos {n} min restantes',
+    taskEtaHours: 'unas {n} h restantes',
+    osNotifyEnable: 'Avisarme en este dispositivo',
     inboxUnread: 'Sin leer',
     inboxAll: 'Todas',
     inboxResolved: 'Resueltas',
@@ -616,6 +628,16 @@ export function chromeText(key, vars, lang) {
 /** Every chrome text in `lang`, English filling the gaps (what the VB translation bundle carries). */
 export function chromeTextsOf(lang) {
   return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
+}
+
+/** A running task's ETA in words (ProgressDto.etaSeconds, the server's estimate), or '' when there
+ *  is none — never a guess. The rule of conformance/client/eta-format.json (round half up). */
+export function etaTextOf(etaSeconds, lang) {
+  if (typeof etaSeconds !== 'number' || !isFinite(etaSeconds) || etaSeconds <= 0) return ''
+  if (etaSeconds < 60) return chromeText('taskEtaUnderMinute', null, lang)
+  const minutes = Math.max(1, Math.floor(etaSeconds / 60 + 0.5))
+  if (etaSeconds < 3600 && minutes < 60) return chromeText('taskEtaMinutes', { n: minutes }, lang)
+  return chromeText('taskEtaHours', { n: Math.max(1, Math.floor(etaSeconds / 3600 + 0.5)) }, lang)
 }
 
 // ── money ─────────────────────────────────────────────────────────────────────────────────────

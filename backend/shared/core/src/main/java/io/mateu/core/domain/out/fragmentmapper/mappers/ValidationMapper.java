@@ -114,25 +114,25 @@ public class ValidationMapper {
   }
 
   /**
-   * A constraint on a field this form does not render is unsatisfiable, so it is not sent: there is
-   * no input to type the value into, and the client would refuse to submit for ever, naming a field
-   * the user cannot see. {@code @NotEmpty} on an id that is {@code @HiddenInCreate} — assigned at
-   * creation, immutable afterwards — is the ordinary way to arrive here.
+   * A constraint is sent only for a field the user can EDIT ({@link PageFormBuilder#isEditable}).
+   * One on a field this form does not render, or renders locked ({@code @ReadOnly},
+   * {@code @PlainText}, a {@code @ReadOnlyUnless} the caller fails, a read-only view…), is
+   * unsatisfiable: there is no input to fix the value in, and the client would refuse to submit for
+   * ever, naming a field the user cannot change. {@code @NotEmpty} on an id that is
+   * {@code @HiddenInCreate} — assigned at creation, immutable afterwards — is the ordinary way to
+   * arrive here.
    *
    * <p>Not the same thing as {@code @Hidden("expression")}, which is conditional: that one is still
    * sent, with its condition relaxed by the expression — see {@link
-   * #getValidationsWithFieldPrefix}. This is for fields whose absence is decided on the server.
+   * #getValidationsWithFieldPrefix}. This is for fields whose state is decided on the server.
    *
    * <p>Without an {@link HttpRequest} there is no form context to judge against — a listing, a
-   * static export — and every constraint is kept, which is what this did before there was a
-   * question to ask.
+   * static export —: only the declared locks are consulted.
    */
   private static boolean isFillable(Field field, Object instance, HttpRequest httpRequest) {
-    if (httpRequest == null) {
-      return true;
-    }
-    var forCreationForm = Boolean.TRUE.equals(httpRequest.getAttribute(FOR_CREATION_FORM));
-    return PageFormBuilder.rendersAsInput(field, instance, forCreationForm, httpRequest);
+    var forCreationForm =
+        httpRequest != null && Boolean.TRUE.equals(httpRequest.getAttribute(FOR_CREATION_FORM));
+    return PageFormBuilder.isEditable(field, instance, forCreationForm, httpRequest);
   }
 
   public static List<io.mateu.uidl.data.Validation> getValidations(Field field) {

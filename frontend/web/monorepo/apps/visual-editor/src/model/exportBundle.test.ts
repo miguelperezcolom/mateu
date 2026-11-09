@@ -5,7 +5,7 @@ import { ProjectFile } from './projectIndex'
 const files: ProjectFile[] = [
     { path: 'about.yaml', content: 'type: VerticalLayout\ncontent:\n  - type: Text\n    text: hi\n' },
     { path: 'sub/person.yaml', content: 'layout:\n  type: FormField\n  id: name\n' },
-    { path: 'routes.yaml', content: 'routes:\n  - route: about\n    definition: about.yaml\n  - route: person\n    viewModel: com.acme.Person\n' },
+    { path: 'routes.yaml', content: 'routes:\n  - route: about\n    layout: about.yaml\n  - route: person\n    viewModel: com.acme.Person\n' },
     { path: 'sources.yaml', content: 'type: Sources\nsources:\n  - name: people\n    source:\n      url: https://x\n' },
     { path: 'shell.yaml', content: 'type: AppShell\ntitle: App\n' },
     { path: 'mount.yaml', content: 'type: UI\nbasePath: /\n' },

@@ -1,0 +1,8 @@
+# A MicroFrontend as DATA: an island loaded from a route — of this app, or of another one when
+# `baseUrl` names it. The browser loads it (resolve: CLIENT, the default) and every action inside
+# it goes to that app. `chrome: COMPACT` keeps the embedded page's actions but drops its title.
+content:
+  - type: MicroFrontend
+    route: /x/components/micro-frontend/exhibition
+    chrome: COMPACT
+    style: "display: block; border: 1px dashed #94a3b8; border-radius: 8px; padding: .5rem;"

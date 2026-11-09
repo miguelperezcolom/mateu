@@ -1,0 +1,194 @@
+{
+  "commands" : [ {
+    "data" : "Validated text",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "code",
+                        "label" : "Code",
+                        "optionsColumns" : 1,
+                        "required" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "nickname",
+                        "label" : "Nickname",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "bio",
+                        "label" : "Bio",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "tag",
+                        "label" : "Tag",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "zip",
+                        "label" : "Zip",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Validated text form",
+          "pageType" : "form",
+          "title" : "Validated text",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "code" : "ABC"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "rules" : [ {
+        "action" : "SetDataValue",
+        "expression" : "state['code'] === ''",
+        "fieldAttribute" : "hidden",
+        "fieldName" : "zip",
+        "filter" : "true",
+        "result" : "Continue"
+      } ],
+      "type" : "ServerSide",
+      "validations" : [ {
+        "condition" : "state['code'] == null || state['code'] === '' || state['code'].length === undefined || state['code'].length >= 3",
+        "fieldId" : "code",
+        "message" : "Size must be between 3 and 8"
+      }, {
+        "condition" : "state['code'] == null || state['code'] === '' || state['code'].length === undefined || state['code'].length <= 8",
+        "fieldId" : "code",
+        "message" : "Size must be between 3 and 8"
+      }, {
+        "condition" : "state['code'] == null || state['code'] === '' || /^[A-Z]+$/.test(state['code'])",
+        "fieldId" : "code",
+        "message" : "Invalid format"
+      }, {
+        "condition" : "state['code'] != null && state['code'] !== '' && (state['code'].length === undefined || state['code'].length > 0)",
+        "fieldId" : "code",
+        "message" : "Cannot be empty"
+      }, {
+        "condition" : "state['nickname'] == null || state['nickname'] === '' || state['nickname'].length === undefined || state['nickname'].length >= 2",
+        "fieldId" : "nickname",
+        "message" : "Size must be between 2 and 2147483647"
+      }, {
+        "condition" : "state['bio'] == null || state['bio'] === '' || state['bio'].length === undefined || state['bio'].length <= 140",
+        "fieldId" : "bio",
+        "message" : "Size must be between 0 and 140"
+      }, {
+        "condition" : "state['tag'] == null || state['tag'] === '' || state['tag'].length === undefined || state['tag'].length <= 10",
+        "fieldId" : "tag",
+        "message" : "Too long"
+      }, {
+        "condition" : "(state['code'] === '') || (state['zip'] == null || state['zip'] === '' || /^[0-9]{5}$/.test(state['zip']))",
+        "fieldId" : "zip",
+        "message" : "Five digits"
+      } ]
+    },
+    "state" : {
+      "code" : "ABC"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

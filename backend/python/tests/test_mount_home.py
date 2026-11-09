@@ -32,10 +32,10 @@ def specs(tmp_path: Path, home: str, authored_root: bool = False) -> Path:
     )
     (tmp_path / "routes.yaml").write_text(
         "routes:\n"
-        + ('  - route: ""\n    definition: welcome.yaml\n' if authored_root else "")
-        + "  - route: dashboard\n    definition: dashboard.yaml\n"
+        + ('  - route: ""\n    layout: welcome.yaml\n' if authored_root else "")
+        + "  - route: dashboard\n    layout: dashboard.yaml\n"
         + "    fixedParams:\n      tab: kpis\n"
-        + "  - route: orders\n    definition: orders.yaml\n"
+        + "  - route: orders\n    layout: orders.yaml\n"
     )
     (tmp_path / "dashboard.yaml").write_text(page("Mount home dashboard"))
     (tmp_path / "orders.yaml").write_text(page("Mount home orders"))

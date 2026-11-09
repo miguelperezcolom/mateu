@@ -82,7 +82,7 @@ mount's root route (`""`) can even re-point what the `@UI` class answers — for
 - **One route file per mount.** For a class-declared `@UI("/shop")` mount, tag the file with
   `basePath: /shop` and author the routes relative to it; a `specs/ui/routes.yaml` with no
   `basePath` serves the root mount.
-- **A shared `definition` must not declare `modelView:`** — see
+- **A shared `definition` must not declare `viewModel:`** — see
   [The definition is layout only](#the-definition-is-layout-only). Otherwise it can only ever serve
   the class it names, defeating the "one layout, several view models" case.
 
@@ -113,7 +113,7 @@ routes:
       status: open
       page: 1
 
-  # One definition, two view models. The definition declares NO modelView (see below).
+  # One definition, two view models. The definition declares NO viewModel (see below).
   - route: catalog/books
     layout: shared-list.yaml
     viewModel: com.acme.Books
@@ -130,7 +130,7 @@ routes:
 | Field | Meaning |
 |---|---|
 | `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view, which typically binds the [app shell](/define/yaml/app-shell/). |
-| `layout` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. This is the **canonical** key (part of the 5-noun vocabulary); **`definition`** is a deprecated alias kept for backward compatibility (`layout` wins if both are given). |
+| `layout` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. Part of the 5-noun vocabulary. |
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
 | `defaultParams` | Seeded. The request may override them. |
@@ -375,8 +375,7 @@ resolution also runs in the browser, and a parameter pinned only there would be 
 than a constraint: a query string or a doctored state could widen the scope the route was pinned to.
 That includes the state a **proxied REST source** is interpolated with: in Java the server puts the
 route's fixed parameters over the client's state (and the action's parameters, and each row of a
-bulk call) before it calls the endpoint. The .NET and Python ports do not apply `fixedParams` on
-that leg yet — pin such a value in a `${secret.X}` or on the server instead.
+bulk call) before it calls the endpoint. The .NET and Python servers do the same on that leg.
 
 :::caution
 A `fixedParam` is a routing constraint, not an authorisation check. It stops a request from
@@ -390,7 +389,7 @@ When an entry names a `definition`, that file is loaded instead of the
 [`specs/ui/<route>.yaml` convention](/define/yaml/pages/) — which ties a
 screen's layout to its URL and is exactly why one definition could not serve two routes.
 
-A definition shared by several routes must **not** declare `modelView:`, or it can only ever serve
+A definition shared by several routes must **not** declare `viewModel:`, or it can only ever serve
 the class it names. Leave it out and each entry binds its own:
 
 ```yaml
@@ -402,8 +401,7 @@ layout:
       text: "A shared list"
 ```
 
-A definition that *does* declare `modelView:` keeps it, and it wins over the entry's — so every YAML
-page that works today is unaffected.
+A definition that *does* declare `viewModel:` keeps it, and it wins over the entry's.
 
 ## Authoring routes in code
 
@@ -456,7 +454,7 @@ left to ask what a URL means. Only the authored half is shipped: the derived hal
 and a class is what a bundle with no backend cannot use.
 
 Routes that exist only in `routes.yaml` are exported too — **including entries with no view model**.
-There is no client-side YAML renderer and none is needed: a definition that declares no `modelView`
+There is no client-side YAML renderer and none is needed: a definition that declares no `viewModel`
 renders as a bare layout through the ordinary sync path, so the exporter pre-renders it like any
 other route and a static host serves it with no backend.
 

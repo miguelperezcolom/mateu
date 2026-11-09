@@ -58,3 +58,5 @@ var readme = Markdown.builder().markdown(content).build();
 ## Tip
 
 When building help panels, release notes, or any user-facing rich content, `Markdown` is more maintainable than constructing nested `Text` components by hand.
+
+**See it live in the Explorer:** [Text, Markdown, links & lists](https://explorer.mateu.io/components/display/text)

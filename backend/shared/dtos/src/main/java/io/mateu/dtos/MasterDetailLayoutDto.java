@@ -2,6 +2,9 @@ package io.mateu.dtos;
 
 import lombok.Builder;
 
-/** Metadata for a split layout. Child componentIds are in the SplitLayout component itself */
+/**
+ * Metadata for a master/detail layout: the master is its first child, the detail its second. {@code
+ * orientation} vertical puts the detail BELOW the master; absent = beside it.
+ */
 @Builder
-public record MasterDetailLayoutDto() implements ComponentMetadataDto {}
+public record MasterDetailLayoutDto(OrientationDto orientation) implements ComponentMetadataDto {}

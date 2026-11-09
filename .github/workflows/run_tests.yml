@@ -172,7 +172,7 @@ jobs:
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-subheader-overflow.mjs test-e2.mjs test-agent-push.mjs test-e2-dom.mjs test-mobile.mjs
           test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs test-chat-events.mjs
-          test-templates.mjs test-progress.mjs
+          test-templates.mjs test-progress.mjs test-explorer-findings.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -495,10 +495,8 @@ jobs:
           python -m build backend/python --outdir /tmp/dist
           python -m venv /tmp/wheelcheck
           /tmp/wheelcheck/bin/pip install /tmp/dist/*.whl
-          # the one namespace imports with no warning at all; the pre-beta names still import, as
-          # deprecated aliases of the SAME modules
+          # the one namespace imports with no warning at all
           /tmp/wheelcheck/bin/python -W error -c "import mateu_ui.uidl, mateu_ui.dtos, mateu_ui.core, mateu_ui.fastapi"
-          /tmp/wheelcheck/bin/python -W ignore::DeprecationWarning -c "import mateu_uidl, mateu_dtos, mateu_core, mateu_fastapi, mateu_ui.core.mapper; from mateu_core.mapper import ReflectionMapper; assert ReflectionMapper is mateu_ui.core.mapper.ReflectionMapper"
 
   # The oldest versions the package's lower bounds admit: a bound nobody installs is a bound
   # nobody tests, and `>=` is a promise.

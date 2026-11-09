@@ -76,7 +76,9 @@ private fun openMenuOption(ctx: AppContext, item: JsonNode) {
 fun renderMasterDetail(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val children = kids(component)
     if (children.size < 2) return renderAll(r, children, state, data)
-    return Splitter(false, 0.4f).apply {
+    // orientation vertical: the detail BELOW the master (Splitter(vertical = true))
+    val vertical = component.path("metadata").text("orientation").equals("vertical", ignoreCase = true)
+    return Splitter(vertical, 0.4f).apply {
         firstComponent = r.render(children[0], state, data)
         secondComponent = r.render(children[1], state, data)
     }
@@ -120,10 +122,20 @@ fun renderCarousel(r: ComponentRenderer, component: JsonNode, metadata: JsonNode
 fun renderBoard(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent =
     when (metadata.text("type")) {
         "BoardLayoutRow" -> {
+            // the row's items share its width by their boardCols (an item can span several columns)
             val items = kids(component).ifEmpty { metadata.path("content").items() }
-            JPanel(GridLayout(1, items.size.coerceAtLeast(1), JBUI.scale(JBGap), 0)).apply {
+            JPanel(java.awt.GridBagLayout()).apply {
                 isOpaque = false
-                items.forEach { add(r.render(it, state, data)) }
+                items.forEachIndexed { i, item ->
+                    add(r.render(item, state, data), java.awt.GridBagConstraints().apply {
+                        gridx = i
+                        gridy = 0
+                        weightx = item.path("metadata").path("boardCols").asDouble(1.0).takeIf { it > 0 } ?: 1.0
+                        fill = java.awt.GridBagConstraints.BOTH
+                        anchor = java.awt.GridBagConstraints.NORTHWEST
+                        insets = JBUI.insets(0, 0, 0, if (i < items.size - 1) JBGap else 0)
+                    })
+                }
             }
         }
         "BoardLayoutItem" -> renderAll(r, kids(component).ifEmpty { metadata.path("content").items() }, state, data)
@@ -450,41 +462,6 @@ fun renderNotification(metadata: JsonNode): JComponent = JPanel(FlowLayout(FlowL
     accessibleName(listOf(metadata.text("title"), metadata.text("text")).filter { it.isNotBlank() }.joinToString(": "))
 }
 
-/** Result: an outcome page — icon by type, title, message, interesting links, and "now go to". */
-fun renderResult(ctx: AppContext, metadata: JsonNode): JComponent {
-    val type = metadata.text("resultType", "Info")
-    val icon = when (type) {
-        "Success" -> "✓"
-        "Warning" -> "!"
-        "Error" -> "✕"
-        "Ignored" -> "–"
-        else -> "ℹ"
-    }
-    val color = when (type) {
-        "Success" -> JBUI.CurrentTheme.Banner.SUCCESS_BORDER_COLOR
-        "Warning" -> JBUI.CurrentTheme.Banner.WARNING_BORDER_COLOR
-        "Error" -> JBUI.CurrentTheme.Banner.ERROR_BORDER_COLOR
-        else -> JBUI.CurrentTheme.Banner.INFO_BORDER_COLOR
-    }
-    val panel = verticalPanel()
-    panel.addStacked(JBLabel(plain(icon)).apply { foreground = color; font = font.deriveFont(Font.BOLD, font.size2D * 2.5f) }, 0)
-    panel.addStacked(JBLabel(plain(metadata.text("title", type))).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, JBGap)
-    metadata.text("message").takeIf { it.isNotBlank() }?.let { panel.addStacked(JBLabel("<html>${SafeHtml.sanitize(it)}</html>"), JBGap) }
-    fun destination(d: JsonNode): JComponent {
-        val label = d.text("description", d.text("value"))
-        val value = d.text("value")
-        return ActionLink(plain(label)) {
-            when (d.text("type")) {
-                "ActionId", "Action", "action" -> ctx.runAction(value.ifBlank { d.text("id") }, null)
-                else -> if (value.startsWith("/")) ctx.navigate(value, "", null, "") else SafeHtml.browse(value)
-            }
-        }
-    }
-    metadata.path("interestingLinks").items().forEach { panel.addStacked(destination(it), 4) }
-    metadata.path("nowTo").takeIf { it.isObject }?.let { panel.addStacked(destination(it), JBGap) }
-    return panel.accessibleName("${metadata.text("title", type)} ($type)")
-}
-
 /** NotFound: title, message and a way back. */
 fun renderNotFound(ctx: AppContext, metadata: JsonNode): JComponent {
     val panel = verticalPanel()
@@ -708,10 +685,19 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
  * called anonymously.
  */
 internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSession {
-    val base = metadata.text("baseUrl").trimEnd('/')
-    if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     @Suppress("UNCHECKED_CAST")
     val appState = host.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
+    return remoteSession(host, metadata.text("baseUrl"), appState)
+}
+
+/**
+ * The session content of ANOTHER backend runs in (an island, a remote menu option, a remote screen
+ * mounted as the shell's home): the host's for the same backend, else its own with the host app's
+ * source catalogue and credential scope.
+ */
+internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<String, Any?> = emptyMap()): AppSession {
+    val base = baseUrl.orEmpty().trimEnd('/')
+    if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     host.credentials.declare(host.baseUrl, listOf(base))
     val tokens = if (host.credentials.mayCarryCredentials(base)) host.apiClient.tokenProvider
         else io.mateu.ijp.api.TokenProvider.NONE

@@ -56,6 +56,15 @@ describe('mateu-table-crud layouts', () => {
         expect(actions.at(-1)).toMatchObject({ actionId: 'view', parameters: rows[1] })
     })
 
+    it('list: with no @Priority and no identifier column the items still show the first columns', async () => {
+        const plain = crud({ gridLayout: 'list', columns: [col('name'), col('moons'), col('kind')] })
+        const { root } = await mount(plain, [{ name: 'Jupiter', moons: '95', kind: 'Gas giant' }])
+        const item = root.querySelector('.m-item') as HTMLElement
+        // it used to draw a blank item: the compact set (identifier / priority ≤ 2) was empty
+        expect(item.textContent).toContain('Jupiter')
+        expect(item.textContent).toContain('95')
+    })
+
     it('list: rows are keyboard-operable buttons', async () => {
         const { root, actions } = await mount(crud({ gridLayout: 'list' }), rows)
         const item = root.querySelector('.m-item') as HTMLElement

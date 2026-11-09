@@ -103,5 +103,15 @@ HTTP sync ─▶ MateuRegistry.resolve(serverSideType|route) ─▶ instantiate 
 
 ## 7. Beyond the core
 
+**Static bundles (`mateu_ui.bundle`).** The exporter is a client of the sync handler, never a
+second renderer: it sends each route the two loads a browser would (fresh, consumed `_empty` →
+the shell aimed at the route; then the shell's content load) and stores the answers, so a bundle
+cannot drift from what the server serves. Two server rules exist for it: `${i18n.…}` stays raw
+inside `translations.raw_expressions()` (the browser resolves it per visitor from the shipped
+catalogue), and the `ux_main` placeholder target is cleared (the browser re-targets an untargeted
+fragment at whoever asked). `static_safety.py` ports Java's `StaticSafetyCheck` rule for rule;
+`inliner.py` its `DefinitionInliner`; `writer.py` the Maven plugin's `BundleWriter` (reusing
+`ui_page`, `pwa`, `mobile_manifest`). Held to Java's manifest by `conformance/bundle`.
+
 The remaining Java features (component adapters, federated microfrontends, framework adapters,
 SSE/AI chat) follow the same pattern: add a metadata DTO, extend the mapper, add a golden test.

@@ -222,17 +222,47 @@ public class RestSourceRegistry implements io.mateu.core.infra.dev.SpecsCache {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader);
-    try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_SOURCES)) {
-      if (is == null) {
-        return RestSourceCatalog.empty();
+    // the conventional sources.yaml AND every other file under specs/ui declaring `type: Sources`,
+    // like the other authored kinds (Actions, Types, Translations…) — only sources.yaml was read
+    var files = SpecsIndex.filesOfType(cl, SOURCES_TYPE, CONVENTIONAL_SOURCES);
+    var byName = new java.util.LinkedHashMap<String, RestSourceEntry>();
+    var fileOf = new java.util.HashMap<String, String>();
+    for (var file : files) {
+      for (var entry : read(cl, file)) {
+        var previous = fileOf.putIfAbsent(entry.name(), file);
+        if (previous != null) {
+          // a source is an ENDPOINT named globally: two files naming the same one is a mistake
+          // that "last wins" would hide (which file wins depends on classpath order)
+          var message =
+              "REST source '"
+                  + entry.name()
+                  + "' is declared twice: in "
+                  + previous
+                  + " and in "
+                  + file
+                  + ". Source names are global — rename one or remove the duplicate.";
+          log.error(message);
+          throw new IllegalStateException(message);
+        }
+        byName.put(entry.name(), entry);
       }
-      var root = yaml.readTree(is);
+    }
+    return new RestSourceCatalog(List.copyOf(byName.values()));
+  }
+
+  /** The {@code type:} of an authored source catalogue file. */
+  static final String SOURCES_TYPE = "Sources";
+
+  /** One catalogue file's entries ({@code sources:} envelope or a bare list); none on failure. */
+  private List<RestSourceEntry> read(ClassLoader cl, String path) {
+    try {
+      var root = SpecsIndex.treeOf(cl, path);
       if (root == null) {
-        return RestSourceCatalog.empty();
+        return List.of();
       }
       var node = root.has("sources") ? root.get("sources") : root;
       if (!node.isArray()) {
-        return RestSourceCatalog.empty();
+        return List.of();
       }
       var entries = new ArrayList<RestSourceEntry>();
       for (var element : node) {
@@ -241,10 +271,10 @@ public class RestSourceRegistry implements io.mateu.core.infra.dev.SpecsCache {
           entries.add(entry);
         }
       }
-      return new RestSourceCatalog(entries);
+      return entries;
     } catch (Exception e) {
-      log.warn("Failed to read {}: {}", CONVENTIONAL_SOURCES, e.getMessage());
-      return RestSourceCatalog.empty();
+      log.warn("Failed to read {}: {}", path, e.getMessage());
+      return List.of();
     }
   }
 

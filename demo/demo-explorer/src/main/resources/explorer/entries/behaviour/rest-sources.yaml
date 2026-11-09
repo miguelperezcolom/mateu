@@ -1,0 +1,26 @@
+id: rest-sources
+area: behaviour
+group: data
+title: "REST source catalogue"
+covers: [behaviour:rest-sources]
+description: |
+  Each endpoint a UI consumes is declared **once**, by name, in `specs/ui/sources.yaml` (or with
+  `@RestSource` / a `RestSourceCatalogSupplier` bean), and any surface references it with
+  `ref: <name>` instead of repeating its url — a listing's `rowsSource`, a field's options, an action's
+  `restAction`. The entry also states what is true of the ENDPOINT: its paging envelope (`itemsPath`,
+  `totalPath`), nested values read under flat names (`fields`), whether it goes through the server
+  (`proxy`). Names are global. The url interpolates `${state.x}`, encoded where each value lands.
+
+  The endpoint here is a small local Spring controller, so the example works offline.
+
+  **Try it:** type `oo` in the search box and press Enter — the endpoint filters (the url carries
+  `search=oo`); page through the results; the Population column reads `population.value` through the
+  catalogue's `fields:`.
+examples:
+  - title: "A listing over a named source"
+    route: x/behaviour/rest-sources/planets
+pages:
+  - {route: x/behaviour/rest-sources/planets, layout: explorer/behaviour/rest-sources/planets.yaml}
+code:
+  - {label: "YAML · sources.yaml (the catalogue)", path: src/main/resources/specs/ui/sources.yaml}
+  - {label: "Java · ExplorerDemoApi (the local endpoint)", path: src/main/java/io/mateu/explorer/examples/behaviour/restsources/ExplorerDemoApi.java}

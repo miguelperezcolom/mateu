@@ -91,6 +91,14 @@ public sealed class MateuOptions
     /// <c>mateu.content-slots.descriptor.enabled</c>.</summary>
     public bool ContentSlotsDescriptorEnabled { get; set; }
 
+    /// <summary>How long a long-running task runs on once nobody follows its stream (a reload, a
+    /// closed tab) before it is cancelled — a reloaded client resumes it in the meantime
+    /// (<c>_progress-tasks</c> / <c>_progress-resume</c>); also how long a finished task's end is
+    /// kept for such a client. Null (the default): <c>MATEU_PROGRESS_REATTACH_GRACE_SECONDS</c>,
+    /// else 60. 0: closing the stream cancels the task at once. (Java's
+    /// mateu.progress.reattach-grace-seconds.) EXPERIMENTAL.</summary>
+    public int? ProgressReattachGraceSeconds { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
 

@@ -114,6 +114,29 @@ To open it in a browser, tell the server where a web renderer is — `app.MapMat
 The server binds to `0.0.0.0` so the iOS simulator (`localhost:8593`) and Android emulator
 (`10.0.2.2:8593`) reach it too.
 
+## Static bundle: `dotnet mateu-bundle`
+
+The UI can also ship as plain files to a CDN, with no .NET process behind it — the same static
+bundle Java's `mateu-bundle:bundle` writes ([deploy/static-ui](https://mateu.io/deploy/static-ui/)).
+Every route is rendered IN PROCESS through the port's own sync handler (no host is built):
+
+```bash
+dotnet tool install --global Mateu.Bundle
+dotnet build && dotnet mateu-bundle --ui mateu-vaadin.jar --out dist --static   # in the app's project dir
+dotnet mateu-bundle --app bin/Release/net8.0/MyApp.dll --ui mateu-vaadin.jar --out dist
+```
+
+The tool (`src/Mateu.Bundle`) is only a launcher: it loads the BUILT app with its own `deps.json`
+and calls `Mateu.Core.Bundle.MateuBundle.Run` of the app's OWN Mateu.Core, so the exporter always
+matches the version the app runs (the app's `Program` is not executed). An app can also export
+itself — `if (args is ["bundle", ..]) return MateuBundle.Run(args[1..], typeof(Program).Assembly);`
+before building the web host (`samples/Mateu.StaticBundle`). Options: `--specs`, `--base-url`,
+`--title`, `--static` (fail when a route still needs a server — a `[Button]` without
+`[RestAction]`, an `IListing` without `[RestListing]`, a `Crud<T>`, a proxied source,
+`${secret.…}` in a direct one, `[EyesOnly]`), `--specs-only`, `--include-param-routes`,
+`--environment`, `--mock`, `--route` (repeatable), `--no-pwa`, `--fail-on-empty`,
+`--fail-on-skipped`. Pinned against Java's output by `BundleConformanceTests` (`conformance/bundle`).
+
 ## Define views
 
 ```csharp

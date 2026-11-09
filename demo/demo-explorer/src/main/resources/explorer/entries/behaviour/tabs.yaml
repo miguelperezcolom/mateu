@@ -1,0 +1,18 @@
+id: tabs
+area: behaviour
+group: form-layout
+title: Tabs (open, shortcut)
+covers: [behaviour:tabs]
+description: |
+  `@Tab("Name")` puts a field in a tab; consecutive fields with the same name share it. `open = true`
+  makes a tab the initial selection instead of the first one, and `shortcut` selects it from the
+  keyboard — in place, with no round trip. (Mixing a `@Section` per tab splits the strip in several.)
+
+  Try it: the page opens on **Contact** (its `open = true`); click outside the fields and press
+  **Alt+3** — *Preferences* is selected; **Alt+1** goes back to *Identity*.
+examples:
+  - title: A tabbed profile
+    java: io.mateu.explorer.examples.behaviour.tabs.GuestProfileTabs
+code:
+  - {label: "C#", path: src/main/ports/behaviour/tabs/GuestProfileTabs.cs}
+  - {label: Python, path: src/main/ports/behaviour/tabs/guest_profile_tabs.py}

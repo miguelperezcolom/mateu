@@ -7,6 +7,7 @@ import { configureCredentialOrigins, resetCredentialScope, trustDeclaredRemotes 
 import { onSessionExpired } from './sessionGuard'
 import { loopGuard } from '@infra/ui/loopGuard'
 import { StaleResponse } from '@infra/ui/staleViewGuard'
+import { connectivity } from './connectivity'
 
 /**
  * What the API client sends to /mateu/v3/sync and how it reports the outcome to the component that
@@ -225,6 +226,23 @@ describe('reporting the outcome to the initiator', () => {
         const { initiator, types } = initiatorEvents()
         await run(client, initiator, { background: true, options: { quiet: true } }).catch(() => undefined)
         expect(types()).toEqual([])
+    })
+
+    it('a DOWN remote (another origin) does not flip the page\'s connectivity; the page\'s own backend does', async () => {
+        connectivity.reset()
+        const client = new AxiosMateuApiClient()
+        client.axiosInstance.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+            throw Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK', config })
+        }
+        const { initiator } = initiatorEvents()
+        // a micro frontend whose server is down: nothing listens on that origin
+        await client.runAction('http://remote.example:9/remote-down', '', '_empty', '', 'c', undefined, undefined,
+            {}, {}, initiator, false).catch(() => undefined)
+        // it used to raise the page-wide "No connection" (and "Connection restored" right after)
+        expect(connectivity.isOnline()).toBe(true)
+        await run(client, initiator).catch(() => undefined)
+        expect(connectivity.isOnline()).toBe(false)
+        connectivity.reset()
     })
 
     it('an aborted request is a cancellation, not an error', async () => {

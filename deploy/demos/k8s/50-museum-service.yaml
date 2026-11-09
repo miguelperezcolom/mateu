@@ -27,6 +27,8 @@ spec:
           image: miguelperezcolom/museum-service:5b80bd1
           env:
             - { name: SERVER_PORT, value: "8121" }
+            # see deploy/demos/README.md «Memory» (the image default is MaxRAMPercentage=75)
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=192m -Xss512k -XX:+ExitOnOutOfMemoryError" }
             - name: WRITE_KEY
               valueFrom:
                 secretKeyRef: { name: museum-service-write-key, key: WRITE_KEY }
@@ -48,8 +50,8 @@ spec:
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
           resources:
-            requests: { memory: "320Mi", cpu: "50m" }
-            limits:   { memory: "448Mi" }
+            requests: { memory: "288Mi", cpu: "50m" }
+            limits:   { memory: "416Mi" }
       volumes:
         - { name: tmp, emptyDir: {} }
 ---

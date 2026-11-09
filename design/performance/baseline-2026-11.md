@@ -202,23 +202,108 @@ and the referenced-sources walk read every field of every pydantic node (~20% ea
   request; fewer asks, not a faster cache, is the lever.
 - `StructureHashPostProcessor.hashOf` (~10%): canonical JSON + SHA-256 of every routed component,
   by design (it is what lets a return visit skip the structure).
-- `DefaultRoutedClassResolver` (~8% on the SUT, which has ~200 `@UI`s): a linear scan of every
-  routed class per request; a per-route resolution cache would remove it.
-- `MateuSettings.get` (~6%): reads Spring's `Environment` on every call ("so a test can flip a
-  property"); a request-scoped or short-TTL cache would remove it.
+- ~~`DefaultRoutedClassResolver` (~8%)~~ and ~~`MateuSettings.get` (~6%)~~ — done, see
+  [Follow-ups](#4-follow-ups-2026-11-08).
 - .NET: not profiled — it is the fastest backend measured (0.7 ms listing load).
+
+## 4. Follow-ups (2026-11-08)
+
+Same machine and method (the machine still shared with other agents' builds), each measured
+before/after back to back.
+
+### Route resolution indexed once (Java)
+
+`DefaultRoutedClassResolver` asked every `RoutedClassProvider` on each `resolve` / `resolveApp` /
+`resolveAbsolute` (and `resolveApp` ran `ViewTypeClassifier.isApp` — a walk of the class's fields
+— on every one of them BEFORE matching the route). `RoutedClassIndex` is built once per resolver
+(= per container) on first use: a route without `:params` is a map key (the one string its
+compiled pattern matches), the parameterised ones are still tried in order, and candidates come
+back in the providers' order, so "first provider wins" is unchanged; `isApp` only runs on the
+classes whose route matched. A broken provider is logged once at index time instead of per request.
+
+In-JVM A/B, a new informational scenario `RequestBudgetTest.printsTheMedianTimeOfAWarmRequestInALargeApp`
+(the five scenarios with 200 generated `@UI` classes registered BEFORE the measured ones, settings
+from a Spring Boot `Environment` — the e2e SUT's shape), p50 of 1000 warm requests, µs, 2 runs each:
+
+| Scenario | before | after (index) | after (index + settings memo) |
+|---|---|---|---|
+| simple form | 413 / 411 | 247 / 261 | 288 / 247 |
+| CRUD listing | 349 / 375 | 282 / 274 | 296 / 318 |
+| CRUD search | 183 / 180 | 128 / 131 | 133 / 145 |
+| app shell | 324 / 325 | 194 / 198 | 194 / 201 |
+| wizard step | 548 / 579 | 453 / 477 | 547 / 519 |
+
+The small app (4 routed classes) is unchanged within noise (e.g. app shell 238/252 → 231/237).
+Budget: `RequestBudgetTest` now also pins **0 routed classes scanned per warm request**
+(`DefaultRoutedClassResolver.providersScanned()`); `RoutedClassIndexTest` pins that a literal
+route's key matches exactly what its compiled pattern matched, and the providers' order.
+
+### Settings memoised (Java)
+
+`MateuSettings.get` resolved every read through the framework's configuration — Spring's
+`Environment` walks each property source with relaxed binding. A warm request reads 2–9 settings
+(counted per scenario). The system property is still read live (tests flip them; `-D` still wins);
+what the framework configuration and the environment answer is memoised per key, per registered
+source (a new/closed container starts a new memo; at most 1024 keys). `MateuSettings.refresh()`
+forgets it; the Spring adapters call it on `ContextRefreshedEvent` and on Spring Cloud's
+`EnvironmentChangeEvent` (matched by class name, no dependency).
+
+Per read, a Spring Boot-shaped `Environment` (7 property sources, `ConfigurationPropertySources`
+attached): **1923 ns → 20 ns**. On the in-JVM scenarios that is ~4–17 µs per request, below this
+machine's run-to-run noise (table above); on a real Boot app (more property sources, a large
+environment) a read costs more, which is what the async-profiler run of the SUT showed (~6%).
+
+### Ports: validators on the renderer's assets (.NET, Python)
+
+Both ports served `MATEU_UI` assets with `Cache-Control: no-cache` and no validator, so a repeat
+visit downloaded every bundle again. They now send Java's `ETag` (`W/"<size-hex>-<mtime-ms-hex>"`,
+`-gzip` variant for the gzip encoding — `StaticAssetCaching.weakEtag` / `AssetCompression.gzipEtag`)
+and `Last-Modified` (from the file, or the jar entry), and answer `If-None-Match` (which decides
+when present) / `If-Modified-Since` with a bodyless `304`. Before: a revalidating repeat visit of
+the starter's `/products` = the 15 requests / ~676 KB of the cold load again; after: the same
+requests answered 304 with no body. Tests: `UiServingTests.The_renderers_assets_carry_validators_…`
++ `A_jar_entry_carries_validators_too` (.NET), `test_the_renderers_assets_carry_validators_…` (Python).
+
+### Static bundles ship `.gz` siblings
+
+`mateu-bundle:bundle` writes `<file>.gz` (best level, the original's mtime) next to every text file
+≥ 1 KB (`AssetCompression.COMPRESSIBLE`); `-Dmateu.bundle.precompress=false` skips it. No Brotli:
+the JDK has no encoder and the plugin takes no dependency for it. The demo's `serve-static.mjs`
+now serves a `.gz` sibling like nginx `gzip_static on`, and the Redwood demo sites' nginx configs
+turn `gzip_static` on.
+
+demo-static-vcn Java bundle `/vcns` (33 files, 4305 KB → 1163 KB as `.gz`), Fast 3G + 4× CPU,
+median of 3:
+
+| | Content | FCP | JS on the wire | All bytes |
+|---|---|---|---|---|
+| before (no `.gz`) | 14.4 s | 14.3 s | 2663 KB | 2722 KB |
+| after | **4.3 s** | 4.2 s | 652 KB | 663 KB |
+
+### Vaadin pre-boot loader
+
+`apps/vaadin/index.html` (and the committed `_index.html`) carries a CSS-only loader after the UI
+marker region — kept by every server that swaps the region for its `<mateu-ui>` (Java `IndexPage`,
+`YamlMounts`, the bundle writer, the .NET/Python pages, which read the same file) — hidden by
+`mateu-ui:defined ~ .mateu-preboot`. It fades in after 300 ms (a fast load never sees it), follows
+the `theme` attribute `mateu-theme.js` sets before the first paint (dark), stops spinning under
+`prefers-reduced-motion`, and adds no script. Python starter `/products`, Fast 3G + 4× CPU, 3 runs,
+"something on screen" = the loader visible (polled every 50 ms) or the content:
+
+| | Something on screen | Content |
+|---|---|---|
+| before | 4.1 s (nothing until the bundle has run: FCP) | 4.8 s |
+| after | **0.69–0.74 s** | 4.8 s (unchanged) |
+
+Chrome's own FCP entry does not count the spinner (an inline-SVG shape faded in), so
+`first-load-probe.mjs` still reports FCP ≈ 4.1 s on both; the poll above is what a user sees.
 
 ## What is left
 
-- **The Vaadin page paints nothing until its bundle runs** (FCP ≈ content, 4.1 s on Fast 3G).
-  A pre-boot loader in `_index.html` (like Redwood's) would give feedback after the HTML (~0.5 s);
-  it needs a renderer rebuild, so it is not in this change.
-- **Static bundles**: the exporter could write `.gz` siblings so `gzip_static`-style hosts serve
-  them without on-the-fly compression.
 - **Redwood**: 4.6 MB / ~70 requests from Oracle's CDN on every cold load. Outside Mateu's
   control; an organisation allowed to mirror it (`mateu.oracle-cdn.url`) can serve it closer.
-- **The ports' assets carry no validator** (`ETag`/`Last-Modified`): with `no-cache` a repeat
-  visit downloads them again. Now gzipped (0.65 MB), still worth an ETag.
+- `MetaAnnotations.find` and `StructureHashPostProcessor.hashOf` (above).
+- Brotli for static bundles, if a dependency-free encoder ever becomes available.
 
 ## Budgets in CI
 

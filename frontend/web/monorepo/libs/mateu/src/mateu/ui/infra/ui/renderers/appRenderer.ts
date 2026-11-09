@@ -25,6 +25,7 @@ import "@infra/ui/mateu-card-menu.ts";
 import { isCardsGroup } from "@infra/ui/mateu-card-menu.ts";
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
+import { contentBaseUrl, contentServerSideType } from '@infra/ui/appContentTarget.ts'
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -64,12 +65,27 @@ const runHeaderAction = async (metadata: App, container: MateuApp, action: AppHe
     }
 }
 
+/**
+ * An APP-level @Fab (a method of the app class): dispatched on the app-level rail like a header
+ * action — the server runs it on the app instance (ActionInstanceCreator.isAppLevelAction). Sent as
+ * an action-requested from the shell it reached the PAGE's component, which does not claim an app
+ * method, and nothing was sent at all while a page was on screen.
+ */
+const runAppFab = async (metadata: App, container: MateuApp, actionId: string) => {
+    if (!actionId) return
+    try {
+        await dispatchAppHeaderAction(metadata, container, actionId)
+    } catch (e) {
+        notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, container)
+    }
+}
+
 const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     const actions = metadata.contextActions ?? []
     const liveValues = (metadata.headerValues?.length ?? 0) > 0
     if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled && !liveValues && !metadata.agentPush) return nothing
-    return html`${liveValues ? html`<mateu-header-values></mateu-header-values>` : nothing}${metadata.agentPush ? html`
+    return html`${liveValues ? html`<mateu-header-values .ids="${(metadata.headerValues ?? []).map(v => v.id)}"></mateu-header-values>` : nothing}${metadata.agentPush ? html`
         <mateu-agent-connect .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-agent-connect>` : nothing}${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
@@ -311,24 +327,8 @@ export const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
     }
     return metadata.homeConsumedRoute
 }
-export const chooseBaseUrl = (container: MateuApp, metadata: App) => {
-    if (container.selectedRoute) {
-        return container.selectedBaseUrl??container.baseUrl
-    }
-    // `homeBaseUrl` is what the app calls itself FROM ITS OWN ORIGIN, and for a federated app that
-    // is not where the browser reached it: the shell fetched it at the remote's base, and its
-    // content has to keep talking to that base. Taking the metadata's value verbatim sent the
-    // listing's own load back to the SHELL — a path the shell does not serve, which is the "not
-    // found" you get from pasting a link to a page inside a remote app. Only a deep link takes this
-    // branch; clicking the menu goes through selectedBaseUrl above, which is why it worked there.
-    return container.baseUrl || metadata.homeBaseUrl
-}
-export const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
-    if (container.selectedRoute) {
-        return container.selectedServerSideType??metadata.serverSideType
-    }
-    return metadata.homeServerSideType
-}
+export const chooseBaseUrl = (container: MateuApp, metadata: App) => contentBaseUrl(container, metadata)
+export const chooseAppServerSideType = (container: MateuApp, metadata: App) => contentServerSideType(container, metadata)
 export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedUriPrefix
@@ -528,7 +528,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         `)}
                         
 `:nothing}
-            ${metadata.variant == AppVariant.HAMBURGUER_MENU || metadata.variant == AppVariant.HAMBURGER_MENU?html`
+            ${metadata.variant == AppVariant.HAMBURGER_MENU?html`
                 <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
                     <header class="app-navbar">
                         <button class="drawer-toggle" title="${chromeText('menu')}" aria-label="${chromeText('menu')}"
@@ -862,7 +862,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
             ${metadata.fabs?.map((fab, idx) => html`
                 <button class="app-fab" style="${fabPosition(idx)}" ${onFabRail('shell', idx)} aria-label="${fab.label}"
-                    @click="${() => container.runAction(fab.actionId)}"
+                    @click="${() => { void runAppFab(metadata, container, fab.actionId) }}"
                     title="${fab.label}">
                     ${icon(fab.icon)}
                 </button>

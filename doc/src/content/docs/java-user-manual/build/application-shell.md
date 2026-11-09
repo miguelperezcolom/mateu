@@ -113,7 +113,7 @@ routes:
 | `TABS` | Tab bar at the top (what the default, `AUTO`, picks for a menu with no groups) |
 | `MENU_ON_LEFT` | Collapsible sidebar on the left |
 | `MENU_ON_TOP` | Horizontal nav bar at the top (`AUTO`'s pick for a menu with groups, ≤ 7 entries, one level deep, or one with remote menus) |
-| `HAMBURGER_MENU` | A hamburger button opening the whole menu in a drawer (`AUTO`'s pick for more than 7 top-level entries with groups). `HAMBURGUER_MENU` is its deprecated misspelling |
+| `HAMBURGER_MENU` | A hamburger button opening the whole menu in a drawer (`AUTO`'s pick for more than 7 top-level entries with groups) |
 | `HAMBURGER_SECTIONS` | The hamburger holds the sections (first level) and a band under the header the entries of the section on screen; `AUTO` never picks it |
 | `TILES` | A top bar whose groups open as a hub of tiles (`AUTO`'s pick for a menu nested more than one level deep) |
 | `RAIL` | A narrow icon rail on the left whose groups open a side panel |

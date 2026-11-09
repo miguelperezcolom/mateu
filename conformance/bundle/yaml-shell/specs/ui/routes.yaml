@@ -1,0 +1,12 @@
+type: Routes
+routes:
+  - route: ""
+    layout: shell.yaml
+  - route: hello
+    layout: hello.yaml
+  - route: about
+    layout: about.yaml
+  # a :param route with no view model: bundled as a template (includeParamRoutes), its page the
+  # bare layout the browser fills from the path
+  - route: missions/:missionId
+    layout: mission.yaml

@@ -45,6 +45,13 @@ Config on Quarkus and Helidon), then the environment variable (`mateu.self-base-
 Before `3.0-alpha.426` these were read only from system properties and environment variables: a key
 written in `application.properties` was silently ignored.
 
+What the framework's configuration and the environment answer is **remembered** per key (settings
+are read many times per request), so a change made to the configuration while the app runs is not
+seen by itself. A Spring context refresh and Spring Cloud's `EnvironmentChangeEvent` (`/actuator/refresh`)
+clear it for you; an app that changes its configuration some other way calls
+`io.mateu.core.infra.MateuSettings.refresh()`. A JVM system property is always read live and still
+wins.
+
 ## Cross-origin access (CORS)
 
 A Mateu UI is normally served by the same origin as its API, and then the browser never asks for

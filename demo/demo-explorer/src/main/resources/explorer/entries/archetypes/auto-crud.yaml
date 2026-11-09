@@ -1,0 +1,20 @@
+id: auto-crud
+area: archetypes
+group: collections
+title: AutoCrud
+covers: [archetype:AutoCrud]
+description: |
+  Extend `AutoCrud<Entity>` and return a `CrudStore` from `store()`: you get the whole CRUD — the listing
+  (search box, filters from the entity's fields, sorting, paging), the record view, create, edit and
+  delete. The entity's fields drive every form. Shown here: `editInDrawer()` (New and a row click open
+  the form in a drawer over the listing; saving refreshes it in place) and `display()` — the tri-state
+  toggles (`on` / `disabled` / `off`): **Save and next** switched on, **Delete** switched off.
+examples:
+  - title: The whole CRUD
+    description: Try it — search, open a record, create one. It is a whole page, so it runs embedded here and opens on its own too.
+    route: x/archetypes/auto-crud
+pages:
+  - {route: x/archetypes/auto-crud, viewModel: io.mateu.explorer.examples.archetypes.autocrud.ArtworkCrud}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/auto-crud/ArtworkCrud.cs}
+  - {label: Python, path: src/main/ports/archetypes/auto-crud/artwork_crud.py}

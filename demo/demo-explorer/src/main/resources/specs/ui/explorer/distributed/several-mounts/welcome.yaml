@@ -1,0 +1,10 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Welcome to the YAML mount
+subtitle: "/yaml-mount — its home is welcome (home: in the type: UI file)"
+content:
+  - type: Text
+    text: This mount has no app shell and no class behind it; its routes are relative to /yaml-mount.
+  - type: Button
+    label: Go to /yaml-mount/second
+    actionable: {type: RouteLink, route: second}

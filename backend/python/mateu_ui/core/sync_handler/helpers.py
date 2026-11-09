@@ -29,7 +29,7 @@ from mateu_ui.uidl import (
     Searchable,
 )
 
-from .. import action_guard
+from .. import action_guard, nested_forms
 from ..mapper import ReflectionMapper
 from ..naming import (
     camel_case,
@@ -72,7 +72,9 @@ class ResponseHelpersMixin(MixinBase):
         # structure-cache hit that strips the component. Read it BEFORE stamping (which may drop it).
         state = None
         if isinstance(component, ServerSideComponent) and component.initial_data:
-            state = dict(component.initial_data)
+            # a nested data object's map is repeated flattened under the prefixed ids its fields
+            # bind to (supplier-name…), as Java's FormViewSerializer does
+            state = nested_forms.flatten_state(dict(component.initial_data))
         component = self._stamp_or_strip_structure(component, rq)
         # A ComponentTreeSupplier view emits no SetWindowTitle command (Java parity — the tree is
         # the whole fragment; there is no Page to name the window from).
@@ -223,12 +225,27 @@ class ResponseHelpersMixin(MixinBase):
         return value
 
     def bind_state(self, instance, state: dict[str, Any]) -> None:
+        # a field a components.yaml business component hides or locks for the caller (the view's
+        # own tree may draw it): never written from the wire
+        from ..component_registry import without_locked
+
+        state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
-            if not action_guard.may_write(self.mapper, f):
+            if not action_guard.may_write(self.mapper, f, type(instance)):
                 continue
             key = camel_case(f.name)
+            if nested_forms.is_nested_form_field(f):
+                # a nested data object: rebuilt from its nested map overlaid with the flattened
+                # <field>-* keys its fields edit (Java's ReflectionInstanceFactory.unflatten),
+                # into the object it already holds — its initializers survive
+                incoming = nested_forms.nested_state_of(state, key)
+                if incoming is not None:
+                    target = nested_forms.nested_value(instance, f)
+                    if target is not None:
+                        self.bind_state(target, incoming)
+                continue
             if key not in state:
                 continue
             if isinstance(f.type, type) and issubclass(f.type, fluent.Component):
@@ -255,6 +272,16 @@ class ResponseHelpersMixin(MixinBase):
             value = self.convert_value(raw, f.type)
             if value is not None:
                 setattr(instance, f.name, value)
+
+    def _locked_by_pieces(self, instance) -> dict[str, str]:
+        """Field id → the business component locking it, for a view that draws its own tree:
+        STRICT — every restricted business component of the app counts, whatever the view drew
+        before (it may draw one only in some state). A YAML layout's are dropped earlier, in
+        ``_guard_yaml_access``, by the same rule."""
+        components = getattr(self, "components", None)
+        if components is None or not callable(getattr(type(instance), "component", None)):
+            return {}
+        return components.app_wide_locked_by(self.mapper.authorized)
 
     @staticmethod
     def convert_value(raw, target):

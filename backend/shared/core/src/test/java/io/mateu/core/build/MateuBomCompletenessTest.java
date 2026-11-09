@@ -45,45 +45,6 @@ class MateuBomCompletenessTest {
     assertThat(offenders).as("published artifacts without the mateu- prefix").isEmpty();
   }
 
-  /**
-   * Every pre-rename id keeps resolving: its relocation pom points at an artifact the BOM lists,
-   * and no current module took the old id back.
-   */
-  @Test
-  void everyRelocationPointsAtAPublishedArtifact() throws IOException {
-    String bom = Files.readString(BACKEND.resolve("mateu-bom/pom.xml"));
-    List<String> current = new ArrayList<>();
-    for (Path pom : publishedJarPoms()) {
-      current.add(artifactIdOf(Files.readString(pom)));
-    }
-    List<String> broken = new ArrayList<>();
-    int relocations = 0;
-    try (Stream<Path> dirs = Files.list(BACKEND.resolve("relocations"))) {
-      for (Path dir : dirs.filter(d -> Files.isRegularFile(d.resolve("pom.xml"))).toList()) {
-        String pom = Files.readString(dir.resolve("pom.xml"));
-        String oldId = artifactIdOf(pom);
-        var target =
-            Pattern.compile("(?s)<relocation>.*?<artifactId>(.*?)</artifactId>").matcher(pom);
-        relocations++;
-        if (!target.find()) {
-          broken.add(oldId + ": no relocation");
-        } else if (!bom.contains("<artifactId>" + target.group(1) + "</artifactId>")) {
-          broken.add(oldId + " -> " + target.group(1) + ": not in the BOM");
-        }
-        if (current.contains(oldId)) {
-          broken.add(oldId + ": is a current module id again");
-        }
-        // a library built on an older Mateu still names the old id at ITS version: managed here,
-        // it resolves to this version's relocation pom, so io.mateu.* is on the classpath once
-        if (!bom.contains("<artifactId>" + oldId + "</artifactId>")) {
-          broken.add(oldId + ": the old id is not managed by the BOM");
-        }
-      }
-    }
-    assertThat(relocations).as("relocation poms found").isPositive();
-    assertThat(broken).isEmpty();
-  }
-
   private static List<Path> publishedJarPoms() throws IOException {
     List<Path> poms = new ArrayList<>();
     try (Stream<Path> walk = Files.walk(BACKEND)) {
@@ -95,7 +56,6 @@ class MateuBomCompletenessTest {
                     return !s.contains("/target/")
                         && !s.contains("/node_modules/")
                         && !s.contains("/src/")
-                        && !s.contains("/relocations/")
                         && !s.contains("/dotnet/")
                         && !s.contains("/python/");
                   })

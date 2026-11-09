@@ -48,6 +48,13 @@ public Message restore(HttpRequest httpRequest) {
 - Works after [bulk actions](/ux-patterns/bulk-actions/) too: pass the affected ids in
   `undoParameters` and restore them all.
 
+### A CRUD's delete
+
+A CRUD's own Delete offers Undo by itself when the listing declares `Restorable<Id>`
+(experimental): no confirmation, a *"N records deleted — Undo"* toast, and Undo calls
+`restoreAllById(ids, http)` and refreshes the listing. See
+[Undoable delete](/java-user-manual/build/capability-listings/#undoable-delete--restorable-experimental).
+
 ## Related
 
 - [Bulk actions](/ux-patterns/bulk-actions/) — the operations most worth undoing
@@ -61,3 +68,4 @@ notification — an `oj-messages` (display `notification`) whose `oj-message` pu
 undo action on the page that produced the message and closes the notification. Demo: moving or
 resizing a stay on the Room Diary of `demo-vb-pms`.
 
+**See it live in the Explorer:** [Messages & undo](https://explorer.mateu.io/behaviour/actions/messages)

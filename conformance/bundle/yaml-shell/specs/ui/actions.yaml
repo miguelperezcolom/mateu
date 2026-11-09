@@ -1,0 +1,7 @@
+type: Actions
+actions:
+  - id: goAbout
+    description: Open the about page
+    steps:
+      - type: Navigate
+        route: about

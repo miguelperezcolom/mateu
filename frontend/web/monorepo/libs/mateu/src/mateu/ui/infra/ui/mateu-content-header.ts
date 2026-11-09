@@ -27,7 +27,7 @@ import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import '@infra/ui/mateu-record-switcher.ts'
 import { factActionStyles, renderFactAction } from '@infra/ui/factAction.ts'
-import { embeddingChromeOf, ownEmbeddedChromeOf } from '@infra/ui/embeddedChrome.ts'
+import { embeddingChromeOf, isInsideMicroFrontend, ownEmbeddedChromeOf } from '@infra/ui/embeddedChrome.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -431,7 +431,8 @@ export class MateuContentHeader extends LitElement {
         // inside an EMBEDDED micro frontend (MicroFrontend.chrome) there is no trail: the automatic
         // one would trace the HOST's menu and address, and a declared one the remote's own routes,
         // which this page cannot navigate to
-        if (embeddingChromeOf(this)) return []
+        // (any island: one with the default chrome too — it drew the host's trail inside the box)
+        if (embeddingChromeOf(this) || isInsideMicroFrontend(this)) return []
         if (metadata?.breadcrumbs && metadata.breadcrumbs.length > 0) {
             return metadata.breadcrumbs.map(b => ({ text: interpolate(b.text, this.state, this.data), route: b.link || undefined }))
         }

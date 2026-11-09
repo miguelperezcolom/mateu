@@ -1,6 +1,8 @@
 # Progress and notifications — two UX patterns, one wire (3.0, before rc.1)
 
-Status: implemented on `feat/progress-reporting`. All new API is `@Experimental`.
+Status: implemented on `feat/progress-reporting`; the items first planned for 3.1 (reattach, ETA,
+OS notifications, server-side inbox storage) completed on `feat/progress-notifications-complete` —
+see "Completed in 3.0". All new API is `@Experimental`.
 
 ## Why
 
@@ -34,7 +36,7 @@ balloons); Apple HIG *Progress indicators* and *Notifications* (grouping, action
 | Determinate / indeterminate | `fraction` 0..1, or `null` = indeterminate | `fraction` |
 | Step count | "12 of 300" when the work is countable | `done`, `total` |
 | Elapsed | renderer-side from `startedAt` (server epoch ms) | `startedAt` |
-| ETA | **not sent**: honest ETAs need a model of the work. Renderers may show elapsed only. | — |
+| ETA | the SERVER estimates it from the observed rate, only for determinate running tasks and only once it is honest (see "ETA") | `etaSeconds` |
 | Blocking | the user should wait (modal surface) | `blocking` |
 | Move to background | a blocking task the user may send to the task center (IntelliJ "Background") | `backgroundable` |
 | Cancel | the user may stop it | `cancellable` → `_progress-cancel` |
@@ -47,9 +49,7 @@ balloons); Apple HIG *Progress indicators* and *Notifications* (grouping, action
 | Notify when done | a finished task also posts an inbox entry ("Import finished — 3 errors · View") | an `inbox` Message in the terminal increment |
 | A11y | `role=progressbar` + value; start/end announced politely; cancel reachable by keyboard | renderer |
 
-Reload reattach (a reloaded tab picking up tasks still running for its session) is **3.1**: it
-needs a per-session replay channel. Today a reload closes the stream, which CANCELS the task
-(closing the stream is a cancel — see below), so nothing keeps running unseen.
+| Survives reload | a reloaded tab (or a renderer that lost its stream) picks up the tasks still running for its session | `_progress-tasks` + `_progress-resume`, grace period (see "Reattach") |
 
 ### Notifications
 
@@ -99,7 +99,9 @@ not apply):
   by whoever holds its random `taskId`, which acts as the capability). Answers a `Progress
   state=cancelled`; the stream that runs the task also ends with one. Unknown/foreign task → the
   same `cancelled` echo is NOT sent: the answer is empty (indistinguishable).
-- Closing the SSE stream cancels the task (Reactor disposes the work flux; `onCancel` runs).
+- Closing the SSE stream no longer cancels the task at once: with no subscriber left the task runs
+  on for the reattach grace period (default 60 s), then it is cancelled (Reactor disposes the work
+  flux; `onCancel` runs). See "Reattach".
 - `_notifications-list`, `_notifications-read {ids|"all"}` (unchanged), and new
   `_notifications-act {id, actionId}`, `_notifications-dismiss {ids}`, `_notifications-open {id}`.
 
@@ -161,10 +163,131 @@ every IDE notification, not the app's unread entries); clearing an entry in the 
 it read, never dismisses it. The IntelliJ inbox has no filter/grouping UI (the tool window is the
 list; the category prefixes the title).
 
-## Moved to 3.1
+## Completed in 3.0 (first planned for 3.1)
 
-- Reattaching a reloaded tab to tasks still running for its session.
-- ETA.
-- OS-level notifications: Web Notifications API (opt-in) and RN local notifications
-  (needs a native module → a new store build).
-- Server-side inbox persistence of `inbox` Messages (the app's `NotificationsSupplier` owns storage).
+The four items first deferred to 3.1 landed before rc.1 (`feat/progress-notifications-complete`).
+All new API is `@Experimental`; the wire additions are additive (`WIRE_VERSION` stays 3.0) and
+listed under "Wire additions" below.
+
+### Reattach (a task survives reload and navigation)
+
+Server — a stream that reports a task becomes HOT: the work runs once and its increments are
+multicast to every subscriber of the task (the stream that started it, and any resume stream).
+
+- `ProgressTasks` keeps the task while it runs (bounded registry, unchanged) and, once it has
+  finished, its terminal `Progress` and the messages of its terminal increment for the grace
+  period — a tab that reloads just as the task ends still learns how it ended.
+- **Grace period**: when the last subscriber goes away while a task runs, a timer starts; a resume
+  stream that subscribes in time stops it; when it fires the task is cancelled as before
+  (`onCancel` runs, the stream ends `cancelled`). A stream that reports NO task keeps the old
+  behaviour: closing it disposes the work at once. Setting: Java
+  `mateu.progress.reattach-grace-seconds` (env `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`), .NET
+  `MateuOptions.ProgressReattachGraceSeconds`, Python `add_mateu(progress_reattach_grace_seconds=…)`
+  (same env var); default **60**, `0` = the old behaviour (closing the stream cancels the task).
+  In-process, like the registry: in a cluster the resume must reach the node running the task
+  (sticky sessions).
+- `_progress-tasks {taskIds: [...]}` (reserved, app-level, any route, sync or SSE): answers ONE
+  increment whose commands are a `Progress` for each listed id that is a task OF THE CALLER (same
+  owner rule as cancel) still running or finished within the grace period — its current (or
+  terminal) state. Unknown, expired and foreign ids are simply absent (indistinguishable). At most
+  50 ids are looked at.
+- `_progress-resume {taskId}` (reserved, over `POST …/mateu/v3/sse/{any route}`): streams the
+  caller's task — first one increment with its current `Progress`, then the task's later increments
+  REDUCED to their page-level parts (`Progress` and `NotificationsChanged` commands, messages); the
+  fragments, banners, app state/data and other commands are dropped: they were addressed to the
+  screen that started the task, which the resuming client no longer has. Ends after the terminal
+  `Progress`. A finished task: its terminal `Progress` + the messages of its terminal increment,
+  then the end. Unknown / foreign: an empty stream. Neither reserved action is tracked again (a
+  resume stream ending is not a task ending). Renderers send it over SSE only; over the sync
+  endpoint the .NET and Python ports answer a one-increment snapshot, while Java's sync endpoint
+  drains the stream (it answers when the task ends) — use `_progress-tasks` for a snapshot.
+
+Client — each renderer remembers the tasks its streams report, for the SESSION only:
+
+- web (libs/mateu → Vaadin and every shell): `sessionStorage['mateu-progress-tasks']` via
+  `safeStorage` — `[{taskId, baseUrl, route, serverSideType}]`, added when a stream first reports a
+  running task, removed once its terminal state has been applied. On boot it asks
+  `_progress-tasks` per base url, upserts the answers into the task center and opens a
+  `_progress-resume` stream for each running one; ids not answered are forgotten. Redwood: the same
+  key and flow in `poc/`.
+- React Native: in memory per `MateuSession` (survives navigation and screen remounts); the tasks
+  whose stream broke are resumed when the app returns to the foreground (`AppState` → active).
+- IntelliJ: in memory per app (IDE session); a view/app reload resumes them into the platform's
+  background indicator.
+
+A reattached task's result actions with a `route` still navigate; its `actionId` result actions,
+Retry and the `withCommand` commands need the screen that started it, so they are not offered after
+a reload.
+
+Security (tests in every backend): reattach follows the cancel rules — the owner is the hash of the
+authenticated identity, every grant included; a foreign `_progress-tasks` id is absent and a foreign
+`_progress-resume` is an empty stream, exactly like an unknown one; anonymous callers share one
+owner, so for them the random task id is the capability (it is only ever sent to the tab that
+started the task, and kept in that tab's session storage).
+
+### ETA
+
+`ProgressDto.etaSeconds` (Integer, null = none) is stamped by the SERVER on each running
+`Progress` it streams (`ProgressTasks` → `EtaEstimator`, .NET/Python twins): it sees every update
+of the task in order, on the work's own clock, and a reattached client gets the estimate at once.
+Rules (corpus `conformance/progress/eta.json`, generated by `eta.generate.mjs`, run by the three
+backends): determinate only (`fraction`, else `done/total`); an exponentially smoothed rate
+(α = 0.3) of the segments that advance; an estimate only after 2 rate updates and 2 s since the
+first sample, and while 0 < p < 1; going backwards starts over; never for indeterminate or finished
+tasks. Renderers word it (corpus `conformance/client/eta-format.json`): "less than a minute left" /
+"about 2 min left" / "about 1 h left" (es: "menos de un minuto" / "unos 2 min restantes" / "unas 1
+h restantes") — web `chromeTexts` (`taskEtaUnderMinute`, `taskEtaMinutes`, `taskEtaHours`), Redwood
+`poc/i18n.mjs`, React Native and IntelliJ text tables.
+
+### OS-level notifications
+
+Opt-in per app: `@App(osNotifications = true)` → `AppDto.osNotifications` (.NET `[App(OsNotifications
+= true)]`, Python `@app(os_notifications=True)`). Two events are worth leaving the app for: a NEW
+unread inbox entry (pushed, or an `inbox` Message) and a task that finished (done/failed) while it
+was in the background (non-blocking, or moved there). Shown only while the app is not in front.
+
+- Web (libs/mateu, Redwood): the Web Notifications API. Permission is asked ONLY from a user
+  gesture — a "Notify me on this device" control in the bell and in the task center, shown while
+  the permission is `default`; never on load. Shown while `document.visibilityState === 'hidden'`;
+  `tag` = entry id / task id (several tabs of the app collapse into one notification); a click
+  focuses the tab and opens the entry's route.
+- React Native: `expo-notifications`, LOCAL notifications only (no push service, no token, no
+  server). Permission asked from the inbox screen / task sheet; shown while `AppState` is not
+  `active`. A native module → a new store build (versionCode 200003 / iOS buildNumber; see
+  `frontend/app/react-native/RELEASE.md`).
+- IntelliJ: the platform already turns balloons into system notifications while the IDE is not
+  focused (Settings › Appearance & Behavior › Notifications › "Use system notifications"); for an
+  app that opts in, the two events also post through `SystemNotifications` when the frame is
+  inactive.
+
+### Server-side inbox storage
+
+Mateu ships UI only, so the store is an INTERFACE the app may implement — `InboxStore`
+(`io.mateu.uidl.interfaces`, .NET `IInboxStore`, Python `InboxStore`): `add(principal, entry)`,
+`list(principal)`, `markRead(principal, ids)`, `dismiss(principal, ids)`. Mateu's default is in
+memory, per process, bounded (100 entries per principal, newest kept; 10 000 principals, least
+recently used first) and lost on restart; an app bean/service replaces it.
+
+- An `inbox` Message in ANY answer (an action, a task's terminal increment — `notifyWhenDone`) of
+  an AUTHENTICATED caller is stored for that principal: id = the message's `key`, else
+  `inbox-<uuid>` (the key is then stamped on the wire message, so the session entry and the stored
+  one are the same entry); title, text, variant; `when` = server local time `yyyy-MM-dd HH:mm`;
+  actions = the message's actions that carry a `route` (an `actionId` needs the screen that sent
+  it); unread. Then `LiveNotifications.publish(principal, entry)` reaches the principal's other
+  sessions (with `@App(liveUpdates = true)`; otherwise at the next list). An anonymous caller's
+  inbox messages stay session-only (no principal to store them for).
+- `_notifications-list` = the supplier's list ∪ the store's (supplier first; a store id the
+  supplier already lists is skipped); `read`/`dismiss` route the store's ids to the store and the
+  others to the supplier (own-ids rule unchanged); a stored entry offers no `actionId` action and no
+  detail, so `act`/`open` refuse it like any entry that does not offer them.
+- The bell shows when the app implements `NotificationsSupplier` OR declares `@App(inbox = true)`
+  (no supplier: the bell lists the store only) — .NET `[App(Inbox = true)]`, Python
+  `@app(inbox=True)`.
+
+### Wire additions
+
+```
+ProgressDto += etaSeconds?: int        // server-estimated, running + determinate only
+AppDto      += osNotifications: bool   // the app opts in to OS-level notifications
+            (AppDto.notificationsEnabled is now also true for @App(inbox = true))
+```

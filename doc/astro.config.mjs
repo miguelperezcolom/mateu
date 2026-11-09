@@ -72,6 +72,7 @@ export default defineConfig({
 			},
 			favicon: '/favicon.png',
 			social: [
+				{ icon: 'rocket', label: 'Mateu Explorer — every component running live', href: 'https://explorer.mateu.io' },
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/miguelperezcolom/mateu' },
 				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/YFb9utDMYK' },
 			],
@@ -80,6 +81,8 @@ export default defineConfig({
 					label: 'Start here',
 					items: [
 						{ slug: 'mateu-about/what-is-mateu', label: 'What is Mateu' },
+						{ slug: 'start-here/whats-new', label: "What's new in 3.0" },
+						{ label: 'Mateu Explorer (live) ↗', link: 'https://explorer.mateu.io', attrs: { target: '_blank', rel: 'noopener' } },
 						{ slug: 'start-here/choose-your-path', label: 'Choose your path' },
 						{ slug: 'concepts/building-blocks', label: 'What a Mateu UI is made of' },
 						{ slug: 'ux', label: 'The UX guide' },
@@ -603,7 +606,6 @@ export default defineConfig({
 						{ slug: 'reference/language-rosetta', label: 'Language Rosetta (Java/C#/Python)' },
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
 						{ slug: 'reference/stability-and-versioning', label: 'Stability & versioning' },
-						{ slug: 'reference/migrating-from-alpha', label: 'Migrating from alpha' },
 						{ slug: 'reference/support-policy', label: 'Support policy' },
 						{ slug: 'reference/known-issues', label: 'Known issues' },
 					],

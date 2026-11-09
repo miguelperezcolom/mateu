@@ -540,7 +540,8 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
    *       with no separate descriptor. This is the common case now that inner routes are data, not
    *       annotations.
    *   <li><b>the conventional {@code specs/ui/routes.yaml}</b> at the root — kept for back-compat
-   *       when nothing else declares a mount.
+   *       when no {@code type: UI} mount is declared AT THE ROOT (mounts at other base paths live
+   *       beside it).
    * </ol>
    *
    * <p>A declared base path is validated against the known mounts ({@code type: UI} + the
@@ -580,8 +581,12 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
       }
     }
 
-    // 3. The conventional root routes.yaml, only when no mount already covers it (back-compat).
-    if (discovered.isEmpty() && consumed.add(CONVENTIONAL_ROUTES)) {
+    // 3. The conventional root routes.yaml, unless a mount AT THE ROOT already owns the root. A
+    // mount at another base path (a `type: UI` for /yaml-mount) says nothing about the root: it
+    // used to switch this file off ("only when no mount at all"), and every route of the root app
+    // answered "Not found".
+    if (discovered.stream().noneMatch(mount -> mount.basePath().isEmpty())
+        && consumed.add(CONVENTIONAL_ROUTES)) {
       var conventional = readRouteEntries(cl, CONVENTIONAL_ROUTES);
       if (!conventional.isEmpty()) {
         var bucket = byBasePath.computeIfAbsent("", key -> new LinkedHashMap<>());
@@ -774,13 +779,9 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
     out.add(
         new RouteEntry(
             full,
-            // Vocabulary (coherence-plan #5): the canonical key for the layout file is `layout:`;
-            // `definition:` is the DEPRECATED ALIAS, still accepted so every existing routes.yaml
-            // keeps working (`layout:` wins if both are present). The RouteEntry field / wire key
-            // stays `definition` — only the authoring key is unified.
-            node.hasNonNull("layout")
-                ? node.get("layout").asText()
-                : node.hasNonNull("definition") ? node.get("definition").asText() : null,
+            // The authoring key for the layout file is `layout:`; the RouteEntry field / wire key
+            // is `definition`.
+            node.hasNonNull("layout") ? node.get("layout").asText() : null,
             node.hasNonNull("viewModel") ? node.get("viewModel").asText() : null,
             paramsOf(node, "fixedParams"),
             paramsOf(node, "defaultParams"),

@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { remoteHomeBaseUrl } from '../core/homeTarget';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { CommonActions, NavigationContainer, createNavigationContainerRef, useIsFocused } from '@react-navigation/native';
 import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
@@ -9,7 +10,8 @@ import { BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
-import { ScreenHasBack } from './ScrollContext';
+import { BarTitle, ScreenHasBack } from './ScrollContext';
+import { barTitleOf } from '../core/barTitle';
 import { useAppContext } from '../context/AppContext';
 import { BACK_HINT, NavTarget, ScreenBack, declareMenuRemotes, navigationSession } from '../core/MateuSession';
 import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
@@ -28,6 +30,7 @@ import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHi
 import { interpolate } from '../core/expressions';
 import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
 import { toastOf } from '../core/componentContext';
+import { NotifyOnThisDevice } from './TaskHost';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
@@ -82,12 +85,16 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   homeRoute?: string;
   homeConsumedRoute?: string;
   homeServerSideType?: string;
+  /** Where the home is loaded from: ABSOLUTE when the server mounted a remote screen as the home. */
+  homeBaseUrl?: string;
   serverSideType?: string;
   rootRoute?: string;
   variant?: string;
   menu?: MenuItem[];
   contextSelectors?: AppContextSelector[];
   notificationsEnabled?: boolean;
+  /** The app opted in to OS-level notifications (@App(osNotifications = true)). */
+  osNotifications?: boolean;
   /** A data-authored shell's inbox: REST sources instead of the app class's supplier. */
   notificationsSource?: Record<string, unknown> | null;
   notificationsReadSource?: Record<string, unknown> | null;
@@ -623,6 +630,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
       />
       {open && (
         <View>
+          <NotifyOnThisDevice session={session} />
           <View style={styles.bellFilters} accessibilityRole="tablist">
             {(['unread', 'all', 'resolved'] as InboxFilter[]).map((f) => (
               <TouchableOpacity
@@ -981,6 +989,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     route: appMeta.homeRoute ?? '',
     consumedRoute: appMeta.homeConsumedRoute ?? '',
     serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
+    // a remote screen mounted as the home (a link to /fed/stock) is loaded from the remote
+    baseUrl: remoteHomeBaseUrl(appMeta),
   });
 
   const variant = appMeta.variant ?? 'NAVIGATION_LAYOUT';
@@ -996,6 +1006,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   React.useEffect(() => setAccent(appMeta.accentColor), [appMeta.accentColor, setAccent]);
 
   const { session } = useAppContext();
+  // OS-level notifications are the app's choice (core/osNotifications.ts)
+  session.osNotifications = appMeta.osNotifications === true;
   // the version-skew notices' Reload (core/buildSkew.ts): remount the current screen, so it re-runs
   // its load from scratch against the redeployed backend — the same remount an @AppContext change does
   React.useEffect(() => {
@@ -1129,9 +1141,10 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       route: appMeta.homeRoute ?? '',
       consumedRoute: appMeta.homeConsumedRoute ?? '',
       serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
+      baseUrl: remoteHomeBaseUrl(appMeta),
     });
     setContextVersion((v) => v + 1);
-  }, [appMeta.homeRoute, appMeta.homeConsumedRoute, appMeta.homeServerSideType, appMeta.serverSideType]);
+  }, [appMeta.homeRoute, appMeta.homeConsumedRoute, appMeta.homeServerSideType, appMeta.serverSideType, appMeta.homeBaseUrl]);
   const guard = (content: React.ReactNode) => (
     <IdleSessionGuard meta={appMeta} runAppAction={(id) => void runAppAction(id)} onSignOut={goHome}>
       {content}
@@ -1204,6 +1217,17 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // the Mateu hub, the hub's "switch UI" — so the hub hides its own (session.hub.claimBar)
   const [headerBack, setHeaderBack] = useState<ScreenBack | null>(null);
   const hostBack = React.useCallback((back: ScreenBack | null) => setHeaderBack(back), []);
+  // RN-22: the bar names the screen on view (SetWindowTitle, or its own title once resolved) — the
+  // Material top app bar; the app's name stays in the drawer header and until a screen names itself
+  const [screenTitle, setScreenTitle] = useState<string | null>(null);
+  React.useEffect(() => {
+    if (!drawerShell) return;
+    session.setTitle = (title: string) => setScreenTitle(title);
+    return () => {
+      session.setTitle = () => {};
+    };
+  }, [drawerShell, session]);
+  const barTitle = barTitleOf(screenTitle, appMeta.title, session.hub?.uiName);
   React.useEffect(() => {
     if (!drawerShell) return;
     session.hub?.claimBar?.(true);
@@ -1219,6 +1243,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   );
 
   const mainScreen = withOverlays(
+    <BarTitle.Provider value={drawerShell ? barTitle : null}>
     <ContentScreen
       key={`${currentNav.route}-${currentNav.consumedRoute}-${currentNav.baseUrl ?? ""}-${contextVersion}-${menuVisit}`}
       route={currentNav.route}
@@ -1227,7 +1252,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       baseUrl={currentNav.baseUrl}
       bottomInset={bottomInset}
       hostBack={drawerShell ? hostBack : undefined}
-    />,
+    />
+    </BarTitle.Provider>,
   );
 
   if (variant === 'TABS' && menuItems.length > 0) {
@@ -1285,7 +1311,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   }
 
   // A Drawer is the native equivalent of a hamburger/side menu, so all menu-bearing variants
-  // (HAMBURGER_MENU, the older HAMBURGUER_MENU spelling, and AUTO) render through it.
+  // (HAMBURGER_MENU and AUTO) render through it.
   if (variant !== 'TABS' && menuItems.length > 0) {
     return guard(
       <NavigationContainer theme={navTheme}>
@@ -1317,7 +1343,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                 ) : (
                   <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
                 )}
-                <Appbar.Content title={appMeta.title ?? session.hub?.uiName ?? 'Mateu'} titleStyle={styles.appBarTitle} />
+                <Appbar.Content title={barTitle} titleStyle={styles.appBarTitle} accessibilityRole="header" testID="app-bar-title" />
                 {appMeta.themeToggle && (
                   <Appbar.Action
                     icon={dark ? 'white-balance-sunny' : 'weather-night'}

@@ -1,0 +1,10 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Help Center
+menu:
+  - type: RouteLink
+    label: FAQ
+    route: faq
+  - type: RouteLink
+    label: Contact
+    route: contact

@@ -67,6 +67,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       calendarEvents: '{count} events',
       hideUnpopulated: 'Hide unpopulated',
       mapUnavailable: 'The map could not be loaded.',
+      surfaceUnavailable: 'This part of the page could not be loaded.',
       // ── shell ──
       menu: 'Menu',
       context: 'Context',
@@ -301,6 +302,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       taskFinished: '{title}: done',
       taskFailedAnnounce: '{title} failed: {error}',
       taskCancelledAnnounce: '{title} cancelled',
+      // a running task's ETA, estimated by the server (conformance/client/eta-format.json)
+      taskEtaUnderMinute: 'less than a minute left',
+      taskEtaMinutes: 'about {n} min left',
+      taskEtaHours: 'about {n} h left',
+      // OS-level notifications (osNotify.mjs): asked for only from this control
+      osNotifyEnable: 'Notify me on this device',
       // ── inbox (inbox.mjs) ──
       inboxUnread: 'Unread',
       inboxAll: 'All',
@@ -355,6 +362,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       calendarEvents: '{count} eventos',
       hideUnpopulated: 'Ocultar vacías',
       mapUnavailable: 'No se ha podido cargar el mapa.',
+      surfaceUnavailable: 'No se ha podido cargar esta parte de la página.',
       menu: 'Menú',
       context: 'Contexto',
       workContext: 'Contexto de trabajo',
@@ -578,6 +586,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       taskFinished: '{title}: terminada',
       taskFailedAnnounce: '{title} ha fallado: {error}',
       taskCancelledAnnounce: '{title} cancelada',
+      taskEtaUnderMinute: 'menos de un minuto',
+      taskEtaMinutes: 'unos {n} min restantes',
+      taskEtaHours: 'unas {n} h restantes',
+      osNotifyEnable: 'Avisarme en este dispositivo',
       inboxUnread: 'Sin leer',
       inboxAll: 'Todas',
       inboxResolved: 'Resueltas',
@@ -621,6 +633,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Every chrome text in `lang`, English filling the gaps (what the VB translation bundle carries). */
   function chromeTextsOf(lang) {
     return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
+  }
+
+  /** A running task's ETA in words (ProgressDto.etaSeconds, the server's estimate), or '' when there
+   *  is none — never a guess. The rule of conformance/client/eta-format.json (round half up). */
+  function etaTextOf(etaSeconds, lang) {
+    if (typeof etaSeconds !== 'number' || !isFinite(etaSeconds) || etaSeconds <= 0) return ''
+    if (etaSeconds < 60) return chromeText('taskEtaUnderMinute', null, lang)
+    const minutes = Math.max(1, Math.floor(etaSeconds / 60 + 0.5))
+    if (etaSeconds < 3600 && minutes < 60) return chromeText('taskEtaMinutes', { n: minutes }, lang)
+    return chromeText('taskEtaHours', { n: Math.max(1, Math.floor(etaSeconds / 3600 + 0.5)) }, lang)
   }
 
   // ── money ─────────────────────────────────────────────────────────────────────────────────────
@@ -1955,89 +1977,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── The stored value of a richText field ─────────────────────────────────────────────────────
-  // (a port of libs/mateu richTextValue.ts — the bridge cannot import libs/mateu.) The value is HTML.
-  // Values written by the old vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or
-  // `{"ops":[…]}`): they are recognised and turned into the equivalent HTML, so existing data still
-  // opens, and the editor writes HTML from the next edit on.
+  // The value is HTML.
 
-  const isDeltaOp = (op) => !!op && typeof op === 'object' && 'insert' in op
-
-  /** The ops of a Delta value, or null when the value is not Delta JSON. */
-  function deltaOps(value) {
-    const raw = String(value == null ? '' : value).trim()
-    if (!raw.startsWith('[') && !raw.startsWith('{')) return null
-    try {
-      const parsed = JSON.parse(raw)
-      const ops = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.ops) ? parsed.ops : null
-      return ops && ops.length > 0 && ops.every(isDeltaOp) ? ops : null
-    } catch (e) {
-      // not JSON: plain text or HTML that happens to start with a bracket
-      return null
-    }
-  }
-
-  const deltaEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const deltaHref = (href) => {
     const h = String(href == null ? '' : href).trim()
     return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
-  }
-  const deltaInline = (text, a = {}) => {
-    let out = deltaEscape(text)
-    if (a.code) out = '<code>' + out + '</code>'
-    if (a.bold) out = '<strong>' + out + '</strong>'
-    if (a.italic) out = '<em>' + out + '</em>'
-    if (a.underline) out = '<u>' + out + '</u>'
-    if (a.strike) out = '<s>' + out + '</s>'
-    if (a.link && deltaHref(a.link)) out = '<a href="' + deltaEscape(deltaHref(a.link)) + '">' + out + '</a>'
-    return out
-  }
-
-  /** Quill Delta → HTML, for the formats the old editor produced (inline marks, links, headings,
-   *  lists, quotes, code blocks). Line formats live on the newline that ends the line. */
-  function deltaToHtml(ops) {
-    const lines = []
-    let current = ''
-    for (const op of ops) {
-      if (typeof op.insert !== 'string') continue // embeds (images…) are not carried over
-      const parts = op.insert.split('\n')
-      parts.forEach((part, i) => {
-        if (part) current += deltaInline(part, op.attributes)
-        if (i < parts.length - 1) {
-          lines.push({ html: current, attrs: op.attributes || {} })
-          current = ''
-        }
-      })
-    }
-    if (current) lines.push({ html: current, attrs: {} })
-    const out = []
-    let list = null
-    const flush = () => {
-      if (list) out.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + i + '</li>').join('') + '</' + list.tag + '>')
-      list = null
-    }
-    for (const line of lines) {
-      const a = line.attrs
-      const listTag = a.list === 'ordered' ? 'ol' : a.list === 'bullet' ? 'ul' : null
-      if (listTag) {
-        if (!list || list.tag !== listTag) { flush(); list = { tag: listTag, items: [] } }
-        list.items.push(line.html)
-        continue
-      }
-      flush()
-      const level = Number(a.header)
-      if (level >= 1 && level <= 6) out.push('<h' + level + '>' + line.html + '</h' + level + '>')
-      else if (a.blockquote) out.push('<blockquote>' + line.html + '</blockquote>')
-      else if (a['code-block']) out.push('<pre><code>' + line.html + '</code></pre>')
-      else out.push('<p>' + line.html + '</p>')
-    }
-    flush()
-    return out.join('')
-  }
-
-  /** The HTML to open a stored value with: the value itself, or its Delta converted. */
-  function richTextHtml(value) {
-    const ops = deltaOps(value)
-    return ops ? deltaToHtml(ops) : (value == null ? '' : String(value))
   }
 
   /** What the editor stores: '' for an editor left empty (only empty paragraphs/breaks), else the
@@ -2147,8 +2091,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * JET element waits for the page's binding provider to apply bindings to it and stays "being
    * upgraded" forever: its wrapper says `data-oj-binding-provider="none"`. Until it loads — and for
    * good when there is no loader or the CDN fails — a small editor of its own: a toolbar of
-   * oj-buttons over a contenteditable region. Either way the value is HTML (a legacy Delta opens
-   * converted) and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
+   * oj-buttons over a contenteditable region. Either way the value is HTML and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
    * JET component, so the field chains treat it like any other — on blur, sanitised by the same
    * allowlist as the viewer.
    */
@@ -2167,7 +2110,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       commitHtml(html) {
         const value = richTextValueOf(html)
-        if (value === richTextValueOf(richTextHtml(this.value))) return
+        if (value === richTextValueOf(this.value)) return
         this.editing = true
         this.value = value
         this.editing = false
@@ -2177,7 +2120,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       render() {
         this.textContent = ''
         this.classList.add('mateu-rich-text-field')
-        const html = sanitizeHtml(richTextHtml(this.value))
+        const html = sanitizeHtml(this.value)
         if (this.readonlyNow) {
           const view = doc.createElement('div')
           view.className = 'mateu-atom-richtext oj-typography-body-md'
@@ -3209,6 +3152,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
       orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
       overviewOnTop: md.orientation === 'horizontal',
+      // the height the layout's `style` declares (a YAML `style: "height: 24rem"`), bound as an object
+      // on oj-sp-foldout-layout — it was dropped, so the layout ran down to the viewport bottom
+      hostStyle: foldoutHostStyleOf(node.style),
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
       header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
@@ -3245,6 +3191,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...foldoutSummaryOf(bySlot['summary-' + i], (ctx && ctx.state) || {}),
       })),
     }
+  }
+
+  /** The sizing a foldout's wire `style` declares (height / min-height / max-height) as a style
+   *  object for the template's `:style`; {} when it declares none. */
+  function foldoutHostStyleOf(style) {
+    const out = {}
+    for (const decl of String(style || '').split(';')) {
+      const at = decl.indexOf(':')
+      if (at < 0) continue
+      const prop = decl.slice(0, at).trim().toLowerCase()
+      const value = decl.slice(at + 1).trim()
+      if (!value) continue
+      if (prop === 'height') out.height = value
+      else if (prop === 'min-height') out.minHeight = value
+      else if (prop === 'max-height') out.maxHeight = value
+    }
+    return out
   }
 
   /** A foldout panel's icon → a Redwood icon class: a bare name is a Vaadin one ("user" →
@@ -3958,7 +3921,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
     'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
-    'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
+    'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
@@ -4957,6 +4920,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'vaadin:gift': 'oj-ux-ico-gift',
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
+    'vaadin:arrow-right': 'oj-ux-ico-arrow-right',
+    'vaadin:arrow-left': 'oj-ux-ico-arrow-left',
     'vaadin:clock': 'oj-ux-ico-clock',
     'vaadin:list': 'oj-ux-ico-list',
     // the tray badge's bell (header widget)
@@ -5090,7 +5055,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       node.home = sectionHomeOf(node)
       menuTree.push(node)
     }
-    // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+    // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGER_MENU/TILES →
     // hamburger that opens a left DRAWER with oj-navigation-list (like the FA
     // navigator); MENU_ON_TOP → SUBHEADER: a light band under the dark header with the
     // console title and the top-level options (oj-menu dropdown for the groups), like band 2
@@ -5098,10 +5063,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside the dark header (topbar)
     // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
     // level (only the sections) and the subheader carries the second level of the section on screen.
-    // HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU: servers send it since
-    // 3.0-alpha.412; the old one is still accepted (an older server, a static bundle).
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
@@ -5430,6 +5393,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { cls: out.trim(), style }
   }
 
+  /** A Badge's icons as Redwood icon classes ('' = none, or a name with no Redwood glyph). */
+  function badgeIconsOf(m) {
+    const cls = (name) => (ojIconOf(name) ? ojIconOf(name) + ' mateu-badge-icon' : '')
+    return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
+  }
+
+  /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
+  function withTextVariants(m, styled) {
+    const variants = Array.isArray(m && m.variants) ? m.variants : []
+    let cls = styled.cls
+    if (variants.includes('b') && !/\boj-typography-bold\b/.test(cls)) cls = (cls + ' oj-typography-bold').trim()
+    const style = variants.includes('i') ? { ...styled.style, fontStyle: 'italic' } : styled.style
+    return { cls, style }
+  }
+
   /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
   const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
 
@@ -5522,6 +5500,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const key = (kind === 'dateTime' ? 'dateTime' : 'date') + '|' + options.locale + '|' + (converterFactory ? 'f' : '')
     if (!dateConverters.has(key)) dateConverters.set(key, converterOf({ type: 'datetime', options }))
     return dateConverters.get(key)
+  }
+
+  /** A board row's items as twelfths of the oj-flex row, by their weights (boardCols), adding up to
+   *  12 (largest remainder; each at least 1) — a sum short of 12 would let the next row join this line. */
+  function boardTwelfthsOf(weights) {
+    const ws = weights.map((w) => (w > 0 ? w : 1)).slice(0, 12)
+    const total = ws.reduce((a, b) => a + b, 0)
+    const exact = ws.map((w) => (w * 12) / total)
+    const out = exact.map((x) => Math.max(1, Math.floor(x)))
+    let left = 12 - out.reduce((a, b) => a + b, 0)
+    const order = exact.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)
+    for (let k = 0; left > 0; k = (k + 1) % order.length) { out[order[k]]++; left-- }
+    for (let i = out.length - 1; left < 0 && i >= 0; i--) if (out[i] > 1) { out[i]--; left++ }
+    return out
   }
 
   function islandContentOf(ctx, opts = {}) {
@@ -5843,7 +5835,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const walkLayout = (n) => {
           if (!n || typeof n !== 'object') return
           const md = n.metadata
-          if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+          // a FormItem (the components of ONE field) is transparent: its fields join the layout — it
+          // used to cut the layout, its field drawn loose outside the oj-form-layout
+          if (md && md.type === 'FormItem') { kidsOf(n).forEach(walkLayout); return }
+          // a FormRow of an AUTO-RESPONSIVE layout (the server's reflective forms: one row per line of
+          // its columns) is the layout's own grid — its fields flow into the one oj-form-layout
+          if (md && md.type === 'FormRow' && m.autoResponsive) { kidsOf(n).forEach(walkLayout); return }
+          // an authored FormRow (fluent / YAML) keeps its fields on ONE line: a form layout of its own
+          // with a column per field (flattened, they flowed into the columns like any other field)
+          if (md && md.type === 'FormRow') {
+            const rowKids = kidsOf(n)
+            const fieldCount = rowKids.filter((k) => k && k.metadata && k.metadata.type === 'FormField').length
+            layout = null
+            if (fieldCount) {
+              const rowColumns = Math.min(4, fieldCount)
+              layout = { isFormLayout: true, columns: rowColumns, fields: [] }
+              layouts.push(layout)
+              atom(layout, container)
+            }
+            const own = layout
+            for (const k of rowKids) {
+              const kmd = k && k.metadata
+              const field = kmd && kmd.type === 'FormField' && own ? layoutFieldOf(kmd, state, ctx.data, own.columns) : null
+              if (field) {
+                if (editorNodeIds && k.id) field.nodeId = String(k.id)
+                own.fields.push(field)
+              } else if (k) visit(k, container)
+            }
+            // what follows the row starts a layout of its own again
+            layout = null
+            return
+          }
           const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
           if (field) {
             if (editorNodeIds && n.id) field.nodeId = String(n.id)
@@ -6147,6 +6169,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         visitDashboardPanel(node, null)
         return
       }
+      // BOARD (BoardLayout of BoardLayoutRows of BoardLayoutItems): each row's items share the row by
+      // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
+      // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
+      // another block there are no columns to share out: stacked, in order.
+      if (t === 'BoardLayout' && !container) {
+        const rows = kidsOf(node).filter(Boolean)
+        const before = blocks.length
+        let ok = true
+        for (const row of rows) {
+          const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+          if (!items.length) continue
+          const cols = boardTwelfthsOf(items.map((it) => Number(it.metadata && it.metadata.boardCols) || 1))
+          if (!projectSized(items, items.map((_, i) => 'oj-flex-item oj-sm-12 oj-md-' + (cols[i] || 12) + ' oj-sm-padding-4x-end'),
+            items.map(() => ({ fromColumns: true })))) { ok = false; break }
+        }
+        if (ok) return
+        blocks.splice(before)
+      }
+      // FULL WIDTH: what it holds spans the row — its buttons fill it (a plain button bar keeps its
+      // natural width, right-aligned)
+      if (t === 'FullWidth') {
+        const scratch = { items: [] }
+        for (const child of kidsOf(node)) visit(child, scratch)
+        for (const a of scratch.items) {
+          if (a && a.isButtons) a.fullWidth = true
+          atom(a, container)
+        }
+        return
+      }
       if (t === 'Scoreboard') {
         const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
         if (metrics.length) atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
@@ -6249,10 +6300,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               isH2: m.container === 'h2',
               text,
               // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-              ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
+              ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
             }, container)
           } else {
-            atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
+            atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
           }
         }
         return
@@ -6558,7 +6609,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Badge') {
-        atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+        atom({
+          isBadge: true,
+          label: interp(m.text),
+          badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+          // its icons, inside the chip before/after the text (they were never drawn)
+          ...badgeIconsOf(m),
+        }, container)
         return
       }
       if (t === 'ResourceGrid') {
@@ -6594,7 +6651,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           currentLabel: m.current ? (m.currentLabel || '') : '',
           addedLabel: m.added ? (m.addedLabel || '') : '',
           priceLabel: interp(m.priceLabel || ''),
-          actionLabel: m.actionId ? (m.actionLabel || '') : '',
+          // the CTA shows whenever it has a label (once added: the addedLabel) — with no actionId it
+          // is INERT, not dropped; `added` used to show nothing at all
+          actionLabel: m.current ? '' : interp((m.added ? (m.addedLabel || m.actionLabel) : m.actionLabel) || ''),
+          ctaDisabled: !m.actionId,
+          ctaChroming: m.added ? 'outlined' : 'callToAction',
           actionId: m.actionId || '',
           parameters: {},
         }, container)
@@ -6641,6 +6702,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isStatusList: true,
           wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
+          // columns: N = AT MOST N cells per line: the cells are fixed (22rem), so the wrapper is capped
+          // at N of them and their gaps — uncapped, a wide page fitted three or four
+          wrapStyle: cols > 1 ? { maxWidth: 'calc(' + cols + ' * 22rem + ' + (cols - 1) + ' * 40px)' } : {},
           items: (m.items || []).map((it) => {
             // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
             // array; a row WITH actions is painted STACKED (title+chip /
@@ -6666,7 +6730,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               cellClass,
               statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
               avatar: it.avatar || '',
-              icon: it.icon || '',
+              // an emoji/text icon is printed; a token (vaadin:…) becomes its Redwood icon class
+              icon: it.icon && !String(it.icon).includes(':') ? it.icon : '',
+              iconClass: it.icon && String(it.icon).includes(':') ? (ojIconOf(it.icon) || '') : '',
               title: interp(it.title),
               description: interp(it.description || ''),
               status: interp(it.status || ''),
@@ -6761,7 +6827,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // and no action of its own: its buttons join the row, as a toolbar group's join the header
         const buttons = groupMembersOf(m).map(buttonOf)
         if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
-        if (last && last.isButtons) last.buttons.push(...buttons)
+        if (last && last.isButtons && !last.fullWidth) last.buttons.push(...buttons)
         else atom({ isButtons: true, buttons }, container)
         return
       }
@@ -6789,7 +6855,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
       if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
       if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
-      if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
       if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
@@ -6878,15 +6943,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
           } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
         }
-        return
-      }
-      if (t === 'Stepper') {
-        // a numbered step per child (the wire record carries no fields of its own)
-        kidsOf(node).forEach((child, i) => {
-          const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
-          atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
-          visit(child, container)
-        })
         return
       }
       if (t === 'FormEditor') {
@@ -10208,6 +10264,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           agentPush: !!md.agentPush,
           // The App's NotificationsSupplier → the header bell (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
+          // @App(osNotifications): a new inbox entry / a background task ending also through the OS (osNotify.mjs)
+          osNotifications: !!md.osNotifications,
           // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
@@ -11511,13 +11569,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * what the user has typed (the draft beats the state) → [fieldId] in form
    * order: the first is the one that receives focus. `only` restricts to those fields.
    */
-  function formErrorsOf(sections, draft, only) {
+  function formErrorsOf(sections, draft, only, ruleFlags) {
     const restrict = Array.isArray(only) && only.length ? new Set(only) : null
     const d = draft || {}
+    const flags = ruleFlags || {}
     const out = []
     for (const section of sections || []) {
       for (const f of section.fields || []) {
-        if (!f.required || f.readonly || f.isBoolean) continue
+        const flag = flags[f.fieldId] || {}
+        // a client-side rule may make the field required (or hide it: then it asks nothing)
+        if (flag.hidden) continue
+        if (!(f.required || flag.required === true) || f.readonly || f.isBoolean) continue
         if (restrict && !restrict.has(f.fieldId)) continue
         const value = Object.prototype.hasOwnProperty.call(d, f.fieldId) ? d[f.fieldId] : f.value
         if (isBlank(plainValueOf(value)) && out.indexOf(f.fieldId) < 0) out.push(f.fieldId)
@@ -11564,9 +11626,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (validationErrorsOf — a bound, a pattern, a size). → { missing: [fieldId] in form order,
    * messages: { fieldId: message } for the ones a wire validation refused }.
    */
-  function formRefusalOf(sections, state, draft, validations, only) {
-    const missing = formErrorsOf(sections, draft, only)
+  function formRefusalOf(sections, state, draft, validations, only, rules) {
     const merged = Object.assign({}, state || {}, plainDraftOf(draft))
+    // the `required` / `hidden` a client-side RULE decides for this state (SetDataValue
+    // <field>.required): the control was marked, but an empty value still left
+    const ruleFlags = rules && rules.length
+      ? fieldFlagsOf(computeRules(rules, { state: merged, data: {} }).data)
+      : null
+    const missing = formErrorsOf(sections, draft, only, ruleFlags)
     const messages = validationErrorsOf(validations, merged, only)
     // an empty required field is marked by its own JET validator; a class-level check (_component)
     // names no field to mark, so it is the server's to refuse
@@ -12302,7 +12369,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
   // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
   // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
-  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow, Result,
+  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow,
   // Directory, CookieConsent, ConfirmDialog, Breadcrumbs, Notification…).
   //
   // Every function here is PURE: wire metadata → an ATOM (a flat object the atoms template paints).
@@ -12986,46 +13053,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // ── Result: the outcome of an operation — icon by type, message, links ─────────────────────────
-  const RESULT_LOOKS = {
-    success: ['oj-ux-ico-check-circle-s', 'mateu-tone-success'],
-    info: ['oj-ux-ico-information-s', 'mateu-tone-info'],
-    warning: ['oj-ux-ico-warning-s', 'mateu-tone-warning'],
-    error: ['oj-ux-ico-error-s', 'mateu-tone-danger'],
-    ignored: ['oj-ux-ico-information', ''],
-  }
-  const destinationOf = (d, interp) => {
-    if (!d) return null
-    const type = str(d.type)
-    const label = interp(str(d.description || d.value || d.id))
-    if (type === 'Url') return { label, href: safeHref(d.value), isLink: !!safeHref(d.value), isAction: false, actionId: '', parameters: {} }
-    if (type === 'ActionId') return { label, href: '', isLink: false, isAction: true, actionId: d.value || d.id || '', parameters: {} }
-    // View / Component / CustomEvent: a route of the app when the value looks like one
-    const route = str(d.value)
-    if (route.startsWith('/')) return { label, href: route, isLink: true, isAction: false, actionId: '', parameters: {} }
-    return { label, href: '', isLink: false, isAction: !!(d.id), actionId: d.id || '', parameters: {} }
-  }
-  function resultAtomOf(m, interp = (x) => x) {
-    const look = RESULT_LOOKS[str(m.resultType).toLowerCase()] || RESULT_LOOKS.info
-    const links = (m.interestingLinks || []).map((d) => destinationOf(d, interp)).filter(Boolean)
-    const next = destinationOf(m.nowTo, interp)
-    return {
-      isResult: true,
-      title: interp(str(m.title)),
-      message: interp(str(m.message)),
-      iconClass: look[0],
-      panelClass: 'oj-panel oj-sm-padding-8x mateu-result ' + look[1],
-      image: m.leftSideImageUrl ? elementModuleUrl(str(m.leftSideImageUrl)) : '',
-      hasImage: !!m.leftSideImageUrl,
-      links: keyed(links),
-      hasNext: !!next,
-      next: next || { label: '', href: '', isLink: false, isAction: false, actionId: '', parameters: {} },
-      // the «what next» button sends the atom's own action (the block listener reads the atom)
-      actionId: next && next.isAction ? next.actionId : '',
-      parameters: {},
-    }
-  }
-
   // ── CookieConsent: a band fixed to the bottom; installCookieConsent hides it when the cookie
   //    exists and stores the cookie on «dismiss» ──────────────────────────────────────────────
   function cookieConsentAtomOf(m, interp = (x) => x) {
@@ -13537,6 +13564,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
       // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
       chrome: embeddedChromeOf(m.chrome),
+      // a block of the host page whatever its chrome: never names or moves the window (transport.mjs)
+      windowless: true,
       surface: true,
       lazy: false,
     }
@@ -16388,6 +16417,104 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // OS-LEVEL NOTIFICATIONS (design/progress-and-notifications.md, "OS-level notifications"): an app
+  // that declares @App(osNotifications = true) (AppDto.osNotifications) may tell the user through the
+  // operating system — the Web Notifications API — about the two events worth leaving the app for:
+  // a NEW unread inbox entry and a task that finished (done / failed) in the background. Only while
+  // the tab is hidden; the permission is asked for ONLY from a user gesture (the "Notify me on this
+  // device" control of the bell's panel and of the task list), never on load.
+
+  let osNotificationsOn = false
+  let osNotificationNavigate = null
+
+  /** The app opted in (the shell sets it from the bootstrap App). */
+  function setOsNotificationsEnabled(on) { osNotificationsOn = !!on }
+  function osNotificationsEnabled() { return osNotificationsOn }
+  /** Where a click on a notification goes (the shell's safe in-app navigation). */
+  function setOsNotificationNavigateSink(fn) { osNotificationNavigate = typeof fn === 'function' ? fn : null }
+
+  const osWindow = () => (typeof window !== 'undefined' ? window : globalThis)
+
+  /** 'unsupported' | 'default' | 'granted' | 'denied'. */
+  function osNotificationPermission(win = osWindow()) {
+    const N = win && win.Notification
+    if (typeof N !== 'function') return 'unsupported'
+    return N.permission || 'default'
+  }
+
+  /** Whether the "Notify me on this device" control shows: the app opted in and nothing was asked yet. */
+  function offersOsNotifications(win = osWindow()) {
+    return osNotificationsOn && osNotificationPermission(win) === 'default'
+  }
+
+  /** Asks for the permission (call it from a click only). Answers the resulting permission. */
+  async function requestOsNotifications(win = osWindow()) {
+    const N = win && win.Notification
+    if (typeof N !== 'function' || typeof N.requestPermission !== 'function') return 'unsupported'
+    try {
+      const answer = await N.requestPermission()
+      return answer || N.permission || 'default'
+    } catch (e) {
+      return N.permission || 'default'
+    }
+  }
+
+  /** Shows `{ title, body, tag, route }` through the OS when the app opted in, the user granted it and
+   *  the tab is hidden. Answers the Notification (or null). A click focuses the tab and opens the
+   *  route through the shell's navigation. */
+  function osNotify(note, { win = osWindow(), doc = typeof document !== 'undefined' ? document : null } = {}) {
+    if (!note || !note.title || !osNotificationsOn) return null
+    if (osNotificationPermission(win) !== 'granted') return null
+    if (!doc || doc.visibilityState !== 'hidden') return null
+    try {
+      const n = new win.Notification(String(note.title), { body: note.body ? String(note.body) : '', tag: note.tag ? String(note.tag) : undefined })
+      n.onclick = () => {
+        try { if (win.focus) win.focus() } catch (e) { /* a focus refused by the browser */ }
+        if (note.route && osNotificationNavigate) osNotificationNavigate(note.route)
+        try { if (n.close) n.close() } catch (e) { /* already gone */ }
+      }
+      return n
+    } catch (e) {
+      return null
+    }
+  }
+
+  /** The OS notification a task-center event deserves: a task that finished done/failed while it was
+   *  in the background (non-blocking, or moved there). Pure. */
+  function taskOsNotificationOf(event) {
+    const t = event && event.task
+    if (!t || event.kind !== 'finished' || !t.backgrounded) return null
+    if (t.state !== 'done' && t.state !== 'failed') return null
+    const route = t.state === 'done' ? ((t.resultActions || []).find((a) => a && a.route) || {}).route || null : null
+    return {
+      title: t.title || chromeText('tasks'),
+      body: t.state === 'failed' ? (t.error || t.text || chromeText('taskFailed')) : (t.text || chromeText('taskDone')),
+      tag: 'task-' + t.taskId,
+      route,
+    }
+  }
+
+  /** The OS notification a new inbox entry deserves (unread only). Pure. */
+  function inboxOsNotificationOf(entry) {
+    if (!entry || !entry.unread || !entry.title) return null
+    return { title: entry.title, body: entry.text || '', tag: 'inbox-' + entry.id, route: entry.route || null }
+  }
+
+  /** The "Notify me on this device" control (an oj-button), or null when it has no business showing.
+   *  `onChange` runs once the user answered (to repaint the panel without it). */
+  function osNotifyControl(doc, onChange, win = osWindow()) {
+    if (!doc || !offersOsNotifications(win)) return null
+    const b = doc.createElement('oj-button')
+    b.setAttribute('chroming', 'borderless')
+    b.setAttribute('class', 'mateu-os-notify')
+    b.textContent = chromeText('osNotifyEnable')
+    b.addEventListener('ojAction', () => { requestOsNotifications(win).then(() => { if (onChange) onChange() }) })
+    return b
+  }
+
+
+
+
 
   // TASK CENTER: the progress-reporting pattern (design/progress-and-notifications.md) in Redwood.
   //
@@ -16545,12 +16672,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       value,
       count,
       elapsed: started != null ? formatElapsed(end - started) : '',
+      // the server's estimate (ProgressDto.etaSeconds): only while running, never a guess of ours
+      eta: running ? etaTextOf(task.etaSeconds) : '',
       // what a screen reader reads off the bar: the count, else the percent, else the state
       valueText: count || (fraction != null ? `${value}%` : stateLabel),
       canCancel: running && !!task.cancellable,
       canBackground: running && !!task.blocking && !!task.backgroundable && !task.backgrounded,
       canRetry: task.state === 'failed' && !!task.retryable && !!(task.origin && task.origin.actionId),
-      resultActions: task.state === 'done' ? (task.resultActions || []).filter((a) => a && (a.route || a.actionId)) : [],
+      // a task picked up after a reload no longer has the screen that started it: only the result
+      // actions that navigate still mean something there
+      resultActions: task.state === 'done'
+        ? (task.resultActions || []).filter((a) => a && (a.route || (a.actionId && !(task.origin && task.origin.reattached)))) : [],
       blocking: !!task.blocking && !task.backgrounded,
     }
   }
@@ -16728,9 +16860,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (v.running || v.state === 'done') box.appendChild(taskProgressBar(doc, v))
     const text = v.error || v.text
     if (text) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-text oj-typography-body-sm' + (v.error ? ' oj-text-color-danger' : '') }, text))
-    const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+    const meta = taskMetaOf(v)
     if (meta) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-meta oj-typography-body-xs oj-text-color-secondary', 'data-elapsed-for': v.id }, meta))
     return box
+  }
+
+  /** The quiet line under a task: "12 of 300 · about 2 min left · 0:42 elapsed". */
+  function taskMetaOf(v) {
+    return [v.count, v.eta, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
   }
 
   function paintTaskCenter(state) {
@@ -16769,6 +16906,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dockButton.setAttribute('aria-expanded', state.open ? 'true' : 'false')
     taskToggleHidden(list, !state.open)
     list.textContent = ''
+    // @App(osNotifications): the user may ask to be told when a background task ends (a click only)
+    const askOs = osNotifyControl(doc, () => paintTaskCenter(state))
+    if (askOs) list.appendChild(askOs)
     if (!view.docked.length) list.appendChild(taskEl(doc, 'div', { class: 'oj-text-color-secondary oj-sm-padding-2x' }, chromeText('tasksEmpty')))
     for (const v of view.docked) {
       const item = taskEl(doc, 'div', { class: 'mateu-task-item', role: 'listitem' })
@@ -16791,7 +16931,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const t of state.center.list()) {
       if (t.state !== 'running') continue
       const v = taskViewOf(t, now)
-      const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+      const meta = taskMetaOf(v)
       for (const node of state.doc.querySelectorAll(`[data-elapsed-for="${TASK_CSS_ESCAPE(t.taskId)}"]`)) node.textContent = meta
     }
   }
@@ -16834,6 +16974,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     center.subscribe((event) => {
       const said = taskAnnouncementOf(event)
       if (said) announce(said.text, { politeness: said.assertive ? 'assertive' : 'polite' })
+      // a background task that ended while the tab is hidden: through the OS, when the app opted in
+      osNotify(taskOsNotificationOf(event), { doc })
       // a finished blocking dialog closes on its own when the task says so
       if (event.kind === 'finished' && event.task && event.task.blocking && !event.task.backgrounded) {
         const delay = autoCloseDelayOf(event.task)
@@ -16854,6 +16996,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     taskCenterInstalled = null
     taskCenter.clear()
   }
+
 
 
 
@@ -17087,7 +17230,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A message with persistence `inbox` lands in the session's inbox (its toast is shown apart). */
   function noteInboxMessage(m) {
     if (!m) return null
-    return commitInbox(withSessionEntry(inboxState, sessionEntryOfMessage(m)))
+    const entry = sessionEntryOfMessage(m)
+    const known = entriesOf(inboxState).some((e) => e.id === entry.id)
+    const model = commitInbox(withSessionEntry(inboxState, entry))
+    // a NEW entry while the tab is hidden: through the OS too, when the app opted in (osNotify.mjs)
+    if (!known) osNotify(inboxOsNotificationOf(entry))
+    return model
   }
 
   /** Messages of a stream whose screen is gone: only the `inbox` ones are kept (in the inbox). */
@@ -17100,7 +17248,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const { inbox: next, added, refetch } = withChange(inboxState, change)
     if (refetch) return refreshInbox()
     commitInbox(next)
-    if (added && added.unread) announce(chromeText('inboxNew', { title: added.title }))
+    if (added && added.unread) {
+      announce(chromeText('inboxNew', { title: added.title }))
+      osNotify(inboxOsNotificationOf(added))
+    }
     return inboxModelOf(inboxState)
   }
 
@@ -17218,6 +17369,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return b
     }
     host.textContent = ''
+    // @App(osNotifications): "Notify me on this device" — the permission is asked for from this click only
+    const askOs = osNotifyControl(doc, () => repaintInboxPanel())
+    if (askOs) host.appendChild(askOs)
     const filters = e('div', { class: 'mateu-inbox-filters oj-flex oj-sm-margin-2x-bottom', role: 'group', 'aria-label': chromeText('notifications') })
     for (const f of model.filters) {
       filters.appendChild(btn(f.label, () => chooseFilter(f.id), {
@@ -21826,11 +21980,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
     let fetched = []
     let total = null
+    // the load failed: TOLD (an empty table alone reads as "no rows") — what the service said when it
+    // said something (e.detail direct, _restfetchError.detail proxied), else the status
+    let failure = null
     try {
       if (viaProxy(src) && opts.server) {
         const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
         const appData = (inc && inc.appData) || {}
-        if (appData._restfetchError) throw new Error('proxied rows failed')
+        if (appData._restfetchError) {
+          const err = new Error('proxied rows failed')
+          err.status = typeof appData._restfetchError.status === 'number' ? appData._restfetchError.status : 0
+          err.detail = appData._restfetchError.detail
+          throw err
+        }
         ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
       } else {
         const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
@@ -21840,9 +22002,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
       fetched = []
       total = null
+      const status = e && typeof e.status === 'number' ? e.status : 0
+      const detail = e && typeof e.detail === 'string' && e.detail.trim() ? e.detail : null
+      failure = { variant: 'error', text: detail || ('Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '')) }
     }
     const page = restListingPage(md, fetched, total, componentState, serverPaged)
-    return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }])
+    return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }],
+      failure ? [failure] : [])
   }
 
   // ── field options ─────────────────────────────────────────────────────────────────────────────
@@ -22742,8 +22908,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
   // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
-  // "Transport"): shell bootstrap through components/_/action; everything else through
-  // sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
+  // "Transport"): shell bootstrap through sync/_no_route with actionId '__load__'; everything else
+  // through sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
   // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 
@@ -22759,11 +22925,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+  /** An absolute base url on another origin than the page's (false outside a browser). */
+  function isForeignBase(base) {
+    if (!base || !/^https?:\/\//i.test(String(base))) return false
+    try {
+      return typeof location !== 'undefined' && !!location.origin && new URL(String(base)).origin !== location.origin
+    } catch {
+      return false
+    }
+  }
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
    *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
   async function callMateu(base, body, options = {}) {
+    // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
+    // says nothing about the user's connection: its request is isolated from the connectivity tracker,
+    // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the
+    // page-wide "no connection" band, and "connection restored" right after.
+    if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
@@ -22799,7 +22981,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
   }
 
-  /** Shell bootstrap: the root App only resolves through the generic endpoint.
+  /** Shell bootstrap: the root App, a `__load__` of the mount root (sync/_no_route).
    *  Static-bundle: the shell is NOT exported (the bundle stores route loads, not the App's __load__),
    *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
    *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
@@ -22812,7 +22994,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // its absence is the normal case, not an error band nor a sign of being offline
     const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
     try {
-      const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
+      const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
@@ -22889,7 +23071,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
-  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (sync/_no_route, __load__)
   // answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
   // App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
   // the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what
@@ -22925,7 +23107,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
    *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
    *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
-  const loadRoute = async (base, route, initiator = '', extra = {}) => {
+  const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
       extra = { ...extra, consumedRoute: '_empty' }
@@ -22947,7 +23129,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
-    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -23004,7 +23186,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
         // …and whatever an older remote still sends, the window is not the island's to name
-        return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
+        return outbound.embeddedChrome || outbound.windowless ? withoutWindowCommands(inc) : inc
       }, (e) => { release(); throw e })
   }
 
@@ -23341,17 +23523,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
       // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
-      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+      // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
+      // opened inside one replaced the host page's address)
+      ...(sub.windowless ? { windowless: true } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
     // its actions and triggers still go to ITS baseUrl (outbound, below)
-    const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    let answer
+    try {
+      answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
       componentState: sub.componentState || {},
       ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
-    })
-    let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
+    // a micro frontend's load is a block of the page: whatever happens to it reports in ITS box
+    // (loadSubresources), never in the page-wide error band
+    }, sub.windowless ? { quiet: true } : {})
+    } catch (error) {
+      // a micro frontend that fails says so INSIDE its own box (its load is quiet: no page band);
+      // any other subresource is reported by the error band (onSettle) and rethrown, as before
+      if (!sub.windowless || isStaleResponse(error)) throw error
+      return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
+    }
+    let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
       const ctx = next.contexts[sub.id]
@@ -23362,7 +23557,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     // an embedded island leaves the window as the HOST named it: its load does not take the host's
     // title (nor its history push) away from the chains that apply them after loading the blocks
-    if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
+    if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
   }
 
@@ -23432,7 +23627,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
           // previous incarnation held
           state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
-          data: (previous && previous.data) || {},
+          // an EmbeddedView island brings the data its page's fragment would (a lookup's
+          // `<field>-label`): it has no fragment of its own — the stored id used to be shown raw
+          data: { ...((previous && previous.data) || {}), ...(node.data && typeof node.data === 'object' ? node.data : {}) },
           dirty: false,
           outbound,
         },
@@ -23554,6 +23751,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       } catch (ignored) { /* the error band already reports it (onSettle) */ }
     }
     return next
+  }
+
+  /** The answer a micro frontend that could not be loaded paints in its own box: a danger Notice
+   *  with what went wrong (the classified failure's words, else the renderer's own). */
+  function surfaceFailureIncrement(id, error) {
+    const reason = error && error.failure && error.failure.message
+    const text = reason ? `${chromeText('surfaceUnavailable')} ${reason}` : chromeText('surfaceUnavailable')
+    return {
+      commands: [],
+      messages: [],
+      fragments: [{
+        targetComponentId: id,
+        action: 'Replace',
+        component: { type: 'ServerSide', id, serverSideType: '', actions: [], triggers: [], children: [
+          { type: 'ClientSide', id: `${id}-failure`, children: [], metadata: { type: 'Notice', theme: 'danger', text } },
+        ] },
+        state: {},
+      }],
+    }
   }
 
   /**
@@ -23786,6 +24002,148 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     return spliceRemote(menu, answers, sections)
   }
+
+
+
+
+
+  // REATTACH (design/progress-and-notifications.md, "Reattach"): a task survives a reload of the tab.
+  //
+  // The server keeps a task running for a grace period after its last subscriber left. This tab
+  // remembers, for its SESSION only (sessionStorage, the same key the web renderer uses), the tasks its
+  // streams reported; when the shell boots again it asks `_progress-tasks {taskIds}` of each backend
+  // — which answers the current state of the caller's own tasks and nothing about the others — and
+  // opens a `_progress-resume {taskId}` stream for every one still running: the task center fills up
+  // again. Ids the server does not answer (finished long ago, another user's, unknown) are forgotten.
+
+  const TASK_MEMORY_KEY = 'mateu-progress-tasks'
+  const REATTACH_MAX_IDS = 50
+
+  const taskSession = () => { try { return globalThis.sessionStorage || null } catch (e) { return null } }
+
+  /** The tasks this tab's session remembers: [{ taskId, baseUrl, route, serverSideType }]. */
+  function rememberedTasks(store = taskSession()) {
+    try {
+      const raw = store && store.getItem(TASK_MEMORY_KEY)
+      const list = raw ? JSON.parse(raw) : []
+      return Array.isArray(list) ? list.filter((t) => t && typeof t.taskId === 'string' && t.taskId) : []
+    } catch (e) {
+      return []
+    }
+  }
+
+  function writeRememberedTasks(list, store) {
+    try {
+      if (!store) return
+      if (list.length) store.setItem(TASK_MEMORY_KEY, JSON.stringify(list.slice(-REATTACH_MAX_IDS)))
+      else store.removeItem(TASK_MEMORY_KEY)
+    } catch (e) { /* storage blocked or full: the task simply will not survive a reload */ }
+  }
+
+  function rememberTask(task, store = taskSession()) {
+    if (!task || !task.taskId) return
+    const list = rememberedTasks(store)
+    if (list.some((t) => t.taskId === task.taskId)) return
+    list.push({ taskId: String(task.taskId), baseUrl: task.baseUrl || '', route: task.route || '', serverSideType: task.serverSideType || null })
+    writeRememberedTasks(list, store)
+  }
+
+  function forgetTasks(taskIds, store = taskSession()) {
+    const gone = new Set([].concat(taskIds || []).map(String))
+    const list = rememberedTasks(store)
+    const kept = list.filter((t) => !gone.has(t.taskId))
+    if (kept.length !== list.length) writeRememberedTasks(kept, store)
+  }
+
+  let taskMemoryOff = null
+
+  /** Keeps the session's memory in step with the center: a running task is remembered, a finished
+   *  one forgotten (once). */
+  function installTaskMemory(center = taskCenter, store = taskSession()) {
+    if (taskMemoryOff) return taskMemoryOff
+    const off = center.subscribe((event) => {
+      const t = event && event.task
+      if (!t) return
+      if (event.kind === 'finished' || event.kind === 'dismissed') { forgetTasks([t.taskId], store); return }
+      if ((event.kind === 'started' || event.kind === 'updated') && t.state === 'running') {
+        const o = t.origin || {}
+        rememberTask({ taskId: t.taskId, baseUrl: o.base || '', route: o.route || '', serverSideType: o.serverSideType || null }, store)
+      }
+    })
+    taskMemoryOff = () => { off(); taskMemoryOff = null }
+    return taskMemoryOff
+  }
+
+  const reattachedOrigin = (t) => ({ base: t.baseUrl || '', route: t.route || '', serverSideType: t.serverSideType || undefined, actionId: null, view: null, reattached: true })
+
+  /** Follows one remembered task: `_progress-resume {taskId}` over the stream endpoint. Its page-level
+   *  parts apply (progress → the center, `inbox` messages → the inbox, NotificationsChanged → the
+   *  bell); a stream that ends before the task did leaves it failed — a task "running" forever is a lie. */
+  async function resumeTask(t, { center = taskCenter, stream = runMateuActionSse } = {}) {
+    const origin = reattachedOrigin(t)
+    try {
+      await stream(origin.base, null, origin.route, '_progress-resume', {}, {
+        parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType,
+        onIncrement: async (inc) => {
+          for (const p of progressCommandsOf(inc)) center.upsert(p, origin)
+          noteDetachedMessages(inc && inc.messages)
+          for (const c of (inc && inc.commands) || []) if (c && c.type === 'NotificationsChanged') await applyNotificationsChanged(c.data || {})
+          return true
+        },
+      })
+    } catch (e) { /* a navigation (stale) or a broken connection: decided below */ }
+    const now = center.get(t.taskId)
+    if (now && now.state === 'running') {
+      // the server stops streaming only once the task ended; anything else broke on the way
+      center.upsert({ ...now, state: 'failed' }, origin)
+    }
+    return center.get(t.taskId)
+  }
+
+  /** On boot: asks every backend the remembered tasks came from which are still the caller's, puts
+   *  them back in the center and resumes the running ones. Answers the task ids picked up. */
+  async function reattachTasks({ center = taskCenter, store = taskSession(), call = callMateu, stream = runMateuActionSse } = {}) {
+    installTaskMemory(center, store)
+    const remembered = rememberedTasks(store)
+    if (!remembered.length) return []
+    const byBase = new Map()
+    for (const t of remembered) {
+      const k = t.baseUrl || ''
+      if (!byBase.has(k)) byBase.set(k, [])
+      byBase.get(k).push(t)
+    }
+    const picked = []
+    const resumes = []
+    for (const [base, tasks] of byBase) {
+      let answer = null
+      try {
+        answer = await call(base, {
+          route: tasks[0].route || '', actionId: '_progress-tasks', componentState: {},
+          parameters: { taskIds: tasks.map((t) => t.taskId).slice(0, REATTACH_MAX_IDS) },
+          serverSideType: tasks[0].serverSideType || undefined,
+        }, { isolated: true })
+      } catch (e) {
+        continue // that backend is not reachable now: keep its ids for the next boot
+      }
+      const known = new Map(tasks.map((t) => [t.taskId, t]))
+      const answered = new Set()
+      for (const p of progressCommandsOf(answer)) {
+        const t = known.get(String(p.taskId))
+        if (!t) continue // never take a task this tab did not ask about
+        answered.add(t.taskId)
+        center.upsert(p, reattachedOrigin(t))
+        picked.push(t.taskId)
+        if (p.state === 'running') resumes.push(resumeTask(t, { center, stream }))
+      }
+      forgetTasks(tasks.map((t) => t.taskId).filter((id) => !answered.has(id)), store)
+    }
+    // the resume streams run on their own: the boot does not wait for the tasks to end
+    void Promise.all(resumes)
+    return picked
+  }
+
+  /** Test hook. */
+  function resetTaskMemoryForTests() { if (taskMemoryOff) taskMemoryOff() }
 
 
   // App HEADER widgets (WidgetSupplier.widgets / @Widget): they arrive as children of the App with
@@ -26650,7 +27008,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const validation = !overlay && validationOf(host, id)
     if (validation) {
       const refusal = formRefusalOf(formSections, host && host.state, draft,
-        host && host.tree && host.tree.validations, validation.fields)
+        host && host.tree && host.tree.validations, validation.fields,
+        host && host.tree && host.tree.rules)
       if (refusal.missing.length) return fieldErrorsStop(refusal, false)
     }
     // ...and the same for a form that is a component of its own INSIDE the overlay (the crud's
@@ -26660,7 +27019,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const overlayValidation = surface && validationOf({ tree: surface }, id)
     if (overlayValidation) {
       const refusal = formRefusalOf(overlay.sections, overlay.state, drawerDraft, surface.validations,
-        overlayValidation.fields)
+        overlayValidation.fields, surface.rules)
       if (refusal.missing.length) return fieldErrorsStop(refusal, true)
     }
     // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to
@@ -28094,8 +28453,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function previewAnswerOf(url, body, fragment) {
     const u = String(url || '')
     if (u.indexOf('/mateu/v3/') < 0) return null
-    if (u.indexOf('/mateu/v3/components/') >= 0) return previewAppIncrement((body && body.initiatorComponentId) || 'shell')
     if (u.indexOf('/mateu/v3/sync/') >= 0) {
+      // the shell's bootstrap is the only __load__ the bridge sends
+      if (body && body.actionId === '__load__') return previewAppIncrement(body.initiatorComponentId || 'shell')
       // a load is actionId '' — anything else (a search, a button) does nothing on a canvas
       if (body && (body.actionId === '' || body.actionId == null)) return previewLoadIncrement(fragment, body)
       return EMPTY_INCREMENT()
@@ -28983,6 +29343,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the SHELL's router; an embedded component never routes by path (its actions still run)
     setToastNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
     setTaskNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+    // an OS notification's click opens a route: the shell's router (the app opts in on its @App)
+    setOsNotificationNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
     // the notification inbox is the app header's bell: a host page has its own header
     setInboxIncrementSink: 'shell-level: the inbox bell belongs to the app header',
     setInboxNavigateSink: 'shell-level: the inbox bell belongs to the app header',
@@ -29353,7 +29715,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
-  // an editable richText (Spectra's editor, HTML; a legacy Delta opens converted) and a colour field
+  // an editable richText (Spectra's editor, HTML) and a colour field
   defineRichTextField();
   defineMarkupField();
   defineColorField();
@@ -29490,6 +29852,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setTaskActionSink,
     setTaskNavigateSink,
     setTaskViewClock,
+    // a task survives a reload (reattach.mjs) and OS-level notifications (osNotify.mjs)
+    reattachTasks,
+    setOsNotificationsEnabled,
+    setOsNotificationNavigateSink,
     setInboxContext,
     setInboxModelSink,
     setInboxIncrementSink,

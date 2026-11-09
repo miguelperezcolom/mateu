@@ -1,0 +1,8 @@
+# A route file of its own (any `type: Routes` file under specs/ui is discovered). `access:` on a
+# route = 403 for anybody else, on that route and every route nested under it.
+type: Routes
+basePath: ""
+routes:
+  - route: x/behaviour/permissions/managers
+    layout: explorer/behaviour/permissions/managers-page.yaml
+    access: {roles: [manager]}

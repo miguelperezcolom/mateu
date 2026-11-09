@@ -104,7 +104,7 @@ knows only the goal, finds controls by visible text / accessible name.
 | RN-19 | iOS forms | Type in the last field | No `KeyboardAvoidingView`: the keyboard covers the bottom Save/Next bar; taps on buttons while the keyboard is up were eaten (no `keyboardShouldPersistTaps`) | Code review vs. platform | HIG keyboard guidance | P2 | **Fixed** |
 | RN-20 | Everywhere | — | Brand accent = RIU red #E4002B = the danger colour: every primary button read as destructive, Delete looked like Search | Screenshot, `theme.ts` | Brief ("no brand identity"); H4; Material/HIG semantic colour | P2 | **Fixed**: neutral system-like blue accent, error red distinct (pinned by test); Delete (`color: error`) gets a destructive outline |
 | RN-21 | Theme toggle (`@App(themeToggle)`) | Tap 🌙 | Only the navigation chrome turns dark; content stays light — half-dark screens. Toggle had no accessible name | Screenshot `13-dark.png` | H4; HIG dark mode | P2 | **Name fixed**; half-dark **open** — real dark mode needs the module-level `StyleSheet` tokens made theme-aware (all renderers), not a pass-sized change |
-| RN-22 | Header | Navigate anywhere | The top bar always says the app title; the screen title is only in the page body (duplicated on the home) | Screenshots | Material top app bar / HIG navigation bar title | P3 | Open — needs a decision on title ownership between header and page |
+| RN-22 | Header | Navigate anywhere | The top bar always says the app title; the screen title is only in the page body (duplicated on the home) | Screenshots | Material top app bar / HIG navigation bar title | P3 | ✅ 2026-11-08: the drawer shell's top app bar shows the SCREEN's title (SetWindowTitle / the page's resolved title), the app's name stays in the drawer header and until a screen names itself; a page header repeating the bar drops its title line (`core/barTitle.ts`) |
 | RN-23 | Type scale | — | 19 distinct font sizes, some 8–10pt | grep of styles | Refactoring UI (a constrained type scale); HIG minimum 11pt | P3 | Partly (the touched styles ≥ 11pt); open for the rest |
 | RN-24 | List rows | Products on a phone | Supporting line shows raw "true"/"false" for booleans | `after-02-crud-list.png` | H2 | P3 | Open |
 | RN-25 | Toasts | Save with an error | The toast sits over the back bar at the top | `task-after-T3` | Material snackbar (bottom) | P3 | Open |
@@ -161,7 +161,7 @@ stream polishing the plugin this release (no plugin code touched here). Evidence
 | ID | Open on 2026-11-08? | Status | Evidence / why |
 |---|---|---|---|
 | RN-21 half-dark | No | ✅ verified | the theme toggle turns the content dark too (`RN-21-dark-products.png`) — fixed by the Material 3 / themed-stylesheet work |
-| RN-22 header title | Yes (the bar shows the app title, the screen title is in the body) | ⏸ deferred — product decision | title ownership between bar and page still needs the owner's call |
+| RN-22 header title | Yes (the bar shows the app title, the screen title is in the body) | ✅ done 2026-11-08 — was ⏸ deferred, product decision | title ownership between bar and page still needs the owner's call |
 | RN-23 type scale | Partly (one stray 13 pt, About screen) | ✅ fixed | 8 sizes, all ≥ 11 pt, all Material 3 steps (11/12/14/16/22/24/28/32); pinned by `src/ui/typeScale.test.ts` |
 | RN-24 raw booleans in list rows | No | ✅ verified | a true boolean is a chip with its label ("Certified"), false is left out |
 | RN-25 toast position | — | ⏸ deferred | toast / Message code belongs to the stream rebuilding those patterns |

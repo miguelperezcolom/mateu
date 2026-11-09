@@ -1,0 +1,87 @@
+{
+  "commands" : [ {
+    "data" : "Fluent listing options",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "columns" : [ {
+            "metadata" : {
+              "autoWidth" : true,
+              "dataType" : "string",
+              "label" : "Customer",
+              "stereotype" : "regular",
+              "type" : "GridColumn"
+            },
+            "type" : "ClientSide"
+          } ],
+          "contentHeight" : "20rem",
+          "crudlType" : "card",
+          "detailPath" : "notes",
+          "dragType" : "order",
+          "filtersLayout" : "auto",
+          "footer" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Foot",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "gridLayout" : "auto",
+          "groupActions" : [ {
+            "actionId" : "closeGroup",
+            "label" : "Close group",
+            "type" : "Button"
+          } ],
+          "groupBy" : "status",
+          "header" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Head",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "infiniteScrolling" : true,
+          "initialPage" : 2,
+          "lazyColumnRendering" : true,
+          "lazyLoading" : true,
+          "onRowSelectionChangedActionId" : "rowsChanged",
+          "pageSize" : 10,
+          "preSearch" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Search to start",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "rowStatusField" : "status",
+          "rowsSelectionEnabled" : true,
+          "searchable" : false,
+          "size" : 3,
+          "title" : "Orders",
+          "toolbar" : [ {
+            "actionId" : "export",
+            "label" : "Export",
+            "type" : "Button"
+          } ],
+          "type" : "Crud",
+          "useButtonForDetail" : true,
+          "vaadinGridCellBackground" : "#fafafa",
+          "vaadinGridCellPadding" : "4px"
+        },
+        "sizing" : "fill",
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

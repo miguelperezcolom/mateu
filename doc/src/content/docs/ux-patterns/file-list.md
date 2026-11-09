@@ -42,3 +42,5 @@ file with an `actionId` runs it on the click.
 ## When to use it
 
 Use a `FileList` to **display attachments**. To let the user *add* files, pair it with the chat's upload button or an `@UploadableImage`/file field. Demo: `/filelist-demo`.
+
+**See it live in the Explorer:** [Timeline, comments & files](https://explorer.mateu.io/components/display/activity)

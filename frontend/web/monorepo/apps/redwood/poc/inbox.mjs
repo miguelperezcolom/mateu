@@ -1,3 +1,4 @@
+import { osNotify, osNotifyControl, inboxOsNotificationOf } from './osNotify.mjs'
 import { chromeText } from './i18n.mjs'
 import { announce } from './a11y.mjs'
 import { callMateu } from './transport.mjs'
@@ -229,7 +230,12 @@ export function sessionIdsOf(ids) {
 /** A message with persistence `inbox` lands in the session's inbox (its toast is shown apart). */
 export function noteInboxMessage(m) {
   if (!m) return null
-  return commitInbox(withSessionEntry(inboxState, sessionEntryOfMessage(m)))
+  const entry = sessionEntryOfMessage(m)
+  const known = entriesOf(inboxState).some((e) => e.id === entry.id)
+  const model = commitInbox(withSessionEntry(inboxState, entry))
+  // a NEW entry while the tab is hidden: through the OS too, when the app opted in (osNotify.mjs)
+  if (!known) osNotify(inboxOsNotificationOf(entry))
+  return model
 }
 
 /** Messages of a stream whose screen is gone: only the `inbox` ones are kept (in the inbox). */
@@ -242,7 +248,10 @@ export async function applyNotificationsChanged(change) {
   const { inbox: next, added, refetch } = withChange(inboxState, change)
   if (refetch) return refreshInbox()
   commitInbox(next)
-  if (added && added.unread) announce(chromeText('inboxNew', { title: added.title }))
+  if (added && added.unread) {
+    announce(chromeText('inboxNew', { title: added.title }))
+    osNotify(inboxOsNotificationOf(added))
+  }
   return inboxModelOf(inboxState)
 }
 
@@ -360,6 +369,9 @@ function repaintInboxPanel() {
     return b
   }
   host.textContent = ''
+  // @App(osNotifications): "Notify me on this device" — the permission is asked for from this click only
+  const askOs = osNotifyControl(doc, () => repaintInboxPanel())
+  if (askOs) host.appendChild(askOs)
   const filters = e('div', { class: 'mateu-inbox-filters oj-flex oj-sm-margin-2x-bottom', role: 'group', 'aria-label': chromeText('notifications') })
   for (const f of model.filters) {
     filters.appendChild(btn(f.label, () => chooseFilter(f.id), {

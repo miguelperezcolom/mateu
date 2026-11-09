@@ -1,0 +1,19 @@
+id: data-management-page
+area: page-templates
+group: templates
+title: Data management page
+covers: [template:DataManagementPage]
+description: |
+  `template: {type: DataManagementPage}`: the form's `content` is the data view (a `Listing` over a
+  REST source here), its toolbar sits over the data and its title heads the page. `end` and `bottom` are
+  `DockedPanel`s (`id`, `title`, `content`, `size`, `open`) docked beside and under the data — shown
+  while open, since a YAML page has no server to toggle them (the `DataManagement` Java archetype does).
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/data-management-page
+pages:
+  - {route: x/page-templates/data-management-page, layout: explorer/page-templates/data-management-page/loans.yaml}
+code:
+  - {label: REST source (MuseumApi), path: src/main/java/io/mateu/explorer/examples/pagetemplates/data/MuseumApi.java}

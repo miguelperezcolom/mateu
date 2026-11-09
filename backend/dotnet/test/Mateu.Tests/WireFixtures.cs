@@ -3,6 +3,10 @@ using Mateu.Dtos;
 using Mateu.Uidl;
 using Range = System.ComponentModel.DataAnnotations.RangeAttribute;
 using Required = System.ComponentModel.DataAnnotations.RequiredAttribute;
+using StringLength = System.ComponentModel.DataAnnotations.StringLengthAttribute;
+using MinLength = System.ComponentModel.DataAnnotations.MinLengthAttribute;
+using MaxLength = System.ComponentModel.DataAnnotations.MaxLengthAttribute;
+using RegularExpression = System.ComponentModel.DataAnnotations.RegularExpressionAttribute;
 
 namespace Mateu.Tests.Wire;
 
@@ -19,6 +23,16 @@ public class FormColumnsForm
     public string? City { get; set; } = "London";
     public string? Country { get; set; } = "UK";
     public string? Notes { get; set; } = "Analyst";
+}
+
+// A class-level [AutoSave]: every change runs the named action after the debounce.
+[UI("conformance/auto-save"), Title("Settings"), AutoSave(DebounceMillis = 500, Action = "persist")]
+public class AutoSaveForm
+{
+    public string? Nickname { get; set; } = "ada";
+    public bool Newsletter { get; set; }
+
+    [Action] public Message Persist() => new("Saved");
 }
 
 [UI("conformance/simple-form"), Title("Simple form"), Subtitle("Every basic field kind")]
@@ -201,6 +215,55 @@ public class ValidatedForm
     [Required] public string? Email { get; set; } = "ada@example.com";
 
     [Range(18, 99)] public int Age { get; set; } = 36;
+}
+
+// Text constraints: the standard length/pattern attributes emit Java's @Size/@Pattern validations
+// ([StringLength] = @Size(min, max), [MinLength] = @Size(min), [MaxLength] = @Size(max),
+// [RegularExpression] = @Pattern), and a [Hidden("expr")] field's constraint is relaxed while hidden.
+[UI("conformance/validation-text"), Title("Validated text")]
+public class ValidatedTextForm
+{
+    [Required, StringLength(8, MinimumLength = 3), RegularExpression("^[A-Z]+$")]
+    public string? Code { get; set; } = "ABC";
+
+    [MinLength(2)] public string? Nickname { get; set; } = "";
+
+    [MaxLength(140)] public string? Bio { get; set; } = "";
+
+    [StringLength(10, ErrorMessage = "Too long")] public string? Tag { get; set; } = "";
+
+    [RegularExpression("^[0-9]{5}$", ErrorMessage = "Five digits"), Hidden("state['code'] === ''")]
+    public string? Zip { get; set; } = "";
+}
+
+// Constraints on fields the user cannot type into: Java (the reference) still sends them for a
+// [ReadOnly] and a [PlainText] field next to an editable one.
+[UI("conformance/validation-locked"), Title("Locked fields")]
+public class LockedFieldsForm
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [Required, ReadOnly] public string? Code { get; set; } = "A-1";
+
+    [MinLength(3), PlainText] public string? Caption { get; set; } = "Hello";
+}
+
+// A field locked by permission ([ReadOnlyUnless], anonymous caller) still sends its constraints.
+[UI("conformance/validation-unless"), Title("Locked by permission")]
+public class LockedByPermissionForm
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [Required, ReadOnlyUnless(Roles = ["manager"])] public string? Notes { get; set; } = "n/a";
+}
+
+// A class-level [ReadOnly] view still sends its constraints (Java's ValidationMapper).
+[UI("conformance/validation-read-only-view"), Title("Read-only view"), ReadOnly]
+public class ReadOnlyValidatedView
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [MinLength(3)] public string? Code { get; set; } = "ABC";
 }
 
 // The stereotype vocabulary: slider/stars on ints, password/textarea on strings.
@@ -434,6 +497,40 @@ public class ProductsCrud : Crud<Product>
     public override void Delete(string id) { }
 }
 
+// An editable view: the record read-only with Edit, the editor with Cancel + Save.
+public class Profile
+{
+    [Required] public string? Name { get; set; } = "Ada";
+    public string? City { get; set; } = "London";
+}
+
+[UI("conformance/editable-view"), Title("Profile")]
+public class ProfileView : AutoEditableView<Profile>
+{
+    public override Profile Load() => new();
+    public override void Persist(Profile entity) { }
+}
+
+// The Products crud with a [ViewToolbarButton] on its record view.
+[UI("conformance/view-toolbar-button"), Title("Products")]
+public class ViewToolbarProductsCrud : Crud<Product>
+{
+    private static readonly List<Product> Store =
+    [
+        new() { Id = "P-001", Name = "Espresso machine", Price = 249.0, Status = ProductStatus.Available },
+        new() { Id = "P-002", Name = "Coffee grinder", Price = 89.5, Status = ProductStatus.Available },
+        new() { Id = "P-003", Name = "Milk frother", Price = 39.9, Status = ProductStatus.OutOfStock },
+    ];
+
+    public override IEnumerable<Product> Fetch(string? search) => Store;
+    public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
+    public override void Save(Product product) { }
+    public override void Delete(string id) { }
+
+    [ViewToolbarButton(ConfirmationRequired = true)]
+    public Message Discontinue(Product product) => new($"Discontinued {product.Name}");
+}
+
 public class Book
 {
     public string Id { get; set; } = "";
@@ -454,6 +551,53 @@ public static class Books
         new() { Id = "b1", Title = "El Quijote", Pages = 863 },
         new() { Id = "b2", Title = "Rayuela", Pages = 600 },
     ];
+}
+
+// The Products crud with two BULK listing buttons: one dressed by [Toolbar] and confirmed with
+// the [ActionOptions] texts, one needing no selection — declared in the reverse of their Order
+// (Java's @ListToolbarButton + @Toolbar + @Action).
+[UI("conformance/bulk-actions"), Title("Products")]
+public class BulkProductsCrud : Crud<Product>
+{
+    private static readonly List<Product> Store =
+    [
+        new() { Id = "P-001", Name = "Espresso machine", Price = 249.0, Status = ProductStatus.Available },
+        new() { Id = "P-002", Name = "Coffee grinder", Price = 89.5, Status = ProductStatus.Available },
+        new() { Id = "P-003", Name = "Milk frother", Price = 39.9, Status = ProductStatus.OutOfStock },
+    ];
+
+    public override IEnumerable<Product> Fetch(string? search) => Store;
+    public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
+    public override void Save(Product product) { }
+    public override void Delete(string id) { }
+
+    [ListToolbarButton(confirmationRequired: true)]
+    [Toolbar(ButtonStyle = "secondary", ButtonColor = "error", ButtonSize = "small", Order = 10)]
+    [ActionOptions(ConfirmationTitle = "Discontinue products",
+        ConfirmationMessage = "The selected products leave the catalogue.",
+        ConfirmationText = "Discontinue them", ConfirmationDenialText = "Keep them")]
+    [Label("Discontinue")]
+    public Message Discontinue(List<Product> selection) => new($"{selection.Count} discontinued");
+
+    [ListToolbarButton(rowsSelectedRequired: false)]
+    [Toolbar(Order = 1)]
+    [Label("Refresh prices")]
+    public Message RefreshPrices() => new("Prices refreshed");
+}
+
+// A read-only listing (no interaction capability) with the dressed and confirmed bulk button.
+[UI("conformance/bulk-actions-listing"), Title("Books")]
+public class BulkBooks : IListing<Book>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+
+    [ListToolbarButton(confirmationRequired: true)]
+    [Toolbar(ButtonStyle = "secondary", ButtonColor = "error", ButtonSize = "small", Order = 10)]
+    [ActionOptions(ConfirmationTitle = "Withdraw books",
+        ConfirmationMessage = "The selected books leave the shelves.",
+        ConfirmationText = "Withdraw them", ConfirmationDenialText = "Keep them")]
+    [Label("Withdraw")]
+    public Message Withdraw(List<Book> selection) => new($"{selection.Count} withdrawn");
 }
 
 // A read-only listing that declares a search box and a filters type — nothing else.
@@ -578,6 +722,26 @@ public class WelcomeBannerPage
     public string? Name { get; set; } = "";
 }
 
+// The sign-up wizard whose completion is refused with an error Message: it stays on its step.
+// .NET's completion (OnNext) answers nothing, so the refusal is BeforeStepNavigate's — the hook
+// every completion passes through, whose answer becomes the response.
+[UI("conformance/wizard-completion-error"), Title("Sign up")]
+public class RefusedSignUpWizard : SignUpWizard
+{
+    public override object? BeforeStepNavigate(int from, int to) =>
+        to == 3 ? Message.Error("No seats left on that plan.") : null;
+}
+
+// A plain listing whose bulk method has no [Label]: Java labels it with the bare method name.
+[UI("conformance/bulk-actions-unlabeled"), Title("Books")]
+public class UnlabeledBulkBooks : IListing<Book>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+
+    [ListToolbarButton]
+    public Message MarkRead(List<Book> selection) => new($"{selection.Count} marked");
+}
+
 // A three-step wizard: two data steps and the read-only result screen; the case pins step 1.
 [UI("conformance/wizard"), Title("Sign up")]
 public class SignUpWizard : Wizard
@@ -629,6 +793,397 @@ public class ActionEffectsPage
         new Message("Saved", MessageVariant.Success, "Done") { Duration = 4000 },
         new Message("Could not notify the warehouse", MessageVariant.Error, "Warehouse") { Duration = 4000 },
         "/conformance/simple-form",
+    };
+}
+
+/// <summary>The [ActionOptions] knobs (action-extras): a streamed background action, a
+/// confirmation with its texts, a link, a client script and a custom event.</summary>
+[UI("conformance/action-extras"), Title("Action extras")]
+public class ActionExtrasPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    // ONE action carrying every knob (Java's @Action order is the JVM's, unspecified)
+    [Action, ActionOptions(Sse = true, Background = true, ConfirmationRequired = true,
+        ConfirmationTitle = "Delete?", ConfirmationMessage = "It cannot be undone",
+        ConfirmationText = "Delete", ConfirmationDenialText = "Keep", Href = "https://mateu.io",
+        Js = "console.log('hi')", CustomEventName = "order-picked")]
+    public Message Act() => new("Done");
+}
+
+/// <summary>An app shell's presentation knobs (app-branding). A [MenuItem] named Home stands in for
+/// Java's `@Menu String home` leaf.</summary>
+[UI("conformance/app-branding"), App("Branded app", Layout = "SPLIT", AccentColor = "#00796b",
+    AskLabel = "Ask Mateu", AskIcon = "vaadin:question")]
+public class BrandedApp
+{
+    [MenuItem("Home")]
+    public void Home() { }
+}
+
+/// <summary>A record master's way back up (app-back-link): one "← Records" link to the screen above
+/// the app instead of the breadcrumb trail. A [MenuItem] named Overview stands in for Java's
+/// `@Menu String overview` leaf.</summary>
+[UI("conformance/app-back-link"), App("Record", BackLink = BackLink.Parent), Title("Record")]
+public class BackLinkApp
+{
+    [MenuItem("Overview")]
+    public void Overview() { }
+}
+
+/// <summary>A page that turns the automatic breadcrumb trail off (page-no-breadcrumbs).</summary>
+[UI("conformance/page-no-breadcrumbs"), Title("Welcome"), NoBreadcrumbs]
+public class PageNoBreadcrumbs
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>A page that declares its own breadcrumb trail (page-breadcrumbs).</summary>
+[UI("conformance/page-breadcrumbs"), Title("Order 7"), Breadcrumb("Home", "/"), Breadcrumb("Orders", "/orders")]
+public class PageBreadcrumbs
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>A record master offering "← Parent", bound in code to conformance/bl-chain/:customerId
+/// with a child `orders` route (page-back-link-chain): the pages under it carry no trail.</summary>
+[App("Back link chain master", BackLink = BackLink.Parent)]
+public class BackLinkChainMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+/// <summary>The master's `orders` tab (page-back-link-chain): its page says noBreadcrumbs.</summary>
+public class BackLinkChainTab
+{
+    public string? Note { get; set; } = "orders";
+}
+
+// ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+/// <summary>A record master with no menu of its own: its registry children are its tabs.</summary>
+[App("Customer", Variant = AppVariant.Tabs)]
+public class RtCustomerMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+/// <summary>Labelled by its title, which its page does not repeat.</summary>
+[Title("Orders")]
+public class RtOrdersTab
+{
+    public string? CustomerId { get; set; }
+    public string? Note { get; set; } = "orders";
+}
+
+/// <summary>No title: labelled by its route segment.</summary>
+public class RtNotesTab
+{
+    public string? CustomerId { get; set; }
+    public string? Text { get; set; } = "notes";
+}
+
+/// <summary>A master naming its default tab (DefaultChild = "notes").</summary>
+[App("Supplier", Variant = AppVariant.Tabs)]
+public class RtSupplierMaster
+{
+    public string? SupplierId { get; set; }
+}
+
+/// <summary>In-page tabs that are URLs ([Tab(Key)]); a tab whose flag is off (Show) is not offered.</summary>
+[Title("Network")]
+public class RtVcnPage
+{
+    public string? Id { get; set; }
+    [Tab("Subnets", Key = "subnets")] public string? SubnetsNote { get; set; } = "subnets";
+    [Tab("Gateways", Key = "gateways")] public string? GatewaysNote { get; set; } = "gateways";
+    [Tab("Simulator", Key = "simulator", Show = "simulator")] public string? SimulatorNote { get; set; } = "simulator";
+}
+
+/// <summary>A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*).</summary>
+[App("Account", Variant = AppVariant.Tabs)]
+public class RtAccountMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+public class RtOrder
+{
+    public string Id { get; set; } = "";
+    public string? CustomerId { get; set; }
+    public string? Status { get; set; }
+
+    public override string ToString() => string.IsNullOrEmpty(Id) ? "New order" : $"Order {Id}";
+}
+
+/// <summary>The orders of ONE customer, the one the route names.</summary>
+[Title("Orders")]
+public class RtAccountOrders : Crud<RtOrder>
+{
+    private static readonly List<RtOrder> Store =
+    [
+        new() { Id = "7-1", CustomerId = "7", Status = "OPEN" },
+        new() { Id = "7-2", CustomerId = "7", Status = "SHIPPED" },
+        new() { Id = "8-1", CustomerId = "8", Status = "OPEN" },
+    ];
+
+    public string? CustomerId { get; set; }
+
+    public override IEnumerable<RtOrder> Fetch(string? search) =>
+        Store.Where(o => CustomerId is null || o.CustomerId == CustomerId);
+    public override RtOrder? Get(string id) => Store.FirstOrDefault(o => o.Id == id);
+    public override void Save(RtOrder order) { }
+    public override void Delete(string id) { }
+}
+
+// ── [Subresource]: a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+public class RtNetItem
+{
+    public string Id { get; set; } = "";
+    public string? VcnId { get; set; }
+
+    public override string ToString() => string.IsNullOrEmpty(Id) ? "New item" : Id;
+}
+
+/// <summary>The listings of one VCN: the one its VcnId names.</summary>
+public abstract class RtItemsOfVcn : Crud<RtNetItem>
+{
+    public string? VcnId { get; set; }
+
+    protected abstract IReadOnlyList<RtNetItem> Items();
+
+    public override IEnumerable<RtNetItem> Fetch(string? search) => Items().Where(i => i.VcnId == VcnId);
+    public override RtNetItem? Get(string id) => Items().FirstOrDefault(i => i.Id == id);
+    public override void Save(RtNetItem item) { }
+    public override void Delete(string id) { }
+}
+
+[Title("Internet gateways")]
+public class RtInternetGateways : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() => [new() { Id = "ig1", VcnId = "7" }];
+}
+
+[Title("NAT gateways")]
+public class RtNatGateways : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() =>
+        [new() { Id = "nat1", VcnId = "7" }, new() { Id = "nat2", VcnId = "8" }];
+}
+
+[Title("Subnets")]
+public class RtSubnets : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() =>
+    [
+        new() { Id = "s1", VcnId = "7" }, new() { Id = "s2", VcnId = "7" },
+        new() { Id = "s3", VcnId = "7" }, new() { Id = "s4", VcnId = "8" },
+    ];
+}
+
+/// <summary>Details, then Gateways (two listings stacked in their order) and Subnets (eager).</summary>
+[Title("VCN")]
+public class RtVcnDetail
+{
+    [ReadOnly] public string? Id { get; set; }
+    [Tab("Details", Key = "details")] public string? Cidr { get; set; } = "10.0.0.0/16";
+    [Subresource(Tab = "gateways", Order = 2, Context = ["vcnId=id"])] public RtNatGateways? Nat { get; set; }
+    [Subresource(Tab = "gateways", Order = 1, Help = "Gateways to the internet", Context = ["vcnId=id"])]
+    public RtInternetGateways? Internet { get; set; }
+    [Subresource(Tab = "subnets", Load = SubresourceLoad.Eager, Context = ["vcnId=id"])] public RtSubnets? Subnets { get; set; }
+}
+
+/// <summary>Nothing editable but a sub-resource: still a form, rendering its island.</summary>
+[Title("Only subnets")]
+public class RtOnlySubnets
+{
+    [ReadOnly] public string? Id { get; set; }
+    [Subresource] public RtSubnets? Subnets { get; set; }
+}
+
+/// <summary>An [Inline] orchestrator with no route of its own fails where the cause is.</summary>
+[Title("Trap")]
+public class RtInlineTrap
+{
+    public string? Name { get; set; }
+    [Inline] public RtNatGateways? Nat { get; set; }
+}
+
+/// <summary>The routed-tabs chains, authored in code (Java's RoutedTabsRoutes).</summary>
+public class RoutedTabsRoutes : IRouteEntrySupplier
+{
+    private static readonly Dictionary<string, object?> None = new();
+
+    public IReadOnlyList<RouteEntry> Routes() =>
+    [
+        new("conformance/rt/customers/:customerId", null, typeof(RtCustomerMaster).FullName, None, None,
+            Children:
+            [
+                RouteEntry.Of("orders", typeof(RtOrdersTab).FullName!),
+                RouteEntry.Of("notes", typeof(RtNotesTab).FullName!),
+                RouteEntry.Of("audit", typeof(RtNotesTab).FullName!) with { Show = "audit" },
+            ]),
+        new RouteEntry("conformance/rt/suppliers/:supplierId", null, typeof(RtSupplierMaster).FullName, None, None,
+            Children:
+            [
+                RouteEntry.Of("orders", typeof(RtOrdersTab).FullName!),
+                RouteEntry.Of("notes", typeof(RtNotesTab).FullName!),
+            ]) { DefaultChild = "notes" },
+        RouteEntry.Of("conformance/rt/vcn/:id", typeof(RtVcnPage).FullName!),
+        new("conformance/rt/accounts/:customerId", null, typeof(RtAccountMaster).FullName, None, None,
+            Children: [RouteEntry.Of("orders", typeof(RtAccountOrders).FullName!)]),
+        RouteEntry.Of("conformance/rt/net/:id", typeof(RtVcnDetail).FullName!),
+        RouteEntry.Of("conformance/rt/only/:id", typeof(RtOnlySubnets).FullName!),
+        RouteEntry.Of("conformance/rt/trap", typeof(RtInlineTrap).FullName!),
+    ];
+}
+
+/// <summary>The deployment's flags: audit and simulator are off, the rest unknown (on).</summary>
+public class ConformanceFlags : IFeatureFlags
+{
+    public bool? IsEnabled(string flag) => flag is "audit" or "simulator" ? false : null;
+}
+
+/// <summary>The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
+/// ConformanceRoutes).</summary>
+public class ConformanceRoutes : IRouteEntrySupplier
+{
+    public IReadOnlyList<RouteEntry> Routes() =>
+    [
+        new("conformance/bl-chain/:customerId", null, typeof(BackLinkChainMaster).FullName,
+            new Dictionary<string, object?>(), new Dictionary<string, object?>(),
+            Children: [
+                RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!),
+                RouteEntry.Of("delivery", typeof(BackLinkChainDeliveryTab).FullName!),
+            ]),
+        new("conformance/bl-shell/:customerId", null, typeof(BackLinkShellMaster).FullName,
+            new Dictionary<string, object?>(), new Dictionary<string, object?>(),
+            Children: [RouteEntry.Of("orders", typeof(BackLinkChainTab).FullName!)]),
+    ];
+}
+
+/// <summary>The master's `delivery` tab (page-back-link-chain-nested): a plain nested object drawn
+/// as a sub-form in a card — its page, in the card's metadata, says noBreadcrumbs too.</summary>
+public class BackLinkChainDeliveryTab
+{
+    public string? Note { get; set; } = "delivery";
+    public DeliveryInfo Shipping { get; set; } = new();
+}
+
+/// <summary>A master whose "← Parent" link its CODE shell declares, with no [App(BackLink)]
+/// (page-back-link-code-shell): the pages under it keep their trail, as Java's.</summary>
+public class BackLinkShellMaster : IAppSupplier
+{
+    public string? CustomerId { get; set; }
+
+    public AppShell GetApp() => new("Back link shell master", new List<MenuItemDto>()) { BackLink = BackLink.Parent };
+}
+
+/// <summary>The screen above the back-link app (app-back-link): its title labels the link.</summary>
+[UI("conformance"), Title("Records")]
+public class BackLinkParent
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>Section options (section-options): the first section pinned, the second forced to one
+/// column with a style on its content.</summary>
+[UI("conformance/section-options"), Title("Section options")]
+public class SectionOptionsForm
+{
+    [Section("Guests", Sticky = true)] public string? Lead { get; set; }
+    public string? Second { get; set; }
+    public string? Third { get; set; }
+    public string? Fourth { get; set; }
+    [Section("Notes", Columns = 1, Style = "gap: 0;")] public string? First { get; set; }
+    public string? Other { get; set; }
+    public string? More { get; set; }
+    public string? Last { get; set; }
+}
+
+public class Employee
+{
+    public string Id { get; set; } = "";
+    [MainFilter] public string Name { get; set; } = "";
+    [HiddenInList] public string? Notes { get; set; }
+    [HiddenInView] public string? SalaryBand { get; set; }
+    [HiddenInEditor] public string? CreatedBy { get; set; }
+    [HiddenInCreate] public string? Code { get; set; }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New employee" : Name;
+}
+
+/// <summary>A crud whose entity hides fields per surface and names its main filter (crud-hidden-in,
+/// -edit, -new).</summary>
+[UI("conformance/crud-hidden-in"), Title("Employees")]
+public class EmployeesCrud : Crud<Employee>
+{
+    private static readonly List<Employee> Store =
+    [
+        new() { Id = "E-1", Name = "Ada", Notes = "Likes tea", SalaryBand = "B2", CreatedBy = "admin", Code = "ADA" },
+        new() { Id = "E-2", Name = "Grace", Notes = "Navy", SalaryBand = "B3", CreatedBy = "admin", Code = "GRC" },
+    ];
+
+    public override IEnumerable<Employee> Fetch(string? search) => Store;
+    public override Employee? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(Employee employee) { }
+    public override void Delete(string id) { }
+}
+
+public class Seat
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    [HiddenInCreate, Range(100, 999)] public int? Code { get; set; }
+    [HiddenInEditor, Range(1, 9)] public int? Quota { get; set; }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New seat" : Name;
+}
+
+/// <summary>A crud whose hidden-in fields carry constraints: a form that does not render a field
+/// sends no validation for it (crud-hidden-constraints-edit, -new).</summary>
+[UI("conformance/crud-hidden-constraints"), Title("Seats")]
+public class SeatsCrud : Crud<Seat>
+{
+    private static readonly List<Seat> Store = [new() { Id = "S-1", Name = "Front", Code = 101, Quota = 2 }];
+
+    public override IEnumerable<Seat> Fetch(string? search) => Store;
+    public override Seat? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(Seat seat) { }
+    public override void Delete(string id) { }
+}
+
+/// <summary>A hero search page over a declarative listing with its own filters type
+/// (hero-search-filters).</summary>
+[UI("conformance/hero-search-filters"), Title("Books")]
+public class HeroBooks : HeroSearch<BookFilters, Book>
+{
+    public override string? HeroTitle() => "Find a book";
+    public override string? HeroSubtitle() => "Search the catalogue";
+    public override ListingData<Book> Search(SearchRequest request) =>
+        ListingData.From(Books.All());
+}
+
+/// <summary>An action that opens a dialog placed, draggable and resizable (dialog-placement).</summary>
+[UI("conformance/dialog-placement"), Title("Dialog placement")]
+public class DialogPlacementPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object OpenNotes() => new Dialog
+    {
+        HeaderTitle = "Notes",
+        Content = new Text("Free text"),
+        Top = "4rem",
+        Left = "2rem",
+        Draggable = true,
+        Resizable = true,
+        Width = "30rem",
+        Height = "20rem",
+        Modeless = true,
+        CloseButtonOnHeader = true,
     };
 }
 
@@ -701,6 +1256,75 @@ public class GenericComponentsPage : IComponentTreeSupplier
     public string? Style => null;
 }
 
+// The last component types that used to be Java-only, in one component tree (more-components).
+[UI("conformance/more-components"), Title("More components")]
+public class MoreComponentsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content =
+        [
+            new BoardLayout
+            {
+                Id = "board",
+                Rows = [new BoardLayoutRow { Content = [
+                    new BoardLayoutItem { Content = new Text("Sales"), BoardCols = 2 },
+                    new BoardLayoutItem { Content = new Text("Stock"), BoardCols = 1 }] }],
+            },
+            new CarouselLayout
+            {
+                Id = "carousel", Content = [new Text("Slide 1"), new Text("Slide 2")],
+                Auto = true, Duration = 4000, Dots = true, Loop = true,
+            },
+            new Container { Content = new Text("Contained") },
+            new FullWidth { Content = new Text("Wide") },
+            new Scroller { Content = new Text("Scrolled"), Style = "height: 10rem" },
+            new FormItem { Id = "item", Content = [new Text("Field")] },
+            new FormSubSection("Address") { Content = [new Text("Street")] },
+            new MasterDetailLayout(new Text("Master")) { Id = "md", Detail = new Text("Detail") },
+            new ContextMenu
+            {
+                Menu = [new MenuOption("Orders") { Path = "/orders" }],
+                Wrapped = new Text("Right click me"), ActivateOnLeftClick = true,
+            },
+            new DirectoryMenu
+            {
+                Menu = [new MenuOption("Sales") { Path = "/sales", Submenu = [new MenuOption("Orders") { Path = "/sales/orders" }] }],
+            },
+            new MenuBar { Options = [new MenuOption("Home") { Path = "/home" }, new MenuOption("Help") { Path = "/help" }] },
+            new Grid
+            {
+                Id = "grid",
+                Content =
+                [
+                    new GridColumn { Id = "name", Label = "Name" },
+                    new GridGroupColumn("Occupancy")
+                    {
+                        Id = "occupancy",
+                        Columns =
+                        [
+                            new GridColumn { Id = "adults", Label = "Adults", DataType = "integer" },
+                            new GridColumn { Id = "children", Label = "Children", DataType = "integer" },
+                        ],
+                    },
+                ],
+                Rows = [new Dictionary<string, object> { ["name"] = "Ada", ["adults"] = 2, ["children"] = 1 }],
+                RowStripes = true,
+            },
+            new Chat("/chat/sse"),
+            new MessageList { Id = "messages", Items = [new MessageListItem("Hello", "Ada")] },
+            new MessageInput("send") { Id = "input" },
+            new NotFound { Title = "Not here", Message = "That page does not exist", BackRoute = "/", BackLabel = "Home" },
+            new VirtualList { Content = [new Text("Row 1"), new Text("Row 2")] },
+            new CookieConsent { Message = "We use cookies", Dismiss = "OK", Position = CookieConsentPosition.Bottom },
+            new FormEditor("{}"),
+            new Workflow("<bpmn/>"),
+        ],
+    };
+
+    public string? Style => null;
+}
+
 // Every trigger kind a view can declare (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
 // another action, OnValueChange of one field, and a [SubscribeTo] on the global bus.
 [UI("conformance/triggers"), Title("Triggers")]
@@ -752,4 +1376,131 @@ public class PageToolbarForm
 
     [Toolbar("Publish now", ButtonStyle = "primary")]
     public void Publish() { }
+}
+
+/// <summary>A grid field whose row type has a [Details] property and whose row editor is customised
+/// with [DetailForm] (grid-field-detail).</summary>
+[UI("conformance/grid-field-detail"), Title("Order lines")]
+public class GridFieldDetail
+{
+    [DetailForm(Position = "bottom", Columns = 1, Style = "padding: 1rem;", Theme = "compact",
+        MinHeightWhenDetailVisible = "20rem")]
+    public List<ConformanceLineRow> Lines { get; set; } = [new() { Product = "Desk", Notes = "Oak" }];
+}
+
+public class ConformanceLineRow
+{
+    public string Product { get; set; } = "";
+
+    [Details]
+    public string Notes { get; set; } = "";
+}
+
+/// <summary>Every option of the fluent listing the port did not carry before 3.0 GA, on one
+/// listing (fluent-crudl-options).</summary>
+[UI("conformance/fluent-crudl-options"), Title("Fluent listing options")]
+public class FluentCrudlOptionsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new ListingComponent
+    {
+        Id = "orders",
+        Title = "Orders",
+        ListingType = "card",
+        Columns = [new ListingColumn("customer", "Customer") { DataType = "string" }],
+        Toolbar = [new Button("Export", "export")],
+        Size = 3,
+        InitialPage = 2,
+        Header = [new Text("Head")],
+        Footer = [new Text("Foot")],
+        PreSearch = [new Text("Search to start")],
+        DetailPath = "notes",
+        UseButtonForDetail = true,
+        LazyColumnRendering = true,
+        LazyLoading = true,
+        InfiniteScrolling = true,
+        VaadinGridCellBackground = "#fafafa",
+        VaadinGridCellPadding = "4px",
+        OnRowSelectionChangedActionId = "rowsChanged",
+        ContentHeight = "20rem",
+        SearchOnEnter = false,
+        AutoFocusOnSearchText = false,
+        GroupBy = "status",
+        GroupActions = [new Button("Close group", "closeGroup")],
+        RowStatusField = "status",
+        DragType = "order",
+        RowsSelectionEnabled = true,
+    };
+
+    public string? Style => null;
+}
+
+// ── Nested data objects (inline-form, inline-form-action) ─────────────────────────────────────
+
+/// <summary>A nested data object shown [Inline]: a toolbar method (an action with a shortcut, not
+/// validated) and a button method (validated).</summary>
+public class SupplierInfo
+{
+    public string? Name { get; set; } = "Acme";
+    public string? Email { get; set; } = "sales@acme.test";
+
+    [Toolbar, Action, Shortcut("ctrl+alt+v")]
+    public Message Verify() => Message.Success($"Verified {Name}");
+
+    [Button]
+    public Message Contact() => Message.Success($"Contacting {Email}");
+}
+
+/// <summary>A nested data object without [Inline]: a sub-form.</summary>
+public class DeliveryInfo
+{
+    public string? City { get; set; } = "Palma";
+    public int Days { get; set; } = 3;
+}
+
+/// <summary>An [Inline] nested object whose properties carry client-rule attributes.</summary>
+public class ContactInfo
+{
+    [Hidden("state.reference == 'internal'")] public string? Phone { get; set; } = "600 000 000";
+    [Disabled] public string? Email { get; set; } = "buyer@acme.test";
+}
+
+/// <summary>Client rules are the view's own properties' only (Java's RuleMapper): the [Inline]
+/// nested object's get none (inline-form-rules).</summary>
+[UI("conformance/inline-form-rules"), Title("Inline form rules")]
+public class InlineFormRules
+{
+    [Disabled] public string? Reference { get; set; } = "PO-1";
+    [Inline] public ContactInfo Contact { get; set; } = new();
+}
+
+/// <summary>A crud entity holding a plain nested data object (crud-nested-form, -action): its record
+/// form draws it as a sub-form and ADVERTISES its nested-form-action-supplier-&lt;method&gt; actions,
+/// which run on the nested object hydrated from the flattened state (Java's).</summary>
+public class PurchaseOrder
+{
+    public string Id { get; set; } = "";
+    public string? Reference { get; set; }
+    public SupplierInfo Supplier { get; set; } = new();
+
+    public override string ToString() => Reference ?? "";
+}
+
+[UI("conformance/crud-nested"), Title("Purchase orders")]
+public class PurchaseOrdersCrud : Crud<PurchaseOrder>
+{
+    private static readonly List<PurchaseOrder> Store = [new() { Id = "PO-1", Reference = "Q3 restock" }];
+
+    public override IEnumerable<PurchaseOrder> Fetch(string? search) => Store;
+    public override PurchaseOrder? Get(string id) => Store.FirstOrDefault(e => e.Id == id);
+    public override void Save(PurchaseOrder order) { }
+    public override void Delete(string id) { }
+}
+
+/// <summary>Nested data objects in a form: one [Inline], one as a sub-form.</summary>
+[UI("conformance/inline-form"), Title("Inline form")]
+public class InlineForm
+{
+    [Section("Order")] public string? Reference { get; set; } = "PO-1";
+    [Section("Supplier"), Inline] public SupplierInfo Supplier { get; set; } = new();
+    [Section("Delivery")] public DeliveryInfo Delivery { get; set; } = new();
 }

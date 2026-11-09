@@ -1,0 +1,22 @@
+# A matrix as DATA: columns (consecutive columns with the same `group` share a spanning header,
+# `tone` tints a whole column) and collapsible sections of rows, one cell per column.
+content:
+  - type: MatrixGrid
+    rowHeaderLabel: Guided tours
+    columns:
+      - {id: d1, label: "30", group: November}
+      - {id: d2, label: "1", group: December}
+      - {id: d3, label: "2", group: December}
+      - {id: d4, label: "3", group: December, tone: warning}
+    sections:
+      - id: languages
+        title: By language
+        rows:
+          - {id: en, label: English, cells: [{value: "4"}, {value: "3"}, {value: "3"}, {value: "6"}]}
+          - {id: es, label: Spanish, cells: [{value: "2"}, {value: "2"}, {value: "1"}, {value: "4"}]}
+          - {id: fr, label: French, cells: [{value: "1"}, {value: "0", tone: danger}, {value: "1"}, {value: "2"}]}
+      - id: totals
+        title: Totals
+        collapsed: true
+        rows:
+          - {id: all, label: All tours, emphasis: true, cells: [{value: "7"}, {value: "5"}, {value: "5"}, {value: "12"}]}

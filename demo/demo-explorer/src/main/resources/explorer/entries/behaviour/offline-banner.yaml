@@ -1,0 +1,17 @@
+id: offline-banner
+area: behaviour
+group: resilience-a11y
+title: "Offline banner and reconnection"
+covers: [behaviour:offline-banner]
+description: |
+  When a request cannot reach the server the client shows a document-wide strip saying you are
+  offline — it pushes the page down rather than covering it — and announces the reconnection once
+  traffic gets through again. `navigator.onLine` is only trusted when it says offline (it lies on
+  captive portals); "back online" is proven by a request that reached the server.
+
+  **Try it (simulate offline):** open the browser's developer tools → Network → throttling **Offline**,
+  then press **Ping**: the offline strip appears. Switch back to **No throttling** and press **Ping**
+  again: the strip goes and the server answers.
+examples:
+  - title: "Talk to the server"
+    java: io.mateu.explorer.examples.behaviour.offlinebanner.ConnectionCheck

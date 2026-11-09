@@ -66,11 +66,12 @@ internal static class ActionGuard
     }
 
     /// <summary>Whether the wire may WRITE this property: an [EyesOnly] field the caller cannot see
-    /// or a [ReadOnlyUnless] field (or class) the caller cannot edit is dropped, keeping the
+    /// or a [ReadOnlyUnless]/[DisabledUnless] field (or class) the caller cannot edit is dropped, keeping the
     /// server-side value (mirrors Java's Hydrater).</summary>
     internal static bool MayWrite(PropertyInfo p) =>
         Authorized(p.Find<EyesOnlyAttribute>())
         && Authorized(p.Find<ReadOnlyUnlessAttribute>())
+        && Authorized(p.Find<DisabledUnlessAttribute>())
         && (p.DeclaringType is not { } owner || Authorized(owner.Find<ReadOnlyUnlessAttribute>()));
 
     private static bool IsFramework(Type? type) => type is not null && FrameworkAssemblies.Contains(type.Assembly);
@@ -238,6 +239,10 @@ internal static class ActionGuard
         var t = node.GetType();
         if (t.IsPrimitive || t.IsEnum) return;
         if (!t.IsValueType && !seen.Add(node)) return;
+        // an Element's `on` maps a DOM event to an action id of the view, like an ActionId
+        if (node is Element element)
+            foreach (var id in element.On.Values)
+                if (!string.IsNullOrWhiteSpace(id) && !ids.Contains(id)) ids.Add(id);
         if (node is IEnumerable items)
         {
             foreach (var item in items) Walk(item, ids, seen, depth + 1);

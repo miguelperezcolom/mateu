@@ -85,12 +85,22 @@ internal sealed partial class ReflectionMapper
             // [RemoteMenu] entries: federated options — the frontend fetches the remote backend's
             // menu itself and mounts its views (no server-side proxying).
             items.AddRange(appType.GetCustomAttributes<RemoteMenuAttribute>()
-                .Select(r => new MenuItemDto(T(r.Label), r.Route, "")
+                .Select(r =>
                 {
-                    Remote = true,
-                    BaseUrl = r.BaseUrl,
-                    Explode = r.Explode,
-                    ConsumedRoute = "_empty",
+                    // the section's own path (Java's @Menu field name): where its screens live
+                    var path = string.IsNullOrWhiteSpace(r.Path) ? null : Prepend("", r.Path.Trim());
+                    var declared = !string.IsNullOrWhiteSpace(r.Label);
+                    return new MenuItemDto(declared ? T(r.Label) : RemoteLabel(path), r.Route, "")
+                    {
+                        Remote = true,
+                        BaseUrl = r.BaseUrl,
+                        Explode = r.Explode,
+                        ConsumedRoute = "_empty",
+                        Path = path,
+                        RoutePrefix = RemoteRoutePrefix(path),
+                        // the shell named it: its label wins over the one the remote answers with
+                        ShellLabel = declared,
+                    };
                 }));
         }
         var variant = !string.IsNullOrWhiteSpace(shell?.Variant)
@@ -154,7 +164,9 @@ internal sealed partial class ReflectionMapper
                 ? followingLabel : null,
             ContextSelectors = MapContextSelectors(appType),
             ContextActions = MapContextActions(appType),
-            NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType),
+            NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType) || app.Inbox,
+            // OS-level notifications: opt-in, mirrors AppDto.osNotifications.
+            OsNotifications = app.OsNotifications,
             // ⌘K palette entity search: the app class implements IGlobalSearchSupplier → the
             // palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
             GlobalSearchEnabled = typeof(IGlobalSearchSupplier).IsAssignableFrom(appType),
@@ -175,7 +187,13 @@ internal sealed partial class ReflectionMapper
             // The UI language: what the translator says (mirrors AppDto.locale).
             Locale = translator?.Locale,
         };
-        return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
+        meta = WithAppPresentation(meta, appType, app);
+        // [App(BackLink = Parent)] (or the code shell's own): the "← Parent" link replaces the trail.
+        // The link itself (the parent screen's route and title) is resolved against the registry
+        // by the sync handler (SyncHandler.WithBackLink).
+        if (shell?.BackLink is { } shellBackLink ? shellBackLink == BackLink.Parent : app.BackLink == BackLink.Parent)
+            meta = meta with { NoBreadcrumbs = true };
+        return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], meta.Style, meta.CssClasses, null);
     }
 
     /// <summary>Prefixes a menu tree with the mount base path, matching Java's
@@ -188,7 +206,9 @@ internal sealed partial class ReflectionMapper
     private static List<MenuItemDto> PrefixMenu(IEnumerable<MenuItemDto> items, string appRoute, string prefix) =>
         items.Select(item =>
         {
-            if (item.Remote) return item with { UriPrefix = item.Path };
+            // a remote section keeps its own federated route; like every entry it lives under the
+            // mount (Java's AppMenuDtoBuilder: uriPrefix = the app's route)
+            if (item.Remote) return item with { UriPrefix = appRoute };
             // A rule leaf (a menu entry that RUNS client-side rules instead of navigating) carries no
             // route — leave it alone so it stays route-less after prefixing.
             if (item.Rules.Count > 0) return item;
@@ -203,6 +223,35 @@ internal sealed partial class ReflectionMapper
                 Submenus = PrefixMenu(item.Submenus, appRoute, raw.Length == 0 ? prefix : path),
             };
         }).ToList();
+
+    /// <summary>Whether the app (its code shell first, else its [App]) offers a "← Parent" link
+    /// instead of the breadcrumb trail (Java's AppMapper.backLinkParent).</summary>
+    internal static bool BackLinkParent(Type appType)
+    {
+        if (typeof(IAppSupplier).IsAssignableFrom(appType)
+            && Activator.CreateInstance(appType) is IAppSupplier supplier
+            && supplier.GetApp()?.BackLink is { } declared)
+            return declared == BackLink.Parent;
+        return appType.GetCustomAttribute<AppAttribute>()?.BackLink == BackLink.Parent;
+    }
+
+    /// <summary>What a remote section is called until the remote answers when the shell names no
+    /// label: the last segment of its path, humanized (Java's AppMenuDtoBuilder.remoteLabel).</summary>
+    internal string RemoteLabel(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return "";
+        var segment = path[(path.LastIndexOf('/') + 1)..];
+        return segment.Length == 0 ? "" : T(Naming.HumanizeConstant(segment));
+    }
+
+    /// <summary>Where a remote section's screens live, as far as the shell can tell before the
+    /// remote answers: its own path, NOT the groups it sits in; null for none or the root (Java's
+    /// AppMenuDtoBuilder.remoteRoutePrefix).</summary>
+    internal static string? RemoteRoutePrefix(string? ownPath)
+    {
+        if (string.IsNullOrWhiteSpace(ownPath) || ownPath.Trim() == "/") return null;
+        return Prepend("", ownPath.Trim());
+    }
 
     /// <summary>Joins a prefix and a path with a single slash (Java's AppMenuDtoBuilder.prepend).</summary>
     /// <summary>The menu leaf whose (mount-prefixed) route is <paramref name="route"/>, searching

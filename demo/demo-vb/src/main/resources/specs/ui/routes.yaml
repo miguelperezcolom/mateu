@@ -10,16 +10,16 @@ type: Routes
 routes:
   # the display components galleries: data only (components*.yaml), no view model
   - route: components
-    definition: components.yaml
+    layout: components.yaml
   - route: components-2
-    definition: components-2.yaml
+    layout: components-2.yaml
   # the page-header elements authored as data (the Java twin is CustomerRecordPage): ONE definition
   # serving a record and a record being created — `state:` seeds what its ${state.x} read
   - route: yaml-header
-    definition: yaml-header.yaml
+    layout: yaml-header.yaml
     state: {name: Grace Hopper, status: Active, lastUpdated: "Last updated 12 Oct 2026, 11:05", nextRoute: yaml-header/new}
   - route: yaml-header/new
-    definition: yaml-header.yaml
+    layout: yaml-header.yaml
     state: {name: "", status: "", prevRoute: yaml-header}
   - route: customers
     viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.Customers

@@ -221,7 +221,7 @@ test('the bridge assembled from poc/ has exactly the API of the AMD bundle the a
 /** A booted shell (app.json + its first leaf): the transport hooks the shell installs (busy bar,
  *  error band) write to THIS context's variables — what an error band test needs. */
 const bootShell = async () => {
-  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer((b, url) => b.actionId === '__load__', fx('app'))
   answer(byRoute('/hello'), fx('load-form'))
   const ctx = newContext()
   await new chains.loadMateuShell().run(ctx)
@@ -273,7 +273,7 @@ test('loadMateuShell: reloading or closing the tab with unsaved changes asks (be
 })
 
 test('loadMateuShell: the App configures the nav and the first leaf opens, its URL pushed', async () => {
-  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer((b, url) => b.actionId === '__load__', fx('app'))
   answer(byRoute('/hello'), fx('load-form'))
   const ctx = newContext()
   await new chains.loadMateuShell().run(ctx)
@@ -302,7 +302,7 @@ test('loadMateuShell: a backend down at boot shows a plain-language error band, 
 })
 
 test('the shell wires navigation-requested once: a widget link navigates inside the shell', async () => {
-  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer((b, url) => b.actionId === '__load__', fx('app'))
   answer(byRoute('/hello'), fx('load-form'))
   answer(byRoute('/elsewhere'), replace(page('p-else', 'x.Else', 'Elsewhere', [text('there')])))
   const ctx = newContext()
@@ -315,7 +315,7 @@ test('the shell wires navigation-requested once: a widget link navigates inside 
 })
 
 test('loadMateuShell: a deep link boots the screen in the URL, not the home', async () => {
-  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer((b, url) => b.actionId === '__load__', fx('app'))
   answer(byRoute('/products'), replace(page('pp', 'x.Products', 'Products page')))
   setUrl('/#/products')
   const ctx = newContext()
@@ -1085,14 +1085,14 @@ test('runMateuAction: a LongTask streamed in arbitrary chunks applies every even
 
 test('a federated menu: each pod answers its section, a pod that is down leaves its section disabled, a deep link goes to its pod', async () => {
   const shell = { commands: [], messages: [], fragments: [{ targetComponentId: 'shell', component: { type: 'ClientSide', metadata: {
-    type: 'App', route: '', title: 'Fed', variant: 'HAMBURGUER_MENU', serverSideType: 'x.Shell', menu: [
+    type: 'App', route: '', title: 'Fed', variant: 'HAMBURGER_MENU', serverSideType: 'x.Shell', menu: [
       { label: 'Home', route: '/home', path: '/home', serverSideType: 'x.Shell', submenus: [] },
       { label: 'Workflow', route: '/wf', remote: true, baseUrl: 'http://pod', submenus: [] },
       { label: 'Billing', route: '/bill', remote: true, baseUrl: 'http://dead', submenus: [] },
     ] } } }] }
   const podApp = { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', route: '/wf', serverSideType: 'pod.App', menu: [
     { label: 'Forms', route: '/wf/forms', submenus: [{ label: 'Tasks', route: '/wf/forms/tasks', submenus: [] }] }] } } }] }
-  answer((b, url) => url.startsWith('http://api/') && url.endsWith('/components/_/action'), shell)
+  answer((b, url) => url.startsWith('http://api/') && b.actionId === '__load__', shell)
   answer((b, url) => url.startsWith('http://dead/'), DOWN)
   answer((b, url) => url.startsWith('http://pod/') && b.consumedRoute === '_empty', podApp)
   answer(byRoute('/home'), replace(page('ph', 'x.Home', 'Home')))
@@ -1234,7 +1234,7 @@ test('embedded: boots the route the host names, tells it ready/title, and the po
   })
   bridge.setEmbeddedHost({ emit })
   bridge.installEmbeddedContentRuntime(bridge, rt)
-  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer((b, url) => b.actionId === '__load__', fx('app'))
   answer(byRoute('/person/7'), fx('load-form'))
   answer(byRoute('/other'), replace(page('po', 'x.O', 'Other')))
   answer((b) => b.actionId === 'save', { status: 500 })

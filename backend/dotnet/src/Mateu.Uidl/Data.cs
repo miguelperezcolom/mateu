@@ -14,6 +14,13 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
     public MessageVariant Variant { get; } = variant;
     public string Title { get; } = title;
     public int Duration { get; init; } = 5000;
+
+    /// <summary>Where the renderer shows it — only a hint (Java's NotificationPosition: middle,
+    /// topStart, bottomEnd…). The constructor says "middle", as Java's <c>new Message(text)</c>; the
+    /// <see cref="Success"/> / <see cref="Error"/>… factories say nothing (null), as Java's do, and a
+    /// message that says nothing travels without one (the renderer decides).</summary>
+    public string? Position { get; init; } = "middle";
+
     public string? UndoLabel { get; init; }
     public string? UndoActionId { get; init; }
     public IReadOnlyDictionary<string, object?>? UndoParameters { get; init; }
@@ -35,10 +42,28 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
 
     /// <summary>A toast with an Undo button dispatching the given action (10 s so there is time
     /// to react). The undo travels both as the legacy Undo* members and as one of the actions.</summary>
+    /// <summary>A success toast with no position and the default duration (Java's Message.success).</summary>
+    public static Message Success(string text) =>
+        new(text, MessageVariant.Success) { Duration = 3000, Position = null };
+
+    /// <summary>An error — sticky until dismissed — with no position (Java's Message.error).</summary>
+    public static Message Error(string text) =>
+        new(text, MessageVariant.Error) { Duration = 0, Position = null };
+
+    /// <summary>A warning toast with no position and the default duration (Java's Message.warning).</summary>
+    public static Message Warning(string text) =>
+        new(text, MessageVariant.Warning) { Duration = 3000, Position = null };
+
+    /// <summary>A contrast toast with no position and the default duration (Java's Message.contrast).</summary>
+    public static Message Contrast(string text) =>
+        new(text, MessageVariant.Contrast) { Duration = 3000, Position = null };
+
     public static Message Undoable(
         string text, string undoActionId, IReadOnlyDictionary<string, object?>? undoParameters = null) =>
         new(text, MessageVariant.Contrast)
         {
+            // Java's undoable is built with no position
+            Position = null,
             Duration = 10000,
             UndoActionId = undoActionId,
             UndoParameters = undoParameters,
@@ -59,6 +84,7 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
         new(Text, Variant, Title)
         {
             Duration = Duration,
+            Position = Position,
             UndoLabel = UndoLabel,
             UndoActionId = UndoActionId,
             UndoParameters = UndoParameters,
@@ -199,6 +225,28 @@ public interface INotificationsSupplier
     /// <summary>The detail of an entry with HasDetail (the <c>_notifications-open</c> app-level
     /// action): typically a Drawer or a Dialog. Null: nothing opens. EXPERIMENTAL.</summary>
     object? NotificationDetail(string id) => null;
+}
+
+/// <summary>Where the INBOX messages of the answers are kept, per authenticated principal — an
+/// interface the app may implement (Mateu ships UI only): register an IInboxStore service and it
+/// replaces Mateu's default, in memory, per process, bounded (100 entries per principal, 10 000
+/// principals) and lost on restart. A <see cref="MessagePersistence.Inbox"/> message of an
+/// authenticated caller is <see cref="Add"/>ed (and pushed to the principal's other sessions);
+/// the bell lists it next to the <see cref="INotificationsSupplier"/>'s entries. (C# analogue of
+/// Java's io.mateu.uidl.interfaces.InboxStore.) EXPERIMENTAL.</summary>
+public interface IInboxStore
+{
+    /// <summary>Adds the entry to the principal's inbox — replacing an entry with the same id.</summary>
+    void Add(string principal, AppNotification entry);
+
+    /// <summary>The principal's entries, newest first.</summary>
+    IReadOnlyList<AppNotification> List(string principal);
+
+    /// <summary>Marks the principal's entries read (ids not in the inbox are ignored).</summary>
+    void MarkRead(string principal, IReadOnlyList<string> ids);
+
+    /// <summary>Removes the principal's entries (ids not in the inbox are ignored).</summary>
+    void Dismiss(string principal, IReadOnlyList<string> ids);
 }
 
 /// <summary>One hit of the app-wide entity search (the command palette's data results): a label,

@@ -43,6 +43,16 @@ content:
           dataType: string
           required: true
           label: Quantity
+        - type: FormField
+          id: unit
+          dataType: string
+          stereotype: select
+          label: Unit
+          options:
+            - value: pcs
+              label: Pieces
+            - value: box
+              label: Boxes of 12, sealed
     title:
       type: Text
       container: h3

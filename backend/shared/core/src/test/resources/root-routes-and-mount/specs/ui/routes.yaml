@@ -1,0 +1,4 @@
+# the CONVENTIONAL root routes file: no type header, no basePath
+routes:
+  - route: hello
+    layout: hello.yaml

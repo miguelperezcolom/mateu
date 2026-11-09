@@ -19,11 +19,10 @@ import lombok.extern.slf4j.Slf4j;
  *   <li><b>Bare layout</b> (legacy): the whole file is a component tree ({@code type: ...}). It
  *       renders as a static, unbound page — good for help/landing screens with no behaviour.
  *   <li><b>Page envelope</b>: a {@code layout:} key holds the component tree and an optional {@code
- *       viewModel:} key names a Java class (the canonical vocabulary of coherence-plan #5; {@code
- *       modelView:} is accepted as a deprecated alias). When present, that class is instantiated as
- *       the page's view model — it supplies the state, actions, validations and rules — while the
- *       YAML supplies the layout. This is the inverse of {@code @UISpec} (there the class points at
- *       the YAML; here the YAML points at the class), so a page can be authored as a file that
+ *       viewModel:} key names a Java class. When present, that class is instantiated as the page's
+ *       view model — it supplies the state, actions, validations and rules — while the YAML
+ *       supplies the layout. This is the inverse of {@code @UISpec} (there the class points at the
+ *       YAML; here the YAML points at the class), so a page can be authored as a file that
  *       references a plain, unannotated logic class.
  * </ul>
  *
@@ -296,12 +295,68 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
    * @throws io.mateu.core.application.security.MateuForbiddenException when refused
    */
   public RunActionCommand guard(RunActionCommand command) {
+    return guardIn(command);
+  }
+
+  /**
+   * {@code route} as the AUTHORED table holds it, for a request served by the non-root mount {@code
+   * mount} ({@code shop}): routes of a class-declared mount are authored absolute (a {@code type:
+   * Routes} file tagged {@code basePath: /shop} is prefixed on load) while the browser asks
+   * relative to the mount ({@code /orders}). Every YAML lookup is by route, so a definition-only
+   * route of such a file answered "Page not found". Returned as it came when the mount is the root,
+   * the route already names it, or the mount authors nothing there.
+   */
+  public String authoredRouteIn(String route, String mount) {
+    if (route == null
+        || mount == null
+        || mount.isEmpty()
+        || io.mateu.core.application.MountPaths.startsWithMount(route, mount)) {
+      return route;
+    }
+    var query = route.indexOf('?');
+    var path = query < 0 ? route : route.substring(0, query);
+    if (path.replaceAll("^/+", "").isEmpty()) {
+      return route;
+    }
+    var absolute = io.mateu.core.application.MountPaths.withMount(mount, path);
+    return routeRegistry.authored().match(absolute.substring(1)).isPresent()
+            || routeRegistry.authored().match(absolute).isPresent()
+        ? (query < 0 ? absolute : absolute + route.substring(query))
+        : route;
+  }
+
+  /** {@link #authoredRouteIn(String, String)} for the mount the request was served by. */
+  public String authoredRouteFor(String route, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (httpRequest == null) {
+      return route;
+    }
+    try {
+      return authoredRouteIn(
+          route,
+          io.mateu.core.application.MountPaths.normalize(
+              httpRequest.getAttribute("baseUrl") instanceof String b ? b : null));
+    } catch (RuntimeException e) {
+      return route;
+    }
+  }
+
+  private RunActionCommand guardIn(RunActionCommand command) {
     var route = command.route();
     if (route == null) {
       return command;
     }
     var httpRequest = command.httpRequest();
     var refusing = routeRegistry.refusingEntry(route, httpRequest);
+    var mount = io.mateu.core.application.MountPaths.mountOf(command);
+    if (refusing == null
+        && !mount.isEmpty()
+        && !io.mateu.core.application.MountPaths.startsWithMount(route, mount)) {
+      // a class-declared non-root mount's routes are authored ABSOLUTE (basePath: /shop) while the
+      // browser asks relative to the mount: their access: applies to that spelling too
+      refusing =
+          routeRegistry.refusingEntry(
+              io.mateu.core.application.MountPaths.withMount(mount, route), httpRequest);
+    }
     if (refusing != null) {
       log.warn(
           "Refused request: route '{}' declares access: and the caller's token does not satisfy"
@@ -310,10 +365,18 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       throw new io.mateu.core.application.security.MateuForbiddenException(
           "route not allowed for caller: " + refusing.route());
     }
-    var path = normalize(route);
+    var path = normalize(authoredRouteIn(route, mount));
     var spec = loadSpec(path);
-    if (spec == null || !spec.dependsOnRequest()) {
+    if (spec == null) {
       return command;
+    }
+    // the business components (components.yaml) and partials lock fields too: they are resolved
+    // while the tree is mapped, after the view model is hydrated. STRICT, like a code view: every
+    // piece of the app is checked, not only the ones this layout names
+    var lockedByPieces =
+        io.mateu.core.infra.security.ClientLockedFields.appWideLockedFor(httpRequest);
+    if (!spec.dependsOnRequest()) {
+      return withoutLockedByPieces(command, path, lockedByPieces);
     }
     var personal = loadSpec(path, httpRequest);
     if (personal == null) {
@@ -331,14 +394,30 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         throw refusedAction(String.valueOf(sourceId));
       }
     }
-    if (!personal.lockedFields().isEmpty()
-        && command.componentState() != null
-        && personal.lockedFields().stream().anyMatch(command.componentState()::containsKey)) {
-      var narrowed = new java.util.LinkedHashMap<>(command.componentState());
-      personal.lockedFields().forEach(narrowed::remove);
-      return command.withComponentState(narrowed);
+    return withoutLockedByPieces(
+        withoutLocked(command, personal.lockedFields()), path, lockedByPieces);
+  }
+
+  /** {@code command} without the posted state the YAML pieces of the app lock for the caller. */
+  private static RunActionCommand withoutLockedByPieces(
+      RunActionCommand command, String owner, java.util.Map<String, String> lockedByPieces) {
+    var state = command.componentState();
+    var narrowed =
+        io.mateu.core.infra.security.ClientLockedFields.without(owner, state, lockedByPieces);
+    return narrowed == state ? command : command.withComponentState(narrowed);
+  }
+
+  /** {@code command} without the posted state of the fields {@code locked} names. */
+  private static RunActionCommand withoutLocked(
+      RunActionCommand command, java.util.Set<String> locked) {
+    if (locked.isEmpty()
+        || command.componentState() == null
+        || locked.stream().noneMatch(command.componentState()::containsKey)) {
+      return command;
     }
-    return command;
+    var narrowed = new java.util.LinkedHashMap<>(command.componentState());
+    locked.forEach(narrowed::remove);
+    return command.withComponentState(narrowed);
   }
 
   /** The action catalogue, when there is a bean context to ask (null in a bare unit test). */
@@ -576,14 +655,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       // that declares the view model inline keeps working and wins, so nothing that exists today
       // changes — but a definition shared by several routes must NOT name one, or it could only
       // ever serve the class it names.
-      // Vocabulary (coherence-plan #5): the canonical key is `viewModel:` (unifying the two names
-      // for the one concept — the server class of state + actions). `modelView:` is the DEPRECATED
-      // ALIAS, still accepted so every existing definition keeps working; `viewModel:` wins if both
-      // are present.
-      var modelView =
-          root.hasNonNull("viewModel")
-              ? root.get("viewModel").asText()
-              : root.hasNonNull("modelView") ? root.get("modelView").asText() : null;
+      var modelView = root.hasNonNull("viewModel") ? root.get("viewModel").asText() : null;
       if (modelView == null) {
         modelView =
             entry

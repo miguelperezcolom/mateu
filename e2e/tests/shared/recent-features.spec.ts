@@ -47,7 +47,7 @@ function titleCommand(body: any): any {
 // UploadableImageForm — /uploadable-image  (@UploadableImage)
 // ---------------------------------------------------------------------------
 
-const UPLOADABLE_IMAGE_API = '/uploadable-image/mateu/v3/components/_/action';
+const UPLOADABLE_IMAGE_API = '/uploadable-image/mateu/v3/sync/_no_route';
 
 test.describe('UploadableImageForm — @UploadableImage', () => {
 
@@ -90,7 +90,7 @@ test.describe('UploadableImageForm — @UploadableImage', () => {
 // TabShortcutForm — /tab-shortcuts  (@Tab(shortcut="alt+1"))
 // ---------------------------------------------------------------------------
 
-const TAB_SHORTCUT_API = '/tab-shortcuts/mateu/v3/components/_/action';
+const TAB_SHORTCUT_API = '/tab-shortcuts/mateu/v3/sync/_no_route';
 
 test.describe('TabShortcutForm — @Tab(shortcut=...)', () => {
 
@@ -130,7 +130,7 @@ test.describe('TabShortcutForm — @Tab(shortcut=...)', () => {
 // SemanticAnnotationForm — /semantic-annotations  (composed annotations)
 // ---------------------------------------------------------------------------
 
-const SEMANTIC_API = '/semantic-annotations/mateu/v3/components/_/action';
+const SEMANTIC_API = '/semantic-annotations/mateu/v3/sync/_no_route';
 
 test.describe('SemanticAnnotationForm — semantic (composed) annotations', () => {
 

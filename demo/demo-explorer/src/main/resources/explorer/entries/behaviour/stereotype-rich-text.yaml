@@ -1,0 +1,15 @@
+id: stereotype-rich-text
+area: behaviour
+group: forms
+title: Rich text, Markdown & HTML
+covers: [behaviour:stereotype-rich-text]
+description: |
+  `@Stereotype(richText)` is a WYSIWYG editor whose value is HTML; `markdown` and `html` are
+  source editors with a **Preview**. All three are a String field, and what comes from data is
+  sanitised before it is drawn.
+
+  Try it: select a word in **Body**, make it bold and press **Save** — the toast shows the HTML the
+  server received.
+examples:
+  - title: An article
+    java: io.mateu.explorer.examples.behaviour.stereotyperichtext.ArticleEditor

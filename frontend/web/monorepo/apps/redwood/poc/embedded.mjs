@@ -561,6 +561,8 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   // the SHELL's router; an embedded component never routes by path (its actions still run)
   setToastNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
   setTaskNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+  // an OS notification's click opens a route: the shell's router (the app opts in on its @App)
+  setOsNotificationNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
   // the notification inbox is the app header's bell: a host page has its own header
   setInboxIncrementSink: 'shell-level: the inbox bell belongs to the app header',
   setInboxNavigateSink: 'shell-level: the inbox bell belongs to the app header',

@@ -26,7 +26,6 @@ import {
   avatarGroupSplit,
   cellText,
   contentSlots,
-  destinationIntent,
   elementKind,
   flattenTree,
   gridColumnsOf,
@@ -34,7 +33,6 @@ import {
   initials,
   menuIntent,
   parseFormDefinition,
-  resultLook,
   responsiveColumns,
   textOfHtml,
   type MenuOptionLike,
@@ -49,6 +47,7 @@ import { Icon as PaperIcon } from 'react-native-paper';
 import { materialIconOf } from '../ui/wireIcons';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { openExternal } from './openExternal';
+import { masterDetailDirection } from '../core/phoneLayout';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -87,7 +86,7 @@ function useRunMenuOption() {
 
 // ── Parts rendered on their own (normally drawn by their owner) ────────────────
 
-/** Tab / AccordionPanel / FormItem / Stepper / BoardLayoutItem reaching the switch on their own:
+/** Tab / AccordionPanel / FormItem / BoardLayoutItem reaching the switch on their own:
  *  their label (when they have one) over their children. */
 export function LabelledChildrenRenderer({ component, state, data }: { component: unknown; state: Dict; data?: unknown }) {
   const label = interpolate(str(meta(component)['label']), { state });
@@ -101,24 +100,6 @@ export function LabelledChildrenRenderer({ component, state, data }: { component
 
 export function GridColumnRenderer({ metadata }: { metadata: Dict }) {
   return <Text style={styles.th}>{str(metadata['label'] ?? metadata['id'])}</Text>;
-}
-
-/** Stepper: its children as numbered steps. */
-export function StepperRenderer({ component, state, data }: { component: unknown; state: Dict; data?: unknown }) {
-  return (
-    <View style={styles.stack}>
-      {childrenOf(component).map((c, i) => (
-        <View key={i} style={styles.stepRow}>
-          <View style={styles.stepDot}>
-            <Text style={styles.stepDotText}>{i + 1}</Text>
-          </View>
-          <View style={styles.flex1}>
-            <ComponentRenderer component={c} state={state} data={data} />
-          </View>
-        </View>
-      ))}
-    </View>
-  );
 }
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
@@ -447,9 +428,10 @@ export function MasterDetailRenderer({ component, state, data }: { component: un
   const d = (data as Dict) ?? {};
   const detail = (d['detailComponent'] as unknown) ?? kids[1];
   const hasDetail = !!d['hasDetail'] || !!kids[1];
-  const wide = width >= 768;
+  const direction = masterDetailDirection(meta(component)['orientation'], width);
+  const wide = direction === 'row';
   return (
-    <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12 }}>
+    <View style={{ flexDirection: direction, gap: 12 }}>
       <View style={wide ? styles.flex1 : undefined}>{!!kids[0] && <ComponentRenderer component={kids[0]} state={state} data={data} />}</View>
       <View style={wide ? styles.flex1 : undefined}>
         {hasDetail && detail ? (
@@ -671,49 +653,6 @@ export function ChatRenderer({ metadata }: { metadata: Dict }) {
 }
 
 // ── Outcome pages ──────────────────────────────────────────────────────────────
-
-const TONES: Record<string, { fg: string; bg: string }> = themed(() => ({
-  success: { fg: theme.success, bg: theme.successBg },
-  info: { fg: theme.info, bg: theme.infoBg },
-  warning: { fg: theme.warning, bg: theme.warningBg },
-  danger: { fg: theme.danger, bg: theme.dangerBg },
-  muted: { fg: theme.muted, bg: theme.divider },
-}));
-
-export function ResultRenderer({ metadata }: { metadata: Dict }) {
-  const controller = useViewController();
-  const navigate = useNavigate();
-  const look = resultLook(str(metadata['resultType']));
-  const tone = TONES[look.tone]!;
-  const go = (d: Dict) => {
-    const intent = destinationIntent(d);
-    if (intent.kind === 'url') openExternal(intent.target);
-    else if (intent.kind === 'route') navigate(intent.target, str(d['description']));
-    else if (intent.kind === 'action') void controller.runAction(intent.target);
-  };
-  const links = (metadata['interestingLinks'] as Dict[]) ?? [];
-  const nowTo = metadata['nowTo'] as Dict | undefined;
-  return (
-    <View style={styles.outcome}>
-      {!!metadata['leftSideImageUrl'] && <Image source={{ uri: str(metadata['leftSideImageUrl']) }} style={styles.outcomeImage} resizeMode="contain" />}
-      <View style={[styles.outcomeIcon, { backgroundColor: tone.bg }]}>
-        <Text style={[styles.outcomeGlyph, { color: tone.fg }]}>{look.glyph}</Text>
-      </View>
-      {!!metadata['title'] && <Text style={styles.outcomeTitle} {...headingA11y()}>{str(metadata['title'])}</Text>}
-      {!!metadata['message'] && <Text style={styles.outcomeMessage}>{str(metadata['message'])}</Text>}
-      {links.map((l, i) => (
-        <TouchableOpacity key={i} {...buttonA11y({ role: 'link' })} onPress={() => go(l)}>
-          <Text style={styles.link}>{str(l['description'] || l['value'])}</Text>
-        </TouchableOpacity>
-      ))}
-      {!!nowTo && (
-        <TouchableOpacity {...buttonA11y()} style={[styles.primaryBtn, { marginTop: 12 }]} onPress={() => go(nowTo)}>
-          <Text style={styles.primaryBtnText}>{str(nowTo['description']) || 'Continue'}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
 
 export function NotFoundRenderer({ metadata }: { metadata: Dict }) {
   const navigate = useNavigate();
@@ -1035,9 +974,6 @@ const styles = themed(() => StyleSheet.create({
   th: { fontWeight: '600', color: theme.muted, fontSize: 14, padding: 8 },
   td: { color: theme.ink, fontSize: 14, padding: 8 },
   // stepper
-  stepRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  stepDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: theme.info, alignItems: 'center', justifyContent: 'center' },
-  stepDotText: { color: theme.onFill, fontSize: 12, fontWeight: '700' },
   // carousel
   carouselNav: { justifyContent: 'center', gap: 8, marginTop: 8 },
   carouselArrow: { fontSize: 22, color: theme.ink, paddingHorizontal: 8 },
@@ -1050,9 +986,7 @@ const styles = themed(() => StyleSheet.create({
   primaryBtnText: { color: theme.onPrimary, fontWeight: '600', fontSize: 14 },
   // outcome pages
   outcome: { alignItems: 'center', padding: 24, gap: 8 },
-  outcomeImage: { width: '100%', height: 160 },
   outcomeIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  outcomeGlyph: { fontSize: 28, fontWeight: '700' },
   outcomeTitle: { fontSize: 22, fontWeight: '600', color: theme.ink, textAlign: 'center' },
   outcomeMessage: { fontSize: 14, color: theme.muted, textAlign: 'center', maxWidth: 420 },
   // overlays in place

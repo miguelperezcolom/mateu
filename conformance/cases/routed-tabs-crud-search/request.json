@@ -1,0 +1,10 @@
+{
+  "route": "/conformance/rt/accounts/7/orders",
+  "consumedRoute": "/conformance/rt/accounts/7/orders",
+  "actionId": "search",
+  "componentState": {
+    "searchText": "",
+    "page": 0,
+    "size": 10
+  }
+}

@@ -1,4 +1,4 @@
-"""View base classes: HeroSearch, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier,
+"""View base classes: HeroSearch, HeroSearchListing, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier,
 DetailContentSupplier, LinkSupplier."""
 
 from __future__ import annotations
@@ -37,6 +37,29 @@ class HeroSearch(Crud[T]):
     def hero_image(self) -> str | None:
         """Background image URL, rendered with a dark overlay."""
         return None
+
+
+class HeroSearchListing(Listing[R], Filterable[F], Searchable, Generic[F, R]):
+    """A search-first READ-ONLY page over a declarative listing with its own filters type — the
+    shape of Java's ``HeroSearch<Filters, Row>`` (EXPERIMENTAL): a centered hero header over the
+    listing, the ``F`` fields as the facet bar, results as cards (override :meth:`grid_layout`),
+    starting EMPTY — the user searches. Implement ``search(request, http)`` as on any
+    :class:`Listing`. For a hero page over a WRITABLE entity crud whose facets are the entity's
+    own fields, keep :class:`HeroSearch`. (.NET's ``HeroSearch<TFilters, TRow>``.)"""
+
+    def hero_title(self) -> str | None:
+        return None
+
+    def hero_subtitle(self) -> str | None:
+        return None
+
+    def hero_image(self) -> str | None:
+        """Background image URL, rendered with a dark overlay."""
+        return None
+
+    def grid_layout(self) -> str:
+        """Results as cards by default (Java's ``HeroSearch.gridLayout``)."""
+        return "cards"
 
 
 class SmartSearchPage(Listing[R], Filterable[F], Searchable, Generic[F, R]):
@@ -80,6 +103,13 @@ class Wizard:
         step and its bullet in the ``steps``/``rail`` progress styles (Java takes it from the step
         field's label; .NET's ``StepTitle``). Default: None (no text; bullets read "Step n")."""
         return None
+
+    def step_applies(self, step: int) -> bool:
+        """Whether step ``step`` (1-based) applies given the answers so far (Java's
+        ``Wizard.stepApplies``): a step that does not is skipped by Next and Back alike and left
+        out of the progress; when the penultimate step does not apply, the completion action moves
+        to the last step that does. The result step always applies. Default: every step applies."""
+        return True
 
     def step_skippable(self, step: int) -> bool:
         """Whether the user may SKIP step ``step`` (1-based; the Redwood ``spSkip``): a "Skip"
