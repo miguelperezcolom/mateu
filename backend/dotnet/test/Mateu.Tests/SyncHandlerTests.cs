@@ -2337,8 +2337,8 @@ public class SyncHandlerTests
         Assert.Contains("\"editorType\":\"select\"", json);
         // …enum editors carry their constants as options…
         Assert.Contains("\"editorOptions\":[{\"value\":\"Ok\"", json);
-        // …[ReadOnly] columns stay display-only…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":false", json);
+        // …the technical id is not a column at all (the row opens by click: W-V-TABLE-ID)…
+        Assert.DoesNotContain("\"id\":\"id\",\"label\":\"Id\"", json);
         // …and the crud advertises the update-row action.
         Assert.Contains("update-row", json);
     }

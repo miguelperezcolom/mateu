@@ -50,7 +50,12 @@ public final class BuiltInTexts {
               Map.entry("Reload", "Recargar"),
               Map.entry("Overwrite", "Sobrescribir"),
               // the default text of @NotEmpty / @NotNull (ConstraintValidationMapper)
-              Map.entry("Cannot be empty", "No puede estar vacío")));
+              Map.entry("Cannot be empty", "No puede estar vacío"),
+              // the toast of an undoable delete (Restorable)
+              Map.entry("1 record deleted", "1 registro eliminado"),
+              Map.entry("{0} records deleted", "{0} registros eliminados"),
+              Map.entry("1 record restored", "1 registro restaurado"),
+              Map.entry("{0} records restored", "{0} registros restaurados")));
 
   public static String translate(String text, HttpRequest httpRequest) {
     if (text == null || text.isBlank()) {

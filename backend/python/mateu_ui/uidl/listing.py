@@ -375,3 +375,21 @@ class Deletable(Generic[I]):
 
     def delete_all_by_id(self, selected_ids: list, http=None) -> None:
         raise NotImplementedError
+
+
+class Restorable(Generic[I]):
+    """Interaction capability (EXPERIMENTAL, W-V-DELETE-FEEDBACK): a deletable listing (a
+    :class:`Crud`, a capability listing) that can bring deleted records back. Declaring it makes
+    the delete UNDOABLE: Delete asks for no confirmation, deletes and answers a toast ("2 records
+    deleted") with Undo, which calls :meth:`restore_all_by_id` with the same ids and refreshes the
+    listing. Without it Delete keeps asking first. How records come back is the app's (a soft
+    delete, a trash table…); restore must accept ids it no longer holds. (Java's
+    ``io.mateu.uidl.interfaces.Restorable``, .NET's ``IRestorable<TId>``.)"""
+
+    #: the reserved action an Undo of a delete runs
+    RESTORE_ACTION = "restore-deleted"
+    #: the action parameter carrying the ids to restore
+    RESTORE_IDS = "_restoreIds"
+
+    def restore_all_by_id(self, deleted_ids: list, http=None) -> None:
+        raise NotImplementedError

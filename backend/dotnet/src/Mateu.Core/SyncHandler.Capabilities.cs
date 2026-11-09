@@ -64,6 +64,8 @@ internal sealed partial class SyncHandler
             "save" when profile.CanEdit => CapabilitySave(profile, listing, baseRoute, rq),
             "create" when profile.CanCreate => CapabilityCreate(profile, listing, baseRoute, rq),
             "delete" when profile.CanDelete => CapabilityDelete(profile, listing, rq),
+            IRestorable<string>.RestoreAction when profile.CanDelete => UIIncrementDto.Of(
+                fragments: CapabilitySearch(profile, listing, rq).Fragments, messages: [Restore(listing, rq)]),
             "cancel-new" or "cancel-edit" or "cancel-view" when profile.EditInDrawer =>
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "MarkAsClean", null)]),
@@ -203,18 +205,25 @@ internal sealed partial class SyncHandler
         var idField = EntityIds.FieldName(profile.RowType);
         var ids = (System.Collections.IList)Activator.CreateInstance(
             typeof(List<>).MakeGenericType(profile.IdType))!;
+        var deleted = new List<string>();
         if (GetState(rq.ComponentState, "crud_selected_items")
             is JsonElement { ValueKind: JsonValueKind.Array } selected)
             foreach (var rowEl in selected.EnumerateArray())
                 if (rowEl.ValueKind == JsonValueKind.Object
                     && rowEl.TryGetProperty(idField, out var idEl)
                     && StateString(idEl) is { } raw)
+                {
                     ids.Add(ToId(raw, profile.IdType));
+                    deleted.Add(raw);
+                }
         profile.DeletableInterface!.GetMethod("DeleteAllById")!.Invoke(listing, [ids]);
         var refreshed = CapabilitySearch(profile, listing, rq);
         return UIIncrementDto.Of(
             fragments: refreshed.Fragments,
-            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
+            // a listing declaring IRestorable offers the way back (W-V-DELETE-FEEDBACK)
+            messages: [RestorableOf(listing.GetType()) is not null && deleted.Count > 0
+                ? UndoableDeleted(deleted)
+                : new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
     /// <summary>A [ListToolbarButton] bulk action on the listing: same dispatch as on cruds —

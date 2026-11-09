@@ -96,7 +96,7 @@ test.describe('capability listing — search, filters, sort, paging and the URL'
         ])
         const fs = await import('fs')
         const csv = fs.readFileSync((await download.path())!, 'utf8').trim().split('\n')
-        expect(csv[0]).toBe('Id,Title,Author,Pages,Published,Genre')
+        expect(csv[0]).toBe('Code,Title,Author,Pages,Published,Genre')
         expect(csv).toHaveLength(11)
     })
 

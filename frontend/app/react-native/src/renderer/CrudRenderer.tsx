@@ -1,3 +1,4 @@
+import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
@@ -9,7 +10,7 @@ import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
-import { FIT_CONTENT, useFitsContent, useInsideVerticalScroll, usePageShowsToolbar } from './ScrollContext';
+import { FIT_CONTENT, useBarTitle, useFitsContent, useInsideVerticalScroll, usePageShowsToolbar } from './ScrollContext';
 import { routeQueryOf } from '../core/componentContext';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
@@ -97,7 +98,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const controller = useViewController();
   const nestedInScroll = useInsideVerticalScroll();
 
-  const title = (metadata['title'] as string) ?? '';
+  // the shell's bar already names the screen (RN-22): the listing does not say it twice
+  const barTitle = useBarTitle();
+  const declaredTitle = (metadata['title'] as string) ?? '';
+  const title = bodyRepeatsBar(declaredTitle, barTitle) ? '' : declaredTitle;
   const subtitle = (metadata['subtitle'] as string) ?? '';
   const searchable = Boolean(metadata['searchable']);
   // a column group (GridGroupColumn) becomes its columns, headed "Group · Column" (columnGroups.ts)
@@ -544,7 +548,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             value={searchText}
             onChangeText={setSearchText}
             // RN-06: a placeholder is not a name — VoiceOver/TalkBack announced a bare "text field".
-            accessibilityLabel={title ? `Search ${title}` : 'Search'}
+            accessibilityLabel={declaredTitle ? `Search ${declaredTitle}` : 'Search'}
             accessibilityRole="search"
             placeholder="Search"
             onSubmitEditing={() => doSearch()}

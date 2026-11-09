@@ -219,6 +219,22 @@ internal sealed partial class ReflectionMapper
             })
             .ToList();
 
+    /// <summary>W-V-TABLE-ID: a listing whose rows open by click leaves its TECHNICAL id out of the
+    /// columns — the row is the link now, and a generated id tells the user nothing. The id is the
+    /// DECLARED one (<c>[Id]</c>, else <c>Id</c>), whatever its type; a <c>[Label]</c> on it keeps it
+    /// (a business code the developer named), and the only column always stays. The row data keeps
+    /// the id. Same rule as Java's <c>TechnicalIdColumn</c> and Python's <c>without_technical_id</c>.</summary>
+    internal static List<PropertyInfo> WithoutTechnicalId(
+        IEnumerable<PropertyInfo> properties, Type rowType, bool rowsClickable)
+    {
+        var list = properties.ToList();
+        if (!rowsClickable || list.Count < 2) return list;
+        var id = EntityIds.PropertyOf(rowType);
+        if (id is null || id.GetCustomAttribute<LabelAttribute>(inherit: true) is not null) return list;
+        list.RemoveAll(p => p.Name == id.Name);
+        return list;
+    }
+
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {
         var crud = instance ?? Activator.CreateInstance(viewType);
@@ -244,8 +260,7 @@ internal sealed partial class ReflectionMapper
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
-        var columns = EditableProperties(element)
-            .Where(Visible)
+        var columns = WithoutTechnicalId(EditableProperties(element).Where(Visible), element, rowsClickable)
             .Select((p, index) =>
             {
                 var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
@@ -298,9 +313,12 @@ internal sealed partial class ReflectionMapper
         if (canDelete && display.Delete.Shown())
         {
             toolbar.Add(new ButtonDto("Delete", "delete") { Disabled = !display.Delete.Enabled(), Color = "error" });
-            // the client asks for confirmation and needs a selection (Java's CrudActionsBuilder)
+            // the client asks for confirmation and needs a selection (Java's CrudActionsBuilder) —
+            // unless the crud can undo it (IRestorable): then its toast offers Undo instead
+            var restorable = SyncHandler.RestorableOf(viewType) is not null;
             actions.Add(new ActionDto("delete", ValidationRequired: false,
-                ConfirmationRequired: true, RowsSelectedRequired: true));
+                ConfirmationRequired: !restorable, RowsSelectedRequired: true));
+            if (restorable) actions.Add(new ActionDto(IRestorable<string>.RestoreAction, ValidationRequired: false));
         }
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
@@ -370,8 +388,9 @@ internal sealed partial class ReflectionMapper
         // declaring none stays a plain listing page: the title is the PAGE's, the filters lay out
         // inline and it is not routed through a crud (route "_empty").
         var bridged = profile.CanView || profile.CanEdit || profile.CanCreate || profile.CanDelete;
-        var columns = EditableProperties(profile.RowType)
-            .Where(p => GridRowType(p) is null && Visible(p))
+        var columns = WithoutTechnicalId(
+                EditableProperties(profile.RowType).Where(p => GridRowType(p) is null && Visible(p)),
+                profile.RowType, rowsClickable)
             .Select((p, index) => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -409,8 +428,10 @@ internal sealed partial class ReflectionMapper
         if (profile.CanDelete)
         {
             toolbar.Add(new ButtonDto("Delete", "delete") { Color = "error" });
+            var restorable = SyncHandler.RestorableOf(viewType) is not null;
             actions.Add(new ActionDto("delete", ValidationRequired: false,
-                ConfirmationRequired: true, RowsSelectedRequired: true));
+                ConfirmationRequired: !restorable, RowsSelectedRequired: true));
+            if (restorable) actions.Add(new ActionDto(IRestorable<string>.RestoreAction, ValidationRequired: false));
         }
         if (profile.CanEdit)
         {

@@ -27,6 +27,7 @@ from mateu_ui.dtos import (
     Trigger,
 )
 from mateu_ui.uidl import (
+    Restorable,
     Aggregate,
     ComponentTreeSupplier,
     Creatable,
@@ -92,6 +93,17 @@ LISTING_BOX_STYLE = "min-width: min(30rem, 100%); display: block;"
 FULL_WIDTH = "width: 100%;"
 
 
+
+def without_technical_id(fields: list, rows_clickable: bool) -> list:
+    """W-V-TABLE-ID: a listing whose rows open by click leaves its TECHNICAL id out of the
+    columns — the row is the link now, and a generated id tells the user nothing. The id is the
+    field named ``id``, whatever its type; a ``Label(...)`` on it keeps it (a business code the
+    developer named), and the only column always stays. The row data keeps the id. Same rule as
+    Java's ``TechnicalIdColumn`` and .NET's ``WithoutTechnicalId``."""
+    if not rows_clickable or len(fields) < 2:
+        return fields
+    return [f for f in fields if not (f.name == "id" and not f.has(Label))]
+
 class CrudMapperMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
     def _exportable(self, cls, instance, action_id: str) -> bool:
@@ -139,9 +151,8 @@ class CrudMapperMixin(MixinBase):
         # place; each committed cell dispatches the crud's update-row action (Java parity).
         inline = getattr(cls, "__mateu_inline_editing__", False)
         columns: list[GridColumn] = []
-        for f in view_fields(element):
-            if not self.visible(f):
-                continue
+        # the rows open by click: the technical id is not a column (W-V-TABLE-ID)
+        for f in without_technical_id([f for f in view_fields(element) if self.visible(f)], True):
             editable = inline and not f.has(ReadOnly)
             columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
@@ -243,10 +254,14 @@ class CrudMapperMixin(MixinBase):
         actions = [
             Action(id="search", validation_required=False),
             Action(id="new", validation_required=False),
-            Action(id="delete", validation_required=False, confirmation_required=True,
+            # an undoable delete (Restorable) asks for no confirmation: its toast offers Undo
+            Action(id="delete", validation_required=False,
+                   confirmation_required=not issubclass(cls, Restorable),
                    rows_selected_required=True),
             Action(id="view", validation_required=False),
         ]
+        if issubclass(cls, Restorable):
+            actions.append(Action(id=Restorable.RESTORE_ACTION, validation_required=False))
         for aid in exports:
             actions.append(Action(id=aid, validation_required=False))
         if inline:
@@ -436,9 +451,11 @@ class CrudMapperMixin(MixinBase):
         # A self-referential children list makes rows hierarchical (grid_layout "tree"); it rides
         # inside the row dicts, never as a column.
         columns: list = []
-        for f in view_fields(row_type) if row_type is not None else []:
-            if self.grid_row_type(f) is not None or not self.visible(f):
-                continue
+        row_fields = [
+            f for f in (view_fields(row_type) if row_type is not None else [])
+            if self.grid_row_type(f) is None and self.visible(f)
+        ]
+        for f in without_technical_id(row_fields, rows_clickable):
             columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
@@ -472,7 +489,10 @@ class CrudMapperMixin(MixinBase):
             actions.append(Action(id="cancel-new", validation_required=False))
         if deletable:
             actions.append(Action(id="delete", validation_required=False,
-                                  confirmation_required=True, rows_selected_required=True))
+                                  confirmation_required=not issubclass(cls, Restorable),
+                                  rows_selected_required=True))
+            if issubclass(cls, Restorable):
+                actions.append(Action(id=Restorable.RESTORE_ACTION, validation_required=False))
         toolbar = []
         if creatable:
             toolbar.append(Button(label="New", action_id="new"))

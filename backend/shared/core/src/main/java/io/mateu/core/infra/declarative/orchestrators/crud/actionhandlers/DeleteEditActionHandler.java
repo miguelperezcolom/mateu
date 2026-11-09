@@ -30,7 +30,27 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
               .map(id -> orchestrator.toId(String.valueOf(id)))
               .toList();
       orchestrator.deleteAllById(selectedIds, httpRequest);
+      if (orchestrator.restorable() && !selectedIds.isEmpty()) {
+        // a delete that can be undone tells what it did and offers the way back
+        // (W-V-DELETE-FEEDBACK); the Undo runs restore-deleted with the same ids
+        return CrudActionResult.listingChanged(actionId, orchestrator)
+            .withMessage(
+                io.mateu.uidl.data.Message.undoable(
+                    deletedText(selectedIds.size(), httpRequest),
+                    io.mateu.uidl.interfaces.Restorable.RESTORE_ACTION,
+                    Map.of(
+                        io.mateu.uidl.interfaces.Restorable.RESTORE_IDS,
+                        selectedIds.stream().map(String::valueOf).toList())));
+      }
     }
     return CrudActionResult.listingChanged(actionId, orchestrator);
+  }
+
+  /** "1 record deleted" / "3 records deleted", in the UI's language. */
+  static String deletedText(int count, HttpRequest httpRequest) {
+    return count == 1
+        ? io.mateu.core.infra.declarative.BuiltInTexts.translate("1 record deleted", httpRequest)
+        : io.mateu.core.infra.declarative.BuiltInTexts.translate("{0} records deleted", httpRequest)
+            .replace("{0}", String.valueOf(count));
   }
 }

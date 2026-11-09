@@ -12,6 +12,7 @@ from mateu_ui.dtos import (
     UIIncrement,
 )
 from mateu_ui.uidl import (
+    Restorable,
     Creatable,
     Deletable,
     Editable,
@@ -33,6 +34,7 @@ from ..mapper import (
 from ..registry import normalize
 from ._base import MixinBase
 from .crud import _messages_only, _with_messages_of
+from .undo_delete import deleted_message, is_restorable, restore_ids, restored_message
 from ._common import (
     RunActionRq,
     SAVED_IN_DRAWER_EVENT,
@@ -182,11 +184,20 @@ class ListingHandlerMixin(MixinBase):
             # a create's confirmation offers "Add another" (the drawer closes onto the listing's New)
             return self.navigate_after_create(base_route, rq)
         if deletable and aid == "delete":
-            self._invoke(view.delete_all_by_id, self._selected_ids(rq), rq)
+            deleted = self._selected_ids(rq)
+            self._invoke(view.delete_all_by_id, deleted, rq)
             refreshed = self.listing_search(view, rq)
+            # a listing declaring Restorable offers the way back (W-V-DELETE-FEEDBACK)
             return refreshed.model_copy(update={"messages": [
+                deleted_message(deleted) if is_restorable(view) and deleted else
                 MessageDto(variant="success", position="middle", title="", text="Deleted", duration=3000)
             ]})
+        if deletable and is_restorable(view) and aid == Restorable.RESTORE_ACTION:
+            ids = restore_ids(rq)
+            if ids:
+                self._invoke(view.restore_all_by_id, ids, rq)
+            refreshed = self.listing_search(view, rq)
+            return refreshed.model_copy(update={"messages": [restored_message(len(ids))]})
 
         if aid in (None, ""):
             mode, id_ = self.parse_crud_route(base_route, rq.route)
