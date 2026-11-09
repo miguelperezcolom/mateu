@@ -105,6 +105,28 @@ export function inboxChangeOf(data: unknown): InboxChange {
   return { kind: 'refetch' };
 }
 
+/** The part of React Native's AppState the catch-up needs. */
+export interface AppStateLike {
+  currentState?: string | null;
+  addEventListener(type: 'change', listener: (next: string) => void): { remove(): void };
+}
+
+/**
+ * Asks for the list again each time the app comes back to the foreground. The event stream is
+ * closed while the app is away and a suspended app runs no JavaScript, so whatever arrived in the
+ * meantime is only known to the server: without this the badge stays stale until the panel opens.
+ * Answers the unsubscribe.
+ */
+export function catchUpOnResume(appState: AppStateLike, refetch: () => void): () => void {
+  let last = appState.currentState ?? 'active';
+  const subscription = appState.addEventListener('change', (next) => {
+    const cameBack = next === 'active' && last !== 'active';
+    last = next;
+    if (cameBack) refetch();
+  });
+  return () => subscription.remove();
+}
+
 export class InboxStore {
   private server: InboxItem[] = [];
   private session: InboxItem[] = [];

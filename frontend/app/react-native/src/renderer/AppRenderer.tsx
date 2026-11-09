@@ -6,7 +6,7 @@ import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, Ic
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
+import { AppState, BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
@@ -28,7 +28,7 @@ import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, type ShellAction } fr
 import { fetchExternalJson } from '../core/restFetch';
 import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHitsOf, type AppSourceHost } from '../core/appSources';
 import { interpolate } from '../core/expressions';
-import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
+import { catchUpOnResume, filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
 import { toastOf } from '../core/componentContext';
 import { NotifyOnThisDevice } from './TaskHost';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
@@ -580,6 +580,9 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
       if (change?.kind === 'refetch') void refresh();
     });
   }, [refresh, session]);
+
+  // what arrived while the app was away (no stream, no JavaScript) is only on the server
+  React.useEffect(() => catchUpOnResume(AppState, () => void refresh()), [refresh]);
 
   const entryPressed = async (notification: InboxItem) => {
     if (notification.unread) await markRead([notification.id]);

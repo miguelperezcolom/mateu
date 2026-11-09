@@ -204,6 +204,18 @@ With `@App(osNotifications = true)` a background task that finishes while the ap
 also shows as a notification of the operating system — see
 [Notification inbox](/ux-patterns/notification-inbox/#operating-system-notifications).
 
+On a **phone** that is narrower than it sounds. The notification is local: the app itself has to be
+running to post it, and the OS suspends a backgrounded app soon after you leave it (within seconds on
+iOS). So you get one if the task ends during that short window, and not if it ends later or the app
+was closed. There is no remote push in 3.0, by design.
+
+Two things soften it when the user comes back: the task center reattaches to a task that is still
+running, and the bell fetches its list again at once, so a `notifyWhenDone()` entry stored for a
+signed-in user is there. Mind the server's reattach grace period above: a task whose stream was cut
+by the suspension is **cancelled** when the grace period runs out with nobody back. For work that
+outlasts it, raise `mateu.progress.reattach-grace-seconds` or run the job independently of the stream
+and publish its result to the inbox yourself.
+
 ### Validation
 
 If the action reads form fields, validation runs before the method is called by default. Add

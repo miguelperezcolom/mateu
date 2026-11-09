@@ -172,9 +172,29 @@ shows as a notification of the operating system while the app is not in front:
   device"; the browser asks the user only then, never on load. Shown while the tab is hidden; a click
   brings the tab back and opens the entry's route.
 - **phone**: a LOCAL notification (no push service, no device token — nothing leaves the app), shown
-  while the app is in the background; permission is asked from the inbox / task sheet.
+  while the app is in the background; permission is asked from the inbox / task sheet. See
+  [what that covers](#on-a-phone-what-reaches-the-device-while-the-app-is-away) below.
 - **IntelliJ / the desktop app**: a system notification while the IDE is not active (it follows
   the IDE's "Use system notifications" setting).
+
+### On a phone: what reaches the device while the app is away
+
+A local notification can only be posted by the app itself, while its JavaScript runs. The OS suspends
+a backgrounded app soon after you leave it (within seconds on iOS; it varies on Android), and there
+is no remote push in 3.0, by design.
+
+| Situation | What the user gets |
+|---|---|
+| App in front | The bell and a toast, no OS notification |
+| A task ends (or sends an `inbox` message) in the moments after leaving the app, while it still runs | An OS notification |
+| A `LiveNotifications` push while the app is away | No OS notification: the event stream closes the moment the app leaves the foreground |
+| Anything while the app is suspended or closed | No OS notification |
+| Back in the app | The bell fetches its list at once, so the badge counts what arrived meanwhile |
+
+So on a phone, treat the OS notification as a convenience and the inbox as the record. Only what the
+server holds can be caught up: entries of your `NotificationsSupplier`, or stored for a signed-in
+user (`InboxStore`). If users must be alerted on a closed phone, send it from your own backend through
+a push service.
 
 ## In YAML
 
