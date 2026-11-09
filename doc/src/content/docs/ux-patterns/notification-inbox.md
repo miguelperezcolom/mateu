@@ -191,8 +191,9 @@ actions, hasDetail}]}` — same contract from the Java, .NET and Python servers.
 `NotificationsChanged {notification, removedId}` (both null = refetch).
 
 On **IntelliJ / the desktop app** the entries are the platform's own notifications ("Mateu" group,
-the Notifications tool window), with their actions; on the **phone** the bell lists them with the
-same filters.
+the Notifications tool window), with their actions, and the bell opens the app's inbox panel with
+the same filters (All / Unread / Resolved) and category groups as the web; on the **phone** the bell
+lists them with the same filters.
 
 ## Where it works
 

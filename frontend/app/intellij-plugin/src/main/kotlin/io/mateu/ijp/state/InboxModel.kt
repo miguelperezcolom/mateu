@@ -42,6 +42,31 @@ data class InboxItem(
     }
 }
 
+/** What the inbox panel shows (the web bell's filters, same meaning). */
+enum class InboxFilter { ALL, UNREAD, RESOLVED }
+
+/** The entries of one category; [category] is null for the uncategorised ones. */
+data class InboxGroup(val category: String?, val items: List<InboxItem>)
+
+/** The inbox panel's rules, pure — the semantics of libs/mateu `inboxStore.ts`. */
+object InboxView {
+    fun matches(item: InboxItem, filter: InboxFilter): Boolean = when (filter) {
+        InboxFilter.ALL -> true
+        InboxFilter.RESOLVED -> item.resolved
+        InboxFilter.UNREAD -> item.pending
+    }
+
+    fun filtered(items: List<InboxItem>, filter: InboxFilter): List<InboxItem> = items.filter { matches(it, filter) }
+
+    /** Grouped by category in order of first appearance, the uncategorised entries first. */
+    fun grouped(items: List<InboxItem>): List<InboxGroup> {
+        val groups = LinkedHashMap<String?, MutableList<InboxItem>>()
+        for (item in items) groups.getOrPut(item.category?.trim()?.ifBlank { null }) { ArrayList() }.add(item)
+        val none = groups.remove(null)?.let { listOf(InboxGroup(null, it)) }.orEmpty()
+        return none + groups.map { (category, entries) -> InboxGroup(category, entries) }
+    }
+}
+
 /** A live change of the inbox (`NotificationsChangedDto`). */
 sealed class InboxChange {
     data class Upsert(val item: InboxItem) : InboxChange()
@@ -105,6 +130,13 @@ class InboxModel {
     private val pushedOnly = HashSet<String>()
 
     @Synchronized fun items(): List<InboxItem> = items.values.toList()
+
+    /** In the order the panel lists them: entries pushed live, newest first, then the server's list. */
+    @Synchronized
+    fun listed(): List<InboxItem> {
+        val pushed = items.values.filter { it.id in pushedOnly }.reversed()
+        return pushed + items.values.filterNot { it.id in pushedOnly }
+    }
 
     @Synchronized fun get(id: String): InboxItem? = items[id]
 

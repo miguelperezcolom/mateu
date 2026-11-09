@@ -15,9 +15,11 @@ import javax.swing.JPanel
  * NotificationsSupplier) on the desktop. The entries themselves live where the IDE keeps
  * notifications — the Notifications tool window, posted by the session's inbox
  * ([io.mateu.ijp.state.InboxSync] + the plugin's presenter), with their actions, Open / Details and
- * Dismiss. What stays here is a minimal unread BADGE: the platform's own tool-window badge counts
- * every IDE notification, not the app's unread entries (which the server owns, across devices), so
- * the app's count has nowhere else to show. Clicking it brings up the Notifications tool window.
+ * Dismiss. That window is the IDE's timeline and cannot be filtered, so this button also carries the
+ * app's unread BADGE (the platform's own badge counts every IDE notification, not the app's unread
+ * entries, which the server owns across devices) and opens the app's own inbox panel: its entries
+ * filtered (All / Unread / Resolved) and grouped by category, like the other renderers
+ * ([showInboxPanel]).
  */
 fun notificationBell(ctx: AppContext, metadata: JsonNode): JComponent {
     val session = ctx.session
@@ -35,8 +37,8 @@ fun notificationBell(ctx: AppContext, metadata: JsonNode): JComponent {
 
     inbox.onChange { refreshBadge() }
     bell.addActionListener {
-        val open = session.openNotificationsView
-        if (open != null) open() else inbox.refetch()
+        inbox.refetch()
+        showInboxPanel(session, bell)
     }
     // the first fetch posts the entries to the IDE and gives the badge its count
     inbox.start(ctx, metadata.text("rootRoute", metadata.text("route")), metadata.text("serverSideType"))

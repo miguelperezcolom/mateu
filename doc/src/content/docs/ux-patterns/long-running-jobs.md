@@ -62,7 +62,7 @@ renderer presents it the way its platform does:
 | Web (Vaadin) | a modal progress with Cancel / Background | the task center: an indicator with the number of running tasks, opening the list |
 | Redwood | an `oj-dialog` with `oj-progress-bar` | a docked task panel |
 | Phone app | a modal with a progress bar | a strip ("3 tasks running") opening a sheet |
-| IntelliJ / desktop | the platform's modal progress (with Background) | the platform's background tasks in the status bar |
+| IntelliJ / desktop | the IDE's background tasks, and an overlay with progress and Cancel (and *Move to background*) over the Mateu view that started it — that view only; never a modal window | the IDE's background tasks (status bar, Background Tasks window) |
 
 Several tasks can run at once, and a task keeps running — and stays in the task center — when the
 user leaves the screen. Return the result of `LongTask.run(...)` from a `@Button` method:
@@ -175,7 +175,8 @@ The commands run after the task is reported done, on the screen that started it.
 
 Reloading the page, navigating away or losing the connection does not stop a task. Each renderer
 remembers, for the session, the tasks its streams reported (a browser tab keeps them in its session
-storage); when it comes back it asks the server which are still there (`_progress-tasks`) and
+storage; the desktop app keeps them on disk for an hour, per backend, so they also survive
+closing and reopening the IDE); when it comes back it asks the server which are still there (`_progress-tasks`) and
 follows each one again (`_progress-resume`): the task center fills up again and the task ends there
 as usual. A task that finished in the meantime still says how it ended.
 

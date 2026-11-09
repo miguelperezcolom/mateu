@@ -8,8 +8,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **IntelliJ / desktop: a long-running task never opens a modal window.** Every `LongTask` now runs
+  in the IDE's Background Tasks (status bar, Background Tasks window); a blocking one also covers
+  the Mateu view that started it — that view only — with its progress, Cancel and, for
+  `.backgroundable()`, *Move to background*. The IDE stays usable throughout.
+
 ### Added
 
+- **IntelliJ / desktop: the inbox panel and tasks that survive a restart.** The bell opens the app's
+  inbox with the All / Unread / Resolved filters and category groups of the other renderers. The
+  tasks still running on a backend are remembered across IDE restarts (per backend, for an hour)
+  and followed again in Background Tasks when the app is opened.
 - **The .NET and Python servers close their documented gaps.** Both ports gain the 24 wire
   component types that were Java-only (`Grid` with column groups, `BoardLayout`, `CarouselLayout`,
   `Chat`, `MessageList`/`MessageInput`, `ContextMenu`, `MenuBar`, `Directory` — `DirectoryMenu` in

@@ -412,7 +412,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped: kept in memory, reset on app restart; no reorder) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ flattened, `Group · Column` headers |
-| Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
+| Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup with the All / Unread / Resolved filters and category groups) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
 | Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | ✅ the Ask palette: destinations + GlobalSearchSupplier entity results by category | ✅ sidebar search | ✅ drawer search |
 | Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |

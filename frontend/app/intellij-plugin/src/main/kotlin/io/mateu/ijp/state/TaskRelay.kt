@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Where long-running tasks are shown: the host (the plugin) runs each one as a PLATFORM task — a
- * `Task.Modal`, a `Task.Backgroundable` with the platform's "Background" button, or one in the
- * status bar — reading its updates from a [TaskChannel], and shows the result as a notification.
+ * Where long-running tasks are shown: the host (the plugin) runs each one as a PLATFORM background
+ * task — status bar + Background Tasks window, never a modal window — reading its updates from a
+ * [TaskChannel], and shows the result as a notification. A blocking task also covers the view that
+ * started it: that is the view's own business ([ViewBlock]), not the host's.
  */
 interface TaskHost {
     /** A task started: run a platform task that follows [channel]; [cancel] asks the server to stop it. */

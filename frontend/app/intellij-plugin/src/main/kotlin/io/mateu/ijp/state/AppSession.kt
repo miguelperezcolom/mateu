@@ -136,7 +136,7 @@ class AppSession(
     /** The session's long-running tasks (`Progress` commands), shown by the host as platform tasks. */
     val tasks = TaskRelay()
 
-    /** The tasks this app's streams reported, kept for the IDE session (reattach, see [TaskReattach]). */
+    /** The tasks this app's streams reported, kept across sessions and IDE restarts (see [TaskReattach]). */
     val taskLedger: TaskLedger = TaskLedgers.of(baseUrl)
 
     /** `@App(osNotifications = true)` (App metadata `osNotifications`): see [OsNotices]. */
