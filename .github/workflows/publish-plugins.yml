@@ -4,7 +4,9 @@
 # from the tag, so neither plugin file has to be bumped by hand. A `plugins-v*` tag (the old dedicated
 # plugin releases) still publishes them alone.
 #
-# It does NOT run on the `mateu-desktop-*` installer releases — the `if:` guard on each job.
+# It does NOT run on the `mateu-desktop-*` installer releases, nor on a pre-release of a later minor
+# or major (v3.1-rc.1: it would reach every installed plugin as an ordinary update) — the `if:` guard
+# on each job.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   PUBLISH_TOKEN  — JetBrains Marketplace token   (https://plugins.jetbrains.com/author/me/tokens)
@@ -28,7 +30,7 @@ permissions:
 
 jobs:
   intellij:
-    if: startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'plugins-v')
+    if: startsWith(github.event.release.tag_name, 'plugins-v') || (startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')))
     runs-on: ubuntu-latest
     steps:
       # verifyPlugin unpacks five IDEs (~25 GB, see pluginVerification in build.gradle.kts)
@@ -93,7 +95,7 @@ jobs:
           echo "publishPlugin failed after 3 attempts."; exit 1
 
   vscode:
-    if: startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'plugins-v')
+    if: startsWith(github.event.release.tag_name, 'plugins-v') || (startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')))
     runs-on: ubuntu-latest
     # No marketplace token at job level: `npm ci`, the tests and `vsce package` run third-party code,
     # so each token is in the env of its publish step only. Whether Open VSX is configured travels as

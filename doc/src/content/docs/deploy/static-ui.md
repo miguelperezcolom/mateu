@@ -99,7 +99,7 @@ python -m mateu_ui.bundle --specs specs/ui --ui mateu-vaadin.jar --out dist --st
 # Mateu.Core, so the exporter always matches the version the app runs
 dotnet tool install --global Mateu.Bundle   # once (or a local tool: dotnet new tool-manifest first)
 dotnet mateu-bundle --ui mateu-vaadin.jar --out dist --static          # in the project directory
-dotnet mateu-bundle --app bin/Release/net8.0/MyApp.dll --ui … --out dist
+dotnet mateu-bundle --app bin/Release/net10.0/MyApp.dll --ui … --out dist
 ```
 
 …or let the app export itself, before it builds its web host (no tool needed):

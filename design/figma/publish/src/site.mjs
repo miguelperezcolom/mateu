@@ -207,7 +207,7 @@ export function stampIndex(template, title) {
   const end = template.indexOf('<!-- HASTAAQUIUI -->')
   if (start < 0 || end < 0) throw new Error('the renderer page has no mount markers')
   return (template.substring(0, start) + ui + template.substring(end + '<!-- HASTAAQUIUI -->'.length))
-    .replace('AQUIELTITULODELAPAGINA', escapeHtml(title))
+    .replace('AQUIELTITULODELAPAGINA', () => escapeHtml(title)) // a function: a title may hold $& or $'
     .replace(/<!--\s*(?:HASTA)?AQUI\w+\s*-->\n?/g, '')
 }
 

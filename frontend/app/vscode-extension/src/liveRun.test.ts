@@ -52,8 +52,8 @@ describe('live run plan', () => {
     it('starts a Spring Boot app with spring-boot:run, the debug agent and dev mode', () => {
         const plan = liveRunPlan('maven', springPom, 'server.port=8093', ['/w/app/src/main/resources/specs/ui'])
         expect(plan.command).toBe(
-            'mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'
-            + ' -Dmateu.dev=true -Dmateu.dev.specs-dir=/w/app/src/main/resources/specs/ui"')
+            'mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005'
+            + ' -Dmateu.dev=true"')
         expect(plan.env).toEqual({ MATEU_DEV: 'true', MATEU_DEV_SPECS_DIR: '/w/app/src/main/resources/specs/ui' })
         expect(plan.appUrl).toBe('http://localhost:8093')
         expect(plan.debugPort).toBe(5005)
@@ -65,6 +65,30 @@ describe('live run plan', () => {
         expect(portOf('quarkus', 'quarkus.http.port=9000')).toBe(9000)
         expect(liveRunPlan('maven', 'micronaut-maven-plugin', '', []).command).toContain('mn:run -Dmn.debug=true')
         expect(liveRunPlan('gradle', 'id("org.springframework.boot")', '', []).command).toBe('./gradlew bootRun --debug-jvm')
+    })
+
+    it('opens the debugger on loopback only, whatever the framework', () => {
+        for (const build of [springPom, 'micronaut-maven-plugin', 'quarkus-maven-plugin']) {
+            expect(liveRunPlan('maven', build, '', []).command).not.toContain('*:5005')
+        }
+        expect(liveRunPlan('gradle', 'id("io.micronaut.application")', '', []).command).not.toContain('*:5005')
+    })
+
+    it('keeps a specs path with spaces out of the values the Spring Boot and Micronaut plugins split', () => {
+        const dir = '/Users/John Smith/shop/src/main/resources/specs/ui'
+        for (const build of [springPom, 'micronaut-maven-plugin']) {
+            const plan = liveRunPlan('maven', build, '', [dir])
+            expect(plan.command).not.toContain('John Smith')
+            expect(plan.env.MATEU_DEV_SPECS_DIR).toBe(dir)
+        }
+    })
+
+    it('debugs a Gradle + Micronaut app through the run task, so no other JVM gets the agent', () => {
+        const plan = liveRunPlan('gradle', 'id("io.micronaut.application")', '', [])
+        expect(plan.command).toBe('./gradlew run --continuous --debug-jvm')
+        expect(plan.env.JAVA_TOOL_OPTIONS).toBeUndefined()
+        expect(plan.waitsForDebugger).toBe(true)
+        expect(liveRunPlan('maven', springPom, '', []).waitsForDebugger).toBe(false)
     })
 
     it('reloads at the server root and after a Java hot code replace', () => {

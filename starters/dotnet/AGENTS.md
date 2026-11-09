@@ -5,7 +5,7 @@ Guidance for AI coding assistants (Claude Code, Codex, Cursor, Copilot…) worki
 
 ## What this is
 
-A [Mateu](https://mateu.io) app on **ASP.NET Core (C#, .NET 8)**. Mateu is a **model-driven UI
+A [Mateu](https://mateu.io) app on **ASP.NET Core (C#, .NET 10)**. Mateu is a **model-driven UI
 system**: you declare the model once — classes annotated `[UI]` — and Mateu derives the forms,
 CRUD screens, navigation and app shell. There is no frontend code to write: this backend answers
 the Mateu wire (`POST /mateu/v3/sync/{route}`) and any Mateu renderer renders it.

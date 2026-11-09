@@ -20,7 +20,9 @@ upgraded to 3.0.0 once, with the compiler as its guide.
   May deprecate.
 - **Patch** (`3.0.0` → `3.0.1`): fixes only.
 - **Pre-releases** (`-rc.N` of a coming minor or major): previews of that release, outside the
-  promise — they may change anything until the release itself.
+  promise — they may change anything until the release itself. They are published to the package
+  registries only: the IDE plugins, the desktop app, the phone app's over-the-air channel and the
+  examples stay on the last release.
 
 The promise covers the public surface listed under [What is public API](#what-is-public-api):
 

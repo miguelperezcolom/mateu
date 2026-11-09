@@ -14,8 +14,10 @@
 # beta whatever its number — and from the GA on every version is the framework's
 # own, unchanged. (Mapping beta.N to X.0.N would have made X.0.1 lower than the last beta: rejected.)
 # Published as an ordinary version, NOT --pre-release: a pre-release only reaches users who opted
-# into that channel, and the extension's existing users would stop getting updates. A tag this
-# script does not map (an alpha, a beta or rc of a minor) fails the publish instead of guessing.
+# into that channel, and the extension's existing users would stop getting updates. So a pre-release
+# of a LATER minor or major (v3.1-rc.1, v4.0-beta.1) publishes no plugin: PLUGIN_RELEASE=skip, and the
+# publish jobs skip those tags by their `if:` before they get here. Any other tag this script does
+# not map (an alpha of 3.0) fails the publish instead of guessing.
 set -euo pipefail
 
 tag="${1:?usage: plugin-versions.sh <release tag>}"
@@ -27,7 +29,10 @@ case "$tag" in
     ;;
   v*)
     v="${tag#v}"
-    if [[ "$v" =~ ^([1-9][0-9]*)\.0-beta\.([0-9]+)$ ]]; then
+    if [[ "$v" =~ ^[0-9]+\.[0-9]+-(alpha|beta|rc)\.[0-9]+$ && ! "$v" =~ ^3\.0- ]]; then
+      echo "plugin-versions.sh: '$tag' is a pre-release of a later line, no plugin is published for it" >&2
+      echo "PLUGIN_RELEASE=skip"
+    elif [[ "$v" =~ ^([1-9][0-9]*)\.0-beta\.([0-9]+)$ ]]; then
       echo "INTELLIJ_VERSION=$v"
       echo "VSCODE_VERSION=$(( BASH_REMATCH[1] - 1 )).99.${BASH_REMATCH[2]}"
     elif [[ "$v" =~ ^([1-9][0-9]*)\.0-rc\.([0-9]+)$ ]]; then

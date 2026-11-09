@@ -122,7 +122,7 @@ on display re-renders with it too. Without the plugin, run *Reload Mateu Screen*
 The Mateu plugin's action finds the module that declares a runnable app (Spring Boot, Quarkus,
 Micronaut or Helidon; Maven or Gradle) and
 
-1. starts it in development mode with the debug agent listening on 5005
+1. starts it in development mode with the debug agent listening on 5005, on this machine only
    (`mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=… -Dmateu.dev=true
    -Dmateu.dev.specs-dir=…"`, `mvn quarkus:dev -Dmateu.dev=true`, `mvn mn:run -Dmn.debug=true …`,
    `./gradlew bootRun --debug-jvm`), with `MATEU_DEV`/`MATEU_DEV_SPECS_DIR` in its environment and every

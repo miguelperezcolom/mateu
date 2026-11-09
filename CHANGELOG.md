@@ -10,6 +10,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Changed
 
+- **VS Code Live Run** opens the debugger on loopback only (it was every interface), starts a Spring
+  Boot or Micronaut app from a path with spaces, and debugs Gradle + Micronaut through the `run` task.
+- **The VS Code editor's loopback proxy answers only the editor's webview** and the Redwood app it
+  frames, so a web page in the developer's browser cannot read the backend through it.
+- **VS Code New Project pins the highest stable release** of the starters' major (before that major's
+  GA, its newest pre-release), not whatever Maven Central published last.
+- **The Maven archetype no longer deletes the target folder** when it rejects an option: it removes
+  only what it wrote.
+- **A pre-release of a later minor or major** (`v3.1-rc.1`) no longer ships over the air to production
+  phones, repins the examples, or fails the plugin and desktop jobs: those jobs skip it. Every
+  `v3.0-beta.N` / `v3.0-rc.N` keeps publishing as before.
+- **Mateu Publish** deploys the current release's renderer, each file checked against a pinned SHA-256
+  (`scripts/bump-example-version.sh` moves the pin), and a site title can hold `$&`.
+- **The .NET starter targets `net10.0`.** The Mateu packages still target `net8.0` and `net10.0`.
 - **IntelliJ / desktop: a long-running task never opens a modal window.** Every `LongTask` now runs
   in the IDE's Background Tasks (status bar, Background Tasks window); a blocking one also covers
   the Mateu view that started it — that view only — with its progress, Cancel and, for

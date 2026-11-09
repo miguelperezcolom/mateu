@@ -1,6 +1,6 @@
 ---
 title: "Known issues"
-description: "Current limitations of the 3.0 beta that an application can run into, each with its workaround."
+description: "Current limitations of Mateu 3.0 that an application can run into, each with its workaround."
 ---
 
 This page lists the limitations of the current release that you can hit when building or running an
@@ -160,7 +160,7 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 
 The .NET packages target `net8.0` and `net10.0`. Microsoft ends support for .NET 8 on
 10 November 2026; Mateu keeps the `net8.0` target for the 3.0 line, but security updates of the
-runtime itself stop then. **3.1 drops `net8.0`.**
+runtime itself stop then. **3.1 drops `net8.0`.** New projects already target `net10.0`.
 
 **Workaround:** move the app to .NET 10 (LTS).
 

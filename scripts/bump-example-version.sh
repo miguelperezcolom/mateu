@@ -48,6 +48,18 @@ for f in backend/dotnet/README.md backend/python/README.md; do
   rm -f "$f.bak"
   echo "$f → $new"
 done
+# Mateu Publish fetches the renderer it deploys from the tag, each file checked against the digest
+# pinned here: read off the tag itself (the release job's checkout is shallow, so fetch it first).
+pin=design/figma/publish/bin/pin-renderer.mjs
+if [[ -f $pin ]]; then
+  git rev-parse -q --verify "refs/tags/v$new" >/dev/null || git fetch -q --depth=1 origin "refs/tags/v$new:refs/tags/v$new" || true
+  if git rev-parse -q --verify "refs/tags/v$new" >/dev/null; then
+    node "$pin" "$new"
+    echo "design/figma/publish/src/renderer.json → v$new"
+  else
+    echo "warning: tag v$new not found, design/figma/publish/src/renderer.json stays on its pin" >&2
+  fi
+fi
 # The Claude Code and Codex manifests carry the release as a semver version
 # (3.0-beta.4 → 3.0.0-beta.4; a GA 3.0.0 stays 3.0.0): installed plugins only update when it changes.
 semver=$(echo "$new" | sed -E 's#^([0-9]+)\.([0-9]+)-#\1.\2.0-#')

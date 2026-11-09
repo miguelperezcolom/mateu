@@ -123,7 +123,7 @@ Every route is rendered IN PROCESS through the port's own sync handler (no host 
 ```bash
 dotnet tool install --global Mateu.Bundle
 dotnet build && dotnet mateu-bundle --ui mateu-vaadin.jar --out dist --static   # in the app's project dir
-dotnet mateu-bundle --app bin/Release/net8.0/MyApp.dll --ui mateu-vaadin.jar --out dist
+dotnet mateu-bundle --app bin/Release/net10.0/MyApp.dll --ui mateu-vaadin.jar --out dist
 ```
 
 The tool (`src/Mateu.Bundle`) is only a launcher: it loads the BUILT app with its own `deps.json`

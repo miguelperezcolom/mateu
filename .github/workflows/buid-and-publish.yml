@@ -118,7 +118,8 @@ jobs:
   # needs no publishing secret.
   bump-examples:
     needs: all
-    if: startsWith(github.event.release.tag_name, 'v3.')
+    # A pre-release of a later minor (v3.1-rc.1) does not repin the examples; v3.0-beta/rc still do.
+    if: startsWith(github.event.release.tag_name, 'v3.') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
     runs-on: ubuntu-latest
     timeout-minutes: 200
     permissions:

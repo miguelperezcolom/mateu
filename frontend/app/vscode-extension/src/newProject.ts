@@ -198,20 +198,44 @@ export function pinnedVersion(starters: string, starterDir: string = 'spring-mvc
     throw new Error('No <mateu.version> pinned in the starters')
 }
 
-/** The release in a maven-metadata.xml (`<release>`, else `<latest>`), or null. */
-export function versionFromMetadata(xml: string): string | null {
-    const m = /<release>([^<]+)<\/release>/.exec(xml) ?? /<latest>([^<]+)<\/latest>/.exec(xml)
-    return m ? m[1].trim() : null
+const VERSION = /^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-(alpha|beta|rc)\.(\d+))?$/
+const QUALIFIER_RANK: Record<string, number> = { alpha: 0, beta: 1, rc: 2 }
+
+/** A version's sort key (`[major, minor, patch, qualifier rank, qualifier number]`), or null if it is none of ours. */
+function versionKey(version: string): number[] | null {
+    const m = VERSION.exec(version)
+    if (!m) return null
+    return [Number(m[1]), Number(m[2] ?? 0), Number(m[3] ?? 0), m[4] ? QUALIFIER_RANK[m[4]] : 3, Number(m[5] ?? 0)]
 }
 
-/** The latest io.mateu:mateu-bom on Maven Central, or [fallback] when it cannot be read. */
+const compareKeys = (a: number[], b: number[]) => a.map((n, i) => n - b[i]).find((d) => d !== 0) ?? 0
+
+/**
+ * The release new projects should pin: the highest in a maven-metadata.xml with no qualifier and the
+ * same major as `pin` (the starters' own version: these templates are what is being generated, so
+ * another major need not compile). Before that major's GA, only pre-releases exist: the newest of
+ * them. Null when the file names none. `<release>` is no answer: it is just the last one deployed.
+ */
+export function versionFromMetadata(xml: string, pin: string): string | null {
+    const pinKey = versionKey(pin)
+    if (!pinKey) return null
+    const sameMajor = [...xml.matchAll(/<version>([^<]+)<\/version>/g)]
+        .map((m) => m[1].trim())
+        .map((version) => ({ version, key: versionKey(version) }))
+        .filter((v): v is { version: string; key: number[] } => !!v.key && v.key[0] === pinKey[0])
+    const stable = sameMajor.filter((v) => v.key[3] === 3)
+    const candidates = stable.length ? stable : sameMajor
+    return candidates.sort((a, b) => compareKeys(b.key, a.key))[0]?.version ?? null
+}
+
+/** The io.mateu:mateu-bom release to pin ({@link versionFromMetadata}), or [fallback] (the starters' pin) when it cannot be read. */
 export async function latestMateuVersion(
     manifest: Manifest,
     fallback: string,
     fetchText: (url: string) => Promise<string> = defaultFetch,
 ): Promise<string> {
     try {
-        return versionFromMetadata(await fetchText(manifest.versionMetadataUrl)) ?? fallback
+        return versionFromMetadata(await fetchText(manifest.versionMetadataUrl), fallback) ?? fallback
     } catch {
         return fallback
     }
