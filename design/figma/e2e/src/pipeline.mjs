@@ -1,22 +1,24 @@
 // The Figma half of the end-to-end check: which fixtures there are and what the converter makes of
-// each. Every `*.figma.json` in design/figma/e2e is a fixture — the synthetic one built from the
-// plugin's sample-screens plan (sample-screens.figma.json) and any real download of a file where
-// the six screens were composed in Figma (real-sample-screens.figma.json) — and every one must give
-// the same six pages.
+// each. The fixtures are the synthetic one built from the plugin's sample-screens plan
+// (sample-screens.figma.json) and, when present, a real download of a file where Mateu Sample
+// Screens ran (downloaded-sample-screens.figma.json, written by `npm run e2e:refresh`) — and every
+// one must give the same six pages. real-sample-screens.figma.json is NOT one of them: it is a file
+// the owner composed by hand, with its own texts, pinned by to-yaml/test/real-sample.test.mjs.
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml } from '../../to-yaml/src/convert.mjs'
-import { loadContract, loadSchema } from '../../to-yaml/src/schema.mjs'
+import { loadContract, loadSchema } from '../../to-yaml/src/load.mjs'
 
 export const E2E = join(dirname(fileURLToPath(import.meta.url)), '..')
 export const SYNTHETIC = join(E2E, 'sample-screens.figma.json')
-export const REAL = join(E2E, 'real-sample-screens.figma.json')
+export const REAL = join(E2E, 'downloaded-sample-screens.figma.json')
 /** The pages every fixture must produce, by file — the routes the e2e app serves them at. */
 export const SCREENS = ['contact', 'artwork', 'artworks', 'dashboard', 'onboarding', 'welcome']
 
 export function fixtures(dir = E2E) {
-  return readdirSync(dir).filter((f) => f.endsWith('.figma.json')).sort().map((f) => join(dir, f))
+  const names = ['sample-screens.figma.json', 'downloaded-sample-screens.figma.json']
+  return readdirSync(dir).filter((f) => names.includes(f)).sort().map((f) => join(dir, f))
 }
 
 export function converter() {

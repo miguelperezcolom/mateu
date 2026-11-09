@@ -160,6 +160,8 @@ public class NotificationDesk : INotificationsSupplier
     }
 }
 
+// one test sets the process-wide reattach grace (ProgressTasks.Grace): not run beside the others
+[Collection(ProcessWideStateCollection.Name)]
 public class ProgressAndNotificationsTests
 {
     private static readonly JsonSerializerOptions Json = MateuExtensions.Json;
@@ -506,9 +508,24 @@ public class ProgressAndNotificationsTests
     [Fact]
     public async Task Over_http_a_failing_task_ends_failed_and_a_closed_stream_cancels_its_task()
     {
+        // with no reattach grace (0): closing the stream cancels the task at once — with the default
+        // grace it runs on for a client that reattaches (ProgressReattachTests)
+        var grace = ProgressTasks.Grace;
+        try
+        {
+            await FailingAndAbandonedStreams();
+        }
+        finally
+        {
+            ProgressTasks.Grace = grace;
+        }
+    }
+
+    private static async Task FailingAndAbandonedStreams()
+    {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddMateu(typeof(ProgressAndNotificationsTests).Assembly);
+        builder.Services.AddMateu(o => o.ProgressReattachGraceSeconds = 0, typeof(ProgressAndNotificationsTests).Assembly);
         await using var app = builder.Build();
         app.MapMateu();
         await app.StartAsync();

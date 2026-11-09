@@ -96,6 +96,10 @@ public sealed record FormSubSection(string? Title) : ComponentBase
 public sealed record MasterDetailLayout(IComponent Master) : ComponentBase
 {
     public IComponent? Detail { get; init; }
+
+    /// <summary>How master and detail are laid out (Java's MasterDetailLayout.orientation; default
+    /// horizontal: side by side).</summary>
+    public Orientation Orientation { get; init; } = Orientation.Horizontal;
 }
 
 /// <summary>One entry of a <see cref="ContextMenu"/>, <see cref="DirectoryMenu"/> or
@@ -114,6 +118,9 @@ public sealed record MenuOption(string Label)
     public object? ItemData { get; init; }
     public IReadOnlyList<MenuOption> Submenu { get; init; } = [];
     public bool Separator { get; init; }
+
+    /// <summary>Picking the entry runs this action instead of navigating (Java's MethodLink).</summary>
+    public string? ActionId { get; init; }
 
     /// <summary>A visual divider between entries.</summary>
     public static MenuOption Divider() => new("") { Path = "", ClassName = "", Separator = true };

@@ -227,7 +227,7 @@
         "id": "2:33",
         "name": "Mateu/Layout/Section",
         "type": "INSTANCE",
-        "componentId": "2:92",
+        "componentId": "2:97",
         "componentProperties": {
          "propertyList": {
           "value": "false",
@@ -288,16 +288,16 @@
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:33;2:90",
+            "id": "I2:33;2:95",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Drop the content here"
            },
            {
-            "id": "I2:33;2:43",
+            "id": "I2:33;2:44",
             "name": "Mateu/Field/TextField",
             "type": "INSTANCE",
-            "componentId": "2:51",
+            "componentId": "2:53",
             "componentProperties": {
              "fieldId#2:38": {
               "type": "TEXT",
@@ -311,11 +311,15 @@
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:41": {
+             "stereotype#2:41": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "label#2:42": {
               "type": "TEXT",
               "value": "Full name"
              },
-             "placeholder#2:42": {
+             "placeholder#2:43": {
               "type": "TEXT",
               "value": "Ada Lovelace"
              }
@@ -323,48 +327,57 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:33;2:43;2:47",
+              "id": "I2:33;2:44;2:49",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:41"
+               "characters": "label#2:42"
               },
               "characters": "Full name"
              },
              {
-              "id": "I2:33;2:43;2:48",
+              "id": "I2:33;2:44;2:50",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "placeholder#2:42"
+               "characters": "placeholder#2:43"
               },
               "characters": "Ada Lovelace"
              },
              {
-              "id": "I2:33;2:43;2:49",
+              "id": "I2:33;2:44;2:51",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:43;2:44",
+                "id": "I2:33;2:44;2:45",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
                  "characters": "fieldId#2:38"
                 },
                 "characters": "name"
+               },
+               {
+                "id": "I2:33;2:44;2:48",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:41"
+                },
+                "characters": "stereotype"
                }
               ]
              },
              {
-              "id": "I2:33;2:43;2:50",
+              "id": "I2:33;2:44;2:52",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:43;2:45",
+                "id": "I2:33;2:44;2:46",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -374,7 +387,7 @@
                 "visible": true
                },
                {
-                "id": "I2:33;2:43;2:46",
+                "id": "I2:33;2:44;2:47",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -388,10 +401,10 @@
             ]
            },
            {
-            "id": "I2:33;2:52",
+            "id": "I2:33;2:54",
             "name": "Mateu/Field/TextField",
             "type": "INSTANCE",
-            "componentId": "2:51",
+            "componentId": "2:53",
             "componentProperties": {
              "fieldId#2:38": {
               "type": "TEXT",
@@ -405,11 +418,15 @@
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:41": {
+             "stereotype#2:41": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "label#2:42": {
               "type": "TEXT",
               "value": "Email"
              },
-             "placeholder#2:42": {
+             "placeholder#2:43": {
               "type": "TEXT",
               "value": "ada@example.com"
              }
@@ -417,48 +434,57 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:33;2:52;2:56",
+              "id": "I2:33;2:54;2:59",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:41"
+               "characters": "label#2:42"
               },
               "characters": "Email"
              },
              {
-              "id": "I2:33;2:52;2:57",
+              "id": "I2:33;2:54;2:60",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "placeholder#2:42"
+               "characters": "placeholder#2:43"
               },
               "characters": "ada@example.com"
              },
              {
-              "id": "I2:33;2:52;2:58",
+              "id": "I2:33;2:54;2:61",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:52;2:53",
+                "id": "I2:33;2:54;2:55",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
                  "characters": "fieldId#2:38"
                 },
                 "characters": "email"
+               },
+               {
+                "id": "I2:33;2:54;2:58",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:41"
+                },
+                "characters": "stereotype"
                }
               ]
              },
              {
-              "id": "I2:33;2:52;2:59",
+              "id": "I2:33;2:54;2:62",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:52;2:54",
+                "id": "I2:33;2:54;2:56",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -468,7 +494,7 @@
                 "visible": true
                },
                {
-                "id": "I2:33;2:52;2:55",
+                "id": "I2:33;2:54;2:57",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -482,37 +508,41 @@
             ]
            },
            {
-            "id": "I2:33;2:67",
+            "id": "I2:33;2:71",
             "name": "Mateu/Field/Select",
             "type": "INSTANCE",
-            "componentId": "2:76",
+            "componentId": "2:81",
             "componentProperties": {
              "stereotype": {
               "value": "select",
               "type": "VARIANT",
               "boundVariables": {}
              },
-             "fieldId#2:61": {
+             "fieldId#2:64": {
               "type": "TEXT",
               "value": "country"
              },
-             "options#2:62": {
+             "options#2:65": {
               "type": "TEXT",
               "value": "Spain, France, Portugal, United Kingdom"
              },
-             "required#2:63": {
+             "required#2:66": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:64": {
+             "readOnly#2:67": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:65": {
+             "optionsSource.ref#2:68": {
+              "type": "TEXT",
+              "value": "optionsSource.ref"
+             },
+             "label#2:69": {
               "type": "TEXT",
               "value": "Country"
              },
-             "placeholder#2:66": {
+             "placeholder#2:70": {
               "type": "TEXT",
               "value": "Value"
              }
@@ -520,71 +550,80 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:33;2:67;2:72",
+              "id": "I2:33;2:71;2:77",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:65"
+               "characters": "label#2:69"
               },
               "characters": "Country"
              },
              {
-              "id": "I2:33;2:67;2:73",
+              "id": "I2:33;2:71;2:78",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "placeholder#2:66"
+               "characters": "placeholder#2:70"
               },
               "characters": "Value"
              },
              {
-              "id": "I2:33;2:67;2:74",
+              "id": "I2:33;2:71;2:79",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:67;2:68",
+                "id": "I2:33;2:71;2:72",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:61"
+                 "characters": "fieldId#2:64"
                 },
                 "characters": "country"
                },
                {
-                "id": "I2:33;2:67;2:69",
+                "id": "I2:33;2:71;2:73",
                 "name": "#prop:options",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "options#2:62"
+                 "characters": "options#2:65"
                 },
                 "characters": "Spain, France, Portugal, United Kingdom"
+               },
+               {
+                "id": "I2:33;2:71;2:76",
+                "name": "#prop:optionsSource.ref",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "optionsSource.ref#2:68"
+                },
+                "characters": "optionsSource.ref"
                }
               ]
              },
              {
-              "id": "I2:33;2:67;2:75",
+              "id": "I2:33;2:71;2:80",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:67;2:70",
+                "id": "I2:33;2:71;2:74",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:63"
+                 "visible": "required#2:66"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:33;2:67;2:71",
+                "id": "I2:33;2:71;2:75",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:64"
+                 "visible": "readOnly#2:67"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -594,29 +633,29 @@
             ]
            },
            {
-            "id": "I2:33;2:82",
+            "id": "I2:33;2:87",
             "name": "Mateu/Field/Date",
             "type": "INSTANCE",
-            "componentId": "2:89",
+            "componentId": "2:94",
             "componentProperties": {
              "dataType": {
               "value": "date",
               "type": "VARIANT",
               "boundVariables": {}
              },
-             "fieldId#2:78": {
+             "fieldId#2:83": {
               "type": "TEXT",
               "value": "birthDate"
              },
-             "required#2:79": {
+             "required#2:84": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:80": {
+             "readOnly#2:85": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:81": {
+             "label#2:86": {
               "type": "TEXT",
               "value": "Birth date"
              }
@@ -624,53 +663,53 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:33;2:82;2:86",
+              "id": "I2:33;2:87;2:91",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:81"
+               "characters": "label#2:86"
               },
               "characters": "Birth date"
              },
              {
-              "id": "I2:33;2:82;2:87",
+              "id": "I2:33;2:87;2:92",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:82;2:83",
+                "id": "I2:33;2:87;2:88",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:78"
+                 "characters": "fieldId#2:83"
                 },
                 "characters": "birthDate"
                }
               ]
              },
              {
-              "id": "I2:33;2:82;2:88",
+              "id": "I2:33;2:87;2:93",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:33;2:82;2:84",
+                "id": "I2:33;2:87;2:89",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:79"
+                 "visible": "required#2:84"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:33;2:82;2:85",
+                "id": "I2:33;2:87;2:90",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:80"
+                 "visible": "readOnly#2:85"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -682,7 +721,7 @@
           ]
          },
          {
-          "id": "I2:33;2:91",
+          "id": "I2:33;2:96",
           "name": "#props",
           "type": "FRAME",
           "layoutMode": "HORIZONTAL",
@@ -710,10 +749,10 @@
         ]
        },
        {
-        "id": "2:93",
+        "id": "2:98",
         "name": "Mateu/Layout/Section",
         "type": "INSTANCE",
-        "componentId": "2:92",
+        "componentId": "2:97",
         "componentProperties": {
          "propertyList": {
           "value": "false",
@@ -747,7 +786,7 @@
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 97
+            "localID": 102
            }
           },
           "preferredValues": []
@@ -756,7 +795,7 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:93;2:96",
+          "id": "I2:98;2:101",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
@@ -765,7 +804,7 @@
           "characters": "Membership"
          },
          {
-          "id": "I2:93;2:97",
+          "id": "I2:98;2:102",
           "name": "slot:content",
           "type": "SLOT",
           "componentPropertyReferences": {
@@ -774,39 +813,39 @@
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:93;2:126",
+            "id": "I2:98;2:131",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Drop the content here"
            },
            {
-            "id": "I2:93;2:104",
+            "id": "I2:98;2:109",
             "name": "Mateu/Field/PlainText",
             "type": "INSTANCE",
-            "componentId": "2:112",
+            "componentId": "2:117",
             "componentProperties": {
              "dataType": {
               "value": "money",
               "type": "VARIANT",
               "boundVariables": {}
              },
-             "fieldId#2:99": {
+             "fieldId#2:104": {
               "type": "TEXT",
               "value": "balance"
              },
-             "required#2:100": {
+             "required#2:105": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:101": {
+             "readOnly#2:106": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:102": {
+             "label#2:107": {
               "type": "TEXT",
               "value": "Balance"
              },
-             "value#2:103": {
+             "value#2:108": {
               "type": "TEXT",
               "value": "Value"
              }
@@ -814,62 +853,62 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:93;2:104;2:108",
+              "id": "I2:98;2:109;2:113",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:102"
+               "characters": "label#2:107"
               },
               "characters": "Balance"
              },
              {
-              "id": "I2:93;2:104;2:109",
+              "id": "I2:98;2:109;2:114",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:103"
+               "characters": "value#2:108"
               },
               "characters": "Value"
              },
              {
-              "id": "I2:93;2:104;2:110",
+              "id": "I2:98;2:109;2:115",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:93;2:104;2:105",
+                "id": "I2:98;2:109;2:110",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:99"
+                 "characters": "fieldId#2:104"
                 },
                 "characters": "balance"
                }
               ]
              },
              {
-              "id": "I2:93;2:104;2:111",
+              "id": "I2:98;2:109;2:116",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:93;2:104;2:106",
+                "id": "I2:98;2:109;2:111",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:100"
+                 "visible": "required#2:105"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:93;2:104;2:107",
+                "id": "I2:98;2:109;2:112",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:101"
+                 "visible": "readOnly#2:106"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -879,29 +918,29 @@
             ]
            },
            {
-            "id": "I2:93;2:118",
+            "id": "I2:98;2:123",
             "name": "Mateu/Field/Checkbox",
             "type": "INSTANCE",
-            "componentId": "2:125",
+            "componentId": "2:130",
             "componentProperties": {
              "stereotype": {
               "value": "checkbox",
               "type": "VARIANT",
               "boundVariables": {}
              },
-             "fieldId#2:114": {
+             "fieldId#2:119": {
               "type": "TEXT",
               "value": "newsletter"
              },
-             "required#2:115": {
+             "required#2:120": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:116": {
+             "readOnly#2:121": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:117": {
+             "label#2:122": {
               "type": "TEXT",
               "value": "Send me the newsletter"
              }
@@ -909,53 +948,53 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:93;2:118;2:122",
+              "id": "I2:98;2:123;2:127",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:117"
+               "characters": "label#2:122"
               },
               "characters": "Send me the newsletter"
              },
              {
-              "id": "I2:93;2:118;2:123",
+              "id": "I2:98;2:123;2:128",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:93;2:118;2:119",
+                "id": "I2:98;2:123;2:124",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:114"
+                 "characters": "fieldId#2:119"
                 },
                 "characters": "newsletter"
                }
               ]
              },
              {
-              "id": "I2:93;2:118;2:124",
+              "id": "I2:98;2:123;2:129",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:93;2:118;2:120",
+                "id": "I2:98;2:123;2:125",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:115"
+                 "visible": "required#2:120"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:93;2:118;2:121",
+                "id": "I2:98;2:123;2:126",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:116"
+                 "visible": "readOnly#2:121"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -967,13 +1006,13 @@
           ]
          },
          {
-          "id": "I2:93;2:127",
+          "id": "I2:98;2:132",
           "name": "#props",
           "type": "FRAME",
           "layoutMode": "HORIZONTAL",
           "children": [
            {
-            "id": "I2:93;2:94",
+            "id": "I2:98;2:99",
             "name": "#prop:zone",
             "type": "TEXT",
             "componentPropertyReferences": {
@@ -982,7 +1021,7 @@
             "characters": "zone"
            },
            {
-            "id": "I2:93;2:95",
+            "id": "I2:98;2:100",
             "name": "#prop:columns",
             "type": "TEXT",
             "componentPropertyReferences": {
@@ -997,83 +1036,83 @@
       ]
      },
      {
-      "id": "2:128",
+      "id": "2:133",
       "name": "_artwork — about",
       "type": "TEXT",
       "characters": "artwork: An Item overview page: photo, key facts in the body, tabs in the main slot"
      },
      {
-      "id": "2:129",
+      "id": "2:134",
       "name": "artwork",
       "type": "FRAME",
       "layoutMode": "VERTICAL",
       "children": [
        {
-        "id": "2:140",
+        "id": "2:145",
         "name": "Mateu/Page Templates/ItemOverviewPage",
         "type": "INSTANCE",
-        "componentId": "2:257",
+        "componentId": "2:262",
         "componentProperties": {
-         "avatar.src#2:130": {
+         "avatar.src#2:135": {
           "type": "TEXT",
           "value": "avatar.src"
          },
-         "avatar.initials#2:131": {
+         "avatar.initials#2:136": {
           "type": "TEXT",
           "value": "avatar.initials"
          },
-         "photo.src#2:132": {
+         "photo.src#2:137": {
           "type": "TEXT",
           "value": "/images/artwork.svg"
          },
-         "overline#2:133": {
+         "overline#2:138": {
           "type": "TEXT",
           "value": "Artwork"
          },
-         "title#2:134": {
+         "title#2:139": {
           "type": "TEXT",
           "value": "${state.title}"
          },
-         "subtitle#2:135": {
+         "subtitle#2:140": {
           "type": "TEXT",
           "value": "${state.artist}"
          },
-         "slot:toolbar#2:136": {
+         "slot:toolbar#2:141": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 147
+            "localID": 152
            }
           },
           "preferredValues": []
          },
-         "slot:body#2:137": {
+         "slot:body#2:142": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 159
+            "localID": 164
            }
           },
           "preferredValues": []
          },
-         "slot:footer#2:138": {
+         "slot:footer#2:143": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 191
+            "localID": 196
            }
           },
           "preferredValues": []
          },
-         "slot:content#2:139": {
+         "slot:content#2:144": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 193
+            "localID": 198
            }
           },
           "preferredValues": []
@@ -1082,49 +1121,49 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:140;2:144",
+          "id": "I2:145;2:149",
           "name": "Overline",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "overline#2:133"
+           "characters": "overline#2:138"
           },
           "characters": "Artwork"
          },
          {
-          "id": "I2:140;2:145",
+          "id": "I2:145;2:150",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "title#2:134"
+           "characters": "title#2:139"
           },
           "characters": "${state.title}"
          },
          {
-          "id": "I2:140;2:146",
+          "id": "I2:145;2:151",
           "name": "Subtitle",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "subtitle#2:135"
+           "characters": "subtitle#2:140"
           },
           "characters": "${state.artist}"
          },
          {
-          "id": "I2:140;2:147",
+          "id": "I2:145;2:152",
           "name": "slot:toolbar",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:toolbar#2:136"
+           "slotContentId": "slot:toolbar#2:141"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:140;2:158",
+            "id": "I2:145;2:163",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Button instances (the primary first)"
            },
            {
-            "id": "I2:140;2:148",
+            "id": "I2:145;2:153",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:19",
@@ -1155,7 +1194,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:148;2:151",
+              "id": "I2:145;2:153;2:156",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -1164,13 +1203,13 @@
               "characters": "Ask about it"
              },
              {
-              "id": "I2:140;2:148;2:152",
+              "id": "I2:145;2:153;2:157",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:148;2:149",
+                "id": "I2:145;2:153;2:154",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -1179,7 +1218,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:140;2:148;2:150",
+                "id": "I2:145;2:153;2:155",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -1192,7 +1231,7 @@
             ]
            },
            {
-            "id": "I2:140;2:153",
+            "id": "I2:145;2:158",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:25",
@@ -1223,7 +1262,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:153;2:156",
+              "id": "I2:145;2:158;2:161",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -1232,13 +1271,13 @@
               "characters": "Back to artworks"
              },
              {
-              "id": "I2:140;2:153;2:157",
+              "id": "I2:145;2:158;2:162",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:153;2:154",
+                "id": "I2:145;2:158;2:159",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -1247,7 +1286,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:140;2:153;2:155",
+                "id": "I2:145;2:158;2:160",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -1262,43 +1301,43 @@
           ]
          },
          {
-          "id": "I2:140;2:159",
+          "id": "I2:145;2:164",
           "name": "slot:body",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:body#2:137"
+           "slotContentId": "slot:body#2:142"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:140;2:190",
+            "id": "I2:145;2:195",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Drop the body here"
            },
            {
-            "id": "I2:140;2:165",
+            "id": "I2:145;2:170",
             "name": "Mateu/Field/PropertyRow",
             "type": "INSTANCE",
-            "componentId": "2:173",
+            "componentId": "2:178",
             "componentProperties": {
-             "fieldId#2:160": {
+             "fieldId#2:165": {
               "type": "TEXT",
               "value": "artist"
              },
-             "required#2:161": {
+             "required#2:166": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:162": {
+             "readOnly#2:167": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:163": {
+             "label#2:168": {
               "type": "TEXT",
               "value": "Artist"
              },
-             "value#2:164": {
+             "value#2:169": {
               "type": "TEXT",
               "value": "Value"
              }
@@ -1306,62 +1345,62 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:165;2:169",
+              "id": "I2:145;2:170;2:174",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:163"
+               "characters": "label#2:168"
               },
               "characters": "Artist"
              },
              {
-              "id": "I2:140;2:165;2:170",
+              "id": "I2:145;2:170;2:175",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:164"
+               "characters": "value#2:169"
               },
               "characters": "Value"
              },
              {
-              "id": "I2:140;2:165;2:171",
+              "id": "I2:145;2:170;2:176",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:165;2:166",
+                "id": "I2:145;2:170;2:171",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:160"
+                 "characters": "fieldId#2:165"
                 },
                 "characters": "artist"
                }
               ]
              },
              {
-              "id": "I2:140;2:165;2:172",
+              "id": "I2:145;2:170;2:177",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:165;2:167",
+                "id": "I2:145;2:170;2:172",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:161"
+                 "visible": "required#2:166"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:140;2:165;2:168",
+                "id": "I2:145;2:170;2:173",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:162"
+                 "visible": "readOnly#2:167"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -1371,28 +1410,28 @@
             ]
            },
            {
-            "id": "I2:140;2:174",
+            "id": "I2:145;2:179",
             "name": "Mateu/Field/PropertyRow",
             "type": "INSTANCE",
-            "componentId": "2:173",
+            "componentId": "2:178",
             "componentProperties": {
-             "fieldId#2:160": {
+             "fieldId#2:165": {
               "type": "TEXT",
               "value": "year"
              },
-             "required#2:161": {
+             "required#2:166": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:162": {
+             "readOnly#2:167": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:163": {
+             "label#2:168": {
               "type": "TEXT",
               "value": "Year"
              },
-             "value#2:164": {
+             "value#2:169": {
               "type": "TEXT",
               "value": "Value"
              }
@@ -1400,62 +1439,62 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:174;2:178",
+              "id": "I2:145;2:179;2:183",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:163"
+               "characters": "label#2:168"
               },
               "characters": "Year"
              },
              {
-              "id": "I2:140;2:174;2:179",
+              "id": "I2:145;2:179;2:184",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:164"
+               "characters": "value#2:169"
               },
               "characters": "Value"
              },
              {
-              "id": "I2:140;2:174;2:180",
+              "id": "I2:145;2:179;2:185",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:174;2:175",
+                "id": "I2:145;2:179;2:180",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:160"
+                 "characters": "fieldId#2:165"
                 },
                 "characters": "year"
                }
               ]
              },
              {
-              "id": "I2:140;2:174;2:181",
+              "id": "I2:145;2:179;2:186",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:174;2:176",
+                "id": "I2:145;2:179;2:181",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:161"
+                 "visible": "required#2:166"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:140;2:174;2:177",
+                "id": "I2:145;2:179;2:182",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:162"
+                 "visible": "readOnly#2:167"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -1465,28 +1504,28 @@
             ]
            },
            {
-            "id": "I2:140;2:182",
+            "id": "I2:145;2:187",
             "name": "Mateu/Field/PropertyRow",
             "type": "INSTANCE",
-            "componentId": "2:173",
+            "componentId": "2:178",
             "componentProperties": {
-             "fieldId#2:160": {
+             "fieldId#2:165": {
               "type": "TEXT",
               "value": "location"
              },
-             "required#2:161": {
+             "required#2:166": {
               "type": "BOOLEAN",
               "value": false
              },
-             "readOnly#2:162": {
+             "readOnly#2:167": {
               "type": "BOOLEAN",
               "value": false
              },
-             "label#2:163": {
+             "label#2:168": {
               "type": "TEXT",
               "value": "Location"
              },
-             "value#2:164": {
+             "value#2:169": {
               "type": "TEXT",
               "value": "Value"
              }
@@ -1494,62 +1533,62 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:182;2:186",
+              "id": "I2:145;2:187;2:191",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:163"
+               "characters": "label#2:168"
               },
               "characters": "Location"
              },
              {
-              "id": "I2:140;2:182;2:187",
+              "id": "I2:145;2:187;2:192",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:164"
+               "characters": "value#2:169"
               },
               "characters": "Value"
              },
              {
-              "id": "I2:140;2:182;2:188",
+              "id": "I2:145;2:187;2:193",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:182;2:183",
+                "id": "I2:145;2:187;2:188",
                 "name": "#prop:fieldId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "fieldId#2:160"
+                 "characters": "fieldId#2:165"
                 },
                 "characters": "location"
                }
               ]
              },
              {
-              "id": "I2:140;2:182;2:189",
+              "id": "I2:145;2:187;2:194",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:140;2:182;2:184",
+                "id": "I2:145;2:187;2:189",
                 "name": "#flag:required",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "required#2:161"
+                 "visible": "required#2:166"
                 },
                 "characters": "required",
                 "visible": false
                },
                {
-                "id": "I2:140;2:182;2:185",
+                "id": "I2:145;2:187;2:190",
                 "name": "#flag:readOnly",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "readOnly#2:162"
+                 "visible": "readOnly#2:167"
                 },
                 "characters": "readOnly",
                 "visible": false
@@ -1561,16 +1600,16 @@
           ]
          },
          {
-          "id": "I2:140;2:191",
+          "id": "I2:145;2:196",
           "name": "slot:footer",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:footer#2:138"
+           "slotContentId": "slot:footer#2:143"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:140;2:192",
+            "id": "I2:145;2:197",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Drop the footer here"
@@ -1578,40 +1617,40 @@
           ]
          },
          {
-          "id": "I2:140;2:193",
+          "id": "I2:145;2:198",
           "name": "slot:content",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:content#2:139"
+           "slotContentId": "slot:content#2:144"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:140;2:255",
+            "id": "I2:145;2:260",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "main"
            },
            {
-            "id": "I2:140;2:197",
+            "id": "I2:145;2:202",
             "name": "Mateu/Layout/Tabs",
             "type": "INSTANCE",
-            "componentId": "2:254",
+            "componentId": "2:259",
             "componentProperties": {
-             "tab1#2:194": {
+             "tab1#2:199": {
               "type": "TEXT",
               "value": "Details"
              },
-             "tab2#2:195": {
+             "tab2#2:200": {
               "type": "TEXT",
               "value": "Story"
              },
-             "slot:tabs#2:196": {
+             "slot:tabs#2:201": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 200
+                "localID": 205
                }
               },
               "preferredValues": []
@@ -1620,66 +1659,66 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:140;2:197;2:198",
+              "id": "I2:145;2:202;2:203",
               "name": "Tab1",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "tab1#2:194"
+               "characters": "tab1#2:199"
               },
               "characters": "Details"
              },
              {
-              "id": "I2:140;2:197;2:199",
+              "id": "I2:145;2:202;2:204",
               "name": "Tab2",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "tab2#2:195"
+               "characters": "tab2#2:200"
               },
               "characters": "Story"
              },
              {
-              "id": "I2:140;2:197;2:200",
+              "id": "I2:145;2:202;2:205",
               "name": "slot:tabs",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:tabs#2:196"
+               "slotContentId": "slot:tabs#2:201"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:140;2:197;2:253",
+                "id": "I2:145;2:202;2:258",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Tab instances"
                },
                {
-                "id": "I2:140;2:197;2:206",
+                "id": "I2:145;2:202;2:211",
                 "name": "Mateu/Layout/Tab",
                 "type": "INSTANCE",
-                "componentId": "2:232",
+                "componentId": "2:237",
                 "componentProperties": {
-                 "shortcut#2:201": {
+                 "shortcut#2:206": {
                   "type": "TEXT",
                   "value": "shortcut"
                  },
-                 "badge#2:202": {
+                 "badge#2:207": {
                   "type": "TEXT",
                   "value": "badge"
                  },
-                 "active#2:203": {
+                 "active#2:208": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "label#2:204": {
+                 "label#2:209": {
                   "type": "TEXT",
                   "value": "Details"
                  },
-                 "slot:content#2:205": {
+                 "slot:content#2:210": {
                   "type": "SLOT",
                   "value": {
                    "guid": {
                     "sessionID": 1,
-                    "localID": 211
+                    "localID": 216
                    }
                   },
                   "preferredValues": []
@@ -1688,57 +1727,57 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:140;2:197;2:206;2:210",
+                  "id": "I2:145;2:202;2:211;2:215",
                   "name": "Label",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "label#2:204"
+                   "characters": "label#2:209"
                   },
                   "characters": "Details"
                  },
                  {
-                  "id": "I2:140;2:197;2:206;2:211",
+                  "id": "I2:145;2:202;2:211;2:216",
                   "name": "slot:content",
                   "type": "SLOT",
                   "componentPropertyReferences": {
-                   "slotContentId": "slot:content#2:205"
+                   "slotContentId": "slot:content#2:210"
                   },
                   "layoutMode": "VERTICAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:206;2:229",
+                    "id": "I2:145;2:202;2:211;2:234",
                     "name": "#placeholder",
                     "type": "TEXT",
                     "characters": "Drop the content here"
                    },
                    {
-                    "id": "I2:140;2:197;2:206;2:212",
+                    "id": "I2:145;2:202;2:211;2:217",
                     "name": "Mateu/Field/PlainText",
                     "type": "INSTANCE",
-                    "componentId": "2:220",
+                    "componentId": "2:225",
                     "componentProperties": {
                      "dataType": {
                       "value": "string",
                       "type": "VARIANT",
                       "boundVariables": {}
                      },
-                     "fieldId#2:99": {
+                     "fieldId#2:104": {
                       "type": "TEXT",
                       "value": "medium"
                      },
-                     "required#2:100": {
+                     "required#2:105": {
                       "type": "BOOLEAN",
                       "value": false
                      },
-                     "readOnly#2:101": {
+                     "readOnly#2:106": {
                       "type": "BOOLEAN",
                       "value": false
                      },
-                     "label#2:102": {
+                     "label#2:107": {
                       "type": "TEXT",
                       "value": "Medium"
                      },
-                     "value#2:103": {
+                     "value#2:108": {
                       "type": "TEXT",
                       "value": "Value"
                      }
@@ -1746,62 +1785,62 @@
                     "layoutMode": "VERTICAL",
                     "children": [
                      {
-                      "id": "I2:140;2:197;2:206;2:212;2:216",
+                      "id": "I2:145;2:202;2:211;2:217;2:221",
                       "name": "Label",
                       "type": "TEXT",
                       "componentPropertyReferences": {
-                       "characters": "label#2:102"
+                       "characters": "label#2:107"
                       },
                       "characters": "Medium"
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:212;2:217",
+                      "id": "I2:145;2:202;2:211;2:217;2:222",
                       "name": "Value",
                       "type": "TEXT",
                       "componentPropertyReferences": {
-                       "characters": "value#2:103"
+                       "characters": "value#2:108"
                       },
                       "characters": "Value"
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:212;2:218",
+                      "id": "I2:145;2:202;2:211;2:217;2:223",
                       "name": "#props",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:206;2:212;2:213",
+                        "id": "I2:145;2:202;2:211;2:217;2:218",
                         "name": "#prop:fieldId",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "characters": "fieldId#2:99"
+                         "characters": "fieldId#2:104"
                         },
                         "characters": "medium"
                        }
                       ]
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:212;2:219",
+                      "id": "I2:145;2:202;2:211;2:217;2:224",
                       "name": "#flags",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:206;2:212;2:214",
+                        "id": "I2:145;2:202;2:211;2:217;2:219",
                         "name": "#flag:required",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "visible": "required#2:100"
+                         "visible": "required#2:105"
                         },
                         "characters": "required",
                         "visible": false
                        },
                        {
-                        "id": "I2:140;2:197;2:206;2:212;2:215",
+                        "id": "I2:145;2:202;2:211;2:217;2:220",
                         "name": "#flag:readOnly",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "visible": "readOnly#2:101"
+                         "visible": "readOnly#2:106"
                         },
                         "characters": "readOnly",
                         "visible": false
@@ -1811,33 +1850,33 @@
                     ]
                    },
                    {
-                    "id": "I2:140;2:197;2:206;2:221",
+                    "id": "I2:145;2:202;2:211;2:226",
                     "name": "Mateu/Field/PlainText",
                     "type": "INSTANCE",
-                    "componentId": "2:220",
+                    "componentId": "2:225",
                     "componentProperties": {
                      "dataType": {
                       "value": "string",
                       "type": "VARIANT",
                       "boundVariables": {}
                      },
-                     "fieldId#2:99": {
+                     "fieldId#2:104": {
                       "type": "TEXT",
                       "value": "dimensions"
                      },
-                     "required#2:100": {
+                     "required#2:105": {
                       "type": "BOOLEAN",
                       "value": false
                      },
-                     "readOnly#2:101": {
+                     "readOnly#2:106": {
                       "type": "BOOLEAN",
                       "value": false
                      },
-                     "label#2:102": {
+                     "label#2:107": {
                       "type": "TEXT",
                       "value": "Dimensions"
                      },
-                     "value#2:103": {
+                     "value#2:108": {
                       "type": "TEXT",
                       "value": "Value"
                      }
@@ -1845,62 +1884,62 @@
                     "layoutMode": "VERTICAL",
                     "children": [
                      {
-                      "id": "I2:140;2:197;2:206;2:221;2:225",
+                      "id": "I2:145;2:202;2:211;2:226;2:230",
                       "name": "Label",
                       "type": "TEXT",
                       "componentPropertyReferences": {
-                       "characters": "label#2:102"
+                       "characters": "label#2:107"
                       },
                       "characters": "Dimensions"
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:221;2:226",
+                      "id": "I2:145;2:202;2:211;2:226;2:231",
                       "name": "Value",
                       "type": "TEXT",
                       "componentPropertyReferences": {
-                       "characters": "value#2:103"
+                       "characters": "value#2:108"
                       },
                       "characters": "Value"
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:221;2:227",
+                      "id": "I2:145;2:202;2:211;2:226;2:232",
                       "name": "#props",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:206;2:221;2:222",
+                        "id": "I2:145;2:202;2:211;2:226;2:227",
                         "name": "#prop:fieldId",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "characters": "fieldId#2:99"
+                         "characters": "fieldId#2:104"
                         },
                         "characters": "dimensions"
                        }
                       ]
                      },
                      {
-                      "id": "I2:140;2:197;2:206;2:221;2:228",
+                      "id": "I2:145;2:202;2:211;2:226;2:233",
                       "name": "#flags",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:206;2:221;2:223",
+                        "id": "I2:145;2:202;2:211;2:226;2:228",
                         "name": "#flag:required",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "visible": "required#2:100"
+                         "visible": "required#2:105"
                         },
                         "characters": "required",
                         "visible": false
                        },
                        {
-                        "id": "I2:140;2:197;2:206;2:221;2:224",
+                        "id": "I2:145;2:202;2:211;2:226;2:229",
                         "name": "#flag:readOnly",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "visible": "readOnly#2:101"
+                         "visible": "readOnly#2:106"
                         },
                         "characters": "readOnly",
                         "visible": false
@@ -1912,43 +1951,43 @@
                   ]
                  },
                  {
-                  "id": "I2:140;2:197;2:206;2:230",
+                  "id": "I2:145;2:202;2:211;2:235",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:206;2:207",
+                    "id": "I2:145;2:202;2:211;2:212",
                     "name": "#prop:shortcut",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "shortcut#2:201"
+                     "characters": "shortcut#2:206"
                     },
                     "characters": "shortcut"
                    },
                    {
-                    "id": "I2:140;2:197;2:206;2:208",
+                    "id": "I2:145;2:202;2:211;2:213",
                     "name": "#prop:badge",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "badge#2:202"
+                     "characters": "badge#2:207"
                     },
                     "characters": "badge"
                    }
                   ]
                  },
                  {
-                  "id": "I2:140;2:197;2:206;2:231",
+                  "id": "I2:145;2:202;2:211;2:236",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:206;2:209",
+                    "id": "I2:145;2:202;2:211;2:214",
                     "name": "#flag:active",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "active#2:203"
+                     "visible": "active#2:208"
                     },
                     "characters": "active",
                     "visible": false
@@ -1958,33 +1997,33 @@
                 ]
                },
                {
-                "id": "I2:140;2:197;2:233",
+                "id": "I2:145;2:202;2:238",
                 "name": "Mateu/Layout/Tab",
                 "type": "INSTANCE",
-                "componentId": "2:232",
+                "componentId": "2:237",
                 "componentProperties": {
-                 "shortcut#2:201": {
+                 "shortcut#2:206": {
                   "type": "TEXT",
                   "value": "shortcut"
                  },
-                 "badge#2:202": {
+                 "badge#2:207": {
                   "type": "TEXT",
                   "value": "badge"
                  },
-                 "active#2:203": {
+                 "active#2:208": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "label#2:204": {
+                 "label#2:209": {
                   "type": "TEXT",
                   "value": "Story"
                  },
-                 "slot:content#2:205": {
+                 "slot:content#2:210": {
                   "type": "SLOT",
                   "value": {
                    "guid": {
                     "sessionID": 1,
-                    "localID": 238
+                    "localID": 243
                    }
                   },
                   "preferredValues": []
@@ -1993,49 +2032,49 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:140;2:197;2:233;2:237",
+                  "id": "I2:145;2:202;2:238;2:242",
                   "name": "Label",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "label#2:204"
+                   "characters": "label#2:209"
                   },
                   "characters": "Story"
                  },
                  {
-                  "id": "I2:140;2:197;2:233;2:238",
+                  "id": "I2:145;2:202;2:238;2:243",
                   "name": "slot:content",
                   "type": "SLOT",
                   "componentPropertyReferences": {
-                   "slotContentId": "slot:content#2:205"
+                   "slotContentId": "slot:content#2:210"
                   },
                   "layoutMode": "VERTICAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:233;2:250",
+                    "id": "I2:145;2:202;2:238;2:255",
                     "name": "#placeholder",
                     "type": "TEXT",
                     "characters": "Drop the content here"
                    },
                    {
-                    "id": "I2:140;2:197;2:233;2:243",
+                    "id": "I2:145;2:202;2:238;2:248",
                     "name": "Mateu/Display/Text",
                     "type": "INSTANCE",
-                    "componentId": "2:249",
+                    "componentId": "2:254",
                     "componentProperties": {
                      "size": {
                       "value": "m",
                       "type": "VARIANT",
                       "boundVariables": {}
                      },
-                     "noMargins#2:240": {
+                     "noMargins#2:245": {
                       "type": "BOOLEAN",
                       "value": false
                      },
-                     "container#2:241": {
+                     "container#2:246": {
                       "type": "TEXT",
                       "value": "container"
                      },
-                     "text#2:242": {
+                     "text#2:247": {
                       "type": "TEXT",
                       "value": "Every work in the collection has a story; this tab tells it."
                      }
@@ -2043,43 +2082,43 @@
                     "layoutMode": "VERTICAL",
                     "children": [
                      {
-                      "id": "I2:140;2:197;2:233;2:243;2:246",
+                      "id": "I2:145;2:202;2:238;2:248;2:251",
                       "name": "Text",
                       "type": "TEXT",
                       "componentPropertyReferences": {
-                       "characters": "text#2:242"
+                       "characters": "text#2:247"
                       },
                       "characters": "Every work in the collection has a story; this tab tells it."
                      },
                      {
-                      "id": "I2:140;2:197;2:233;2:243;2:247",
+                      "id": "I2:145;2:202;2:238;2:248;2:252",
                       "name": "#props",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:233;2:243;2:245",
+                        "id": "I2:145;2:202;2:238;2:248;2:250",
                         "name": "#prop:container",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "characters": "container#2:241"
+                         "characters": "container#2:246"
                         },
                         "characters": "container"
                        }
                       ]
                      },
                      {
-                      "id": "I2:140;2:197;2:233;2:243;2:248",
+                      "id": "I2:145;2:202;2:238;2:248;2:253",
                       "name": "#flags",
                       "type": "FRAME",
                       "layoutMode": "HORIZONTAL",
                       "children": [
                        {
-                        "id": "I2:140;2:197;2:233;2:243;2:244",
+                        "id": "I2:145;2:202;2:238;2:248;2:249",
                         "name": "#flag:noMargins",
                         "type": "TEXT",
                         "componentPropertyReferences": {
-                         "visible": "noMargins#2:240"
+                         "visible": "noMargins#2:245"
                         },
                         "characters": "noMargins",
                         "visible": false
@@ -2091,43 +2130,43 @@
                   ]
                  },
                  {
-                  "id": "I2:140;2:197;2:233;2:251",
+                  "id": "I2:145;2:202;2:238;2:256",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:233;2:234",
+                    "id": "I2:145;2:202;2:238;2:239",
                     "name": "#prop:shortcut",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "shortcut#2:201"
+                     "characters": "shortcut#2:206"
                     },
                     "characters": "shortcut"
                    },
                    {
-                    "id": "I2:140;2:197;2:233;2:235",
+                    "id": "I2:145;2:202;2:238;2:240",
                     "name": "#prop:badge",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "badge#2:202"
+                     "characters": "badge#2:207"
                     },
                     "characters": "badge"
                    }
                   ]
                  },
                  {
-                  "id": "I2:140;2:197;2:233;2:252",
+                  "id": "I2:145;2:202;2:238;2:257",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:140;2:197;2:233;2:236",
+                    "id": "I2:145;2:202;2:238;2:241",
                     "name": "#flag:active",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "active#2:203"
+                     "visible": "active#2:208"
                     },
                     "characters": "active",
                     "visible": false
@@ -2143,35 +2182,35 @@
           ]
          },
          {
-          "id": "I2:140;2:256",
+          "id": "I2:145;2:261",
           "name": "#props",
           "type": "FRAME",
           "layoutMode": "HORIZONTAL",
           "children": [
            {
-            "id": "I2:140;2:141",
+            "id": "I2:145;2:146",
             "name": "#prop:avatar.src",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "avatar.src#2:130"
+             "characters": "avatar.src#2:135"
             },
             "characters": "avatar.src"
            },
            {
-            "id": "I2:140;2:142",
+            "id": "I2:145;2:147",
             "name": "#prop:avatar.initials",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "avatar.initials#2:131"
+             "characters": "avatar.initials#2:136"
             },
             "characters": "avatar.initials"
            },
            {
-            "id": "I2:140;2:143",
+            "id": "I2:145;2:148",
             "name": "#prop:photo.src",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "photo.src#2:132"
+             "characters": "photo.src#2:137"
             },
             "characters": "/images/artwork.svg"
            }
@@ -2182,58 +2221,58 @@
       ]
      },
      {
-      "id": "2:258",
+      "id": "2:263",
       "name": "_artworks — about",
       "type": "TEXT",
       "characters": "artworks: A listing: a REST source, searchable, columns, and a row that opens the record"
      },
      {
-      "id": "2:259",
+      "id": "2:264",
       "name": "artworks",
       "type": "FRAME",
       "layoutMode": "VERTICAL",
       "children": [
        {
-        "id": "2:268",
+        "id": "2:273",
         "name": "Mateu/Crud/Listing",
         "type": "INSTANCE",
-        "componentId": "2:322",
+        "componentId": "2:327",
         "componentProperties": {
          "gridLayout": {
           "value": "table",
           "type": "VARIANT",
           "boundVariables": {}
          },
-         "aggregateId#2:261": {
+         "aggregateId#2:266": {
           "type": "TEXT",
           "value": "aggregateId"
          },
-         "rowRoute#2:262": {
+         "rowRoute#2:267": {
           "type": "TEXT",
           "value": "artworks/${row.id}"
          },
-         "rowsSource.ref#2:263": {
+         "rowsSource.ref#2:268": {
           "type": "TEXT",
           "value": "artworks"
          },
-         "searchable#2:264": {
+         "searchable#2:269": {
           "type": "BOOLEAN",
           "value": true
          },
-         "pageSize#2:265": {
+         "pageSize#2:270": {
           "type": "TEXT",
           "value": "10"
          },
-         "title#2:266": {
+         "title#2:271": {
           "type": "TEXT",
           "value": "Artworks"
          },
-         "slot:columns#2:267": {
+         "slot:columns#2:272": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 275
+            "localID": 280
            }
           },
           "preferredValues": []
@@ -2242,56 +2281,56 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:268;2:274",
+          "id": "I2:273;2:279",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "title#2:266"
+           "characters": "title#2:271"
           },
           "characters": "Artworks"
          },
          {
-          "id": "I2:268;2:275",
+          "id": "I2:273;2:280",
           "name": "slot:columns",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:columns#2:267"
+           "slotContentId": "slot:columns#2:272"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:268;2:319",
+            "id": "I2:273;2:324",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "GridColumn instances"
            },
            {
-            "id": "I2:268;2:282",
+            "id": "I2:273;2:287",
             "name": "Mateu/Crud/GridColumn",
             "type": "INSTANCE",
-            "componentId": "2:291",
+            "componentId": "2:296",
             "componentProperties": {
-             "columnId#2:276": {
+             "columnId#2:281": {
               "type": "TEXT",
               "value": "id"
              },
-             "dataType#2:277": {
+             "dataType#2:282": {
               "type": "TEXT",
               "value": "dataType"
              },
-             "stereotype#2:278": {
+             "stereotype#2:283": {
               "type": "TEXT",
               "value": "stereotype"
              },
-             "identifier#2:279": {
+             "identifier#2:284": {
               "type": "BOOLEAN",
               "value": true
              },
-             "width#2:280": {
+             "width#2:285": {
               "type": "TEXT",
               "value": "width"
              },
-             "label#2:281": {
+             "label#2:286": {
               "type": "TEXT",
               "value": "Id"
              }
@@ -2299,70 +2338,70 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:268;2:282;2:288",
+              "id": "I2:273;2:287;2:293",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:281"
+               "characters": "label#2:286"
               },
               "characters": "Id"
              },
              {
-              "id": "I2:268;2:282;2:289",
+              "id": "I2:273;2:287;2:294",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:282;2:283",
+                "id": "I2:273;2:287;2:288",
                 "name": "#prop:columnId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "columnId#2:276"
+                 "characters": "columnId#2:281"
                 },
                 "characters": "id"
                },
                {
-                "id": "I2:268;2:282;2:284",
+                "id": "I2:273;2:287;2:289",
                 "name": "#prop:dataType",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "dataType#2:277"
+                 "characters": "dataType#2:282"
                 },
                 "characters": "dataType"
                },
                {
-                "id": "I2:268;2:282;2:285",
+                "id": "I2:273;2:287;2:290",
                 "name": "#prop:stereotype",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "stereotype#2:278"
+                 "characters": "stereotype#2:283"
                 },
                 "characters": "stereotype"
                },
                {
-                "id": "I2:268;2:282;2:287",
+                "id": "I2:273;2:287;2:292",
                 "name": "#prop:width",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "width#2:280"
+                 "characters": "width#2:285"
                 },
                 "characters": "width"
                }
               ]
              },
              {
-              "id": "I2:268;2:282;2:290",
+              "id": "I2:273;2:287;2:295",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:282;2:286",
+                "id": "I2:273;2:287;2:291",
                 "name": "#flag:identifier",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "identifier#2:279"
+                 "visible": "identifier#2:284"
                 },
                 "characters": "identifier",
                 "visible": true
@@ -2372,32 +2411,32 @@
             ]
            },
            {
-            "id": "I2:268;2:292",
+            "id": "I2:273;2:297",
             "name": "Mateu/Crud/GridColumn",
             "type": "INSTANCE",
-            "componentId": "2:291",
+            "componentId": "2:296",
             "componentProperties": {
-             "columnId#2:276": {
+             "columnId#2:281": {
               "type": "TEXT",
               "value": "title"
              },
-             "dataType#2:277": {
+             "dataType#2:282": {
               "type": "TEXT",
               "value": "dataType"
              },
-             "stereotype#2:278": {
+             "stereotype#2:283": {
               "type": "TEXT",
               "value": "stereotype"
              },
-             "identifier#2:279": {
+             "identifier#2:284": {
               "type": "BOOLEAN",
               "value": false
              },
-             "width#2:280": {
+             "width#2:285": {
               "type": "TEXT",
               "value": "width"
              },
-             "label#2:281": {
+             "label#2:286": {
               "type": "TEXT",
               "value": "Title"
              }
@@ -2405,70 +2444,70 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:268;2:292;2:298",
+              "id": "I2:273;2:297;2:303",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:281"
+               "characters": "label#2:286"
               },
               "characters": "Title"
              },
              {
-              "id": "I2:268;2:292;2:299",
+              "id": "I2:273;2:297;2:304",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:292;2:293",
+                "id": "I2:273;2:297;2:298",
                 "name": "#prop:columnId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "columnId#2:276"
+                 "characters": "columnId#2:281"
                 },
                 "characters": "title"
                },
                {
-                "id": "I2:268;2:292;2:294",
+                "id": "I2:273;2:297;2:299",
                 "name": "#prop:dataType",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "dataType#2:277"
+                 "characters": "dataType#2:282"
                 },
                 "characters": "dataType"
                },
                {
-                "id": "I2:268;2:292;2:295",
+                "id": "I2:273;2:297;2:300",
                 "name": "#prop:stereotype",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "stereotype#2:278"
+                 "characters": "stereotype#2:283"
                 },
                 "characters": "stereotype"
                },
                {
-                "id": "I2:268;2:292;2:297",
+                "id": "I2:273;2:297;2:302",
                 "name": "#prop:width",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "width#2:280"
+                 "characters": "width#2:285"
                 },
                 "characters": "width"
                }
               ]
              },
              {
-              "id": "I2:268;2:292;2:300",
+              "id": "I2:273;2:297;2:305",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:292;2:296",
+                "id": "I2:273;2:297;2:301",
                 "name": "#flag:identifier",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "identifier#2:279"
+                 "visible": "identifier#2:284"
                 },
                 "characters": "identifier",
                 "visible": false
@@ -2478,32 +2517,32 @@
             ]
            },
            {
-            "id": "I2:268;2:301",
+            "id": "I2:273;2:306",
             "name": "Mateu/Crud/GridColumn",
             "type": "INSTANCE",
-            "componentId": "2:291",
+            "componentId": "2:296",
             "componentProperties": {
-             "columnId#2:276": {
+             "columnId#2:281": {
               "type": "TEXT",
               "value": "artist"
              },
-             "dataType#2:277": {
+             "dataType#2:282": {
               "type": "TEXT",
               "value": "dataType"
              },
-             "stereotype#2:278": {
+             "stereotype#2:283": {
               "type": "TEXT",
               "value": "stereotype"
              },
-             "identifier#2:279": {
+             "identifier#2:284": {
               "type": "BOOLEAN",
               "value": false
              },
-             "width#2:280": {
+             "width#2:285": {
               "type": "TEXT",
               "value": "width"
              },
-             "label#2:281": {
+             "label#2:286": {
               "type": "TEXT",
               "value": "Artist"
              }
@@ -2511,70 +2550,70 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:268;2:301;2:307",
+              "id": "I2:273;2:306;2:312",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:281"
+               "characters": "label#2:286"
               },
               "characters": "Artist"
              },
              {
-              "id": "I2:268;2:301;2:308",
+              "id": "I2:273;2:306;2:313",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:301;2:302",
+                "id": "I2:273;2:306;2:307",
                 "name": "#prop:columnId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "columnId#2:276"
+                 "characters": "columnId#2:281"
                 },
                 "characters": "artist"
                },
                {
-                "id": "I2:268;2:301;2:303",
+                "id": "I2:273;2:306;2:308",
                 "name": "#prop:dataType",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "dataType#2:277"
+                 "characters": "dataType#2:282"
                 },
                 "characters": "dataType"
                },
                {
-                "id": "I2:268;2:301;2:304",
+                "id": "I2:273;2:306;2:309",
                 "name": "#prop:stereotype",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "stereotype#2:278"
+                 "characters": "stereotype#2:283"
                 },
                 "characters": "stereotype"
                },
                {
-                "id": "I2:268;2:301;2:306",
+                "id": "I2:273;2:306;2:311",
                 "name": "#prop:width",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "width#2:280"
+                 "characters": "width#2:285"
                 },
                 "characters": "width"
                }
               ]
              },
              {
-              "id": "I2:268;2:301;2:309",
+              "id": "I2:273;2:306;2:314",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:301;2:305",
+                "id": "I2:273;2:306;2:310",
                 "name": "#flag:identifier",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "identifier#2:279"
+                 "visible": "identifier#2:284"
                 },
                 "characters": "identifier",
                 "visible": false
@@ -2584,32 +2623,32 @@
             ]
            },
            {
-            "id": "I2:268;2:310",
+            "id": "I2:273;2:315",
             "name": "Mateu/Crud/GridColumn",
             "type": "INSTANCE",
-            "componentId": "2:291",
+            "componentId": "2:296",
             "componentProperties": {
-             "columnId#2:276": {
+             "columnId#2:281": {
               "type": "TEXT",
               "value": "year"
              },
-             "dataType#2:277": {
+             "dataType#2:282": {
               "type": "TEXT",
               "value": "integer"
              },
-             "stereotype#2:278": {
+             "stereotype#2:283": {
               "type": "TEXT",
               "value": "stereotype"
              },
-             "identifier#2:279": {
+             "identifier#2:284": {
               "type": "BOOLEAN",
               "value": false
              },
-             "width#2:280": {
+             "width#2:285": {
               "type": "TEXT",
               "value": "width"
              },
-             "label#2:281": {
+             "label#2:286": {
               "type": "TEXT",
               "value": "Year"
              }
@@ -2617,70 +2656,70 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:268;2:310;2:316",
+              "id": "I2:273;2:315;2:321",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "label#2:281"
+               "characters": "label#2:286"
               },
               "characters": "Year"
              },
              {
-              "id": "I2:268;2:310;2:317",
+              "id": "I2:273;2:315;2:322",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:310;2:311",
+                "id": "I2:273;2:315;2:316",
                 "name": "#prop:columnId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "columnId#2:276"
+                 "characters": "columnId#2:281"
                 },
                 "characters": "year"
                },
                {
-                "id": "I2:268;2:310;2:312",
+                "id": "I2:273;2:315;2:317",
                 "name": "#prop:dataType",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "dataType#2:277"
+                 "characters": "dataType#2:282"
                 },
                 "characters": "integer"
                },
                {
-                "id": "I2:268;2:310;2:313",
+                "id": "I2:273;2:315;2:318",
                 "name": "#prop:stereotype",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "stereotype#2:278"
+                 "characters": "stereotype#2:283"
                 },
                 "characters": "stereotype"
                },
                {
-                "id": "I2:268;2:310;2:315",
+                "id": "I2:273;2:315;2:320",
                 "name": "#prop:width",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "width#2:280"
+                 "characters": "width#2:285"
                 },
                 "characters": "width"
                }
               ]
              },
              {
-              "id": "I2:268;2:310;2:318",
+              "id": "I2:273;2:315;2:323",
               "name": "#flags",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:268;2:310;2:314",
+                "id": "I2:273;2:315;2:319",
                 "name": "#flag:identifier",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "visible": "identifier#2:279"
+                 "visible": "identifier#2:284"
                 },
                 "characters": "identifier",
                 "visible": false
@@ -2692,61 +2731,61 @@
           ]
          },
          {
-          "id": "I2:268;2:320",
+          "id": "I2:273;2:325",
           "name": "#props",
           "type": "FRAME",
           "layoutMode": "HORIZONTAL",
           "children": [
            {
-            "id": "I2:268;2:269",
+            "id": "I2:273;2:274",
             "name": "#prop:aggregateId",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "aggregateId#2:261"
+             "characters": "aggregateId#2:266"
             },
             "characters": "aggregateId"
            },
            {
-            "id": "I2:268;2:270",
+            "id": "I2:273;2:275",
             "name": "#prop:rowRoute",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "rowRoute#2:262"
+             "characters": "rowRoute#2:267"
             },
             "characters": "artworks/${row.id}"
            },
            {
-            "id": "I2:268;2:271",
+            "id": "I2:273;2:276",
             "name": "#prop:rowsSource.ref",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "rowsSource.ref#2:263"
+             "characters": "rowsSource.ref#2:268"
             },
             "characters": "artworks"
            },
            {
-            "id": "I2:268;2:273",
+            "id": "I2:273;2:278",
             "name": "#prop:pageSize",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "characters": "pageSize#2:265"
+             "characters": "pageSize#2:270"
             },
             "characters": "10"
            }
           ]
          },
          {
-          "id": "I2:268;2:321",
+          "id": "I2:273;2:326",
           "name": "#flags",
           "type": "FRAME",
           "layoutMode": "HORIZONTAL",
           "children": [
            {
-            "id": "I2:268;2:272",
+            "id": "I2:273;2:277",
             "name": "#flag:searchable",
             "type": "TEXT",
             "componentPropertyReferences": {
-             "visible": "searchable#2:264"
+             "visible": "searchable#2:269"
             },
             "characters": "searchable",
             "visible": true
@@ -2758,61 +2797,61 @@
       ]
      },
      {
-      "id": "2:323",
+      "id": "2:328",
       "name": "_dashboard — about",
       "type": "TEXT",
       "characters": "dashboard: A Dashboard landing page: KPI metric cards and panels"
      },
      {
-      "id": "2:324",
+      "id": "2:329",
       "name": "dashboard",
       "type": "FRAME",
       "layoutMode": "VERTICAL",
       "children": [
        {
-        "id": "2:331",
+        "id": "2:336",
         "name": "Mateu/Page Templates/DashboardLandingPage",
         "type": "INSTANCE",
-        "componentId": "2:398",
+        "componentId": "2:403",
         "componentProperties": {
-         "overline#2:325": {
+         "overline#2:330": {
           "type": "TEXT",
           "value": "Overline"
          },
-         "title#2:326": {
+         "title#2:331": {
           "type": "TEXT",
           "value": "Gallery dashboard"
          },
-         "subtitle#2:327": {
+         "subtitle#2:332": {
           "type": "TEXT",
           "value": "This month at a glance"
          },
-         "slot:toolbar#2:328": {
+         "slot:toolbar#2:333": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 335
+            "localID": 340
            }
           },
           "preferredValues": []
          },
-         "slot:kpi#2:329": {
+         "slot:kpi#2:334": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 337
+            "localID": 342
            }
           },
           "preferredValues": []
          },
-         "slot:content#2:330": {
+         "slot:content#2:335": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 362
+            "localID": 367
            }
           },
           "preferredValues": []
@@ -2821,43 +2860,43 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:331;2:332",
+          "id": "I2:336;2:337",
           "name": "Overline",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "overline#2:325"
+           "characters": "overline#2:330"
           },
           "characters": "Overline"
          },
          {
-          "id": "I2:331;2:333",
+          "id": "I2:336;2:338",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "title#2:326"
+           "characters": "title#2:331"
           },
           "characters": "Gallery dashboard"
          },
          {
-          "id": "I2:331;2:334",
+          "id": "I2:336;2:339",
           "name": "Subtitle",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "subtitle#2:327"
+           "characters": "subtitle#2:332"
           },
           "characters": "This month at a glance"
          },
          {
-          "id": "I2:331;2:335",
+          "id": "I2:336;2:340",
           "name": "slot:toolbar",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:toolbar#2:328"
+           "slotContentId": "slot:toolbar#2:333"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:331;2:336",
+            "id": "I2:336;2:341",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Button instances (the primary first)"
@@ -2865,39 +2904,39 @@
           ]
          },
          {
-          "id": "I2:331;2:337",
+          "id": "I2:336;2:342",
           "name": "slot:kpi",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:kpi#2:329"
+           "slotContentId": "slot:kpi#2:334"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:331;2:361",
+            "id": "I2:336;2:366",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "MetricCard instances"
            },
            {
-            "id": "I2:331;2:342",
+            "id": "I2:336;2:347",
             "name": "Mateu/Display/MetricCard",
             "type": "INSTANCE",
-            "componentId": "2:348",
+            "componentId": "2:353",
             "componentProperties": {
-             "actionId#2:338": {
+             "actionId#2:343": {
               "type": "TEXT",
               "value": "actionId"
              },
-             "title#2:339": {
+             "title#2:344": {
               "type": "TEXT",
               "value": "Visitors"
              },
-             "value#2:340": {
+             "value#2:345": {
               "type": "TEXT",
               "value": "12,480"
              },
-             "trendLabel#2:341": {
+             "trendLabel#2:346": {
               "type": "TEXT",
               "value": "+8% vs last month"
              }
@@ -2905,44 +2944,44 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:331;2:342;2:344",
+              "id": "I2:336;2:347;2:349",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:339"
+               "characters": "title#2:344"
               },
               "characters": "Visitors"
              },
              {
-              "id": "I2:331;2:342;2:345",
+              "id": "I2:336;2:347;2:350",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:340"
+               "characters": "value#2:345"
               },
               "characters": "12,480"
              },
              {
-              "id": "I2:331;2:342;2:346",
+              "id": "I2:336;2:347;2:351",
               "name": "Trend",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "trendLabel#2:341"
+               "characters": "trendLabel#2:346"
               },
               "characters": "+8% vs last month"
              },
              {
-              "id": "I2:331;2:342;2:347",
+              "id": "I2:336;2:347;2:352",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:331;2:342;2:343",
+                "id": "I2:336;2:347;2:348",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "actionId#2:338"
+                 "characters": "actionId#2:343"
                 },
                 "characters": "actionId"
                }
@@ -2951,24 +2990,24 @@
             ]
            },
            {
-            "id": "I2:331;2:349",
+            "id": "I2:336;2:354",
             "name": "Mateu/Display/MetricCard",
             "type": "INSTANCE",
-            "componentId": "2:348",
+            "componentId": "2:353",
             "componentProperties": {
-             "actionId#2:338": {
+             "actionId#2:343": {
               "type": "TEXT",
               "value": "actionId"
              },
-             "title#2:339": {
+             "title#2:344": {
               "type": "TEXT",
               "value": "Ticket sales"
              },
-             "value#2:340": {
+             "value#2:345": {
               "type": "TEXT",
               "value": "84,300 €"
              },
-             "trendLabel#2:341": {
+             "trendLabel#2:346": {
               "type": "TEXT",
               "value": "+3%"
              }
@@ -2976,44 +3015,44 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:331;2:349;2:351",
+              "id": "I2:336;2:354;2:356",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:339"
+               "characters": "title#2:344"
               },
               "characters": "Ticket sales"
              },
              {
-              "id": "I2:331;2:349;2:352",
+              "id": "I2:336;2:354;2:357",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:340"
+               "characters": "value#2:345"
               },
               "characters": "84,300 €"
              },
              {
-              "id": "I2:331;2:349;2:353",
+              "id": "I2:336;2:354;2:358",
               "name": "Trend",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "trendLabel#2:341"
+               "characters": "trendLabel#2:346"
               },
               "characters": "+3%"
              },
              {
-              "id": "I2:331;2:349;2:354",
+              "id": "I2:336;2:354;2:359",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:331;2:349;2:350",
+                "id": "I2:336;2:354;2:355",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "actionId#2:338"
+                 "characters": "actionId#2:343"
                 },
                 "characters": "actionId"
                }
@@ -3022,24 +3061,24 @@
             ]
            },
            {
-            "id": "I2:331;2:355",
+            "id": "I2:336;2:360",
             "name": "Mateu/Display/MetricCard",
             "type": "INSTANCE",
-            "componentId": "2:348",
+            "componentId": "2:353",
             "componentProperties": {
-             "actionId#2:338": {
+             "actionId#2:343": {
               "type": "TEXT",
               "value": "actionId"
              },
-             "title#2:339": {
+             "title#2:344": {
               "type": "TEXT",
               "value": "New members"
              },
-             "value#2:340": {
+             "value#2:345": {
               "type": "TEXT",
               "value": "215"
              },
-             "trendLabel#2:341": {
+             "trendLabel#2:346": {
               "type": "TEXT",
               "value": "-2%"
              }
@@ -3047,44 +3086,44 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:331;2:355;2:357",
+              "id": "I2:336;2:360;2:362",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:339"
+               "characters": "title#2:344"
               },
               "characters": "New members"
              },
              {
-              "id": "I2:331;2:355;2:358",
+              "id": "I2:336;2:360;2:363",
               "name": "Value",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "value#2:340"
+               "characters": "value#2:345"
               },
               "characters": "215"
              },
              {
-              "id": "I2:331;2:355;2:359",
+              "id": "I2:336;2:360;2:364",
               "name": "Trend",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "trendLabel#2:341"
+               "characters": "trendLabel#2:346"
               },
               "characters": "-2%"
              },
              {
-              "id": "I2:331;2:355;2:360",
+              "id": "I2:336;2:360;2:365",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:331;2:355;2:356",
+                "id": "I2:336;2:360;2:361",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "actionId#2:338"
+                 "characters": "actionId#2:343"
                 },
                 "characters": "actionId"
                }
@@ -3095,48 +3134,48 @@
           ]
          },
          {
-          "id": "I2:331;2:362",
+          "id": "I2:336;2:367",
           "name": "slot:content",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:content#2:330"
+           "slotContentId": "slot:content#2:335"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:331;2:397",
+            "id": "I2:336;2:402",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "DashboardPanel instances"
            },
            {
-            "id": "I2:331;2:368",
+            "id": "I2:336;2:373",
             "name": "Mateu/Layout/DashboardPanel",
             "type": "INSTANCE",
-            "componentId": "2:382",
+            "componentId": "2:387",
             "componentProperties": {
-             "colSpan#2:363": {
+             "colSpan#2:368": {
               "type": "TEXT",
               "value": "colSpan"
              },
-             "rowSpan#2:364": {
+             "rowSpan#2:369": {
               "type": "TEXT",
               "value": "rowSpan"
              },
-             "title#2:365": {
+             "title#2:370": {
               "type": "TEXT",
               "value": "Most viewed"
              },
-             "subtitle#2:366": {
+             "subtitle#2:371": {
               "type": "TEXT",
               "value": "Top three works"
              },
-             "slot:content#2:367": {
+             "slot:content#2:372": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 373
+                "localID": 378
                }
               },
               "preferredValues": []
@@ -3145,58 +3184,58 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:331;2:368;2:371",
+              "id": "I2:336;2:373;2:376",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:365"
+               "characters": "title#2:370"
               },
               "characters": "Most viewed"
              },
              {
-              "id": "I2:331;2:368;2:372",
+              "id": "I2:336;2:373;2:377",
               "name": "Subtitle",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "subtitle#2:366"
+               "characters": "subtitle#2:371"
               },
               "characters": "Top three works"
              },
              {
-              "id": "I2:331;2:368;2:373",
+              "id": "I2:336;2:373;2:378",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:367"
+               "slotContentId": "slot:content#2:372"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:331;2:368;2:380",
+                "id": "I2:336;2:373;2:385",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:331;2:368;2:374",
+                "id": "I2:336;2:373;2:379",
                 "name": "Mateu/Display/Text",
                 "type": "INSTANCE",
-                "componentId": "2:249",
+                "componentId": "2:254",
                 "componentProperties": {
                  "size": {
                   "value": "m",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "noMargins#2:240": {
+                 "noMargins#2:245": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "container#2:241": {
+                 "container#2:246": {
                   "type": "TEXT",
                   "value": "container"
                  },
-                 "text#2:242": {
+                 "text#2:247": {
                   "type": "TEXT",
                   "value": "The Starry Night, The Kiss, Las Meninas"
                  }
@@ -3204,43 +3243,43 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:331;2:368;2:374;2:377",
+                  "id": "I2:336;2:373;2:379;2:382",
                   "name": "Text",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "text#2:242"
+                   "characters": "text#2:247"
                   },
                   "characters": "The Starry Night, The Kiss, Las Meninas"
                  },
                  {
-                  "id": "I2:331;2:368;2:374;2:378",
+                  "id": "I2:336;2:373;2:379;2:383",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:331;2:368;2:374;2:376",
+                    "id": "I2:336;2:373;2:379;2:381",
                     "name": "#prop:container",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "container#2:241"
+                     "characters": "container#2:246"
                     },
                     "characters": "container"
                    }
                   ]
                  },
                  {
-                  "id": "I2:331;2:368;2:374;2:379",
+                  "id": "I2:336;2:373;2:379;2:384",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:331;2:368;2:374;2:375",
+                    "id": "I2:336;2:373;2:379;2:380",
                     "name": "#flag:noMargins",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "noMargins#2:240"
+                     "visible": "noMargins#2:245"
                     },
                     "characters": "noMargins",
                     "visible": false
@@ -3252,26 +3291,26 @@
               ]
              },
              {
-              "id": "I2:331;2:368;2:381",
+              "id": "I2:336;2:373;2:386",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:331;2:368;2:369",
+                "id": "I2:336;2:373;2:374",
                 "name": "#prop:colSpan",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "colSpan#2:363"
+                 "characters": "colSpan#2:368"
                 },
                 "characters": "colSpan"
                },
                {
-                "id": "I2:331;2:368;2:370",
+                "id": "I2:336;2:373;2:375",
                 "name": "#prop:rowSpan",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "rowSpan#2:364"
+                 "characters": "rowSpan#2:369"
                 },
                 "characters": "rowSpan"
                }
@@ -3280,33 +3319,33 @@
             ]
            },
            {
-            "id": "I2:331;2:383",
+            "id": "I2:336;2:388",
             "name": "Mateu/Layout/DashboardPanel",
             "type": "INSTANCE",
-            "componentId": "2:382",
+            "componentId": "2:387",
             "componentProperties": {
-             "colSpan#2:363": {
+             "colSpan#2:368": {
               "type": "TEXT",
               "value": "colSpan"
              },
-             "rowSpan#2:364": {
+             "rowSpan#2:369": {
               "type": "TEXT",
               "value": "rowSpan"
              },
-             "title#2:365": {
+             "title#2:370": {
               "type": "TEXT",
               "value": "Notes"
              },
-             "subtitle#2:366": {
+             "subtitle#2:371": {
               "type": "TEXT",
               "value": "Subtitle"
              },
-             "slot:content#2:367": {
+             "slot:content#2:372": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 388
+                "localID": 393
                }
               },
               "preferredValues": []
@@ -3315,58 +3354,58 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:331;2:383;2:386",
+              "id": "I2:336;2:388;2:391",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:365"
+               "characters": "title#2:370"
               },
               "characters": "Notes"
              },
              {
-              "id": "I2:331;2:383;2:387",
+              "id": "I2:336;2:388;2:392",
               "name": "Subtitle",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "subtitle#2:366"
+               "characters": "subtitle#2:371"
               },
               "characters": "Subtitle"
              },
              {
-              "id": "I2:331;2:383;2:388",
+              "id": "I2:336;2:388;2:393",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:367"
+               "slotContentId": "slot:content#2:372"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:331;2:383;2:395",
+                "id": "I2:336;2:388;2:400",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:331;2:383;2:389",
+                "id": "I2:336;2:388;2:394",
                 "name": "Mateu/Display/Text",
                 "type": "INSTANCE",
-                "componentId": "2:249",
+                "componentId": "2:254",
                 "componentProperties": {
                  "size": {
                   "value": "m",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "noMargins#2:240": {
+                 "noMargins#2:245": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "container#2:241": {
+                 "container#2:246": {
                   "type": "TEXT",
                   "value": "container"
                  },
-                 "text#2:242": {
+                 "text#2:247": {
                   "type": "TEXT",
                   "value": "The east wing reopens on Monday."
                  }
@@ -3374,43 +3413,43 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:331;2:383;2:389;2:392",
+                  "id": "I2:336;2:388;2:394;2:397",
                   "name": "Text",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "text#2:242"
+                   "characters": "text#2:247"
                   },
                   "characters": "The east wing reopens on Monday."
                  },
                  {
-                  "id": "I2:331;2:383;2:389;2:393",
+                  "id": "I2:336;2:388;2:394;2:398",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:331;2:383;2:389;2:391",
+                    "id": "I2:336;2:388;2:394;2:396",
                     "name": "#prop:container",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "container#2:241"
+                     "characters": "container#2:246"
                     },
                     "characters": "container"
                    }
                   ]
                  },
                  {
-                  "id": "I2:331;2:383;2:389;2:394",
+                  "id": "I2:336;2:388;2:394;2:399",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:331;2:383;2:389;2:390",
+                    "id": "I2:336;2:388;2:394;2:395",
                     "name": "#flag:noMargins",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "noMargins#2:240"
+                     "visible": "noMargins#2:245"
                     },
                     "characters": "noMargins",
                     "visible": false
@@ -3422,26 +3461,26 @@
               ]
              },
              {
-              "id": "I2:331;2:383;2:396",
+              "id": "I2:336;2:388;2:401",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:331;2:383;2:384",
+                "id": "I2:336;2:388;2:389",
                 "name": "#prop:colSpan",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "colSpan#2:363"
+                 "characters": "colSpan#2:368"
                 },
                 "characters": "colSpan"
                },
                {
-                "id": "I2:331;2:383;2:385",
+                "id": "I2:336;2:388;2:390",
                 "name": "#prop:rowSpan",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "rowSpan#2:364"
+                 "characters": "rowSpan#2:369"
                 },
                 "characters": "rowSpan"
                }
@@ -3456,51 +3495,51 @@
       ]
      },
      {
-      "id": "2:399",
+      "id": "2:404",
       "name": "_onboarding — about",
       "type": "TEXT",
       "characters": "onboarding: A Guided process page with three steps"
      },
      {
-      "id": "2:400",
+      "id": "2:405",
       "name": "onboarding",
       "type": "FRAME",
       "layoutMode": "VERTICAL",
       "children": [
        {
-        "id": "2:406",
+        "id": "2:411",
         "name": "Mateu/Page Templates/GuidedProcessPage",
         "type": "INSTANCE",
-        "componentId": "2:475",
+        "componentId": "2:482",
         "componentProperties": {
-         "overline#2:401": {
+         "overline#2:406": {
           "type": "TEXT",
           "value": "Overline"
          },
-         "title#2:402": {
+         "title#2:407": {
           "type": "TEXT",
           "value": "Join the gallery"
          },
-         "subtitle#2:403": {
+         "subtitle#2:408": {
           "type": "TEXT",
           "value": "Three short steps"
          },
-         "slot:toolbar#2:404": {
+         "slot:toolbar#2:409": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 410
+            "localID": 415
            }
           },
           "preferredValues": []
          },
-         "slot:steps#2:405": {
+         "slot:steps#2:410": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 417
+            "localID": 422
            }
           },
           "preferredValues": []
@@ -3509,49 +3548,49 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:406;2:407",
+          "id": "I2:411;2:412",
           "name": "Overline",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "overline#2:401"
+           "characters": "overline#2:406"
           },
           "characters": "Overline"
          },
          {
-          "id": "I2:406;2:408",
+          "id": "I2:411;2:413",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "title#2:402"
+           "characters": "title#2:407"
           },
           "characters": "Join the gallery"
          },
          {
-          "id": "I2:406;2:409",
+          "id": "I2:411;2:414",
           "name": "Subtitle",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "subtitle#2:403"
+           "characters": "subtitle#2:408"
           },
           "characters": "Three short steps"
          },
          {
-          "id": "I2:406;2:410",
+          "id": "I2:411;2:415",
           "name": "slot:toolbar",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:toolbar#2:404"
+           "slotContentId": "slot:toolbar#2:409"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:406;2:416",
+            "id": "I2:411;2:421",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Button instances (the primary first)"
            },
            {
-            "id": "I2:406;2:411",
+            "id": "I2:411;2:416",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:19",
@@ -3582,7 +3621,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:406;2:411;2:414",
+              "id": "I2:411;2:416;2:419",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -3591,13 +3630,13 @@
               "characters": "Finish"
              },
              {
-              "id": "I2:406;2:411;2:415",
+              "id": "I2:411;2:416;2:420",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:406;2:411;2:412",
+                "id": "I2:411;2:416;2:417",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -3606,7 +3645,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:406;2:411;2:413",
+                "id": "I2:411;2:416;2:418",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -3621,44 +3660,44 @@
           ]
          },
          {
-          "id": "I2:406;2:417",
+          "id": "I2:411;2:422",
           "name": "slot:steps",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:steps#2:405"
+           "slotContentId": "slot:steps#2:410"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:406;2:474",
+            "id": "I2:411;2:481",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "GuidedProcessStep instances"
            },
            {
-            "id": "I2:406;2:422",
+            "id": "I2:411;2:427",
             "name": "Mateu/Page Templates/GuidedProcessStep",
             "type": "INSTANCE",
-            "componentId": "2:445",
+            "componentId": "2:452",
             "componentProperties": {
-             "id#2:418": {
+             "id#2:423": {
               "type": "TEXT",
               "value": "account"
              },
-             "title#2:419": {
+             "title#2:424": {
               "type": "TEXT",
               "value": "Account"
              },
-             "description#2:420": {
+             "description#2:425": {
               "type": "TEXT",
               "value": "Who you are"
              },
-             "slot:content#2:421": {
+             "slot:content#2:426": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 426
+                "localID": 431
                }
               },
               "preferredValues": []
@@ -3667,43 +3706,43 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:406;2:422;2:424",
+              "id": "I2:411;2:427;2:429",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:419"
+               "characters": "title#2:424"
               },
               "characters": "Account"
              },
              {
-              "id": "I2:406;2:422;2:425",
+              "id": "I2:411;2:427;2:430",
               "name": "Description",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "description#2:420"
+               "characters": "description#2:425"
               },
               "characters": "Who you are"
              },
              {
-              "id": "I2:406;2:422;2:426",
+              "id": "I2:411;2:427;2:431",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:421"
+               "slotContentId": "slot:content#2:426"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:406;2:422;2:443",
+                "id": "I2:411;2:427;2:450",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:406;2:422;2:427",
+                "id": "I2:411;2:427;2:432",
                 "name": "Mateu/Field/TextField",
                 "type": "INSTANCE",
-                "componentId": "2:51",
+                "componentId": "2:53",
                 "componentProperties": {
                  "fieldId#2:38": {
                   "type": "TEXT",
@@ -3717,11 +3756,15 @@
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "label#2:41": {
+                 "stereotype#2:41": {
+                  "type": "TEXT",
+                  "value": "stereotype"
+                 },
+                 "label#2:42": {
                   "type": "TEXT",
                   "value": "Full name"
                  },
-                 "placeholder#2:42": {
+                 "placeholder#2:43": {
                   "type": "TEXT",
                   "value": "Value"
                  }
@@ -3729,48 +3772,57 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:406;2:422;2:427;2:431",
+                  "id": "I2:411;2:427;2:432;2:437",
                   "name": "Label",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "label#2:41"
+                   "characters": "label#2:42"
                   },
                   "characters": "Full name"
                  },
                  {
-                  "id": "I2:406;2:422;2:427;2:432",
+                  "id": "I2:411;2:427;2:432;2:438",
                   "name": "Value",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "placeholder#2:42"
+                   "characters": "placeholder#2:43"
                   },
                   "characters": "Value"
                  },
                  {
-                  "id": "I2:406;2:422;2:427;2:433",
+                  "id": "I2:411;2:427;2:432;2:439",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:422;2:427;2:428",
+                    "id": "I2:411;2:427;2:432;2:433",
                     "name": "#prop:fieldId",
                     "type": "TEXT",
                     "componentPropertyReferences": {
                      "characters": "fieldId#2:38"
                     },
                     "characters": "fullName"
+                   },
+                   {
+                    "id": "I2:411;2:427;2:432;2:436",
+                    "name": "#prop:stereotype",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "stereotype#2:41"
+                    },
+                    "characters": "stereotype"
                    }
                   ]
                  },
                  {
-                  "id": "I2:406;2:422;2:427;2:434",
+                  "id": "I2:411;2:427;2:432;2:440",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:422;2:427;2:429",
+                    "id": "I2:411;2:427;2:432;2:434",
                     "name": "#flag:required",
                     "type": "TEXT",
                     "componentPropertyReferences": {
@@ -3780,7 +3832,7 @@
                     "visible": false
                    },
                    {
-                    "id": "I2:406;2:422;2:427;2:430",
+                    "id": "I2:411;2:427;2:432;2:435",
                     "name": "#flag:readOnly",
                     "type": "TEXT",
                     "componentPropertyReferences": {
@@ -3794,10 +3846,10 @@
                 ]
                },
                {
-                "id": "I2:406;2:422;2:435",
+                "id": "I2:411;2:427;2:441",
                 "name": "Mateu/Field/TextField",
                 "type": "INSTANCE",
-                "componentId": "2:51",
+                "componentId": "2:53",
                 "componentProperties": {
                  "fieldId#2:38": {
                   "type": "TEXT",
@@ -3811,11 +3863,15 @@
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "label#2:41": {
+                 "stereotype#2:41": {
+                  "type": "TEXT",
+                  "value": "stereotype"
+                 },
+                 "label#2:42": {
                   "type": "TEXT",
                   "value": "Email"
                  },
-                 "placeholder#2:42": {
+                 "placeholder#2:43": {
                   "type": "TEXT",
                   "value": "Value"
                  }
@@ -3823,48 +3879,57 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:406;2:422;2:435;2:439",
+                  "id": "I2:411;2:427;2:441;2:446",
                   "name": "Label",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "label#2:41"
+                   "characters": "label#2:42"
                   },
                   "characters": "Email"
                  },
                  {
-                  "id": "I2:406;2:422;2:435;2:440",
+                  "id": "I2:411;2:427;2:441;2:447",
                   "name": "Value",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "placeholder#2:42"
+                   "characters": "placeholder#2:43"
                   },
                   "characters": "Value"
                  },
                  {
-                  "id": "I2:406;2:422;2:435;2:441",
+                  "id": "I2:411;2:427;2:441;2:448",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:422;2:435;2:436",
+                    "id": "I2:411;2:427;2:441;2:442",
                     "name": "#prop:fieldId",
                     "type": "TEXT",
                     "componentPropertyReferences": {
                      "characters": "fieldId#2:38"
                     },
                     "characters": "memberEmail"
+                   },
+                   {
+                    "id": "I2:411;2:427;2:441;2:445",
+                    "name": "#prop:stereotype",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "stereotype#2:41"
+                    },
+                    "characters": "stereotype"
                    }
                   ]
                  },
                  {
-                  "id": "I2:406;2:422;2:435;2:442",
+                  "id": "I2:411;2:427;2:441;2:449",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:422;2:435;2:437",
+                    "id": "I2:411;2:427;2:441;2:443",
                     "name": "#flag:required",
                     "type": "TEXT",
                     "componentPropertyReferences": {
@@ -3874,7 +3939,7 @@
                     "visible": false
                    },
                    {
-                    "id": "I2:406;2:422;2:435;2:438",
+                    "id": "I2:411;2:427;2:441;2:444",
                     "name": "#flag:readOnly",
                     "type": "TEXT",
                     "componentPropertyReferences": {
@@ -3890,17 +3955,17 @@
               ]
              },
              {
-              "id": "I2:406;2:422;2:444",
+              "id": "I2:411;2:427;2:451",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:406;2:422;2:423",
+                "id": "I2:411;2:427;2:428",
                 "name": "#prop:id",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "id#2:418"
+                 "characters": "id#2:423"
                 },
                 "characters": "account"
                }
@@ -3909,29 +3974,29 @@
             ]
            },
            {
-            "id": "I2:406;2:446",
+            "id": "I2:411;2:453",
             "name": "Mateu/Page Templates/GuidedProcessStep",
             "type": "INSTANCE",
-            "componentId": "2:445",
+            "componentId": "2:452",
             "componentProperties": {
-             "id#2:418": {
+             "id#2:423": {
               "type": "TEXT",
               "value": "preferences"
              },
-             "title#2:419": {
+             "title#2:424": {
               "type": "TEXT",
               "value": "Preferences"
              },
-             "description#2:420": {
+             "description#2:425": {
               "type": "TEXT",
               "value": "What you like"
              },
-             "slot:content#2:421": {
+             "slot:content#2:426": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 450
+                "localID": 457
                }
               },
               "preferredValues": []
@@ -3940,62 +4005,62 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:406;2:446;2:448",
+              "id": "I2:411;2:453;2:455",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:419"
+               "characters": "title#2:424"
               },
               "characters": "Preferences"
              },
              {
-              "id": "I2:406;2:446;2:449",
+              "id": "I2:411;2:453;2:456",
               "name": "Description",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "description#2:420"
+               "characters": "description#2:425"
               },
               "characters": "What you like"
              },
              {
-              "id": "I2:406;2:446;2:450",
+              "id": "I2:411;2:453;2:457",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:421"
+               "slotContentId": "slot:content#2:426"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:406;2:446;2:459",
+                "id": "I2:411;2:453;2:466",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:406;2:446;2:451",
+                "id": "I2:411;2:453;2:458",
                 "name": "Mateu/Field/Checkbox",
                 "type": "INSTANCE",
-                "componentId": "2:458",
+                "componentId": "2:465",
                 "componentProperties": {
                  "stereotype": {
                   "value": "toggle",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "fieldId#2:114": {
+                 "fieldId#2:119": {
                   "type": "TEXT",
                   "value": "guidedTours"
                  },
-                 "required#2:115": {
+                 "required#2:120": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "readOnly#2:116": {
+                 "readOnly#2:121": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "label#2:117": {
+                 "label#2:122": {
                   "type": "TEXT",
                   "value": "Guided tours"
                  }
@@ -4003,53 +4068,53 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:406;2:446;2:451;2:455",
+                  "id": "I2:411;2:453;2:458;2:462",
                   "name": "Label",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "label#2:117"
+                   "characters": "label#2:122"
                   },
                   "characters": "Guided tours"
                  },
                  {
-                  "id": "I2:406;2:446;2:451;2:456",
+                  "id": "I2:411;2:453;2:458;2:463",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:446;2:451;2:452",
+                    "id": "I2:411;2:453;2:458;2:459",
                     "name": "#prop:fieldId",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "fieldId#2:114"
+                     "characters": "fieldId#2:119"
                     },
                     "characters": "guidedTours"
                    }
                   ]
                  },
                  {
-                  "id": "I2:406;2:446;2:451;2:457",
+                  "id": "I2:411;2:453;2:458;2:464",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:446;2:451;2:453",
+                    "id": "I2:411;2:453;2:458;2:460",
                     "name": "#flag:required",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "required#2:115"
+                     "visible": "required#2:120"
                     },
                     "characters": "required",
                     "visible": false
                    },
                    {
-                    "id": "I2:406;2:446;2:451;2:454",
+                    "id": "I2:411;2:453;2:458;2:461",
                     "name": "#flag:readOnly",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "readOnly#2:116"
+                     "visible": "readOnly#2:121"
                     },
                     "characters": "readOnly",
                     "visible": false
@@ -4061,17 +4126,17 @@
               ]
              },
              {
-              "id": "I2:406;2:446;2:460",
+              "id": "I2:411;2:453;2:467",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:406;2:446;2:447",
+                "id": "I2:411;2:453;2:454",
                 "name": "#prop:id",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "id#2:418"
+                 "characters": "id#2:423"
                 },
                 "characters": "preferences"
                }
@@ -4080,29 +4145,29 @@
             ]
            },
            {
-            "id": "I2:406;2:461",
+            "id": "I2:411;2:468",
             "name": "Mateu/Page Templates/GuidedProcessStep",
             "type": "INSTANCE",
-            "componentId": "2:445",
+            "componentId": "2:452",
             "componentProperties": {
-             "id#2:418": {
+             "id#2:423": {
               "type": "TEXT",
               "value": "confirm"
              },
-             "title#2:419": {
+             "title#2:424": {
               "type": "TEXT",
               "value": "Confirm"
              },
-             "description#2:420": {
+             "description#2:425": {
               "type": "TEXT",
               "value": "All set"
              },
-             "slot:content#2:421": {
+             "slot:content#2:426": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 465
+                "localID": 472
                }
               },
               "preferredValues": []
@@ -4111,58 +4176,58 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:406;2:461;2:463",
+              "id": "I2:411;2:468;2:470",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:419"
+               "characters": "title#2:424"
               },
               "characters": "Confirm"
              },
              {
-              "id": "I2:406;2:461;2:464",
+              "id": "I2:411;2:468;2:471",
               "name": "Description",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "description#2:420"
+               "characters": "description#2:425"
               },
               "characters": "All set"
              },
              {
-              "id": "I2:406;2:461;2:465",
+              "id": "I2:411;2:468;2:472",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:421"
+               "slotContentId": "slot:content#2:426"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:406;2:461;2:472",
+                "id": "I2:411;2:468;2:479",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:406;2:461;2:466",
+                "id": "I2:411;2:468;2:473",
                 "name": "Mateu/Display/Text",
                 "type": "INSTANCE",
-                "componentId": "2:249",
+                "componentId": "2:254",
                 "componentProperties": {
                  "size": {
                   "value": "m",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "noMargins#2:240": {
+                 "noMargins#2:245": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "container#2:241": {
+                 "container#2:246": {
                   "type": "TEXT",
                   "value": "container"
                  },
-                 "text#2:242": {
+                 "text#2:247": {
                   "type": "TEXT",
                   "value": "Press Finish to become a member."
                  }
@@ -4170,43 +4235,43 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:406;2:461;2:466;2:469",
+                  "id": "I2:411;2:468;2:473;2:476",
                   "name": "Text",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "text#2:242"
+                   "characters": "text#2:247"
                   },
                   "characters": "Press Finish to become a member."
                  },
                  {
-                  "id": "I2:406;2:461;2:466;2:470",
+                  "id": "I2:411;2:468;2:473;2:477",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:461;2:466;2:468",
+                    "id": "I2:411;2:468;2:473;2:475",
                     "name": "#prop:container",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "container#2:241"
+                     "characters": "container#2:246"
                     },
                     "characters": "container"
                    }
                   ]
                  },
                  {
-                  "id": "I2:406;2:461;2:466;2:471",
+                  "id": "I2:411;2:468;2:473;2:478",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:406;2:461;2:466;2:467",
+                    "id": "I2:411;2:468;2:473;2:474",
                     "name": "#flag:noMargins",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "noMargins#2:240"
+                     "visible": "noMargins#2:245"
                     },
                     "characters": "noMargins",
                     "visible": false
@@ -4218,17 +4283,17 @@
               ]
              },
              {
-              "id": "I2:406;2:461;2:473",
+              "id": "I2:411;2:468;2:480",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:406;2:461;2:462",
+                "id": "I2:411;2:468;2:469",
                 "name": "#prop:id",
                 "type": "TEXT",
                 "componentPropertyReferences": {
-                 "characters": "id#2:418"
+                 "characters": "id#2:423"
                 },
                 "characters": "confirm"
                }
@@ -4243,56 +4308,56 @@
       ]
      },
      {
-      "id": "2:476",
+      "id": "2:483",
       "name": "_welcome — about",
       "type": "TEXT",
       "characters": "welcome: A Welcome page: a banner with three calls to action over two tiles"
      },
      {
-      "id": "2:477",
+      "id": "2:484",
       "name": "welcome",
       "type": "FRAME",
       "layoutMode": "VERTICAL",
       "children": [
        {
-        "id": "2:484",
+        "id": "2:491",
         "name": "Mateu/Page Templates/WelcomePage",
         "type": "INSTANCE",
-        "componentId": "2:530",
+        "componentId": "2:537",
         "componentProperties": {
          "backgroundColor": {
           "value": "dark-ocean",
           "type": "VARIANT",
           "boundVariables": {}
          },
-         "overline#2:479": {
+         "overline#2:486": {
           "type": "TEXT",
           "value": "Mateu gallery"
          },
-         "title#2:480": {
+         "title#2:487": {
           "type": "TEXT",
           "value": "Welcome to the gallery"
          },
-         "subtitle#2:481": {
+         "subtitle#2:488": {
           "type": "TEXT",
           "value": "Browse the collection, check the numbers, or become a member."
          },
-         "slot:toolbar#2:482": {
+         "slot:toolbar#2:489": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 488
+            "localID": 495
            }
           },
           "preferredValues": []
          },
-         "slot:content#2:483": {
+         "slot:content#2:490": {
           "type": "SLOT",
           "value": {
            "guid": {
             "sessionID": 1,
-            "localID": 505
+            "localID": 512
            }
           },
           "preferredValues": []
@@ -4301,49 +4366,49 @@
         "layoutMode": "VERTICAL",
         "children": [
          {
-          "id": "I2:484;2:485",
+          "id": "I2:491;2:492",
           "name": "Overline",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "overline#2:479"
+           "characters": "overline#2:486"
           },
           "characters": "Mateu gallery"
          },
          {
-          "id": "I2:484;2:486",
+          "id": "I2:491;2:493",
           "name": "Title",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "title#2:480"
+           "characters": "title#2:487"
           },
           "characters": "Welcome to the gallery"
          },
          {
-          "id": "I2:484;2:487",
+          "id": "I2:491;2:494",
           "name": "Subtitle",
           "type": "TEXT",
           "componentPropertyReferences": {
-           "characters": "subtitle#2:481"
+           "characters": "subtitle#2:488"
           },
           "characters": "Browse the collection, check the numbers, or become a member."
          },
          {
-          "id": "I2:484;2:488",
+          "id": "I2:491;2:495",
           "name": "slot:toolbar",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:toolbar#2:482"
+           "slotContentId": "slot:toolbar#2:489"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:484;2:504",
+            "id": "I2:491;2:511",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "Button instances (the primary first)"
            },
            {
-            "id": "I2:484;2:489",
+            "id": "I2:491;2:496",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:19",
@@ -4374,7 +4439,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:484;2:489;2:492",
+              "id": "I2:491;2:496;2:499",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -4383,13 +4448,13 @@
               "characters": "Browse artworks"
              },
              {
-              "id": "I2:484;2:489;2:493",
+              "id": "I2:491;2:496;2:500",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:484;2:489;2:490",
+                "id": "I2:491;2:496;2:497",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4398,7 +4463,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:484;2:489;2:491",
+                "id": "I2:491;2:496;2:498",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4411,7 +4476,7 @@
             ]
            },
            {
-            "id": "I2:484;2:494",
+            "id": "I2:491;2:501",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:25",
@@ -4442,7 +4507,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:484;2:494;2:497",
+              "id": "I2:491;2:501;2:504",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -4451,13 +4516,13 @@
               "characters": "Dashboard"
              },
              {
-              "id": "I2:484;2:494;2:498",
+              "id": "I2:491;2:501;2:505",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:484;2:494;2:495",
+                "id": "I2:491;2:501;2:502",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4466,7 +4531,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:484;2:494;2:496",
+                "id": "I2:491;2:501;2:503",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4479,7 +4544,7 @@
             ]
            },
            {
-            "id": "I2:484;2:499",
+            "id": "I2:491;2:506",
             "name": "Mateu/Actions/Button",
             "type": "INSTANCE",
             "componentId": "2:25",
@@ -4510,7 +4575,7 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:484;2:499;2:502",
+              "id": "I2:491;2:506;2:509",
               "name": "Label",
               "type": "TEXT",
               "componentPropertyReferences": {
@@ -4519,13 +4584,13 @@
               "characters": "Become a member"
              },
              {
-              "id": "I2:484;2:499;2:503",
+              "id": "I2:491;2:506;2:510",
               "name": "#props",
               "type": "FRAME",
               "layoutMode": "HORIZONTAL",
               "children": [
                {
-                "id": "I2:484;2:499;2:500",
+                "id": "I2:491;2:506;2:507",
                 "name": "#prop:actionId",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4534,7 +4599,7 @@
                 "characters": "actionId"
                },
                {
-                "id": "I2:484;2:499;2:501",
+                "id": "I2:491;2:506;2:508",
                 "name": "#prop:route",
                 "type": "TEXT",
                 "componentPropertyReferences": {
@@ -4549,36 +4614,36 @@
           ]
          },
          {
-          "id": "I2:484;2:505",
+          "id": "I2:491;2:512",
           "name": "slot:content",
           "type": "SLOT",
           "componentPropertyReferences": {
-           "slotContentId": "slot:content#2:483"
+           "slotContentId": "slot:content#2:490"
           },
           "layoutMode": "VERTICAL",
           "children": [
            {
-            "id": "I2:484;2:529",
+            "id": "I2:491;2:536",
             "name": "#placeholder",
             "type": "TEXT",
             "characters": "tiles"
            },
            {
-            "id": "I2:484;2:508",
+            "id": "I2:491;2:515",
             "name": "Mateu/Layout/Card",
             "type": "INSTANCE",
-            "componentId": "2:518",
+            "componentId": "2:525",
             "componentProperties": {
-             "title#2:506": {
+             "title#2:513": {
               "type": "TEXT",
               "value": "Opening hours"
              },
-             "slot:content#2:507": {
+             "slot:content#2:514": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 510
+                "localID": 517
                }
               },
               "preferredValues": []
@@ -4587,49 +4652,49 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:484;2:508;2:509",
+              "id": "I2:491;2:515;2:516",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:506"
+               "characters": "title#2:513"
               },
               "characters": "Opening hours"
              },
              {
-              "id": "I2:484;2:508;2:510",
+              "id": "I2:491;2:515;2:517",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:507"
+               "slotContentId": "slot:content#2:514"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:484;2:508;2:517",
+                "id": "I2:491;2:515;2:524",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:484;2:508;2:511",
+                "id": "I2:491;2:515;2:518",
                 "name": "Mateu/Display/Text",
                 "type": "INSTANCE",
-                "componentId": "2:249",
+                "componentId": "2:254",
                 "componentProperties": {
                  "size": {
                   "value": "m",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "noMargins#2:240": {
+                 "noMargins#2:245": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "container#2:241": {
+                 "container#2:246": {
                   "type": "TEXT",
                   "value": "container"
                  },
-                 "text#2:242": {
+                 "text#2:247": {
                   "type": "TEXT",
                   "value": "Tuesday to Sunday, 10:00 to 18:00."
                  }
@@ -4637,43 +4702,43 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:484;2:508;2:511;2:514",
+                  "id": "I2:491;2:515;2:518;2:521",
                   "name": "Text",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "text#2:242"
+                   "characters": "text#2:247"
                   },
                   "characters": "Tuesday to Sunday, 10:00 to 18:00."
                  },
                  {
-                  "id": "I2:484;2:508;2:511;2:515",
+                  "id": "I2:491;2:515;2:518;2:522",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:484;2:508;2:511;2:513",
+                    "id": "I2:491;2:515;2:518;2:520",
                     "name": "#prop:container",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "container#2:241"
+                     "characters": "container#2:246"
                     },
                     "characters": "container"
                    }
                   ]
                  },
                  {
-                  "id": "I2:484;2:508;2:511;2:516",
+                  "id": "I2:491;2:515;2:518;2:523",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:484;2:508;2:511;2:512",
+                    "id": "I2:491;2:515;2:518;2:519",
                     "name": "#flag:noMargins",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "noMargins#2:240"
+                     "visible": "noMargins#2:245"
                     },
                     "characters": "noMargins",
                     "visible": false
@@ -4687,21 +4752,21 @@
             ]
            },
            {
-            "id": "I2:484;2:519",
+            "id": "I2:491;2:526",
             "name": "Mateu/Layout/Card",
             "type": "INSTANCE",
-            "componentId": "2:518",
+            "componentId": "2:525",
             "componentProperties": {
-             "title#2:506": {
+             "title#2:513": {
               "type": "TEXT",
               "value": "Find us"
              },
-             "slot:content#2:507": {
+             "slot:content#2:514": {
               "type": "SLOT",
               "value": {
                "guid": {
                 "sessionID": 1,
-                "localID": 521
+                "localID": 528
                }
               },
               "preferredValues": []
@@ -4710,49 +4775,49 @@
             "layoutMode": "VERTICAL",
             "children": [
              {
-              "id": "I2:484;2:519;2:520",
+              "id": "I2:491;2:526;2:527",
               "name": "Title",
               "type": "TEXT",
               "componentPropertyReferences": {
-               "characters": "title#2:506"
+               "characters": "title#2:513"
               },
               "characters": "Find us"
              },
              {
-              "id": "I2:484;2:519;2:521",
+              "id": "I2:491;2:526;2:528",
               "name": "slot:content",
               "type": "SLOT",
               "componentPropertyReferences": {
-               "slotContentId": "slot:content#2:507"
+               "slotContentId": "slot:content#2:514"
               },
               "layoutMode": "VERTICAL",
               "children": [
                {
-                "id": "I2:484;2:519;2:528",
+                "id": "I2:491;2:526;2:535",
                 "name": "#placeholder",
                 "type": "TEXT",
                 "characters": "Drop the content here"
                },
                {
-                "id": "I2:484;2:519;2:522",
+                "id": "I2:491;2:526;2:529",
                 "name": "Mateu/Display/Text",
                 "type": "INSTANCE",
-                "componentId": "2:249",
+                "componentId": "2:254",
                 "componentProperties": {
                  "size": {
                   "value": "m",
                   "type": "VARIANT",
                   "boundVariables": {}
                  },
-                 "noMargins#2:240": {
+                 "noMargins#2:245": {
                   "type": "BOOLEAN",
                   "value": false
                  },
-                 "container#2:241": {
+                 "container#2:246": {
                   "type": "TEXT",
                   "value": "container"
                  },
-                 "text#2:242": {
+                 "text#2:247": {
                   "type": "TEXT",
                   "value": "Paseo del Prado, Madrid."
                  }
@@ -4760,43 +4825,43 @@
                 "layoutMode": "VERTICAL",
                 "children": [
                  {
-                  "id": "I2:484;2:519;2:522;2:525",
+                  "id": "I2:491;2:526;2:529;2:532",
                   "name": "Text",
                   "type": "TEXT",
                   "componentPropertyReferences": {
-                   "characters": "text#2:242"
+                   "characters": "text#2:247"
                   },
                   "characters": "Paseo del Prado, Madrid."
                  },
                  {
-                  "id": "I2:484;2:519;2:522;2:526",
+                  "id": "I2:491;2:526;2:529;2:533",
                   "name": "#props",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:484;2:519;2:522;2:524",
+                    "id": "I2:491;2:526;2:529;2:531",
                     "name": "#prop:container",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "characters": "container#2:241"
+                     "characters": "container#2:246"
                     },
                     "characters": "container"
                    }
                   ]
                  },
                  {
-                  "id": "I2:484;2:519;2:522;2:527",
+                  "id": "I2:491;2:526;2:529;2:534",
                   "name": "#flags",
                   "type": "FRAME",
                   "layoutMode": "HORIZONTAL",
                   "children": [
                    {
-                    "id": "I2:484;2:519;2:522;2:523",
+                    "id": "I2:491;2:526;2:529;2:530",
                     "name": "#flag:noMargins",
                     "type": "TEXT",
                     "componentPropertyReferences": {
-                     "visible": "noMargins#2:240"
+                     "visible": "noMargins#2:245"
                     },
                     "characters": "noMargins",
                     "visible": false
@@ -4843,30 +4908,30 @@
    "remote": false,
    "documentationLinks": []
   },
-  "2:51": {
+  "2:53": {
    "key": "0bc94cf20bc94cf20bc94cf20bc94cf20bc94cf2",
    "name": "Mateu/Field/TextField",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:76": {
+  "2:81": {
    "key": "56bbc21e56bbc21e56bbc21e56bbc21e56bbc21e",
    "name": "stereotype=select",
    "description": "",
    "remote": false,
-   "componentSetId": "2:60",
+   "componentSetId": "2:63",
    "documentationLinks": []
   },
-  "2:89": {
+  "2:94": {
    "key": "9bf905709bf905709bf905709bf905709bf90570",
    "name": "dataType=date",
    "description": "",
    "remote": false,
-   "componentSetId": "2:77",
+   "componentSetId": "2:82",
    "documentationLinks": []
   },
-  "2:92": {
+  "2:97": {
    "key": "5754bea85754bea85754bea85754bea85754bea8",
    "name": "propertyList=false, frameless=false, sticky=false",
    "description": "",
@@ -4874,137 +4939,137 @@
    "componentSetId": "2:28",
    "documentationLinks": []
   },
-  "2:112": {
+  "2:117": {
    "key": "b5edd70bb5edd70bb5edd70bb5edd70bb5edd70b",
    "name": "dataType=money",
    "description": "",
    "remote": false,
-   "componentSetId": "2:98",
+   "componentSetId": "2:103",
    "documentationLinks": []
   },
-  "2:125": {
+  "2:130": {
    "key": "ebda32ecebda32ecebda32ecebda32ecebda32ec",
    "name": "stereotype=checkbox",
    "description": "",
    "remote": false,
-   "componentSetId": "2:113",
+   "componentSetId": "2:118",
    "documentationLinks": []
   },
-  "2:173": {
+  "2:178": {
    "key": "f4fb0faaf4fb0faaf4fb0faaf4fb0faaf4fb0faa",
    "name": "Mateu/Field/PropertyRow",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:220": {
+  "2:225": {
    "key": "1252732612527326125273261252732612527326",
    "name": "dataType=string",
    "description": "",
    "remote": false,
-   "componentSetId": "2:98",
+   "componentSetId": "2:103",
    "documentationLinks": []
   },
-  "2:232": {
+  "2:237": {
    "key": "f1243ab6f1243ab6f1243ab6f1243ab6f1243ab6",
    "name": "Mateu/Layout/Tab",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:249": {
+  "2:254": {
    "key": "4b6d57114b6d57114b6d57114b6d57114b6d5711",
    "name": "size=m",
    "description": "",
    "remote": false,
-   "componentSetId": "2:239",
+   "componentSetId": "2:244",
    "documentationLinks": []
   },
-  "2:254": {
+  "2:259": {
    "key": "33631c7d33631c7d33631c7d33631c7d33631c7d",
    "name": "Mateu/Layout/Tabs",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:257": {
+  "2:262": {
    "key": "16737afc16737afc16737afc16737afc16737afc",
    "name": "Mateu/Page Templates/ItemOverviewPage",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:291": {
+  "2:296": {
    "key": "3962f5e73962f5e73962f5e73962f5e73962f5e7",
    "name": "Mateu/Crud/GridColumn",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:322": {
+  "2:327": {
    "key": "c990c248c990c248c990c248c990c248c990c248",
    "name": "gridLayout=table",
    "description": "",
    "remote": false,
-   "componentSetId": "2:260",
+   "componentSetId": "2:265",
    "documentationLinks": []
   },
-  "2:348": {
+  "2:353": {
    "key": "f846ae13f846ae13f846ae13f846ae13f846ae13",
    "name": "Mateu/Display/MetricCard",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:382": {
+  "2:387": {
    "key": "b1d2a20fb1d2a20fb1d2a20fb1d2a20fb1d2a20f",
    "name": "Mateu/Layout/DashboardPanel",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:398": {
+  "2:403": {
    "key": "ef465e33ef465e33ef465e33ef465e33ef465e33",
    "name": "Mateu/Page Templates/DashboardLandingPage",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:445": {
+  "2:452": {
    "key": "aacb6f52aacb6f52aacb6f52aacb6f52aacb6f52",
    "name": "Mateu/Page Templates/GuidedProcessStep",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:458": {
+  "2:465": {
    "key": "787b88bd787b88bd787b88bd787b88bd787b88bd",
    "name": "stereotype=toggle",
    "description": "",
    "remote": false,
-   "componentSetId": "2:113",
+   "componentSetId": "2:118",
    "documentationLinks": []
   },
-  "2:475": {
+  "2:482": {
    "key": "aac9cb15aac9cb15aac9cb15aac9cb15aac9cb15",
    "name": "Mateu/Page Templates/GuidedProcessPage",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:518": {
+  "2:525": {
    "key": "335b640f335b640f335b640f335b640f335b640f",
    "name": "Mateu/Layout/Card",
    "description": "",
    "remote": false,
    "documentationLinks": []
   },
-  "2:530": {
+  "2:537": {
    "key": "fd0cfc3ffd0cfc3ffd0cfc3ffd0cfc3ffd0cfc3f",
    "name": "backgroundColor=dark-ocean",
    "description": "",
    "remote": false,
-   "componentSetId": "2:478",
+   "componentSetId": "2:485",
    "documentationLinks": []
   }
  },
@@ -5021,43 +5086,43 @@
    "description": "",
    "documentationLinks": []
   },
-  "2:60": {
+  "2:63": {
    "key": "6e92b2f56e92b2f56e92b2f56e92b2f56e92b2f5",
    "name": "Mateu/Field/Select",
    "description": "",
    "documentationLinks": []
   },
-  "2:77": {
+  "2:82": {
    "key": "794b97e7794b97e7794b97e7794b97e7794b97e7",
    "name": "Mateu/Field/Date",
    "description": "",
    "documentationLinks": []
   },
-  "2:98": {
+  "2:103": {
    "key": "5d5f317e5d5f317e5d5f317e5d5f317e5d5f317e",
    "name": "Mateu/Field/PlainText",
    "description": "",
    "documentationLinks": []
   },
-  "2:113": {
+  "2:118": {
    "key": "2946ff7c2946ff7c2946ff7c2946ff7c2946ff7c",
    "name": "Mateu/Field/Checkbox",
    "description": "",
    "documentationLinks": []
   },
-  "2:239": {
+  "2:244": {
    "key": "de1a999ede1a999ede1a999ede1a999ede1a999e",
    "name": "Mateu/Display/Text",
    "description": "",
    "documentationLinks": []
   },
-  "2:260": {
+  "2:265": {
    "key": "d8c5abb7d8c5abb7d8c5abb7d8c5abb7d8c5abb7",
    "name": "Mateu/Crud/Listing",
    "description": "",
    "documentationLinks": []
   },
-  "2:478": {
+  "2:485": {
    "key": "56cdfc4e56cdfc4e56cdfc4e56cdfc4e56cdfc4e",
    "name": "Mateu/Page Templates/WelcomePage",
    "description": "",

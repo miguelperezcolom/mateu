@@ -37,8 +37,12 @@ public record FormItemMetadataDto : ComponentMetadataDto;
 /// <summary>Mirrors FormSubSectionDto: the content travels as children.</summary>
 public record FormSubSectionMetadataDto(string? Title) : ComponentMetadataDto;
 
-/// <summary>Mirrors MasterDetailLayoutDto: master and detail travel as children.</summary>
-public record MasterDetailLayoutMetadataDto : ComponentMetadataDto;
+/// <summary>Mirrors MasterDetailLayoutDto: master and detail travel as children; the orientation
+/// (horizontal | vertical) says how they are laid out.</summary>
+public record MasterDetailLayoutMetadataDto : ComponentMetadataDto
+{
+    public string? Orientation { get; init; }
+}
 
 /// <summary>One entry of a menu component (the members Java's ContextMenuMapper/DirectoryMapper/
 /// MenuBarMapper set on io.mateu.dtos.MenuOptionDto).</summary>
@@ -53,6 +57,11 @@ public record MenuOptionDto(string? Label, string? Path)
     public object? ItemData { get; init; }
     public IReadOnlyList<MenuOptionDto> Submenus { get; init; } = [];
     public bool Separator { get; init; }
+
+    /// <summary>What picking a leaf does: navigate to Route, or run ActionId (Java's RouteLink.route /
+    /// MethodLink.methodName).</summary>
+    public string? Route { get; init; }
+    public string? ActionId { get; init; }
 }
 
 /// <summary>Mirrors ContextMenuDto.</summary>

@@ -30,7 +30,10 @@ internal static class MoreComponentMapper
         Scroller sc => Client(new ScrollerMetadataDto(), null, [Slot(sc.Content)], sc),
         FormItem fi => Client(new FormItemMetadataDto(), fi.Id, fi.Content.Select(Map), fi),
         FormSubSection fs => Client(new FormSubSectionMetadataDto(fs.Title), "fieldId", fs.Content.Select(Map), fs),
-        MasterDetailLayout md => Client(new MasterDetailLayoutMetadataDto(), md.Id,
+        MasterDetailLayout md => Client(new MasterDetailLayoutMetadataDto
+            {
+                Orientation = md.Orientation.ToString().ToLowerInvariant(),
+            }, md.Id,
             md.Detail is null ? [Map(md.Master)] : [Map(md.Master), Map(md.Detail)], md),
         ContextMenu cm => Client(new ContextMenuMetadataDto(Menu(cm.Menu),
                 cm.Wrapped is null ? null : Map(cm.Wrapped), cm.ActivateOnLeftClick),
@@ -122,7 +125,12 @@ internal static class MoreComponentMapper
             ItemData = o.ItemData,
             Submenus = Menu(o.Submenu),
             Separator = o.Separator,
+            // a leaf says what picking it does: an action, else where it goes (Java's buildMenu)
+            ActionId = IsLeaf(o) ? o.ActionId : null,
+            Route = IsLeaf(o) && o.ActionId is null ? o.Path : null,
         }).ToList();
+
+    private static bool IsLeaf(MenuOption o) => o.Submenu.Count == 0 && !o.Separator;
 
     private static readonly Regex Boundaries = new("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
 

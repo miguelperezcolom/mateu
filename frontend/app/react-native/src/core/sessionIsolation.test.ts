@@ -226,3 +226,47 @@ test('the assistant hooks: a shell-less session navigates by opening the view; p
   assert.equal(session.currentScreen(), null);
   assert.deepEqual(session.chatApp, {});
 });
+
+test('an island session shares its host\'s OS-notification opt-in and on-screen state', () => {
+  const host = new MateuSession('http://host', 's', {}, null);
+  const island = islandSession(host, 'http://remote');
+  assert.notEqual(island, host);
+  assert.equal(host.osNotifications, false);
+  island.osNotifications = true;
+  assert.equal(host.osNotifications, true);
+  host.osNotifications = false;
+  assert.equal(island.osNotifications, false);
+  host.onScreen = false;
+  assert.equal(island.onScreen, false);
+  island.onScreen = true; // the island's own flag; what it reports is still its host's
+  assert.equal(island.onScreen, false);
+  host.onScreen = true;
+  assert.equal(island.onScreen, true);
+});
+
+test('the version-skew notice is sticky and its button reloads', () => {
+  const session = new MateuSession('http://x', 's', {}, null);
+  const notices: { variant: string; options: any }[] = [];
+  let reloads = 0;
+  session.notify = (_title, _text, variant, options) => notices.push({ variant, options });
+  session.reload = () => { reloads++; };
+  session.showBuildNotice('stale');
+  session.showBuildNotice('updated');
+  assert.deepEqual(notices.map((n) => n.variant), ['error', 'warning']);
+  assert.equal(notices[0].options.sticky, true);
+  notices[1].options.undo.onPress();
+  assert.equal(reloads, 1);
+});
+
+test('an event reaches its subscribers until their owner unsubscribes', () => {
+  const session = new MateuSession('http://x', 's', {}, null);
+  const owner = {};
+  const got: unknown[] = [];
+  session.subscribe(owner, 'saved', (p) => { got.push(p); });
+  session.subscribe(owner, 'declined', () => false);
+  assert.equal(session.dispatchEvent('saved', 1), true);
+  assert.equal(session.dispatchEvent('declined', 2), false);
+  session.unsubscribeAll(owner);
+  assert.equal(session.dispatchEvent('saved', 3), false);
+  assert.deepEqual(got, [1]);
+});

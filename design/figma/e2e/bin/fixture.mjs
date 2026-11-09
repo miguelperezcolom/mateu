@@ -3,7 +3,7 @@
 // sample-screens plan. Run it after changing design/figma/plugin/src/samples.ts or plan.ts; the
 // tests fail while it is stale. `--print <dir>` also writes the YAML the converter makes of it.
 import { writeFileSync } from 'node:fs'
-import { loadContract } from '../../to-yaml/src/schema.mjs'
+import { loadContract } from '../../to-yaml/src/load.mjs'
 import { syntheticFile } from '../src/synthetic.mjs'
 import { SYNTHETIC, convertFixture } from '../src/pipeline.mjs'
 

@@ -122,8 +122,10 @@ Mateu.Uidl.AppAttribute property Mateu.Uidl.BackLink BackLink { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean AccessKeys { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean Chromeless { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean CommandCenter { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean Inbox { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean LiveUpdates { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean MobileQr { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean OsNotifications { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean ThemeToggle { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleTimeoutMinutes { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleWarningSeconds { get;set; }
@@ -1115,6 +1117,10 @@ Mateu.Uidl.IHeroSearch abstract method System.String HeroImage()
 Mateu.Uidl.IHeroSearch abstract method System.String HeroSubtitle()
 Mateu.Uidl.IHeroSearch abstract method System.String HeroTitle()
 Mateu.Uidl.IHomeRouteSupplier abstract method System.String HomeRoute()
+Mateu.Uidl.IInboxStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> List(System.String)
+Mateu.Uidl.IInboxStore abstract method System.Void Add(System.String, Mateu.Uidl.AppNotification)
+Mateu.Uidl.IInboxStore abstract method System.Void Dismiss(System.String, System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.IInboxStore abstract method System.Void MarkRead(System.String, System.Collections.Generic.IReadOnlyList<System.String>)
 Mateu.Uidl.IKeepAliveHandler abstract method System.Void KeepAlive()
 Mateu.Uidl.ILinkSupplier abstract method Mateu.Uidl.NavLink Link(System.String)
 Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Mateu.Uidl.SearchRequest)
@@ -1150,6 +1156,9 @@ Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ById(Syst
 Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ForUrl(System.String)
 Mateu.Uidl.IRestSourceCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> RestSources()
 Mateu.Uidl.IRestSourceSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.DeclaredRestSource> DeclaredRestSources()
+Mateu.Uidl.IRestorable<TId> abstract method System.Void RestoreAllById(System.Collections.Generic.IReadOnlyList<TId>)
+Mateu.Uidl.IRestorable<TId> const field System.String RestoreAction
+Mateu.Uidl.IRestorable<TId> const field System.String RestoreIds
 Mateu.Uidl.IRuleSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Rule> Rules()
 Mateu.Uidl.ISecretsProvider abstract method System.String Secret(System.String)
 Mateu.Uidl.ISelector<TRow> abstract method Mateu.Uidl.SelectedItem Selected(TRow)
@@ -1399,6 +1408,7 @@ Mateu.Uidl.Markdown property System.String MarkdownText { get;init; }
 Mateu.Uidl.MasterDetailLayout ctor(Mateu.Uidl.IComponent)
 Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Detail { get;init; }
 Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.IComponent Master { get;init; }
+Mateu.Uidl.MasterDetailLayout property Mateu.Uidl.Orientation Orientation { get;init; }
 Mateu.Uidl.MasterDetailView abstract method System.Void Load()
 Mateu.Uidl.MasterDetailView ctor()
 Mateu.Uidl.MasterDetailView property Mateu.Uidl.NoSelection NoSelection { get; }
@@ -1458,6 +1468,7 @@ Mateu.Uidl.MenuOption property System.Boolean Selected { get;init; }
 Mateu.Uidl.MenuOption property System.Boolean Separator { get;init; }
 Mateu.Uidl.MenuOption property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MenuOption> Submenu { get;init; }
 Mateu.Uidl.MenuOption property System.Object ItemData { get;init; }
+Mateu.Uidl.MenuOption property System.String ActionId { get;init; }
 Mateu.Uidl.MenuOption property System.String ClassName { get;init; }
 Mateu.Uidl.MenuOption property System.String Label { get;init; }
 Mateu.Uidl.MenuOption property System.String Path { get;init; }
@@ -2264,6 +2275,7 @@ Mateu.Uidl.Wizard property System.String CompletionActionId { get; }
 Mateu.Uidl.Wizard property System.String CompletionActionLabel { get; }
 Mateu.Uidl.Wizard property System.String WizardTitle { get; }
 Mateu.Uidl.Wizard virtual method Mateu.Uidl.LongTaskRun StreamedCompletion()
+Mateu.Uidl.Wizard virtual method System.Boolean StepApplies(System.Int32)
 Mateu.Uidl.Wizard virtual method System.Boolean StepSkippable(System.Int32)
 Mateu.Uidl.Wizard virtual method System.Object BeforeStepNavigate(System.Int32, System.Int32)
 Mateu.Uidl.Wizard virtual method System.String StepTitle(System.Int32)

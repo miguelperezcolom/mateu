@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { InboxStore } from './inbox.ts';
 import { TaskCenter, progressOf } from './taskCenter.ts';
-import { inboxNotificationOf, setLocalNotifier, taskNotificationOf, wireOsNotifications, type LocalNotifier, type NotificationPermission, type OsNotification } from './osNotifications.ts';
+import { inboxNotificationOf, localNotifier, setLocalNotifier, taskNotificationOf, wireOsNotifications, type LocalNotifier, type NotificationPermission, type OsNotification } from './osNotifications.ts';
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -65,4 +65,22 @@ test('a failed task says so, with its error', () => {
   center.upsert(progressOf({ taskId: 't', title: 'Import', state: 'failed', error: 'Row 7 is invalid' })!);
   assert.deepEqual(taskNotificationOf(center.get('t')!, 's'), { id: 'task-t', title: 'Import failed', body: 'Row 7 is invalid', route: null, scope: 's' });
   assert.equal(inboxNotificationOf({ id: 'x', title: '', text: 'Only text', unread: true }, 's').title, 'Only text');
+});
+
+test('without a platform binding nothing is asked, posted or listened to — and the wiring can be undone', async () => {
+  setLocalNotifier(null);
+  const none = localNotifier();
+  assert.equal(await none.permission(), 'unavailable');
+  assert.equal(await none.request(), 'unavailable');
+  assert.equal(await none.show({ id: 'x', title: 't', body: '', scope: 's' }), undefined);
+  assert.equal(none.onOpened(() => undefined)(), undefined);
+  const { notifier, shown } = fakeNotifier('granted');
+  setLocalNotifier(notifier);
+  const s = session();
+  const unwire = wireOsNotifications(s, () => false);
+  unwire();
+  s.inbox.addSession({ id: 'm9', title: 'After', text: '', unread: true });
+  await tick();
+  assert.deepEqual(shown, []);
+  setLocalNotifier(null);
 });

@@ -131,7 +131,7 @@ frames made only of library instances: `contact` (free form), `artwork` (ItemOve
 
 `e2e/` checks them with no Figma: every `e2e/*.figma.json` (`sample-screens.figma.json`, built
 from the same plan by `npm run fixture` in the REST shape of the owner's file; and
-`real-sample-screens.figma.json`, a real download, when present — `npm run e2e:refresh -- <file
+`downloaded-sample-screens.figma.json`, a real download, when present — `npm run e2e:refresh -- <file
 URL|key>`, token from `FIGMA_TOKEN` / `~/.mateu-secrets/figma-token`) is converted by `to-yaml`,
 served by `e2e/app` (Spring Boot YAML app at the release `starters/yaml` pins, its hand-written
 routes/sources/actions + a sample API; the pages are added with `-Dloader.path`, so one jar serves

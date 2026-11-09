@@ -365,7 +365,7 @@ npm run e2e:refresh -- https://www.figma.com/design/<FILE_KEY>/...   # or just t
 ```
 
 It reads the token from `FIGMA_TOKEN`, else `~/.mateu-secrets/figma-token`, and never prints it. It
-writes `real-sample-screens.figma.json` (only the page with the screens and the components they use),
+writes `downloaded-sample-screens.figma.json` (only the page with the screens and the components they use),
 and `npm test` and `npm run e2e` then check both fixtures. The frames must be named `contact`,
 `artwork`, `artworks`, `dashboard`, `onboarding` and `welcome`.
 

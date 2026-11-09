@@ -3,7 +3,7 @@
 //
 // Downloads the Figma file where the six sample screens were composed (with the plugin's "Mateu
 // Sample Screens" command, by hand, or by an agent) and writes it as the real fixture,
-// real-sample-screens.figma.json, next to the synthetic one; `npm run e2e` then runs both.
+// downloaded-sample-screens.figma.json, next to the synthetic one; `npm run e2e` then runs both.
 //
 // The token comes from FIGMA_TOKEN, else from ~/.mateu-secrets/figma-token — never from an argument
 // (arguments show up in process listings) — and is never printed. What is kept: the canvases that
