@@ -116,13 +116,26 @@ def test_the_home_is_the_shells_own_then_the_mounts_then_the_first_leaf(tmp_path
 
 @pytest.mark.parametrize(
     "declared,expected",
-    [(None, "TABS"), ("MENU_ON_TOP", "MENU_ON_TOP"), ("HAMBURGUER_MENU", "HAMBURGER_MENU")],
+    [(None, "TABS"), ("MENU_ON_TOP", "MENU_ON_TOP"), ("HAMBURGER_MENU", "HAMBURGER_MENU")],
 )
 def test_the_variant_defaults_like_javas_app_shell(tmp_path, declared, expected):
     shell = "type: AppShell\ntitle: T\nmenu:\n  - {type: RouteLink, label: Home, route: home}\n"
     if declared:
         shell += f"variant: {declared}\n"
     assert app_of(load(handler(write_mount(tmp_path, shell))))["variant"] == expected
+
+
+def test_a_misspelt_variant_is_not_accepted_and_falls_back_to_auto(tmp_path, caplog):
+    # like Java's YamlAppLoader: an unknown variant warns and counts as AUTO. Five flat leaves
+    # are TABS under the heuristic, so a translated alias (HAMBURGER_MENU) would be visible.
+    leaves = "".join(
+        f"  - {{type: RouteLink, label: L{i}, route: r{i}}}\n" for i in range(5)
+    )
+    shell = f"type: AppShell\ntitle: T\nmenu:\n{leaves}variant: HAMBURGUER_MENU\n"
+    with caplog.at_level("WARNING"):
+        variant = app_of(load(handler(write_mount(tmp_path, shell))))["variant"]
+    assert variant == "TABS"
+    assert "Unknown AppVariant 'HAMBURGUER_MENU'" in caplog.text
 
 
 def test_a_shell_emits_no_window_title_of_its_own(tmp_path):

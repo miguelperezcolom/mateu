@@ -9,14 +9,9 @@ import lombok.Builder;
  * MetricCard} or any other component). {@code columns} fixes the number of grid columns; 0 (the
  * default) lets the renderer pick a responsive column count.
  *
- * @deprecated since 3.0-alpha.348 (coherence-plan #9), for removal: use {@link ResponsiveGrid}
- *     instead (or extend the {@code Dashboard} archetype, which composes one) — {@code N} columns
- *     become {@code N} {@link GridTrack#fill()} tracks (0 → auto-fit), and the tiles carry their
- *     own {@code colSpans}. As of Phase 4 no archetype produces a {@code DashboardLayout} any more
- *     (the Dashboard and Welcome archetypes both compose a {@code ResponsiveGrid}); it is retained
- *     only for direct authoring and backward compatibility.
+ * <p>It is what the {@code DashboardLandingPage} page template lays its panels out in. {@link
+ * ResponsiveGrid} is the general-purpose grid with explicit tracks and per-tile spans.
  */
-@Deprecated(since = "3.0-alpha.348", forRemoval = true)
 @Builder
 public record DashboardLayout(
     String id, int columns, List<Component> items, String style, String cssClasses)

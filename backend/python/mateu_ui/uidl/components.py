@@ -8,7 +8,6 @@ Java backend emits.
 
 from __future__ import annotations
 
-import warnings
 
 from dataclasses import dataclass, field
 from datetime import date
@@ -393,9 +392,7 @@ class DashboardPanel(Component):
 class DashboardLayout(Component):
     """A responsive grid of dashboard tiles. ``columns=0`` lets the renderer auto-fit.
 
-    Deprecated (coherence-plan #9): prefer :class:`ResponsiveGrid` — N columns become N fill tracks
-    (0 → auto-fit), tiles carry their own spans. As of Phase 4 no archetype produces a
-    DashboardLayout (Dashboard + Welcome compose a ResponsiveGrid); retained for direct authoring.
+    :class:`ResponsiveGrid` is the general-purpose grid with explicit tracks and per-tile spans.
     """
 
     items: tuple[Component, ...] = ()
@@ -405,12 +402,6 @@ class DashboardLayout(Component):
     css_classes: str | None = None
 
     def __post_init__(self):
-        warnings.warn(
-            "DashboardLayout is deprecated (coherence-plan #9): use ResponsiveGrid instead — N columns "
-            "become N fill tracks (0 = auto-fit) and the tiles carry their own spans.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
         object.__setattr__(self, "items", tuple(self.items))
 
 

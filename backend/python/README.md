@@ -42,7 +42,7 @@ for the sibling implementation.
   the class opted in. Explicit layout markers always win.
 - **UX-pattern components** (`mateu_ui.uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
-  `ResponsiveGrid` (`DashboardLayout` is deprecated), `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
+  `ResponsiveGrid`, `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
   `GanttTask`, plus fluent `Text` and `Button`. `PlanningBoard` (tape chart: `PlanningResource`
   rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`

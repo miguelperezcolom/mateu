@@ -59,8 +59,9 @@ def test_other_variants_travel_unchanged():
             pass
 
 
-def test_the_deprecated_layout_warns_naming_its_replacement():
-    with pytest.warns(DeprecationWarning, match="ResponsiveGrid"):
+def test_the_dashboard_layout_is_stable_and_does_not_warn():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         DashboardLayout()
 
 

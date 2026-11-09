@@ -9,8 +9,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | Annotation | Target | Description |
 |---|---|---|
 | [`@UI`](ui/) | Class | Registers a class as a Mateu UI entry point |
-| [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/) |
-| [`@HomeRoute`](route/) | — | **Removed** — the home is the first menu item, or `HomeRouteSupplier.homeRoute()` |
+| [Routes](route/) | — | Inner routes are not annotations: they live in a [`routes.yaml` route registry](/concepts/routes-and-mounts/); the home is the first menu item, or `HomeRouteSupplier.homeRoute()` |
 | [`@UISpec`](uispec/) | Class | Uses a YAML file as the component tree instead of `ComponentTreeSupplier` |
 
 ## App structure
@@ -69,7 +68,7 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 |---|---|---|
 | [`@Section`](sections/) | Field, method | Groups following fields under a heading |
 | [`@Tab`](sections/) | Field, method | Assigns a field to a named tab |
-| [`@BulletedList`](/ux-patterns/status-list/) | Field | Renders a `List<String>` field as a plain bulleted list (`<ul>`). (`@List` was never implemented and is deprecated.) |
+| [`@BulletedList`](/ux-patterns/status-list/) | Field | Renders a `List<String>` field as a plain bulleted list (`<ul>`). |
 | [`@Text`](heading/) | Field | Renders the field value as text or a heading (`container = h1`…`h6`) |
 
 ## Actions and buttons

@@ -7,8 +7,6 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-#pragma warning disable CS0618, MATEU002 // DashboardLayout is deprecated but still rendered
-
 /// <summary>A tree supplier whose every container nests an action-referencing component; each
 /// referenced id but one has a method behind it.</summary>
 [UI("tree-actions"), Title("Tree actions")]
@@ -86,8 +84,6 @@ public class TreeActionsView : IComponentTreeSupplier
     public void SwitchRecord() { }
     public void ElementClicked() { }
 }
-
-#pragma warning restore CS0618, MATEU002
 
 /// <summary>
 /// A view advertises every action its component tree references — through every container a

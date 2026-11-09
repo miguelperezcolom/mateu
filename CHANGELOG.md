@@ -101,6 +101,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Changed
 
+- **`DashboardLayout` is stable.** The `DashboardLandingPage` template produces it and renderers,
+  demos and docs use it, so its deprecation is withdrawn in Java, .NET (`MATEU002`) and Python.
+- **Python: a YAML shell's `variant: HAMBURGUER_MENU` is no longer accepted.** An unknown variant
+  warns and counts as `AUTO`, as in Java.
+- **The API check's baseline is `3.0-beta.55`** and its allowlist is back to the sentinel;
+  `scripts/bump-example-version.sh` resets the allowlist whenever it moves the baseline.
 - **A constraint applies only to a field the user can edit.** A `@ReadOnly` or `@PlainText` field,
   one locked by a `@ReadOnlyUnless`/`@DisabledUnless` the user does not satisfy, and every field of a
   read-only view no longer carry their constraints to the browser nor have them re-checked on the
@@ -194,9 +200,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 3.0.0 is the first stable release and keeps no compatibility with the 3.0 pre-releases (alphas,
 betas, release candidates): everything they deprecated, and every alias kept for them, is removed.
-Each Java removal is a reviewed exclusion of the API check
-(`backend/api-compat/japicmp-exclusions.properties`) until `3.0.0` itself becomes its baseline.
 
+- The inert Keycloak bootstrap of the served page (`IndexPage.Keycloak`, the `keycloak` field of
+  `IndexPage.Spec`), left behind by the removal of `@KeycloakSecured`.
 - **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings, and on the wire —
   renderers no longer accept it) → `HAMBURGER_MENU`.
 - **`@KeycloakSecured`** → your framework's authentication (an OIDC login / resource server), or a
@@ -246,9 +252,6 @@ Each Java removal is a reviewed exclusion of the API check
   `wireVersion` stays `3.0`: no 3.0.0 renderer or server produces or reads any of them.
 - **Figma → YAML**: a Section whose content slot is empty no longer takes the layers that follow it
   (the convention of libraries older than native slots) — put the fields in the slot.
-
-Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template; deprecated,
-removable in 4.0).
 
 ### Experimental
 

@@ -36,7 +36,7 @@ Use it when a class should become a page or UI entry point.
 
 ## Inner routes (`routes.yaml`)
 
-`@Route`, `@Routes` and `@HomeRoute` were **removed**: `@UI` is the only routing annotation. The
+`@UI` is the only routing annotation. The
 screens inside a UI — including routes with placeholders — are declared as data in a
 [`routes.yaml` route registry](/concepts/routes-and-mounts/).
 
@@ -680,7 +680,7 @@ These are also part of the public DSL and are worth knowing:
   one on the wire (`mainFilter`), which no current renderer treats differently — every filter is a
   condition of the smart search bar
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the store (`CrudStore`) as a `FilterCriterion`
-- Home route — `@HomeRoute` was removed: the home is the app's first menu item, or what the app class returns from `HomeRouteSupplier.homeRoute()`
+- Home route — the home is the app's first menu item, or what the app class returns from `HomeRouteSupplier.homeRoute()`
 - `@Fab` — floating action button (app level or page level)
 - `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`
 - `@KPI` — render a numeric field as a dashboard KPI card

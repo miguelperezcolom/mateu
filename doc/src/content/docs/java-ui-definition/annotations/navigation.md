@@ -85,7 +85,7 @@ Marks a field as a navigation menu entry in the application sidebar. `selected` 
 
 ## Home route
 
-`@HomeRoute` was removed. The landing page of an app is its **first menu item**; to point it
+The landing page of an app is its **first menu item**; to point it
 somewhere else, implement `io.mateu.uidl.interfaces.HomeRouteSupplier` on the app class:
 
 ```java

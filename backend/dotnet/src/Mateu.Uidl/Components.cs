@@ -122,10 +122,8 @@ public sealed record DashboardPanel : ComponentBase
 
 /// <summary>A responsive grid of dashboard tiles. Columns 0 (default) lets the renderer pick a
 /// responsive column count.
-/// <para>Deprecated (coherence-plan #9): prefer <see cref="ResponsiveGrid"/> — N columns become N
-/// fill tracks (0 → auto-fit), tiles carry their own spans. As of Phase 4 no archetype produces a
-/// DashboardLayout (Dashboard + Welcome compose a ResponsiveGrid); retained for direct authoring.</para></summary>
-[Obsolete("DashboardLayout is deprecated (coherence-plan #9): use ResponsiveGrid instead — N columns become N fill tracks (0 = auto-fit) and the tiles carry their own spans.", DiagnosticId = "MATEU002")]
+/// <para><see cref="ResponsiveGrid"/> is the general-purpose grid with explicit tracks and
+/// per-tile spans.</para></summary>
 public sealed record DashboardLayout : ComponentBase
 {
     public int Columns { get; init; }
