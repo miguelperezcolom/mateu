@@ -11,7 +11,7 @@ import type { AppNotification, MessageAction, NotificationsChanged } from '@mate
 
 /** An inbox entry plus what only the client knows about it. */
 export interface InboxEntry extends AppNotification {
-    /** a session entry: not (yet) in the server's list */
+    /** an entry the server knows nothing about: made from an `inbox` message of this session */
     local?: boolean
     /** for a session entry made from a message: the element its actions run on */
     initiator?: HTMLElement
@@ -106,7 +106,9 @@ export const applyChange = (state: InboxState, change: NotificationsChanged): Ch
     if (change?.notification?.id) {
         const isNew = !mergedEntries(state).some((e) => e.id === change.notification!.id)
         return {
-            state: withSessionEntry(state, { ...change.notification, local: true }),
+            // the server's entry, pushed: its read, dismiss, actions and detail go to the server like
+            // those of a listed one (only an entry made from a message is the session's alone)
+            state: withSessionEntry(state, { ...change.notification, local: false }),
             refetch: false,
             added: isNew && change.notification.unread ? change.notification : undefined,
         }

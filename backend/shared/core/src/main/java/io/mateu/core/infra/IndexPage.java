@@ -116,7 +116,7 @@ public final class IndexPage {
   static final List<String> MARKERS =
       List.of(
           "<!-- AQUIFAVICON -->",
-          // inert: nothing goes here any more, but the renderers' templates still carry it
+          // inert: nothing goes here any more, but jars built before its removal still carry it
           "<!-- AQUIKEYCLOAK -->",
           "<!-- AQUIJS -->",
           "<!-- HASTAAQUIJS -->",

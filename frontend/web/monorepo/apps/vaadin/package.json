@@ -16,7 +16,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "keycloak-js": "26.2.5",
     "lit": "^3.3.1",
     "mateu": "*"
   },

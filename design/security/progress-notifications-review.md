@@ -117,8 +117,9 @@ equals `principal` (Java `IdentityResolver`, .NET `HttpContext.User`, Python the
 an anonymous stream (name null/blank) receives only `publishToAll`; `publish` refuses a blank
 principal. The caller is resolved once per stream (≤ 5 minutes); a sign-out that keeps the tab open
 keeps receiving the old user's pushes until the stream ends — acceptable, noted. Several tabs share
-one stream per browser (same cookie = same user). Note: the leader/relay keys are per ORIGIN, so two
-Mateu apps served from the same origin share the relay (pre-existing for header values).
+one stream per browser and app (same cookie = same user): the leader, relay and header-value keys
+are scoped by base url + app class, and with a per-tab identity (a token in `sessionStorage`, in
+memory or from a provider; a Redwood host provider) each tab holds its own stream and relays nothing.
 
 ### 9. Message / result actions — no issue
 

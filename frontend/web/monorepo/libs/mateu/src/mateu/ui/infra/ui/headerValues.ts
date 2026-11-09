@@ -15,6 +15,17 @@ import { chromeTextf } from '@infra/ui/chromeTexts.ts'
 export const STORAGE_KEY = 'mateu-header-values'
 export const CHANGED_EVENT = 'mateu-header-values-changed'
 
+/** Where a change is broadcast; null = this tab alone. Scoped by {@link scopeHeaderValues}. */
+let broadcastKey: string | null = STORAGE_KEY
+
+/**
+ * The app these values belong to: two apps on one origin must not paint each other's header. `null`
+ * (each tab has its own identity, see tabsShareIdentity) = no broadcast at all.
+ */
+export const scopeHeaderValues = (scope: string | null) => {
+    broadcastKey = scope === null ? null : `${STORAGE_KEY}:${scope}`
+}
+
 const values = new Map<string, HeaderValue>()
 const listeners = new Set<() => void>()
 
@@ -77,8 +88,8 @@ export const updateHeaderValue = (id: string, value: string | null | undefined,
     if (!options.quiet) {
         announce(chromeTextf('headerValueChanged', { label: current?.label || id, value: text }))
     }
-    if (options.broadcast !== false) {
-        safeLocalStorage.setJson(STORAGE_KEY, { id, value: text, at: Date.now() })
+    if (options.broadcast !== false && broadcastKey) {
+        safeLocalStorage.setJson(broadcastKey, { id, value: text, at: Date.now() })
     }
 }
 
@@ -89,7 +100,7 @@ export const installHeaderValuesWatcher = () => {
     if (watching || typeof window === 'undefined') return
     watching = true
     window.addEventListener('storage', (event) => {
-        if (event.key !== STORAGE_KEY || !event.newValue) return
+        if (!broadcastKey || event.key !== broadcastKey || !event.newValue) return
         try {
             const change = JSON.parse(event.newValue) as { id?: string, value?: string }
             if (change.id) updateHeaderValue(change.id, change.value, { broadcast: false })
@@ -105,4 +116,4 @@ export const forgetDetachedHeaderScopes = () => {
 }
 
 /** Tests only. */
-export const resetHeaderValues = () => { values.clear(); listeners.clear(); seededBy.clear() }
+export const resetHeaderValues = () => { values.clear(); listeners.clear(); seededBy.clear(); broadcastKey = STORAGE_KEY }

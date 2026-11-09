@@ -4,7 +4,7 @@ import type { Progress } from '@mateu/shared/apiClients/dtos/Progress.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { sseService } from '@application/SSEService.ts'
 import { applyGlobalCommand, PROGRESS_COMMAND } from '@infra/progress/globalCommands.ts'
-import { isFinished, type TaskOrigin } from '@infra/progress/taskStore.ts'
+import { isFinished, taskStore, type TaskOrigin } from '@infra/progress/taskStore.ts'
 import { forgetTask, rememberedTasks, type RememberedTask } from '@infra/progress/taskMemory.ts'
 
 /**
@@ -41,7 +41,7 @@ const defaultDeps: ReattachDeps = {
     resume: (task) => {
         void sseService.runAction(mateuApiClient, task.baseUrl, NO_ROUTE, '', RESUME_ACTION, INITIATOR_ID,
             {}, task.serverSideType ?? '', {}, { taskId: task.taskId }, document.body, true, undefined,
-            false, '')
+            false, '', { resumesTasks: [task.taskId] })
     },
 }
 
@@ -89,6 +89,47 @@ export const reattachTasks = async (deps: ReattachDeps = defaultDeps): Promise<v
             if (!isFinished(progress)) deps.resume(task)
         }
     }))
+}
+
+/** How long a broken stream waits before each attempt to find its tasks again (the blip's length). */
+export const RECOVERY_WAITS_MS = [1_000, 3_000, 8_000]
+
+/**
+ * A stream broke (or ended early) under tasks that were still running: the server keeps them alive
+ * for its grace period, so before showing them as failed — with a Retry that would start the work a
+ * second time — ask for them and follow the ones still running, as a reload does. The entries keep
+ * their origin (Cancel, Retry). If the backend cannot be reached in time, they end failed.
+ */
+export const recoverBrokenTasks = async (baseUrl: string, serverSideType: string | undefined, taskIds: string[],
+                                         error?: string, deps: ReattachDeps = defaultDeps,
+                                         waits: number[] = RECOVERY_WAITS_MS): Promise<void> => {
+    for (const wait of waits) {
+        await new Promise((resolve) => setTimeout(resolve, wait))
+        let increment: UIIncrement | undefined
+        try {
+            increment = await deps.list(baseUrl, serverSideType, taskIds)
+        } catch {
+            continue // still cut off: the next attempt
+        }
+        const answered = new Map<string, Progress>()
+        for (const command of (increment?.commands ?? []) as UICommand[]) {
+            const progress = command?.type === PROGRESS_COMMAND ? command.data as Progress | undefined : undefined
+            if (progress?.taskId) answered.set(progress.taskId, progress)
+        }
+        for (const taskId of taskIds) {
+            const progress = answered.get(taskId)
+            if (!progress) {
+                // the server no longer knows it: nothing to follow
+                taskStore.failUnfinished([taskId], error)
+                forgetTask(taskId)
+                continue
+            }
+            applyGlobalCommand({ type: PROGRESS_COMMAND, data: progress } as UICommand, { baseUrl, serverSideType })
+            if (!isFinished(progress)) deps.resume({ taskId, baseUrl, serverSideType })
+        }
+        return
+    }
+    taskStore.failUnfinished(taskIds, error)
 }
 
 /** test hook */

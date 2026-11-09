@@ -5,6 +5,7 @@ import { AxiosMateuApiClient } from './AxiosMateuApiClient'
 import { setAuthToken } from './authToken'
 import { configureCredentialOrigins, resetCredentialScope, trustDeclaredRemotes } from './credentialScope'
 import { onSessionExpired } from './sessionGuard'
+import axios from 'axios'
 import { loopGuard } from '@infra/ui/loopGuard'
 import { StaleResponse } from '@infra/ui/staleViewGuard'
 import { connectivity } from './connectivity'
@@ -317,6 +318,36 @@ describe('a repeating request', () => {
             expect(blocked.messages).toHaveLength(1)
             expect(blocked.messages![0].variant).toBe('error')
             expect(again.messages).toHaveLength(0)
+        } finally {
+            loopGuard.configure({ threshold: 12 })
+        }
+    })
+})
+
+describe('the loop breaker', () => {
+    it('aborts the repetitions of the looping request, not a Save in flight next to it', async () => {
+        const client = new AxiosMateuApiClient()
+        const signals: Record<string, AbortSignal[]> = {}
+        const releases: (() => void)[] = []
+        client.axiosInstance.defaults.adapter = (config: InternalAxiosRequestConfig) => new Promise((resolve, reject) => {
+            const actionId = JSON.parse(String(config.data)).actionId as string
+            ;(signals[actionId] ??= []).push(config.signal as AbortSignal)
+            ;(config.signal as AbortSignal).addEventListener('abort', () => reject(new axios.CanceledError()))
+            releases.push(() => resolve({ data: { fragments: [], commands: [], messages: [] }, status: 200, statusText: 'OK', headers: {}, config, request: {} }))
+        })
+        const { initiator } = initiatorEvents()
+        loopGuard.configure({ threshold: 3 })
+        try {
+            const save = run(client, initiator, { actionId: 'save' })
+            const looping = [run(client, initiator, { actionId: 'poll' }), run(client, initiator, { actionId: 'poll' })]
+            await new Promise(r => setTimeout(r, 0))
+            await run(client, initiator, { actionId: 'poll' }) // trips
+
+            expect(signals.poll.every((s) => s.aborted)).toBe(true)
+            expect(signals.save[0].aborted).toBe(false)
+            await Promise.allSettled(looping)
+            releases[0]()
+            await expect(save).resolves.toBeDefined()
         } finally {
             loopGuard.configure({ threshold: 12 })
         }

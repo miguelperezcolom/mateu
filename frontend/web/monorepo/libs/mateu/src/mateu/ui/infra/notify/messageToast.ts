@@ -29,14 +29,11 @@ export const messageActionsOf = (message: Partial<Message>): MessageAction[] => 
 }
 
 /** Runs an action of a message / a finished task on the element that ran the action it answers. */
-export const runMessageAction = (action: MessageAction, initiator: HTMLElement): void => {
-    if (action.route) {
-        leaveToRoute(initiator, action.route)
-        return
-    }
-    if (action.actionId) {
-        requestActionOn(initiator, { actionId: action.actionId, parameters: action.parameters ?? {}, serverNamed: true })
-    }
+export const runMessageAction = (action: MessageAction, initiator: HTMLElement): boolean => {
+    if (action.route) return leaveToRoute(initiator, action.route)
+    if (!action.actionId) return false
+    requestActionOn(initiator, { actionId: action.actionId, parameters: action.parameters ?? {}, serverNamed: true })
+    return true
 }
 
 /** Pure-ish: the toast a server message becomes (actions bound to `initiator`). */

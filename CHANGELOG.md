@@ -46,8 +46,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   plainly what OS notifications can and cannot do on a phone: they are local, so a suspended or
   closed app posts none.
 
+### Fixed
+
+- **Web: streamed actions carry the `@AppContext` values**: a LongTask, a header action or an inbox action ran with no selected hotel/company.
+- **Web: a live-pushed inbox entry works like a listed one**: its actions, read, dismiss and detail reach the server.
+- **Web: Retry in the task center works after leaving the screen that started the task**, and says so when it cannot start.
+- **Web and Redwood: a stream broken under a running task looks for it again** (`_progress-tasks` + `_progress-resume`, for ~12 s) instead of showing it failed while the server still runs it.
+- **Web and Redwood: leaving a screen before a LongTask's first event no longer cancels the work**; the first event decides whether the stream is a task.
+- **Web: a streamed action re-authenticates on a 401** like a sync one, once.
+- **Web: a reattached task whose resume stream fails ends failed** instead of running forever.
+- **Web: declining the unsaved-changes prompt keeps a finished task and its result action.**
+- **Web: the request-loop breaker aborts only the looping request**, never a Save next to it.
+- **Web and Redwood: live updates and header values are per app**, and with a per-tab identity (a token in `sessionStorage`, memory or a provider; a Redwood host provider) each tab holds its own stream and shares nothing.
+- **Redwood: a resumed task survives the first navigation after a reload**, and a task's Retry carries the app state.
+
 ### Removed
 
+- **The `?overrides=` URL parameter of the web client**: undocumented and unused, it let a link write the app state and beat the user's `@AppContext` selection.
+- The dead `keycloak-js` dependency, `keycloak.min.js` and the `<!-- AQUIKEYCLOAK -->` marker of the Vaadin and Redwood pages.
 - The inert Keycloak bootstrap of the served page (`IndexPage.Keycloak`, the `keycloak` field of
   `IndexPage.Spec`), left behind by the removal of `@KeycloakSecured`.
 

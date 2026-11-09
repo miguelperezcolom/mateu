@@ -17,16 +17,26 @@ import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra
 import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
+import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
+import { readAppContext } from '@infra/appContextStore.ts'
+import { handleSessionExpired } from '@infra/http/sessionGuard.ts'
+import { notify } from '@application/Notifier.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { isFinished } from '@infra/progress/taskStore.ts'
 
 export class SSEService implements Service {
 
     async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: ComponentState, serverSideType: string, componentState: ComponentState, parameters: Record<string, unknown>, initiator: HTMLElement, background: boolean, callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string, options: RunActionOptions = {}): Promise<void> {
         // Same contract as HttpService: "Retry" re-runs the whole streamed action.
-        const retry = () => {
+        const rerun = (changes: RunActionOptions = {}) => {
             void this.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId,
                 initiatorComponentId, _appState, serverSideType, componentState, parameters,
-                initiator, background, callback, callbackonly, callbackToken, options)
+                initiator, background, callback, callbackonly, callbackToken,
+                { ...options, afterReauthentication: undefined, ...changes })
         }
+        const retry = () => rerun()
+        // from the task center, once the screen that started the task may be gone
+        const retryFromTaskCenter = () => rerun({ fromTaskCenter: true })
 
         // An empty route is the root view of a mount: it streams to /mateu/v3/sse/_no_route, the
         // same placeholder the sync path uses. It used to return here, so a LongTask on the root
@@ -38,9 +48,12 @@ export class SSEService implements Service {
             route = route.substring(1)
         }
 
+        const sseUrl = baseUrl + '/mateu/v3/sse/' + route
         const payload = {
             serverSideType,
-            appState: appState.value,
+            // the app-level context (@AppContext header selectors) travels with EVERY request, as on
+            // the sync path — and only to an origin trusted with the user's credentials
+            appState: mayCarryCredentials(sseUrl) ? { ...readAppContext(), ...appState.value } : appState.value,
             componentState,
             parameters,
             initiatorComponentId,
@@ -51,7 +64,8 @@ export class SSEService implements Service {
             ...(options.embeddedChrome ? { embeddedChrome: options.embeddedChrome } : {}),
         }
 
-        if (!background) {
+        // (a re-run after a re-authentication is the same action, already announced)
+        if (!background && !options.afterReauthentication) {
             initiator.dispatchEvent(new CustomEvent('backend-called-event', {
                 bubbles: true,
                 composed: true,
@@ -70,20 +84,24 @@ export class SSEService implements Service {
             'Content-Type': 'application/json'
         }
         // …and only to an origin trusted with them (credentialScope.ts)
-        Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + route))
+        Object.assign(headers, credentialHeadersFor(sseUrl))
         // only Mateu's own endpoints are told who calls (rendererIdentity.ts)
         Object.assign(headers, rendererHeaders())
 
-        const sseUrl = baseUrl + '/mateu/v3/sse/' + route
-        // the tasks this stream reports: if it ends or breaks before they do, they end failed
-        const streamTasks = new Set<string>()
+        // the tasks this stream reports (a resume stream reports its task from the first byte):
+        // if it ends or breaks before they do, they are recovered or end failed
+        const streamTasks = new Set<string>(options.resumesTasks)
+        // the server itself said it failed (an error line): nothing to resume
+        let serverFailed = false
         fetch(sseUrl, {
             method: 'POST',
             headers,
             body: JSON.stringify(payload)
         }).then(async response => {
             // Every chunk is checked: a stream still running when the user navigated away
-            // stops being applied there (staleViewGuard.ts).
+            // stops being applied there (staleViewGuard.ts). Its FIRST event decides what it is,
+            // so nothing is cancelled before: closing a stream that has not reported its task yet
+            // would dispose the work on the server, with no message and no entry in the task center.
             let reader: ReadableStreamDefaultReader<string> | undefined
             // A stream that reports a TASK (Progress commands) outlives its screen: the task center
             // keeps showing it wherever the user goes, so it is read to the end — closing it would
@@ -101,7 +119,6 @@ export class SSEService implements Service {
                     throw new StaleResponse(actionId, outcome)
                 }
             }
-            dropIfStale('answered')
             // fetch does not reject on an HTTP error: a 401/403/500 whose body carries no stream
             // used to read as an empty stream and report SUCCESS — the action silently did nothing.
             if (response.ok === false) {
@@ -120,6 +137,13 @@ export class SSEService implements Service {
                         [STALE_SCREEN]: true, response: { status: 403, data: body },
                     })
                 }
+                // Same contract as a sync call (sessionGuard.ts): the token expired, the app gets a
+                // chance to re-authenticate and the action runs again, once. A view no longer on
+                // screen does not ask the user to log in.
+                if (response.status === 401 && !options.afterReauthentication && !options.isStale?.()) {
+                    await handleSessionExpired(new Error(message), async () => rerun({ afterReauthentication: true }))
+                    return
+                }
                 throw new Error(message)
             }
             observeMateuResponse(sseUrl, response.headers)
@@ -136,7 +160,6 @@ export class SSEService implements Service {
                         const line = event.trim()
                         if (!line) continue
                         if (line.startsWith('data:')) {
-                            dropIfStale('answered')
                             const parsed = JSON.parse(line.substring('data:'.length).trim())
                             observeWireVersion(parsed)
                             // an origin the app does not trust answers through the untrusted strip (R1)
@@ -154,12 +177,14 @@ export class SSEService implements Service {
                                     }))
                                 }
                             }
+                            // (after reading its tasks: one that reports a task outlives its screen)
+                            dropIfStale('answered')
 
                             if (callback && !screenGone) {
                                 callback(uiIncrement)
                             }
 
-                            const origin = { baseUrl, route: '/' + route, serverSideType, actionId, retry, initiator }
+                            const origin = { baseUrl, route: '/' + route, serverSideType, actionId, retry: retryFromTaskCenter, initiator }
                             if (!callbackonly) {
                                 this.handleUIIncrement(uiIncrement, initiator, callbackToken, origin, screenGone)
                             } else if (reportsTask) {
@@ -192,12 +217,15 @@ export class SSEService implements Service {
 
                             }
                             dropIfStale('failed')
+                            serverFailed = true
                             throw new Error(message)
                         }
                     }
                 }
             }
-            taskStore.failUnfinished(streamTasks)
+            // ended with no event at all, and its screen is gone: not news
+            dropIfStale('answered')
+            this.endUnfinished(streamTasks, baseUrl, serverSideType, options)
             // (a task stream told it already, when its task first reported)
             if (!background && !reportsTask) {
                 initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
@@ -218,10 +246,15 @@ export class SSEService implements Service {
         })
             .catch(reason => {
             if (streamTasks.size > 0) {
-                // the connection broke under a running task: it ends failed, with what broke
-                taskStore.failUnfinished(streamTasks, (reason as Error)?.message)
+                // the connection broke under a running task: the server may still be running it
+                if (serverFailed) taskStore.failUnfinished(streamTasks, (reason as Error)?.message)
+                else this.endUnfinished(streamTasks, baseUrl, serverSideType, options, (reason as Error)?.message)
             }
             if (isStaleResponse(reason) || options.isStale?.()) {
+                // Retry pressed in the task center after leaving the screen: no screen will tell
+                if (options.fromTaskCenter && !isStaleResponse(reason) && streamTasks.size === 0) {
+                    notify({ text: chromeText('taskRetryFailed'), variant: 'error' }, document.body)
+                }
                 console.debug?.('mateu: dropped a streamed answer to an action of a view no longer on screen',
                     actionId, serverSideType, baseUrl)
                 initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
@@ -249,6 +282,23 @@ export class SSEService implements Service {
 
 
 
+    }
+
+    /**
+     * The stream ended (or broke) before these tasks did. The server keeps a task alive for a grace
+     * period and offers to resume it, so an ordinary stream tries that before calling the task
+     * failed; a resume stream is the last try, and what it leaves running ends failed.
+     */
+    private endUnfinished(taskIds: Set<string>, baseUrl: string, serverSideType: string,
+                          options: RunActionOptions, error?: string) {
+        const unfinished = [...taskIds].filter((id) => {
+            const entry = taskStore.find(id)
+            return !!entry && !isFinished(entry.progress)
+        })
+        if (unfinished.length === 0) return
+        if (options.resumesTasks) taskStore.failUnfinished(unfinished, error)
+        // (loaded on demand, like the boot's reattach: most pages never need it)
+        else void import('@infra/progress/reattach.ts').then((m) => m.recoverBrokenTasks(baseUrl, serverSideType, unfinished, error))
     }
 
     private serialize(reason: unknown) {

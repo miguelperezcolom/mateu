@@ -2,6 +2,7 @@ import { notificationsChangedOf, applyNotificationsChanged } from './inbox.mjs'
 import { chromeText } from './i18n.mjs'
 import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
+import { hasHostHeaderProvider } from './hostHeaders.mjs'
 import { rendererHeaders } from './versionSkew.mjs'
 import { keyHint, isFunctionKeyShortcut, currentShortcutActions } from './keys.mjs'
 import { shortcutMatches } from './actionPanels.mjs'
@@ -77,6 +78,8 @@ export function isTypingElement(el) {
 
 export const HEADER_VALUES_KEY = 'mateu-header-values'
 export const LIVE_LEADER_KEY = 'mateu-live-leader'
+/** A key of one app: two apps on one origin neither elect one leader nor paint each other's header. */
+export const scopedLiveKey = (key, base, serverSideType) => `${key}:${base}|${serverSideType}`
 export const LIVE_HEARTBEAT_MS = 5000
 export const LIVE_STALE_MS = 15000
 
@@ -87,6 +90,8 @@ const storeRemove = (k) => { try { const s = extrasStorage(); if (s) s.removeIte
 
 const headerValues = new Map()
 let headerPainter = null
+// where a change is broadcast; null = this tab alone (set per app by syncLive)
+let headerBroadcastKey = HEADER_VALUES_KEY
 
 /** The values to paint, in the order the app declared them. */
 export const headerValuesList = () => [...headerValues.values()]
@@ -107,7 +112,7 @@ export function updateHeaderValue(id, value, options = {}) {
   headerValues.set(id, { id, label: current ? current.label : null, value: text })
   if (headerPainter) headerPainter([id])
   if (!options.quiet) announce(chromeText('headerValueChanged', { label: (current && current.label) || id, value: text }))
-  if (options.broadcast !== false) storeSet(HEADER_VALUES_KEY, JSON.stringify({ id, value: text, at: Date.now() }))
+  if (options.broadcast !== false && headerBroadcastKey) storeSet(headerBroadcastKey, JSON.stringify({ id, value: text, at: Date.now() }))
   return true
 }
 
@@ -192,14 +197,19 @@ let liveHeartbeat = null
 let liveController = null
 let liveFailures = 0
 let liveTimer = null
-const readLeader = () => { try { return JSON.parse(storeGet(LIVE_LEADER_KEY) || 'null') } catch (e) { return null } }
+// embedded under a host that supplies the identity: tabs need not be the same user, so no sharing
+let liveOwnStream = false
+const liveLeaderKey = (t) => scopedLiveKey(LIVE_LEADER_KEY, t.base, t.serverSideType)
+const readLeader = (t) => { try { return JSON.parse(storeGet(liveLeaderKey(t)) || 'null') } catch (e) { return null } }
+const releaseLead = (t) => { if (!t || liveOwnStream) return; const r = readLeader(t); if (r && r.tab === tabId) storeRemove(liveLeaderKey(t)) }
 
 function liveTick() {
   if (!liveTarget) return
+  if (liveOwnStream) { if (!liveController) liveConnect(); return }
   const now = Date.now()
-  if (shouldLeadLive(readLeader(), tabId, now)) {
-    storeSet(LIVE_LEADER_KEY, JSON.stringify({ tab: tabId, at: now }))
-    const again = readLeader()
+  if (shouldLeadLive(readLeader(liveTarget), tabId, now)) {
+    storeSet(liveLeaderKey(liveTarget), JSON.stringify({ tab: tabId, at: now }))
+    const again = readLeader(liveTarget)
     if (again && again.tab === tabId) { if (!liveController) liveConnect(); return }
   }
   liveStop()
@@ -254,17 +264,25 @@ function liveConnect() {
 }
 
 function syncLive(shell, base) {
+  const shared = !hasHostHeaderProvider()
+  // header values also change through ordinary answers: scoped whether or not there is a stream
+  headerBroadcastKey = shared ? scopedLiveKey(HEADER_VALUES_KEY, base, (shell && shell.serverSideType) || '') : null
   if (!(shell && shell.liveUpdates)) {
     if (liveTarget) {
+      const previous = liveTarget
       liveTarget = null
       clearInterval(liveHeartbeat); liveHeartbeat = null
       liveStop()
-      const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+      releaseLead(previous)
     }
     return
   }
   const next = { base, serverSideType: shell.serverSideType || '' }
-  if (liveTarget && (liveTarget.base !== next.base || liveTarget.serverSideType !== next.serverSideType)) liveStop()
+  if (liveTarget && (liveTarget.base !== next.base || liveTarget.serverSideType !== next.serverSideType)) {
+    liveStop()
+    releaseLead(liveTarget)
+  }
+  liveOwnStream = !shared
   liveTarget = next
   if (!liveHeartbeat) liveHeartbeat = setInterval(liveTick, LIVE_HEARTBEAT_MS)
   liveTick()
@@ -423,7 +441,7 @@ export function installAppExtras(doc = docOf()) {
   headerPainter = paintHeaderValues
   // the other tabs: header values, activity, sign-out
   win.addEventListener('storage', (e) => {
-    if (e.key === HEADER_VALUES_KEY && e.newValue) {
+    if (headerBroadcastKey && e.key === headerBroadcastKey && e.newValue) {
       try { const c = JSON.parse(e.newValue); if (c.id) updateHeaderValue(c.id, c.value, { broadcast: false }) } catch (err) { /* not ours */ }
     }
     if (e.key === IDLE_SIGN_OUT_KEY && e.newValue && extrasShell && extrasShell.idleSession) idleSignOut(doc, false)
@@ -431,7 +449,7 @@ export function installAppExtras(doc = docOf()) {
   })
   win.addEventListener('pagehide', () => {
     liveStop()
-    const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+    releaseLead(liveTarget)
   })
   // activity (ignored while the warning is up: only «Stay» keeps the session). Not 'scroll': the
   // shell scrolls by itself (sticky headers, focus), and that is not the user being there

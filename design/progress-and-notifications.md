@@ -189,6 +189,11 @@ multicast to every subscriber of the task (the stream that started it, and any r
   `mateu.progress.reattach-grace-seconds` (env `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`), .NET
   `MateuOptions.ProgressReattachGraceSeconds`, Python `add_mateu(progress_reattach_grace_seconds=…)`
   (same env var); default **60**, `0` = the old behaviour (closing the stream cancels the task).
+- **A stream that breaks** (web, Redwood): before calling a running task failed the renderer asks
+  `_progress-tasks` for it (after 1 s, 3 s and 8 s, for the blip to pass) and follows the ones still
+  running with `_progress-resume`, keeping Cancel and Retry; a resume stream is the last try.
+- **Leaving before the first event**: a stream is not cancelled before its first event says whether
+  it reports a task (web, Redwood), or the work would be disposed with no trace.
   In-process, like the registry: in a cluster the resume must reach the node running the task
   (sticky sessions).
 - `_progress-tasks {taskIds: [...]}` (reserved, app-level, any route, sync or SSE): answers ONE

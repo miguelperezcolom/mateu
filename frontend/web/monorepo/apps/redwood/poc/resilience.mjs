@@ -506,7 +506,8 @@ export async function fetchWithPolicy(url, init, options = {}) {
       if (!isolated) connectivity.noteReachable()
       // another deployment answered than the one this page started with: «app updated», once
       reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
-      if (isViewStale(view)) dropStale()
+      // `readsPastStale`: a stream only knows what it is at its first event (runMateuActionSse)
+      if (isViewStale(view) && !options.readsPastStale) dropStale()
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
       return res
     } catch (error) {
