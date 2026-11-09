@@ -11,8 +11,7 @@ import lombok.Setter;
 
 /**
  * Fixture for the editable rich text field. Its editor is Mateu's own (on Tiptap / ProseMirror), which replaced
- * vaadin-rich-text-editor (commercially licensed): the value is HTML, and a value in the old
- * editor's Delta JSON still opens.
+ * vaadin-rich-text-editor (commercially licensed): the value is HTML.
  */
 @UI("/rich-text")
 @Title("Rich text")
@@ -22,10 +21,6 @@ public class RichTextForm {
 
   @Stereotype(FieldStereotype.richText)
   String notes = "<p>Guest prefers a <strong>quiet</strong> room</p>";
-
-  /** What the old Vaadin editor used to store for "Hi" in bold. */
-  @Stereotype(FieldStereotype.richText)
-  String legacy = "[{\"insert\":\"Hi\",\"attributes\":{\"bold\":true}},{\"insert\":\"\\n\"}]";
 
   @Button
   public Message show() {

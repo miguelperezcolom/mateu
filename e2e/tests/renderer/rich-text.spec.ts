@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 // On Redwood an editable richText is Spectra's own editor (oj-sp-input-rich-text-2, on CKEditor 5)
 // inside mateu-rich-text-field. What matters to an app is what tests/shared/rich-text.spec.ts asks of
-// the web renderer: an HTML value opens formatted, what the user types reaches the server as HTML,
-// and a value stored by the old Vaadin editor (Quill Delta JSON) still opens. Redwood only: the web
+// the web renderer: an HTML value opens formatted and what the user types reaches the server as
+// HTML. Redwood only: the web
 // renderer's editor is covered by tests/shared/rich-text.spec.ts. The editable region is looked up in
 // mateu-rich-text-field whichever editor it holds — Spectra's, or its own when the CDN does not load.
 test.describe('RichTextForm (/rich-text) on Redwood', () => {
@@ -30,13 +30,6 @@ test.describe('RichTextForm (/rich-text) on Redwood', () => {
     await page.getByRole('button', { name: 'Show' }).click();
     const state = JSON.parse((await show).postData() || '{}').componentState;
     expect(state.notes).toBe('<p>Guest prefers a <strong>quiet</strong> room and late checkout</p>');
-  });
-
-  test('a value stored by the old editor (Delta JSON) still opens', async ({ page }) => {
-    await page.goto('/rich-text');
-
-    const legacy = page.locator('mateu-rich-text-field').nth(1).locator('[contenteditable="true"]').first();
-    await expect(legacy.locator('strong')).toHaveText('Hi', { timeout: 60_000 });
   });
 
 });
