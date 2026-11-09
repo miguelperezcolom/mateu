@@ -2608,6 +2608,9 @@ class WireConformanceTest {
           "definition-actions",
           "definition-triggers",
           "definition-proxied-listing",
+          "definition-proxied-bulk",
+          "app-source-proxied",
+          "app-source-no-such-role",
           "definition-path-params",
           "definition-path-params-seeded",
           "inline-form",
@@ -2934,7 +2937,8 @@ class WireConformanceTest {
                     .consumedRoute(
                         request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
                     .actionId(request.path("actionId").asText(""))
-                    .componentState(java.util.Map.of())
+                    .componentState(mapOf(request.get("componentState")))
+                    .parameters(mapOf(request.get("parameters")))
                     .build()));
       } finally {
         thread.setContextClassLoader(previous);
@@ -2942,6 +2946,12 @@ class WireConformanceTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /** A request.json object as a plain map (empty when the file does not carry it). */
+  @SuppressWarnings("unchecked")
+  private static java.util.Map<String, Object> mapOf(JsonNode node) {
+    return node == null ? java.util.Map.of() : MAPPER.convertValue(node, java.util.Map.class);
   }
 
   /** Serves {@code specs/ui/**} from one case directory; everything else from the parent. */

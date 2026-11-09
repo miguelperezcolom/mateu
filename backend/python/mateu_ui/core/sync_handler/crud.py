@@ -75,6 +75,8 @@ class CrudHandlerMixin(MixinBase):
         return answer
 
     def _handle_crud(self, crud_type, element, base_route, rq: RunActionRq) -> UIIncrement:
+        # a crud bound only by the authored route table never passes _handle_core's @ui/@app check
+        action_guard.ensure_class_access(self.mapper, crud_type)
         crud = crud_type()
         # a crud inside a record master's tab gets the chain's path parameters (its customerId) —
         # Java's mountOf applies them to the known type's state on every request
@@ -112,9 +114,14 @@ class CrudHandlerMixin(MixinBase):
         may_create = not read_only_crud and display.create.enabled()
         may_edit = not read_only_crud and _capable(crud, "can_edit")
         may_delete = not read_only_crud and display.delete.enabled()
+        # create or update is decided by the ROUTE (crud_save: no id = insert), so that is what is
+        # gated, whatever the action calls itself
+        persists = aid in ("create", "save", SAVE_AND_NEXT)
         refused = (
-            (aid in ("new", "create") and not may_create)
-            or (aid in ("save", SAVE_AND_NEXT, "update-row") and not may_edit)
+            (aid == "new" and not may_create)
+            or (persists and id_ is None and not may_create)
+            or (persists and id_ is not None and not may_edit)
+            or (aid == "update-row" and not may_edit)
             or (aid == SAVE_AND_NEXT and not display.save_and_next.enabled())
             or (aid in ("delete", Restorable.RESTORE_ACTION) and not may_delete)
             # the Undo of a delete is offered only by a crud that declares Restorable

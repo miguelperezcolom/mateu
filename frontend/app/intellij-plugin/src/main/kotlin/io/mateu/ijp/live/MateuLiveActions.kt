@@ -86,7 +86,7 @@ class MateuLiveService(private val project: Project) {
                 if (plan.framework == Framework.STATIC_BUNDLE) {
                     "A static bundle has no backend to debug: debug its UI with the browser's developer tools."
                 } else {
-                    "A Gradle + Micronaut run cannot start with the debugger: run it with `--debug-jvm` from a terminal and attach to port $DEBUG_PORT."
+                    "A Gradle run starts without the debugger here: run it with `--debug-jvm` from a terminal and attach to port $DEBUG_PORT."
                 },
                 NotificationType.INFORMATION,
             )

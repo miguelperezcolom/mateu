@@ -1,0 +1,22 @@
+{
+  "route": "people",
+  "actionId": "__restfetch__",
+  "componentState": {
+    "crud_selected_items": [
+      {
+        "id": "1"
+      },
+      {
+        "id": "2"
+      },
+      {
+        "id": "3"
+      }
+    ]
+  },
+  "parameters": {
+    "_sourceKind": "action",
+    "_sourceId": "removeAll",
+    "_forEachSelectedRow": true
+  }
+}

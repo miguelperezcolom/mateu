@@ -305,7 +305,7 @@ def fetched(monkeypatch):
         calls.append(req)
         return _Response(json.dumps([{"code": "x"}]).encode())
 
-    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr("mateu_ui.core.sync_handler.proxy._open", fake_urlopen)
     monkeypatch.setenv("MATEU_SECRET_API_KEY", "k-123")  # env fallback reads MATEU_SECRET_<KEY> only
     return calls
 
@@ -371,7 +371,7 @@ def test_a_failed_row_of_a_bulk_write_is_reported(monkeypatch):
             raise urllib.error.HTTPError(req.full_url, 409, "Conflict", {}, io.BytesIO(b'{"message":"in use"}'))
         return _Response(b"")
 
-    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr("mateu_ui.core.sync_handler.proxy._open", fake_urlopen)
     inc = _bulk(handler(), [{"id": "1"}, {"id": "2"}, {"id": "3"}])
     assert inc.app_data == {
         "_restfetchError": {"status": 409, "message": "1 of 3 failed (HTTP 409)", "detail": "in use"}

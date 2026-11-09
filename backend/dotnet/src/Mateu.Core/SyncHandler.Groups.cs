@@ -18,6 +18,7 @@ internal sealed partial class SyncHandler
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .FirstOrDefault(m => Naming.CamelCase(m.Name) == actionId && m.Find<GroupActionAttribute>() != null);
         if (method is null) throw ActionGuard.NoSuchAction($"action-on-row-{actionId}");
+        ActionGuard.EnsureMayInvoke(type, method, actionId);
         var groupValue = StateString(GetState(rq.Parameters, "_groupValue")) ?? "";
         if (listing is IGroupActionVisibility visibility && !visibility.GroupActionVisible(actionId, groupValue))
             throw new MateuForbiddenException($"group action '{actionId}' on {type.FullName} is not available for group '{groupValue}'");

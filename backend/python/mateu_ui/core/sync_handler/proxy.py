@@ -85,6 +85,23 @@ def _restfetch_error(status: int, detail: str | None = None) -> UIIncrement:
     return UIIncrement(app_data={"_restfetchError": error})
 
 
+class _NoRedirects(urllib.request.HTTPRedirectHandler):
+    """A 3xx is not followed: urllib would re-send every header — a ``${secret.X}`` included — to
+    wherever the answer points, and the origin rules cover only the first hop. Refused here, it
+    surfaces as an ``HTTPError``, a failed call like any other (Java's client does not follow either)."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_OPENER = urllib.request.build_opener(_NoRedirects)
+
+
+def _open(request: urllib.request.Request, timeout: float):
+    """The proxy's one way out to the network."""
+    return _OPENER.open(request, timeout=timeout)
+
+
 #: the proxy's own routing keys: what to call, never a value to interpolate
 _ROUTING_PARAMETERS = frozenset({"_sourceKind", "_sourceId", "_forEachSelectedRow"})
 
@@ -121,7 +138,6 @@ class ProxyHandlerMixin(MixinBase):
         ${state.x}/${secret.X}, fetch server-side and return the raw JSON on app_data._restfetch
         (an empty object when the view declares no such source). A failed call (>=400 upstream, or
         a transport error) answers app_data._restfetchError ``{status, message}`` instead."""
-        json_obj: Any = {}
         cls = self.registry.resolve(rq.server_side_type, rq.route)
         if cls is None:
             # a definition-only page (no class): the source is the one its OWN `actions:` — or its
@@ -130,22 +146,7 @@ class ProxyHandlerMixin(MixinBase):
             # that injects ${secret.X} for such a page
             declared = self._definition_source(rq)
             if declared is not None:
-                if not declared.proxy and declared.url:
-                    from ..action_guard import MateuForbiddenException
-
-                    raise MateuForbiddenException(
-                        f"Forbidden: __restfetch__ {rq.parameters.get('_sourceKind')}/"
-                        f"{rq.parameters.get('_sourceId')} is not a proxied source"
-                    )
-                if sample_sources.enabled() and declared.sample is not None:
-                    method = (declared.method or "GET").strip().upper()
-                    json_obj = copy.deepcopy(declared.sample) if method in ("", "GET", "HEAD") else {}
-                    return UIIncrement(app_data={"_restfetch": json_obj})
-                try:
-                    json_obj = self._fetch_proxy(declared, _call_state(rq))
-                except ProxyError as e:
-                    return _restfetch_error(e.status, e.detail)
-                return UIIncrement(app_data={"_restfetch": json_obj})
+                return self._proxied_answer(declared, rq)
         if cls is not None:
             kind = rq.parameters.get("_sourceKind")
             source_id = rq.parameters.get("_sourceId")
@@ -158,40 +159,42 @@ class ProxyHandlerMixin(MixinBase):
                     log.warning("__restfetch__: %s could not be instantiated (%s)", cls, e)
                     instance = None
             source = self.mapper.resolve_rest_source(cls, kind, source_id, instance)
-            if source is not None and sample_sources.enabled() and source.sample is not None:
-                # SAMPLE mode (opt-in only): the proxied twin of the browser's short-circuit, so
-                # both legs agree — a read gets the sample, a write succeeds without persisting
-                # anything, and the endpoint is never called.
-                method = (source.method or "GET").strip().upper()
-                json_obj = copy.deepcopy(source.sample) if method in ("", "GET", "HEAD") else {}
-            elif (
-                source is not None
-                and not getattr(source, "proxy", False)
-                and getattr(source, "url", None)
-            ):
-                # a DIRECT source is the browser's to call: proxying it on request ran a
-                # server-side call (with ${secret.X} resolved) the author never asked for
-                from ..action_guard import MateuForbiddenException
+            if source is not None:
+                return self._proxied_answer(source, rq)
+        return UIIncrement(app_data={"_restfetch": {}})
 
-                raise MateuForbiddenException(
-                    f"Forbidden: __restfetch__ {kind}/{source_id} is not a proxied source"
-                )
-            elif source is not None:
-                state = _call_state(rq)
-                # A route's fixedParams win over the client's state and the action's parameters on
-                # this leg too (fixed > client state > …, as on the hydrating path): a pin enforced
-                # only when hydrating the view would be a suggestion to a proxied url (Java's
-                # RestProxyCalls.fetch).
-                match = self.routes.match(rq.route) if getattr(self, "routes", None) else None
-                if match is not None:
-                    state.update(match.entry.fixed_params or {})
-                if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
-                    return self._for_each_selected_row(source, state)
-                try:
-                    json_obj = self._fetch_proxy(source, state)
-                except ProxyError as e:
-                    return _restfetch_error(e.status, e.detail)
-        return UIIncrement(app_data={"_restfetch": json_obj})
+    def _proxied_answer(self, source, rq: RunActionRq) -> UIIncrement:
+        """What ``__restfetch__`` answers for a source the page declares, a class view's or a
+        definition-only page's alike (Java's RestProxyCalls.fetch)."""
+        kind = rq.parameters.get("_sourceKind")
+        source_id = rq.parameters.get("_sourceId")
+        if sample_sources.enabled() and source.sample is not None:
+            # SAMPLE mode (opt-in only): the proxied twin of the browser's short-circuit, so both
+            # legs agree — a read gets the sample, a write succeeds without persisting anything,
+            # and the endpoint is never called.
+            method = (source.method or "GET").strip().upper()
+            sample = copy.deepcopy(source.sample) if method in ("", "GET", "HEAD") else {}
+            return UIIncrement(app_data={"_restfetch": sample})
+        if not getattr(source, "proxy", False) and getattr(source, "url", None):
+            # a DIRECT source is the browser's to call: proxying it on request ran a server-side
+            # call (with ${secret.X} resolved) the author never asked for
+            from ..action_guard import MateuForbiddenException
+
+            raise MateuForbiddenException(
+                f"Forbidden: __restfetch__ {kind}/{source_id} is not a proxied source"
+            )
+        # A route's fixedParams win over the client's state and the action's parameters on this
+        # leg too (fixed > client state > …, as on the hydrating path): a pin enforced only when
+        # hydrating the view would be a suggestion to a proxied url (Java's RestProxyCalls.fetch).
+        match = self.routes.match(rq.route) if getattr(self, "routes", None) else None
+        fixed = dict(match.entry.fixed_params or {}) if match is not None else {}
+        state = {**_call_state(rq), **fixed}
+        if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
+            return self._for_each_selected_row(source, state, fixed)
+        try:
+            return UIIncrement(app_data={"_restfetch": self._fetch_proxy(source, state)})
+        except ProxyError as e:
+            return _restfetch_error(e.status, e.detail)
 
     def _definition_source(self, rq: RunActionRq):
         """The resolved source the definition-only page declares for ``_sourceKind``/``_sourceId``
@@ -210,10 +213,11 @@ class ProxyHandlerMixin(MixinBase):
         resolve = self.rest_sources.resolve if self.rest_sources is not None else None
         return source_for(definition_sources(spec, resolve), kind, source_id)
 
-    def _for_each_selected_row(self, source, state: dict) -> UIIncrement:
+    def _for_each_selected_row(self, source, state: dict, fixed: dict) -> UIIncrement:
         """Bulk (``forEachSelectedRow``): the loop runs HERE, once per selected listing row, each row
-        merged over the state so ``.../people/${state.id}`` resolves to that row's id — one round
-        trip, the secret stays server-side (Java's RestProxyCalls.forEachSelectedRow)."""
+        merged over the state so ``.../people/${state.id}`` resolves to that row's id — except the
+        route's ``fixed`` params, which a row cannot override — one round trip, the secret stays
+        server-side (Java's RestProxyCalls.forEachSelectedRow)."""
         rows = state.get("crud_selected_items")
         rows = rows if isinstance(rows, list) else []
         failed = 0
@@ -222,6 +226,7 @@ class ProxyHandlerMixin(MixinBase):
             row_state = dict(state)
             if isinstance(row, dict):
                 row_state.update({str(k): v for k, v in row.items()})
+            row_state.update(fixed)
             try:
                 self._fetch_proxy(source, row_state)
             except ProxyError as e:
@@ -290,7 +295,7 @@ class ProxyHandlerMixin(MixinBase):
             req.add_header("Accept", "application/json")
             for name, value in (source.headers or {}).items():
                 req.add_header(name, self._interpolate(value, state))
-            with urllib.request.urlopen(req, timeout=self.proxy_timeout_seconds) as resp:
+            with _open(req, self.proxy_timeout_seconds) as resp:
                 if resp.status >= 400:
                     raise ProxyError(resp.status, f"HTTP {resp.status}")
                 body = resp.read().decode()

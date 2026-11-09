@@ -99,7 +99,10 @@ public sealed class MateuOptions
     /// mateu.progress.reattach-grace-seconds.) EXPERIMENTAL.</summary>
     public int? ProgressReattachGraceSeconds { get; set; }
 
-    /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
+    /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout that
+    /// does not follow redirects). A client of your own should not follow them either
+    /// (<c>AllowAutoRedirect = false</c>): a redirect would carry the source's headers, secrets
+    /// included, to wherever it points. A 3xx that reaches Mateu is a failed call.</summary>
     public HttpClient? HttpClient { get; set; }
 
     /// <summary>The deployment environment whose <c>type: Environment</c> file is overlaid on the REST

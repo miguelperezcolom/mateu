@@ -6,7 +6,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from mateu_ui.uidl import HiddenInCreate, HiddenInEditor, HiddenInView
+from mateu_ui.uidl import HiddenInCreate, HiddenInEditor, HiddenInView, ReadOnly, Version
 
 #: "view" | "edit" | "new" while a crud record form is mapped; None otherwise.
 _mode: ContextVar[str | None] = ContextVar("mateu_crud_form_mode", default=None)
@@ -22,18 +22,24 @@ def crud_form_mode(mode: str):
 
 
 def without_hidden_inputs(element, state: dict, creating: bool) -> dict:
-    """The submitted state minus the fields the form did not render — HiddenInCreate() on a create,
-    HiddenInEditor() on an edit — so a crafted request cannot write them (Java's
-    ClientWritableFields)."""
+    """The submitted state minus what the form did not let the user write — a field it did not
+    render (HiddenInCreate() on a create, HiddenInEditor() on an edit) or rendered read-only
+    (ReadOnly() on the field or the record class) — so a crafted request cannot write it (Java's
+    ClientWritableFields). The Version() field stays: the save compares it."""
     from ..naming import camel_case
-    from ..reflection import view_fields
+    from ..reflection import class_flag, view_fields
 
     marker = HiddenInCreate if creating else HiddenInEditor
-    hidden = {camel_case(f.name) for f in view_fields(element) if f.has(marker)}
-    hidden |= {f.name for f in view_fields(element) if f.has(marker)}
-    if not hidden or not state:
+    read_only_record = bool(class_flag(element, "__mateu_read_only__", False))
+    owned = [
+        f for f in view_fields(element)
+        if f.has(marker) or ((read_only_record or f.has(ReadOnly)) and not f.has(Version))
+    ]
+    names = {camel_case(f.name) for f in owned} | {f.name for f in owned}
+    if not names or not state:
         return state
-    return {k: v for k, v in state.items() if k not in hidden}
+    # a nested record also arrives flattened, as <field>-<key>
+    return {k: v for k, v in state.items() if k.split("-", 1)[0] not in names}
 
 
 def hidden_in_current_form(f) -> bool:

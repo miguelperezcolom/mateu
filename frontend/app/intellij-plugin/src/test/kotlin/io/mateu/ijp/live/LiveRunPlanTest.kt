@@ -75,7 +75,8 @@ class LiveRunPlanTest {
 
         val gradle = liveRunPlan(File("."), BuildTool.GRADLE, "id(\"org.springframework.boot\")", "", emptyList(),
             isWindows = false)
-        assertEquals(listOf("./gradlew", "bootRun", "--debug-jvm"), gradle.command)
+        assertEquals(listOf("./gradlew", "bootRun"), gradle.command)
+        assertEquals(null, gradle.debugPort) // --debug-jvm would suspend it until a debugger attaches, and the IDE attaches once it answers
         assertEquals("true", gradle.environment["MATEU_DEV"])
     }
 

@@ -27,7 +27,7 @@ Beside it, `conformance/bundle/` pins the static-bundle EXPORTERS (Java's `mateu
 its README.
 
 A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
-optional) is rendered by sending that request to the case's fixture type — how an interaction step
+optional; a YAML case may also carry `parameters`) is rendered by sending that request to the case's fixture type — how an interaction step
 (the shell's content load, an action) is pinned, not only the first render. The second-request
 cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view`,
 `wizard-step-2`, `wizard-completion-error` (a refused completion stays on its step), `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
@@ -46,7 +46,10 @@ first one, `definition-actions`, pins a definition-only page that declares `acti
 listing rows and select options come from proxied catalogue entries. `definition-path-params` pins a
 page under a `:param` route that seeds nothing else (its BARE layout: a path parameter is no seed)
 and `definition-path-params-seeded` the same page whose route also declares `defaultParams` (wrapped,
-its state carrying the path parameter too).
+its state carrying the path parameter too). `definition-proxied-bulk` pins a definition-only page's
+proxied bulk action, `app-source-proxied` / `app-source-no-such-role` the `_appsource` proxy of a
+`type: AppShell`: all three over a relative url with no self base url, so they exercise the proxy
+with no network.
 
 The `routed-tabs-*` cases pin ROUTED TABS — a record master whose route-registry `children` are its
 tabs, and in-page `@Tab(key)` tabs that are URLs — over route chains authored in code

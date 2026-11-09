@@ -59,7 +59,7 @@ def test_a_routes_fixed_params_win_on_the_proxied_leg(monkeypatch):
         calls.append(req.full_url)
         return _Response(json.dumps([]).encode())
 
-    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr("mateu_ui.core.sync_handler.proxy._open", fake_urlopen)
     SyncHandler(MateuRegistry(MODULE)).handle(RunActionRq(
         route="pinned-proxy", server_side_type=type_name(PinnedProxy), action_id="__restfetch__",
         component_state={"tenant": "evil"}, parameters={"_sourceKind": "options", "_sourceId": "city"},

@@ -18,6 +18,27 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - IntelliJ / desktop: tasks of an anonymous session are no longer written to disk, and remembered tasks are scoped by identity.
 - IntelliJ Live Run: the debugger listens on `127.0.0.1` only; a project path with spaces no longer breaks a run (the specs directory travels only in `MATEU_DEV_SPECS_DIR`); Gradle + Micronaut no longer fails to start on a debug-port clash (it runs without the debugger).
 - IntelliJ New Project: picks the highest final release of the bundled pin's major, or that major's newest pre-release before its GA, instead of Maven's `<release>`.
+### Fixed
+
+- **Python: a class-level `@eyes_only` now also covers view models bound only through `routes.yaml`
+  or a page's `viewModel:`.** Render, listing search, wizards and crud writes answer 403.
+- **.NET / Python: a crud save no longer writes `[ReadOnly]` / `ReadOnly()` fields from the client.**
+  They keep the stored value (the fresh instance's on a create), like Java.
+- **.NET / Python: the crud write gate follows what a save will do.** No id on the route needs create
+  permission and an id needs edit permission, whatever the action id says.
+- **.NET / Python: `__preview__` refuses a definition whose aliases expand past 100,000 nodes** instead
+  of building it.
+- **.NET / Python: a route's `fixedParams` win on every proxied leg** — over action parameters (.NET)
+  and each selected row of a bulk call; Python's definition-only pages now apply them.
+- **Python: a definition-only page's proxied `forEachSelectedRow` action runs once per row.** It used
+  to make one call without the rows and report success.
+- **.NET: a YAML app shell's proxied sources answer (`_appsource`).** The bell, palette search and
+  context pickers stayed empty.
+- **.NET / Python: the proxied fetch does not follow redirects, and a 3xx is a failed call.** A host's
+  own .NET `HttpClient` should set `AllowAutoRedirect = false` too.
+- **.NET: a `MateuForbiddenException` thrown inside an action is a 403** instead of a generic error.
+- **.NET: `[GroupAction]` methods honour `[DisabledUnless]` / `[EyesOnly]`.**
+- **.NET: a malformed body on the SSE endpoint streams the error increment** instead of a raw 500.
 
 ### Changed
 

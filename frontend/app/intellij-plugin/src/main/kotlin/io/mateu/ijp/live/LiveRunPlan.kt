@@ -149,16 +149,17 @@ fun liveRunPlan(
         BuildTool.GRADLE -> when (framework) {
             Framework.QUARKUS -> listOf(gradle, "quarkusDev") + devProps
             Framework.MICRONAUT -> listOf(gradle, "run", "--continuous")
-            else -> listOf(gradle, "bootRun", "--debug-jvm")
+            else -> listOf(gradle, "bootRun")
         }
     }
     val environment = buildMap {
         put("MATEU_DEV", "true")
         if (specs.isNotEmpty()) put("MATEU_DEV_SPECS_DIR", specs)
     }
-    // Gradle's `run` has no way to add the agent to the app alone: JAVA_TOOL_OPTIONS reaches the
-    // wrapper and the daemon too, and the second JVM to bind the port dies (the run never starts).
-    val debuggable = !(buildTool == BuildTool.GRADLE && framework == Framework.MICRONAUT)
+    // Gradle has no way to add a non-suspending agent to the app alone: JAVA_TOOL_OPTIONS reaches the
+    // wrapper and the daemon too (the second JVM to bind the port dies), and --debug-jvm suspends the
+    // app until a debugger attaches, while the IDE attaches only once the app answers.
+    val debuggable = !(buildTool == BuildTool.GRADLE && framework != Framework.QUARKUS)
     return LiveRunPlan(
         framework = framework,
         command = command,

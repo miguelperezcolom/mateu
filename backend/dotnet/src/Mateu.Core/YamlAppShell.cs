@@ -262,6 +262,28 @@ internal static class YamlAppShell
         return caps.ToList();
     }
 
+    /// <summary>The source the shell declares for <paramref name="role"/> (a context picker's by its
+    /// <paramref name="field"/>), with its samples, or null: what <c>_appsource</c> may call is
+    /// exactly this (Java's AppShellSources).</summary>
+    internal static RestDataSourceDto? DeclaredSource(IDictionary<object, object> shell, string role, string field)
+    {
+        RestDataSourceDto? Part(string key, string sub) =>
+            shell.TryGetValue(key, out var holder) && holder is IDictionary<object, object> map && map.TryGetValue(sub, out var node)
+                ? YamlDeclaredActions.SourceOf(node)
+                : null;
+        return role switch
+        {
+            "notifications" => Part("notifications", "source"),
+            "notificationsRead" => Part("notifications", "markRead"),
+            "globalSearch" => Part("globalSearch", "source"),
+            "contextOptions" => Maps(shell, "contextSelectors")
+                .Where(s => Str(s, "fieldName") == field && s.ContainsKey("optionsSource"))
+                .Select(s => YamlDeclaredActions.SourceOf(s["optionsSource"]))
+                .FirstOrDefault(s => s is not null),
+            _ => null,
+        };
+    }
+
     /// <summary>A REST source AS DECLARED (only the keys written; a bare string is a catalogue ref) —
     /// the wire carries what the shell says, the renderer resolves the rest.</summary>
     private static RestDataSourceDto? RawSource(IDictionary<object, object> map, string key)

@@ -194,8 +194,17 @@ public static class MateuExtensions
         // through the sync handler and streams its single increment.
         app.MapPost(prefix + "/mateu/v3/sse/{**route}", async (HttpContext ctx, SyncHandler handler) =>
         {
-            var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
+            // read inside the boundary, like the sync endpoint: a malformed body is an error
+            // increment the client can render, not a raw 500
+            var rq = new RunActionRqDto();
+            var parsed = false;
+            var unreadable = await RunGuarded(ctx, rq, async () =>
+            {
+                rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
+                parsed = true;
+                return UIIncrementDto.Of();
+            });
             ctx.Response.ContentType = "text/event-stream";
             ctx.Response.Headers.CacheControl = "no-cache";
             async Task Send(UIIncrementDto increment, CancellationToken token)
@@ -204,6 +213,11 @@ public static class MateuExtensions
                 increment = EmbeddedWindowCommands.Strip(increment, rq);
                 await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
                 await ctx.Response.Body.FlushAsync(token);
+            }
+            if (!parsed)
+            {
+                await Send(unreadable, ctx.RequestAborted);
+                return;
             }
             if (rq.ActionId == SyncHandler.AgentChannelAction)
             {
@@ -621,10 +635,10 @@ public static class MateuExtensions
         {
             return run();
         }
-        catch (MateuForbiddenException e)
+        catch (Exception e) when (MateuErrors.Unwrap(e) is MateuForbiddenException)
         {
             Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
-                rq.Route, rq.ActionId, e.Message);
+                rq.Route, rq.ActionId, MateuErrors.Unwrap(e).Message);
             throw;
         }
         catch (Exception e)
@@ -635,13 +649,14 @@ public static class MateuExtensions
 
     private static UIIncrementDto ErrorIncrement(HttpContext ctx, RunActionRqDto rq, Exception e, out bool forbidden)
     {
-        forbidden = e is MateuForbiddenException;
+        // an action, Save or Search runs through MethodInfo.Invoke: the refusal arrives wrapped
+        forbidden = MateuErrors.Unwrap(e) is MateuForbiddenException;
         if (forbidden)
         {
             // A denied action/view ([DisabledUnless]/[EyesOnly] not satisfied at invocation): an
             // error message increment (403 on the sync endpoint), the method never ran.
             Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
-                rq.Route, rq.ActionId, e.Message);
+                rq.Route, rq.ActionId, MateuErrors.Unwrap(e).Message);
             return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 0)]);
         }
         var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
