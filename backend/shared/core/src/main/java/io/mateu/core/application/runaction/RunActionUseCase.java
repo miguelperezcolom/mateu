@@ -66,6 +66,26 @@ public class RunActionUseCase {
     ComponentState.setResolvedPath(httpRequest, path);
   }
 
+  /**
+   * A LOAD of the mount root ({@code route ""}) that names no type and has consumed nothing ({@code
+   * consumedRoute ""}) is what a micro frontend embedding a whole app at its root sends: the same
+   * place as the top-level page load, which spells it {@code _empty}. Read as such — it answered
+   * "Page not found". No shell asks for its content that way (an app's home is its first menu leaf,
+   * or {@code _no_home_route}), so nothing that works today changes.
+   */
+  static RunActionCommand asMountRootLoad(RunActionCommand command) {
+    var route = command.route() == null ? null : command.route().replaceAll("^/+|/+$", "");
+    var blank = (java.util.function.Predicate<String>) s -> s == null || s.isEmpty();
+    if (route != null
+        && route.isEmpty()
+        && "".equals(command.consumedRoute())
+        && blank.test(command.actionId())
+        && blank.test(command.serverSideType())) {
+      return command.withConsumedRoute("_empty");
+    }
+    return command;
+  }
+
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
@@ -82,7 +102,7 @@ public class RunActionUseCase {
       // a route that repeats the mount it was sent to (/e2-demo/page to /e2-demo) is the same
       // place as the relative one (/page): read it as such, or the app answers for its own content
       // and the shell reloads forever (see MountPrefixedRoutes)
-      var relative = MountPrefixedRoutes.relativize(incoming);
+      var relative = asMountRootLoad(MountPrefixedRoutes.relativize(incoming));
       command = yamlUidlLoader != null ? yamlUidlLoader.guard(relative) : relative;
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);

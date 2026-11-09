@@ -131,6 +131,10 @@ internal sealed partial class SyncHandler
         var url = UrlTemplate.Interpolate(source.Url, expr => ValueOf(expr, state, ResolveSecret));
         try
         {
+            // a relative url is this app's own endpoint (it failed as "an invalid request URI")
+            url = AbsoluteProxyUrl(url)
+                  ?? throw new InvalidOperationException(
+                      "a proxied source with a relative url needs this server's base url: set MateuOptions.SelfBaseUrl");
             var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
             using var req = new HttpRequestMessage(new HttpMethod(method), url);
             req.Headers.Accept.ParseAdd("application/json");

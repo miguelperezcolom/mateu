@@ -110,8 +110,45 @@ internal sealed class RestSourceRegistry : ISpecsCache
     /// description), the request nested under <c>source:</c> as in Java.</summary>
     public static RestSourceCatalog AuthoredFrom(string dir)
     {
-        var path = Path.Combine(dir, FileName);
-        if (!File.Exists(path)) return RestSourceCatalog.Empty;
+        // sources.yaml AND every other YAML under the specs directory declaring `type: Sources`, like
+        // the other authored kinds (Java RestSourceRegistry.authoredFrom); names are global, so the
+        // same name in two files is an error naming both
+        if (!Directory.Exists(dir)) return RestSourceCatalog.Empty;
+        var files = new List<string>();
+        var conventional = Path.Combine(dir, FileName);
+        if (File.Exists(conventional)) files.Add(conventional);
+        foreach (var candidate in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
+                     .Where(p => p.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase)
+                                 || p.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+                     .Where(p => Path.GetFullPath(p) != Path.GetFullPath(conventional))
+                     .OrderBy(p => p, StringComparer.Ordinal))
+        {
+            object? head;
+            try { head = Yaml.Read<object?>(File.ReadAllText(candidate)); }
+            catch { continue; }
+            if (head is IDictionary<object, object> m && m.TryGetValue("type", out var t) && "Sources".Equals(t as string))
+                files.Add(candidate);
+        }
+        var entries = new List<RestSourceEntry>();
+        var fileOf = new Dictionary<string, string>();
+        foreach (var file in files)
+        foreach (var entry in ReadFile(dir, file).Sources)
+        {
+            if (fileOf.TryGetValue(entry.Name, out var previous))
+            {
+                var message = $"REST source '{entry.Name}' is declared twice: in {Path.GetRelativePath(dir, previous)} and in "
+                              + $"{Path.GetRelativePath(dir, file)}. Source names are global — rename one or remove the duplicate.";
+                MateuLogging.For("Mateu.RestSources").LogError("{Message}", message);
+                throw new InvalidOperationException(message);
+            }
+            fileOf[entry.Name] = file;
+            entries.Add(entry);
+        }
+        return new RestSourceCatalog(entries);
+    }
+
+    private static RestSourceCatalog ReadFile(string dir, string path)
+    {
         try
         {
             var root = Yaml.Read<object?>(File.ReadAllText(path));
@@ -368,8 +405,15 @@ internal sealed class ComponentRegistry : ISpecsCache
                 if (node is not IDictionary<object, object> map) continue;
                 var name = map.TryGetValue("name", out var n) ? n?.ToString() : null;
                 if (string.IsNullOrWhiteSpace(name) || !map.TryGetValue("component", out var c) || c is null) continue;
-                if (YamlComponentBuilder.FromNode(c, fieldTypes ?? new FieldTypeRegistry(dir)) is { } component)
-                    entries.Add(new ComponentEntry(name.Trim(), component));
+                var types = fieldTypes ?? new FieldTypeRegistry(dir);
+                if (YamlComponentBuilder.FromNode(c, types) is { } component)
+                {
+                    var entry = new ComponentEntry(name.Trim(), component);
+                    // a composition guarded by access keys is rebuilt per caller from its source
+                    // (MateuCatalogs.Resolve), and the fields it locks are derived from it
+                    if (YamlAccess.DeclaresAccess(c)) AuthoredSources.Remember(entry, c, types);
+                    entries.Add(entry);
+                }
                 else
                     MateuLogging.For("Mateu.Components").LogWarning("{Path}: could not parse component '{Name}'", path, name);
             }
@@ -434,10 +478,142 @@ internal static class MateuCatalogs
     internal static IComponent Resolve(ComponentRef reference)
     {
         var chain = Resolving.Value ?? [];
-        return !chain.Contains(reference.Ref) && chain.Length < 20
-               && Components.Get(reference.Ref)?.Component is { } component
-            ? component
-            : new Text("Unknown business component: " + reference.Ref);
+        var entry = !chain.Contains(reference.Ref) && chain.Length < 20 ? Components.Get(reference.Ref) : null;
+        return entry is null ? new Text("Unknown business component: " + reference.Ref)
+            : AuthoredSources.Of(entry) is { } source ? Personalised(entry, source)
+            : entry.Component ?? new Text("Unknown business component: " + reference.Ref);
+    }
+
+    /// <summary>An authored composition AS THIS CALLER SEES IT: rebuilt from its source with the
+    /// access keys applied (Java's <c>ComponentRegistry.get(name, request)</c>). A failure applying
+    /// them yields an EMPTY composition, never the unrestricted one.</summary>
+    private static IComponent Personalised(ComponentEntry entry, AuthoredSources.Source source)
+    {
+        try
+        {
+            var applied = YamlAccess.Apply(source.Node, ActionGuard.Authorized);
+            return applied.Tree is null
+                ? new VerticalLayout { Content = [] }
+                : YamlComponentBuilder.FromNode(applied.Tree, source.Types) ?? new VerticalLayout { Content = [] };
+        }
+        catch (Exception e)
+        {
+            MateuLogging.For("Mateu.Components").LogError(e, "Could not apply the access keys of business component '{Name}'", entry.Name);
+            return new VerticalLayout { Content = [] };
+        }
+    }
+
+    /// <summary>The ids of the fields the business components <paramref name="names"/> (and the ones
+    /// they nest) hide or lock for the caller — dropped from the state the client posts (Java's
+    /// <c>ClientLockedFields</c>). Fails CLOSED: a composition whose access keys cannot be evaluated
+    /// locks every field it holds; one under a section the caller may not see locks all of its own.</summary>
+    internal static IReadOnlySet<string> LockedBy(IEnumerable<string> names) =>
+        LockedByComponent(names).Keys.ToHashSet();
+
+    /// <summary>As <see cref="LockedBy"/>, field id → the business component that locks it (for the log).</summary>
+    internal static IReadOnlyDictionary<string, string> LockedByComponent(IEnumerable<string> names)
+    {
+        var locked = new Dictionary<string, string>();
+        foreach (var name in names) Lock(name, [], locked, lockAll: false);
+        return locked;
+    }
+
+    /// <summary>Every field of the business components <paramref name="names"/> (nested ones
+    /// included), field id → the component: they sit where the caller may not see them.</summary>
+    internal static IReadOnlyDictionary<string, string> AllFieldsOf(IEnumerable<string> names)
+    {
+        var locked = new Dictionary<string, string>();
+        foreach (var name in names) Lock(name, [], locked, lockAll: true);
+        return locked;
+    }
+
+    /// <summary>STRICT (Java's <c>ClientLockedFields.appWideLockedFor</c>): every field ANY restricted
+    /// business component of the app hides or locks for the caller, field id → the component. A view
+    /// that may draw pieces — a code view drawing its own tree, a YAML layout — is checked against all
+    /// of them, whatever it drew before: a page may draw a piece only in some state.</summary>
+    internal static IReadOnlyDictionary<string, string> AppWideLockedBy() =>
+        RestrictedNames().ToList() is { Count: > 0 } names ? LockedByComponent(names) : new Dictionary<string, string>();
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> Reported = new();
+
+    /// <summary><paramref name="state"/> without the keys of <paramref name="lockedBy"/> (field id →
+    /// the component locking it), one WARN per (owner, key) naming the component — then Debug. The
+    /// same dictionary when nothing is dropped.</summary>
+    internal static IDictionary<string, object?> WithoutLocked(
+        string owner, IDictionary<string, object?> state, IReadOnlyDictionary<string, string> lockedBy)
+    {
+        if (lockedBy.Count == 0 || !state.Keys.Any(lockedBy.ContainsKey)) return state;
+        var log = MateuLogging.For("Mateu.Components");
+        var narrowed = new Dictionary<string, object?>(state);
+        foreach (var key in state.Keys.Where(lockedBy.ContainsKey))
+        {
+            narrowed.Remove(key);
+            if (Reported.TryAdd(owner + "#" + key, true))
+                log.LogWarning(
+                    "Dropped client state for '{Key}' of {Owner}: business component '{Component}' hides or locks a field of that name for the caller. Every view that may draw business components is checked against every restricted one of the app; if that component is unrelated to this view, rename one of the two fields (further drops are logged at Debug)",
+                    key, owner, lockedBy[key]);
+            else
+                log.LogDebug("Dropped client state for locked field '{Key}' of {Owner} ({Component})", key, owner, lockedBy[key]);
+        }
+        return narrowed;
+    }
+
+    /// <summary>The names of the authored compositions guarded by access keys.</summary>
+    internal static IEnumerable<string> RestrictedNames() =>
+        Components.Components.Where(e => AuthoredSources.Of(e) is not null).Select(e => e.Name);
+
+    private static void Lock(string name, string[] chain, Dictionary<string, string> lockedBy, bool lockAll)
+    {
+        if (chain.Contains(name) || chain.Length >= 20) return;
+        if (Components.Get(name) is not { } entry) return;
+        chain = [.. chain, name];
+        var locked = new FirstWins(lockedBy, name);
+        if (AuthoredSources.Of(entry) is not { } source)
+        {
+            // no access keys of its own: it locks nothing — unless it sits under a section (or a
+            // parent piece) the caller may not see, where none of it (nested pieces included) does
+            if (!lockAll) return;
+            locked.UnionWith(AuthoredSources.FieldIdsInTree(entry.Component));
+            foreach (var child in AuthoredSources.RefsInTree(entry.Component)) Lock(child, chain, lockedBy, lockAll: true);
+            return;
+        }
+        var nested = AuthoredSources.RefsIn(source.Node);
+        ISet<string> visible = nested;
+        if (lockAll)
+        {
+            locked.UnionWith(AuthoredSources.FieldIdsIn(source.Node));
+            visible = new HashSet<string>();
+        }
+        else
+        {
+            try
+            {
+                var applied = YamlAccess.Apply(source.Node, ActionGuard.Authorized);
+                locked.UnionWith(applied.LockedFields);
+                if (applied.Tree is null)
+                {
+                    locked.UnionWith(AuthoredSources.FieldIdsIn(source.Node));
+                    visible = new HashSet<string>();
+                }
+                else visible = AuthoredSources.RefsIn(applied.Tree);
+            }
+            catch (Exception e)
+            {
+                MateuLogging.For("Mateu.Components").LogError(e, "Could not apply the access keys of business component '{Name}'", name);
+                locked.UnionWith(AuthoredSources.FieldIdsIn(source.Node));
+                visible = new HashSet<string>();
+            }
+        }
+        foreach (var child in nested) Lock(child, chain, lockedBy, lockAll: !visible.Contains(child));
+    }
+
+    /// <summary>A field-id sink recording the component that locks each field (first wins).</summary>
+    private sealed class FirstWins(Dictionary<string, string> lockedBy, string component)
+    {
+        public void UnionWith(IEnumerable<string> ids)
+        {
+            foreach (var id in ids) lockedBy.TryAdd(id, component);
+        }
     }
 
     /// <summary>Runs <paramref name="body"/> over the resolved composition with the reference on the
@@ -506,5 +682,105 @@ internal static class MateuCatalogs
             // surface's own sample > entry sample > entry.source sample
             Sample = declared.Sample ?? Sources.Get(declared.Ref)!.EffectiveSample(),
         };
+    }
+}
+
+/// <summary>The authored SOURCE of the business components guarded by access keys, kept beside
+/// the entries built from it: what <see cref="MateuCatalogs"/> rebuilds per caller and derives the
+/// locked fields from. A side table (not a member of the public <see cref="ComponentEntry"/>).</summary>
+internal static class AuthoredSources
+{
+    internal sealed record Source(object Node, FieldTypeRegistry Types);
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<ComponentEntry, Source> Table = new();
+
+    internal static void Remember(ComponentEntry entry, object node, FieldTypeRegistry types) =>
+        Table.AddOrUpdate(entry, new Source(YamlAccess.DeepCopy(node)!, types));
+
+    internal static Source? Of(ComponentEntry entry) => Table.TryGetValue(entry, out var s) ? s : null;
+
+    /// <summary>The business components a YAML tree names (<c>type: ComponentRef</c>).</summary>
+    internal static HashSet<string> RefsIn(object? node)
+    {
+        var out_ = new HashSet<string>();
+        Walk(node, n =>
+        {
+            if (Str(n, "type") == "ComponentRef" && Str(n, "ref") is { Length: > 0 } r) out_.Add(r.Trim());
+        });
+        return out_;
+    }
+
+    /// <summary>The ids of every <c>FormField</c> of a YAML tree.</summary>
+    internal static HashSet<string> FieldIdsIn(object? node)
+    {
+        var out_ = new HashSet<string>();
+        Walk(node, n =>
+        {
+            if (Str(n, "type") == "FormField" && Str(n, "id") is { } id) out_.Add(id);
+        });
+        return out_;
+    }
+
+    private static string? Str(IDictionary<object, object> map, string key) =>
+        map.TryGetValue(key, out var v) ? v?.ToString() : null;
+
+    private static void Walk(object? node, Action<IDictionary<object, object>> visit)
+    {
+        switch (node)
+        {
+            case IDictionary<object, object> map:
+                visit(map);
+                foreach (var v in map.Values) Walk(v, visit);
+                break;
+            case string:
+                break;
+            case IEnumerable<object> list:
+                foreach (var v in list) Walk(v, visit);
+                break;
+        }
+    }
+
+    /// <summary>The business components a fluent tree (built in code or from YAML) references.</summary>
+    internal static HashSet<string> RefsInTree(object? tree)
+    {
+        var out_ = new HashSet<string>();
+        WalkTree(tree, out_, null, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        return out_;
+    }
+
+    /// <summary>The ids of every <see cref="FormField"/> of a fluent tree (references not followed).</summary>
+    internal static HashSet<string> FieldIdsInTree(object? tree)
+    {
+        var out_ = new HashSet<string>();
+        WalkTree(tree, new HashSet<string>(), out_, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        return out_;
+    }
+
+    private static void WalkTree(object? value, HashSet<string> refs, HashSet<string>? fieldIds, HashSet<object> seen, int depth)
+    {
+        if (value is null or string || depth > 64 || value.GetType().IsPrimitive || value is Enum) return;
+        if (!seen.Add(value)) return;
+        if (value is FormField field && fieldIds is not null && !string.IsNullOrEmpty(field.FieldId)) fieldIds.Add(field.FieldId);
+        if (value is ComponentRef r)
+        {
+            if (!string.IsNullOrWhiteSpace(r.Ref)) refs.Add(r.Ref.Trim());
+            return;
+        }
+        if (value is System.Collections.IEnumerable items)
+        {
+            foreach (var item in items) WalkTree(item, refs, fieldIds, seen, depth + 1);
+            return;
+        }
+        if (value is not IComponent) return;
+        foreach (var p in value.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (p.GetIndexParameters().Length > 0) continue;
+            var t = p.PropertyType;
+            if (t == typeof(string) || t.IsPrimitive || t.IsEnum) continue;
+            object? child;
+            try { child = p.GetValue(value); }
+            catch { continue; }
+            WalkTree(child, refs, fieldIds, seen, depth + 1);
+        }
     }
 }

@@ -65,6 +65,23 @@ public class CatalogueFilesTests : IDisposable
         Assert.Equal(new List<object?> { "Palma", "Inca" }, catalog.Get("cities")!.Sample);
     }
 
+    /// <summary>Java <c>SourcesFilesDiscoveryTest</c>: a <c>type: Sources</c> file anywhere under the
+    /// specs directory joins the catalogue; the same name in two files is an error naming both.</summary>
+    [Fact]
+    public void A_type_sources_file_anywhere_joins_the_catalogue_and_a_duplicate_name_names_both_files()
+    {
+        Write("sources.yaml", "sources:\n  - name: countries\n    source: {url: https://api.example.com/countries}\n");
+        Directory.CreateDirectory(Path.Combine(_dir, "explorer"));
+        Write("explorer/more.yaml", "type: Sources\nsources:\n  - name: planets\n    source: {url: https://swapi.example.com/planets}\n");
+        Assert.Equal(["countries", "planets"],
+            RestSourceRegistry.AuthoredFrom(_dir).Sources.Select(e => e.Name).ToArray());
+
+        Write("explorer/dup.yaml", "type: Sources\nsources:\n  - name: countries\n    source: {url: https://other.example.com}\n");
+        var error = Assert.Throws<InvalidOperationException>(() => RestSourceRegistry.AuthoredFrom(_dir));
+        Assert.Contains("sources.yaml", error.Message);
+        Assert.Contains(Path.Combine("explorer", "dup.yaml"), error.Message);
+    }
+
     [Fact]
     public void An_inline_sample_on_the_source_is_read_typed()
     {

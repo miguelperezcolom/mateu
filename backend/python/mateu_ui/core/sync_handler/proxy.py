@@ -190,6 +190,22 @@ class ProxyHandlerMixin(MixinBase):
         # the rows are gone; the client reloads the listing (successRoute), so no body is needed
         return UIIncrement(app_data={"_restfetch": {}})
 
+    def _own_base_url(self) -> str | None:
+        """This server's origin: the configured ``self_base_url`` (add_mateu / MATEU_SELF_BASE_URL),
+        else the adapter's view of the local socket; None when neither is known."""
+        from .. import microfrontends as mfe
+        from ..request_context import current_request
+
+        resolver = getattr(self, "microfrontends", None)
+        settings = getattr(resolver, "settings", None)
+        configured = getattr(settings, "self_base_url", None) or mfe._sane_self_base_url(
+            os.environ.get("MATEU_SELF_BASE_URL")
+        )
+        if configured:
+            return configured
+        request = current_request()
+        return mfe._sane_self_base_url(getattr(request, "self_base_url", None))
+
     def _fetch_proxy(self, source, state: dict) -> Any:
         """Fetch a resolved source server-side (url/headers/body interpolated) and return its JSON
         (an empty body — a 204 — is an empty object). Raises :class:`ProxyError` on a non-2xx or a
@@ -199,6 +215,19 @@ class ProxyHandlerMixin(MixinBase):
         try:
             # values percent-encoded by position: client state cannot steer the server's request
             url = interpolate_url(source.url or "", lambda expr: self._value_of(expr, state))
+            if url.startswith("/") and not url.startswith("//"):
+                # a RELATIVE url is this app's own endpoint, as on the browser's direct leg:
+                # resolved against the configured self base url, else the local socket — never a
+                # request header (Java RestProxyCalls.absolute)
+                own = self._own_base_url()
+                if own is None:
+                    log.warning(
+                        "Proxy fetch of %r needs this server's base url: set"
+                        " add_mateu(self_base_url=...) / MATEU_SELF_BASE_URL",
+                        template,
+                    )
+                    raise ProxyError(0, "relative url without a self base url")
+                url = own + url
             if not url.lower().startswith(("http://", "https://")):
                 # urllib also opens file:// and ftp:// — a proxy source is an HTTP endpoint only.
                 log.warning("Proxy fetch refused: %r is not an http(s) url", template)

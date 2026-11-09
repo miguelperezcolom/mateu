@@ -905,6 +905,22 @@ test('rows: a failing source leaves an empty page (no crash), a proxied failure 
   assert.equal(node.metadata.type, 'Crud')
 })
 
+// A listing whose load failed said nothing: an empty table, indistinguishable from no rows. The
+// user is told, with what the service said when it said something (direct and proxied legs).
+test('rows: a failing source is TOLD — the service\'s own message, else the status', async () => {
+  reset()
+  const ctx = listingCtx({ url: '/api/orders' })
+  const said = await restAnswer(ctx, 'search', {}, { fetchImpl: stubFetch({ message: 'No such vault' }, 404) })
+  assert.deepEqual(said.messages.map((m) => [m.variant, m.text]), [['error', 'No such vault']])
+  const bare = await restAnswer(ctx, 'search', {}, { fetchImpl: stubFetch(null, 401) })
+  assert.deepEqual(bare.messages.map((m) => m.text), ['Request failed (HTTP 401)'])
+  const prox = listingCtx({ ref: 'secret' })
+  const failed = await restAnswer(prox, 'search', {}, { server: async () => ({ appData: { _restfetchError: { status: 401, detail: 'Sign in first' } } }) })
+  assert.deepEqual(failed.messages.map((m) => m.text), ['Sign in first'])
+  const ok = await restAnswer(ctx, 'search', {}, { fetchImpl: stubFetch([]) })
+  assert.deepEqual(ok.messages, [])
+})
+
 test('options: a proxied failure leaves no options, marked loaded (not retried until the url changes)', async () => {
   reset()
   const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'p', children: [

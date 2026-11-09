@@ -30,7 +30,7 @@ class AppFabSyncTest {
 
     @Menu String home = "/";
 
-    @Fab(icon = "vaadin:refresh", label = "Quick sync")
+    @Fab(icon = "vaadin:refresh", label = "Sync now")
     public Message quickSync() {
       return new Message("quick sync done");
     }
@@ -46,6 +46,22 @@ class AppFabSyncTest {
   @AfterAll
   static void shutdown() {
     mateu.close();
+  }
+
+  @Test
+  void anAppFabIsNamedByItsOwnLabel() throws Exception {
+    var json =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .writeValueAsString(
+                mateu.run(
+                    RunActionRqDto.builder()
+                        .route("")
+                        .consumedRoute("_empty")
+                        .actionId("")
+                        .initiatorComponentId("_ux")
+                        .build()));
+    // @Fab(label = "Sync now") was ignored: the button was named after the method
+    assertThat(json).contains("\"label\":\"Sync now\"");
   }
 
   @Test

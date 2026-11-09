@@ -47,13 +47,20 @@ public class ComponentMapperBean implements ComponentMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    TranslatorContext.set(translator, httpRequest);
+    // an outer context (the increment mapper sets one for the whole response) is kept: clearing it
+    // here left the rest of the response — window title, messages — untranslated
+    var outer = TranslatorContext.isSet();
+    if (!outer) {
+      TranslatorContext.set(translator, httpRequest);
+    }
     ExporterContext.set(exportFormats());
     io.mateu.core.domain.RequestBound.bind(object, httpRequest);
     try {
       return getContent(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     } finally {
-      TranslatorContext.clear();
+      if (!outer) {
+        TranslatorContext.clear();
+      }
       ExporterContext.clear();
     }
   }

@@ -21,28 +21,35 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
 @customElement('mateu-skip-link')
 export class MateuSkipLink extends LitElement {
 
-    /** Content regions, best first. */
-    private static TARGETS = ['.app-content', 'mateu-page', 'mateu-ux', 'mateu-component']
+    /**
+     * Content regions, best first. The main LANDMARK leads: every shell variant marks its content
+     * area `role="main"`, while `.app-content` is only some variants' class.
+     */
+    private static TARGETS = ['[role="main"]', '.app-content', 'mateu-page', 'mateu-ux', 'mateu-component']
 
+    /**
+     * The best region ANYWHERE in the tree: each selector is looked for through every open shadow
+     * root before the next one is tried. Matching all selectors per root found the ROOT mateu-ux
+     * (light DOM) before the main landmark inside its shadow — the whole page, header included,
+     * got the focus and the next Tab landed on the header's "Sections" button.
+     */
     private findContent(): HTMLElement | null {
-        const seen = new Set<ParentNode>()
-        const search = (root: ParentNode): HTMLElement | null => {
-            if (seen.has(root)) return null
-            seen.add(root)
-            for (const selector of MateuSkipLink.TARGETS) {
+        const roots: ParentNode[] = []
+        const collect = (root: ParentNode) => {
+            if (roots.includes(root)) return
+            roots.push(root)
+            for (const el of Array.from(root.querySelectorAll?.('*') ?? [])) {
+                if ((el as HTMLElement).shadowRoot) collect((el as HTMLElement).shadowRoot!)
+            }
+        }
+        collect(document)
+        for (const selector of MateuSkipLink.TARGETS) {
+            for (const root of roots) {
                 const hit = root.querySelector?.(selector) as HTMLElement | null
-                // Skip our own host and anything with no box (a detached or empty region).
                 if (hit && hit !== (this as unknown as HTMLElement)) return hit
             }
-            for (const el of Array.from(root.querySelectorAll?.('*') ?? [])) {
-                if ((el as HTMLElement).shadowRoot) {
-                    const hit = search((el as HTMLElement).shadowRoot!)
-                    if (hit) return hit
-                }
-            }
-            return null
         }
-        return search(document)
+        return null
     }
 
     private skip = () => {

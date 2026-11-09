@@ -107,17 +107,20 @@ final class RestProxyCalls {
     // server-side, needs a single round trip, and sidesteps the client's write-exclusivity guard
     // (which would otherwise drop all but the first of N identical `__restfetch__` actions).
     if (Boolean.parseBoolean(String.valueOf(params.get("_forEachSelectedRow")))) {
-      return forEachSelectedRow(source, state, fixed);
+      return forEachSelectedRow(source, state, fixed, command.httpRequest());
     }
     try {
-      return body(performRestCall(source, state));
+      return body(performRestCall(source, state, command.httpRequest()));
     } catch (RestProxyException e) {
       return restFetchError(e.status, "Request failed" + statusSuffix(e.status), e.detail);
     }
   }
 
   private UIIncrementDto forEachSelectedRow(
-      RestDataSource source, Map<String, Object> state, Map<String, Object> fixed) {
+      RestDataSource source,
+      Map<String, Object> state,
+      Map<String, Object> fixed,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var list = state.get("crud_selected_items") instanceof List<?> l ? l : List.of();
     int failed = 0;
     RestProxyException firstError = null;
@@ -128,7 +131,7 @@ final class RestProxyCalls {
       }
       rowState.putAll(fixed);
       try {
-        performRestCall(source, rowState);
+        performRestCall(source, rowState, httpRequest);
       } catch (RestProxyException e) {
         failed++;
         if (firstError == null) {
@@ -195,11 +198,43 @@ final class RestProxyCalls {
         });
     return () -> {
       try {
-        return body(performRestCall(source, state));
+        return body(performRestCall(source, state, command.httpRequest()));
       } catch (RestProxyException e) {
         return restFetchError(e.status, "Request failed" + statusSuffix(e.status), e.detail);
       }
     };
+  }
+
+  /**
+   * The url a proxied call is sent to. A RELATIVE url ({@code /api/people}) means what it means in
+   * the browser on the direct leg: this app's own origin — resolved against the {@code
+   * mateu.self-base-url} setting, else the adapter's view of the local socket ({@link
+   * io.mateu.uidl.interfaces.HttpRequest#getSelfBaseUrl()}), never against a request header (the
+   * client would choose which host the server calls). It used to reach {@code URI.create} as it was
+   * and fail with "URI with undefined scheme".
+   */
+  static String absolute(String url, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (url == null || !url.startsWith("/") || url.startsWith("//")) {
+      return url;
+    }
+    var self = io.mateu.core.infra.out.RemoteTargets.configuredSelfBaseUrl();
+    if (self == null && httpRequest != null) {
+      try {
+        self = httpRequest.getSelfBaseUrl();
+      } catch (RuntimeException e) {
+        self = null;
+      }
+    }
+    if (self != null && self.endsWith("/")) {
+      self = self.substring(0, self.length() - 1);
+    }
+    if (self == null || !RemoteMenuHandler.isOrigin(self)) {
+      throw new RestProxyException(
+          0,
+          "a proxied source with a relative url needs this server's base url: set "
+              + io.mateu.core.infra.out.RemoteTargets.SELF_BASE_URL);
+    }
+    return self + url;
   }
 
   /** The proxy's own routing keys: what to call, never a value to interpolate. */
@@ -323,7 +358,10 @@ final class RestProxyCalls {
    * caller decides how to surface it, rather than an empty body being mistaken for success. The
    * single unit both the single-fetch and bulk paths reuse.
    */
-  private Object performRestCall(RestDataSource source, Map<String, Object> state) {
+  private Object performRestCall(
+      RestDataSource source,
+      Map<String, Object> state,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var method =
         source.method() == null || source.method().isBlank()
             ? "GET"
@@ -336,7 +374,7 @@ final class RestProxyCalls {
       var resolvedUrl = TemplateInterpolator.interpolateUrl(source.url(), state, secrets);
       var builder =
           java.net.http.HttpRequest.newBuilder()
-              .uri(java.net.URI.create(resolvedUrl))
+              .uri(java.net.URI.create(absolute(resolvedUrl, httpRequest)))
               .timeout(Duration.ofSeconds(60))
               .header("Accept", "application/json");
       if (source.headers() != null) {

@@ -1,6 +1,6 @@
 import { recordTiming, timed } from './timing.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
-import { applyClientRules } from './clientRules.ts';
+import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
@@ -665,7 +665,11 @@ export class MateuViewController {
   }
 
   private collectFieldErrors(): Record<string, string> {
-    return fieldErrorsOf(this.currentValidations, (condition) => this.evalValidationCondition(condition));
+    return {
+      // a field a client-side rule makes required (SetDataValue <field>.required) is checked too
+      ...ruleRequiredErrorsOf(this.fieldAttributes, this.currentComponentState),
+      ...fieldErrorsOf(this.currentValidations, (condition) => this.evalValidationCondition(condition)),
+    };
   }
 
   private evalValidationCondition(condition: string): boolean {

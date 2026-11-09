@@ -471,12 +471,26 @@ describe('shell flows and actions', () => {
         await vi.waitFor(() => expect(JSON.stringify(shown)).toContain('boom'))
     })
 
-    it('a FAB dispatches its action from the shell', async () => {
+    // An APP @Fab did nothing while a page was on screen: the click went to the page's component as
+    // an action-requested, the page does not claim an app method, and no request was sent. It runs
+    // on the app-level rail, like a header action (the server answers it on the app instance).
+    it('an app FAB runs on the app-level rail, whatever page is on screen', async () => {
         const el = await mount(app({ fabs: [{ actionId: 'newOrder', label: 'New order', icon: 'vaadin:plus' }] }))
         const requested: unknown[] = []
         el.addEventListener('action-requested', (e) => requested.push((e as CustomEvent).detail))
         $<HTMLButtonElement>(el, '.app-fab').click()
-        expect(requested).toEqual([{ actionId: 'newOrder' }])
+        expect(mocks.dispatchAppHeaderAction).toHaveBeenCalledWith(expect.objectContaining({ fabs: expect.anything() }), el, 'newOrder')
+        expect(requested).toEqual([])
+    })
+
+    it('an app FAB that fails is told to the user', async () => {
+        const shown: unknown[] = []
+        setNotifier({ show: (m) => shown.push(m) })
+        mocks.dispatchAppHeaderAction.mockRejectedValueOnce(new Error('nope'))
+        const el = await mount(app({ fabs: [{ actionId: 'newOrder', label: 'New order', icon: 'vaadin:plus' }] }))
+        $<HTMLButtonElement>(el, '.app-fab').click()
+        await new Promise((r) => setTimeout(r, 0))
+        expect(shown).toHaveLength(1)
     })
 })
 

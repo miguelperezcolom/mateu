@@ -344,12 +344,21 @@ final class ConstraintValidationMapper {
     return message(annotation, text);
   }
 
+  /**
+   * Mateu's default text for a required field, in the request's language (it was always English,
+   * whatever the Accept-Language — the client's own required check says it in Spanish too).
+   */
+  private static String cannotBeEmpty() {
+    return io.mateu.core.infra.declarative.BuiltInTexts.translate(
+        "Cannot be empty", TranslatorContext.request());
+  }
+
   static String notEmptyMessage(NotEmpty annotation) {
     return message(
         annotation,
         annotation
             .message()
-            .replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"));
+            .replace("{jakarta.validation.constraints.NotEmpty.message}", cannotBeEmpty()));
   }
 
   static String notNullMessage(NotNull annotation) {
@@ -357,7 +366,7 @@ final class ConstraintValidationMapper {
         annotation,
         annotation
             .message()
-            .replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"));
+            .replace("{jakarta.validation.constraints.NotNull.message}", cannotBeEmpty()));
   }
 
   /**

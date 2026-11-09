@@ -266,16 +266,46 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     {
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
-        if (_yaml.LoadSpec(rq.Route) is not { DependsOnRequest: true }) return rq;
-        if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
+        if (_yaml.LoadSpec(rq.Route) is not { } spec) return rq;
+        // the business components (components.yaml) lock fields too: they are resolved while the
+        // tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
+        // component of the app is checked, not only the ones this layout names
+        var byPieces = MateuCatalogs.AppWideLockedBy();
+        if (!spec.DependsOnRequest) return WithoutLockedByPieces(rq, byPieces);
+        if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal)
+            return WithoutLockedByPieces(rq, byPieces);
         if (rq.ActionId is { } actionId && personal.RefusedActions.Contains(actionId))
             ActionGuard.Deny($"action '{actionId}' denied by access:");
         if (rq.ActionId == "__restfetch__" && StateString(GetState(rq.Parameters, "_sourceId")) is { } sourceId
             && personal.RefusedActions.Contains(sourceId))
             ActionGuard.Deny($"action '{sourceId}' denied by access:");
-        if (personal.LockedFields.Count == 0 || !personal.LockedFields.Any(rq.ComponentState.ContainsKey)) return rq;
+        // a business component the layout draws only under a section the caller may not see
+        // locks every field it holds, even with no access keys of its own (fail closed)
+        var hidden = AuthoredSources.RefsInTree(spec.Layout);
+        hidden.ExceptWith(AuthoredSources.RefsInTree(personal.Layout));
+        if (hidden.Count > 0)
+        {
+            var merged = new Dictionary<string, string>(MateuCatalogs.AllFieldsOf(hidden));
+            foreach (var (key, component) in byPieces) merged.TryAdd(key, component);
+            byPieces = merged;
+        }
+        return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
+    }
+
+    /// <summary><paramref name="rq"/> without the posted state the business components lock for the caller.</summary>
+    private static RunActionRqDto WithoutLockedByPieces(RunActionRqDto rq, IReadOnlyDictionary<string, string> lockedBy)
+    {
+        var state = rq.ComponentState;
+        var narrowed = MateuCatalogs.WithoutLocked(rq.Route ?? "", state, lockedBy);
+        return ReferenceEquals(narrowed, state) ? rq : rq with { ComponentState = new Dictionary<string, object?>(narrowed) };
+    }
+
+    /// <summary><paramref name="rq"/> without the posted state of the fields <paramref name="locked"/> names.</summary>
+    private static RunActionRqDto WithoutLocked(RunActionRqDto rq, IReadOnlySet<string> locked)
+    {
+        if (locked.Count == 0 || !locked.Any(rq.ComponentState.ContainsKey)) return rq;
         var narrowed = new Dictionary<string, object?>(rq.ComponentState);
-        foreach (var id in personal.LockedFields) narrowed.Remove(id);
+        foreach (var id in locked) narrowed.Remove(id);
         return rq with { ComponentState = narrowed };
     }
 

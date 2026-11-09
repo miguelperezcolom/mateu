@@ -419,7 +419,9 @@ class AppContext(val session: AppSession) {
         // submits, see ScreenDeclarations.requiresValidation) only fire if every validation
         // condition holds; otherwise surface inline field errors and re-render in place.
         if (screen.requiresValidation(actionId)) {
-            val fieldErrors = screen.fieldErrors(currentComponentState, appState)
+            // a field a client-side rule makes required (SetDataValue <field>.required) too
+            val fieldErrors = ClientRules.requiredErrors(fieldAttributes, currentComponentState) +
+                screen.fieldErrors(currentComponentState, appState)
             currentFieldErrors.clear()
             if (fieldErrors.isNotEmpty()) {
                 currentFieldErrors.putAll(fieldErrors)

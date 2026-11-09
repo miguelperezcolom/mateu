@@ -8,15 +8,19 @@ nothing.
 
 from __future__ import annotations
 
+import copy
+import dataclasses
 import inspect
 import logging
 import os
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import yaml
 
+from mateu_ui.core import yaml_access
+from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl.business_components import ComponentCatalogSupplier, ComponentEntry
 
 log = logging.getLogger("mateu.components")
@@ -35,6 +39,9 @@ class ComponentRegistry:
         self._classes = list(classes or [])
         self._suppliers = list(suppliers or [])
         self._catalog: list[ComponentEntry] | None = None
+        #: authored entries whose composition declares access keys, by name: their SOURCE, rebuilt
+        #: per caller (Java's ComponentRegistry.get(name, request)) and read by the write-side guard
+        self._sources: dict[str, Any] = {}
         self._lock = threading.Lock()
         from mateu_ui.core import dev_specs
 
@@ -43,11 +50,13 @@ class ComponentRegistry:
     def invalidate_specs(self) -> None:
         """Dev mode: a spec changed — the catalogue is read again on next use."""
         self._catalog = None
+        self._sources = {}
 
     def catalog(self) -> list[ComponentEntry]:
         if self._catalog is None:
             with self._lock:
                 if self._catalog is None:
+                    self._sources = {}
                     by_name = {e.name: e for e in self.derived()}
                     for e in self.authored():
                         by_name[e.name] = e
@@ -108,8 +117,222 @@ class ComponentRegistry:
             if component is None:
                 log.warning("components.yaml: could not parse component '%s'", node.get("name"))
                 continue
-            out.append(ComponentEntry(str(node["name"]).strip(), component))
+            name = str(node["name"]).strip()
+            if yaml_access.declares_access(node.get("component")):
+                self._sources[name] = copy.deepcopy(node.get("component"))
+            out.append(ComponentEntry(name, component))
         return out
+
+    # ── per caller ───────────────────────────────────────────────────────────────────────────────
+
+    def get_for(self, name: str | None, authorized: Callable[[Any], bool] | None) -> ComponentEntry | None:
+        """The entry AS THIS CALLER SEES IT: an authored composition declaring ``eyesOnly:`` /
+        ``readOnlyUnless:`` / ``disabledUnless:`` / ``access:`` is rebuilt from its source with
+        the access keys applied (Java's ``ComponentRegistry.get(name, request)``). A failure
+        applying them yields an EMPTY composition, never the unrestricted one."""
+        entry = self.get(name)
+        if entry is None:
+            return None
+        source = self._sources.get(entry.name)
+        if source is None:
+            return entry
+        try:
+            applied = yaml_access.apply(source, authorized or _nobody)
+            if applied.tree is None:
+                return ComponentEntry(entry.name, fluent.VerticalLayout(content=()))
+            from .yaml_preview import build_node
+
+            return ComponentEntry(entry.name, build_node(applied.tree) or fluent.VerticalLayout(content=()))
+        except Exception:  # noqa: BLE001 - fail closed
+            log.exception("Could not apply the access keys of business component '%s'", entry.name)
+            return ComponentEntry(entry.name, fluent.VerticalLayout(content=()))
+
+    def restricted_names(self) -> list[str]:
+        self.catalog()
+        return list(self._sources)
+
+    def locked_for(self, names, authorized: Callable[[Any], bool] | None) -> set[str]:
+        """The ids of the fields the business components ``names`` (and the ones they nest) hide or
+        lock for the caller — dropped from the state the client posts (Java's
+        ``ClientLockedFields``). Fails CLOSED: a composition whose access keys cannot be evaluated
+        locks every field it holds."""
+        return set(self.locked_by(names, authorized))
+
+    def locked_by(self, names, authorized: Callable[[Any], bool] | None) -> dict[str, str]:
+        """As :meth:`locked_for`, field id → the business component that locks it (for the log)."""
+        self.catalog()
+        out: dict[str, str] = {}
+        for name in names:
+            self._locked(str(name).strip(), authorized, (), out, lock_all=False)
+        return out
+
+    def app_wide_locked_by(self, authorized: Callable[[Any], bool] | None) -> dict[str, str]:
+        """STRICT (Java's ``ClientLockedFields.appWideLockedFor``): every field ANY restricted
+        business component of the app hides or locks for the caller, field id → the component. A
+        view that may draw pieces is checked against all of them, whatever it drew before — a page
+        may draw a piece only in some state."""
+        names = self.restricted_names()
+        return self.locked_by(names, authorized) if names else {}
+
+    def all_fields_of(self, names) -> dict[str, str]:
+        """Every field of the business components ``names`` (nested ones included), field id → the
+        component: they sit where the caller may not see them."""
+        self.catalog()
+        out: dict[str, str] = {}
+        for name in names:
+            self._locked(str(name).strip(), None, (), out, lock_all=True)
+        return out
+
+    def _locked(self, name, authorized, chain, out_by: dict[str, str], lock_all: bool) -> None:
+        if name in chain or len(chain) >= 20:
+            return
+        out = _Locking(out_by, name)
+        source = self._sources.get(name)
+        chain = (*chain, name)
+        if source is None:
+            # no access keys of its own: it locks nothing — unless it sits under a section (or a
+            # parent piece) the caller may not see, where none of it (nested pieces included) does
+            entry = self.get(name) if lock_all else None
+            if entry is not None:
+                out.update(component_field_ids_in(entry.component))
+                for child in component_refs_in(entry.component):
+                    self._locked(child, authorized, chain, out_by, lock_all=True)
+            return
+        nested = _refs_in_yaml(source)
+        visible = nested
+        if lock_all:
+            out.update(_field_ids_in(source))
+            visible = set()
+        else:
+            try:
+                applied = yaml_access.apply(source, authorized or _nobody)
+                out.update(applied.locked_fields)
+                if applied.tree is None:
+                    out.update(_field_ids_in(source))
+                    visible = set()
+                else:
+                    visible = _refs_in_yaml(applied.tree)
+            except Exception:  # noqa: BLE001 - fail closed
+                log.exception("Could not apply the access keys of business component '%s'", name)
+                out.update(_field_ids_in(source))
+                visible = set()
+        for child in nested:
+            self._locked(child, authorized, chain, out_by, lock_all=child not in visible)
+
+
+class _Locking:
+    """``out.update(ids)`` recording the business component that locks each field (first wins)."""
+
+    def __init__(self, out: dict[str, str], name: str) -> None:
+        self._out = out
+        self._name = name
+
+    def update(self, ids) -> None:
+        for field_id in ids:
+            self._out.setdefault(field_id, self._name)
+
+
+_REPORTED: set[str] = set()
+
+
+def without_locked(owner: str, state: dict[str, Any], locked_by: dict[str, str]) -> dict[str, Any]:
+    """``state`` without the keys ``locked_by`` names (field id → the piece locking it), one WARN
+    per (owner, key) naming the piece — then DEBUG. The same dict when nothing is dropped."""
+    if not state or not locked_by or not any(k in state for k in locked_by):
+        return state
+    for key in state:
+        if key not in locked_by:
+            continue
+        piece = locked_by[key] or "a YAML partial/component"
+        if f"{owner}#{key}" not in _REPORTED:
+            _REPORTED.add(f"{owner}#{key}")
+            log.warning(
+                "Dropped client state for '%s' of %s: business component '%s' hides or locks a field"
+                " of that name for the caller. Every view that may draw business components is"
+                " checked against every restricted one of the app; if that component is unrelated"
+                " to this view, rename one of the two fields (further drops are logged at DEBUG)",
+                key,
+                owner,
+                piece,
+            )
+        else:
+            log.debug("Dropped client state for locked field '%s' of %s (%s)", key, owner, piece)
+    return {k: v for k, v in state.items() if k not in locked_by}
+
+
+def _nobody(gate) -> bool:
+    """No identity to ask: only what declares no restriction is granted."""
+    return gate is None
+
+
+def _refs_in_yaml(node: Any) -> set[str]:
+    out: set[str] = set()
+    if isinstance(node, dict):
+        if node.get("type") == "ComponentRef" and str(node.get("ref") or "").strip():
+            out.add(str(node["ref"]).strip())
+        for v in node.values():
+            out |= _refs_in_yaml(v)
+    elif isinstance(node, list):
+        for v in node:
+            out |= _refs_in_yaml(v)
+    return out
+
+
+def _field_ids_in(node: Any) -> set[str]:
+    out: set[str] = set()
+    if isinstance(node, dict):
+        if node.get("type") == "FormField" and node.get("id") is not None:
+            out.add(str(node["id"]))
+        for v in node.values():
+            out |= _field_ids_in(v)
+    elif isinstance(node, list):
+        for v in node:
+            out |= _field_ids_in(v)
+    return out
+
+
+def component_refs_in(tree: Any, _depth: int = 0) -> set[str]:
+    """The business components a fluent tree (built in code or by the YAML builder) references."""
+    out: set[str] = set()
+    if tree is None or _depth > 64:
+        return out
+    if isinstance(tree, fluent.ComponentRef):
+        if tree.ref:
+            out.add(tree.ref.strip())
+        return out
+    if isinstance(tree, (list, tuple)):
+        for v in tree:
+            out |= component_refs_in(v, _depth + 1)
+    elif isinstance(tree, dict):
+        for v in tree.values():
+            out |= component_refs_in(v, _depth + 1)
+    elif dataclasses.is_dataclass(tree) and not isinstance(tree, type):
+        for f in dataclasses.fields(tree):
+            v = getattr(tree, f.name, None)
+            if isinstance(v, (fluent.Component, list, tuple, dict)) or dataclasses.is_dataclass(v):
+                out |= component_refs_in(v, _depth + 1)
+    return out
+
+
+def component_field_ids_in(tree: Any, _depth: int = 0) -> set[str]:
+    """The ids of every ``FormField`` of a fluent tree (business component references not followed)."""
+    out: set[str] = set()
+    if tree is None or _depth > 64 or isinstance(tree, fluent.ComponentRef):
+        return out
+    if isinstance(tree, fluent.FormField) and tree.field_id:
+        out.add(tree.field_id)
+    if isinstance(tree, (list, tuple)):
+        for v in tree:
+            out |= component_field_ids_in(v, _depth + 1)
+    elif isinstance(tree, dict):
+        for v in tree.values():
+            out |= component_field_ids_in(v, _depth + 1)
+    elif dataclasses.is_dataclass(tree) and not isinstance(tree, type):
+        for f in dataclasses.fields(tree):
+            v = getattr(tree, f.name, None)
+            if isinstance(v, (fluent.Component, list, tuple, dict)) or dataclasses.is_dataclass(v):
+                out |= component_field_ids_in(v, _depth + 1)
+    return out
 
 
 def is_catalog_supplier(cls: Any) -> bool:

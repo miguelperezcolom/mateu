@@ -142,6 +142,8 @@ const en = {
     import: 'Import',
     itemsFound: '{count} items found.',
     // field widgets
+    // a field a client-side rule makes required (the server's own text for @NotEmpty)
+    fieldRequired: 'Cannot be empty',
     upload: 'Upload',
     replace: 'Replace',
     useImageUrl: 'Use a URL',
@@ -471,6 +473,7 @@ const es: Catalogue = {
     loadingMore: 'Cargando más…',
     import: 'Importar',
     itemsFound: '{count} elementos encontrados.',
+    fieldRequired: 'No puede estar vacío',
     upload: 'Subir',
     replace: 'Reemplazar',
     useImageUrl: 'Usar una URL',

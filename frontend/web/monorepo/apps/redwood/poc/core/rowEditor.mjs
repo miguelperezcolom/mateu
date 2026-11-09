@@ -3,7 +3,7 @@ import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, dateConverterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, STATUS_BADGE, findByType, humanizeConstant, isBlank, listingOf, statusTypeOfValue, withoutDefaultSizing } from './listing.mjs'
 import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
-import { evaluateExpression, evaluateTemplate, valueChangeActionOf } from '../rules.mjs'
+import { computeRules, evaluateExpression, evaluateTemplate, fieldFlagsOf, valueChangeActionOf } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
 // ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
@@ -1071,13 +1071,17 @@ export function validationOf(ctx, actionId) {
  * what the user has typed (the draft beats the state) → [fieldId] in form
  * order: the first is the one that receives focus. `only` restricts to those fields.
  */
-export function formErrorsOf(sections, draft, only) {
+export function formErrorsOf(sections, draft, only, ruleFlags) {
   const restrict = Array.isArray(only) && only.length ? new Set(only) : null
   const d = draft || {}
+  const flags = ruleFlags || {}
   const out = []
   for (const section of sections || []) {
     for (const f of section.fields || []) {
-      if (!f.required || f.readonly || f.isBoolean) continue
+      const flag = flags[f.fieldId] || {}
+      // a client-side rule may make the field required (or hide it: then it asks nothing)
+      if (flag.hidden) continue
+      if (!(f.required || flag.required === true) || f.readonly || f.isBoolean) continue
       if (restrict && !restrict.has(f.fieldId)) continue
       const value = Object.prototype.hasOwnProperty.call(d, f.fieldId) ? d[f.fieldId] : f.value
       if (isBlank(plainValueOf(value)) && out.indexOf(f.fieldId) < 0) out.push(f.fieldId)
@@ -1124,9 +1128,14 @@ export function validationErrorsOf(validations, state, only) {
  * (validationErrorsOf — a bound, a pattern, a size). → { missing: [fieldId] in form order,
  * messages: { fieldId: message } for the ones a wire validation refused }.
  */
-export function formRefusalOf(sections, state, draft, validations, only) {
-  const missing = formErrorsOf(sections, draft, only)
+export function formRefusalOf(sections, state, draft, validations, only, rules) {
   const merged = Object.assign({}, state || {}, plainDraftOf(draft))
+  // the `required` / `hidden` a client-side RULE decides for this state (SetDataValue
+  // <field>.required): the control was marked, but an empty value still left
+  const ruleFlags = rules && rules.length
+    ? fieldFlagsOf(computeRules(rules, { state: merged, data: {} }).data)
+    : null
+  const missing = formErrorsOf(sections, draft, only, ruleFlags)
   const messages = validationErrorsOf(validations, merged, only)
   // an empty required field is marked by its own JET validator; a class-level check (_component)
   // names no field to mark, so it is the server's to refuse

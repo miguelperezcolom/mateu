@@ -142,6 +142,20 @@ class BulkDeleteForm(RestSourceSupplier):
         ]
 
 
+@ui("cat-relative-proxy")
+class RelativeProxyForm(RestSourceSupplier):
+    """A proxied source with a RELATIVE url: this app's own endpoint."""
+
+    def declared_rest_sources(self):
+        return [
+            DeclaredRestSource(
+                RestSourceKind.ACTION,
+                RestDataSource(url="/api/people/${state.id}", proxy=True),
+                id="person",
+            ),
+        ]
+
+
 def handler(tmp_specs: Path | None = None) -> SyncHandler:
     registry = MateuRegistry(MODULE)
     sources = None
@@ -208,6 +222,25 @@ def test_an_app_without_a_catalogue_requires_no_rest_sources_capability(tmp_path
     h = SyncHandler(MateuRegistry(MODULE), rest_sources=registry)
     meta = app_meta(h)
     assert meta.get("restSources") == [] and "rest-sources" not in meta["requiredCapabilities"]
+
+
+def test_a_type_sources_file_anywhere_joins_the_catalogue_and_a_duplicate_names_both(tmp_path):
+    # Java SourcesFilesDiscoveryTest: like every other authored kind, not only sources.yaml
+    (tmp_path / "sources.yaml").write_text(
+        "sources:\n  - name: countries\n    source: {url: https://api.example.com/countries}\n"
+    )
+    (tmp_path / "explorer").mkdir()
+    (tmp_path / "explorer" / "more.yaml").write_text(
+        "type: Sources\nsources:\n  - name: planets\n    source: {url: https://swapi.example.com/p}\n"
+    )
+    names = [e.name for e in RestSourceRegistry(directory=str(tmp_path)).authored()]
+    assert names == ["countries", "planets"]
+    (tmp_path / "explorer" / "dup.yaml").write_text(
+        "type: Sources\nsources:\n  - name: countries\n    source: {url: https://other.example.com}\n"
+    )
+    with pytest.raises(ValueError) as error:
+        RestSourceRegistry(directory=str(tmp_path)).authored()
+    assert "sources.yaml" in str(error.value) and "dup.yaml" in str(error.value)
 
 
 def test_merge_is_authored_over_derived():
@@ -355,6 +388,21 @@ def test_the_action_parameters_reach_a_proxied_template(fetched):
         )
     )
     assert fetched[0].full_url == "https://api.example.com/people/9"
+
+
+def test_a_relative_proxied_url_is_called_on_this_servers_own_base_url(fetched):
+    # Java RestProxyRelativeUrlSyncTest: resolved against the configured self base url
+    h = handler()
+    h.configure_microfrontends(self_base_url="http://127.0.0.1:5005/")
+    inc = h.handle(
+        RunActionRq(
+            server_side_type=type_name(RelativeProxyForm),
+            action_id="__restfetch__",
+            parameters={"_sourceKind": "action", "_sourceId": "person", "id": "1"},
+        )
+    )
+    assert fetched[0].full_url == "http://127.0.0.1:5005/api/people/1"
+    assert inc.app_data == {"_restfetch": [{"code": "x"}]}
 
 
 def test_a_direct_source_is_never_proxied(fetched):

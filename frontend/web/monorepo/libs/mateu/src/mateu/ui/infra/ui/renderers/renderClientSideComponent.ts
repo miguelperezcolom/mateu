@@ -118,6 +118,7 @@ import { renderLedger } from "@infra/ui/renderers/ledgerRenderer.ts";
 import { renderPaymentPicker } from "@infra/ui/renderers/paymentPickerRenderer.ts";
 import { renderProcessMonitor } from "@infra/ui/renderers/processMonitorRenderer.ts";
 import { renderNotFound } from "@infra/ui/renderers/notFoundRenderer.ts";
+import { ruleRequires } from "@infra/ui/ruleRequired.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -148,15 +149,24 @@ export const updateMedata = (component: ClientSideComponent, data: ComponentData
     const metadata = component.metadata as ComponentMetadata | undefined
     if (!component.id || !metadata) return metadata
     const disablable = metadata.type == ComponentMetadataType.Button || metadata.type == ComponentMetadataType.FormField
-    if (!disablable || data?.[component.id + '.disabled'] != true) return metadata
-    if ((metadata as Button | FormField).disabled) return metadata
-    let copy = disabledCopies.get(metadata)
+    if (!disablable) return metadata
+    const disable = data?.[component.id + '.disabled'] == true && !(metadata as Button | FormField).disabled
+    // the `required` rule: by the component id or the field id the rule names
+    const require = metadata.type == ComponentMetadataType.FormField
+        && !(metadata as FormField).required
+        && (ruleRequires(data, component.id) || ruleRequires(data, (metadata as FormField).fieldId))
+    if (!disable && !require) return metadata
+    const cache = disable && require ? disabledRequiredCopies : disable ? disabledCopies : requiredCopies
+    let copy = cache.get(metadata)
     if (!copy) {
-        copy = { ...metadata, disabled: true } as ComponentMetadata
-        disabledCopies.set(metadata, copy)
+        copy = { ...metadata, ...(disable ? { disabled: true } : {}), ...(require ? { required: true } : {}) } as ComponentMetadata
+        cache.set(metadata, copy)
     }
     return copy
 }
+
+const requiredCopies = new WeakMap<object, ComponentMetadata>()
+const disabledRequiredCopies = new WeakMap<object, ComponentMetadata>()
 
 // The resolved copy handed out for a component, reused while its style and metadata resolve the same.
 const resolvedCopies = new WeakMap<ClientSideComponent, ClientSideComponent>()

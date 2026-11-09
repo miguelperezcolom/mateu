@@ -80,18 +80,33 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       instance =
           new io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome(instance);
     }
-    var fragments =
-        mapToFragments(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
-    return Mono.just(
-        new UIIncrementDto(
-            mapToCommands(instance, baseUrl, httpRequest),
-            mapToMessages(instance, baseUrl, httpRequest),
-            fragments,
-            mapToBanners(instance, baseUrl, httpRequest),
-            mapToAppendBanners(instance),
-            mapToAppData(instance, baseUrl, httpRequest),
-            mapToAppState(instance, baseUrl, httpRequest),
-            UIIncrementDto.WIRE_VERSION));
+    // The whole increment is mapped with the app's translator as the context — not only the
+    // component tree: the window title (CommandMapper), messages and banners of a REFLECTED page
+    // are read off the same annotations, and outside the context ${i18n.x} reached the wire raw
+    // (YAML pages translate their whole tree, so the two authoring paths disagreed).
+    var outer = io.mateu.core.domain.out.componentmapper.TranslatorContext.isSet();
+    if (!outer && translator != null) {
+      io.mateu.core.domain.out.componentmapper.TranslatorContext.set(translator, httpRequest);
+    }
+    try {
+      var fragments =
+          mapToFragments(
+              instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      return Mono.just(
+          new UIIncrementDto(
+              mapToCommands(instance, baseUrl, httpRequest),
+              mapToMessages(instance, baseUrl, httpRequest),
+              fragments,
+              mapToBanners(instance, baseUrl, httpRequest),
+              mapToAppendBanners(instance),
+              mapToAppData(instance, baseUrl, httpRequest),
+              mapToAppState(instance, baseUrl, httpRequest),
+              UIIncrementDto.WIRE_VERSION));
+    } finally {
+      if (!outer) {
+        io.mateu.core.domain.out.componentmapper.TranslatorContext.clear();
+      }
+    }
   }
 
   public static String removeQueryParamsFromRoute(String rawRoute) {

@@ -223,6 +223,11 @@ class ResponseHelpersMixin(MixinBase):
         return value
 
     def bind_state(self, instance, state: dict[str, Any]) -> None:
+        # a field a components.yaml business component hides or locks for the caller (the view's
+        # own tree may draw it): never written from the wire
+        from ..component_registry import without_locked
+
+        state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
@@ -255,6 +260,16 @@ class ResponseHelpersMixin(MixinBase):
             value = self.convert_value(raw, f.type)
             if value is not None:
                 setattr(instance, f.name, value)
+
+    def _locked_by_pieces(self, instance) -> dict[str, str]:
+        """Field id → the business component locking it, for a view that draws its own tree:
+        STRICT — every restricted business component of the app counts, whatever the view drew
+        before (it may draw one only in some state). A YAML layout's are dropped earlier, in
+        ``_guard_yaml_access``, by the same rule."""
+        components = getattr(self, "components", None)
+        if components is None or not callable(getattr(type(instance), "component", None)):
+            return {}
+        return components.app_wide_locked_by(self.mapper.authorized)
 
     @staticmethod
     def convert_value(raw, target):

@@ -1,6 +1,10 @@
 package io.mateu.core.application.runaction;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.application.i18n.TranslationRegistry;
+import io.mateu.core.application.security.YamlAccess;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -48,6 +52,25 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
 
   private final ObjectMapper mapper = YamlUidlMapperFactory.create();
   private final ConcurrentHashMap<String, List<Component>> byRef = new ConcurrentHashMap<>();
+
+  /**
+   * The source tree of a YAML partial that depends on who asks or in which language (it declares
+   * access keys or mentions {@code ${i18n.…}}). Such a partial is never served from {@link #byRef}:
+   * it is re-derived per request — access keys applied for the caller, texts translated — exactly
+   * as when a YAML page pulls it in ({@code YamlPartials} composes it into the page tree before
+   * {@code YamlUidlLoader} applies them). Without this, a partial drawn inside a JAVA page reached
+   * every caller with its {@code eyesOnly:} sections intact.
+   */
+  private final ConcurrentHashMap<String, JsonNode> requestDependent = new ConcurrentHashMap<>();
+
+  /**
+   * The source tree of every YAML partial read, request-dependent or not: what {@link
+   * #sourceOf(String)} hands the write-side guard, which derives the fields a partial locks for a
+   * caller (and follows the partials it nests) without rendering it.
+   */
+  private final ConcurrentHashMap<String, JsonNode> sources = new ConcurrentHashMap<>();
+
+  private final TranslationRegistry fallbackTranslations = new TranslationRegistry();
   private final ConcurrentHashMap<String, List<Component>> registered = new ConcurrentHashMap<>();
 
   private PartialRegistry() {
@@ -58,6 +81,8 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   @Override
   public void invalidateSpecs() {
     byRef.clear();
+    requestDependent.clear();
+    sources.clear();
   }
 
   /**
@@ -74,6 +99,35 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   public void reset() {
     registered.clear();
     byRef.clear();
+    requestDependent.clear();
+    sources.clear();
+  }
+
+  /**
+   * The authored YAML tree {@code ref} stands for, BEFORE any access key is applied (a copy), or
+   * {@code null} when the ref is not a YAML partial (registered in code, a class, or missing). For
+   * the write-side guard ({@code ClientLockedFields}): the fields a partial locks for a caller are
+   * derived from it.
+   */
+  public JsonNode sourceOf(String ref) {
+    if (ref == null || ref.isBlank() || registered.containsKey(ref)) {
+      return null;
+    }
+    byRef.computeIfAbsent(ref, this::fromYaml);
+    var source = sources.get(ref);
+    return source == null ? null : source.deepCopy();
+  }
+
+  /**
+   * The components a partial registered in code, or authored as a Java class, stands for; {@code
+   * null} for a YAML (or missing) one.
+   */
+  public List<Component> codeComponentsOf(String ref, HttpRequest httpRequest) {
+    if (ref == null || ref.isBlank()) {
+      return null;
+    }
+    var fromCode = registered.get(ref);
+    return fromCode != null ? fromCode : fromClass(ref, httpRequest);
   }
 
   /** The components {@code ref} stands for; empty when it resolves to nothing. */
@@ -91,7 +145,64 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
     if (fromClass != null) {
       return fromClass;
     }
-    return byRef.computeIfAbsent(ref, this::fromYaml);
+    var shared = byRef.computeIfAbsent(ref, this::fromYaml);
+    var source = requestDependent.get(ref);
+    return source == null ? shared : personalised(ref, source, httpRequest);
+  }
+
+  /**
+   * A request-dependent partial as {@code httpRequest} sees it. Who may see what is decided first,
+   * and a failure there renders NOTHING of the partial: an unrestricted version would hand the
+   * caller exactly what the access keys take away.
+   */
+  private List<Component> personalised(String ref, JsonNode source, HttpRequest httpRequest) {
+    JsonNode tree;
+    try {
+      tree =
+          YamlAccess.declaresAccess(source)
+              ? YamlAccess.apply(source, httpRequest, routeReachability(httpRequest)).tree()
+              : source.deepCopy();
+    } catch (Exception e) {
+      log.error("Could not apply the access keys of partial '{}'; rendering nothing", ref, e);
+      return NONE;
+    }
+    if (tree == null || tree.isNull() || tree.isMissingNode()) {
+      return NONE; // the whole partial is hidden from this caller
+    }
+    if (!TranslationRegistry.isRaw(httpRequest)) {
+      try {
+        translations().translateTree(tree, TranslationRegistry.localeOf(httpRequest));
+      } catch (Exception e) {
+        log.warn("Could not translate partial '{}' (served untranslated): {}", ref, e.getMessage());
+      }
+    }
+    try {
+      return componentsOf(ref, ref, null, tree);
+    } catch (Exception e) {
+      log.error("Could not build partial '{}' for the request", ref, e);
+      return NONE;
+    }
+  }
+
+  private static java.util.function.Predicate<String> routeReachability(HttpRequest httpRequest) {
+    try {
+      var routes = MateuBeanProvider.getSingletonBean(RouteRegistry.class);
+      return routes == null ? null : path -> routes.isReachable(path, httpRequest);
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
+  private TranslationRegistry translations() {
+    try {
+      var bean = MateuBeanProvider.getSingletonBean(TranslationRegistry.class);
+      if (bean != null) {
+        return bean;
+      }
+    } catch (Throwable ignored) {
+      // no bean context (a bare test, a build-time export): our own reader of the same files
+    }
+    return fallbackTranslations;
   }
 
   /**
@@ -138,31 +249,13 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
       if (root == null || root.isNull()) {
         return NONE;
       }
-      if (root.has("content")) {
-        // Each component is read on its own: one that cannot be read is reported (file, path,
-        // reason) and left out, and the rest of the partial still renders.
-        var content = new ArrayList<Component>();
-        var children = root.get("content");
-        for (int i = 0; i < children.size(); i++) {
-          try {
-            var component = mapper.treeToValue(children.get(i), Component.class);
-            if (component != null) {
-              content.add(component);
-            }
-          } catch (Exception e) {
-            var located =
-                com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(
-                    com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(
-                        e, children, i),
-                    root,
-                    "content");
-            content.addAll(unreadable(ref, path, text, located));
-          }
-        }
-        return List.copyOf(content);
+      sources.put(ref, root.deepCopy());
+      if (YamlAccess.declaresAccess(root) || TranslationRegistry.mentionsI18n(root)) {
+        // re-derived per request (resolve → personalised); no shared version exists to leak
+        requestDependent.put(ref, root);
+        return NONE;
       }
-      var single = mapper.treeToValue(root, Component.class);
-      return single == null ? NONE : List.of(single);
+      return componentsOf(ref, path, text, root);
     } catch (Exception e) {
       return unreadable(ref, path, text, e);
     }
@@ -185,6 +278,36 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
             .theme("danger")
             .text("Could not read the partial " + problem)
             .build());
+  }
+
+  /**
+   * The components of a partial's tree. Each component is read on its own: one that cannot be read
+   * is reported (file, path, reason) and left out, and the rest of the partial still renders.
+   */
+  private List<Component> componentsOf(String ref, String path, String text, JsonNode root)
+      throws Exception {
+    if (root.has("content")) {
+      var content = new ArrayList<Component>();
+      var children = root.get("content");
+      for (int i = 0; i < children.size(); i++) {
+        try {
+          var component = mapper.treeToValue(children.get(i), Component.class);
+          if (component != null) {
+            content.add(component);
+          }
+        } catch (Exception e) {
+          var located =
+              com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(
+                  com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(e, children, i),
+                  root,
+                  "content");
+          content.addAll(unreadable(ref, path, text, located));
+        }
+      }
+      return List.copyOf(content);
+    }
+    var single = mapper.treeToValue(root, Component.class);
+    return single == null ? NONE : List.of(single);
   }
 
   private List<Component> fromClass(String ref, HttpRequest httpRequest) {

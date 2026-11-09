@@ -11511,13 +11511,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * what the user has typed (the draft beats the state) → [fieldId] in form
    * order: the first is the one that receives focus. `only` restricts to those fields.
    */
-  function formErrorsOf(sections, draft, only) {
+  function formErrorsOf(sections, draft, only, ruleFlags) {
     const restrict = Array.isArray(only) && only.length ? new Set(only) : null
     const d = draft || {}
+    const flags = ruleFlags || {}
     const out = []
     for (const section of sections || []) {
       for (const f of section.fields || []) {
-        if (!f.required || f.readonly || f.isBoolean) continue
+        const flag = flags[f.fieldId] || {}
+        // a client-side rule may make the field required (or hide it: then it asks nothing)
+        if (flag.hidden) continue
+        if (!(f.required || flag.required === true) || f.readonly || f.isBoolean) continue
         if (restrict && !restrict.has(f.fieldId)) continue
         const value = Object.prototype.hasOwnProperty.call(d, f.fieldId) ? d[f.fieldId] : f.value
         if (isBlank(plainValueOf(value)) && out.indexOf(f.fieldId) < 0) out.push(f.fieldId)
@@ -11564,9 +11568,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (validationErrorsOf — a bound, a pattern, a size). → { missing: [fieldId] in form order,
    * messages: { fieldId: message } for the ones a wire validation refused }.
    */
-  function formRefusalOf(sections, state, draft, validations, only) {
-    const missing = formErrorsOf(sections, draft, only)
+  function formRefusalOf(sections, state, draft, validations, only, rules) {
     const merged = Object.assign({}, state || {}, plainDraftOf(draft))
+    // the `required` / `hidden` a client-side RULE decides for this state (SetDataValue
+    // <field>.required): the control was marked, but an empty value still left
+    const ruleFlags = rules && rules.length
+      ? fieldFlagsOf(computeRules(rules, { state: merged, data: {} }).data)
+      : null
+    const missing = formErrorsOf(sections, draft, only, ruleFlags)
     const messages = validationErrorsOf(validations, merged, only)
     // an empty required field is marked by its own JET validator; a class-level check (_component)
     // names no field to mark, so it is the server's to refuse
@@ -21826,11 +21835,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
     let fetched = []
     let total = null
+    // the load failed: TOLD (an empty table alone reads as "no rows") — what the service said when it
+    // said something (e.detail direct, _restfetchError.detail proxied), else the status
+    let failure = null
     try {
       if (viaProxy(src) && opts.server) {
         const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
         const appData = (inc && inc.appData) || {}
-        if (appData._restfetchError) throw new Error('proxied rows failed')
+        if (appData._restfetchError) {
+          const err = new Error('proxied rows failed')
+          err.status = typeof appData._restfetchError.status === 'number' ? appData._restfetchError.status : 0
+          err.detail = appData._restfetchError.detail
+          throw err
+        }
         ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
       } else {
         const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
@@ -21840,9 +21857,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
       fetched = []
       total = null
+      const status = e && typeof e.status === 'number' ? e.status : 0
+      const detail = e && typeof e.detail === 'string' && e.detail.trim() ? e.detail : null
+      failure = { variant: 'error', text: detail || ('Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '')) }
     }
     const page = restListingPage(md, fetched, total, componentState, serverPaged)
-    return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }])
+    return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }],
+      failure ? [failure] : [])
   }
 
   // ── field options ─────────────────────────────────────────────────────────────────────────────
@@ -26650,7 +26671,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const validation = !overlay && validationOf(host, id)
     if (validation) {
       const refusal = formRefusalOf(formSections, host && host.state, draft,
-        host && host.tree && host.tree.validations, validation.fields)
+        host && host.tree && host.tree.validations, validation.fields,
+        host && host.tree && host.tree.rules)
       if (refusal.missing.length) return fieldErrorsStop(refusal, false)
     }
     // ...and the same for a form that is a component of its own INSIDE the overlay (the crud's
@@ -26660,7 +26682,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const overlayValidation = surface && validationOf({ tree: surface }, id)
     if (overlayValidation) {
       const refusal = formRefusalOf(overlay.sections, overlay.state, drawerDraft, surface.validations,
-        overlayValidation.fields)
+        overlayValidation.fields, surface.rules)
       if (refusal.missing.length) return fieldErrorsStop(refusal, true)
     }
     // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to

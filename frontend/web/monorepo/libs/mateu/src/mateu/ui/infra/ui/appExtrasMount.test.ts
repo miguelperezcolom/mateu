@@ -148,3 +148,23 @@ describe('the idle-session warning', () => {
         expect(document.body.querySelector('mateu-idle-warning')).toBeNull()
     })
 })
+
+// An app EMBEDDED in a page (a MicroFrontend of a whole @UI app, under another shell) drew no
+// live header values: the top shell owned the store and the embedded app's seed was skipped.
+describe('live header values of an embedded app', () => {
+    it('an embedded app seeds its own values next to the top shell, and they survive its re-renders', async () => {
+        const { headerValuesList, resetHeaderValues } = await import('./headerValues')
+        resetHeaderValues()
+        const top = host({})
+        extras.syncAppExtras(top)
+        const embedded = host({ serverSideType: 'com.example.FrontDesk', headerValues: [{ id: 'businessDate', label: 'Business date', value: '12 Oct' }] })
+        extras.syncAppExtras(embedded)
+        expect(headerValuesList().map((v) => v.value)).toEqual(['12 Oct'])
+        extras.syncAppExtras(top)
+        expect(headerValuesList().map((v) => v.value)).toEqual(['12 Oct'])
+        // the embedded app goes: its values with it
+        embedded.component = { metadata: { type: 'App', serverSideType: 'com.example.FrontDesk', headerValues: [] } }
+        extras.syncAppExtras(embedded)
+        expect(headerValuesList()).toEqual([])
+    })
+})

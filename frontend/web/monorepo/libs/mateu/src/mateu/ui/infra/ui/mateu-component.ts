@@ -38,6 +38,7 @@ import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import { needsComposedHeading } from "@infra/ui/composedHeading.ts";
 import { embeddingChromeOf, insideIsland } from "@infra/ui/embeddedChrome.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
+import { missingRuleRequired, ruleRequiredFields } from "@infra/ui/ruleRequired.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import type Rule from "@mateu/shared/apiClients/dtos/componentmetadata/Rule.ts";
@@ -248,6 +249,9 @@ export class MateuComponent extends ComponentElement {
             || (!fieldsToValidate && validation.fieldId && validation.fieldId.includes('-'))
     }
 
+    /** The fields a client-side rule made required at the last validation (see checkValidations). */
+    private _ruleRequiredFields: string[] = []
+
     checkValidations = (fieldsToValidateString?: string) => {
         const fieldsToValidate = fieldsToValidateString?fieldsToValidateString.split(','):undefined
         const validatons = (this.component as ServerSideComponent).validations
@@ -300,6 +304,23 @@ export class MateuComponent extends ComponentElement {
                     console.error('validation failed', validation, e)
                 }
             }
+        }
+        // A field a client-side RULE makes required (`<field>.required`, e.g. the VAT number of a
+        // company): refused empty like a declared @NotEmpty. The rule used to reach the browser and
+        // change nothing — the empty value was sent and saved.
+        const ruleRequired = ruleRequiredFields(data)
+            .filter(field => !fieldsToValidate || fieldsToValidate.includes(field))
+        for (const field of ruleRequired) {
+            newData['errors'][field] = newData['errors'][field] ?? []
+        }
+        for (const field of missingRuleRequired(this.state, data, fieldsToValidate)) {
+            valid = false
+            newData['errors'][field].push(chromeText('fieldRequired'))
+        }
+        // (a field the rule USED to require is compared too, so its message goes once the rule lets go)
+        const ruleRequiredBefore = this._ruleRequiredFields
+        this._ruleRequiredFields = ruleRequired
+        if (validatons || ruleRequired.length > 0 || ruleRequiredBefore.length > 0) {
             // The data is replaced (and the form re-rendered) only when the errors CHANGED: per
             // field, by their joined messages, plus any field whose errors are no longer computed
             // (they are dropped). Written as `a?[b]?.join(','):''` this used to parse as a ternary,

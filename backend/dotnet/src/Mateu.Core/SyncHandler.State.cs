@@ -61,6 +61,12 @@ internal sealed partial class SyncHandler
 
     private static void BindState(object instance, IDictionary<string, object?> state)
     {
+        // A view drawing its own tree may reference business components (components.yaml): the
+        // fields they hide or lock for the caller are not writable either. STRICT: every restricted
+        // composition of the app counts, whatever the view drew before (it may draw one only in some
+        // state) — the same rule a YAML layout follows in GuardYamlAccess.
+        if (instance is IComponentTreeSupplier)
+            state = MateuCatalogs.WithoutLocked(instance.GetType().FullName ?? instance.GetType().Name, state, MateuCatalogs.AppWideLockedBy());
         foreach (var p in ReflectionMapper.EditableProperties(instance.GetType()))
         {
             // Mass-assignment guard: a field hidden ([EyesOnly]) or locked ([ReadOnlyUnless]) for

@@ -65,7 +65,7 @@ import {
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowValueChangeActionOf, rowFieldsOf, rowNestedEditOf, rowNestedOpOf, rowStateOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
-  wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
+  wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, formRefusalOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf, confirmationDefaultsOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
   searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
@@ -4233,6 +4233,26 @@ test('wizard: el Next valida los obligatorios del paso antes de salir', () => {
   }), ['holderLastName'])
   // fieldsToValidate restringe
   assert.deepEqual(formErrorsOf(view.sections, {}, ['arrival']), ['arrival'])
+})
+
+// A field a client-side RULE makes required (SetDataValue <field>.required, "the VAT number of a
+// company") is refused empty on save like a declared one; the rule only marked the control.
+test('a field a required rule names is refused empty by a validating action, only while the rule holds', () => {
+  const sections = [{ fields: [
+    { fieldId: 'company', isBoolean: true },
+    { fieldId: 'vatNumber', value: '' },
+  ] }]
+  const rules = [{ filter: 'true', action: 'SetDataValue', fieldName: 'vatNumber',
+    fieldAttribute: 'required', expression: '!!state.company', result: 'Continue' }]
+  assert.deepEqual(formRefusalOf(sections, { company: true }, {}, [], [], rules).missing, ['vatNumber'])
+  assert.deepEqual(formRefusalOf(sections, { company: false }, {}, [], [], rules).missing, [])
+  // the draft is what the user typed
+  assert.deepEqual(formRefusalOf(sections, {}, { company: true, vatNumber: 'B1' }, [], [], rules).missing, [])
+  assert.deepEqual(formRefusalOf(sections, {}, { company: true }, [], [], rules).missing, ['vatNumber'])
+  // a field a rule hides asks nothing
+  const hiding = [...rules, { filter: 'true', action: 'SetDataValue', fieldName: 'vatNumber',
+    fieldAttribute: 'hidden', value: true, result: 'Continue' }]
+  assert.deepEqual(formRefusalOf(sections, { company: true }, {}, [], [], hiding).missing, [])
 })
 
 test('validationOf: la acción exacta gana al comodín, y sin validationRequired no valida', () => {

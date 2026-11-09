@@ -108,6 +108,44 @@ class ComponentCatalogueSourcesTest {
     assertThat(text(merged.get("Greeting").orElseThrow())).isEqualTo("from yaml");
   }
 
+  /**
+   * An authored composition guarded by {@code eyesOnly:} is rebuilt for the caller: the access keys
+   * apply wherever YAML is loaded, a business component included — before, the restricted piece
+   * reached every caller of a page using it.
+   */
+  @Test
+  void anAuthoredCompositionAppliesItsAccessKeysForTheCaller() throws Exception {
+    var cl =
+        deployment(
+            """
+            - name: Payroll
+              component:
+                type: VerticalLayout
+                content:
+                  - {type: Text, text: Public part}
+                  - {type: Text, text: Secret salary table, eyesOnly: {roles: [hr]}}
+            """);
+    var previous = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(cl);
+    try {
+      var registry = new ComponentRegistry();
+      var guest =
+          new io.mateu.core.testutil.FakeHttpRequest(
+              io.mateu.dtos.RunActionRqDto.builder().route("/").build());
+      var hr =
+          new io.mateu.core.testutil.FakeHttpRequest(
+                  io.mateu.dtos.RunActionRqDto.builder().route("/").build())
+              .withPrincipal(io.mateu.core.testutil.TestIdentities.principalWithRoles("hr"));
+      assertThat(registry.get("Payroll", guest).orElseThrow().component().toString())
+          .contains("Public part")
+          .doesNotContain("Secret salary table");
+      assertThat(registry.get("Payroll", hr).orElseThrow().component().toString())
+          .contains("Secret salary table");
+    } finally {
+      Thread.currentThread().setContextClassLoader(previous);
+    }
+  }
+
   @Test
   void aComponentsFileThatIsNotAListContributesNothing() throws Exception {
     var authored =

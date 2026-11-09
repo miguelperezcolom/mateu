@@ -95,6 +95,41 @@ parameters](/concepts/routes-and-mounts/#precedence) are re-applied on the serve
 A **partial** is no exception: the keys inside a `type: Partial` (and its `${i18n.…}` texts) are
 applied exactly as if its content were written in the page that references it — the server expands
 the partials into the definition first, then applies access and translations to the whole tree.
+So is a **business component** of `components.yaml` (a `type: ComponentRef`), and so is a partial or
+business component drawn inside a page written in **code** (`new Partial("payroll")` /
+`new ComponentRef("Payroll")` in a Java `ComponentTreeSupplier`, a C# or Python view building its
+own tree, or a YAML layout bound to a code view model).
+
+### Locked fields are enforced on writes
+
+Hiding a field or drawing it read-only only changes the screen; a client can still post any state
+it likes. So the server enforces the same keys on the way **in**: before the incoming state is
+written into the view model — the routed view, a nested form, a crud editor, a wizard step, an
+embedded island — every field the caller may not see (`eyesOnly:`) or may not edit
+(`readOnlyUnless:`, `disabledUnless:`) is **dropped** from it, and the view model keeps its
+server-side value. This holds wherever the field is declared: in the page's own definition, in a
+partial or business component it uses (followed through the partials they nest — a piece inside a
+section the caller may not see locks all of its fields), and in the annotations of a code view.
+The value is never echoed back either.
+
+The check is **strict**: a view that can draw partials or business components — a code view that
+builds its own component tree (or holds components, or has a method returning them), an adapted
+model, a YAML layout — is checked against **every** partial and business component of the app that
+declares access keys, every time, not only against the pieces it happens to draw. A page may draw a
+piece only in some state (`if (state.showBonus) …`), so what the server saw it render before can
+never decide what is writable now. (On .NET and Python a partial can only be used from YAML, where
+it is part of the page's own definition, so there the app-wide check covers the business
+components.)
+
+That has one consequence worth knowing: **field names are app-wide** for this purpose. If some
+partial or business component locks a field called `bonus` for the caller, a `bonus` posted to an
+unrelated view that can draw pieces is dropped too, even though that view never shows that piece.
+The WARN names the piece that locked it — rename one of the two fields if they are unrelated.
+
+It fails **closed**: if the access keys of a partial or business component cannot be evaluated for
+the request, none of its fields is writable. When no spec file declares access keys at all, none
+of this costs anything. Each dropped field is logged once at WARN, naming the partial or component
+that locks it (then at DEBUG).
 
 Hiding is UX, not authorization. As with the annotations, the REST endpoints your screens call must
 still check who is calling.

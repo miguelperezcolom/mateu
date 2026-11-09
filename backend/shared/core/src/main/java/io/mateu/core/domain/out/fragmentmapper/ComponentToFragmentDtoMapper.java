@@ -192,7 +192,7 @@ public final class ComponentToFragmentDtoMapper {
     var entry =
         registry == null
             ? java.util.Optional.<io.mateu.uidl.data.ComponentEntry>empty()
-            : registry.get(name);
+            : registry.get(name, httpRequest);
     var resolved =
         entry
             .map(io.mateu.uidl.data.ComponentEntry::component)

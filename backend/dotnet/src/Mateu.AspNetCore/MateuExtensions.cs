@@ -109,6 +109,7 @@ public static class MateuExtensions
                     : new Dictionary<string, string>(),
                 RequestTraceIdentifier = () => accessor.HttpContext?.TraceIdentifier,
                 RequestSelfBaseUrl = () => accessor.HttpContext is { } ctx ? LocalOrigin(ctx) : null,
+                SelfBaseUrl = options.SelfBaseUrl,
                 MicroFrontendResolver = MicroFrontendResolverOf(sp, options),
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
             };
