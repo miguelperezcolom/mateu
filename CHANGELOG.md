@@ -14,6 +14,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   in the IDE's Background Tasks (status bar, Background Tasks window); a blocking one also covers
   the Mateu view that started it — that view only — with its progress, Cancel and, for
   `.backgroundable()`, *Move to background*. The IDE stays usable throughout.
+- **`DashboardLayout` is stable.** The `DashboardLandingPage` template produces it and renderers,
+  demos and docs use it, so its deprecation is withdrawn in Java, .NET (`MATEU002`) and Python.
+- **Python: a YAML shell's `variant: HAMBURGUER_MENU` is no longer accepted.** An unknown variant
+  warns and counts as `AUTO`, as in Java.
+- **The API check's baseline is `3.0-beta.55`** and its allowlist is back to the sentinel;
+  `scripts/bump-example-version.sh` resets the allowlist whenever it moves the baseline.
 
 ### Added
 
@@ -25,6 +31,93 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   what arrived while the app was away instead of waiting for the panel to open. The docs now say
   plainly what OS notifications can and cannot do on a phone: they are local, so a suspended or
   closed app posts none.
+
+### Removed
+
+- The inert Keycloak bootstrap of the served page (`IndexPage.Keycloak`, the `keycloak` field of
+  `IndexPage.Spec`), left behind by the removal of `@KeycloakSecured`.
+
+## [3.0-beta.55] — 2026-11-09
+
+Everything since 3.0-beta.51 (beta.52 to beta.55).
+
+### Changed
+
+- **A constraint applies only to a field the user can edit.** A `@ReadOnly` or `@PlainText` field,
+  one locked by a `@ReadOnlyUnless`/`@DisabledUnless` the user does not satisfy, and every field of a
+  read-only view no longer carry their constraints to the browser nor have them re-checked on the
+  server: a constraint nobody could fix blocked the submit. The server still never writes those
+  fields. Java, .NET and Python alike (conformance cases `validation-locked`, `validation-unless`,
+  `validation-read-only-view`).
+- **Faster requests in apps with many screens.** Route resolution looks the route up in an index
+  built once, instead of asking every `@UI` class on each request, and Mateu's settings are
+  memoised instead of resolved through the framework's configuration on every read (an app whose
+  configuration changes at runtime calls `MateuSettings.refresh()`; a Spring context refresh and
+  Spring Cloud's `EnvironmentChangeEvent` do it for you). In an app with 200 routed classes a
+  warm request is 17–40% faster.
+- **The .NET and Python ports send `ETag` and `Last-Modified` with the renderer's assets** and
+  answer a revalidation with `304 Not Modified`, as the Java adapters do: a repeat visit no longer
+  downloads the bundle again.
+- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** JetBrains stopped publishing
+  IntelliJ IDEA Community after 2025.2. Its open-source successor, IntelliJ IDEA Open Source
+  (Apache-2.0), now comes from the installers JetBrains attaches to the
+  [intellij-community releases](https://github.com/JetBrains/intellij-community/releases). Each
+  download is checked against a pinned SHA-256, and CI starts every packaged app before the release
+  reaches installed apps. Apps installed from an earlier beta ask to be **reinstalled once**; their
+  settings and list of UIs are kept. The Marketplace plugin still supports IntelliJ IDEA 2025.2 and
+  later.
+- **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
+  was generated as its month and as "Today": it opens on the current month.
+- **A Collection Detail page shows one pane on a phone.** The list while nothing is selected, the
+  selected record alone once a row is tapped (stacked, the list came back above the record). Tablets
+  keep both side by side.
+- **A long press on the phone app's back arrow goes back to the start of the section**, and picking a
+  menu entry always opens it at its first screen — the one on view too. The menu also opens with a
+  swipe from the left edge while the bar shows the back arrow.
+- **The phone app follows Material 3 more closely.** Controls ripple on Android, the drawer has
+  Material icons (`vaadin:*` tokens are mapped) and section headers, confirmations are Material
+  dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be
+  cut, and a list's title, toolbar and search scroll away with its rows.
+- **Android Back from a UI's first screen goes to My UIs** instead of leaving the hub app.
+- **Signing out of a UI on the phone app ends the identity provider's session too** and draws a new
+  session id. Register `mateu://auth` as a post-logout redirect at the provider.
+- **A hidden UI on the phone app neither polls nor opens the sign-in browser,** and a refused sign-in
+  does not reopen it for a minute. A link to a running UI asks before discarding unsaved edits.
+- **Menu entries naming one view of a listing work on the phone app** (`reservas?vista=LLEGADAS_HOY`):
+  the route's query seeds the listing's search, as on the web. Every tab of a TABS shell showed the same list.
+- **A routed listing's toolbar shows once on the phone app** (the page's header shows it, the listing's
+  copy stands down, and a button repeated in the page toolbar is one button).
+- **An embedded island behind a mediator keeps what its host seeded on the phone app** (an `@Inline`
+  `EditableView`'s `stayId`): sent on its loads, its reloads and its actions, and its LongTask streams.
+  The front office's passport scan never reached the stay, and its progress never moved.
+- **On the phone app,** a record's back bar no longer shows the raw route, a TABS shell's top bar hosts
+  the screen's way back instead of stacking a second bar, a card around nothing is not drawn, a
+  `@Notice` interpolates `${state.x}`, Redwood's `oj-ux-ico-*` icons draw as Material icons, and a
+  wizard's progress is one compact row.
+- **A wire `Dialog` is a Material dialog sized to its content on the phone app;** a `Drawer` stays a sheet.
+  Text follows the Material type scale.
+- **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
+  biometrics.
+- **The Android release build is shrunk and obfuscated by R8,** with its resources shrunk too, and it
+  no longer locks the screen to portrait: tablets and foldables rotate (Google Play asks for both).
+- **A phone app built outside EAS asks for the `production` over-the-air updates** (the Play bundle
+  built locally, the GitHub APK). It carried no update channel, so the updates each release publishes
+  never reached it.
+- **Desktop app: the navigator menu is a tree.** The app menu was a column of hyperlinks; it is now
+  the IDE's own tree, with the selected row, arrow keys, expandable groups and type-to-search. Card
+  menus keep their cards.
+- **Desktop app: read-only values read as text.** A record's view mode showed every value as a
+  greyed-out input (about 2:1 contrast). Values are now plain text you can select and copy, numbers are
+  written in the UI's locale (`77`, not `77.0`), and a read-only field drops its required asterisk.
+- **Desktop app: pages scale with the IDE font and get a margin.** Titles and other large text used
+  fixed point sizes, so the IDE's zoom and font settings left them behind; they now scale with it.
+  Composed pages (wizards, dashboards, welcome and item overview pages, YAML forms) no longer touch
+  the window's edges.
+- **Desktop app: the welcome hero's buttons sit in one centred row**, instead of one full-width bar
+  each.
+
+### Added
+
 - **The .NET and Python servers close their documented gaps.** Both ports gain the 24 wire
   component types that were Java-only (`Grid` with column groups, `BoardLayout`, `CarouselLayout`,
   `Chat`, `MessageList`/`MessageInput`, `ContextMenu`, `MenuBar`, `Directory` — `DirectoryMenu` in
@@ -65,7 +158,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Publish a design from Figma as a UI with no backend.** The Mateu Publish plugin reads the open
   file, builds a static site and uploads it to Netlify or Cloudflare Pages, or hands over a zip. It
   needs no Figma token, no Java and no repository.
-
 - **The Mateu UI Kit says more.** A text or number field can name its stereotype (`email`, `money`…),
   a select or radio group where its options come from, and native slots and component properties
   replace the old `#config` layer. The kit is on [Figma Community](https://www.figma.com/community/file/1701291643502429777).
@@ -89,11 +181,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   (`InboxStore` — implement it to keep entries anywhere; the default is in memory, bounded) and
   pushed to the user's other sessions, so it is still in the bell after a reload. `@App(inbox =
   true)` shows the bell without a `NotificationsSupplier`. `@Experimental`; Java, .NET and Python.
-
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
   The Move menu stays, for screen readers and for whoever prefers it.
-
 - **About Mateu on the phone app.** An ⓘ on the hub's bar shows the app version and build, the Mateu
   release, and which code runs — the built-in bundle or an over-the-air update and when it was
   published. "Check for updates" downloads the latest update and restarts on it at once.
@@ -111,113 +201,74 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 - **A required field inside a page template is validated.** A definition-only page with a
   `template:` (a guided process, say) ran its action with the field empty.
-
 - **A radio group lists the options of its `optionsSource`.** It drew an empty group.
-
-### Changed
-
-- **`DashboardLayout` is stable.** The `DashboardLandingPage` template produces it and renderers,
-  demos and docs use it, so its deprecation is withdrawn in Java, .NET (`MATEU002`) and Python.
-- **Python: a YAML shell's `variant: HAMBURGUER_MENU` is no longer accepted.** An unknown variant
-  warns and counts as `AUTO`, as in Java.
-- **The API check's baseline is `3.0-beta.55`** and its allowlist is back to the sentinel;
-  `scripts/bump-example-version.sh` resets the allowlist whenever it moves the baseline.
-- **A constraint applies only to a field the user can edit.** A `@ReadOnly` or `@PlainText` field,
-  one locked by a `@ReadOnlyUnless`/`@DisabledUnless` the user does not satisfy, and every field of a
-  read-only view no longer carry their constraints to the browser nor have them re-checked on the
-  server: a constraint nobody could fix blocked the submit. The server still never writes those
-  fields. Java, .NET and Python alike (conformance cases `validation-locked`, `validation-unless`,
-  `validation-read-only-view`).
-
-- **Faster requests in apps with many screens.** Route resolution looks the route up in an index
-  built once, instead of asking every `@UI` class on each request, and Mateu's settings are
-  memoised instead of resolved through the framework's configuration on every read (an app whose
-  configuration changes at runtime calls `MateuSettings.refresh()`; a Spring context refresh and
-  Spring Cloud's `EnvironmentChangeEvent` do it for you). In an app with 200 routed classes a
-  warm request is 17–40% faster.
-- **The .NET and Python ports send `ETag` and `Last-Modified` with the renderer's assets** and
-  answer a revalidation with `304 Not Modified`, as the Java adapters do: a repeat visit no longer
-  downloads the bundle again.
-- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** JetBrains stopped publishing
-  IntelliJ IDEA Community after 2025.2. Its open-source successor, IntelliJ IDEA Open Source
-  (Apache-2.0), now comes from the installers JetBrains attaches to the
-  [intellij-community releases](https://github.com/JetBrains/intellij-community/releases). Each
-  download is checked against a pinned SHA-256, and CI starts every packaged app before the release
-  reaches installed apps. Apps installed from an earlier beta ask to be **reinstalled once**; their
-  settings and list of UIs are kept. The Marketplace plugin still supports IntelliJ IDEA 2025.2 and
-  later.
-
-- **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
-  was generated as its month and as "Today": it opens on the current month.
-
-- **A Collection Detail page shows one pane on a phone.** The list while nothing is selected, the
-  selected record alone once a row is tapped (stacked, the list came back above the record). Tablets
-  keep both side by side.
-
-- **A long press on the phone app's back arrow goes back to the start of the section**, and picking a
-  menu entry always opens it at its first screen — the one on view too. The menu also opens with a
-  swipe from the left edge while the bar shows the back arrow.
-
-- **The phone app follows Material 3 more closely.** Controls ripple on Android, the drawer has
-  Material icons (`vaadin:*` tokens are mapped) and section headers, confirmations are Material
-  dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be
-  cut, and a list's title, toolbar and search scroll away with its rows.
-
-- **Android Back from a UI's first screen goes to My UIs** instead of leaving the hub app.
-
-- **Signing out of a UI on the phone app ends the identity provider's session too** and draws a new
-  session id. Register `mateu://auth` as a post-logout redirect at the provider.
-
-- **A hidden UI on the phone app neither polls nor opens the sign-in browser,** and a refused sign-in
-  does not reopen it for a minute. A link to a running UI asks before discarding unsaved edits.
-
-- **Menu entries naming one view of a listing work on the phone app** (`reservas?vista=LLEGADAS_HOY`):
-  the route's query seeds the listing's search, as on the web. Every tab of a TABS shell showed the same list.
-
-- **A routed listing's toolbar shows once on the phone app** (the page's header shows it, the listing's
-  copy stands down, and a button repeated in the page toolbar is one button).
-
-- **An embedded island behind a mediator keeps what its host seeded on the phone app** (an `@Inline`
-  `EditableView`'s `stayId`): sent on its loads, its reloads and its actions, and its LongTask streams.
-  The front office's passport scan never reached the stay, and its progress never moved.
-
-- **On the phone app,** a record's back bar no longer shows the raw route, a TABS shell's top bar hosts
-  the screen's way back instead of stacking a second bar, a card around nothing is not drawn, a
-  `@Notice` interpolates `${state.x}`, Redwood's `oj-ux-ico-*` icons draw as Material icons, and a
-  wizard's progress is one compact row.
-
-- **A wire `Dialog` is a Material dialog sized to its content on the phone app;** a `Drawer` stays a sheet.
-  Text follows the Material type scale.
-
-- **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
-  biometrics.
-
-- **The Android release build is shrunk and obfuscated by R8,** with its resources shrunk too, and it
-  no longer locks the screen to portrait: tablets and foldables rotate (Google Play asks for both).
-
-- **A phone app built outside EAS asks for the `production` over-the-air updates** (the Play bundle
-  built locally, the GitHub APK). It carried no update channel, so the updates each release publishes
-  never reached it.
-- **Desktop app: the navigator menu is a tree.** The app menu was a column of hyperlinks; it is now
-  the IDE's own tree, with the selected row, arrow keys, expandable groups and type-to-search. Card
-  menus keep their cards.
-- **Desktop app: read-only values read as text.** A record's view mode showed every value as a
-  greyed-out input (about 2:1 contrast). Values are now plain text you can select and copy, numbers are
-  written in the UI's locale (`77`, not `77.0`), and a read-only field drops its required asterisk.
-- **Desktop app: pages scale with the IDE font and get a margin.** Titles and other large text used
-  fixed point sizes, so the IDE's zoom and font settings left them behind; they now scale with it.
-  Composed pages (wizards, dashboards, welcome and item overview pages, YAML forms) no longer touch
-  the window's edges.
-- **Desktop app: the welcome hero's buttons sit in one centred row**, instead of one full-width bar
-  each.
+- **The buttons of a record page work on a crud declared `Crud<Object, ...>`.** Since beta.42 the record was rebuilt
+  from the crud's view class; with `Object` there was no record, the method never ran, and the page went blank under
+  the title "Object". The record now comes from the crud's `view()`.
+- **The IntelliJ plugin installs on current IDEs again.** It was capped at the 2025.3 line, so the
+  Marketplace marked it incompatible with IntelliJ IDEA 2026.1, 2026.2 and 2026.3. The cap is gone, and
+  every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
+  those three lines.
+  The desktop app moves to IntelliJ IDEA Community 2025.2.6.4 (the latest patch of its base).
+- **Open items of the October UX review, closed before GA** (status table in
+  `design/ux-review/*-findings.md`, "Estado 2026-11-08"):
+  - **Nothing pushes a phone page sideways any more.** A form's row of buttons wraps, and a
+    `@FoldedLayout`'s sections stack under 20rem instead of the second one being cut off at the
+    screen edge (Java, .NET and Python lay the row out the same way).
+  - **Planning board blocks read on any colour**: when neither the light nor the dark ink reaches
+    4.5:1 on a block's own colour (violet), the text is black. Its scrolling frame takes the focus,
+    so a keyboard can scroll it.
+  - **A disabled resource-grid card is `aria-disabled` and out of the tab order**; the selected one
+    says it is pressed, and its status chip keeps its contrast.
+  - **The rich-text toolbar, the chat's attachments and the saved-view star use the icon set**, not
+    emoji; the star is a named toggle with its pressed state.
+  - **Phone app:** a listing's selection boxes are one named checkbox each again (the Material
+    migration had nested Paper's own checkbox, named by its icon glyph, inside ours) and a row's
+    chevron is no longer a button inside the row; a month calendar opens on its agenda on a phone,
+    the grid one tap away; a record pushed over its listing drops its «Back to list», which the
+    back arrow already is; every font size is a step of the type scale (pinned by a test).
+  - **An unreadable page in `specs/ui` is reported once**, by its own loader, instead of a second
+    warning that called it a "route file".
+- **Desktop app: YAML record pages work again.** A YAML page's title showed the raw `${state.name}`
+  and its toolbar (Edit, Back to People) was missing, so a record could be neither edited nor left.
+  Its header is now the same as any page's. `${state.x}` also works in texts, images, avatars, badges,
+  links and Markdown. A button with a `route` navigates there, in the page and in the IDE toolbar,
+  instead of sending its action id.
+- **Desktop app: the primary button is the platform's default button.** It used the "Got It" tooltip
+  style, which was unreadable (dark text on dark grey) in the light theme.
+- **Desktop app: boards and skeletons follow the theme.** Kanban columns and loading skeletons used
+  fixed light greys, which showed as white slabs in a dark IDE. Kanban card titles are no longer cut
+  early by the card's menu button.
+- **Desktop app: foldouts are readable.** Each panel keeps its declared width and the row scrolls
+  sideways, as on the web; panels used to be squeezed into slivers. Markdown now draws headings,
+  tables, numbered lists, code and links (it showed `###` and `| Date | Concept |` as typed).
+- **Desktop app: long text wraps**, instead of being cut at the edge of its column.
+- **Desktop app: images load without freezing the IDE.** An image URL was fetched while the screen
+  was being drawn, so a slow image host froze the window.
+- **Desktop app: the RAIL wizard's form fills the row.** The form kept its narrow preferred width beside
+  the step rail; `flex` sizes in a row are now honoured, including fixed widths.
+- **A listing's page header sends each toolbar button once.** A button declared
+  `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
+  page toolbar through both annotations and was sent twice; the listing's copy, which carries the
+  selection guard, is the one kept.
+- **A server-paged REST listing no longer stops at its first page (phone app).** A source with a
+  `totalPath` was fetched once and paged on the device: 77 astronauts showed as "20 total".
+- **Tree listings open on the phone app.** Rows lost their `children`, so only the roots showed.
+- **Picture columns show pictures on the phone app** in cards, list rows and tables, not the url.
+- **A data-authored shell's inbox, search and context pickers work on the phone app.** Their REST
+  sources were never read. The shell's source catalogue is now known before its first screen, which
+  also stops listings failing on a url that was not resolved yet.
+- **A failed REST listing says so on the phone app,** with Try again, rather than "No data"; offline
+  errors read in plain words.
+- **On the phone app, page templates that own their header no longer repeat the title,** banners
+  interpolate `${state.x}`, buttons read on dark bands, and a refused save no longer names fields by
+  their ids.
 
 ### Removed
 
 3.0.0 is the first stable release and keeps no compatibility with the 3.0 pre-releases (alphas,
 betas, release candidates): everything they deprecated, and every alias kept for them, is removed.
 
-- The inert Keycloak bootstrap of the served page (`IndexPage.Keycloak`, the `keycloak` field of
-  `IndexPage.Spec`), left behind by the removal of `@KeycloakSecured`.
 - **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings, and on the wire —
   renderers no longer accept it) → `HAMBURGER_MENU`.
 - **`@KeycloakSecured`** → your framework's authentication (an OIDC login / resource server), or a
@@ -278,77 +329,6 @@ betas, release candidates): everything they deprecated, and every alias kept for
   `forTheClient`, the archetypes' `bindRequest`, `MultiView.wrapView`); .NET: the same features
   through the port's doc-comment convention. The full list per backend is on the
   [stability page](https://mateu.io/reference/stability-and-versioning/#recent-api-experimental-in-300).
-
-### Fixed
-
-- **The buttons of a record page work on a crud declared `Crud<Object, ...>`.** Since beta.42 the record was rebuilt
-  from the crud's view class; with `Object` there was no record, the method never ran, and the page went blank under
-  the title "Object". The record now comes from the crud's `view()`.
-
-- **The IntelliJ plugin installs on current IDEs again.** It was capped at the 2025.3 line, so the
-  Marketplace marked it incompatible with IntelliJ IDEA 2026.1, 2026.2 and 2026.3. The cap is gone, and
-  every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
-  those three lines.
-  The desktop app moves to IntelliJ IDEA Community 2025.2.6.4 (the latest patch of its base).
-- **Open items of the October UX review, closed before GA** (status table in
-  `design/ux-review/*-findings.md`, "Estado 2026-11-08"):
-  - **Nothing pushes a phone page sideways any more.** A form's row of buttons wraps, and a
-    `@FoldedLayout`'s sections stack under 20rem instead of the second one being cut off at the
-    screen edge (Java, .NET and Python lay the row out the same way).
-  - **Planning board blocks read on any colour**: when neither the light nor the dark ink reaches
-    4.5:1 on a block's own colour (violet), the text is black. Its scrolling frame takes the focus,
-    so a keyboard can scroll it.
-  - **A disabled resource-grid card is `aria-disabled` and out of the tab order**; the selected one
-    says it is pressed, and its status chip keeps its contrast.
-  - **The rich-text toolbar, the chat's attachments and the saved-view star use the icon set**, not
-    emoji; the star is a named toggle with its pressed state.
-  - **Phone app:** a listing's selection boxes are one named checkbox each again (the Material
-    migration had nested Paper's own checkbox, named by its icon glyph, inside ours) and a row's
-    chevron is no longer a button inside the row; a month calendar opens on its agenda on a phone,
-    the grid one tap away; a record pushed over its listing drops its «Back to list», which the
-    back arrow already is; every font size is a step of the type scale (pinned by a test).
-  - **An unreadable page in `specs/ui` is reported once**, by its own loader, instead of a second
-    warning that called it a "route file".
-- **Desktop app: YAML record pages work again.** A YAML page's title showed the raw `${state.name}`
-  and its toolbar (Edit, Back to People) was missing, so a record could be neither edited nor left.
-  Its header is now the same as any page's. `${state.x}` also works in texts, images, avatars, badges,
-  links and Markdown. A button with a `route` navigates there, in the page and in the IDE toolbar,
-  instead of sending its action id.
-- **Desktop app: the primary button is the platform's default button.** It used the "Got It" tooltip
-  style, which was unreadable (dark text on dark grey) in the light theme.
-- **Desktop app: boards and skeletons follow the theme.** Kanban columns and loading skeletons used
-  fixed light greys, which showed as white slabs in a dark IDE. Kanban card titles are no longer cut
-  early by the card's menu button.
-- **Desktop app: foldouts are readable.** Each panel keeps its declared width and the row scrolls
-  sideways, as on the web; panels used to be squeezed into slivers. Markdown now draws headings,
-  tables, numbered lists, code and links (it showed `###` and `| Date | Concept |` as typed).
-- **Desktop app: long text wraps**, instead of being cut at the edge of its column.
-- **Desktop app: images load without freezing the IDE.** An image URL was fetched while the screen
-  was being drawn, so a slow image host froze the window.
-- **Desktop app: the RAIL wizard's form fills the row.** The form kept its narrow preferred width beside
-  the step rail; `flex` sizes in a row are now honoured, including fixed widths.
-- **A listing's page header sends each toolbar button once.** A button declared
-  `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
-  page toolbar through both annotations and was sent twice; the listing's copy, which carries the
-  selection guard, is the one kept.
-
-- **A server-paged REST listing no longer stops at its first page (phone app).** A source with a
-  `totalPath` was fetched once and paged on the device: 77 astronauts showed as "20 total".
-
-- **Tree listings open on the phone app.** Rows lost their `children`, so only the roots showed.
-
-- **Picture columns show pictures on the phone app** in cards, list rows and tables, not the url.
-
-- **A data-authored shell's inbox, search and context pickers work on the phone app.** Their REST
-  sources were never read. The shell's source catalogue is now known before its first screen, which
-  also stops listings failing on a url that was not resolved yet.
-
-- **A failed REST listing says so on the phone app,** with Try again, rather than "No data"; offline
-  errors read in plain words.
-
-- **On the phone app, page templates that own their header no longer repeat the title,** banners
-  interpolate `${state.x}`, buttons read on dark bands, and a refused save no longer names fields by
-  their ids.
 
 ## [3.0-beta.51] — 2026-11-04
 
