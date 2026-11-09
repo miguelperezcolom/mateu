@@ -308,7 +308,9 @@ def app_source_response(handler, rq):
         else None
     )
     if declared is None:
-        return _restfetch_error(404, "The app shell declares no such source")
+        return UIIncrement(
+            app_data={"_restfetchError": {"status": 404, "message": "The app shell declares no such source"}}
+        )
     source = source_dto(declared)  # the samples kept: this is the server's own call
     if handler.rest_sources is not None:
         source = handler.rest_sources.resolve(source)

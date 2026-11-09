@@ -118,6 +118,7 @@ class ListingHandlerMixin(MixinBase):
         ]
 
     def handle_listing(self, cls, base_route, rq: RunActionRq) -> UIIncrement:
+        action_guard.ensure_class_access(self.mapper, cls)
         view = cls()
         filters_type, row_type = listing_types(cls) or (None, None)
         aid = rq.action_id

@@ -75,6 +75,28 @@ def build_from_yaml(
     return _with_types(field_types, _single, data, partials or _DEFAULT_PARTIALS, [])
 
 
+#: What the live preview answers for a definition whose aliases expand past the node budget.
+TOO_MANY_NODES = "the YAML expands to too many nodes to preview"
+
+
+def expands_past(data: Any, budget: int) -> bool:
+    """Whether walking ``data`` the way the builder does — once per reference, so an alias counts
+    every time it is used — meets more than ``budget`` nodes. Children are counted before they are
+    queued, so neither an alias bomb nor a cycle can grow the walk past the budget."""
+    seen = 1
+    pending = [data]
+    while pending:
+        node = pending.pop()
+        children = list(node.values()) if isinstance(node, dict) else node if isinstance(node, list) else None
+        if children is None:
+            continue
+        seen += len(children)
+        if seen > budget:
+            return True
+        pending.extend(children)
+    return False
+
+
 def parse_text_reporting(
     text: str | None, partials: PartialRegistry | None = None, field_types=None
 ) -> tuple[fluent.Component | None, str | None]:
@@ -89,6 +111,11 @@ def parse_text_reporting(
         data = yaml.safe_load(text)
     except yaml.YAMLError as e:
         return None, _yaml_problem(e)
+    from .authoring.validator import MAX_NODES
+
+    # the text limit says nothing about what its aliases ask the builder to walk
+    if expands_past(data, MAX_NODES):
+        return None, TOO_MANY_NODES
     if isinstance(data, dict) and "layout" not in data and "layoutDelta" in data:
         return None, None
     if isinstance(data, dict) and "layout" in data:

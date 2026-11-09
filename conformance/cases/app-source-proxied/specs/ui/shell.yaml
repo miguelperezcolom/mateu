@@ -1,0 +1,6 @@
+type: AppShell
+title: T
+notifications:
+  source: {url: /api/inbox, proxy: true}
+menu:
+  - {type: RouteLink, label: Home, route: home}

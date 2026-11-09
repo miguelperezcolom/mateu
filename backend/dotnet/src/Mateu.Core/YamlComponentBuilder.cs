@@ -68,6 +68,8 @@ internal static class YamlComponentBuilder
             return (null, problem);
         }
         if (root is null) return (null, null);
+        // the text limit says nothing about what its aliases ask the builder to walk
+        if (ExpandsPast(root, Authoring.UidlValidator.MaxNodes)) return (null, TooManyNodes);
         try
         {
             var node = root is IDictionary<object, object> map && map.TryGetValue("layout", out var layout) ? layout : root;
@@ -79,6 +81,33 @@ internal static class YamlComponentBuilder
             MateuLogging.For("Mateu.Yaml").LogWarning("Failed to build YAML preview: {Problem}", problem);
             return (null, problem);
         }
+    }
+
+    private const string TooManyNodes = "the YAML expands to too many nodes to preview";
+
+    /// <summary>Whether walking the parsed definition the way the builder does — once per reference,
+    /// so an alias counts every time it is used — meets more than <paramref name="budget"/> nodes.
+    /// Children are counted before they are queued, so neither an alias bomb nor a cycle can grow
+    /// the walk past the budget.</summary>
+    internal static bool ExpandsPast(object root, int budget)
+    {
+        var seen = 1;
+        var pending = new Stack<object?>();
+        pending.Push(root);
+        while (pending.Count > 0)
+        {
+            ICollection<object>? children = pending.Pop() switch
+            {
+                IDictionary<object, object> map => map.Values,
+                IList<object> list => list,
+                _ => null,
+            };
+            if (children is null) continue;
+            seen += children.Count;
+            if (seen > budget) return true;
+            foreach (var child in children) pending.Push(child);
+        }
+        return false;
     }
 
     /// <summary>An exception as one line: YamlDotNet's "(Line: 2, Col: 9, …) - (…): what" becomes

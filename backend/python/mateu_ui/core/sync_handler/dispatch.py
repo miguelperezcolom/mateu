@@ -21,7 +21,7 @@ from mateu_ui.uidl import (
     Wizard,
 )
 
-from .. import capabilities
+from .. import action_guard, capabilities
 from ..agent_push import ACTIONS as AGENT_PUSH_ACTIONS
 from ..mapper import set_current_audience
 from ..registry import normalize, type_name
@@ -436,6 +436,9 @@ class DispatchMixin(MixinBase):
         return claims(menu)
 
     def _handle_view(self, type_, rq: RunActionRq, layout_override) -> UIIncrement:
+        # a view bound only by the authored table (routes.yaml viewModel:, a page's viewModel:) is
+        # resolved by name, past _handle_core's check of the @ui/@app classes: gated here, once
+        action_guard.ensure_class_access(self.mapper, type_)
 
         # 2b. The notification inbox's app-level actions — dispatched with the app's
         # serverSideType (the same rail as the @app_context pickers' remote search), exempt

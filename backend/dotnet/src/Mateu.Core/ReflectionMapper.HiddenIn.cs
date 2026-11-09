@@ -35,14 +35,21 @@ internal sealed partial class ReflectionMapper
     internal static bool HiddenInList(MemberInfo member) => member.Find<HiddenInListAttribute>() is not null;
 
     /// <summary>The componentState a crud save may bind: without the properties its form did not
-    /// render (Java's ClientWritableFields — a hidden field keeps its stored value).</summary>
+    /// render or rendered read-only ([ReadOnly] on the property or the record class), which keep the
+    /// server's value (Java's ClientWritableFields). The [Version] stays: the save compares it.</summary>
     internal static Dictionary<string, object?> WritableOnSave(Type element,
         Dictionary<string, object?> state, bool creating)
     {
         var mode = creating ? "new" : "edit";
-        var hidden = EditableProperties(element).Where(p => HiddenInForm(p, mode))
+        var readOnlyRecord = element.Find<ReadOnlyAttribute>() is not null;
+        var serverOwned = EditableProperties(element)
+            .Where(p => HiddenInForm(p, mode)
+                        || ((readOnlyRecord || p.Find<ReadOnlyAttribute>() is not null) && p.Find<VersionAttribute>() is null))
             .Select(p => Naming.CamelCase(p.Name)).ToHashSet();
-        return hidden.Count == 0 ? state : state.Where(e => !hidden.Contains(e.Key)).ToDictionary(e => e.Key, e => e.Value);
+        // a nested record also arrives flattened, as <field>-<key>
+        return serverOwned.Count == 0
+            ? state
+            : state.Where(e => !serverOwned.Contains(e.Key.Split('-', 2)[0])).ToDictionary(e => e.Key, e => e.Value);
     }
 
     /// <summary>[MainFilter] filters marked on the wire (Java's PageListingBuilder: mainFilter = true).</summary>

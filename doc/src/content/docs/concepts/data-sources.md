@@ -216,9 +216,13 @@ same rules the browser uses for a direct one (the subset listed under "Values in
 a body" above; lists render as `a,b`), in Java, .NET and Python alike — pinned by the shared corpus
 `conformance/client/source-templates.json`. The action's parameters reach `${state.x}` as on the
 direct leg (a kanban move's `_toColumnId`), a bulk action (`forEachSelectedRow`) makes one call per
-selected row on the server, each row merged over the state, and — in Java — a route's `fixedParams`
-win over the client's state on this leg too. An expression outside that subset renders empty and the
-validator warns `proxy_unsafe_template`.
+selected row on the server, each row merged over the state, and a route's `fixedParams` win over the
+client's state, the action's parameters and each row on this leg too. An expression outside that
+subset renders empty and the validator warns `proxy_unsafe_template`.
+
+The server does not follow a redirect from a proxied endpoint: it would carry the source's headers,
+secrets included, to wherever the answer points. In .NET and Python a 3xx answers as a failed call; a
+.NET app passing its own `MateuOptions.HttpClient` should set `AllowAutoRedirect = false` on it.
 
 ## When a call fails
 

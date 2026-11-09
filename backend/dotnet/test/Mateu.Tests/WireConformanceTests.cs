@@ -126,6 +126,9 @@ public class WireConformanceTests
                 ComponentState = req["componentState"] is JsonObject state
                     ? JsonSerializer.Deserialize<Dictionary<string, object?>>(state.ToJsonString())!
                     : new Dictionary<string, object?>(),
+                Parameters = req["parameters"] is JsonObject parameters
+                    ? JsonSerializer.Deserialize<Dictionary<string, object?>>(parameters.ToJsonString())!
+                    : new Dictionary<string, object?>(),
             };
         }
         UIIncrementDto increment;
@@ -305,6 +308,9 @@ public class WireConformanceTests
         { "definition-actions", typeof(YamlCase) },
         { "definition-triggers", typeof(YamlCase) },
         { "definition-proxied-listing", typeof(YamlCase) },
+        { "definition-proxied-bulk", typeof(YamlCase) },
+        { "app-source-proxied", typeof(YamlCase) },
+        { "app-source-no-such-role", typeof(YamlCase) },
         { "definition-path-params", typeof(YamlCase) },
         { "definition-path-params-seeded", typeof(YamlCase) },
         { "inline-form", typeof(Wire.InlineForm) },
@@ -365,7 +371,14 @@ public class WireConformanceTests
     public void Dotnet_renders_a_page_for_every_case(string @case, Type view)
     {
         // The floor: whatever the shape differences, the port must answer each case with a page.
-        var fragments = Actual(view, view == typeof(YamlCase) ? @case : null)["fragments"] as JsonArray;
+        var actual = Actual(view, view == typeof(YamlCase) ? @case : null);
+        // the cases pinning the proxy's answer carry data on appData, no page
+        if (@case is "definition-proxied-bulk" or "app-source-proxied" or "app-source-no-such-role")
+        {
+            Assert.NotNull(actual["appData"]);
+            return;
+        }
+        var fragments = actual["fragments"] as JsonArray;
         Assert.True(fragments is { Count: > 0 }, $"'{@case}' produced no fragments");
     }
 

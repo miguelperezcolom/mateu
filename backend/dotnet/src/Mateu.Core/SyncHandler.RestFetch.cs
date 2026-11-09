@@ -51,12 +51,14 @@ internal sealed partial class SyncHandler
                     $"__restfetch__: {kind}/{id} is not a proxied source (Proxy = true)");
             else if (source is not null)
             {
-                var state = CallState(rq);
+                // the pin wins over the action's parameters too, and over each selected row below
+                var pinned = _routes.Match(rq.Route)?.Entry.FixedParams;
+                var state = WithPinned(CallState(rq), pinned);
                 // Bulk (forEachSelectedRow): the loop runs HERE, once per selected listing row, each
                 // row merged over the state so `.../people/${state.id}` resolves to that row's id —
                 // one round trip, the secret stays server-side (Java's RestProxyCalls.forEachSelectedRow)
                 if (StateString(GetState(rq.Parameters, "_forEachSelectedRow")) is "true" or "True")
-                    return await ForEachSelectedRowAsync(source, state, cancellationToken).ConfigureAwait(false);
+                    return await ForEachSelectedRowAsync(source, state, pinned, cancellationToken).ConfigureAwait(false);
                 var (body, status, detail) = await FetchProxyAsync(source, state, cancellationToken).ConfigureAwait(false);
                 if (status is { } failed)
                     return RestFetchError(failed, "Request failed" + StatusSuffix(failed), detail);
@@ -82,8 +84,48 @@ internal sealed partial class SyncHandler
         return state;
     }
 
+    private static Dictionary<string, object?> WithPinned(
+        Dictionary<string, object?> state, IReadOnlyDictionary<string, object?>? pinned)
+    {
+        if (pinned is not null)
+            foreach (var (key, value) in pinned) state[key] = value;
+        return state;
+    }
+
+    /// <summary><c>_appsource</c>: a PROXIED source the mount's <c>type: AppShell</c> declares, by
+    /// role (<c>_appSource</c>) and, for a context picker, field (<c>_field</c>); resolved against the
+    /// server's catalogue and never taken from the request, so it cannot be turned into an open
+    /// proxy. A direct source is the browser's to fetch (403); a role the shell does not fill answers
+    /// a 404 <c>_restfetchError</c> (Java's RestProxyCalls.appSourceCall).</summary>
+    private async Task<UIIncrementDto> AppSourceResponseAsync(RunActionRqDto rq, CancellationToken cancellationToken)
+    {
+        var shell = PersonalSpec(_routes.MountOf(rq.Route) ?? "")?.Shell;
+        var declared = shell is null
+            ? null
+            : YamlAppShell.DeclaredSource(shell,
+                StateString(GetState(rq.Parameters, "_appSource")) ?? "",
+                StateString(GetState(rq.Parameters, "_field")) ?? "");
+        if (declared is null) return RestFetchError(404, "The app shell declares no such source", null);
+        var source = MateuCatalogs.Resolved(declared)!;
+        if (source is { Sample: { } sample } && SampleMode)
+            return new UIIncrementDto([], [], [], [], false, new Dictionary<string, object?>
+            {
+                ["_restfetch"] = SampleSources.IsRead(source.Method) ? sample : new Dictionary<string, object?>(),
+            }, null);
+        if (source is { Proxy: false } && !string.IsNullOrEmpty(source.Url))
+            throw new MateuForbiddenException("_appsource: the shell's source is not a proxied source (Proxy = true)");
+        // the variables the browser interpolates with (searchText, ids…), minus the routing keys
+        var state = (rq.Parameters ?? []).Where(p => !p.Key.StartsWith('_')).ToDictionary(p => p.Key, p => p.Value);
+        var (body, status, detail) = await FetchProxyAsync(source, state, cancellationToken).ConfigureAwait(false);
+        if (status is { } failed)
+            return RestFetchError(failed, "Request failed" + StatusSuffix(failed), detail);
+        return new UIIncrementDto([], [], [], [], false,
+            new Dictionary<string, object?> { ["_restfetch"] = body ?? new Dictionary<string, object?>() }, null);
+    }
+
     private async Task<UIIncrementDto> ForEachSelectedRowAsync(
-        RestDataSourceDto source, Dictionary<string, object?> state, CancellationToken cancellationToken)
+        RestDataSourceDto source, Dictionary<string, object?> state, IReadOnlyDictionary<string, object?>? pinned,
+        CancellationToken cancellationToken)
     {
         var rows = new List<object?>();
         switch (GetState(state, "crud_selected_items"))
@@ -109,6 +151,7 @@ internal sealed partial class SyncHandler
                     foreach (var (k, v) in map) rowState[k] = v;
                     break;
             }
+            WithPinned(rowState, pinned);
             var (_, status, detail) = await FetchProxyAsync(source, rowState, cancellationToken).ConfigureAwait(false);
             if (status is { } failed)
             {
@@ -138,7 +181,8 @@ internal sealed partial class SyncHandler
 
     /// <summary>Fetch a resolved source server-side (url/headers/body interpolated). Answers the
     /// parsed body (an empty body — a 204 — is an empty object), or the failure status: the upstream's
-    /// for a &gt;=400 answer, 0 for a transport error — logged without the url's query, which may carry
+    /// for a &gt;=300 answer (a redirect is not followed: it would carry the source's headers, a
+    /// <c>${secret.X}</c> included, to wherever it points), 0 for a transport error — logged without the url's query, which may carry
     /// an interpolated secret.</summary>
     private async Task<(object? Body, int? FailedStatus, string? Detail)> FetchProxyAsync(
         RestDataSourceDto source, Dictionary<string, object?> state, CancellationToken cancellationToken)
@@ -175,7 +219,7 @@ internal sealed partial class SyncHandler
                     else req.Headers.TryAddWithoutValidation(k, value);
                 }
             using var resp = await _http.SendAsync(req, cancellationToken).ConfigureAwait(false);
-            if ((int)resp.StatusCode >= 400)
+            if ((int)resp.StatusCode >= 300)
             {
                 MateuLogging.For("Mateu.RestProxy").LogWarning(
                     "Proxied {Method} {Url} answered {Status}", method, StripQuery(url), (int)resp.StatusCode);
