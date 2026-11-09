@@ -38,7 +38,10 @@ for _ in $(seq 1 36); do
 done
 sleep 20 # let the plugin's own startup run, so its errors would reach the log
 kill "$pid" 2> /dev/null || true
-pkill -f "$target" 2> /dev/null || true
+# Every process of the app — but not this script, whose own command line names the app too.
+for p in $(pgrep -f "$target" 2> /dev/null); do
+  [ "$p" = "$$" ] || [ "$p" = "$PPID" ] || kill "$p" 2> /dev/null || true
+done
 
 echo "--- idea.log (selected)"
 grep -E 'IDE: |Loaded custom plugins|io\.mateu|ERROR' "$log" 2> /dev/null | head -60 || true
