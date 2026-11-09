@@ -58,3 +58,5 @@ The ports spell it the same way: C# `new Fact { Label = "EMPRESA", Value = "…"
 ## When to use it
 
 Use an `EntityHeader` at the **top of a task screen or wizard** so the entity being worked on stays pinned while the user moves through steps — e.g. the guest card above a check-in wizard. For a full record page with tabs, use the [Item Overview](/ux-patterns/item-overview/) archetype instead; for a standalone KPI use [Stat](/ux-patterns/stat/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/entity-header-demo`.
+
+**See it live in the Explorer:** [Entity header & hero](https://explorer.mateu.io/components/display/headers)

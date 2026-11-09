@@ -121,3 +121,5 @@ io.mateu.uidl.data.Map.builder()
 | `12` | City |
 | `15` | Neighbourhood |
 | `18` | Street level |
+
+**See it live in the Explorer:** [Map](https://explorer.mateu.io/components/visualisation/map)

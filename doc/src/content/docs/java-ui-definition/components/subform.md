@@ -194,3 +194,5 @@ Use `@Inline` when:
 - Dense screens (`@Compact`, `@Zones`) where an extra card nesting would add too much visual weight.
 
 Use the default (non-`@Inline`) subform when the nested type should appear as its own clearly separated card with a title and toolbar inside the section.
+
+**See it live in the Explorer:** [Nested forms & @Inline](https://explorer.mateu.io/behaviour/forms/nested-forms)

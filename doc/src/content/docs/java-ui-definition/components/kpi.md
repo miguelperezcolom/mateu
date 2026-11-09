@@ -56,3 +56,5 @@ BoardLayout.builder()
     ))
     .build()
 ```
+
+**See it live in the Explorer:** [KPIs, stats & meters](https://explorer.mateu.io/components/status-and-kpis/kpis)

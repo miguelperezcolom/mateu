@@ -88,3 +88,5 @@ Dialog.builder()
 ## Tip
 
 For simple yes/no confirmations use [ConfirmDialog](/java-ui-definition/components/confirm-dialog/) instead, which wires the confirm/cancel buttons automatically.
+
+**See it live in the Explorer:** [Dialogs and confirmations](https://explorer.mateu.io/behaviour/overlays/dialogs) · [Dialog & ConfirmDialog](https://explorer.mateu.io/components/overlays/dialog)

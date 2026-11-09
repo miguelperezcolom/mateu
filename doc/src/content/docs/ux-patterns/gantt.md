@@ -153,3 +153,5 @@ table in the bottom drawer).
   hidden (no transaction).
 
 Details: [gantt-page review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/gantt-page.md).
+
+**See it live in the Explorer:** [Gantt page](https://explorer.mateu.io/archetypes/records/gantt-page) · [Gantt](https://explorer.mateu.io/components/visualisation/gantt)

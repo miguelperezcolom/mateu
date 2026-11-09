@@ -41,3 +41,5 @@ The renderer is dependency-free, reflows on narrow viewports, themes through the
 ## When to use it
 
 Use `Testimonials` for **social proof** on landing/marketing pages. Demo: `/testimonials-demo`.
+
+**See it live in the Explorer:** [FAQ, features, testimonials & cookies](https://explorer.mateu.io/components/display/landing-blocks)

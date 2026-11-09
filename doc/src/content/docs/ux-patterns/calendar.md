@@ -118,3 +118,5 @@ canonical page-header elements shared by every template are documented once in
 ## When to use it
 
 Use a `Calendar` to show **dated events by month, week, day or as an agenda** for scanning and light interaction (click an event to drill in). It is read-only by design; for scheduling/drag-to-create, pair it with a form that creates or moves events and re-renders. Demo: `/calendar-demo`.
+
+**See it live in the Explorer:** [Calendar page](https://explorer.mateu.io/archetypes/collections/calendar-page) · [Calendar](https://explorer.mateu.io/components/visualisation/calendar)

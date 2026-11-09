@@ -258,3 +258,5 @@ Both kinds of inference have one global switch each, named the same way. An anno
 |---|---|---|---|---|
 | Layout (`@AutoLayout`) | `mateu.layout.inference.enabled` / `MATEU_LAYOUT_INFERENCE_ENABLED` | `Mateu.LayoutInference.Enabled` | `MATEU_LAYOUT_INFERENCE_ENABLED` | `false` |
 | Page (`@AutoPage`) | `mateu.page.inference.enabled` / `MATEU_PAGE_INFERENCE_ENABLED` | `Mateu.PageInference.Enabled` | `MATEU_PAGE_INFERENCE_ENABLED` | `true` |
+
+**See it live in the Explorer:** [Layout inference (@AutoLayout)](https://explorer.mateu.io/behaviour/form-layout/auto-layout) · [Page-level inference (@AutoPage)](https://explorer.mateu.io/behaviour/form-layout/auto-page)

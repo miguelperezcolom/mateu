@@ -76,3 +76,5 @@ HorizontalLayout.builder()
     .flexGrows(List.of(2, 1, 1))  // col1 gets twice as much space
     .build()
 ```
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks)

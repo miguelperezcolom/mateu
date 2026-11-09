@@ -38,3 +38,5 @@ The renderer is dependency-free, themes through the standard CSS variables and w
 ## When to use it
 
 Use a `Funnel` for **stage-by-stage conversion**. For a value with a trend use a `Stat`; for stages of a *process the user is in* use `ProgressSteps`. Demo: `/funnel-demo`.
+
+**See it live in the Explorer:** [Charts, trends, funnels & heatmaps](https://explorer.mateu.io/components/visualisation/charts)

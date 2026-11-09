@@ -47,3 +47,5 @@ Under the hood each commit dispatches the crud's `update-row` action with the ed
 ## When to use it
 
 Use it for **flat, operational collections** where values change often and rows are simple. Keep the default detail-form flow when rows have nested data, cross-field validation, or when edits must be reviewed before persisting.
+
+**See it live in the Explorer:** [Inline editing on a CRUD listing](https://explorer.mateu.io/behaviour/listings/inline-editing)

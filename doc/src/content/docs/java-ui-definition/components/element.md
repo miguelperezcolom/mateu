@@ -85,3 +85,5 @@ element with `setAttribute` rather than by rebuilding it. See
 ## Note
 
 `Element` gives full control over the rendered HTML but bypasses Mateu's component model. Prefer purpose-built components when one is available.
+
+**See it live in the Explorer:** [Element & CustomComponent (escape hatches)](https://explorer.mateu.io/components/composition/element)

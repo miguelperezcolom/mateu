@@ -42,3 +42,5 @@ The renderer is dependency-free (CSS grid), reflows to fewer columns on narrow v
 ## When to use it
 
 Use a `FeatureGrid` for **marketing/overview feature bands**. For KPIs use `Stat`/`MetricCard`; for a comparison table use `PricingTable`. Demo: `/features-demo`.
+
+**See it live in the Explorer:** [FAQ, features, testimonials & cookies](https://explorer.mateu.io/components/display/landing-blocks)

@@ -44,3 +44,5 @@ same banner as the welcome page, with its illustration or themed image), above t
 section is `oj-sp-section`; the index is the vertical anchor navigator Mateu mirrors for `@Toc` — on
 a multimedia content page it is always shown, whatever the number of sections. Other renderers draw
 the banner as a hero over the sections.
+
+**See it live in the Explorer:** [Multimedia content page](https://explorer.mateu.io/page-templates/templates/multimedia-content-page)

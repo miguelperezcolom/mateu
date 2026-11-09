@@ -126,3 +126,5 @@ public List<Trigger> triggers(HttpRequest httpRequest) {
     return List.of(new OnLoadTrigger("load_data"));
 }
 ```
+
+**See it live in the Explorer:** [Form (a page)](https://explorer.mateu.io/components/fields/form)

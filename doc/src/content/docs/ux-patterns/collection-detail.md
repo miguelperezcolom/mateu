@@ -215,3 +215,5 @@ in the repository):
   and smart filter bar;
 - no list toolbar, no multi-selection, no avatar per item;
 - the *inline editing* and *create with a drawer* variations are composition, with no demo yet.
+
+**See it live in the Explorer:** [Collection detail](https://explorer.mateu.io/archetypes/collections/collection-detail) · [Collection detail page](https://explorer.mateu.io/page-templates/templates/collection-detail-page)

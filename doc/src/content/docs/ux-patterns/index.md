@@ -118,3 +118,5 @@ Each anti-pattern has a name so it can be recognised quickly — and a pattern t
 | **Spinner Prison** | Freezing the entire screen while something loads. | [Long-running jobs](./long-running-jobs) |
 | **Filter Amnesia** | Losing filters when navigating away. | Filter state synced to URL — browser bookmarks become saved views |
 | **Desktop Denial** | Ignoring the keyboard and penalising the expert user. | [Keyboard Shortcuts](./keyboard-shortcuts) — `@Action(shortcut = ...)` |
+
+**See it live in the Explorer:** [Behaviour](https://explorer.mateu.io/behaviour/overview) · [Page templates](https://explorer.mateu.io/page-templates/overview) · [Archetypes](https://explorer.mateu.io/archetypes/overview) · [Distributed UIs](https://explorer.mateu.io/distributed/overview)

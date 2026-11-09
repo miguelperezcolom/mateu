@@ -94,3 +94,5 @@ String contract;
 - [Bulk actions](/ux-patterns/bulk-actions/) — operating on many existing records at once
 - [Inline CRUD editing](/ux-patterns/inline-crud-editing/) — the same in-place cell editors the
   mapping grid uses
+
+**See it live in the Explorer:** [Import wizard](https://explorer.mateu.io/archetypes/processes/import-wizard)

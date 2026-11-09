@@ -117,3 +117,5 @@ Chart.builder()
         .build())
     .build()
 ```
+
+**See it live in the Explorer:** [Charts, trends, funnels & heatmaps](https://explorer.mateu.io/components/visualisation/charts)

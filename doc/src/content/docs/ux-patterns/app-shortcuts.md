@@ -88,3 +88,5 @@ Demo: `demo-admin-panel` → **F9** (merge), **F8** (end of day), **Alt+Y** (syn
 
 - [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/) — a screen's own shortcuts and access keys
 - [Command center](/ux-patterns/command-center/)
+
+**See it live in the Explorer:** [App shortcuts & quick launch](https://explorer.mateu.io/behaviour/app/app-shortcuts)

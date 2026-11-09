@@ -305,3 +305,5 @@ Dialog after completion (with `.done()`):
 - **Feedback** — the user sees live progress rather than a frozen screen
 - **Recoverability** — the user can close the dialog; errors surface as actionable feedback
 - **Consistency** — progress and outcome feedback follow the same pattern everywhere
+
+**See it live in the Explorer:** [Notification inbox & background work](https://explorer.mateu.io/behaviour/app/inbox-and-tasks) · [Long tasks (streamed progress)](https://explorer.mateu.io/behaviour/actions/long-tasks)

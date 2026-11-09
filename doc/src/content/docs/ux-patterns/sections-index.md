@@ -101,3 +101,5 @@ has to happen at the top level).
 - **Minimize navigation** — the whole record is visible and one keystroke away
 - **Workflow over screens** — reference sections stay pinned while you work through the rest
 - **Keyboard-first** — jump to any section without the mouse
+
+**See it live in the Explorer:** [Sections index & pinned sections](https://explorer.mateu.io/behaviour/form-layout/toc)

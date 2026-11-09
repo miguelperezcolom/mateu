@@ -39,3 +39,5 @@ The renderer is dependency-free, themes through the standard CSS variables and w
 ## When to use it
 
 Use `Faq` for **question/answer help content**. For arbitrary collapsible sections use `AccordionLayout`; for a timeline of events use `Timeline`. Demo: `/faq-demo`.
+
+**See it live in the Explorer:** [FAQ, features, testimonials & cookies](https://explorer.mateu.io/components/display/landing-blocks)

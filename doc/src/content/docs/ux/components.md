@@ -172,3 +172,5 @@ silently dropping it, which is what the conformance suite counts. What a rendere
 and the **Core / Standard / Full** conformance levels, are in the
 [renderer contract](/design-systems/renderer-contract/). Which feature works where is in the
 [parity matrix](/reference/parity/).
+
+**See it live in the Explorer:** [All components](https://explorer.mateu.io/components/overview)

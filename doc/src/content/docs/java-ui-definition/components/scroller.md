@@ -58,3 +58,5 @@ Scroller.builder()
 ## Tip
 
 Set an explicit `height` or `width` on the `Scroller` via `style`, otherwise the browser may not know when to show the scrollbar.
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks)

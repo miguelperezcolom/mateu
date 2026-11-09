@@ -211,3 +211,5 @@ The element-by-element review, with code references, is in
 - On Redwood the key-info panel ignores `panelWidth()` and does not collapse into a strip on small
   screens (it stacks above the tabs).
 - No previous/next, search, edit/share/favourite or footer area on the archetype.
+
+**See it live in the Explorer:** [Item overview](https://explorer.mateu.io/archetypes/records/item-overview) · [Item overview page](https://explorer.mateu.io/page-templates/templates/item-overview-page)

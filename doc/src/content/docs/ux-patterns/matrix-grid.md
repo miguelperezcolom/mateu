@@ -73,3 +73,5 @@ Folding sections is client-side state and survives the re-render that follows an
 
 - [Planning board](/ux-patterns/planning-board/) — resources × days with draggable bars, when the cells are bookings rather than figures
 - [Editable table](/ux-patterns/editable-table/) — editing records, not a matrix of values
+
+**See it live in the Explorer:** [MatrixGrid](https://explorer.mateu.io/components/visualisation/matrix-grid)

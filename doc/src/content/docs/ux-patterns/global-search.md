@@ -49,3 +49,5 @@ public class BackofficeApp implements GlobalSearchSupplier {
 
 - [Navigation & menus](/ux-patterns/navigation/) — the palette's menu half
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — when the answer is a slice, not a record
+
+**See it live in the Explorer:** [Global search (⌘K)](https://explorer.mateu.io/behaviour/app/global-search)

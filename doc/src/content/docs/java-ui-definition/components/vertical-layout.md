@@ -78,3 +78,5 @@ VerticalLayout.builder()
     .fullWidth(true)
     .build()
 ```
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks)

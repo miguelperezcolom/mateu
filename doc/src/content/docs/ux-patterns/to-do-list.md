@@ -82,3 +82,5 @@ Mateu adds bucket ordering and labelling (`groupOrder()`, `groupLabel(group, cou
 ## When to use it
 
 Use the to-do list for **personal or team work queues**: approvals, reviews, front-desk tasks, follow-ups. Prefer [collection detail](/ux-patterns/collection-detail/) when browsing a collection calls for an in-place detail pane, and a [smart search](/ux-patterns/smart-search/) page when finding the item is the hard part.
+
+**See it live in the Explorer:** [To-do list](https://explorer.mateu.io/archetypes/collections/todo-list)

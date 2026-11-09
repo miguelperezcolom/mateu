@@ -64,3 +64,5 @@ SplitLayout.builder()
 ## Tip
 
 `SplitLayout` is ideal for list-detail UIs where the user selects an item on one side and sees its detail on the other. For an integrated master-detail pattern with row selection wired automatically, use [MasterDetailLayout](/java-ui-definition/components/master-detail-layout/) instead.
+
+**See it live in the Explorer:** [Split & master-detail](https://explorer.mateu.io/components/layout/split-and-master-detail)

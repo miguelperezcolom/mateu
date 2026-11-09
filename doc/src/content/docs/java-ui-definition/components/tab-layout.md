@@ -83,3 +83,5 @@ TabLayout.builder()
     ))
     .build()
 ```
+
+**See it live in the Explorer:** [Tabs, accordions & carousel](https://explorer.mateu.io/components/layout/tabs-and-accordions)

@@ -67,3 +67,5 @@ VirtualList.builder()
 ## Tip
 
 Always set an explicit `height` on the `VirtualList` container so the browser knows when to start virtualising.
+
+**See it live in the Explorer:** [VirtualList](https://explorer.mateu.io/components/listings-and-data/virtual-list)

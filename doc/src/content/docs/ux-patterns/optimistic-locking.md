@@ -65,3 +65,5 @@ check cannot see, throw `OptimisticLock.StaleEditException` from `save` (e.g. tr
 
 - [Autosave](/ux-patterns/autosave/) — fewer stale windows by saving continuously
 - [Audit history](/reference/key-annotations/) — `Auditable` records who changed what
+
+**See it live in the Explorer:** [Optimistic locking](https://explorer.mateu.io/behaviour/listings/optimistic-locking)

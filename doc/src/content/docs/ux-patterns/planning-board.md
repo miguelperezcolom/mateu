@@ -90,3 +90,5 @@ Reject an invalid move by returning a `Message` without changing the data — th
 Use a planning board when the question is "**who/what is where, when**" and the answer must be re-arrangeable in place: room planning, fleet assignment, shift/staff allocation, equipment rental. For monitoring the *progress* of scheduled work (one row per task, not per resource), use the [Gantt](/ux-patterns/gantt/) instead; for status-lane workflows use the Kanban.
 
 Demo: `/planning-demo` in `demo-admin-panel` (`RoomPlanning.java`) — 6 rooms grouped by floor over 3 weeks; drag a booking to another room/day and the demo data updates.
+
+**See it live in the Explorer:** [PlanningBoard](https://explorer.mateu.io/components/visualisation/planning-board)

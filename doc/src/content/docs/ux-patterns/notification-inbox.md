@@ -206,3 +206,5 @@ shell's `notifications.source` works there too: the same bell lists it (a proxie
 
 - [Push notifications](/ux-patterns/notifications/) — the transient sibling
 - [Task queue](/ux-patterns/task-queue/) — when entries are work items with owners and states
+
+**See it live in the Explorer:** [Notification inbox & background work](https://explorer.mateu.io/behaviour/app/inbox-and-tasks)

@@ -95,3 +95,5 @@ explicitly rather than per host:
 
 Mateu does not enforce these; they are the contract you agree with the host. Getting theming wrong is
 the one that bites first and looks like "the UI is broken" rather than "a variable is missing".
+
+**See it live in the Explorer:** [All distributed-UI patterns](https://explorer.mateu.io/distributed/overview)

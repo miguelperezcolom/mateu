@@ -61,3 +61,5 @@ new HorizontalLayout(
 ## Tip
 
 Use `IconKey.iconName` (a `String` property) when an API accepts an icon name string, and `new Icon(IconKey.xxx)` (a `Component`) when you need a renderable component.
+
+**See it live in the Explorer:** [Images, icons, avatars & badges](https://explorer.mateu.io/components/display/media-and-badges)

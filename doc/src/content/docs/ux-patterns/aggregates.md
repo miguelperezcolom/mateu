@@ -72,3 +72,5 @@ contract from the Java, .NET and Python servers, rendered by every design system
 
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — the filters the totals respect
 - [Saved views](/ux-patterns/saved-views/) — name the slice you keep totalling
+
+**See it live in the Explorer:** [Totals and grouping](https://explorer.mateu.io/behaviour/listings/totals-grouping)

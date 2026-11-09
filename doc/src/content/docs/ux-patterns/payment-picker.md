@@ -41,3 +41,5 @@ Switching methods is client-side state; only the confirm button talks to the ser
 ## When to use it
 
 Use a `PaymentPicker` as the **final step of a monetary flow**, directly under the [Ledger](/ux-patterns/ledger/) it settles — check-out, POS charge, deposit collection. If charges are still accruing, show the balance with a [Meter](/ux-patterns/meter/) instead of charging yet. See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/payment-picker-demo`.
+
+**See it live in the Explorer:** [AddOnPicker & PaymentPicker](https://explorer.mateu.io/components/interactive-widgets/pickers)

@@ -226,3 +226,5 @@ In short:
   archetype has no search).
 - Redwood paints the page with Spectra's `oj-sp-welcome-page` (since 2026-10-24); the tiles in its
   main slot are JET panels.
+
+**See it live in the Explorer:** [Welcome](https://explorer.mateu.io/archetypes/overview/welcome) · [Welcome page](https://explorer.mateu.io/page-templates/templates/welcome-page)

@@ -242,3 +242,5 @@ The element-by-element review, with code references, is in
 ## Demo
 
 `demo-admin-panel/.../generaloverview/RequisitionOverview.java` (`/general-overview-demo`, Vaadin); the same class in `demo-redwood-showcase` (Redwood, same route) and `demo-vb` `RequisitionsOverview` (`/requisitions`). Tests: `GeneralOverviewSyncTest`.
+
+**See it live in the Explorer:** [General overview](https://explorer.mateu.io/archetypes/records/general-overview) · [General overview page](https://explorer.mateu.io/page-templates/templates/general-overview-page)
