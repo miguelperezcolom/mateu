@@ -39,7 +39,8 @@ fun installRowDrag(table: JTable, dragType: String, rowAt: (Int) -> JsonNode?) {
     if (table.selectionModel.selectionMode == ListSelectionModel.SINGLE_SELECTION) {
         table.selectionModel.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
     }
-    table.dragEnabled = true
+    // Swing refuses drag gestures with no display (a headless render): the rows stay as they are
+    if (!java.awt.GraphicsEnvironment.isHeadless()) table.dragEnabled = true
     table.transferHandler = object : TransferHandler() {
         override fun getSourceActions(c: JComponent): Int = MOVE
         override fun createTransferable(c: JComponent): Transferable? {

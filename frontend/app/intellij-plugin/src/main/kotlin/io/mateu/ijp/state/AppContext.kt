@@ -441,6 +441,8 @@ class AppContext(val session: AppSession) {
         // @Action(confirmationRequired): ask first, with the declared texts — same order as the
         // web's mateu-component (selection guard, validation, then the question).
         screen.confirmation(actionId)?.let { t ->
+            // with no display to ask on (a headless render), the question is never answered yes
+            if (java.awt.GraphicsEnvironment.isHeadless()) { onDone?.invoke(false); return }
             val choice = JOptionPane.showOptionDialog(
                 contentPane,
                 t.message,
