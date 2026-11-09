@@ -110,7 +110,7 @@ target**; **3.1 drops it**. Move your app to .NET 10 before upgrading to 3.1.
   Java, .NET and Python.
 - **Figma.** The library uses Figma's native slots and component properties for every component, and
   ships with a self-test. It is published as the
-  [Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit) on Figma
+  [Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777) on Figma
   Community. **Import from Figma** turns a file into `specs/ui` pages and routes in one step:
   `mvn io.mateu:mateu-bundle-maven-plugin:figma`, IntelliJ or VS Code. Still a preview.
 - **The Mateu Explorer** — every component, page template, archetype, behaviour and distributed-UI

@@ -81,7 +81,7 @@ The [UX guide](/ux/) and the [pattern catalogue](/ux-patterns/) list the rest.
 ### Figma → YAML (preview)
 
 The Mateu component library is published on Figma Community as the
-[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit): duplicate it,
+[Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777): duplicate it,
 design your screens with it, and import the file in one step from Maven, IntelliJ or VS Code. Each
 screen frame becomes a YAML page, and each new page is added to `routes.yaml`. The library uses
 Figma's native slots and component properties. This pipeline is a preview: it may change in any

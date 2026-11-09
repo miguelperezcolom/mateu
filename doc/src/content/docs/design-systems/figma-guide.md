@@ -287,7 +287,7 @@ the most hands-on to the fully automatic.
 
 ### By hand, the first time
 
-1. **Get the kit**: duplicate the [Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)
+1. **Get the kit**: duplicate the [Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777)
    ([step 0](#0-get-the-mateu-ui-kit-the-quick-way)).
 2. **Design one screen**: on a new page of that file, add a frame called `contact`. Into it drag a
    `Mateu/Page/Header` instance (set its `title` to "New contact" and drop a `Mateu/Actions/Button`
