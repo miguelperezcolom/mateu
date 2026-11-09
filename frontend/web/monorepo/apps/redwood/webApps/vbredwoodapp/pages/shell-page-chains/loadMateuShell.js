@@ -116,6 +116,10 @@ define([
       bridge.setTaskActionSink(runPageAction);
       bridge.setTaskNavigateSink(navigateToRoute);
       bridge.setTaskViewClock(bridge.currentView);
+      // a task this tab's session started survives the reload: the server's still-running ones come back
+      // into the center, followed again (reattach.mjs); an OS notification's click navigates in-app
+      bridge.reattachTasks().catch(() => undefined);
+      bridge.setOsNotificationNavigateSink(navigateToRoute);
       // the INBOX panel (poc/inbox.mjs): an answer to paint (an entry's detail Drawer, an action's
       // Message) goes to the content page as an ordinary increment; the badge follows the model
       bridge.setInboxIncrementSink((increment) => Actions.fireEvent(window.__mateuShellContext || context, {
@@ -344,6 +348,8 @@ define([
       // Redwood is LIGHT ONLY: @App(themeToggle) is ignored (no switch), and neither a stored dark
       // choice nor the OS preference applies (poc/theme.mjs)
       bridge.applyLightTheme();
+      // @App(osNotifications): the bell and the task list offer "Notify me on this device" (osNotify.mjs)
+      bridge.setOsNotificationsEnabled(!!(reg.shell && reg.shell.osNotifications));
       if (reg.shell && (reg.shell.notificationsEnabled || reg.shell.notificationsSource)) {
         // where the inbox panel's actions go (the app's backend, the App type, the live appState);
         // a source-fed inbox (type: AppShell) has no app-level actions to run

@@ -294,14 +294,179 @@ class ProgressReportingSyncTest {
   }
 
   @Test
-  void closingTheStreamCancelsTheWork() throws Exception {
+  void withoutAGracePeriodClosingTheStreamCancelsTheWork() throws Exception {
+    System.setProperty(ProgressTasks.GRACE_PROPERTY, "0");
+    try {
+      CANCELLED.set(false);
+      var seen = new CopyOnWriteArrayList<UIIncrementDto>();
+      var subscription = mateu.stream(rq("endless")).doOnNext(seen::add).subscribe();
+      var taskId = waitForTask(seen);
+      subscription.dispose();
+      assertThat(CANCELLED).isTrue();
+      assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+    } finally {
+      System.clearProperty(ProgressTasks.GRACE_PROPERTY);
+    }
+  }
+
+  @Test
+  void aClosedStreamLeavesTheTaskRunningAndAResumePicksItUp() throws Exception {
     CANCELLED.set(false);
     var seen = new CopyOnWriteArrayList<UIIncrementDto>();
     var subscription = mateu.stream(rq("endless")).doOnNext(seen::add).subscribe();
     var taskId = waitForTask(seen);
+    // the page reloads: its stream goes away, the task does not
     subscription.dispose();
+    Thread.sleep(100);
+    assertThat(CANCELLED).isFalse();
+    assertThat(ProgressTasks.isRunning(taskId)).isTrue();
+
+    // the reloaded page asks which of its tasks are still there…
+    var listed = progressOf(List.of(mateu.run(tasksRq(List.of(taskId, "no-such-task")))));
+    assertThat(listed)
+        .singleElement()
+        .satisfies(
+            p -> {
+              assertThat(p.taskId()).isEqualTo(taskId);
+              assertThat(p.state()).isEqualTo(ProgressStateDto.running);
+            });
+
+    // …and follows it again: its current state first, then its updates, page-level parts only
+    var resumed = new CopyOnWriteArrayList<UIIncrementDto>();
+    var all = mateu.stream(resumeRq(taskId)).doOnNext(resumed::add).collectList().toFuture();
+    for (int i = 0; i < 250 && progressOf(List.copyOf(resumed)).size() < 3; i++) {
+      Thread.sleep(20);
+    }
+    assertThat(progressOf(List.copyOf(resumed))).hasSizeGreaterThanOrEqualTo(3);
+    assertThat(resumed).allSatisfy(i -> assertThat(i.fragments()).isEmpty());
+    assertThat(progressOf(List.copyOf(resumed))).allMatch(p -> taskId.equals(p.taskId()));
+
+    // the resumed task can still be cancelled: the resume stream ends with it
+    mateu.run(cancelRq(taskId));
+    var increments = all.get(5, TimeUnit.SECONDS);
+    var last = progressOf(increments).get(progressOf(increments).size() - 1);
+    assertThat(last.state()).isEqualTo(ProgressStateDto.cancelled);
     assertThat(CANCELLED).isTrue();
-    assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+  }
+
+  @Test
+  void aTaskNobodyResumesIsCancelledWhenTheGracePeriodIsOver() throws Exception {
+    System.setProperty(ProgressTasks.GRACE_PROPERTY, "0.3");
+    try {
+      CANCELLED.set(false);
+      var seen = new CopyOnWriteArrayList<UIIncrementDto>();
+      var subscription = mateu.stream(rq("endless")).doOnNext(seen::add).subscribe();
+      var taskId = waitForTask(seen);
+      subscription.dispose();
+      Thread.sleep(50);
+      assertThat(CANCELLED).isFalse();
+      for (int i = 0; i < 100 && !CANCELLED.get(); i++) {
+        Thread.sleep(20);
+      }
+      assertThat(CANCELLED).isTrue();
+      assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+    } finally {
+      System.clearProperty(ProgressTasks.GRACE_PROPERTY);
+    }
+  }
+
+  @Test
+  void aFinishedTaskStillTellsHowItEndedDuringTheGracePeriod() {
+    var increments = mateu.runAll(rq("background"));
+    var done = progressOf(increments).get(progressOf(increments).size() - 1);
+    assertThat(done.state()).isEqualTo(ProgressStateDto.done);
+
+    assertThat(progressOf(List.of(mateu.run(tasksRq(List.of(done.taskId()))))))
+        .singleElement()
+        .satisfies(p -> assertThat(p.state()).isEqualTo(ProgressStateDto.done));
+    var resumed = mateu.stream(resumeRq(done.taskId())).collectList().block(Duration.ofSeconds(5));
+    assertThat(resumed).hasSize(1);
+    assertThat(progressOf(resumed))
+        .singleElement()
+        .satisfies(p -> assertThat(p.state()).isEqualTo(ProgressStateDto.done));
+    // the inbox message it ended with (notifyWhenDone) comes along
+    assertThat(resumed.get(0).messages())
+        .singleElement()
+        .satisfies(m -> assertThat(m.persistence()).isEqualTo(MessagePersistenceDto.inbox));
+  }
+
+  @Test
+  void anotherCallerCannotListOrResumeATask() throws Exception {
+    var seen = new CopyOnWriteArrayList<UIIncrementDto>();
+    var subscription =
+        mateu.stream(rq("endless"), TestIdentities.headersWithRoles("user"))
+            .doOnNext(seen::add)
+            .subscribe();
+    try {
+      var taskId = waitForTask(seen);
+      // the anonymous caller holding the id, and the same user with other grants: exactly what an
+      // unknown id gets — nothing
+      for (var headers :
+          List.<Map<String, String>>of(
+              Map.of(), TestIdentities.headersWithRoles("user", "admin"))) {
+        assertThat(mateu.run(tasksRq(List.of(taskId)), headers).commands()).isEmpty();
+        assertThat(
+                mateu.stream(resumeRq(taskId), headers).collectList().block(Duration.ofSeconds(5)))
+            .isEmpty();
+      }
+      assertThat(mateu.run(tasksRq(List.of("no-such-task"))).commands()).isEmpty();
+      assertThat(mateu.stream(resumeRq("no-such-task")).collectList().block(Duration.ofSeconds(5)))
+          .isEmpty();
+      // its owner can
+      assertThat(
+              progressOf(
+                  List.of(
+                      mateu.run(
+                          tasksRq(List.of(taskId)), TestIdentities.headersWithRoles("user")))))
+          .hasSize(1);
+      assertThat(ProgressTasks.isRunning(taskId)).isTrue();
+    } finally {
+      subscription.dispose();
+      mateu.run(cancelRq(seen), TestIdentities.headersWithRoles("user"));
+    }
+  }
+
+  @Test
+  void aDeterminateTaskGetsAnEstimateOfTheTimeLeftOnceItIsHonest() throws Exception {
+    var seen = new CopyOnWriteArrayList<UIIncrementDto>();
+    var subscription = mateu.stream(rq("endless")).doOnNext(seen::add).subscribe();
+    try {
+      var taskId = waitForTask(seen);
+      // nothing in the first two seconds…
+      var early = progressOf(List.copyOf(seen));
+      assertThat(early.get(0).etaSeconds()).isNull();
+      // …then an estimate (1000 steps of 20 ms: some seconds left)
+      Integer eta = null;
+      for (int i = 0; i < 250 && eta == null; i++) {
+        Thread.sleep(20);
+        var progress = progressOf(List.copyOf(seen));
+        eta = progress.get(progress.size() - 1).etaSeconds();
+      }
+      assertThat(eta).isNotNull().isPositive();
+      mateu.run(cancelRq(taskId));
+    } finally {
+      subscription.dispose();
+    }
+  }
+
+  private static RunActionRqDto tasksRq(List<String> taskIds) {
+    return RunActionRqDto.builder()
+        .route("_no_route")
+        .actionId(ProgressTasks.TASKS_ACTION)
+        .parameters(Map.of("taskIds", taskIds))
+        .build();
+  }
+
+  private static RunActionRqDto resumeRq(String taskId) {
+    return RunActionRqDto.builder()
+        .route("_no_route")
+        .actionId(ProgressTasks.RESUME_ACTION)
+        .parameters(Map.of("taskId", taskId))
+        .build();
+  }
+
+  private static RunActionRqDto cancelRq(List<UIIncrementDto> seen) {
+    return cancelRq(progressOf(List.copyOf(seen)).get(0).taskId());
   }
 
   private static String waitForTask(List<UIIncrementDto> seen) throws InterruptedException {

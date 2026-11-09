@@ -101,6 +101,7 @@ from .security import (  # noqa: F401
 )
 from .live_header_values import LiveHeaderValues  # noqa: F401
 from .live_notifications import LiveNotifications, NotificationChange  # noqa: F401
+from .inbox_store import InboxStore, InMemoryInboxStore  # noqa: F401
 from .progress import LongTask, LongTaskRun, ProgressReporter  # noqa: F401
 from .suppliers import (  # noqa: F401
     AppShortcutEntry,
@@ -399,7 +400,7 @@ __all__ = [
     "LiveHeaderValues",
     # Progress and notifications patterns (EXPERIMENTAL)
     "LongTask", "LongTaskRun", "ProgressReporter", "MessageAction", "MessagePersistence",
-    "LiveNotifications", "NotificationChange",
+    "LiveNotifications", "NotificationChange", "InboxStore", "InMemoryInboxStore",
     # Server-resolved micro frontends + content slots (EXPERIMENTAL)
     "ContentSlot", "cacheable_fragment", "CorrelationIdProvider", "FragmentCachePolicy",
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",

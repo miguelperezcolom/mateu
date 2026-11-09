@@ -81,6 +81,8 @@
   "Hidden",
   "HomeRouteSupplier",
   "Identity",
+  "InMemoryInboxStore",
+  "InboxStore",
   "Inline",
   "InlineEditing",
   "ItemOverview",

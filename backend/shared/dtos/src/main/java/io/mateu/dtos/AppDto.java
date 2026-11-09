@@ -175,7 +175,13 @@ public record AppDto(
      * its per-tab agent channel (the {@code _agent-channel} app-level action over the SSE endpoint)
      * and offers "Connect AI" (pairing with an MCP caller). False otherwise.
      */
-    boolean agentPush)
+    boolean agentPush,
+    /**
+     * {@code @App(osNotifications = true)}: the app opts in to OS-level notifications (a new inbox
+     * entry, a background task that finished) while it is not in front. The renderer asks the
+     * user's permission only from a user gesture. False otherwise.
+     */
+    boolean osNotifications)
     implements ComponentMetadataDto {
 
   public AppDto {

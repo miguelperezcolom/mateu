@@ -154,7 +154,9 @@ internal sealed partial class ReflectionMapper
                 ? followingLabel : null,
             ContextSelectors = MapContextSelectors(appType),
             ContextActions = MapContextActions(appType),
-            NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType),
+            NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType) || app.Inbox,
+            // OS-level notifications: opt-in, mirrors AppDto.osNotifications.
+            OsNotifications = app.OsNotifications,
             // ⌘K palette entity search: the app class implements IGlobalSearchSupplier → the
             // palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
             GlobalSearchEnabled = typeof(IGlobalSearchSupplier).IsAssignableFrom(appType),

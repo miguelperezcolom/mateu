@@ -338,6 +338,17 @@ public sealed class AppAttribute(string title) : Attribute
     /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>
     public bool LiveUpdates { get; set; }
 
+    /// <summary>OS-LEVEL NOTIFICATIONS: a new inbox entry and a background task that finished also
+    /// raise an operating-system notification while the app is not in front (the Web Notifications
+    /// API, local notifications on a phone). Permission is asked only from a user gesture in the
+    /// bell / task center. Opt-in. (C# analogue of Java's @App(osNotifications).) EXPERIMENTAL.</summary>
+    public bool OsNotifications { get; set; }
+
+    /// <summary>The notification bell without an INotificationsSupplier: it lists what the
+    /// IInboxStore keeps for the caller (the inbox Messages of its answers). Opt-in. (C# analogue
+    /// of Java's @App(inbox).) EXPERIMENTAL.</summary>
+    public bool Inbox { get; set; }
+
     /// <summary>IDLE-SESSION WARNING: after this many minutes without activity (any tab) a modal
     /// counts down <see cref="IdleWarningSeconds"/>; "Stay signed in" runs the app-level
     /// <c>_keep-alive</c> action (<see cref="IKeepAliveHandler"/>), "Sign out" goes to

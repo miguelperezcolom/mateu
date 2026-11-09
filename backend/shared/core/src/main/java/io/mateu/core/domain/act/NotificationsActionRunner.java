@@ -3,13 +3,18 @@ package io.mateu.core.domain.act;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.uidl.data.AppNotification;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.NotificationsSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import reactor.core.publisher.Flux;
 
 /**
@@ -48,11 +53,9 @@ public class NotificationsActionRunner implements ActionRunner {
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var httpRequest = command.httpRequest();
-    var supplier = findSupplier(instance, httpRequest);
-    if (supplier == null) {
-      throw new RuntimeException(
-          "the app class does not implement NotificationsSupplier — no inbox to serve");
-    }
+    // the app's own inbox (if it has one) and the entries Mateu keeps for the signed-in caller
+    // (inbox messages — InboxStore): one list for the bell
+    var inbox = new CallerInbox(findSupplier(instance, httpRequest), httpRequest);
     var parameters = httpRequest.runActionRq().parameters();
     // every id the panel sends back comes from the browser: the supplier is only handed ids of
     // the CALLER's own list (what it answers for this request) and only the actions an entry offers
@@ -60,37 +63,150 @@ public class NotificationsActionRunner implements ActionRunner {
     if (OPEN_ACTION.equals(command.actionId())) {
       // the entry's detail (a drawer, a dialog…) answered like any action's result
       var id = stringOf(parameters, "id");
-      var entry = ownEntry(supplier, id, httpRequest);
-      if (entry == null || !entry.hasDetail()) {
+      var entry = inbox.ownEntry(id);
+      if (entry == null || !entry.hasDetail() || inbox.supplier == null || inbox.isStored(id)) {
         return Flux.empty();
       }
-      var detail = supplier.notificationDetail(id, httpRequest);
+      var detail = inbox.supplier.notificationDetail(id, httpRequest);
       return detail != null ? Flux.just(detail) : Flux.empty();
     }
     Object result = null;
     if (READ_ACTION.equals(command.actionId())) {
-      supplier.markNotificationsRead(readIds(supplier, httpRequest), httpRequest);
+      inbox.markRead(readIds(inbox, parameters));
     } else if (DISMISS_ACTION.equals(command.actionId())) {
-      supplier.dismissNotifications(ownIds(supplier, idsOf(parameters), httpRequest), httpRequest);
+      inbox.dismiss(inbox.ownIds(idsOf(parameters)));
     } else if (ACT_ACTION.equals(command.actionId())) {
       var id = stringOf(parameters, "id");
       var actionId = stringOf(parameters, "actionId");
       if (id == null || actionId == null) {
         throw new io.mateu.uidl.UserFacingException("Which notification, and which action?");
       }
-      var entry = ownEntry(supplier, id, httpRequest);
-      if (entry == null || entry.actions().stream().noneMatch(a -> actionId.equals(a.actionId()))) {
+      var entry = inbox.ownEntry(id);
+      if (entry == null
+          || inbox.supplier == null
+          || inbox.isStored(id)
+          || entry.actions().stream().noneMatch(a -> actionId.equals(a.actionId()))) {
         // one WARN, the reason server-side only: a 403 tells the caller nothing about the entry
         log.warn("Refused {}: the caller's inbox has no entry offering that action", ACT_ACTION);
         throw new io.mateu.core.application.security.MateuForbiddenException(
             ACT_ACTION + ": no such entry/action for the caller");
       }
-      result = supplier.onNotificationAction(id, actionId, httpRequest);
+      result = inbox.supplier.onNotificationAction(id, actionId, httpRequest);
     }
-    var notifications = supplier.notifications(httpRequest);
-    var list =
-        new Data(Map.of("_notifications", notifications != null ? notifications : List.of()));
+    var list = new Data(Map.of("_notifications", inbox.list()));
     return result != null ? Flux.just(result, list) : Flux.just(list);
+  }
+
+  /**
+   * The caller's inbox for one request: the app supplier's entries first, then the ones Mateu
+   * stored for the signed-in caller ({@code InboxStore}; an id the supplier already lists is
+   * skipped). Each half is read once, and again for the list answered after a change.
+   */
+  private static final class CallerInbox {
+    final NotificationsSupplier supplier;
+    final HttpRequest httpRequest;
+    final String principal;
+    List<AppNotification> supplied;
+    List<AppNotification> stored;
+
+    CallerInbox(NotificationsSupplier supplier, HttpRequest httpRequest) {
+      this.supplier = supplier;
+      this.httpRequest = httpRequest;
+      this.principal = io.mateu.core.application.notifications.Inbox.principalOf(httpRequest);
+    }
+
+    List<AppNotification> supplied() {
+      if (supplied == null) {
+        var list = supplier != null ? supplier.notifications(httpRequest) : null;
+        supplied = list != null ? list.stream().filter(Objects::nonNull).toList() : List.of();
+      }
+      return supplied;
+    }
+
+    List<AppNotification> stored() {
+      if (stored == null) {
+        if (principal == null) {
+          stored = List.of();
+        } else {
+          var own = supplied().stream().map(AppNotification::id).collect(Collectors.toSet());
+          var list = io.mateu.core.application.notifications.Inbox.store().list(principal);
+          stored =
+              list == null
+                  ? List.of()
+                  : list.stream()
+                      .filter(n -> n != null && n.id() != null && !own.contains(n.id()))
+                      .toList();
+        }
+      }
+      return stored;
+    }
+
+    /** The list the bell shows, read afresh. */
+    List<AppNotification> list() {
+      supplied = null;
+      stored = null;
+      var all = new ArrayList<>(supplied());
+      all.addAll(stored());
+      return all;
+    }
+
+    Stream<AppNotification> all() {
+      return Stream.concat(supplied().stream(), stored().stream());
+    }
+
+    boolean isStored(String id) {
+      return id != null && stored().stream().anyMatch(n -> id.equals(n.id()));
+    }
+
+    AppNotification ownEntry(String id) {
+      return id == null ? null : all().filter(n -> id.equals(n.id())).findFirst().orElse(null);
+    }
+
+    List<String> ownIds(List<String> ids) {
+      if (ids.isEmpty()) {
+        return ids;
+      }
+      var own = all().map(AppNotification::id).collect(Collectors.toSet());
+      return ids.stream().filter(own::contains).toList();
+    }
+
+    List<String> unreadIds() {
+      return all().filter(AppNotification::unread).map(AppNotification::id).toList();
+    }
+
+    void markRead(List<String> ids) {
+      var toStore = ids.stream().filter(this::isStored).toList();
+      var toSupplier = ids.stream().filter(id -> !toStore.contains(id)).toList();
+      if (!toStore.isEmpty()) {
+        io.mateu.core.application.notifications.Inbox.store().markRead(principal, toStore);
+      }
+      if (supplier != null && (!toSupplier.isEmpty() || toStore.isEmpty())) {
+        supplier.markNotificationsRead(toSupplier, httpRequest);
+      }
+    }
+
+    void dismiss(List<String> ids) {
+      var toStore = ids.stream().filter(this::isStored).toList();
+      var toSupplier = ids.stream().filter(id -> !toStore.contains(id)).toList();
+      if (!toStore.isEmpty()) {
+        io.mateu.core.application.notifications.Inbox.store().dismiss(principal, toStore);
+      }
+      if (supplier != null && (!toSupplier.isEmpty() || toStore.isEmpty())) {
+        supplier.dismissNotifications(toSupplier, httpRequest);
+      }
+    }
+  }
+
+  /** The ids parameter: an explicit list (of the caller's own entries), or "all" → every unread. */
+  private static List<String> readIds(CallerInbox inbox, Map<String, Object> parameters) {
+    var ids = parameters != null ? parameters.get("ids") : null;
+    if (ids instanceof List<?> list) {
+      return inbox.ownIds(list.stream().map(String::valueOf).toList());
+    }
+    if ("all".equals(ids)) {
+      return inbox.unreadIds();
+    }
+    return ids != null ? inbox.ownIds(List.of(String.valueOf(ids))) : List.of();
   }
 
   private static String stringOf(Map<String, Object> parameters, String key) {
@@ -122,60 +238,6 @@ public class NotificationsActionRunner implements ActionRunner {
         n.resolved(),
         n.actions().stream().map(io.mateu.uidl.data.LongTask::toDto).toList(),
         n.hasDetail());
-  }
-
-  /** The caller's own entry {@code id} (in the list the supplier answers for this request). */
-  private static io.mateu.uidl.data.AppNotification ownEntry(
-      NotificationsSupplier supplier, String id, HttpRequest httpRequest) {
-    if (id == null) {
-      return null;
-    }
-    var notifications = supplier.notifications(httpRequest);
-    return notifications == null
-        ? null
-        : notifications.stream()
-            .filter(n -> n != null && id.equals(n.id()))
-            .findFirst()
-            .orElse(null);
-  }
-
-  /** {@code ids} kept only when they are the caller's own entries. */
-  private static List<String> ownIds(
-      NotificationsSupplier supplier, List<String> ids, HttpRequest httpRequest) {
-    if (ids.isEmpty()) {
-      return ids;
-    }
-    var notifications = supplier.notifications(httpRequest);
-    if (notifications == null) {
-      return List.of();
-    }
-    var own =
-        notifications.stream()
-            .filter(java.util.Objects::nonNull)
-            .map(io.mateu.uidl.data.AppNotification::id)
-            .collect(java.util.stream.Collectors.toSet());
-    return ids.stream().filter(own::contains).toList();
-  }
-
-  /**
-   * The ids parameter: an explicit list (of the caller's own entries), or "all" → every unread id.
-   */
-  private List<String> readIds(NotificationsSupplier supplier, HttpRequest httpRequest) {
-    var parameters = httpRequest.runActionRq().parameters();
-    var ids = parameters != null ? parameters.get("ids") : null;
-    if (ids instanceof List<?> list) {
-      return ownIds(supplier, list.stream().map(String::valueOf).toList(), httpRequest);
-    }
-    if ("all".equals(ids)) {
-      var notifications = supplier.notifications(httpRequest);
-      return notifications == null
-          ? List.of()
-          : notifications.stream()
-              .filter(io.mateu.uidl.data.AppNotification::unread)
-              .map(io.mateu.uidl.data.AppNotification::id)
-              .toList();
-    }
-    return ids != null ? ownIds(supplier, List.of(String.valueOf(ids)), httpRequest) : List.of();
   }
 
   /**

@@ -43,6 +43,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appServerSideType = metadata.text("serverSideType").ifBlank { null }
         // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
         session.accessKeys = metadata.bool("accessKeys")
+        // @App(osNotifications = true): an inbox entry / a background task's end also reaches the OS
+        session.osNotifications = metadata.bool("osNotifications")
+        // the app (re)loaded: tasks still running for this IDE session are picked up again
+        session.reattachTasks()
         // E2 patterns: app-wide shortcuts, live header values (+ the event stream), idle warning.
         session.appShortcuts = io.mateu.ijp.state.AppShortcuts.of(metadata)
         session.seedHeaderValues(io.mateu.ijp.state.HeaderValues.of(metadata))

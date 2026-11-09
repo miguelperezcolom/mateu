@@ -29,6 +29,7 @@ import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHi
 import { interpolate } from '../core/expressions';
 import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
 import { toastOf } from '../core/componentContext';
+import { NotifyOnThisDevice } from './TaskHost';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
@@ -91,6 +92,8 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   menu?: MenuItem[];
   contextSelectors?: AppContextSelector[];
   notificationsEnabled?: boolean;
+  /** The app opted in to OS-level notifications (@App(osNotifications = true)). */
+  osNotifications?: boolean;
   /** A data-authored shell's inbox: REST sources instead of the app class's supplier. */
   notificationsSource?: Record<string, unknown> | null;
   notificationsReadSource?: Record<string, unknown> | null;
@@ -626,6 +629,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
       />
       {open && (
         <View>
+          <NotifyOnThisDevice session={session} />
           <View style={styles.bellFilters} accessibilityRole="tablist">
             {(['unread', 'all', 'resolved'] as InboxFilter[]).map((f) => (
               <TouchableOpacity
@@ -1001,6 +1005,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   React.useEffect(() => setAccent(appMeta.accentColor), [appMeta.accentColor, setAccent]);
 
   const { session } = useAppContext();
+  // OS-level notifications are the app's choice (core/osNotifications.ts)
+  session.osNotifications = appMeta.osNotifications === true;
   // the version-skew notices' Reload (core/buildSkew.ts): remount the current screen, so it re-runs
   // its load from scratch against the redeployed backend — the same remount an @AppContext change does
   React.useEffect(() => {

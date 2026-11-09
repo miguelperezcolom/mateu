@@ -136,6 +136,18 @@ public final class AppShellExtrasMapper {
     return annotation != null && annotation.liveUpdates();
   }
 
+  /** {@code @App(osNotifications = true)}: OS-level notifications while the app is not in front. */
+  public static boolean osNotifications(AppShell app) {
+    var annotation = appAnnotation(app);
+    return annotation != null && annotation.osNotifications();
+  }
+
+  /** {@code @App(inbox = true)}: the bell, listing what the InboxStore keeps for the caller. */
+  public static boolean inbox(AppShell app) {
+    var annotation = appAnnotation(app);
+    return annotation != null && annotation.inbox();
+  }
+
   public static IdleSessionDto idleSession(AppShell app) {
     var annotation = appAnnotation(app);
     int minutes =

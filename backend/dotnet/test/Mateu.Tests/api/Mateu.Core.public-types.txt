@@ -7,6 +7,7 @@ Mateu.Core.IAppSupplier (forwarded)
 Mateu.Core.IMenuSupplier (forwarded)
 Mateu.Core.IRouteEntrySupplier (forwarded)
 Mateu.Core.ISpecsCache
+Mateu.Core.InMemoryInboxStore
 Mateu.Core.InferenceSwitches
 Mateu.Core.MateuForbiddenException (forwarded)
 Mateu.Core.PartialRegistry

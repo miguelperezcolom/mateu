@@ -225,12 +225,12 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.data` | 330 | 263 | 66 | 1 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 91 | 9 | 0 | 7 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 108 | 91 | 10 | 0 | 7 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 2 | 0 | 0 | 0 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1025** | **837** | **98** | **31** | **59** |
+| **Total** | | **1026** | **837** | **99** | **31** | **59** |
 
 **Experimental types** (the whole type and its members):
 
@@ -238,7 +238,7 @@ same concepts.
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
 - `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
 
 **Experimental members** of otherwise stable types:
@@ -253,7 +253,7 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroOverline`, `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
 - `io.mateu.uidl.annotations.AI`: `followLabel`, `followingLabel`
-- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`
+- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `inbox`, `liveUpdates`, `mobileQr`, `osNotifications`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`

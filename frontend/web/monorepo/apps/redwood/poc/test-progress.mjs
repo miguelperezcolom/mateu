@@ -13,8 +13,14 @@ import { makeDom, FakeEvent } from './test-harness-dom.mjs'
 import {
   progressCommandsOf, withoutProgressCommands, isEmptyIncrement, createTaskCenter, taskViewOf, taskCenterViewOf,
   autoCloseDelayOf, taskAnnouncementOf, formatElapsed, cancelTask, retryTask, runResultAction, setTaskTransport,
-  setTaskActionSink, setTaskNavigateSink, setTaskViewClock, installTaskCenter, taskCenter, noteProgress,
+  setTaskActionSink, setTaskNavigateSink, setTaskViewClock, installTaskCenter, taskCenter, noteProgress, taskMetaOf,
 } from './tasks.mjs'
+import { chromeText, etaTextOf } from './i18n.mjs'
+import { TASK_MEMORY_KEY, rememberedTasks, installTaskMemory, reattachTasks, resumeTask, resetTaskMemoryForTests } from './reattach.mjs'
+import {
+  osNotify, osNotifyControl, offersOsNotifications, osNotificationPermission, setOsNotificationsEnabled,
+  setOsNotificationNavigateSink, taskOsNotificationOf, inboxOsNotificationOf,
+} from './osNotify.mjs'
 import {
   inboxEntryOf, createInbox, withServerList, withSessionEntry, withChange, withRead, withFilter, entriesOf,
   filteredEntries, groupsOf, inboxModelOf, sessionEntryOfMessage, notificationsChangedOf, resetInboxForTests,
@@ -555,6 +561,206 @@ test('toasts: applyDomEffects puts an inbox message in the inbox and takes the a
   assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Export ready'], 'the inbox one is still shown as a toast')
 })
 
+// ── ETA (conformance/client/eta-format.json) ─────────────────────────────────────────────────
+
+test('ETA: the shared corpus words etaSeconds exactly, in English and Spanish; nothing without one', () => {
+  const corpus = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'conformance', 'client', 'eta-format.json'), 'utf8'))
+  for (const lang of ['en', 'es']) {
+    for (const [k, v] of Object.entries({ underMinute: 'taskEtaUnderMinute', minutes: 'taskEtaMinutes', hours: 'taskEtaHours' })) {
+      assert.equal(chromeText(v, null, lang), corpus.texts[lang][k], `${lang} ${k}`)
+    }
+  }
+  for (const c of corpus.cases) {
+    assert.equal(etaTextOf(c.etaSeconds, 'en'), c.en || '', `en ${c.etaSeconds}`)
+    assert.equal(etaTextOf(c.etaSeconds, 'es'), c.es || '', `es ${c.etaSeconds}`)
+  }
+  assert.equal(etaTextOf(undefined), '')
+})
+
+test('ETA: a running task shows the server\'s estimate in its meta line; a finished one never does', () => {
+  const running = taskViewOf({ ...progress({ etaSeconds: 125, done: 12, total: 300 }), seenAt: 1000 }, 43000)
+  assert.equal(running.eta, 'about 2 min left')
+  assert.equal(taskMetaOf(running), '12 of 300 · about 2 min left · 0:42 elapsed')
+  assert.equal(taskViewOf({ ...progress({ etaSeconds: 125, state: 'done' }), seenAt: 1000, finishedAt: 2000 }).eta, '')
+  assert.equal(taskViewOf({ ...progress(), seenAt: 1000 }, 2000).eta, '', 'indeterminate: no estimate')
+})
+
+// ── reattach (reattach.mjs) ──────────────────────────────────────────────────────────────────
+
+const memoryStore = (initial) => {
+  const data = new Map(initial ? [[TASK_MEMORY_KEY, JSON.stringify(initial)]] : [])
+  return { getItem: (k) => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)), removeItem: (k) => data.delete(k), data }
+}
+
+test('reattach: a running task is remembered for the session with where it runs; a finished one is forgotten', () => {
+  taskCenter.clear()
+  resetTaskMemoryForTests()
+  const store = memoryStore()
+  const off = installTaskMemory(taskCenter, store)
+  try {
+    taskCenter.upsert(progress({ taskId: 'a' }), { base: 'http://b', route: '/import', serverSideType: 'x.Import' })
+    taskCenter.upsert(progress({ taskId: 'a', fraction: 0.5 }))
+    assert.deepEqual(rememberedTasks(store), [{ taskId: 'a', baseUrl: 'http://b', route: '/import', serverSideType: 'x.Import' }])
+    taskCenter.upsert(progress({ taskId: 'a', state: 'done' }))
+    assert.deepEqual(rememberedTasks(store), [])
+    assert.equal(store.data.has(TASK_MEMORY_KEY), false, 'nothing left behind once every task ended')
+    store.setItem(TASK_MEMORY_KEY, '{not json')
+    assert.deepEqual(rememberedTasks(store), [], 'a broken entry reads as none')
+    assert.deepEqual(rememberedTasks(null), [], 'storage blocked: none')
+  } finally { off(); taskCenter.clear() }
+})
+
+test('reattach: on boot _progress-tasks asks for the remembered ids; running ones resume, finished ones show, unanswered ones are forgotten', async () => {
+  taskCenter.clear()
+  resetTaskMemoryForTests()
+  const store = memoryStore([
+    { taskId: 'run', baseUrl: 'http://b', route: '/import', serverSideType: 'x.Import' },
+    { taskId: 'end', baseUrl: 'http://b', route: '/import', serverSideType: 'x.Import' },
+    { taskId: 'gone', baseUrl: 'http://b', route: '/import', serverSideType: 'x.Import' },
+  ])
+  const calls = []
+  const call = async (base, body, opts) => {
+    calls.push({ base, body, opts })
+    // the server answers the caller's own tasks only — and here also an id nobody asked about
+    return { commands: [
+      { type: 'Progress', data: progress({ taskId: 'run', title: 'Import', fraction: 0.4, etaSeconds: 90 }) },
+      { type: 'Progress', data: progress({ taskId: 'end', state: 'done', resultActions: [{ label: 'Open', route: '/r' }, { label: 'Run', actionId: 'again' }] }) },
+      { type: 'Progress', data: progress({ taskId: 'stranger' }) },
+    ] }
+  }
+  const streams = []
+  const stream = async (base, ctx, route, actionId, state, extra) => {
+    streams.push({ base, route, actionId, extra })
+    noteProgress(progressInc(progress({ taskId: 'run', fraction: 0.7 })), {})
+    await extra.onIncrement({ commands: [], messages: [{ persistence: 'inbox', key: 'k1', title: 'Import finished', text: 'ok', variant: 'success' }] })
+    noteProgress(progressInc(progress({ taskId: 'run', state: 'done', fraction: 1 })), {})
+    return []
+  }
+  resetInboxForTests()
+  try {
+    const picked = await reattachTasks({ center: taskCenter, store, call, stream })
+    assert.deepEqual(picked, ['run', 'end'])
+    assert.equal(calls.length, 1, 'one question per backend')
+    assert.equal(calls[0].base, 'http://b')
+    assert.equal(calls[0].body.actionId, '_progress-tasks')
+    assert.deepEqual(calls[0].body.parameters, { taskIds: ['run', 'end', 'gone'] })
+    assert.equal(taskCenter.get('stranger'), null, 'a task this tab did not ask about is never taken')
+    await new Promise((r) => setTimeout(r, 0))
+    assert.equal(streams.length, 1, 'only the running task is resumed')
+    assert.equal(streams[0].actionId, '_progress-resume')
+    assert.deepEqual(streams[0].extra.parameters, { taskId: 'run' })
+    assert.equal(streams[0].route, '/import')
+    assert.equal(taskCenter.get('run').state, 'done', 'the resumed stream carried it to its end')
+    assert.equal(entriesOf(currentInbox())[0].title, 'Import finished', 'its inbox message landed in the inbox')
+    const ended = taskViewOf(taskCenter.get('end'))
+    assert.deepEqual(ended.resultActions.map((a) => a.label), ['Open'], 'after a reload only the result actions that navigate are offered')
+    assert.equal(ended.canRetry, false)
+    assert.deepEqual(rememberedTasks(store), [], 'unanswered ids forgotten; finished ones too')
+  } finally { taskCenter.clear(); resetTaskMemoryForTests(); resetInboxForTests() }
+})
+
+test('reattach: a backend that cannot be reached keeps its ids for the next boot; a resume stream that breaks leaves the task failed', async () => {
+  taskCenter.clear()
+  resetTaskMemoryForTests()
+  const store = memoryStore([{ taskId: 'x', baseUrl: '', route: '', serverSideType: null }])
+  try {
+    assert.deepEqual(await reattachTasks({ center: taskCenter, store, call: async () => { throw new Error('offline') }, stream: async () => [] }), [])
+    assert.equal(rememberedTasks(store).length, 1)
+    taskCenter.upsert(progress({ taskId: 'x' }), {})
+    await resumeTask({ taskId: 'x', baseUrl: '' }, { center: taskCenter, stream: async () => { throw new Error('reset') } })
+    assert.equal(taskCenter.get('x').state, 'failed')
+  } finally { taskCenter.clear(); resetTaskMemoryForTests() }
+})
+
+// ── OS-level notifications (osNotify.mjs) ────────────────────────────────────────────────────
+
+const fakeNotifications = (permission = 'default') => {
+  const shown = []
+  class N {
+    constructor(title, options) { this.title = title; this.options = options; shown.push(this) }
+    close() { this.closed = true }
+  }
+  N.permission = permission
+  N.requestPermission = async () => { N.asked = (N.asked || 0) + 1; N.permission = 'granted'; return 'granted' }
+  const win = { Notification: N, focus: () => { win.focused = true } }
+  return { win, N, shown }
+}
+
+test('OS notifications: only for an app that opted in, granted, with the tab hidden; a click focuses and navigates', () => {
+  const { win, shown } = fakeNotifications('granted')
+  const hidden = { visibilityState: 'hidden' }
+  const nav = sinkLog()
+  setOsNotificationNavigateSink(nav)
+  try {
+    setOsNotificationsEnabled(false)
+    assert.equal(osNotify({ title: 'T' }, { win, doc: hidden }), null, 'the app did not opt in')
+    setOsNotificationsEnabled(true)
+    assert.equal(osNotify({ title: 'T' }, { win, doc: { visibilityState: 'visible' } }), null, 'the user is looking at the app')
+    assert.equal(osNotify({ title: 'T' }, { win: fakeNotifications('denied').win, doc: hidden }), null, 'denied')
+    const n = osNotify({ title: 'Import', body: 'done', tag: 'task-1', route: '/r' }, { win, doc: hidden })
+    assert.equal(shown.length, 1)
+    assert.equal(n.options.tag, 'task-1', 'the tag collapses the tabs\' copies into one')
+    n.onclick()
+    assert.equal(win.focused, true)
+    assert.deepEqual(nav.calls, [['/r']])
+    assert.equal(n.closed, true)
+  } finally { setOsNotificationsEnabled(false); setOsNotificationNavigateSink(null) }
+})
+
+test('OS notifications: which events — a background task that ended done/failed, a new unread inbox entry', () => {
+  const bg = { kind: 'finished', task: { taskId: 't', title: 'Import', state: 'done', text: 'All in', backgrounded: true, resultActions: [{ route: '/r' }] } }
+  assert.deepEqual(taskOsNotificationOf(bg), { title: 'Import', body: 'All in', tag: 'task-t', route: '/r' })
+  assert.equal(taskOsNotificationOf({ ...bg, task: { ...bg.task, backgrounded: false } }), null, 'a blocking task the user is waiting for')
+  assert.equal(taskOsNotificationOf({ ...bg, task: { ...bg.task, state: 'cancelled' } }), null, 'the user cancelled it')
+  assert.equal(taskOsNotificationOf({ ...bg, kind: 'updated' }), null)
+  assert.equal(taskOsNotificationOf({ kind: 'finished', task: { ...bg.task, state: 'failed', error: 'Boom' } }).body, 'Boom')
+  assert.deepEqual(inboxOsNotificationOf({ id: 'e', title: 'Approve', text: 'x', unread: true, route: '/e' }), { title: 'Approve', body: 'x', tag: 'inbox-e', route: '/e' })
+  assert.equal(inboxOsNotificationOf({ id: 'e', title: 'Approve', unread: false }), null)
+})
+
+test('OS notifications: "Notify me on this device" shows only while nothing was asked, and asks only on its click', async () => {
+  const { win, N } = fakeNotifications('default')
+  const { doc } = makeDom()
+  try {
+    setOsNotificationsEnabled(false)
+    assert.equal(osNotifyControl(doc, null, win), null, 'not for an app that did not opt in')
+    setOsNotificationsEnabled(true)
+    assert.equal(offersOsNotifications(win), true)
+    let repainted = 0
+    const b = osNotifyControl(doc, () => { repainted++ }, win)
+    assert.equal(b.textContent, 'Notify me on this device')
+    assert.equal(N.asked, undefined, 'nothing asked before the click')
+    b.dispatchEvent(new FakeEvent('ojAction', { bubbles: true }))
+    await new Promise((r) => setTimeout(r, 0))
+    assert.equal(N.asked, 1)
+    assert.equal(repainted, 1)
+    assert.equal(offersOsNotifications(win), false, 'answered: the control goes')
+    assert.equal(osNotificationPermission({}), 'unsupported')
+  } finally { setOsNotificationsEnabled(false) }
+})
+
+test('OS notifications: an inbox message arriving while the tab is hidden is told through the OS, once', () => {
+  const { win, shown } = fakeNotifications('granted')
+  const saved = { Notification: globalThis.Notification, document: globalThis.document, window: globalThis.window }
+  globalThis.window = win
+  globalThis.document = { visibilityState: 'hidden' }
+  resetInboxForTests()
+  setOsNotificationsEnabled(true)
+  try {
+    const m = { persistence: 'inbox', key: 'k9', title: 'Export ready', text: 'report.xlsx', variant: 'success' }
+    noteInboxMessage(m)
+    noteInboxMessage(m)
+    assert.equal(shown.length, 1, 'the same entry again is not news')
+    assert.equal(shown[0].title, 'Export ready')
+    assert.equal(shown[0].options.tag, 'inbox-k9')
+  } finally {
+    setOsNotificationsEnabled(false)
+    resetInboxForTests()
+    if (saved.window === undefined) delete globalThis.window; else globalThis.window = saved.window
+    if (saved.document === undefined) delete globalThis.document; else globalThis.document = saved.document
+  }
+})
+
 // ── the wiring ───────────────────────────────────────────────────────────────────────────────
 
 test('the shell installs the task center and wires the inbox; the content page has no progress dialog of its own', () => {
@@ -563,12 +769,19 @@ test('the shell installs the task center and wires the inbox; the content page h
   assert.match(boot, /bridge\.installTaskCenter\(document\)/)
   assert.match(boot, /bridge\.setTaskActionSink\(runPageAction\)/)
   assert.match(boot, /bridge\.setInboxContext\(/)
+  // a reloaded tab picks its tasks up again; @App(osNotifications) reaches the bell and task list
+  assert.match(boot, /bridge\.reattachTasks\(\)/)
+  assert.match(boot, /bridge\.setOsNotificationsEnabled\(/)
+  assert.match(boot, /bridge\.setOsNotificationNavigateSink\(navigateToRoute\)/)
   assert.doesNotMatch(app('flows/main/pages/main-start-page.html'), /mateuProgressDialog/)
   assert.doesNotMatch(app('flows/main/pages/main-start-page-chains/runMateuAction.js'), /longTaskWatcher/)
   assert.doesNotMatch(app('flows/main/pages/main-start-page-chains/runMateuIslandAction.js'), /longTaskWatcher/)
   const bridge = app('resources/js/mateu-bridge.js')
   assert.match(bridge, /function installTaskCenter/)
   assert.match(bridge, /'_progress-cancel'/)
+  assert.match(bridge, /'_progress-tasks'/)
+  assert.match(bridge, /'_progress-resume'/)
+  assert.match(bridge, /new win\.Notification\(/)
   assert.match(bridge, /'_notifications-act'/)
 })
 

@@ -169,6 +169,37 @@ public class RunActionUseCase {
               io.mateu.core.application.progress.ProgressTasks.cancel(
                   taskId != null ? String.valueOf(taskId) : null, command.httpRequest()));
     }
+    if (io.mateu.core.application.progress.ProgressTasks.TASKS_ACTION.equals(command.actionId())) {
+      // a reloaded page asks which of the tasks it remembers are still there: only the caller's
+      var parameters =
+          command.httpRequest() != null && command.httpRequest().runActionRq() != null
+              ? command.httpRequest().runActionRq().parameters()
+              : null;
+      var ids = parameters != null ? parameters.get("taskIds") : null;
+      var taskIds =
+          ids instanceof java.util.Collection<?> list
+              ? list.stream().filter(java.util.Objects::nonNull).map(String::valueOf).toList()
+              : ids != null ? List.of(String.valueOf(ids)) : List.<String>of();
+      return guarded(
+          command,
+          () ->
+              io.mateu.core.application.progress.ProgressTasks.tasks(
+                  taskIds, command.httpRequest()));
+    }
+    if (io.mateu.core.application.progress.ProgressTasks.RESUME_ACTION.equals(command.actionId())) {
+      // …and follows each one again (over the SSE endpoint); not tracked again: a resume stream
+      // ending is not its task ending
+      var parameters =
+          command.httpRequest() != null && command.httpRequest().runActionRq() != null
+              ? command.httpRequest().runActionRq().parameters()
+              : null;
+      var taskId = parameters != null ? parameters.get("taskId") : null;
+      return guarded(
+          command,
+          () ->
+              io.mateu.core.application.progress.ProgressTasks.resume(
+                  taskId != null ? String.valueOf(taskId) : null, command.httpRequest()));
+    }
     return (resolveInstance(command)
             .flatMapMany(
                 instance ->
@@ -248,6 +279,12 @@ public class RunActionUseCase {
         // an embedded micro frontend (MicroFrontend.chrome) is a block of another page: whatever
         // produced them, the window's commands (title, history, favicon) are not its to send
         .map(increment -> EmbeddedWindowCommands.strip(increment, command.httpRequest()))
+        // an inbox message to a signed-in caller is kept (InboxStore) and pushed to their other
+        // sessions: it is still in the bell after a reload
+        .map(
+            increment ->
+                io.mateu.core.application.notifications.Inbox.storeMessages(
+                    increment, command.httpRequest()))
         // a task (LongTask) the stream reports is registered while it runs, so its user can cancel
         // it, and always ends with a terminal Progress (failed / cancelled when it did not finish)
         .transform(

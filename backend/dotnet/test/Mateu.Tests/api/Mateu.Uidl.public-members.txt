@@ -105,8 +105,10 @@ Mateu.Uidl.AppAttribute ctor(System.String)
 Mateu.Uidl.AppAttribute property System.Boolean AccessKeys { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean Chromeless { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean CommandCenter { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean Inbox { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean LiveUpdates { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean MobileQr { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean OsNotifications { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean ThemeToggle { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleTimeoutMinutes { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleWarningSeconds { get;set; }
@@ -907,6 +909,10 @@ Mateu.Uidl.IHeroSearch abstract method System.String HeroImage()
 Mateu.Uidl.IHeroSearch abstract method System.String HeroSubtitle()
 Mateu.Uidl.IHeroSearch abstract method System.String HeroTitle()
 Mateu.Uidl.IHomeRouteSupplier abstract method System.String HomeRoute()
+Mateu.Uidl.IInboxStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> List(System.String)
+Mateu.Uidl.IInboxStore abstract method System.Void Add(System.String, Mateu.Uidl.AppNotification)
+Mateu.Uidl.IInboxStore abstract method System.Void Dismiss(System.String, System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.IInboxStore abstract method System.Void MarkRead(System.String, System.Collections.Generic.IReadOnlyList<System.String>)
 Mateu.Uidl.IKeepAliveHandler abstract method System.Void KeepAlive()
 Mateu.Uidl.ILinkSupplier abstract method Mateu.Uidl.NavLink Link(System.String)
 Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Mateu.Uidl.SearchRequest)

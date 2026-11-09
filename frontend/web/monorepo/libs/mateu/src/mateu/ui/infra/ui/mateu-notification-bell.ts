@@ -14,6 +14,7 @@ import { actionLabelOf, runMessageAction } from '@infra/notify/messageToast.ts'
 import {
     filtered, groupedByCategory, inboxStore, unreadCount, type InboxEntry, type InboxFilter,
 } from '@infra/notify/inboxStore.ts'
+import { canOfferOsNotifications, onOsNotificationsChange, requestOsNotifications } from '@infra/notify/osNotifications.ts'
 
 /** The reserved app-level actions of the inbox (NotificationsSupplier on the app class). */
 export const NOTIFICATIONS_LIST = '_notifications-list'
@@ -83,6 +84,8 @@ export class MateuNotificationBell extends LitElement {
         this.unsubscribe.push(inboxStore.subscribe(() => { this.entries = inboxStore.entries() }))
         // a live change too big to describe ("refresh"): ask the server again
         this.unsubscribe.push(inboxStore.onRefetch(() => { void this.refresh() }))
+        // "Notify me on this device" shows while the OS permission is still undecided
+        this.unsubscribe.push(onOsNotificationsChange(() => this.requestUpdate()))
     }
 
     disconnectedCallback() {
@@ -311,10 +314,14 @@ export class MateuNotificationBell extends LitElement {
                         ${group.category ? html`<div class="group" role="heading" aria-level="3">${group.category}</div>` : nothing}
                         ${group.entries.map(notification => this.renderEntry(notification))}`)}
                 </div>
-                ${this.entries.length > 0 ? html`
+                ${this.entries.length > 0 || canOfferOsNotifications() ? html`
                     <div class="footer">
-                        <button class="mark-all" ?disabled="${this.unreadCount() === 0}"
-                                @click="${() => this.markRead('all')}">${chromeText('markAllRead')}</button>
+                        ${canOfferOsNotifications() ? html`
+                            <button class="mark-all os-notify"
+                                    @click="${() => void requestOsNotifications()}">${chromeText('osNotificationsEnable')}</button>` : nothing}
+                        ${this.entries.length > 0 ? html`
+                            <button class="mark-all" ?disabled="${this.unreadCount() === 0}"
+                                    @click="${() => this.markRead('all')}">${chromeText('markAllRead')}</button>` : nothing}
                     </div>` : nothing}
             </div>`
     }

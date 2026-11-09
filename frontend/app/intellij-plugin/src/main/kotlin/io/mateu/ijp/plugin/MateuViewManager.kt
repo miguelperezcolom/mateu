@@ -153,6 +153,8 @@ class MateuViewManager(private val project: Project, private val session: AppSes
             ctx.setDirtyState(false)
             ctx.navigate(ctx.currentRoute, ctx.currentConsumedRoute, ctx.currentServerSideType, null)
         }
+        // the tasks of this IDE session no stream follows any more are picked up again
+        session.reattachTasks()
     }
 
     /** Crud listing → a tab in the bottom "Mateu" results tool window; actions on the title bar. */

@@ -57,6 +57,13 @@ class TaskRelay {
         }
     }
 
+    /** Whether a platform task still follows [taskId] (a stream — first or resumed — feeds it). */
+    fun isFollowing(taskId: String): Boolean = channels[taskId]?.isClosed == false
+
+    /** The ids among [taskIds] whose task has not finished (a stream ending under them lost them). */
+    fun unfinished(taskIds: Collection<String>): List<String> =
+        taskIds.filter { id -> center.get(id)?.state?.terminal == false }
+
     /** The stream that carried these tasks ended: whatever did not finish will not move any more. */
     fun streamEnded(taskIds: Collection<String>) {
         taskIds.forEach { channels.remove(it)?.close() }

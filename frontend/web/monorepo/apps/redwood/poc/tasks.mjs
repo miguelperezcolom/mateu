@@ -1,4 +1,5 @@
-import { chromeText } from './i18n.mjs'
+import { chromeText, etaTextOf } from './i18n.mjs'
+import { osNotify, osNotifyControl, taskOsNotificationOf } from './osNotify.mjs'
 import { announce } from './a11y.mjs'
 // TASK CENTER: the progress-reporting pattern (design/progress-and-notifications.md) in Redwood.
 //
@@ -156,12 +157,17 @@ export function taskViewOf(task, now = Date.now()) {
     value,
     count,
     elapsed: started != null ? formatElapsed(end - started) : '',
+    // the server's estimate (ProgressDto.etaSeconds): only while running, never a guess of ours
+    eta: running ? etaTextOf(task.etaSeconds) : '',
     // what a screen reader reads off the bar: the count, else the percent, else the state
     valueText: count || (fraction != null ? `${value}%` : stateLabel),
     canCancel: running && !!task.cancellable,
     canBackground: running && !!task.blocking && !!task.backgroundable && !task.backgrounded,
     canRetry: task.state === 'failed' && !!task.retryable && !!(task.origin && task.origin.actionId),
-    resultActions: task.state === 'done' ? (task.resultActions || []).filter((a) => a && (a.route || a.actionId)) : [],
+    // a task picked up after a reload no longer has the screen that started it: only the result
+    // actions that navigate still mean something there
+    resultActions: task.state === 'done'
+      ? (task.resultActions || []).filter((a) => a && (a.route || (a.actionId && !(task.origin && task.origin.reattached)))) : [],
     blocking: !!task.blocking && !task.backgrounded,
   }
 }
@@ -339,9 +345,14 @@ function taskBody(doc, v, { noTitle } = {}) {
   if (v.running || v.state === 'done') box.appendChild(taskProgressBar(doc, v))
   const text = v.error || v.text
   if (text) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-text oj-typography-body-sm' + (v.error ? ' oj-text-color-danger' : '') }, text))
-  const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+  const meta = taskMetaOf(v)
   if (meta) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-meta oj-typography-body-xs oj-text-color-secondary', 'data-elapsed-for': v.id }, meta))
   return box
+}
+
+/** The quiet line under a task: "12 of 300 · about 2 min left · 0:42 elapsed". */
+export function taskMetaOf(v) {
+  return [v.count, v.eta, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
 }
 
 function paintTaskCenter(state) {
@@ -380,6 +391,9 @@ function paintTaskCenter(state) {
   dockButton.setAttribute('aria-expanded', state.open ? 'true' : 'false')
   taskToggleHidden(list, !state.open)
   list.textContent = ''
+  // @App(osNotifications): the user may ask to be told when a background task ends (a click only)
+  const askOs = osNotifyControl(doc, () => paintTaskCenter(state))
+  if (askOs) list.appendChild(askOs)
   if (!view.docked.length) list.appendChild(taskEl(doc, 'div', { class: 'oj-text-color-secondary oj-sm-padding-2x' }, chromeText('tasksEmpty')))
   for (const v of view.docked) {
     const item = taskEl(doc, 'div', { class: 'mateu-task-item', role: 'listitem' })
@@ -402,7 +416,7 @@ function tickTaskCenter(state) {
   for (const t of state.center.list()) {
     if (t.state !== 'running') continue
     const v = taskViewOf(t, now)
-    const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+    const meta = taskMetaOf(v)
     for (const node of state.doc.querySelectorAll(`[data-elapsed-for="${TASK_CSS_ESCAPE(t.taskId)}"]`)) node.textContent = meta
   }
 }
@@ -445,6 +459,8 @@ export function installTaskCenter(doc = taskDoc(), center = taskCenter) {
   center.subscribe((event) => {
     const said = taskAnnouncementOf(event)
     if (said) announce(said.text, { politeness: said.assertive ? 'assertive' : 'polite' })
+    // a background task that ended while the tab is hidden: through the OS, when the app opted in
+    osNotify(taskOsNotificationOf(event), { doc })
     // a finished blocking dialog closes on its own when the task says so
     if (event.kind === 'finished' && event.task && event.task.blocking && !event.task.backgrounded) {
       const delay = autoCloseDelayOf(event.task)

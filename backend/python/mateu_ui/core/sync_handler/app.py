@@ -125,14 +125,17 @@ class AppHandlerMixin(MixinBase):
     # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
     def notifications_action(self, cls, rq: RunActionRq) -> UIIncrement:
         """The notification inbox's app-level actions: ``_notifications-list`` answers the
-        supplier's current entries as a data-only fragment under ``_notifications`` (per request,
-        so per user); ``_notifications-read`` marks the resolved ids read and answers the
-        REFRESHED list. The fragment targets the initiator, like the lookup searches."""
-        if not (isinstance(cls, type) and issubclass(cls, NotificationsSupplier)):
+        supplier's current entries plus the caller's stored ones (``InboxStore``) as a data-only
+        fragment under ``_notifications`` (per request, so per user); ``_notifications-read`` marks
+        the resolved ids read and answers the REFRESHED list. The fragment targets the initiator,
+        like the lookup searches. An ``@app(inbox=True)`` app without a supplier lists the store."""
+        has_supplier = isinstance(cls, type) and issubclass(cls, NotificationsSupplier)
+        if not has_supplier and not (isinstance(cls, type) and getattr(cls, "__mateu_app_inbox__", False)):
             return self.error(
                 "the app class does not implement NotificationsSupplier — no inbox to serve"
             )
-        supplier = cls()
+        supplier = cls() if has_supplier else None
+        inbox = _Inbox(supplier, self._inbox_principal(), getattr(self, "inbox_store", None), rq)
         parameters = rq.parameters or {}
         # every id the panel sends back comes from the browser: the supplier is only handed ids of
         # the CALLER's own list (what it answers for this request) and only the actions an entry
@@ -140,31 +143,24 @@ class AppHandlerMixin(MixinBase):
         if rq.action_id == "_notifications-open":
             # the entry's detail (a drawer, a dialog…) answered like any action's result
             nid = self._str_param(parameters, "id")
-            entry = self._own_entry(supplier, nid, rq)
+            entry = inbox.supplier_entry(nid)
             if nid is None or entry is None or not getattr(entry, "has_detail", False):
                 return UIIncrement.of()
             detail = supplier.notification_detail(nid, rq)
             return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
         answer: UIIncrement | None = None
         if rq.action_id == "_notifications-read":
-            supplier.mark_notifications_read(
-                self._own_ids(supplier, self._notification_read_ids(supplier, rq), rq), rq)
+            inbox.mark_read(self._notification_read_ids(inbox, rq))
         elif rq.action_id == "_notifications-dismiss":
             ids = parameters.get("ids")
-            supplier.dismiss_notifications(
-                self._own_ids(
-                    supplier,
-                    [str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]),
-                    rq,
-                ),
-                rq,
-            )
+            inbox.dismiss([str(v) for v in ids] if isinstance(ids, list) else ([] if ids is None else [str(ids)]))
         elif rq.action_id == "_notifications-act":
             nid = self._str_param(parameters, "id")
             action_id = self._str_param(parameters, "actionId")
             if nid is None or action_id is None:
                 return self.error("Which notification, and which action?")
-            entry = self._own_entry(supplier, nid, rq)
+            # a stored entry offers no action to run: it is refused like an entry not offering it
+            entry = inbox.supplier_entry(nid)
             if entry is None or not any(
                 getattr(a, "action_id", None) == action_id for a in (getattr(entry, "actions", None) or [])
             ):
@@ -173,43 +169,33 @@ class AppHandlerMixin(MixinBase):
                 deny("_notifications-act: the caller's inbox has no entry offering that action")
             result = supplier.on_notification_action(nid, action_id, rq)
             answer = self.map_result(result, rq) if result is not None else None
-        notifications = supplier.notifications(rq) or []
-        data = {"_notifications": [self._notification_json(n) for n in notifications]}
+        data = {"_notifications": [self._notification_json(n) for n in inbox.entries(refresh=True)]}
         listed = UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
         if answer is None:
             return UIIncrement.of(fragments=[listed])
         return answer.model_copy(update={"fragments": [*answer.fragments, listed]})
 
-    @staticmethod
-    def _own_entry(supplier, nid: str | None, rq: RunActionRq):
-        """The caller's own entry ``nid`` (in the list the supplier answers for this request)."""
-        if nid is None:
-            return None
-        return next((n for n in (supplier.notifications(rq) or []) if n is not None and n.id == nid), None)
+    def _inbox_principal(self) -> str | None:
+        """The authenticated caller's name the stored inbox is kept under (None = anonymous)."""
+        identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+        name = getattr(identity, "name", None)
+        return name if name and str(name).strip() else None
 
     @staticmethod
-    def _own_ids(supplier, ids: list[str], rq: RunActionRq) -> list[str]:
-        """``ids`` kept only when they are the caller's own entries."""
-        if not ids:
-            return ids
-        own = {n.id for n in (supplier.notifications(rq) or []) if n is not None}
-        return [i for i in ids if i in own]
-
-    @staticmethod
-    def _str_param(parameters: dict, key: str) -> str | None:
-        value = parameters.get(key)
-        return None if value is None else str(value)
-
-    @staticmethod
-    def _notification_read_ids(supplier, rq: RunActionRq) -> list[str]:
+    def _notification_read_ids(inbox: "_Inbox", rq: RunActionRq) -> list[str]:
         """The ``ids`` parameter: an explicit list, "all" → every currently-unread notification's
         id, or a single bare id."""
         ids = (rq.parameters or {}).get("ids")
         if isinstance(ids, list):
             return [str(v) for v in ids]
         if ids == "all":
-            return [n.id for n in (supplier.notifications(rq) or []) if n.unread]
+            return [n.id for n in inbox.entries() if n.unread]
         return [] if ids is None else [str(ids)]
+
+    @staticmethod
+    def _str_param(parameters: dict, key: str) -> str | None:
+        value = parameters.get(key)
+        return None if value is None else str(value)
 
     @staticmethod
     def _notification_json(n) -> dict[str, Any]:
@@ -280,3 +266,61 @@ class AppHandlerMixin(MixinBase):
                 UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
             ]
         )
+
+
+class _Inbox:
+    """The caller's inbox for one request: the supplier's entries (the app's own) ∪ the caller's
+    stored ones (``InboxStore``), each id routed back to whoever holds it — and only the caller's
+    own ids at all."""
+
+    def __init__(self, supplier, principal: str | None, store, rq: RunActionRq):
+        self.supplier = supplier
+        self.principal = principal
+        self.store = store if principal else None
+        self.rq = rq
+        self._supplied = None
+        self._stored = None
+
+    def supplied(self) -> list:
+        if self._supplied is None:
+            listed = self.supplier.notifications(self.rq) if self.supplier is not None else None
+            self._supplied = [n for n in (listed or []) if n is not None]
+        return self._supplied
+
+    def stored(self) -> list:
+        if self._stored is None:
+            self._stored = list(self.store.list(self.principal)) if self.store is not None else []
+        return self._stored
+
+    def entries(self, refresh: bool = False) -> list:
+        """Supplier first; a stored id the supplier already lists is skipped."""
+        if refresh:
+            self._supplied = None
+            self._stored = None
+        supplied = self.supplied()
+        known = {n.id for n in supplied}
+        return [*supplied, *(n for n in self.stored() if n.id not in known)]
+
+    def supplier_entry(self, nid: str | None):
+        if nid is None:
+            return None
+        return next((n for n in self.supplied() if n.id == nid), None)
+
+    def _split(self, ids: list[str]) -> tuple[list[str], list[str]]:
+        supplied = {n.id for n in self.supplied()}
+        stored = {n.id for n in self.stored()} - supplied
+        return [i for i in ids if i in supplied], [i for i in ids if i in stored]
+
+    def mark_read(self, ids: list[str]) -> None:
+        own, kept = self._split(ids)
+        if self.supplier is not None:
+            self.supplier.mark_notifications_read(own, self.rq)
+        if kept and self.store is not None:
+            self.store.mark_read(self.principal, kept)
+
+    def dismiss(self, ids: list[str]) -> None:
+        own, kept = self._split(ids)
+        if self.supplier is not None:
+            self.supplier.dismiss_notifications(own, self.rq)
+        if kept and self.store is not None:
+            self.store.dismiss(self.principal, kept)

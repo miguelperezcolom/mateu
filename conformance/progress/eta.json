@@ -1,0 +1,314 @@
+{
+  "description": "The ETA of a running task (ProgressDto.etaSeconds), computed by the SERVER from the Progress commands it streams (Java EtaEstimator, .NET EtaEstimator, Python eta_estimator). Each case is one task's Progress commands in order: t = server clock in ms when the command was observed, fraction (0..1) or done/total, state (default running). expected[i] = the etaSeconds stamped on the i-th command (null = none).",
+  "rules": [
+    "p = fraction when present, else done/total when total > 0, else indeterminate: never an estimate",
+    "a state other than running: null",
+    "the first sample, or p (or the clock) going backwards, starts over: first = prev = this sample, no rate yet",
+    "p > prev.p and t > prev.t: segment rate r = (p - prev.p) / (t - prev.t); ema = r the first time, else 0.3*r + 0.7*ema; prev = this sample. A sample that does not advance leaves prev where it was, so a stall lowers the next rate",
+    "an estimate only after 2 rate updates AND t - first.t >= 2000 AND 0 < p < 1",
+    "etaSeconds = ceil((1 - p) / ema / 1000 - 1e-6) (the 1e-6 absorbs floating point noise: an exact 8 s must not read 9)"
+  ],
+  "cases": [
+    {
+      "name": "steady progress: an estimate once three samples span two seconds",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 1000,
+          "fraction": 0.1
+        },
+        {
+          "t": 2000,
+          "fraction": 0.2
+        },
+        {
+          "t": 3000,
+          "fraction": 0.30000000000000004
+        },
+        {
+          "t": 4000,
+          "fraction": 0.4
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        8,
+        7,
+        6
+      ]
+    },
+    {
+      "name": "too early: three samples within two seconds say nothing yet",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 500,
+          "fraction": 0.1
+        },
+        {
+          "t": 1000,
+          "fraction": 0.2
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "indeterminate: no fraction and no total never estimates",
+      "samples": [
+        {
+          "t": 0
+        },
+        {
+          "t": 1000
+        },
+        {
+          "t": 5000
+        },
+        {
+          "t": 9000
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "countable work: done of total counts like a fraction",
+      "samples": [
+        {
+          "t": 0,
+          "done": 0,
+          "total": 300
+        },
+        {
+          "t": 1000,
+          "done": 30,
+          "total": 300
+        },
+        {
+          "t": 2000,
+          "done": 60,
+          "total": 300
+        },
+        {
+          "t": 3000,
+          "done": 90,
+          "total": 300
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        8,
+        7
+      ]
+    },
+    {
+      "name": "a stall slows the estimate down",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 1000,
+          "fraction": 0.1
+        },
+        {
+          "t": 2000,
+          "fraction": 0.2
+        },
+        {
+          "t": 3000,
+          "fraction": 0.2
+        },
+        {
+          "t": 8000,
+          "fraction": 0.2
+        },
+        {
+          "t": 9000,
+          "fraction": 0.3
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        8,
+        8,
+        8,
+        10
+      ]
+    },
+    {
+      "name": "going backwards starts over",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 1000,
+          "fraction": 0.2
+        },
+        {
+          "t": 2000,
+          "fraction": 0.4
+        },
+        {
+          "t": 3000,
+          "fraction": 0.1
+        },
+        {
+          "t": 4000,
+          "fraction": 0.2
+        },
+        {
+          "t": 5000,
+          "fraction": 0.3
+        },
+        {
+          "t": 6000,
+          "fraction": 0.4
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        3,
+        null,
+        null,
+        7,
+        6
+      ]
+    },
+    {
+      "name": "finished: no estimate",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 1000,
+          "fraction": 0.3
+        },
+        {
+          "t": 2000,
+          "fraction": 0.6
+        },
+        {
+          "t": 3000,
+          "fraction": 1,
+          "state": "done"
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        2,
+        null
+      ]
+    },
+    {
+      "name": "at 100% while still running: nothing left to estimate",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 1000,
+          "fraction": 0.5
+        },
+        {
+          "t": 2000,
+          "fraction": 0.8
+        },
+        {
+          "t": 3000,
+          "fraction": 1
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        1,
+        null
+      ]
+    },
+    {
+      "name": "a burst moves the estimate, but less than its own rate would",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 2000,
+          "fraction": 0.05
+        },
+        {
+          "t": 4000,
+          "fraction": 0.1
+        },
+        {
+          "t": 6000,
+          "fraction": 0.15
+        },
+        {
+          "t": 6500,
+          "fraction": 0.35
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        36,
+        34,
+        5
+      ]
+    },
+    {
+      "name": "long work: hours",
+      "samples": [
+        {
+          "t": 0,
+          "fraction": 0
+        },
+        {
+          "t": 60000,
+          "fraction": 0.001
+        },
+        {
+          "t": 120000,
+          "fraction": 0.002
+        },
+        {
+          "t": 180000,
+          "fraction": 0.003
+        }
+      ],
+      "expected": [
+        null,
+        null,
+        59880,
+        59820
+      ]
+    }
+  ]
+}

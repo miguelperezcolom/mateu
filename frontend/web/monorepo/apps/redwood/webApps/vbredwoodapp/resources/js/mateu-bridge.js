@@ -301,6 +301,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       taskFinished: '{title}: done',
       taskFailedAnnounce: '{title} failed: {error}',
       taskCancelledAnnounce: '{title} cancelled',
+      // a running task's ETA, estimated by the server (conformance/client/eta-format.json)
+      taskEtaUnderMinute: 'less than a minute left',
+      taskEtaMinutes: 'about {n} min left',
+      taskEtaHours: 'about {n} h left',
+      // OS-level notifications (osNotify.mjs): asked for only from this control
+      osNotifyEnable: 'Notify me on this device',
       // ── inbox (inbox.mjs) ──
       inboxUnread: 'Unread',
       inboxAll: 'All',
@@ -578,6 +584,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       taskFinished: '{title}: terminada',
       taskFailedAnnounce: '{title} ha fallado: {error}',
       taskCancelledAnnounce: '{title} cancelada',
+      taskEtaUnderMinute: 'menos de un minuto',
+      taskEtaMinutes: 'unos {n} min restantes',
+      taskEtaHours: 'unas {n} h restantes',
+      osNotifyEnable: 'Avisarme en este dispositivo',
       inboxUnread: 'Sin leer',
       inboxAll: 'Todas',
       inboxResolved: 'Resueltas',
@@ -621,6 +631,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Every chrome text in `lang`, English filling the gaps (what the VB translation bundle carries). */
   function chromeTextsOf(lang) {
     return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
+  }
+
+  /** A running task's ETA in words (ProgressDto.etaSeconds, the server's estimate), or '' when there
+   *  is none — never a guess. The rule of conformance/client/eta-format.json (round half up). */
+  function etaTextOf(etaSeconds, lang) {
+    if (typeof etaSeconds !== 'number' || !isFinite(etaSeconds) || etaSeconds <= 0) return ''
+    if (etaSeconds < 60) return chromeText('taskEtaUnderMinute', null, lang)
+    const minutes = Math.max(1, Math.floor(etaSeconds / 60 + 0.5))
+    if (etaSeconds < 3600 && minutes < 60) return chromeText('taskEtaMinutes', { n: minutes }, lang)
+    return chromeText('taskEtaHours', { n: Math.max(1, Math.floor(etaSeconds / 3600 + 0.5)) }, lang)
   }
 
   // ── money ─────────────────────────────────────────────────────────────────────────────────────
@@ -10208,6 +10228,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           agentPush: !!md.agentPush,
           // The App's NotificationsSupplier → the header bell (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
+          // @App(osNotifications): a new inbox entry / a background task ending also through the OS (osNotify.mjs)
+          osNotifications: !!md.osNotifications,
           // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
@@ -16397,6 +16419,104 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // OS-LEVEL NOTIFICATIONS (design/progress-and-notifications.md, "OS-level notifications"): an app
+  // that declares @App(osNotifications = true) (AppDto.osNotifications) may tell the user through the
+  // operating system — the Web Notifications API — about the two events worth leaving the app for:
+  // a NEW unread inbox entry and a task that finished (done / failed) in the background. Only while
+  // the tab is hidden; the permission is asked for ONLY from a user gesture (the "Notify me on this
+  // device" control of the bell's panel and of the task list), never on load.
+
+  let osNotificationsOn = false
+  let osNotificationNavigate = null
+
+  /** The app opted in (the shell sets it from the bootstrap App). */
+  function setOsNotificationsEnabled(on) { osNotificationsOn = !!on }
+  function osNotificationsEnabled() { return osNotificationsOn }
+  /** Where a click on a notification goes (the shell's safe in-app navigation). */
+  function setOsNotificationNavigateSink(fn) { osNotificationNavigate = typeof fn === 'function' ? fn : null }
+
+  const osWindow = () => (typeof window !== 'undefined' ? window : globalThis)
+
+  /** 'unsupported' | 'default' | 'granted' | 'denied'. */
+  function osNotificationPermission(win = osWindow()) {
+    const N = win && win.Notification
+    if (typeof N !== 'function') return 'unsupported'
+    return N.permission || 'default'
+  }
+
+  /** Whether the "Notify me on this device" control shows: the app opted in and nothing was asked yet. */
+  function offersOsNotifications(win = osWindow()) {
+    return osNotificationsOn && osNotificationPermission(win) === 'default'
+  }
+
+  /** Asks for the permission (call it from a click only). Answers the resulting permission. */
+  async function requestOsNotifications(win = osWindow()) {
+    const N = win && win.Notification
+    if (typeof N !== 'function' || typeof N.requestPermission !== 'function') return 'unsupported'
+    try {
+      const answer = await N.requestPermission()
+      return answer || N.permission || 'default'
+    } catch (e) {
+      return N.permission || 'default'
+    }
+  }
+
+  /** Shows `{ title, body, tag, route }` through the OS when the app opted in, the user granted it and
+   *  the tab is hidden. Answers the Notification (or null). A click focuses the tab and opens the
+   *  route through the shell's navigation. */
+  function osNotify(note, { win = osWindow(), doc = typeof document !== 'undefined' ? document : null } = {}) {
+    if (!note || !note.title || !osNotificationsOn) return null
+    if (osNotificationPermission(win) !== 'granted') return null
+    if (!doc || doc.visibilityState !== 'hidden') return null
+    try {
+      const n = new win.Notification(String(note.title), { body: note.body ? String(note.body) : '', tag: note.tag ? String(note.tag) : undefined })
+      n.onclick = () => {
+        try { if (win.focus) win.focus() } catch (e) { /* a focus refused by the browser */ }
+        if (note.route && osNotificationNavigate) osNotificationNavigate(note.route)
+        try { if (n.close) n.close() } catch (e) { /* already gone */ }
+      }
+      return n
+    } catch (e) {
+      return null
+    }
+  }
+
+  /** The OS notification a task-center event deserves: a task that finished done/failed while it was
+   *  in the background (non-blocking, or moved there). Pure. */
+  function taskOsNotificationOf(event) {
+    const t = event && event.task
+    if (!t || event.kind !== 'finished' || !t.backgrounded) return null
+    if (t.state !== 'done' && t.state !== 'failed') return null
+    const route = t.state === 'done' ? ((t.resultActions || []).find((a) => a && a.route) || {}).route || null : null
+    return {
+      title: t.title || chromeText('tasks'),
+      body: t.state === 'failed' ? (t.error || t.text || chromeText('taskFailed')) : (t.text || chromeText('taskDone')),
+      tag: 'task-' + t.taskId,
+      route,
+    }
+  }
+
+  /** The OS notification a new inbox entry deserves (unread only). Pure. */
+  function inboxOsNotificationOf(entry) {
+    if (!entry || !entry.unread || !entry.title) return null
+    return { title: entry.title, body: entry.text || '', tag: 'inbox-' + entry.id, route: entry.route || null }
+  }
+
+  /** The "Notify me on this device" control (an oj-button), or null when it has no business showing.
+   *  `onChange` runs once the user answered (to repaint the panel without it). */
+  function osNotifyControl(doc, onChange, win = osWindow()) {
+    if (!doc || !offersOsNotifications(win)) return null
+    const b = doc.createElement('oj-button')
+    b.setAttribute('chroming', 'borderless')
+    b.setAttribute('class', 'mateu-os-notify')
+    b.textContent = chromeText('osNotifyEnable')
+    b.addEventListener('ojAction', () => { requestOsNotifications(win).then(() => { if (onChange) onChange() }) })
+    return b
+  }
+
+
+
+
 
   // TASK CENTER: the progress-reporting pattern (design/progress-and-notifications.md) in Redwood.
   //
@@ -16554,12 +16674,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       value,
       count,
       elapsed: started != null ? formatElapsed(end - started) : '',
+      // the server's estimate (ProgressDto.etaSeconds): only while running, never a guess of ours
+      eta: running ? etaTextOf(task.etaSeconds) : '',
       // what a screen reader reads off the bar: the count, else the percent, else the state
       valueText: count || (fraction != null ? `${value}%` : stateLabel),
       canCancel: running && !!task.cancellable,
       canBackground: running && !!task.blocking && !!task.backgroundable && !task.backgrounded,
       canRetry: task.state === 'failed' && !!task.retryable && !!(task.origin && task.origin.actionId),
-      resultActions: task.state === 'done' ? (task.resultActions || []).filter((a) => a && (a.route || a.actionId)) : [],
+      // a task picked up after a reload no longer has the screen that started it: only the result
+      // actions that navigate still mean something there
+      resultActions: task.state === 'done'
+        ? (task.resultActions || []).filter((a) => a && (a.route || (a.actionId && !(task.origin && task.origin.reattached)))) : [],
       blocking: !!task.blocking && !task.backgrounded,
     }
   }
@@ -16737,9 +16862,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (v.running || v.state === 'done') box.appendChild(taskProgressBar(doc, v))
     const text = v.error || v.text
     if (text) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-text oj-typography-body-sm' + (v.error ? ' oj-text-color-danger' : '') }, text))
-    const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+    const meta = taskMetaOf(v)
     if (meta) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-meta oj-typography-body-xs oj-text-color-secondary', 'data-elapsed-for': v.id }, meta))
     return box
+  }
+
+  /** The quiet line under a task: "12 of 300 · about 2 min left · 0:42 elapsed". */
+  function taskMetaOf(v) {
+    return [v.count, v.eta, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
   }
 
   function paintTaskCenter(state) {
@@ -16778,6 +16908,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dockButton.setAttribute('aria-expanded', state.open ? 'true' : 'false')
     taskToggleHidden(list, !state.open)
     list.textContent = ''
+    // @App(osNotifications): the user may ask to be told when a background task ends (a click only)
+    const askOs = osNotifyControl(doc, () => paintTaskCenter(state))
+    if (askOs) list.appendChild(askOs)
     if (!view.docked.length) list.appendChild(taskEl(doc, 'div', { class: 'oj-text-color-secondary oj-sm-padding-2x' }, chromeText('tasksEmpty')))
     for (const v of view.docked) {
       const item = taskEl(doc, 'div', { class: 'mateu-task-item', role: 'listitem' })
@@ -16800,7 +16933,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const t of state.center.list()) {
       if (t.state !== 'running') continue
       const v = taskViewOf(t, now)
-      const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+      const meta = taskMetaOf(v)
       for (const node of state.doc.querySelectorAll(`[data-elapsed-for="${TASK_CSS_ESCAPE(t.taskId)}"]`)) node.textContent = meta
     }
   }
@@ -16843,6 +16976,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     center.subscribe((event) => {
       const said = taskAnnouncementOf(event)
       if (said) announce(said.text, { politeness: said.assertive ? 'assertive' : 'polite' })
+      // a background task that ended while the tab is hidden: through the OS, when the app opted in
+      osNotify(taskOsNotificationOf(event), { doc })
       // a finished blocking dialog closes on its own when the task says so
       if (event.kind === 'finished' && event.task && event.task.blocking && !event.task.backgrounded) {
         const delay = autoCloseDelayOf(event.task)
@@ -16863,6 +16998,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     taskCenterInstalled = null
     taskCenter.clear()
   }
+
 
 
 
@@ -17096,7 +17232,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A message with persistence `inbox` lands in the session's inbox (its toast is shown apart). */
   function noteInboxMessage(m) {
     if (!m) return null
-    return commitInbox(withSessionEntry(inboxState, sessionEntryOfMessage(m)))
+    const entry = sessionEntryOfMessage(m)
+    const known = entriesOf(inboxState).some((e) => e.id === entry.id)
+    const model = commitInbox(withSessionEntry(inboxState, entry))
+    // a NEW entry while the tab is hidden: through the OS too, when the app opted in (osNotify.mjs)
+    if (!known) osNotify(inboxOsNotificationOf(entry))
+    return model
   }
 
   /** Messages of a stream whose screen is gone: only the `inbox` ones are kept (in the inbox). */
@@ -17109,7 +17250,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const { inbox: next, added, refetch } = withChange(inboxState, change)
     if (refetch) return refreshInbox()
     commitInbox(next)
-    if (added && added.unread) announce(chromeText('inboxNew', { title: added.title }))
+    if (added && added.unread) {
+      announce(chromeText('inboxNew', { title: added.title }))
+      osNotify(inboxOsNotificationOf(added))
+    }
     return inboxModelOf(inboxState)
   }
 
@@ -17227,6 +17371,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return b
     }
     host.textContent = ''
+    // @App(osNotifications): "Notify me on this device" — the permission is asked for from this click only
+    const askOs = osNotifyControl(doc, () => repaintInboxPanel())
+    if (askOs) host.appendChild(askOs)
     const filters = e('div', { class: 'mateu-inbox-filters oj-flex oj-sm-margin-2x-bottom', role: 'group', 'aria-label': chromeText('notifications') })
     for (const f of model.filters) {
       filters.appendChild(btn(f.label, () => chooseFilter(f.id), {
@@ -23809,6 +23956,148 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
+  // REATTACH (design/progress-and-notifications.md, "Reattach"): a task survives a reload of the tab.
+  //
+  // The server keeps a task running for a grace period after its last subscriber left. This tab
+  // remembers, for its SESSION only (sessionStorage, the same key the web renderer uses), the tasks its
+  // streams reported; when the shell boots again it asks `_progress-tasks {taskIds}` of each backend
+  // — which answers the current state of the caller's own tasks and nothing about the others — and
+  // opens a `_progress-resume {taskId}` stream for every one still running: the task center fills up
+  // again. Ids the server does not answer (finished long ago, another user's, unknown) are forgotten.
+
+  const TASK_MEMORY_KEY = 'mateu-progress-tasks'
+  const REATTACH_MAX_IDS = 50
+
+  const taskSession = () => { try { return globalThis.sessionStorage || null } catch (e) { return null } }
+
+  /** The tasks this tab's session remembers: [{ taskId, baseUrl, route, serverSideType }]. */
+  function rememberedTasks(store = taskSession()) {
+    try {
+      const raw = store && store.getItem(TASK_MEMORY_KEY)
+      const list = raw ? JSON.parse(raw) : []
+      return Array.isArray(list) ? list.filter((t) => t && typeof t.taskId === 'string' && t.taskId) : []
+    } catch (e) {
+      return []
+    }
+  }
+
+  function writeRememberedTasks(list, store) {
+    try {
+      if (!store) return
+      if (list.length) store.setItem(TASK_MEMORY_KEY, JSON.stringify(list.slice(-REATTACH_MAX_IDS)))
+      else store.removeItem(TASK_MEMORY_KEY)
+    } catch (e) { /* storage blocked or full: the task simply will not survive a reload */ }
+  }
+
+  function rememberTask(task, store = taskSession()) {
+    if (!task || !task.taskId) return
+    const list = rememberedTasks(store)
+    if (list.some((t) => t.taskId === task.taskId)) return
+    list.push({ taskId: String(task.taskId), baseUrl: task.baseUrl || '', route: task.route || '', serverSideType: task.serverSideType || null })
+    writeRememberedTasks(list, store)
+  }
+
+  function forgetTasks(taskIds, store = taskSession()) {
+    const gone = new Set([].concat(taskIds || []).map(String))
+    const list = rememberedTasks(store)
+    const kept = list.filter((t) => !gone.has(t.taskId))
+    if (kept.length !== list.length) writeRememberedTasks(kept, store)
+  }
+
+  let taskMemoryOff = null
+
+  /** Keeps the session's memory in step with the center: a running task is remembered, a finished
+   *  one forgotten (once). */
+  function installTaskMemory(center = taskCenter, store = taskSession()) {
+    if (taskMemoryOff) return taskMemoryOff
+    const off = center.subscribe((event) => {
+      const t = event && event.task
+      if (!t) return
+      if (event.kind === 'finished' || event.kind === 'dismissed') { forgetTasks([t.taskId], store); return }
+      if ((event.kind === 'started' || event.kind === 'updated') && t.state === 'running') {
+        const o = t.origin || {}
+        rememberTask({ taskId: t.taskId, baseUrl: o.base || '', route: o.route || '', serverSideType: o.serverSideType || null }, store)
+      }
+    })
+    taskMemoryOff = () => { off(); taskMemoryOff = null }
+    return taskMemoryOff
+  }
+
+  const reattachedOrigin = (t) => ({ base: t.baseUrl || '', route: t.route || '', serverSideType: t.serverSideType || undefined, actionId: null, view: null, reattached: true })
+
+  /** Follows one remembered task: `_progress-resume {taskId}` over the stream endpoint. Its page-level
+   *  parts apply (progress → the center, `inbox` messages → the inbox, NotificationsChanged → the
+   *  bell); a stream that ends before the task did leaves it failed — a task "running" forever is a lie. */
+  async function resumeTask(t, { center = taskCenter, stream = runMateuActionSse } = {}) {
+    const origin = reattachedOrigin(t)
+    try {
+      await stream(origin.base, null, origin.route, '_progress-resume', {}, {
+        parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType,
+        onIncrement: async (inc) => {
+          for (const p of progressCommandsOf(inc)) center.upsert(p, origin)
+          noteDetachedMessages(inc && inc.messages)
+          for (const c of (inc && inc.commands) || []) if (c && c.type === 'NotificationsChanged') await applyNotificationsChanged(c.data || {})
+          return true
+        },
+      })
+    } catch (e) { /* a navigation (stale) or a broken connection: decided below */ }
+    const now = center.get(t.taskId)
+    if (now && now.state === 'running') {
+      // the server stops streaming only once the task ended; anything else broke on the way
+      center.upsert({ ...now, state: 'failed' }, origin)
+    }
+    return center.get(t.taskId)
+  }
+
+  /** On boot: asks every backend the remembered tasks came from which are still the caller's, puts
+   *  them back in the center and resumes the running ones. Answers the task ids picked up. */
+  async function reattachTasks({ center = taskCenter, store = taskSession(), call = callMateu, stream = runMateuActionSse } = {}) {
+    installTaskMemory(center, store)
+    const remembered = rememberedTasks(store)
+    if (!remembered.length) return []
+    const byBase = new Map()
+    for (const t of remembered) {
+      const k = t.baseUrl || ''
+      if (!byBase.has(k)) byBase.set(k, [])
+      byBase.get(k).push(t)
+    }
+    const picked = []
+    const resumes = []
+    for (const [base, tasks] of byBase) {
+      let answer = null
+      try {
+        answer = await call(base, {
+          route: tasks[0].route || '', actionId: '_progress-tasks', componentState: {},
+          parameters: { taskIds: tasks.map((t) => t.taskId).slice(0, REATTACH_MAX_IDS) },
+          serverSideType: tasks[0].serverSideType || undefined,
+        }, { isolated: true })
+      } catch (e) {
+        continue // that backend is not reachable now: keep its ids for the next boot
+      }
+      const known = new Map(tasks.map((t) => [t.taskId, t]))
+      const answered = new Set()
+      for (const p of progressCommandsOf(answer)) {
+        const t = known.get(String(p.taskId))
+        if (!t) continue // never take a task this tab did not ask about
+        answered.add(t.taskId)
+        center.upsert(p, reattachedOrigin(t))
+        picked.push(t.taskId)
+        if (p.state === 'running') resumes.push(resumeTask(t, { center, stream }))
+      }
+      forgetTasks(tasks.map((t) => t.taskId).filter((id) => !answered.has(id)), store)
+    }
+    // the resume streams run on their own: the boot does not wait for the tasks to end
+    void Promise.all(resumes)
+    return picked
+  }
+
+  /** Test hook. */
+  function resetTaskMemoryForTests() { if (taskMemoryOff) taskMemoryOff() }
+
+
   // App HEADER widgets (WidgetSupplier.widgets / @Widget): they arrive as children of the App with
   // slot "widgets" — a layout with, typically, a MicroFrontend (the inbox badge, another pod
   // that refreshes itself) and a Popover over a Text (the user greeting, which opens their email and
@@ -29005,6 +29294,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the SHELL's router; an embedded component never routes by path (its actions still run)
     setToastNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
     setTaskNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+    // an OS notification's click opens a route: the shell's router (the app opts in on its @App)
+    setOsNotificationNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
     // the notification inbox is the app header's bell: a host page has its own header
     setInboxIncrementSink: 'shell-level: the inbox bell belongs to the app header',
     setInboxNavigateSink: 'shell-level: the inbox bell belongs to the app header',
@@ -29512,6 +29803,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setTaskActionSink,
     setTaskNavigateSink,
     setTaskViewClock,
+    // a task survives a reload (reattach.mjs) and OS-level notifications (osNotify.mjs)
+    reattachTasks,
+    setOsNotificationsEnabled,
+    setOsNotificationNavigateSink,
     setInboxContext,
     setInboxModelSink,
     setInboxIncrementSink,

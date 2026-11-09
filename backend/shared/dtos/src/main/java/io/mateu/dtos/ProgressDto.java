@@ -23,6 +23,8 @@ import lombok.Builder;
  * @param closeAfterSeconds how long a finished blocking surface stays before closing on its own
  * @param error what went wrong (state failed)
  * @param resultActions what the user can do with the result ("Open report")
+ * @param etaSeconds the server's estimate of the time left (a running, determinate task, once the
+ *     observed rate makes it honest — conformance/progress/eta.json); null = none
  */
 @Builder(toBuilder = true)
 public record ProgressDto(
@@ -40,7 +42,8 @@ public record ProgressDto(
     Long startedAt,
     Integer closeAfterSeconds,
     String error,
-    List<MessageActionDto> resultActions) {
+    List<MessageActionDto> resultActions,
+    Integer etaSeconds) {
 
   public ProgressDto {
     resultActions = resultActions != null ? List.copyOf(resultActions) : List.of();

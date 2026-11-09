@@ -125,8 +125,13 @@ LongTask.create("Processing...")
 | `step(text, title, fraction)` | All three |
 | `step(text, done, total)` 🧪 | The status text + a count ("12 of 300"); makes the task determinate |
 
-A count is the most honest progress there is: prefer it when the work is countable. Mateu sends
-no ETA — renderers show the elapsed time instead.
+A count is the most honest progress there is: prefer it when the work is countable.
+
+A determinate task (a count or a fraction) also gets an ESTIMATE of the time left 🧪 — "about 2
+min left" — once it is honest: the server watches the rate the task advances (smoothed, so one
+fast row does not make a promise) and only says something after it has advanced twice and run for
+two seconds. An indeterminate task never gets one, and neither does a finished one. The estimate
+travels as `etaSeconds` on the progress; every renderer words it in the user's language.
 
 ### A background task the user can cancel
 
@@ -149,8 +154,8 @@ public Flux<?> importAll() {
 Cancel sends the reserved action `_progress-cancel` with the task id: the server stops the work
 flux (Reactor cancels it — write the work so that a cancel stops it), runs `onCancel` and ends the
 task cancelled. Only the caller who started a task can cancel it (an anonymous caller's task is
-cancellable by whoever holds its random id). Closing the stream — the user closes the tab — also
-cancels it. In a cluster the cancel must reach the node running the task (sticky sessions).
+cancellable by whoever holds its random id). In a cluster the cancel must reach the node running
+the task (sticky sessions).
 
 ### Auto-closing and commands on completion
 
@@ -166,11 +171,38 @@ LongTask.create("Importing data...")
 
 The commands run after the task is reported done, on the screen that started it.
 
-### Not yet (3.1)
+### A task survives a reload 🧪
 
-A reloaded tab does not reattach to tasks still running (the reload closes the stream, which
-cancels them); there is no ETA; finished tasks are not posted to the operating system's
-notifications.
+Reloading the page, navigating away or losing the connection does not stop a task. Each renderer
+remembers, for the session, the tasks its streams reported (a browser tab keeps them in its session
+storage); when it comes back it asks the server which are still there (`_progress-tasks`) and
+follows each one again (`_progress-resume`): the task center fills up again and the task ends there
+as usual. A task that finished in the meantime still says how it ended.
+
+The server keeps a task with nobody following it for a GRACE PERIOD — 60 seconds by default — and
+then cancels it (`onCancel` runs): closing the tab for good still stops the work, just not
+instantly.
+
+```properties
+# seconds; 0 = closing the stream cancels the task at once (the behaviour before 3.0-rc)
+mateu.progress.reattach-grace-seconds=60
+```
+
+.NET: `MateuOptions.ProgressReattachGraceSeconds`; Python: `add_mateu(progress_reattach_grace_seconds=60)`;
+all three read `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`.
+
+After a reload the task no longer has the screen that started it, so only what makes sense without
+it is offered: its progress, its messages, its result actions that open a ROUTE. Retry, result
+actions that run an `actionId` and the `withCommand` commands are for the screen that started the
+task. Reattaching follows the cancel rules: only the caller who started a task can see or follow it
+again — anyone else gets exactly what an unknown task id gets, nothing. In a cluster the reload must
+reach the node running the task (sticky sessions).
+
+### Tell the user's device when it is done 🧪
+
+With `@App(osNotifications = true)` a background task that finishes while the app is not in front
+also shows as a notification of the operating system — see
+[Notification inbox](/ux-patterns/notification-inbox/#operating-system-notifications).
 
 ### Validation
 

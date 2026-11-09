@@ -337,6 +337,8 @@ def app(
     idle_warning_seconds: int = 60,
     idle_sign_out_url: str = "",
     mobile_qr: bool = False,
+    os_notifications: bool = False,
+    inbox: bool = False,
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
@@ -370,7 +372,14 @@ def app(
     (> 0) turns on the idle-session warning: after that idleness (any tab) a modal counts down
     ``idle_warning_seconds``; "Stay signed in" runs ``_keep-alive`` (``KeepAliveHandler``), "Sign
     out" goes to ``idle_sign_out_url`` (blank = the app's route). EXPERIMENTAL; mirror Java's
-    ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``."""
+    ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``.
+
+    ``os_notifications=True`` (EXPERIMENTAL) opts in to OS-level notifications: a new inbox entry
+    and a background task that finished are also shown by the operating system while the app is
+    not in front (permission asked only from a user gesture). ``inbox=True`` (EXPERIMENTAL) shows
+    the bell without a ``NotificationsSupplier``: it lists the entries of the server-side
+    ``InboxStore`` (the ``inbox`` messages of the signed-in user). Mirror Java's
+    ``@App(osNotifications, inbox)``."""
 
     raw = variant.value if isinstance(variant, AppVariant) else variant
     raw = coerce_enum(raw, AppVariant, "@app(variant)").value
@@ -385,6 +394,8 @@ def app(
         setattr(cls, "__mateu_app_mobile_qr__", mobile_qr)
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         setattr(cls, "__mateu_app_live_updates__", live_updates)
+        setattr(cls, "__mateu_app_os_notifications__", os_notifications)
+        setattr(cls, "__mateu_app_inbox__", inbox)
         setattr(cls, "__mateu_app_idle__", (idle_timeout_minutes, idle_warning_seconds, idle_sign_out_url))
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
