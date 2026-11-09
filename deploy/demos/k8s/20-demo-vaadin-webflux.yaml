@@ -23,7 +23,7 @@ spec:
           image: miguelperezcolom/demo-vaadin-webflux:3.0-beta.51-20261108
           env:
             - { name: SERVER_PORT, value: "8092" }
-            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=224m -Xss512k -XX:+ExitOnOutOfMemoryError" }
             # Public demo embedded from third-party pages (<mateu-ui baseUrl="https://demo.mateu.io/counter">):
             # any origin, no credentials. Applies only to /mateu/** paths (CorsPolicy).
             - { name: MATEU_CORS_ALLOWED_ORIGINS, value: "*" }
@@ -34,8 +34,8 @@ spec:
             readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
           resources:
-            requests: { memory: "384Mi", cpu: "100m" }
-            limits:   { memory: "512Mi" }
+            requests: { memory: "224Mi", cpu: "100m" }
+            limits:   { memory: "448Mi" }
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
           startupProbe:

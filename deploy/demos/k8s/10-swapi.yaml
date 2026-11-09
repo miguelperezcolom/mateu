@@ -25,7 +25,7 @@ spec:
           env:
             - { name: SERVER_PORT, value: "8120" }
             # exit on OOM so Kubernetes restarts it, rather than a half-alive JVM that answers nothing
-            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=192m -Xss512k -XX:+ExitOnOutOfMemoryError" }
             - name: WRITE_KEY
               valueFrom:
                 secretKeyRef: { name: swapi-write-key, key: WRITE_KEY }
@@ -36,8 +36,8 @@ spec:
             readOnlyRootFilesystem: true
             capabilities: { drop: ["ALL"] }
           resources:
-            requests: { memory: "448Mi", cpu: "100m" }
-            limits:   { memory: "640Mi" }
+            requests: { memory: "288Mi", cpu: "100m" }
+            limits:   { memory: "448Mi" }
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
           startupProbe:
