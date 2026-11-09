@@ -8,6 +8,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+- Windows desktop installer: installs only into its per-user folder (no directory page, `/D=` ignored, a folder of someone else's files is refused), and the uninstaller removes only what it installed and then an empty folder.
+- Windows desktop: `mateu://` is registered on the IDE's executable, not on a batch file, so a crafted link cannot reach `cmd.exe`. A session a link started asks you to reopen the app from its shortcut to apply an update.
+- IntelliJ / desktop: an inline document is opened by the OS only for PDF, PNG, JPEG, GIF and plain text with a matching MIME type; anything else goes to the Save dialog.
+- Desktop hub: islands and remote screens end with what rendered them, and a session's credentials stay with its UI, so a UI left behind can no longer send the next UI's token anywhere.
+- React Native: stored OIDC tokens record their issuer and client, and are discarded with no network when a manifest names another provider.
+- IntelliJ visual editor: the loopback server checks the `Host` header and only the editor's own browser can reach the backend or the project's images through it.
+- Linux desktop `install.sh`: a failed upgrade no longer strands settings in a temp directory.
+- IntelliJ / desktop: tasks of an anonymous session are no longer written to disk, and remembered tasks are scoped by identity.
+- IntelliJ Live Run: the debugger listens on `127.0.0.1` only; a project path with spaces no longer breaks a run (the specs directory travels only in `MATEU_DEV_SPECS_DIR`); Gradle + Micronaut no longer fails to start on a debug-port clash (it runs without the debugger).
+- IntelliJ New Project: picks the highest final release of the bundled pin's major, or that major's newest pre-release before its GA, instead of Maven's `<release>`.
+
 ### Changed
 
 - **VS Code Live Run** opens the debugger on loopback only (it was every interface), starts a Spring

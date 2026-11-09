@@ -113,6 +113,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
 
         val title = label.ifBlank { route ?: "View" }
         val ctx = AppContext(io.mateu.ijp.ui.remoteSession(session, baseUrl))
+        ctx.ownsSession = ctx.session !== session
         val panel = ctx.newSlot()
         ctx.contentPane = panel
         // Both hosts (editor header / tool window title) show the view's toolbar natively.

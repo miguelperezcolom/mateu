@@ -23,8 +23,9 @@ import javax.swing.JComponent
  *
  *  - attachment → a Save dialog, the file written where the user chose;
  *  - inline → written to a temp file and opened with the OS default app (a PDF viewer), which is
- *    the desktop's "new tab";
- *  - print → handed to the OS print service for its type when it has one, else opened;
+ *    the desktop's "new tab" — only for the viewer types of [opensWithOs]; anything else (a `.bat`, a
+ *    `.jar`, a name and a MIME type that disagree) takes the attachment path;
+ *  - print → handed to the OS print service for its type when it has one, else opened (same rule);
  *  - `Print` (the current page) → the rendered panel through the system print dialog.
  *
  * The bytes come inline (base64) or from the single-use URL under the backend's base URL — fetched
@@ -76,6 +77,29 @@ object Documents {
             inline = inline,
             print = inline && data.path("print").asBoolean(false),
         )
+    }
+
+    /** What the OS may be handed unasked: extension → the MIME types that extension is. */
+    private val VIEWER_TYPES = mapOf(
+        "pdf" to setOf("application/pdf"),
+        "png" to setOf("image/png"),
+        "jpg" to setOf("image/jpeg"),
+        "jpeg" to setOf("image/jpeg"),
+        "gif" to setOf("image/gif"),
+        "txt" to setOf("text/plain"),
+    )
+
+    /**
+     * Whether the OS may open [plan] with no question asked. The name and the MIME type come from the
+     * server, and a UI added from a link is not trusted: `Desktop.open` on `report.bat` runs it, and a
+     * file written here carries no Mark-of-the-Web. So only a closed list of viewer types, with the
+     * name and the MIME type agreeing. A CSV is deliberately out: it opens in a spreadsheet, which
+     * evaluates what is in it. Everything else goes to the Save dialog, where the user decides.
+     */
+    fun opensWithOs(plan: Plan): Boolean {
+        if (!plan.inline) return false
+        val allowed = VIEWER_TYPES[plan.filename.substringAfterLast('.', "").lowercase()] ?: return false
+        return plan.mimeType.substringBefore(';').trim().lowercase() in allowed
     }
 
     /** The bytes of a plan (a GET for a parked document). */

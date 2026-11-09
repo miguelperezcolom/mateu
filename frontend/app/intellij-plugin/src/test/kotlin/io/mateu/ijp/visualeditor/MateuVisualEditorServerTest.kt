@@ -1,6 +1,7 @@
 package io.mateu.ijp.visualeditor
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -63,6 +64,61 @@ class MateuVisualEditorServerTest {
         assertTrue(page.body().contains("<script type=\"module\""))
     }
 
+    /** A backend that says which Authorization it was sent. */
+    private fun fakeBackend(): com.sun.net.httpserver.HttpServer =
+        com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0).apply {
+            createContext("/") { ex ->
+                val body = (ex.requestHeaders.getFirst("Authorization") ?: "none").toByteArray()
+                ex.sendResponseHeaders(200, body.size.toLong())
+                ex.responseBody.use { it.write(body) }
+            }
+            start()
+        }
+
+    private fun cookieFrom(port: Int): String =
+        get(MateuVisualEditorServer.editorUrl(port)).headers().firstValue("set-cookie").orElseThrow().substringBefore(';')
+
+    private fun syncCall(port: Int, cookie: String?): HttpResponse<String> {
+        val builder = HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port/mateu/v3/sync/x"))
+        cookie?.let { builder.header("Cookie", it) }
+        return http.send(builder.POST(HttpRequest.BodyPublishers.ofString("{}")).build(), HttpResponse.BodyHandlers.ofString())
+    }
+
+    @Test
+    fun onlyTheEditorsOwnBrowserGetsTheBackendWithTheDevelopersToken() {
+        val backend = fakeBackend()
+        try {
+            val port = MateuVisualEditorServer.ensureStarted(
+                "http://127.0.0.1:${backend.address.port}", io.mateu.ijp.api.TokenProvider.of("the-token"),
+            )
+            assertEquals(403, syncCall(port, null).statusCode())
+            assertEquals(403, syncCall(port, "mateu-editor-key=guess").statusCode())
+
+            val answered = syncCall(port, cookieFrom(port))
+            assertEquals(200, answered.statusCode())
+            assertEquals("Bearer the-token", answered.body())
+        } finally {
+            MateuVisualEditorServer.ensureStarted(this.backend)
+            backend.stop(0)
+        }
+    }
+
+    @Test
+    fun thePlainPageHandsOutNoKey() {
+        val port = MateuVisualEditorServer.ensureStarted(backend)
+        assertTrue(get("http://127.0.0.1:$port/index.html").headers().firstValue("set-cookie").isEmpty)
+        assertTrue(get("http://127.0.0.1:$port/index.html?mateu-editor-key=guess").headers().firstValue("set-cookie").isEmpty)
+    }
+
+    @Test
+    fun aRequestNamingAnotherHostIsARebindingAttempt() {
+        assertTrue(MateuVisualEditorServer.isOwnHost("127.0.0.1:4242", 4242))
+        assertTrue(MateuVisualEditorServer.isOwnHost("localhost:4242", 4242))
+        assertFalse(MateuVisualEditorServer.isOwnHost("evil.example:4242", 4242))
+        assertFalse(MateuVisualEditorServer.isOwnHost("127.0.0.1:1", 4242))
+        assertFalse(MateuVisualEditorServer.isOwnHost(null, 4242))
+    }
+
     @Test
     fun proxiesThePreviewActionToTheBackend() {
         val port = MateuVisualEditorServer.ensureStarted(backend)
@@ -73,6 +129,7 @@ class MateuVisualEditorServerTest {
         val resp = http.send(
             HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port/mateu/v3/sync/_no_route"))
                 .header("Content-Type", "application/json")
+                .header("Cookie", cookieFrom(port))
                 .POST(HttpRequest.BodyPublishers.ofString(body)).build(),
             HttpResponse.BodyHandlers.ofString(),
         )

@@ -168,14 +168,45 @@ object MateuProjectGenerator {
         error("No <mateu.version> pinned in the starters")
     }
 
-    /** The release in a maven-metadata.xml (`<release>`, else `<latest>`), or null. */
-    fun versionFromMetadata(xml: String): String? =
-        (Regex("<release>([^<]+)</release>").find(xml) ?: Regex("<latest>([^<]+)</latest>").find(xml))?.groupValues?.get(1)?.trim()
+    /**
+     * The version a new project uses, from a maven-metadata.xml: the highest with no qualifier and the
+     * same major as [pin] (`<release>` can be a pre-release or the next major); while that major has
+     * none (before its GA), its newest pre-release; else null. The VS Code engine applies the same rule.
+     */
+    fun versionFromMetadata(xml: String, pin: String): String? {
+        val major = pin.substringBefore('.').substringBefore('-').toIntOrNull() ?: return null
+        val versions = Regex("<versions>(.*?)</versions>", RegexOption.DOT_MATCHES_ALL).find(xml)?.groupValues?.get(1)
+            ?.let { block -> Regex("<version>([^<]+)</version>").findAll(block).map { it.groupValues[1].trim() }.toList() }
+            ?: return null
+        val parsed = versions.mapNotNull(::parseVersion).filter { it.numbers.first() == major }
+        return (parsed.filter { it.preRank == null }.maxWithOrNull(VERSION_ORDER)
+            ?: parsed.maxWithOrNull(VERSION_ORDER))?.text
+    }
 
-    /** The latest io.mateu:mateu-bom on Maven Central, or [fallback] when it cannot be read. */
+    private class ParsedVersion(val text: String, val numbers: List<Int>, val preRank: Int?, val preNumber: Int)
+
+    private val PRE_RELEASE_RANK = mapOf("alpha" to 0, "beta" to 1, "rc" to 2)
+
+    /** `3.1.0` or `3.0-beta.55`; null for anything else (a snapshot, an unknown qualifier). */
+    private fun parseVersion(text: String): ParsedVersion? {
+        val m = Regex("^(\\d+(?:\\.\\d+)*)(?:-(alpha|beta|rc)\\.(\\d+))?$").find(text) ?: return null
+        val numbers = m.groupValues[1].split('.').map { it.toIntOrNull() ?: return null }
+        val rank = m.groupValues[2].ifEmpty { null }?.let { PRE_RELEASE_RANK.getValue(it) }
+        return ParsedVersion(text, numbers, rank, m.groupValues[3].toIntOrNull() ?: 0)
+    }
+
+    private val VERSION_ORDER = Comparator<ParsedVersion> { a, b ->
+        for (i in 0 until maxOf(a.numbers.size, b.numbers.size)) {
+            val c = (a.numbers.getOrElse(i) { 0 }).compareTo(b.numbers.getOrElse(i) { 0 })
+            if (c != 0) return@Comparator c
+        }
+        compareValuesBy(a, b, { it.preRank ?: Int.MAX_VALUE }, { it.preNumber })
+    }
+
+    /** The version of io.mateu:mateu-bom a new project uses, or [fallback] (the pin) when it cannot be read. */
     fun latestMateuVersion(manifest: JsonNode, fallback: String, fetch: (String) -> String = ::httpGet): String =
         try {
-            versionFromMetadata(fetch(manifest.path("versionMetadataUrl").asText())) ?: fallback
+            versionFromMetadata(fetch(manifest.path("versionMetadataUrl").asText()), fallback) ?: fallback
         } catch (_: Exception) {
             fallback
         }

@@ -234,4 +234,53 @@ class LauncherScriptsTest {
         assertFalse(Files.exists(dest))
         assertFalse(Files.exists(home.resolve(".local/share/applications/mateu.desktop")))
     }
+
+    @Test
+    fun `an upgrade that fails half way leaves the settings in the install, and the next one succeeds`() {
+        val bundle = tmp.resolve("bundle")
+        val home = tmp.resolve("home")
+        val dest = home.resolve(".local/share/mateu")
+        val script = File(installer, "linux/install.sh").readText().replace("@PRODUCT@", "Mateu").replace("@SLUG@", "mateu").replace("@HUB@", "false")
+        write(bundle.resolve("mateu.sh"), "#!/bin/sh\n")
+        write(bundle.resolve("apply-update.sh"), "#!/bin/sh\n")
+        write(bundle.resolve("bin/idea.sh"), "v2")
+        write(bundle.resolve("mateu.desktop"), "[Desktop Entry]\nExec=@INSTALL_DIR@\n")
+        write(bundle.resolve("install.sh"), script)
+        write(dest.resolve("data/config/options/mine.xml"), "mine")
+        write(dest.resolve("workspace/.idea/mateu.xml"), "mine")
+        val shims = tmp.resolve("shims")
+        write(shims.resolve("cp"), "#!/bin/sh\necho 'No space left on device' >&2\nexit 1\n").toFile().setExecutable(true).let(::check)
+        val env = mapOf("HOME" to home.toString(), "XDG_DATA_HOME" to home.resolve(".local/share").toString())
+
+        val (code, _) = sh(bundle.resolve("install.sh").toFile(), env = env + ("PATH" to "$shims:/usr/bin:/bin"))
+
+        assertTrue("the failure is reported", code != 0)
+        assertEquals("mine", Files.readString(dest.resolve("data/config/options/mine.xml")))
+        assertEquals("mine", Files.readString(dest.resolve("workspace/.idea/mateu.xml")))
+        assertFalse("nothing is left beside the install", Files.exists(home.resolve(".local/share/mateu.keep")))
+
+        assertEquals(0, sh(bundle.resolve("install.sh").toFile(), env = env + ("PATH" to "/usr/bin:/bin")).first)
+        assertEquals("v2", Files.readString(dest.resolve("bin/idea.sh")))
+        assertEquals("mine", Files.readString(dest.resolve("data/config/options/mine.xml")))
+    }
+
+    @Test
+    fun `what a killed run left beside the install is the user's and is put back`() {
+        val bundle = tmp.resolve("bundle")
+        val home = tmp.resolve("home")
+        val dest = home.resolve(".local/share/mateu")
+        write(bundle.resolve("mateu.sh"), "#!/bin/sh\n")
+        write(bundle.resolve("apply-update.sh"), "#!/bin/sh\n")
+        write(bundle.resolve("mateu.desktop"), "[Desktop Entry]\n")
+        write(bundle.resolve("data/config/options/seed.xml"), "seed")
+        write(bundle.resolve("install.sh"), File(installer, "linux/install.sh").readText().replace("@PRODUCT@", "Mateu").replace("@SLUG@", "mateu").replace("@HUB@", "false"))
+        write(home.resolve(".local/share/mateu.keep/data/config/options/mine.xml"), "mine")
+        write(dest.resolve("data/config/options/seed.xml"), "half-copied")
+        val env = mapOf("HOME" to home.toString(), "XDG_DATA_HOME" to home.resolve(".local/share").toString(), "PATH" to "/usr/bin:/bin")
+
+        assertEquals(0, sh(bundle.resolve("install.sh").toFile(), env = env).first)
+
+        assertEquals("mine", Files.readString(dest.resolve("data/config/options/mine.xml")))
+        assertFalse(Files.exists(dest.resolve("data/config/options/seed.xml")))
+    }
 }

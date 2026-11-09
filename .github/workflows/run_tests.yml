@@ -201,6 +201,14 @@ jobs:
           if grep -rnE '(\.|\{ *)deleteRecursively\(\)' frontend/app/intellij-plugin/build.gradle.kts frontend/app/intellij-plugin/src/main | grep -vE ':[0-9]+: *(\*|//)'; then
             echo "::error::use deleteTree() / a no-follow walk, never File.deleteRecursively(), in frontend/app/intellij-plugin"; exit 1
           fi
+      # The Windows uninstaller must only remove what it installed, from the one folder it installs in,
+      # and a mateu:// link must never reach cmd.exe (details: InstallerScriptsTest, run at publish).
+      - name: The Windows installer never deletes a folder it does not own
+        run: |
+          nsi=frontend/app/intellij-plugin/installer/windows/mateu.nsi
+          if grep -vE '^[[:space:]]*;' "$nsi" | grep -E 'RMDir[[:space:]]+/r[[:space:]]+"?\$INSTDIR"?[[:space:]]*$|MUI_PAGE_DIRECTORY|InstallDirRegKey|shell\\open\\command" "" .*\.(bat|cmd)'; then
+            echo "::error::mateu.nsi: no recursive delete of \$INSTDIR, no chosen install folder, no batch file as the mateu:// handler"; exit 1
+          fi
 
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test

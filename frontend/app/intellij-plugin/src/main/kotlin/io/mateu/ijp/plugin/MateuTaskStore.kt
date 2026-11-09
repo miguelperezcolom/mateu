@@ -23,6 +23,7 @@ class MateuTaskStore : PersistentStateComponent<MateuTaskStore.StateBean>, TaskL
     class TaskBean {
         var taskId: String = ""
         var baseUrl: String = ""
+        var scope: String = ""
         var route: String? = null
         var serverSideType: String? = null
         var rememberedAt: Long = 0
@@ -41,7 +42,7 @@ class MateuTaskStore : PersistentStateComponent<MateuTaskStore.StateBean>, TaskL
     }
 
     override fun load(): List<StoredTask> = bean.tasks.map {
-        StoredTask(TaskOriginEntry(it.taskId, it.baseUrl, it.route, it.serverSideType), it.rememberedAt)
+        StoredTask(TaskOriginEntry(it.taskId, it.baseUrl, it.route, it.serverSideType), it.rememberedAt, it.scope)
     }
 
     override fun save(tasks: List<StoredTask>) {
@@ -51,6 +52,7 @@ class MateuTaskStore : PersistentStateComponent<MateuTaskStore.StateBean>, TaskL
                 TaskBean().apply {
                     taskId = task.origin.taskId
                     baseUrl = task.origin.baseUrl
+                    scope = task.scope
                     route = task.origin.route
                     serverSideType = task.origin.serverSideType
                     rememberedAt = task.rememberedAt

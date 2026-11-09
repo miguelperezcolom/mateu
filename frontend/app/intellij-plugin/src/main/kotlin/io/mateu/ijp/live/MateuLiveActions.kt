@@ -82,8 +82,14 @@ class MateuLiveService(private val project: Project) {
             hookHotSwap()
         }
         if (debug && plan.debugPort == null) {
-            notify("A static bundle has no backend to debug: debug its UI with the browser's developer tools.",
-                NotificationType.INFORMATION)
+            notify(
+                if (plan.framework == Framework.STATIC_BUNDLE) {
+                    "A static bundle has no backend to debug: debug its UI with the browser's developer tools."
+                } else {
+                    "A Gradle + Micronaut run cannot start with the debugger: run it with `--debug-jvm` from a terminal and attach to port $DEBUG_PORT."
+                },
+                NotificationType.INFORMATION,
+            )
         }
         val deadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)
         scheduler.schedule(object : Runnable {
