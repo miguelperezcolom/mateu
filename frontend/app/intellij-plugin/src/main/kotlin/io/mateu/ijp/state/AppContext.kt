@@ -382,6 +382,10 @@ class AppContext(val session: AppSession) {
     ) {
         if (contentPane == null) { onDone?.invoke(false); return }
 
+        // A blocking task covers this view: nothing the user presses (a toolbar button outside the
+        // layer, a shortcut) starts another action on it. Triggers and polling are silent and go on.
+        if (!silent && viewBlock.isBlocked) { onDone?.invoke(false); return }
+
         // Dirty guard on discarding actions (Cancel on an edit form): confirm before throwing away
         // unsaved changes on a tracked form.
         if (trackDirty && dirty && LeaveActions.isLeaveAction(actionId, currentActionIds)) {
@@ -515,11 +519,13 @@ class AppContext(val session: AppSession) {
                 onOk = {
                     // a task the stream left running is resumed (the server keeps it for a grace period)
                     session.streamEnded(taskIds)
+                    releaseView(taskIds)
                     polling.actionSucceeded(generation, actionId)
                     onDone?.invoke(true)
                 },
                 onErr = {
                     session.streamEnded(taskIds)
+                    releaseView(taskIds)
                     if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
                     else showError("Action failed: ${it.message}")
                     onDone?.invoke(false)
@@ -810,7 +816,8 @@ class AppContext(val session: AppSession) {
             }
         }
 
-        // Long-running tasks (Progress commands): the session's task center, shown by the platform.
+        // Long-running tasks (Progress commands): the session's task center, shown by the platform;
+        // a blocking one also covers this view while the stream that started it runs.
         for (task in ProgressTasks.commandsOf(increment)) {
             val retry = streamRetry
             session.tasks.report(
@@ -819,6 +826,7 @@ class AppContext(val session: AppSession) {
                 runAction = { runNoticeAction(it) },
                 retry = retry,
             )
+            if (viewBlock.observe(task, fromStream = retry != null)) onViewBlockChanged?.invoke()
         }
         // the inbox changed (NotificationsChanged in an action's answer)
         session.inbox.applyChanges(InboxItems.changesOf(increment))
@@ -1017,7 +1025,8 @@ class AppContext(val session: AppSession) {
         meta.path("footer").takeIf { it.isObject }?.let { panel.add(renderer.render(it, effState, data), java.awt.BorderLayout.SOUTH) }
         val children = component.path("children")
         if (children.isArray) for (c in children) panel.add(renderer.render(c, effState, data), java.awt.BorderLayout.CENTER)
-        return javax.swing.JScrollPane(panel).apply { border = null }
+        // a blocking task started inside the overlay covers the overlay, not the page behind it
+        return io.mateu.ijp.ui.blockable(child, javax.swing.JScrollPane(panel).apply { border = null })
     }
 
     private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode, onClosed: () -> Unit = {}) {
@@ -1180,6 +1189,27 @@ class AppContext(val session: AppSession) {
     // ── tasks and notices ──────────────────────────────────────────────────────────────
     /** Set (EDT) while a streamed action's increment is applied: Retry runs that action again. */
     private var streamRetry: (() -> Unit)? = null
+
+    /** What a blocking task is doing to this view (painted by [io.mateu.ijp.ui.blockable]). */
+    val viewBlock = ViewBlock()
+
+    /** Told (EDT) whenever [viewBlock] changes. */
+    var onViewBlockChanged: (() -> Unit)? = null
+
+    /** The stream that fed these tasks is gone: they go on in Background Tasks, the view is free. */
+    private fun releaseView(taskIds: Collection<String>) {
+        if (viewBlock.release(taskIds)) onViewBlockChanged?.invoke()
+    }
+
+    /** The overlay's "Move to background": the task keeps running, the view is usable again. */
+    fun moveBlockingTaskToBackground(taskId: String) {
+        if (viewBlock.moveToBackground(taskId)) onViewBlockChanged?.invoke()
+    }
+
+    /** The overlay's Cancel: the overlay goes when the server answers that it has stopped. */
+    fun cancelBlockingTask(taskId: String) {
+        viewBlock.task(taskId)?.let { cancelTask(it) }
+    }
 
     /** Runs one of a message's / finished task's actions: a route navigates, an action id runs here. */
     fun runNoticeAction(action: NoticeAction) {

@@ -32,9 +32,14 @@ class InboxSync(private val session: AppSession) {
 
     private val listeners = CopyOnWriteArrayList<() -> Unit>()
 
-    /** Told (EDT) whenever the list changes — the unread badge. */
+    /** Told (EDT) whenever the list changes — the unread badge, an open inbox panel. */
     fun onChange(listener: () -> Unit) {
         listeners.add(listener)
+    }
+
+    /** Stops telling [listener] (an inbox panel that closed). */
+    fun removeOnChange(listener: () -> Unit) {
+        listeners.remove(listener)
     }
 
     /** Where the app-level actions go: the app's root route and class (default: the session's). */

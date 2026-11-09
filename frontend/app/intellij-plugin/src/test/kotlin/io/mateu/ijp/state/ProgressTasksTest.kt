@@ -57,9 +57,12 @@ class ProgressTasksTest : TestCase() {
     }
 
     fun testHowThePlatformRunsIt() {
-        assertEquals(TaskPresentation.MODAL, task().presentation)
-        assertEquals(TaskPresentation.BACKGROUNDABLE, task(""","backgroundable":true""").presentation)
+        assertEquals(TaskPresentation.BLOCKS_VIEW, task().presentation)
+        assertEquals(TaskPresentation.BLOCKS_VIEW_MOVABLE, task(""","backgroundable":true""").presentation)
         assertEquals(TaskPresentation.BACKGROUND, ProgressTasks.of(json.readTree("""{"taskId":"t","blocking":false}"""))!!.presentation)
+        // no value of it means a modal window: what differs is the view it covers
+        assertEquals(listOf(true, true, false), TaskPresentation.entries.map { it.blocksView })
+        assertEquals(listOf(false, true, false), TaskPresentation.entries.map { it.movable })
     }
 
     fun testOnlyProgressCommandsOfAnIncrementAreTasks() {

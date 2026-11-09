@@ -33,8 +33,9 @@ object OsNotices {
         return when (event) {
             is Event.InboxEntry -> event.live && event.item.pending
             is Event.InboxMessage -> event.spec.persistence == Persistence.INBOX && event.spec.text.isNotBlank()
-            // a modal task was watched by the user; a cancel was the user's own doing
-            is Event.TaskFinished -> event.task.presentation != TaskPresentation.MODAL &&
+            // a task the user could not move away from its view was being watched there; a cancel
+            // was the user's own doing
+            is Event.TaskFinished -> event.task.presentation != TaskPresentation.BLOCKS_VIEW &&
                 (event.task.state == TaskState.DONE || event.task.state == TaskState.FAILED)
         }
     }

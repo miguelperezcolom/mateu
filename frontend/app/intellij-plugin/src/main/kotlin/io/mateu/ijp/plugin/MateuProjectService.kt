@@ -116,6 +116,8 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
 
     private fun boot(baseUrl: String, config: Map<String, Any?>, route: String) {
         if (session != null) return
+        // the running tasks remembered by the previous IDE run, before any session asks for its ledger
+        io.mateu.ijp.state.TaskLedgers.attach(MateuTaskStore.getInstance())
         val s = AppSession(baseUrl, config, io.mateu.ijp.auth.MateuAuthService.getInstance(project))
         session = s
         val viewManager = MateuViewManager(project, s)
@@ -194,7 +196,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         val root = ctx.newSlot()
         ctx.contentPane = root
         navigatorRoot.removeAll()
-        navigatorRoot.add(root, BorderLayout.CENTER)
+        navigatorRoot.add(io.mateu.ijp.ui.blockable(ctx, root), BorderLayout.CENTER)
         navigatorRoot.revalidate()
         navigatorRoot.repaint()
         // Loads the App fragment → renderApp publishes the menu (toolbar widget, IDE actions)

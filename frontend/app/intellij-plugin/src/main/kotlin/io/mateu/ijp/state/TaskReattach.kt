@@ -4,12 +4,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Reattach (design/progress-and-notifications.md, "Reattach"): a task keeps running on the server
- * for a grace period after its stream goes away, so the plugin remembers, for the IDE session, the
- * tasks its streams reported — where each came from (base url, route, server-side type) — and
- * picks them up again when a view/app reloads or a stream breaks under a running task: it asks
- * `_progress-tasks {taskIds}` and opens a `_progress-resume {taskId}` stream for each one still
- * running. Ids the server does not answer (finished long ago, unknown, not the caller's) are
- * forgotten.
+ * for a grace period after its stream goes away, so the plugin remembers the tasks its streams
+ * reported — where each came from (base url, route, server-side type) — and picks them up again
+ * when a view/app reloads, a stream breaks under a running task, or the IDE is opened again (the
+ * ledger is persisted, see [TaskLedgerStore]): it asks `_progress-tasks {taskIds}` and opens a
+ * `_progress-resume {taskId}` stream for each one still running. Ids the server does not answer
+ * (finished long ago, unknown, not the caller's) are forgotten.
  */
 data class TaskOriginEntry(
     val taskId: String,
@@ -18,25 +18,66 @@ data class TaskOriginEntry(
     val serverSideType: String?,
 )
 
+/** A remembered task as it is kept on disk: where it came from, and since when. */
+data class StoredTask(val origin: TaskOriginEntry, val rememberedAt: Long)
+
+/** Where the ledgers are kept between IDE runs (the plugin's application-level state). */
+interface TaskLedgerStore {
+    fun load(): List<StoredTask>
+    fun save(tasks: List<StoredTask>)
+}
+
 /** The tasks of one app (base url) the session's streams reported and have not seen finish. */
-class TaskLedger(private val max: Int = 50) {
+class TaskLedger(
+    private val max: Int = 50,
+    private val now: () -> Long = System::currentTimeMillis,
+    private val onChange: () -> Unit = {},
+) {
     private val entries = LinkedHashMap<String, TaskOriginEntry>()
+    private val rememberedAt = HashMap<String, Long>()
 
     /** A task update from a stream: a running one is remembered, a finished one forgotten. */
-    @Synchronized
     fun observe(task: ProgressTask, origin: TaskOriginEntry) {
-        if (task.state.terminal) {
-            entries.remove(task.taskId)
-            return
+        val changed = synchronized(this) {
+            when {
+                task.state.terminal -> drop(task.taskId)
+                task.taskId in entries -> false
+                else -> {
+                    remember(origin.copy(taskId = task.taskId), now())
+                    true
+                }
+            }
         }
-        if (task.taskId !in entries) {
-            entries[task.taskId] = origin.copy(taskId = task.taskId)
-            // the server looks at 50 ids at most: the oldest go first
-            while (entries.size > max) entries.remove(entries.keys.first())
-        }
+        // outside the lock: saving looks into every ledger
+        if (changed) onChange()
     }
 
-    @Synchronized fun forget(taskIds: Collection<String>) = taskIds.forEach { entries.remove(it) }
+    private fun drop(taskId: String): Boolean {
+        rememberedAt.remove(taskId)
+        return entries.remove(taskId) != null
+    }
+
+    private fun remember(entry: TaskOriginEntry, at: Long) {
+        entries[entry.taskId] = entry
+        rememberedAt[entry.taskId] = at
+        // the server looks at 50 ids at most: the oldest go first
+        while (entries.size > max) drop(entries.keys.first())
+    }
+
+    fun forget(taskIds: Collection<String>) {
+        val changed = synchronized(this) { taskIds.map { drop(it) }.any { it } }
+        if (changed) onChange()
+    }
+
+    /** Back from disk: tasks a previous IDE run remembered (never replaces what this run knows). */
+    @Synchronized
+    fun restore(tasks: List<StoredTask>) {
+        for (task in tasks) if (task.origin.taskId !in entries) remember(task.origin, task.rememberedAt)
+    }
+
+    /** What goes to disk. */
+    @Synchronized
+    fun stored(): List<StoredTask> = entries.values.map { StoredTask(it, rememberedAt[it.taskId] ?: 0L) }
 
     @Synchronized fun get(taskId: String): TaskOriginEntry? = entries[taskId]
 
@@ -45,14 +86,53 @@ class TaskLedger(private val max: Int = 50) {
     @Synchronized fun isEmpty(): Boolean = entries.isEmpty()
 }
 
-/** One ledger per app for the whole IDE session: a new [AppSession] of the same app finds its tasks. */
+/**
+ * One ledger per app for the whole IDE: a new [AppSession] of the same app finds its tasks, and with
+ * a [TaskLedgerStore] attached so does the next IDE run. Each backend keeps its own list (scoped by
+ * base url, at most 50 tasks each, like the web's memory), and an entry older than [TTL_MILLIS] is
+ * not brought back: the server's grace period is a minute by default, a remembered id is worth one
+ * question at most, and for an anonymous caller it is the capability to see the task, so it does not
+ * stay on disk indefinitely.
+ */
 object TaskLedgers {
+    const val TTL_MILLIS = 60L * 60L * 1000L
+
     private val ledgers = ConcurrentHashMap<String, TaskLedger>()
 
-    fun of(baseUrl: String): TaskLedger = ledgers.computeIfAbsent(baseUrl.trimEnd('/')) { TaskLedger() }
+    @Volatile private var store: TaskLedgerStore? = null
+
+    /** The clock of the ledgers (test hook). */
+    @Volatile var now: () -> Long = System::currentTimeMillis
+
+    fun of(baseUrl: String): TaskLedger = ledgers.computeIfAbsent(keyOf(baseUrl)) {
+        TaskLedger(now = { now() }, onChange = { persist() })
+    }
+
+    /** Brings back what [store] kept (once per store; it is application-wide) and saves from now on. */
+    @Synchronized
+    fun attach(store: TaskLedgerStore) {
+        if (this.store === store) return
+        this.store = store
+        val cutoff = now() - TTL_MILLIS
+        store.load()
+            .filter { it.origin.taskId.isNotBlank() && it.origin.baseUrl.isNotBlank() && it.rememberedAt >= cutoff }
+            .groupBy { keyOf(it.origin.baseUrl) }
+            .forEach { (key, tasks) -> of(key).restore(tasks) }
+        persist() // what expired does not stay on disk
+    }
+
+    private fun persist() {
+        store?.save(ledgers.values.flatMap { it.stored() })
+    }
+
+    private fun keyOf(baseUrl: String) = baseUrl.trimEnd('/')
 
     /** test hook */
-    fun clear() = ledgers.clear()
+    fun clear() {
+        ledgers.clear()
+        store = null
+        now = System::currentTimeMillis
+    }
 }
 
 /** What to do with the server's answer to `_progress-tasks`. */

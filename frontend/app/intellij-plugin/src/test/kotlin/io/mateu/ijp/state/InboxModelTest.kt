@@ -86,4 +86,68 @@ class InboxModelTest : TestCase() {
         assertEquals(1, applied.path("fragments").size())
         assertEquals("Approved", applied.path("messages")[0].path("text").asText())
     }
+
+    // ── filters and groups (libs/mateu inboxStore.ts) ──
+
+    private val mixed
+        get() = listOf(
+            item("unread"),
+            item("read", unread = false),
+            item("settled", extra = ""","resolved":true"""),
+        )
+
+    fun testAllShowsEverythingResolvedIncluded() {
+        assertEquals(listOf("unread", "read", "settled"), InboxView.filtered(mixed, InboxFilter.ALL).map { it.id })
+    }
+
+    fun testUnreadIsWhatStillAsksForAttention() {
+        assertEquals(listOf("unread"), InboxView.filtered(mixed, InboxFilter.UNREAD).map { it.id })
+    }
+
+    fun testResolvedShowsOnlyTheResolvedOnes() {
+        assertEquals(listOf("settled"), InboxView.filtered(mixed, InboxFilter.RESOLVED).map { it.id })
+    }
+
+    fun testEntriesAreGroupedByCategoryInOrderOfAppearanceUncategorisedFirst() {
+        val groups = InboxView.grouped(
+            listOf(
+                item("a", extra = ""","category":"Sales""""),
+                item("b", extra = ""","category":"Approvals""""),
+                item("c"),
+                item("d", extra = ""","category":"Sales""""),
+                item("e", extra = ""","category":"  """"),
+            ),
+        )
+        assertEquals(listOf(null, "Sales", "Approvals"), groups.map { it.category })
+        assertEquals(listOf("c", "e"), groups[0].items.map { it.id })
+        assertEquals(listOf("a", "d"), groups[1].items.map { it.id })
+    }
+
+    fun testNothingToShowMeansNoGroups() {
+        assertEquals(emptyList<InboxGroup>(), InboxView.grouped(emptyList()))
+    }
+
+    fun testAPushedEntryIsListedFirstNewestOnTop() {
+        val model = InboxModel()
+        model.replaceServerList(listOf(item("a"), item("b")))
+        model.apply(InboxChange.Upsert(item("p1")))
+        model.apply(InboxChange.Upsert(item("p2")))
+        assertEquals(listOf("p2", "p1", "a", "b"), model.listed().map { it.id })
+    }
+
+    fun testAPushedEntryTheListCaughtUpWithIsTheServersAgain() {
+        val model = InboxModel()
+        model.replaceServerList(listOf(item("a")))
+        model.apply(InboxChange.Upsert(item("p1")))
+        model.replaceServerList(listOf(item("p1"), item("a")))
+        assertEquals(listOf("p1", "a"), model.listed().map { it.id })
+    }
+
+    fun testAKnownIdPushedAgainReplacesInPlace() {
+        val model = InboxModel()
+        model.replaceServerList(listOf(item("a"), item("b")))
+        model.apply(InboxChange.Upsert(item("a", extra = ""","text":"updated"""")))
+        assertEquals(listOf("a", "b"), model.listed().map { it.id })
+        assertEquals("updated", model.listed().first().text)
+    }
 }

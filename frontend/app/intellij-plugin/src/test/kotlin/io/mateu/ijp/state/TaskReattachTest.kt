@@ -89,4 +89,111 @@ class TaskReattachTest : TestCase() {
         assertEquals(mapOf("taskIds" to listOf("a", "b")), ProgressTasks.tasksParameters(linkedSetOf("a", "b")))
         assertEquals(mapOf("taskId" to "a"), ProgressTasks.resumeParameters("a"))
     }
+
+    // ── surviving an IDE restart ──
+
+    private class MemoryStore(var kept: List<StoredTask> = emptyList()) : TaskLedgerStore {
+        override fun load() = kept
+        override fun save(tasks: List<StoredTask>) {
+            kept = tasks
+        }
+    }
+
+    private fun stored(id: String, base: String = "http://app", at: Long) =
+        StoredTask(TaskOriginEntry(id, base, "/imports", "app.Imports"), at)
+
+    override fun tearDown() {
+        TaskLedgers.clear()
+        super.tearDown()
+    }
+
+    fun testWhatARunRememberedIsThereForTheNextOne() {
+        TaskLedgers.clear()
+        TaskLedgers.now = { 1_000L }
+        val store = MemoryStore()
+        TaskLedgers.attach(store)
+        TaskLedgers.of("http://app").observe(task("t1", "running"), origin("t1"))
+        assertEquals(listOf(stored("t1", at = 1_000L)), store.kept)
+
+        // the IDE is opened again: nothing in memory, the same store
+        TaskLedgers.clear()
+        TaskLedgers.now = { 2_000L }
+        TaskLedgers.attach(store)
+        val back = TaskLedgers.of("http://app").get("t1")!!
+        assertEquals("/imports", back.route)
+        assertEquals("app.Imports", back.serverSideType)
+    }
+
+    fun testARestoredTaskIsAskedAboutAndForgottenWhenTheServerHasNoIdea() {
+        TaskLedgers.clear()
+        val now = System.currentTimeMillis()
+        val store = MemoryStore(listOf(stored("t1", at = now)))
+        TaskLedgers.attach(store)
+        val ledger = TaskLedgers.of("http://app")
+        assertEquals(listOf("t1"), TaskReattach.lost(ledger) { false }.map { it.taskId })
+        ledger.forget(listOf("t1"))
+        assertEquals(emptyList<StoredTask>(), store.kept)
+    }
+
+    fun testAFinishedTaskLeavesTheDisk() {
+        TaskLedgers.clear()
+        val store = MemoryStore()
+        TaskLedgers.attach(store)
+        val ledger = TaskLedgers.of("http://app")
+        ledger.observe(task("t1", "running"), origin("t1"))
+        ledger.observe(task("t1", "done"), origin("t1"))
+        assertEquals(emptyList<StoredTask>(), store.kept)
+    }
+
+    fun testEachBackendKeepsItsOwnTasks() {
+        TaskLedgers.clear()
+        val now = System.currentTimeMillis()
+        TaskLedgers.attach(MemoryStore(listOf(stored("a1", "http://a/", now), stored("b1", "http://b", now))))
+        assertEquals(listOf("a1"), TaskLedgers.of("http://a").all().map { it.taskId })
+        assertEquals(listOf("b1"), TaskLedgers.of("http://b/").all().map { it.taskId })
+    }
+
+    fun testAnOldEntryIsNotBroughtBackAndLeavesTheDisk() {
+        TaskLedgers.clear()
+        val now = 10L * TaskLedgers.TTL_MILLIS
+        TaskLedgers.now = { now }
+        val store = MemoryStore(
+            listOf(stored("old", at = now - TaskLedgers.TTL_MILLIS - 1), stored("fresh", at = now - TaskLedgers.TTL_MILLIS)),
+        )
+        TaskLedgers.attach(store)
+        assertEquals(listOf("fresh"), TaskLedgers.of("http://app").all().map { it.taskId })
+        assertEquals(listOf("fresh"), store.kept.map { it.origin.taskId })
+    }
+
+    fun testAttachingTheSameStoreAgainDoesNotDisturbARunningLedger() {
+        TaskLedgers.clear()
+        val store = MemoryStore()
+        TaskLedgers.attach(store)
+        val ledger = TaskLedgers.of("http://app")
+        ledger.observe(task("t1", "running"), origin("t1"))
+        store.kept = emptyList() // a second project opening must not re-read the store
+        TaskLedgers.attach(store)
+        assertEquals(listOf("t1"), ledger.all().map { it.taskId })
+    }
+
+    fun testARestoredLedgerStillKeepsAtMostWhatTheServerLooksAt() {
+        val ledger = TaskLedger(max = 2, now = { 5L })
+        ledger.restore((1..4).map { stored("t$it", at = it.toLong()) })
+        assertEquals(listOf("t3", "t4"), ledger.all().map { it.taskId })
+        assertEquals(listOf(3L, 4L), ledger.stored().map { it.rememberedAt })
+    }
+
+    fun testWhatThisRunKnowsWinsOverTheDisk() {
+        val ledger = TaskLedger(now = { 5L })
+        ledger.observe(task("t1", "running"), origin("t1"))
+        ledger.restore(listOf(StoredTask(TaskOriginEntry("t1", "http://app", "/stale", null), 1L)))
+        assertEquals("/imports", ledger.get("t1")!!.route)
+        assertEquals(5L, ledger.stored().single().rememberedAt)
+    }
+
+    fun testAReattachedTaskCoversNoView() {
+        val block = ViewBlock()
+        assertFalse(block.observe(TaskReattach.reattached(task("t1", "running", ""","blocking":true"""))))
+        assertFalse(block.isBlocked)
+    }
 }

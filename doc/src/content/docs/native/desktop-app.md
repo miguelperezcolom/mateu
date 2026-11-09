@@ -224,6 +224,14 @@ must be `https`. Generate a feed for your own release with
 Point an app at another feed with `-Pmateu.updateUrl=https://…` at build time (or `-Dmateu.updateUrl`
 in its VM options); `-Pmateu.updateUrl=none` builds an app that never updates itself.
 
+## Long tasks and notifications
+
+A `LongTask` runs in the app's Background Tasks (status bar and Background Tasks window), never in a
+modal window, so the rest of the app stays usable. A blocking task also covers the screen that
+started it, with its progress and Cancel. Tasks still running when the app is closed are followed
+again when it is reopened, if the server still has them. The bell opens the app's inbox, with the
+same filters and category groups as the web ([Notification inbox](/ux-patterns/notification-inbox/)).
+
 ## Trying the UI you are developing
 
 The hub app is also where a developer looks at the UI they are building, in a window of its own and

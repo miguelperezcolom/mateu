@@ -11,6 +11,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.ex.StatusBarEx
 import io.mateu.ijp.state.AppSession
 import io.mateu.ijp.state.InboxDiff
 import io.mateu.ijp.state.InboxItem
@@ -33,11 +35,12 @@ import java.util.concurrent.ConcurrentHashMap
  * Progress and notifications the IDE's way (design/progress-and-notifications.md): the server says
  * WHAT happens, the platform presents it.
  *
- * - A long-running task (`Progress`) is a PLATFORM task: a blocking one a `Task.Modal`, a blocking
- *   one the user may background a `Task.Backgroundable` that opens in the platform's progress
- *   dialog (with its own "Background" button), a background one in the status bar — several at
- *   once, natively, each with the platform's Cancel (→ `_progress-cancel`). Its result is a
- *   notification with the task's result actions, and Retry when a failed task may run again.
+ * - A long-running task (`Progress`) is a PLATFORM background task — status bar and Background
+ *   Tasks window, several at once, natively, each with the platform's Cancel (→ `_progress-cancel`)
+ *   and NEVER a modal window: the IDE stays usable. A blocking one also covers the Mateu view that
+ *   started it ([io.mateu.ijp.ui.blockable], [io.mateu.ijp.state.ViewBlock]), and the status bar's
+ *   process popup opens so it is not missed. Its result is a notification with the task's result
+ *   actions, and Retry when a failed task may run again.
  * - A message is a notification of the group its persistence names (toast / sticky / inbox), with
  *   its actions; a newer one with the same key expires the previous one.
  * - The inbox (`NotificationsSupplier`) lives in the Notifications tool window: entries fetched
@@ -98,21 +101,14 @@ private class PlatformTaskHost(private val project: Project, private val session
     override fun start(first: ProgressTask, channel: TaskChannel, cancel: () -> Unit) {
         ApplicationManager.getApplication().invokeLater {
             val title = ProgressTasks.indicatorText(first).ifBlank { "Mateu" }
-            val task: Task = when (first.presentation) {
-                io.mateu.ijp.state.TaskPresentation.MODAL -> object : Task.Modal(project, title, first.cancellable) {
-                    override fun run(indicator: ProgressIndicator) = follow(indicator, first, channel, cancel)
-                }
-                io.mateu.ijp.state.TaskPresentation.BACKGROUNDABLE ->
-                    // DEAF: starts in the platform's progress dialog, whose "Background" button moves it
-                    object : Task.Backgroundable(project, title, first.cancellable, PerformInBackgroundOption.DEAF) {
-                        override fun run(indicator: ProgressIndicator) = follow(indicator, first, channel, cancel)
-                    }
-                io.mateu.ijp.state.TaskPresentation.BACKGROUND ->
-                    object : Task.Backgroundable(project, title, first.cancellable, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-                        override fun run(indicator: ProgressIndicator) = follow(indicator, first, channel, cancel)
-                    }
+            // always in the background: a blocking task blocks its view, never the IDE
+            val task = object : Task.Backgroundable(project, title, first.cancellable, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+                override fun run(indicator: ProgressIndicator) = follow(indicator, first, channel, cancel)
             }
             ProgressManager.getInstance().run(task)
+            if (first.presentation.blocksView) {
+                (WindowManager.getInstance().getStatusBar(project) as? StatusBarEx)?.isProcessWindowOpen = true
+            }
         }
     }
 
