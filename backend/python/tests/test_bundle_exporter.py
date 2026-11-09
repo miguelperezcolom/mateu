@@ -25,9 +25,9 @@ class BundleHello:
     greeting: str = "Pre-rendered"
 
 
-@ui("/bundle-secret")
+@ui("/bundle-restricted")
 @eyes_only(roles=("admin",))
-class BundleSecret:
+class BundleRestricted:
     secret: str = "only for admins"
 
 
@@ -114,7 +114,7 @@ def test_a_route_that_cannot_render_is_skipped_with_its_reason(no_specs):
 
 
 def test_an_identity_dependent_screen_is_kept_backend_served(no_specs):
-    entry = entries_by_route(exporter(BundleSecret).export_all(""))["/bundle-secret"]
+    entry = entries_by_route(exporter(BundleRestricted).export_all(""))["/bundle-restricted"]
     assert not entry.ok
     assert "eyes_only" in entry.skip_reason
 
@@ -207,10 +207,10 @@ def test_a_rest_action_runs_in_the_browser(no_specs):
 
 
 def test_a_skipped_route_and_an_eyes_only_class_need_a_server(no_specs):
-    ex = exporter(BundleSecret, BundleBroken)
+    ex = exporter(BundleRestricted, BundleBroken)
     violations = [str(v) for v in ex.static_safety(ex.export_all(""))]
-    assert any(v.startswith("/bundle-secret — could not be bundled") for v in violations)
-    assert any("BundleSecret declares @eyes_only" in v for v in violations)
+    assert any(v.startswith("/bundle-restricted — could not be bundled") for v in violations)
+    assert any("BundleRestricted declares @eyes_only" in v for v in violations)
     assert any(v.startswith("/bundle-broken — could not be bundled") for v in violations)
 
 
