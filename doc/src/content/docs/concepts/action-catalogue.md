@@ -155,3 +155,5 @@ catalogue's ids, marked **catalog**. See [IDE tooling](/native/ide-tooling/).
 
 The schema is generated: `actions-schema.json`, plus a `type: Actions` branch in the unified
 `specs-schema.json`.
+
+**See it live in the Explorer:** [Action catalogue](https://explorer.mateu.io/behaviour/data/action-catalogue)

@@ -234,3 +234,5 @@ return Listing.builder()
 
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — restrict capabilities, hide fields, add toolbar buttons
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
+
+**See it live in the Explorer:** [Listing layouts](https://explorer.mateu.io/behaviour/listings/grid-layouts) · [Column widths](https://explorer.mateu.io/behaviour/listings/column-widths) · [Row route (the way into a record)](https://explorer.mateu.io/behaviour/navigation/row-route)

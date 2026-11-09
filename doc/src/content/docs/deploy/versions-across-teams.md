@@ -255,3 +255,5 @@ are not reported.
   ordinary requests of the page do.
 - The IntelliJ plugin shows the stale-screen text in English inside an embedded island that fails to
   load; the notification itself follows the UI language.
+
+**See it live in the Explorer:** [Version skew (X-Mateu-Build)](https://explorer.mateu.io/distributed/operations/version-skew)

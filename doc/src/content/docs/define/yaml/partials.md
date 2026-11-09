@@ -148,3 +148,5 @@ break a cycle. Registration in code is available in all three.
 
 One difference: **a `ref` that names a class works only on the Java server**. The ports carry the
 declarative form only — the same split as `@Overline` vs `OverlineSupplier`.
+
+**See it live in the Explorer:** [YAML partials](https://explorer.mateu.io/behaviour/data/partials)

@@ -147,3 +147,5 @@ The URL parameters are read automatically on component load; no extra code is ne
 ```
 
 Query parameters that match filter field names in the `Filters` class are applied to the filter form as well.
+
+**See it live in the Explorer:** [Grid, GridColumn & GridGroupColumn](https://explorer.mateu.io/components/listings-and-data/grid)

@@ -109,3 +109,5 @@ when the file is read.
 - [The REST source catalogue](/concepts/data-sources/).
 - [Deploy to production](/deploy/production-checklist/) — environments and secrets.
 - [Permissions in YAML](/define/yaml/permissions/) and [Translations in YAML](/define/yaml/translations/).
+
+**See it live in the Explorer:** [Environments overlay](https://explorer.mateu.io/behaviour/data/environments)

@@ -96,3 +96,5 @@ public class AdminApp implements HomeRouteSupplier {
 ```
 
 Cross-reference: see [Route annotations](/java-ui-definition/annotations/route/).
+
+**See it live in the Explorer:** [Menus and routes in code](https://explorer.mateu.io/behaviour/navigation/menus-in-code)

@@ -188,3 +188,5 @@ For an INLINE tree dropdown (no dialog), see `@TreeSelect`: the field's options 
 
 - **Preserve context** — no navigation break, the form stays open
 - **Minimize navigation** — relation management happens inline
+
+**See it live in the Explorer:** [Tree selects](https://explorer.mateu.io/behaviour/forms/stereotype-tree-select) · [Lookups (foreign keys)](https://explorer.mateu.io/behaviour/forms/stereotype-lookup)

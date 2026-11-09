@@ -130,3 +130,5 @@ usable as a meta-annotation:
    element, X.class)` rather than `element.getAnnotation(X.class)`.
 
 All built-in Mateu annotations already satisfy (1) and are read through (2).
+
+**See it live in the Explorer:** [Semantic (composed) annotations](https://explorer.mateu.io/behaviour/forms/semantic-annotations)

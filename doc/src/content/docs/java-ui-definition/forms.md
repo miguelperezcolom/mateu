@@ -95,3 +95,5 @@ public class CustomerEditor { /* … */ }
 
 `LabelsAsideMode` is `AUTO` (default, infer), `ASIDE` (force aside) and `TOP` (force top). The
 explicit value always wins over the inference.
+
+**See it live in the Explorer:** [Column count & labels aside](https://explorer.mateu.io/behaviour/form-layout/column-inference) · [Sections](https://explorer.mateu.io/behaviour/form-layout/sections)

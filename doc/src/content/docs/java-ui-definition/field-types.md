@@ -115,3 +115,5 @@ public class DomainTypes implements FieldTypeCatalogSupplier {
 - In the .NET and Python ports the YAML builders know fewer component kinds than Java (no YAML
   listing), so a typed column there is reached through a `[FieldType]` / `FieldType(...)` marker on a
   listing row instead.
+
+**See it live in the Explorer:** [Every basic field type](https://explorer.mateu.io/behaviour/forms/field-types-basic) · [Field types catalogue](https://explorer.mateu.io/behaviour/data/field-type-catalogue)

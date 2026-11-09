@@ -84,3 +84,5 @@ An unknown name renders a graceful placeholder, never an error.
 
 Reach for a business component first; it is reuse + inference, portable for free. Keep the agency
 selector a business component — it is a `dropdown + source`, not a custom one.
+
+**See it live in the Explorer:** [Partial & ComponentRef (reuse by name)](https://explorer.mateu.io/components/composition/partial)

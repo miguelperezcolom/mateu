@@ -340,3 +340,5 @@ not yet do without a server, is on the roadmap:
   `contentJson` under an app shell), so `specsOnly` does not apply to it. It does read the source
   catalogue and translations from the manifest and runs `restAction`s in the browser.
 - **Auth** (S4) — no built-in OIDC/PKCE client; bring your own provider.
+
+**See it live in the Explorer:** [Static bundles (no backend)](https://explorer.mateu.io/distributed/mounts/static-bundle)

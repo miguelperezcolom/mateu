@@ -65,3 +65,5 @@ parameters, route, style}], key}` plus the legacy `undoLabel/undoActionId/undoPa
 - [Notification inbox](/ux-patterns/notification-inbox/) — messages that must survive the moment
 - [Long-running jobs](/ux-patterns/long-running-jobs/) — tasks, with their own progress and result
 - [Undo](/ux-patterns/undo/)
+
+**See it live in the Explorer:** [Messages & undo](https://explorer.mateu.io/behaviour/actions/messages)

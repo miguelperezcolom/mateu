@@ -96,4 +96,4 @@ explicitly rather than per host:
 Mateu does not enforce these; they are the contract you agree with the host. Getting theming wrong is
 the one that bites first and looks like "the UI is broken" rather than "a variable is missing".
 
-**See it live in the Explorer:** [All distributed-UI patterns](https://explorer.mateu.io/distributed/overview)
+**See it live in the Explorer:** [All distributed-UI patterns](https://explorer.mateu.io/distributed/overview) · [Remote Element imports (CORS)](https://explorer.mateu.io/distributed/federation/remote-element-imports) · [Route collisions between remotes](https://explorer.mateu.io/distributed/federation/route-collisions) · [A static-bundle remote in the shell](https://explorer.mateu.io/distributed/federation/static-remote) · [Identity across remotes](https://explorer.mateu.io/distributed/operations/identity-across-remotes) · [Credential scope](https://explorer.mateu.io/distributed/operations/credential-scope)

@@ -726,3 +726,5 @@ public class MixedPage {
 The single-column `@FormLayout` stacks the `name` text field on top of the `stats` component row, with the `save` button rendered inline below both.
 
 ![MixedPage — declarative field with fluent chart and avatar](/images/docs/components/mixed.png)
+
+**See it live in the Explorer:** [Zones (multi-column layouts)](https://explorer.mateu.io/behaviour/form-layout/zones) · [Tabs (open, shortcut)](https://explorer.mateu.io/behaviour/form-layout/tabs) · [Sections](https://explorer.mateu.io/behaviour/form-layout/sections)

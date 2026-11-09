@@ -185,3 +185,5 @@ C# and Python have `[SubscribeTo]` / `@subscribe_to`. See
 - [What a Mateu UI is made of](/concepts/building-blocks/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/) in Java
 - [App context](/ux-patterns/app-context/): an `appState` value picked in the header
+
+**See it live in the Explorer:** [State, Data, AppState & AppData](https://explorer.mateu.io/components/composition/state)

@@ -70,3 +70,5 @@ Give each popover an `id` when a page has several.
 
 Demo: `demo-vb-pms` — the Reservations listing's rate column and the reservation page's
 "Rate information".
+
+**See it live in the Explorer:** [Card, Details, Tooltip & Popover](https://explorer.mateu.io/components/display/card)

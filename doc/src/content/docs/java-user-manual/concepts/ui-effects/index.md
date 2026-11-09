@@ -187,3 +187,5 @@ public List<?> save() {
 - [Returning multiple results](./multiple-results/)
 - [Action behavior](/java-user-manual/concepts/action-behavior/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
+
+**See it live in the Explorer:** [Returning State or Data](https://explorer.mateu.io/behaviour/actions/return-state)

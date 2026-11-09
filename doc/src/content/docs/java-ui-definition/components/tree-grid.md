@@ -76,3 +76,5 @@ Grid.builder()
 ## Note
 
 `TreeGrid` is not a separate class — it is `Grid` with `tree(true)`. All other `Grid` properties (columns, pagination, selection, actions) apply as normal.
+
+**See it live in the Explorer:** [Listing layouts](https://explorer.mateu.io/behaviour/listings/grid-layouts)

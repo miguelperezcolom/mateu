@@ -273,4 +273,4 @@ The element-by-element review, with code references, is in
 - Panels other than the overview cannot declare their own header actions.
 - On Redwood the folded-strip summary and the panel icon are drawn by Mateu, not by Spectra's slots.
 
-**See it live in the Explorer:** [Foldout](https://explorer.mateu.io/archetypes/records/foldout) · [Foldout page](https://explorer.mateu.io/page-templates/templates/foldout-page)
+**See it live in the Explorer:** [Foldout](https://explorer.mateu.io/archetypes/records/foldout) · [Foldout page](https://explorer.mateu.io/page-templates/templates/foldout-page) · [Foldout layout](https://explorer.mateu.io/components/layout/foldout-layout)

@@ -172,3 +172,5 @@ Add custom toolbar actions on the entity class using `@Toolbar` as you would in 
 
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — when you need a list of records with CRUD operations
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — field visibility, layout, and validation
+
+**See it live in the Explorer:** [Editable view](https://explorer.mateu.io/archetypes/records/editable-view)

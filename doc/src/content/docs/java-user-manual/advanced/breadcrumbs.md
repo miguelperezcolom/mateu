@@ -80,3 +80,5 @@ The `HttpRequest` gives access to the request path (`path()`, `lastPathItem()`),
 - [Layout and composition](/java-user-manual/advanced/layout-and-composition/) — control page structure and styling
 - [Rules](/java-user-manual/advanced/rules/) — client-side field behavior
 - [Security](/java-user-manual/advanced/security/) — restrict access to pages and menu entries
+
+**See it live in the Explorer:** [Breadcrumbs](https://explorer.mateu.io/behaviour/navigation/breadcrumb-trail) · [Breadcrumbs](https://explorer.mateu.io/components/actions-and-navigation/breadcrumbs)

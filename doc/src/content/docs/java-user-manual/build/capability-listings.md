@@ -302,3 +302,5 @@ Independent of capabilities, a listing can:
 - [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the entity-driven full pack
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — a separate model per screen
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — the smart search bar, typed filter widgets, and `CrudStore.find`
+
+**See it live in the Explorer:** [Capability listings & whole-row click](https://explorer.mateu.io/behaviour/listings/capability-listings) · [Crud (capability listing)](https://explorer.mateu.io/archetypes/collections/crud)

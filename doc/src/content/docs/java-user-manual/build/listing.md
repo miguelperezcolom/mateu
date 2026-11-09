@@ -197,3 +197,5 @@ Implement `UploadEnabled` to add an import button to the toolbar. See [Listing (
 - [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — when you need both separate filter types and detail navigation
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
 - [Listing reference](/java-ui-definition/interfaces/listing/) — full API reference for `ListingData`, `Pageable`, `Page`, and export modules
+
+**See it live in the Explorer:** [Listing](https://explorer.mateu.io/components/listings-and-data/listing) · [Search, filters, sorting & paging](https://explorer.mateu.io/behaviour/listings/search-filters)

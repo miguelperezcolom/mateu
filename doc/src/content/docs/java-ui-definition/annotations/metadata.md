@@ -268,3 +268,5 @@ public class StatusDemoForm {
     }
 }
 ```
+
+**See it live in the Explorer:** [The page header](https://explorer.mateu.io/behaviour/form-layout/page-header) · [Page banners](https://explorer.mateu.io/behaviour/form-layout/banners) · [Interpolation in labels and titles](https://explorer.mateu.io/behaviour/forms/interpolation)

@@ -185,3 +185,5 @@ public class JobStatusPage {
 ```
 
 `times = 0` means the trigger fires indefinitely every `timeoutMillis` milliseconds until the user navigates away.
+
+**See it live in the Explorer:** [Dependent fields](https://explorer.mateu.io/behaviour/forms/dependent-fields)

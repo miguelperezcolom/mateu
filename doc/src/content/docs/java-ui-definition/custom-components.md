@@ -88,3 +88,5 @@ expander](/java-user-manual/build/derived-openapi/) treats it like any container
 in metadata and the slotted `content` lifts to children. A statically deployed bundle renders a
 custom component exactly as a backend-driven app would — provided the shipped renderer has registered
 the type.
+
+**See it live in the Explorer:** [Element & CustomComponent (escape hatches)](https://explorer.mateu.io/components/composition/element)

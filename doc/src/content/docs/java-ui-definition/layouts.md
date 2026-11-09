@@ -33,3 +33,5 @@ In a reflected form, arrange sections with `@Section`, `@Zones` and `@Tab` inste
 ## When to use
 
 Use layouts to structure your UI instead of manual HTML/CSS.
+
+**See it live in the Explorer:** [Stacks & boxes](https://explorer.mateu.io/components/layout/stacks) · [Responsive grid & named areas](https://explorer.mateu.io/components/layout/responsive-grid)

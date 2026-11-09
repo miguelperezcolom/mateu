@@ -162,3 +162,5 @@ AdaptedView.of(components, state, data, actions)       // full form
 actually sent to the server (an action is only dispatched if the component claims it).
 `data` is the optional data map (e.g. lookup option lists) consumed the same way as for any
 other component.
+
+**See it live in the Explorer:** [Component adapters](https://explorer.mateu.io/behaviour/communication/component-adapters)

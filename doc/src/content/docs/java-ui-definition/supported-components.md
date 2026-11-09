@@ -190,3 +190,5 @@ What a `toolbar:` or `buttons:` list holds.
 | `ButtonGroup` | A group of buttons shown together, usually collapsed into a single dropdown trigger. | `id`, `label`, `iconOnLeft`, `iconOnRight`, `separatorBefore`, `buttons` |
 
 <!-- END GENERATED -->
+
+**See it live in the Explorer:** [Bpmn](https://explorer.mateu.io/components/visualisation/bpmn) · [Chat, MessageList & MessageInput](https://explorer.mateu.io/components/interactive-widgets/chat) · [FormEditor & Workflow (visual editors)](https://explorer.mateu.io/components/interactive-widgets/form-editor) · [EmbeddedView & FutureComponent (islands)](https://explorer.mateu.io/components/composition/embedded-view)

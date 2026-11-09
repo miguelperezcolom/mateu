@@ -103,3 +103,5 @@ class RestCountries(Listing[Row]):
     def search(self, request, http=None):
         return []
 ```
+
+**See it live in the Explorer:** [A listing over a REST source](https://explorer.mateu.io/behaviour/listings/rest-listing)

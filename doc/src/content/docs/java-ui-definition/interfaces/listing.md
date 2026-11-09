@@ -375,3 +375,5 @@ public Mono<ListingData<ProductRow>> search(SearchRequest request, HttpRequest h
         .map(rows -> ListingData.of(rows));
 }
 ```
+
+**See it live in the Explorer:** [Capability listings & whole-row click](https://explorer.mateu.io/behaviour/listings/capability-listings)

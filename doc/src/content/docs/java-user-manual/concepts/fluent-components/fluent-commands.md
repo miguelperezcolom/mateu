@@ -253,3 +253,5 @@ Alternatively, return a `URI` object to navigate the browser to a route.
 - [Data contexts](/java-user-manual/concepts/fluent-components/fluent-data-contexts/)
 - [Listings](/java-user-manual/concepts/fluent-components/fluent-listings/)
 - [UI effects](/java-user-manual/concepts/ui-effects/)
+
+**See it live in the Explorer:** [Navigate, window title, announce](https://explorer.mateu.io/behaviour/actions/commands)

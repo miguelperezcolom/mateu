@@ -150,3 +150,5 @@ public class FileUploadResource {
 - The `/upload` path is fixed — all file fields in all forms post to the same endpoint. Use the returned `id` to distinguish files (e.g. include a subfolder or UUID in the returned path).
 - The upload happens **immediately** when the user selects the file, before the form is submitted. If the user cancels the form, the uploaded file may need to be cleaned up server-side.
 - To restrict accepted file types or maximum size, apply those constraints inside your `/upload` handler — Mateu does not enforce them.
+
+**See it live in the Explorer:** [Signatures, photos, images & files](https://explorer.mateu.io/behaviour/forms/capture-and-images)

@@ -157,3 +157,5 @@ there the keys are cosmetic:
 - [Route registry](/concepts/routes-and-mounts/) — where `access:` on a route lives.
 - [App shell as data](/define/yaml/app-shell/) — the menu `access:` filters.
 - [Translations in YAML](/define/yaml/translations/) and [Environments](/deploy/environments/) — the other two pieces a YAML-only app needs.
+
+**See it live in the Explorer:** [Permissions (role switcher)](https://explorer.mateu.io/behaviour/app/permissions)

@@ -177,3 +177,5 @@ The interval is set independently on each trigger, so you can load immediately b
 - **Preserve context** — notifications appear in-place; the user is not redirected
 - **Progressive complexity** — the widget is invisible when there is nothing to report
 - **Workflow over screens** — one click takes the user directly to the pending-tasks screen
+
+**See it live in the Explorer:** [Notification inbox & background work](https://explorer.mateu.io/behaviour/app/inbox-and-tasks) · [Notification](https://explorer.mateu.io/components/overlays/notification)

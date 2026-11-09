@@ -281,3 +281,5 @@ The JS runs with `state`, `data`, `appState`, and `appData` in scope.
 - [Triggers](/java-user-manual/concepts/fluent-components/fluent-triggers/)
 - [Validations](/java-user-manual/concepts/fluent-components/fluent-validations/)
 - [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/)
+
+**See it live in the Explorer:** [Rules (hidden, disabled, required)](https://explorer.mateu.io/behaviour/forms/rules)

@@ -223,3 +223,5 @@ public class BookingForm {
     String discountCode;  // only visible for corporate bookings
 }
 ```
+
+**See it live in the Explorer:** [Validation (client + server)](https://explorer.mateu.io/behaviour/forms/validation)
