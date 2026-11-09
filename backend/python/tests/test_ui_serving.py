@@ -107,7 +107,8 @@ def test_the_page_paints_a_loader_before_the_bundle_runs(vaadin_static):
     once <mateu-ui> is defined — and no script of its own (script-src 'self')."""
     page = client(vaadin_static).get("/").text
     assert page.index("</mateu-ui>") < page.index('class="mateu-preboot"')
-    assert "mateu-ui:defined ~ .mateu-preboot { display: none; }" in page
+    # whitespace aside: the build may minify the page's own <style>
+    assert "mateu-ui:defined~.mateu-preboot{display:none" in "".join(page.split())
     assert "prefers-reduced-motion" in page
     loader = page[page.index("<!-- Pre-boot loader") : page.index("</body>")]
     assert "<script" not in loader  # CSS only: adds nothing script-src has to allow

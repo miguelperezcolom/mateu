@@ -108,7 +108,8 @@ public class UiServingTests
         // the CSS-only pre-boot loader (the page painted nothing until its bundle ran), after the
         // root element so the served <mateu-ui> keeps it, hidden once <mateu-ui> is defined
         Assert.True(html.IndexOf("</mateu-ui>", StringComparison.Ordinal) < html.IndexOf("class=\"mateu-preboot\"", StringComparison.Ordinal));
-        Assert.Contains("mateu-ui:defined ~ .mateu-preboot { display: none; }", html);
+        // whitespace aside: the build may minify the page's own <style>
+        Assert.Contains("mateu-ui:defined~.mateu-preboot{display:none", string.Concat(html.Where(c => !char.IsWhiteSpace(c))));
         var loader = html[html.IndexOf("<!-- Pre-boot loader", StringComparison.Ordinal)..html.IndexOf("</body>", StringComparison.Ordinal)];
         Assert.DoesNotContain("<script", loader);
 
