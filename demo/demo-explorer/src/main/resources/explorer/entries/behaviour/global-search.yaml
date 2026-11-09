@@ -1,0 +1,18 @@
+id: global-search
+area: behaviour
+group: app
+title: "Global search (⌘K)"
+covers: [behaviour:global-search]
+description: |
+  **Ctrl+K** (⌘K on a Mac) opens a palette that searches the menu and — because the app implements
+  `GlobalSearchSupplier` — your records, grouped by category; a hit jumps to its route. (The Explorer
+  you are in uses the same mechanism to search its entries.)
+
+  **Try it:** open the embedded app on its own (link above it), press **Ctrl+K**, type `acme` and pick
+  **Acme Corp**, then type `order`.
+examples:
+  - title: "Records in the palette"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.globalsearch.GlobalSearchIsland
+code:
+  - {label: "Java · GlobalSearchDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/globalsearch/GlobalSearchDemoApp.java}

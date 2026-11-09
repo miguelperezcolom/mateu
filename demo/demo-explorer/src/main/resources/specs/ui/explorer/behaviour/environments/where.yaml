@@ -1,0 +1,8 @@
+# Which url answers `behaviour-where`: the one authored in sources.yaml, or the one the active
+# environment (explorer-pre.yaml) re-points it to.
+type: Listing
+title: Who answered?
+rowsSource:
+  ref: behaviour-where
+columns:
+  - {type: GridColumn, id: servedBy, label: Served by, identifier: true}

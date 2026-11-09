@@ -1,0 +1,20 @@
+id: saved-views
+area: behaviour
+group: listings
+title: Saved views & column chooser
+covers: [behaviour:saved-views, behaviour:column-chooser]
+description: |
+  Two things every listing has, with nothing to declare. The **★ in the search bar** saves the
+  current conditions as a named view (and one view can be the default, applied when you open the
+  page with no conditions in the URL). The **columns button** beside the bar hides, shows and
+  reorders columns. Both are remembered in the browser, per page.
+
+  Try it: open the CRUD, add the filter *Status* = Open, press ★ and save it as `Open orders`;
+  clear the filters and pick the view again. Then hide the *City* column and reload — it stays hidden.
+examples:
+  - title: Orders
+    yaml: specs/ui/explorer/behaviour/saved-views/open.yaml
+pages:
+  - {route: x/behaviour/saved-views, viewModel: io.mateu.explorer.examples.behaviour.savedviews.OrderViewsCrud}
+code:
+  - {label: Order.java, path: src/main/java/io/mateu/explorer/examples/behaviour/listingdata/Order.java}

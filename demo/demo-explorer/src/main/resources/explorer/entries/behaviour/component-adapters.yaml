@@ -1,0 +1,23 @@
+id: component-adapters
+area: behaviour
+group: communication
+title: Component adapters
+covers: [behaviour:component-adapters]
+description: |
+  To render an object that is **not** a Mateu component and carries no Mateu annotation — a class
+  from another library, a domain object you do not want to annotate — register a
+  `ComponentAdapter<T>` bean: `adapt` returns its components, state and actions; `deserialize`
+  rebuilds the object from the state an action sends back, so its own methods run as the actions.
+  Used as the field of an ordinary form, the adapted object is an independent island.
+
+  Try it: change the *Customer* of the invoice and press **Issue invoice** — the toast echoes the
+  new customer: the state went to the adapter, back into an `Invoice`, and `issue()` ran on it.
+examples:
+  - title: An adapted object as a page
+    route: x/behaviour/component-adapters/invoice
+  - title: As the field of a form
+    java: io.mateu.explorer.examples.behaviour.componentadapters.BillingPage
+pages:
+  - {route: x/behaviour/component-adapters/invoice, viewModel: io.mateu.explorer.examples.behaviour.componentadapters.Invoice}
+code:
+  - {label: InvoiceAdapter.java, path: src/main/java/io/mateu/explorer/examples/behaviour/componentadapters/InvoiceAdapter.java}

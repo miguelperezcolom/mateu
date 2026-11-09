@@ -1,0 +1,44 @@
+# Images, icons, avatars and badges. An Image takes a url (or a data URI) and an alt text; an Icon
+# names one of the built-in icons; an Avatar shows an image, else the initials of `name` (or an
+# explicit `abbreviation`); an AvatarGroup overlaps them and folds the extras into "+N"; a Badge is
+# a small coloured chip — `color`, `primary`, `small`, `pill` and icons.
+content:
+  - {type: Image, src: /explorer/components/media-and-badges/bay.svg, alt: "The hotel on the bay at noon", style: "max-width: 24rem; border-radius: 8px;"}
+  - type: HorizontalLayout
+    spacing: true
+    verticalAlignment: CENTER
+    content:
+      - {type: Icon, icon: Calendar}
+      - {type: Icon, icon: Airplane}
+      - {type: Icon, icon: Bed}
+      - {type: Icon, icon: Car}
+      - {type: Icon, icon: Coffee}
+  - type: HorizontalLayout
+    spacing: true
+    verticalAlignment: CENTER
+    content:
+      - {type: Avatar, name: Lucía Fernández, image: /explorer/components/media-and-badges/guest.svg}
+      - {type: Avatar, name: Tomás Ibarra}
+      - {type: Avatar, name: Front desk, abbreviation: FD}
+      - type: AvatarGroup
+        maxItemsVisible: 3
+        avatars:
+          - {type: Avatar, name: Marta Ruiz}
+          - {type: Avatar, name: Joan Puig}
+          - {type: Avatar, name: Aitor Etxeberria}
+          - {type: Avatar, name: Nerea Gil}
+          - {type: Avatar, name: Pau Serra}
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - {type: Badge, text: Pending}
+      - {type: Badge, text: Confirmed, color: success}
+      - {type: Badge, text: Cancelled, color: error}
+      - {type: Badge, text: Overbooked, color: warning}
+      - {type: Badge, text: Group, color: contrast}
+      - {type: Badge, text: VIP, color: success, primary: true}
+      - {type: Badge, text: "3 nights", pill: true}
+      - {type: Badge, text: Small, small: true}
+      - {type: Badge, text: Paid, color: success, iconOnLeft: "vaadin:check"}
+      - {type: Badge, text: Details, iconOnRight: "vaadin:arrow-right"}

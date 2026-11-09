@@ -1,0 +1,26 @@
+# An app shell as DATA: the chrome around a mount — title, menu, variant, header switches.
+# It is bound to the ROOT of a mount in that mount's routes file:
+#
+#   type: Routes
+#   routes:
+#     - {route: "", layout: shell.yaml}        # the mount root → this shell
+#     - {route: collection, layout: collection.yaml}
+#     - {route: visitors, layout: visitors.yaml}
+#
+# Its menu routes are relative to the mount.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: City Museum
+subtitle: Back office
+variant: MENU_ON_TOP
+accentColor: "#7c3aed"
+themeToggle: true
+homeRoute: collection
+menu:
+  - {type: RouteLink, label: Collection, route: collection, icon: "vaadin:picture"}
+  - {type: RouteLink, label: Visitors, route: visitors, icon: "vaadin:users"}
+  - type: Menu
+    label: Admin
+    submenu:
+      - {type: RouteLink, label: Staff, route: staff}
+      - {type: RouteLink, label: Settings, route: settings}

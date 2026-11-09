@@ -1,0 +1,12 @@
+id: bpmn
+area: components
+group: visualisation
+title: Bpmn
+covers: [component:Bpmn]
+description: |
+  A BPMN 2.0 process diagram, drawn read-only from its XML by [bpmn-js](https://bpmn.io) (MIT; its
+  watermark stays visible). The XML must carry its diagram section (`bpmndi:`), which places the
+  shapes. In Java: `new Bpmn(xml, style, cssClasses)`.
+examples:
+  - title: In YAML — an artwork loan process
+    yaml: specs/ui/explorer/components/bpmn/loan-process.yaml

@@ -1,0 +1,36 @@
+# Showing how far along something is. ProgressBar: a value between min and max (with a text and a
+# theme), or `indeterminate`. ProgressSteps: numbered steps with done / current / upcoming status,
+# horizontal or `vertical`. TaskProgress: "n of N" pills (it turns green when done = total).
+# Checklist: items done/undone under a progress header.
+content:
+  - {type: ProgressBar, value: 0.65, text: "Rooms cleaned: 65%"}
+  - {type: ProgressBar, min: 0, max: 120, value: 96, text: "96 of 120 rooms sold", theme: success}
+  - {type: ProgressBar, value: 0.9, text: "Overbooking risk", theme: error}
+  - {type: ProgressBar, indeterminate: true, text: "Syncing with the channel manager…"}
+  - type: ProgressSteps
+    steps:
+      - {id: s1, title: Identity, description: Documents scanned, status: done}
+      - {id: s2, title: Payment, description: Card pre-authorised, status: done}
+      - {id: s3, title: Room, description: Key cards, status: current}
+      - {id: s4, title: Welcome, status: upcoming}
+  - type: HorizontalLayout
+    spacing: true
+    content:
+      - type: ProgressSteps
+        vertical: true
+        steps:
+          - {id: v1, title: Booked, status: done}
+          - {id: v2, title: Checked in, status: current}
+          - {id: v3, title: Checked out, status: upcoming}
+      - type: VerticalLayout
+        spacing: true
+        content:
+          - {type: TaskProgress, label: Guests registered, done: 1, total: 3}
+          - {type: TaskProgress, label: Key cards encoded, done: 2, total: 2}
+  - type: Checklist
+    title: Room 102 — ready for arrival
+    items:
+      - {id: k1, label: Bed made, done: true}
+      - {id: k2, label: Bathroom cleaned, done: true}
+      - {id: k3, label: Minibar restocked}
+      - {id: k4, label: Welcome card on the desk}

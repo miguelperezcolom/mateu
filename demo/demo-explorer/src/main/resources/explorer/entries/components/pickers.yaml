@@ -1,0 +1,20 @@
+id: pickers
+area: components
+group: interactive-widgets
+title: AddOnPicker & PaymentPicker
+covers: [component:AddOnPicker, component:PaymentPicker]
+description: |
+  Two front-office widgets that keep their interaction in the browser and tell the server only
+  what it needs:
+
+  - **AddOnPicker** — priced optional extras as cards (an icon, a title, a description, a price
+    and unit, or an `includedLabel`); toggling recomputes the running total live and, when there is
+    an `actionId`, runs it with `_item`, `_added` and `_total` so each change can be persisted.
+  - **PaymentPicker** — the payment methods as a segmented choice, a context chip (`contextLabel` /
+    `contextValue`) and a confirm button; only the confirm runs `actionId`, with `_method`.
+
+  Also in the C# and Python ports.
+  Try: toggle an extra; pick *Cash* and press *Charge*.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.pickers.TicketExtras

@@ -1,0 +1,33 @@
+# Lists of things with a state. StatusList: rows with an icon (or an avatar), a title and
+# description, a status chip — `compact`, `frameless`, `columns`. Ledger: a folio — concepts left,
+# amounts right, a total (computed when absent), `included` lines show a label instead of an
+# amount. ProcessMonitor: automations with ok / warning / error counters and a status dot.
+content:
+  - type: StatusList
+    items:
+      - {id: i1, icon: "🔧", title: "Room 305 — air conditioning", description: "Reported 08:40 by housekeeping", status: Open, statusColor: error}
+      - {id: i2, icon: "💧", title: "Room 118 — leaking tap", description: "Plumber on the way", status: In progress, statusColor: warning}
+      - {id: i3, avatar: MR, title: Marta Ruiz, description: "Inspection of floor 2", status: Done, statusColor: success,
+         lines: ["14 rooms inspected", "2 sent back to cleaning"]}
+  - type: StatusList
+    compact: true
+    columns: 2
+    items:
+      - {id: r1, icon: "🛏", title: "101", status: Clean, statusColor: success}
+      - {id: r2, icon: "🛏", title: "102", status: Occupied, statusColor: contrast}
+      - {id: r3, icon: "🛏", title: "103", status: Dirty, statusColor: warning}
+      - {id: r4, icon: "🛏", title: "104", status: Out of order, statusColor: error}
+  - type: Ledger
+    currency: "€"
+    totalLabel: Balance due
+    lines:
+      - {concept: "Room 102 — 3 nights", amount: 1140}
+      - {concept: City tax (2 × 3 nights), amount: 12}
+      - {concept: Breakfast, included: true, includedLabel: Included}
+      - {concept: Minibar, amount: 18.5}
+      - {concept: Deposit, amount: -250}
+  - type: ProcessMonitor
+    items:
+      - {id: p1, name: Channel manager sync, systems: [PMS, Booking.com, Expedia], ok: 1204, warnings: 3, errors: 0, status: ok}
+      - {id: p2, name: Nightly audit, systems: [PMS, ERP], ok: 1, warnings: 1, errors: 0, status: warning}
+      - {id: p3, name: Invoice export, systems: [PMS, ERP, Bank], ok: 88, warnings: 0, errors: 4, status: error}

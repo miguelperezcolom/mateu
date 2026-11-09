@@ -1,0 +1,23 @@
+id: edit-in-drawer
+area: behaviour
+group: listings
+title: Edit in a drawer, save and next
+covers: [behaviour:edit-in-drawer]
+description: |
+  `editInDrawer()` → **New** and a row click open the form in a drawer over the listing instead of
+  navigating away: the listing stays where it was and refreshes in place when you save.
+  `display()` switches on **Save and next**, which saves and opens the following row
+  (`nextIdAfter`). A save the store refuses — a `UserFacingException` — shows as an **error banner
+  inside the drawer**, which stays open with what you typed.
+
+  Try it: open the CRUD, click `ORD-1001`, change the customer and press **Save and next** — the
+  drawer now shows `ORD-1002`. Set its *Amount* to `20000` and save: the banner says
+  *Over the credit limit* and your value is still there.
+examples:
+  - title: Orders
+    yaml: specs/ui/explorer/behaviour/edit-in-drawer/open.yaml
+pages:
+  - {route: x/behaviour/edit-in-drawer, viewModel: io.mateu.explorer.examples.behaviour.editindrawer.DrawerOrdersCrud}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/edit-in-drawer/DrawerOrdersCrud.cs}
+  - {label: Python, path: src/main/ports/behaviour/edit-in-drawer/drawer_orders_crud.py}

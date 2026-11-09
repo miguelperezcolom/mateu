@@ -1,0 +1,19 @@
+id: welcome
+area: archetypes
+group: overview
+title: Welcome
+covers: [archetype:Welcome]
+description: |
+  Extend `Welcome` and declare fields: `Button` fields become the calls to action of a centred hero (the
+  first `primary` one leads), `@Panel` component fields become highlight tiles under it. The hero's
+  texts are hooks — `heroOverline()`, `heroTitle()`, `heroSubtitle()`, `heroImage()` — and so is its
+  colour band, `heroTone()`. Each button's `actionId` runs the `@Action` of that name (return a `URI`
+  to navigate).
+examples:
+  - title: Museum welcome
+    java: io.mateu.explorer.examples.archetypes.welcome.MuseumWelcome
+pages:
+  - {route: x/archetypes/welcome, viewModel: io.mateu.explorer.examples.archetypes.welcome.MuseumWelcome}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/welcome/MuseumWelcome.cs}
+  - {label: Python, path: src/main/ports/archetypes/welcome/museum_welcome.py}

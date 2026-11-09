@@ -1,0 +1,43 @@
+id: permissions
+area: behaviour
+group: app
+title: Permissions (role switcher)
+covers: [behaviour:permissions]
+description: |
+  The same identity dimensions (`roles`, `groups`, `scopes`, `permissions`) drive three states of a
+  field or button, all decided **on the server, per request**:
+
+  - `@EyesOnly` / YAML `eyesOnly:` — not sent at all (the value never reaches the browser);
+  - `@ReadOnlyUnless` / `readOnlyUnless:` — shown, editable only when authorised;
+  - `@DisabledUnless` / `disabledUnless:` — shown, inert unless authorised;
+  - YAML `access:` on a route — anybody else gets a 403.
+
+  **About the role switcher — a demo device.** Mateu does not authenticate: a real app takes the
+  caller's identity from what its framework authenticated (Spring Security, Quarkus OIDC, a JWT your
+  gateway verified…). Here a `PrincipalResolver` bean (`DemoRoleResolver`, see the Code tabs) reads
+  the role from an `@AppContext` selector, so you can feel the difference without logging in. Never
+  build roles from a value the client picks in a real app.
+
+  **Try it:** in the "Role (demo)" selector of the embedded app pick **Guest**, then **Staff**, then
+  **Manager**. Guest sees neither notes nor salary and **Approve raise** is disabled; Staff sees the
+  notes; Manager also sees the salary, can edit the department and approve the raise. The YAML page
+  below follows the same role (the browser keeps the choice and sends it with every request; reload
+  it after switching), and so does the last example: a route with `access: {roles: [manager]}`,
+  refused unless you are a manager.
+probeAllows: ["status of 403"]   # done on purpose (see the description)
+examples:
+  - title: The role switcher (an app with an @AppContext selector)
+    java: io.mateu.explorer.examples.behaviour.permissions.RoleSwitcher
+  - title: The same rules in YAML
+    route: x/behaviour/permissions/yaml
+  - title: "A route with access: {roles: [manager]}"
+    description: Anybody but a manager gets a 403 ("You are not allowed to do this").
+    java: io.mateu.explorer.examples.behaviour.permissions.ManagersOnlyIsland
+pages:
+  - {route: x/behaviour/permissions/yaml, layout: explorer/behaviour/permissions/yaml-payroll.yaml}
+code:
+  - {label: "Java · PermissionsDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/permissions/PermissionsDemoApp.java}
+  - {label: "Java · PayrollRecord", path: src/main/java/io/mateu/explorer/examples/behaviour/permissions/PayrollRecord.java}
+  - {label: "YAML · routes (access:)", path: src/main/resources/specs/ui/explorer/behaviour/permissions/routes.yaml}
+  - {label: "YAML · managers-page", path: src/main/resources/specs/ui/explorer/behaviour/permissions/managers-page.yaml}
+  - {label: "Java · DemoRoleResolver (demo device)", path: src/main/java/io/mateu/explorer/examples/behaviour/permissions/DemoRoleResolver.java}

@@ -1,0 +1,92 @@
+# The Mateu Explorer (demo/demo-explorer): its coverage guard and its browser probe.
+#
+# Cheap on purpose: it runs only when the Explorer changes, and builds against the RELEASED Mateu the
+# Explorer pins (<mateu.version>) — no backend reactor, no frontend build. That the Explorer still
+# COMPILES against this commit's backend is examples.yml's job (it compiles every demo).
+#
+# 1. `mvn package` runs ExplorerCoverageTest — strict: every checklist id covered (or
+#    notDemonstrable), every entry well-formed — and writes target/explorer-entries.json.
+# 2. remotes/run.sh boots the Explorer and the remotes of the distributed entries.
+# 3. e2e/explorer-probe.mjs opens every entry page: no console error, examples drawn, Code tabs.
+#    Entries with a `knownIssue:` are reported, not failed.
+name: Explorer
+
+on:
+  pull_request:
+    paths:
+      - 'demo/demo-explorer/**'
+      - '.github/workflows/explorer.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'demo/demo-explorer/**'
+      - '.github/workflows/explorer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: explorer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  explorer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+          cache: maven
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+
+      - name: Build the Explorer and run its coverage guard (strict)
+        working-directory: demo/demo-explorer
+        run: mvn -B package
+
+      - name: Build the remotes
+        working-directory: demo/demo-explorer/remotes
+        run: |
+          mvn -B -q package -DskipTests
+          (cd python-remote && python -m venv .venv && .venv/bin/pip install -q -r requirements.txt)
+
+      - name: Install Playwright (chromium)
+        run: cd e2e && npm ci --no-audit --no-fund && npx playwright install --with-deps chromium
+
+      - name: Boot the Explorer and the remotes
+        working-directory: demo/demo-explorer/remotes
+        run: ./run.sh --no-build
+
+      - name: Open every entry page
+        working-directory: demo/demo-explorer
+        env:
+          PROBE_REPORT: ${{ runner.temp }}/explorer-probe.md
+        run: |
+          status=0
+          node e2e/explorer-probe.mjs || status=$?
+          [ -f "$PROBE_REPORT" ] && cat "$PROBE_REPORT" >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
+      - name: Server logs
+        if: failure()
+        working-directory: demo/demo-explorer/remotes
+        run: tail -n 200 *.log || true
+
+      - name: Stop
+        if: always()
+        working-directory: demo/demo-explorer/remotes
+        run: ./run.sh stop

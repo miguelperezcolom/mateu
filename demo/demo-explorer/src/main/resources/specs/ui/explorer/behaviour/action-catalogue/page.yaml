@@ -1,0 +1,10 @@
+# This page declares NO actions: both ids resolve from the catalogue (actions.yaml next to it).
+type: Form
+title: Actions by id
+content:
+  - {type: Text, text: "Both buttons name a catalogue action; the page itself declares none."}
+  - {type: Text, text: "Last answer: ${state.lastPong ?? '(none yet)'}"}
+  - type: HorizontalLayout
+    content:
+      - {type: Button, label: Ping the API, actionId: behaviourPing, buttonStyle: primary}
+      - {type: Button, label: Go to the Explorer home, actionId: behaviourGoHome}

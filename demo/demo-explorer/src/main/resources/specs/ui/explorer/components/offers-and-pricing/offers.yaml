@@ -1,0 +1,41 @@
+# Selling. An OfferCard is a current-vs-upgrade offer: image, a tag chip, title, subtitle, the
+# features, a price and its CTA; `current` marks the one the guest has, `added` one already taken.
+# A PricingTable lays PricingPlans side by side, one `featured`.
+#
+# (No actionIds here: in a YAML partial an action would bubble to the Explorer page — the Java
+# example runs them.)
+content:
+  - type: HorizontalLayout
+    spacing: true
+    wrap: true
+    content:
+      - type: OfferCard
+        title: Deluxe sea view
+        subtitle: Your room
+        image: /explorer/components/media-and-badges/bay.svg
+        features: [32 m², King bed, Balcony]
+        current: true
+        currentLabel: Current room
+        style: "width: 17rem;"
+      - type: OfferCard
+        tag: Most popular
+        title: Junior suite
+        subtitle: Separate lounge, bay views on two sides
+        image: /explorer/components/media-and-badges/bay.svg
+        features: [48 m², King bed, Lounge with sofa bed, Nespresso machine]
+        priceLabel: "+ € 60 / night"
+        actionLabel: Upgrade
+        style: "width: 17rem;"
+      - type: OfferCard
+        title: Breakfast
+        subtitle: Buffet on the terrace
+        features: [7:00 – 10:30, Gluten-free options]
+        priceLabel: "€ 20 / person"
+        added: true
+        addedLabel: Added
+        style: "width: 17rem;"
+  - type: PricingTable
+    plans:
+      - {id: room, name: Room only, price: "€ 142", period: / night, features: [Free Wi-Fi, Free cancellation until 48 h], ctaLabel: Choose}
+      - {id: bb, name: Bed & breakfast, price: "€ 168", period: / night, featured: true, features: [Free Wi-Fi, Buffet breakfast, Free cancellation until 48 h], ctaLabel: Choose}
+      - {id: hb, name: Half board, price: "€ 205", period: / night, features: [Free Wi-Fi, Breakfast and dinner, Non-refundable], ctaLabel: Choose}

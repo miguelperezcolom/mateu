@@ -1,0 +1,20 @@
+id: action-panel-dispatch
+area: behaviour
+group: actions
+title: Action panel ("I want to…")
+covers: [behaviour:action-panel-dispatch]
+description: |
+  An `ActionPanel` is a trigger button (with an optional shortcut) opening an overlay of actions in
+  categories. Each `ActionPanelItem` dispatches its `actionId` with its `parameters`, exactly like a
+  button — so it lands on the view's methods. Items with data behind them (`populated`, or a
+  `count`) come first and bold; `disabled` ones are inert. Opening and filtering the overlay is all
+  client-side.
+
+  Try it: press **I want to…** (or **Ctrl+I**), then **Upgrade room** — the toast says *You chose to
+  upgrade the room*.
+examples:
+  - title: Actions on a reservation
+    java: io.mateu.explorer.examples.behaviour.actionpaneldispatch.ReservationActions
+code:
+  - {label: "C#", path: src/main/ports/behaviour/action-panel-dispatch/ReservationActions.cs}
+  - {label: Python, path: src/main/ports/behaviour/action-panel-dispatch/reservation_actions.py}

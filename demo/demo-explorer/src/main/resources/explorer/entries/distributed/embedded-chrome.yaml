@@ -1,0 +1,22 @@
+id: embedded-chrome
+area: distributed
+group: microfrontends
+title: Embedded chrome — NONE / COMPACT / PAGE
+covers: [distributed:embedded-chrome]
+description: |
+  An embedded remote PAGE is a block of the host's page, not a page: it must not retitle the
+  window, change the favicon or push history. The island's requests carry `embeddedChrome` and the
+  remote's server strips those commands from every answer. `chrome` then says how much of the
+  remote's header stays:
+
+  - `NONE` — no header: just the content;
+  - `COMPACT` — only the page's actions (the toolbar);
+  - `PAGE` — the whole header (title, subtitle, actions) but no breadcrumb.
+
+  **Try it:** the same remote page three times below — the window title stays the Explorer's; press
+  *Refresh* in the COMPACT one (it runs on the remote).
+examples:
+  - title: One remote page, three chromes
+    java: io.mateu.explorer.examples.distributed.embeddedchrome.EmbeddedChromes
+code:
+  - {label: "Java · the remote page", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/fragments/ChromePage.java}

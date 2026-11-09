@@ -1,0 +1,15 @@
+id: landing-blocks
+area: components
+group: display
+title: FAQ, features, testimonials & cookies
+covers: [component:FeatureGrid, component:Testimonials, component:Faq, component:CookieConsent]
+# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+knownIssue: >-
+  Vaadin, 3.0-beta.51: a Faq answer is shown as plain text — its markdown is not rendered.
+examples:
+  - title: In YAML
+    description: "Known issues (3.0-beta.51, Vaadin): A Faq answer is shown as plain text: markdown in it (`**bold**`) is not rendered."
+    yaml: specs/ui/explorer/components/landing-blocks/landing.yaml
+  - title: "In Java, with a clickable feature"
+    description: "Click the **Spa** feature."
+    java: io.mateu.explorer.examples.components.landing.FluentLanding

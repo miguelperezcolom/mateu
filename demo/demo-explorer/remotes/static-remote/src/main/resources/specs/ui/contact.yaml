@@ -1,0 +1,6 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Contact
+content:
+  - type: Text
+    text: Write to help@example.com — this screen, too, ships as a static file.

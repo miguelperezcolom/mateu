@@ -1,0 +1,15 @@
+id: cross-step-state
+area: behaviour
+group: wizards
+title: "Cross-step state"
+covers: [behaviour:cross-step-state]
+description: |
+  Every step's values travel with the wizard in the request: going back shows what you typed, going
+  forward keeps it, and the completion action reads all the steps. No mirror fields, no server session.
+
+  **Try it:** type a guest name, **Next**, change the room to Suite and the nights to 4, **Back** — the
+  name is still there; **Next**, **Next**, tick breakfast and **Book**: the confirmation sums up all
+  three steps.
+examples:
+  - title: "Room booking"
+    java: io.mateu.explorer.examples.behaviour.crossstepstate.BookingWizard

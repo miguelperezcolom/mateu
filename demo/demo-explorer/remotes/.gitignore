@@ -1,0 +1,4 @@
+.pids
+*.log
+.venv/
+__pycache__/

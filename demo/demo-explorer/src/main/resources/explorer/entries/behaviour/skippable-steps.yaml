@@ -1,0 +1,17 @@
+id: skippable-steps
+area: behaviour
+group: wizards
+title: "Skippable steps and beforeStepNavigate"
+covers: [behaviour:skippable-steps]
+description: |
+  `stepSkippable(step)` adds a **Skip** button: the step stays in the process, but the user may move on
+  without its required fields (unlike `stepApplies`, which removes a step). `beforeStepNavigate(from,
+  to, request)` runs before EVERY move — next, back, skip, a jump, the completion — after the step was
+  hydrated (and, forward, validated): return null to allow it, anything else cancels the move and is
+  the answer.
+
+  **Try it:** type `admin` as user name and press **Next** — refused ("'admin' is reserved"); type
+  another name, **Next**; on Interests press **Skip** with the field empty — you move on.
+examples:
+  - title: "Sign up"
+    java: io.mateu.explorer.examples.behaviour.skippablesteps.SignupWizard

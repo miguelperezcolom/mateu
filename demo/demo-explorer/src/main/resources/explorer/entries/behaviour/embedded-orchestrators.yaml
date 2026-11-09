@@ -1,0 +1,19 @@
+id: embedded-orchestrators
+area: behaviour
+group: communication
+title: Embedded orchestrators
+covers: [behaviour:embedded-orchestrators]
+description: |
+  A form field whose **type is an orchestrator** — here `ShippingAddressView extends
+  AutoEditableView<Address>` — renders as an independent island inside the page: it switches
+  between its read-only view and its editor, and saves, **on its own**, without re-rendering the
+  page around it. `@Inline` folds the island's title into the host section. The orchestrator needs
+  a route of its own (this entry's `pages:`), which is where its island loads.
+
+  Try it: press **Edit** in *Shipping address*, change the city to `Boston` and **Save** — the
+  island is back in view mode with Boston; the *Customer* section never reloaded.
+examples:
+  - title: Customer
+    java: io.mateu.explorer.examples.behaviour.embeddedorchestrators.CustomerPage
+pages:
+  - {route: x/behaviour/embedded-orchestrators/address, viewModel: io.mateu.explorer.examples.behaviour.embeddedorchestrators.ShippingAddressView}

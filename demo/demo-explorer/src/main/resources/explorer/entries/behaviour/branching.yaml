@@ -1,0 +1,17 @@
+id: branching
+area: behaviour
+group: wizards
+title: "Branching wizards"
+covers: [behaviour:branching]
+description: |
+  Override `stepApplies(stepFieldName)` and a step is there only when earlier answers make it relevant.
+  It is evaluated on every render: a step that does not apply is jumped going forward AND back, left
+  out of the progress indicator and of the recaps; when the last data step is skipped the completion
+  button moves to the last one that applies.
+
+  **Try it:** leave **Pickup in store**, press **Next** — you land on Confirm (no address step, and the
+  progress counts two steps); go **Back**, choose **Home delivery**, **Next** — the address step
+  appears; fill it and **Place order**.
+examples:
+  - title: "Delivery"
+    java: io.mateu.explorer.examples.behaviour.branching.DeliveryWizard

@@ -1,0 +1,20 @@
+id: inline-editing
+area: behaviour
+group: listings
+title: Inline editing on a CRUD listing
+covers: [behaviour:inline-editing]
+description: |
+  `@InlineEditing` on the crud class turns every data column of the table into an in-place editor
+  of its type (text, number, checkbox), and each committed cell **saves its row at once** through
+  `CrudStore.save` — there is no Save button. `@ReadOnly` fields stay display-only.
+
+  Try it: open the CRUD, change the *Stock* of `SKU-500` to `99` and press Enter, untick *Active* on
+  another row — then reload the page: both changes were saved.
+examples:
+  - title: Stock
+    yaml: specs/ui/explorer/behaviour/inline-editing/open.yaml
+pages:
+  - {route: x/behaviour/inline-editing, viewModel: io.mateu.explorer.examples.behaviour.inlineediting.StockCrud}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/inline-editing/StockCrud.cs}
+  - {label: Python, path: src/main/ports/behaviour/inline-editing/stock_crud.py}

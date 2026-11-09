@@ -1,0 +1,25 @@
+id: route-params
+area: behaviour
+group: navigation
+title: Route parameters & precedence
+covers: [behaviour:route-params]
+description: |
+  A route entry binds a screen and its parameters **independently**: `:name` path segments,
+  `defaultParams` (seeded, overridable) and `fixedParams` (pinned). The fields of the view are filled
+  by name with one precedence, the same on the server and in the browser:
+  **fixed > client state > path > query > defaults**. Fixed parameters are re-applied on the server
+  over whatever the client sends — a pin enforced only in the browser would be a suggestion.
+
+  Here two routes serve the same `RateQuote`, pinning a different `channel` (authored in code with a
+  `RouteEntrySupplier`; a `routes.yaml` says the same in YAML).
+
+  Try it: open the links — `?currency=USD&nights=3` overrides the defaults, but `?channel=staff`
+  cannot move the pinned *web* channel.
+examples:
+  - title: The links to try
+    java: io.mateu.explorer.examples.behaviour.routeparams.RateLinks
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/routeparams/RateRoutes.java}
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/routeparams/RateQuote.java}
+  - {label: "C#", path: src/main/ports/behaviour/route-params/RateRoutes.cs}
+  - {label: Python, path: src/main/ports/behaviour/route-params/rate_routes.py}

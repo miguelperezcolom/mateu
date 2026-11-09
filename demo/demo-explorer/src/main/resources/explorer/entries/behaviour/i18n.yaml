@@ -1,0 +1,38 @@
+id: i18n
+area: behaviour
+group: app
+title: "Translations (en / es)"
+covers: [behaviour:i18n]
+description: |
+  Texts live in **catalogues**, one per locale (`type: Translations` files, or
+  `specs/ui/translations/<locale>.yaml` by convention), and any label, title or text references them
+  as `${i18n.<key>}`. They are resolved **on the server, per request**, for the request's locale
+  (`Translator.locale`, by default the `Accept-Language` header). The locale also reaches the client
+  as the app's locale (`<html lang>`), which the renderer's own chrome texts follow.
+
+  The language switch here is a demo `Translator` that takes the locale from an `@AppContext`
+  selector; a real app usually relies on `Accept-Language` or the user's profile.
+
+  **Try it:** pick **es** in the "Language" selector of the embedded app (the page reloads), then look
+  at the YAML page above it: title, text, label and button are in Spanish. Pick **en** to come back.
+
+  > **Known issue (3.0-beta.51):** the Java twin (`Greeting`, `@Title` / `@Label("${i18n.…}")`)
+  > reaches the screen untranslated — the key is shown — although the docs say the default translator
+  > resolves it. Reported; the YAML path works.
+knownIssue: >-
+  3.0-beta.51: the Java twin's ${i18n.…} @Title / @Label reaches the screen untranslated (the YAML path works).
+examples:
+  - title: "A YAML page with ${i18n.x}"
+    route: x/behaviour/i18n/page
+  - title: "The language switch + Java labels with ${i18n.x}"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.i18n.LanguageIsland
+pages:
+  - {route: x/behaviour/i18n/page, layout: explorer/behaviour/i18n/page.yaml}
+code:
+  - {label: "Java · I18nDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/i18n/I18nDemoApp.java}
+  - {label: "Java · Greeting", path: src/main/java/io/mateu/explorer/examples/behaviour/i18n/Greeting.java}
+  - {label: "YAML · en.yaml", path: src/main/resources/specs/ui/explorer/behaviour/i18n/en.yaml}
+  - {label: "YAML · es.yaml", path: src/main/resources/specs/ui/explorer/behaviour/i18n/es.yaml}
+  - {label: "Java · DemoLanguageTranslator (demo device)", path: src/main/java/io/mateu/explorer/examples/behaviour/i18n/DemoLanguageTranslator.java}
+  - {label: "Java · DemoLanguage", path: src/main/java/io/mateu/explorer/examples/behaviour/i18n/DemoLanguage.java}

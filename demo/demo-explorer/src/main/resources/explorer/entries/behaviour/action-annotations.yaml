@@ -1,0 +1,21 @@
+id: action-annotations
+area: behaviour
+group: actions
+title: "@Toolbar, @Button and @Action"
+covers: [behaviour:action-annotations]
+description: |
+  An action is a method; its name is its action id. `@Toolbar` puts a button in the page header's
+  toolbar, `@Button` one under the form, and `@Action` alone draws nothing — the method is still
+  callable (a shortcut, a trigger, a component naming it, `UICommand.runAction`…) and `@Action`
+  configures how it runs (`validationRequired`, `confirmationRequired`, `shortcut`, `timeoutMillis`…).
+  `@Label` renames a button; `buttonStyle` and `order` style and sort it. Only marked (or public)
+  methods are callable: an unknown action id is refused with a 403.
+
+  Try it: press **Ship order** (toolbar) and **Print invoice** (form); click outside the fields and
+  press **Ctrl+Alt+R** to run the button-less `recalculate`.
+examples:
+  - title: An order with actions
+    java: io.mateu.explorer.examples.behaviour.actionannotations.OrderActions
+code:
+  - {label: "C#", path: src/main/ports/behaviour/action-annotations/OrderActions.cs}
+  - {label: Python, path: src/main/ports/behaviour/action-annotations/order_actions.py}

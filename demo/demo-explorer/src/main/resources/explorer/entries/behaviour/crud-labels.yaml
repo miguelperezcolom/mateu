@@ -1,0 +1,19 @@
+id: crud-labels
+area: behaviour
+group: listings
+title: CRUD button labels and @Not* subtraction
+covers: [behaviour:crud-labels]
+description: |
+  An `AutoCrud` is the full pack: New, Delete, view, edit. Its button texts come from overridable
+  methods — `newLabel()`, `editLabel()`, `saveLabel()`, `cancelLabel()`, `deleteLabel()`,
+  `backToListLabel()`… — and a capability you do not want is **subtracted** with `@NotDeletable`,
+  `@NotCreatable`, `@NotEditable` or `@NotNavigable`: the button goes, and the server refuses the
+  action if a client sends it anyway.
+
+  Try it: open the CRUD — the toolbar says **Add supplier** and there is no Delete button (and a
+  delete sent by hand is answered 403); open a supplier and press **Change**: the form offers **Save supplier** and **Discard**.
+examples:
+  - title: Suppliers
+    yaml: specs/ui/explorer/behaviour/crud-labels/open.yaml
+pages:
+  - {route: x/behaviour/crud-labels, viewModel: io.mateu.explorer.examples.behaviour.crudlabels.SuppliersCrud}

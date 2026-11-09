@@ -1,0 +1,22 @@
+id: grid
+area: components
+group: listings-and-data
+title: Grid, GridColumn & GridGroupColumn
+covers: [component:Grid, component:GridColumn, component:GridGroupColumn]
+description: |
+  A plain data table: you give it the columns and a `page` of rows (each row a map keyed by column
+  id) — no search, no filters, no CRUD; that is what `Listing` and the CRUD archetypes add.
+
+  - **GridColumn** — `label`, `dataType` (`money`, `date`, `bool`, `status`…), `align`, `width`,
+    `frozen`, `sortable`; an `actionId` makes its cells clickable.
+  - **GridGroupColumn** — a header over several columns.
+  - **Grid** — `compact`, `rowStripes`, `columnBorders`, `noBorder`, `wrapCellContent`; `tree: true`
+    for rows that carry a `children` list.
+
+  Java-only: the C# and Python ports draw their tables as listings and grid fields instead.
+  Try: click a title in the Java example.
+examples:
+  - title: In YAML — groups, a frozen column, money and dates
+    yaml: specs/ui/explorer/components/grid/loans.yaml
+  - title: In Java — a clickable column and a tree
+    java: io.mateu.explorer.examples.components.grid.ArtworkGrid

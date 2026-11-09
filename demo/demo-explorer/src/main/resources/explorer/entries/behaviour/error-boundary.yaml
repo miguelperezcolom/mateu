@@ -1,0 +1,18 @@
+id: error-boundary
+area: behaviour
+group: resilience-a11y
+title: "Error boundary"
+covers: [behaviour:error-boundary]
+description: |
+  What an exception becomes on screen. A `UserFacingException(title, message)` is shown **as written**
+  — it is meant for the user (bean-validation messages too). Anything else shows "Something went
+  wrong / An unexpected error occurred. Reference: &lt;id&gt;" and is logged at ERROR under that id, so
+  support can find it while the internals never reach the browser. `MATEU_ERRORS_DETAILED=true` shows
+  the raw exception, for development. The texts are identical in the Java, .NET and Python servers.
+
+  **Try it:** press **A rule of the business** ("Credit limit reached…"), then **A bug** (a
+  NullPointerException on the server): the generic text with a reference — look for it in the server
+  log.
+examples:
+  - title: "When things go wrong"
+    java: io.mateu.explorer.examples.behaviour.errorboundary.Failures

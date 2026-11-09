@@ -1,0 +1,25 @@
+id: import-wizard
+area: archetypes
+group: processes
+title: Import wizard
+covers: [archetype:ImportWizard]
+description: |
+  Extend `ImportWizard<Row>` and write `importRows(rows)`: the archetype is the whole guided import —
+  upload or paste a CSV, check the automatic mapping of its columns onto the row's fields (adjustable),
+  read the per-line validation report (bean validation on the row class) and import the valid rows.
+  Paste this to try it:
+
+  ```
+  title,artist,year
+  Water Lilies,Claude Monet,1906
+  ,Unknown,1500
+  The Great Wave,Hokusai,1831
+  ```
+examples:
+  - title: Import artworks
+    java: io.mateu.explorer.examples.archetypes.importwizard.ArtworkImport
+pages:
+  - {route: x/archetypes/import-wizard, viewModel: io.mateu.explorer.examples.archetypes.importwizard.ArtworkImport}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/import-wizard/ArtworkImport.cs}
+  - {label: Python, path: src/main/ports/archetypes/import-wizard/artwork_import.py}

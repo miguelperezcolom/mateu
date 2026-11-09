@@ -1,0 +1,15 @@
+id: fluent-handlers
+area: behaviour
+group: actions
+title: Fluent buttons with handlers
+covers: [behaviour:fluent-handlers]
+description: |
+  In a component tree (`ComponentTreeSupplier`), a `Button` can carry its **own handler** — a
+  `Runnable` or `Callable` lambda run on the server against this instance — instead of naming an
+  action method; the lambda returns what an action returns. Give each one an `actionId`: it is what
+  the browser sends (beta.51 does not advertise a handler button without one).
+
+  Try it: press **+1 €** twice and **+5 €** once — *Tips today* reads 7 €.
+examples:
+  - title: A tip jar
+    java: io.mateu.explorer.examples.behaviour.fluenthandlers.TipJar

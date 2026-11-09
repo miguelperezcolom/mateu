@@ -1,0 +1,21 @@
+id: matrix-grid
+area: components
+group: visualisation
+title: MatrixGrid
+covers: [component:MatrixGrid]
+description: |
+  Rows (metrics or types, in collapsible sections) × columns (usually dates) of values — the shape
+  of an availability or forecast grid. Consecutive columns sharing a `group` get a spanning header;
+  a column or a cell `tone` tints it; an `emphasis` row is a total. A row marked `editable` edits in
+  place and commits through `editActionId`; a `link` cell runs `cellActionId`. Both receive
+  `_rowId`, `_columnId` and `_value`.
+
+  Try: in the Java example, change a Quota cell and watch "Left" follow; click a "Sold" number.
+examples:
+  - title: In YAML — groups, tones, collapsible sections
+    yaml: specs/ui/explorer/components/matrix-grid/availability.yaml
+  - title: In Java — cells you edit, cells you click
+    java: io.mateu.explorer.examples.components.matrixgrid.TicketQuota
+code:
+  - {label: "C#", path: src/main/ports/components/matrix-grid/TicketQuota.cs}
+  - {label: Python, path: src/main/ports/components/matrix-grid/ticket_quota.py}

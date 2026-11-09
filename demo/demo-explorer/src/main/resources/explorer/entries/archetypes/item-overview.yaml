@@ -1,0 +1,17 @@
+id: item-overview
+area: archetypes
+group: records
+title: Item overview
+covers: [archetype:ItemOverview]
+description: |
+  Extend `ItemOverview`: the first component field without `@Panel` is the key-information panel,
+  pinned on the left (`panelWidth()`); every `@Panel(title)` component field becomes a tab on the right.
+  Pure composition of Card + TabLayout — it renders everywhere.
+examples:
+  - title: Water Lilies
+    java: io.mateu.explorer.examples.archetypes.itemoverview.ArtworkOverview
+pages:
+  - {route: x/archetypes/item-overview, viewModel: io.mateu.explorer.examples.archetypes.itemoverview.ArtworkOverview}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/item-overview/ArtworkOverview.cs}
+  - {label: Python, path: src/main/ports/archetypes/item-overview/artwork_overview.py}

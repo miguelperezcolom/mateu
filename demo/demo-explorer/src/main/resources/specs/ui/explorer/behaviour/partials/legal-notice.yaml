@@ -1,0 +1,4 @@
+# A single-component partial: the file IS the component, no envelope.
+type: Notice
+theme: info
+text: "Prices include VAT. Orders ship within 48 hours."

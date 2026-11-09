@@ -1,0 +1,25 @@
+id: content-slots
+area: distributed
+group: microfrontends
+title: "@ContentSlot with fallback"
+covers: [distributed:content-slots]
+description: |
+  A `@ContentSlot` is a hole for **managed content** (a notice, a help text, an editorial block): a
+  SERVER micro frontend against the content service — the remote `content`, route
+  `/content-slots/{key}` (`mateu.content-slots.remote` / `.route`) — with a stable key, a declared
+  **fallback** and a registry of every slot (`META-INF/mateu/content-slots.json`, written at compile
+  time; malformed or duplicate keys fail the build).
+
+  It **never blocks the screen**: empty (204), an error, or no answer within `timeoutMs` → the
+  fallback is painted (blank fallback → nothing). Unlike a plain micro frontend it does not degrade
+  to the browser asking (unless `degradeToClient = true`): the browser never receives what the
+  server did not resolve for that user.
+
+  **Try it:** the news slot is filled; the tips slot is answered too late and shows its fallback.
+  Now stop the Java remote and reload: both show their fallbacks, and the page is as fast as ever.
+examples:
+  - title: Two content slots
+    java: io.mateu.explorer.examples.distributed.contentslots.ContentSlots
+code:
+  - {label: "Java · the content service", path: remotes/java-remote/src/main/java/io/mateu/explorer/remote/content/ContentHub.java}
+  - {label: "Java · the 'content' remote", path: src/main/java/io/mateu/explorer/examples/distributed/DistributedRemotesConfig.java}

@@ -1,0 +1,21 @@
+id: stereotype-choices
+area: behaviour
+group: forms
+title: Choices & enum labels
+covers: [behaviour:stereotype-choices, behaviour:enum-labels]
+description: |
+  An enum is a **select** and a `List` of an enum a **multi-select**; under `@AutoLayout` (layout
+  inference) an enum of up to 4 constants becomes **radio buttons**. `@UseRadioButtons` forces radios at any size and
+  `@Stereotype` picks another widget (checkbox group, list box, combobox…).
+
+  Constants are **humanised**: `TWIN_BEDS` reads *Twin beds*, `LATE_CHECK_OUT` *Late check out*; a
+  `@Label` on a constant (or an overridden `toString()`) wins.
+
+  Try it: open **Floor** — the last option is *Penthouse ✨* (its `@Label`); pick two **Extras** and
+  press **Save** — the server receives the constants.
+examples:
+  - title: Room preferences
+    java: io.mateu.explorer.examples.behaviour.stereotypechoices.RoomPreferences
+code:
+  - {label: "C#", path: src/main/ports/behaviour/stereotype-choices/RoomPreferences.cs}
+  - {label: Python, path: src/main/ports/behaviour/stereotype-choices/room_preferences.py}

@@ -1,0 +1,18 @@
+id: drawer
+area: components
+group: overlays
+title: Drawer
+covers: [component:Drawer]
+description: |
+  A panel that slides in from an edge of the viewport — the side-panel sibling of `Dialog`, and
+  like it **returned from an action**. `position`: `end` (default), `start` or `bottom`; `size`
+  `s`/`m`/`l`/`xl` (or a `width`); `subtitle`; `maximizable` adds a ⤢ that steps the size up;
+  `collapsible` lets a bottom drawer fold to its header; `modeless` drops the backdrop; `peerNav`
+  adds previous/next arrows. ✕, Esc and the backdrop close it without a result;
+  `UICommand.closeModal(event, payload)` closes it WITH one (see behaviour › Overlays). Ported to
+  C# and Python with the same options.
+
+  Try each button.
+examples:
+  - title: In Java
+    java: io.mateu.explorer.examples.components.drawer.DrawerExamples

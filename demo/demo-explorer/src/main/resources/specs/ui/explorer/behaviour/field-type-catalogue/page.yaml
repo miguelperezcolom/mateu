@@ -1,0 +1,21 @@
+# Columns and fields name a type by `fieldType:` instead of repeating its attributes.
+type: Form
+title: Typed by the catalogue
+content:
+  - type: Listing
+    title: Planets
+    rowsSource: {ref: behaviour-planets}
+    columns:
+      - {type: GridColumn, id: name, label: Name, identifier: true}
+      - {type: GridColumn, id: climate, fieldType: Climate}          # a status badge, toned per value
+      - {type: GridColumn, id: population, fieldType: Population}    # right-aligned number
+  - type: FormLayout
+    content:
+      - {type: FormField, id: contact, fieldType: Email}                       # label, placeholder, required
+      - {type: FormField, id: backup, fieldType: Email, label: Backup e-mail, required: false}   # its own win
+  - {type: Button, label: Check, actionId: check}
+actions:
+  - id: check
+    validationRequired: true
+    steps:
+      - type: MarkClean

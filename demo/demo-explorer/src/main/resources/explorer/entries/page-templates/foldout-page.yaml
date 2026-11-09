@@ -1,0 +1,17 @@
+id: foldout-page
+area: page-templates
+group: templates
+title: Foldout page
+covers: [template:FoldoutPage]
+description: |
+  `template: {type: FoldoutPage}`: the `overview` slot stays in view; the form's `content` is the
+  panels — `FoldoutPanel`s with a `title`, a `summary` (what the folded strip shows) and `open` (no
+  `open:` = open while it fits the row, folded when it does not). `orientation`: vertical / horizontal.
+  Click a folded strip to open it.
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/foldout-page
+pages:
+  - {route: x/page-templates/foldout-page, layout: explorer/page-templates/foldout-page/exhibition.yaml}

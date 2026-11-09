@@ -1,0 +1,11 @@
+# Partials in use: a list partial spliced into a form layout, and a single-component partial used
+# twice on the same page.
+type: Form
+title: Order
+content:
+  - {type: Partial, ref: specs/ui/explorer/behaviour/partials/legal-notice.yaml}
+  - type: FormLayout
+    content:
+      - {type: FormField, id: customer, label: Customer, dataType: string}
+      - {type: Partial, ref: specs/ui/explorer/behaviour/partials/address-block.yaml}   # 3 more fields
+  - {type: Partial, ref: specs/ui/explorer/behaviour/partials/legal-notice.yaml}

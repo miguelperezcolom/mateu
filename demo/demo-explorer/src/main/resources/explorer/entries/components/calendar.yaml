@@ -1,0 +1,17 @@
+id: calendar
+area: components
+group: visualisation
+title: Calendar
+covers: [component:Calendar]
+description: |
+  A month (or week, day, list) of dated events. `month` is the anchor date of every view; `views`
+  with more than one value adds a switcher that works in the browser. `days` put a short label and
+  a tone in a date's cell (a closing, a sold-out day). An event's `actionId` makes it clickable,
+  and `dayActionId` makes every date cell clickable (the action receives `_date`).
+
+  Try: switch views in the YAML example; click a date or an event in the Java one.
+examples:
+  - title: In YAML — views, labelled days, multi-day events
+    yaml: specs/ui/explorer/components/calendar/month.yaml
+  - title: In Java — clickable dates and events
+    java: io.mateu.explorer.examples.components.calendar.EventsCalendar

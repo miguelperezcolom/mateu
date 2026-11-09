@@ -1,0 +1,20 @@
+id: optimistic-locking
+area: behaviour
+group: listings
+title: Optimistic locking
+covers: [behaviour:optimistic-locking]
+description: |
+  A `@Version` field on the entity: every save bumps it, and a save that carries an **older**
+  version than the stored one — somebody else saved in between — is not applied. The user gets a
+  conflict dialog: **reload** to see the other changes, or **overwrite** them on purpose.
+
+  Try it: open the CRUD, open `A-1` for editing in two browser tabs. Change the title in the first
+  and save; change it in the second and save — the conflict dialog appears.
+examples:
+  - title: Articles
+    yaml: specs/ui/explorer/behaviour/optimistic-locking/open.yaml
+pages:
+  - {route: x/behaviour/optimistic-locking, viewModel: io.mateu.explorer.examples.behaviour.optimisticlocking.ArticlesCrud}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/optimistic-locking/ArticlesCrud.cs}
+  - {label: Python, path: src/main/ports/behaviour/optimistic-locking/articles_crud.py}

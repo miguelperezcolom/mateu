@@ -1,0 +1,15 @@
+id: virtual-list
+area: components
+group: listings-and-data
+title: VirtualList
+covers: [component:VirtualList]
+description: |
+  A scrolling list that renders only the rows in view — here 2,000 of them. Each row is any
+  component you build (a layout, a card…); give the list a fixed height in its `style`. Java only:
+  the C# and Python ports have no VirtualList.
+
+  Try: scroll it.
+examples:
+  - title: In Java — 2,000 rows
+    java: io.mateu.explorer.examples.components.virtuallist.AccessionLog
+    embed: inline

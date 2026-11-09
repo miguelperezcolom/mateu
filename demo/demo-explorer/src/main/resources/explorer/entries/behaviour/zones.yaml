@@ -1,0 +1,20 @@
+id: zones
+area: behaviour
+group: form-layout
+title: Zones (multi-column layouts)
+covers: [behaviour:zones]
+description: |
+  `@Zones({@Zone(name, width)…})` declares columns and `@Section(zone = …)` puts a section in one;
+  a section with no zone is a full-width band, so a header can run across the top. The columns
+  wrap below each other when the window is too narrow.
+
+  Try it: *Stay* spans the width; *Guest* sits in the wide left column, *Room* and *Payment* stack
+  in the right one. Narrow the window and the right column drops below.
+examples:
+  - title: A reservation desk
+    route: x/behaviour/zones/reservation
+pages:
+  - {route: x/behaviour/zones/reservation, viewModel: io.mateu.explorer.examples.behaviour.zones.ReservationDesk}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/zones/ReservationDesk.cs}
+  - {label: Python, path: src/main/ports/behaviour/zones/reservation_desk.py}

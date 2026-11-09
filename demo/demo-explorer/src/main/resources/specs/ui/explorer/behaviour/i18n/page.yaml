@@ -1,0 +1,7 @@
+# Texts as ${i18n.<key>}: the catalogue files next to this one (type: Translations) hold them.
+type: Form
+title: "${i18n.explorer.i18n.yamlTitle}"
+content:
+  - {type: Text, text: "${i18n.explorer.i18n.intro}"}
+  - {type: FormField, id: yamlName, label: "${i18n.explorer.i18n.name}", dataType: string}
+  - {type: Button, label: "${i18n.explorer.i18n.save}", actionable: {type: RouteLink, route: /behaviour/app/i18n}}

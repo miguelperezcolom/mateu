@@ -1,0 +1,19 @@
+id: theme-toggle
+area: behaviour
+group: app
+title: "Dark / light theme toggle"
+covers: [behaviour:theme-toggle]
+description: |
+  `@App(themeToggle = true)` adds a moon/sun button to the header. The choice is kept by the browser
+  (`localStorage['mateu-theme']`, set as `<html theme="dark|light">`); with none, the OS preference
+  (`prefers-color-scheme`) decides. The Explorer itself has one (top right). The Redwood renderer is
+  light only and ignores it.
+
+  **Try it:** press the moon on the embedded app's header — the whole page turns dark; press the sun
+  to come back.
+examples:
+  - title: "A header toggle"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.themetoggle.ThemeIsland
+code:
+  - {label: "Java · ThemeDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/themetoggle/ThemeDemoApp.java}

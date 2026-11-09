@@ -1,0 +1,10 @@
+# A Gantt chart as DATA: tasks with a start, an end (both inclusive), a progress 0-100 and an
+# optional colour. The month headers are derived from the tasks' dates; today is marked.
+content:
+  - type: Gantt
+    tasks:
+      - {id: t1, title: Select the works, start: "2026-10-01", end: "2026-10-20", progress: 100}
+      - {id: t2, title: Negotiate the loans, start: "2026-10-10", end: "2026-11-15", progress: 70}
+      - {id: t3, title: Design the rooms, start: "2026-11-01", end: "2026-11-30", progress: 30, color: "#7c3aed"}
+      - {id: t4, title: Transport & insurance, start: "2026-12-01", end: "2026-12-15", progress: 0, color: "#f59e0b"}
+      - {id: t5, title: Opening night, start: "2026-12-18", end: "2026-12-18", progress: 0, color: "#dc2626"}

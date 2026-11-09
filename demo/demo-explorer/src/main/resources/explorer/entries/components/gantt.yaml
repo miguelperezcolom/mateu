@@ -1,0 +1,17 @@
+id: gantt
+area: components
+group: visualisation
+title: Gantt
+covers: [component:Gantt]
+description: |
+  A timeline of tasks: a label column and a bar per task over the months its dates span, with a
+  progress fill and a marker for today. Read-only by design — for a full page with a detail drawer,
+  see the **GanttPage** archetype.
+
+  With `onTaskSelectionActionId` a bar is clickable and the action receives `_clickedTaskId`.
+  Try: click a bar in the Java example.
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/gantt/plan.yaml
+  - title: In Java — clickable bars
+    java: io.mateu.explorer.examples.components.gantt.ExhibitionPlan

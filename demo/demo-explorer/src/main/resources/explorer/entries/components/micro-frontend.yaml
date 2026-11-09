@@ -1,0 +1,26 @@
+id: micro-frontend
+area: components
+group: composition
+title: MicroFrontend
+covers: [component:MicroFrontend]
+description: |
+  An island loaded from a **route** — of this app, or of another Mateu app when `baseUrl` names it
+  (any backend: Java, C#, Python, a static bundle). Every action inside it goes to the app that
+  serves it; the host never proxies. It is how a shell composes UIs owned by different teams.
+
+  - `chrome` — `PAGE` (its header, no breadcrumb), `COMPACT` (only its actions) or `NONE` (no
+    header): an embedded page is a block of the host page, so it never changes the window title or
+    the URL.
+  - `resolve: SERVER` — the HOST asks the remote while building the page and embeds the answer, so
+    it paints in the first response (needs the remote registered in `mateu.remotes`; see
+    distributed › Micro frontends).
+
+  Ported to C# and Python (`chrome` is Java-only for now).
+examples:
+  - title: In YAML — chrome COMPACT
+    yaml: specs/ui/explorer/components/micro-frontend/embed.yaml
+  - title: In Java — chrome PAGE and NONE
+    java: io.mateu.explorer.examples.components.microfrontend.EmbeddedChromeExamples
+    embed: inline
+pages:
+  - {route: x/components/micro-frontend/exhibition, layout: explorer/components/micro-frontend/exhibition-page.yaml}

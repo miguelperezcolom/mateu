@@ -1,0 +1,21 @@
+id: charts
+area: components
+group: visualisation
+title: Charts, trends, funnels & heatmaps
+covers: [component:Chart, component:TrendChart, component:Funnel, component:Heatmap]
+description: |
+  Four ways to draw numbers, all plain data:
+
+  - **Chart** — Chart.js underneath: `bar`, `line`, `pie`, `doughnut`, `radar`, `polarArea`,
+    `bubble`, `scatter`. Give it `labels` and one `dataset` per series. For a fixed height set
+    `chartOptions.maintainAspectRatio: false` and a `height` in `style`.
+  - **TrendChart** — a sparkline: a series of values, an optional `area` fill and a colour.
+  - **Funnel** — stages with a value each; the drop between stages is the story.
+  - **Heatmap** — one cell per date, shaded by its value; the `label` is the tooltip.
+examples:
+  - title: In YAML
+    yaml: specs/ui/explorer/components/charts/charts.yaml
+  - title: In Java
+    java: io.mateu.explorer.examples.components.charts.VisitorCharts
+    embed: inline
+doc: https://mateu.io/java-ui-definition/components/chart/

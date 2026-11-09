@@ -1,0 +1,18 @@
+id: dependent-fields
+area: behaviour
+group: forms
+title: Dependent fields
+covers: [behaviour:dependent-fields]
+description: |
+  An `OnValueChange` trigger runs a server action when a field changes; the action updates the form
+  and returns it. Options computed by an `OptionsSupplier` read the current state, so they follow
+  the field they depend on.
+
+  Try it: change **Country** to *France* and open **City** — it offers French cities; change
+  **Quantity** to 3 and the **Total** becomes 30.
+examples:
+  - title: An order line
+    java: io.mateu.explorer.examples.behaviour.dependentfields.OrderLineForm
+code:
+  - {label: "C#", path: src/main/ports/behaviour/dependent-fields/OrderLineForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/dependent-fields/order_line_form.py}

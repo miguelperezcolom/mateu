@@ -1,0 +1,16 @@
+id: return-state
+area: behaviour
+group: actions
+title: Returning State or Data
+covers: [behaviour:return-state]
+description: |
+  What an action returns decides how much changes. `this` rebuilds the form from the new instance;
+  `new State(this)` sends back only the **values** — the components stay; `new Data(map)` fills the
+  **data** channel only (what `${data.x}` expressions read), leaving the values alone. State and Data
+  are cheaper and keep focus and scroll where they are.
+
+  Try it: press **Arrival** — *Guests* goes up; press **Check time** — the section title gains
+  *checked at …* while the count stays.
+examples:
+  - title: An occupancy counter
+    java: io.mateu.explorer.examples.behaviour.returnstate.OccupancyCounter

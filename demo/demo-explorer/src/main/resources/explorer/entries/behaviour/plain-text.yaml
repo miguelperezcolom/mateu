@@ -1,0 +1,17 @@
+id: plain-text
+area: behaviour
+group: forms
+title: Plain-text rendering
+covers: [behaviour:plain-text]
+description: |
+  `@PlainText` shows values as dense read-only **text**, not disabled inputs — on one field, or on
+  the class for all of them. A long value is cut with an ellipsis; `@Multiline` lets it wrap.
+
+  Try it: compare *Preferences cut* (one line, ellipsis) with *Preferences wrapped* (wraps); narrow
+  the window and watch the first one keep its single line.
+examples:
+  - title: A read-only guest card
+    java: io.mateu.explorer.examples.behaviour.plaintext.GuestCard
+code:
+  - {label: "C#", path: src/main/ports/behaviour/plain-text/GuestCard.cs}
+  - {label: Python, path: src/main/ports/behaviour/plain-text/guest_card.py}

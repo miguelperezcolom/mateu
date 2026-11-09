@@ -1,0 +1,21 @@
+id: capture-and-images
+area: behaviour
+group: forms
+title: Signatures, photos, images & files
+covers: [behaviour:stereotype-capture, behaviour:stereotype-images]
+description: |
+  `@Signature` (a drawing pad), `@PhotoCapture` (the camera — the native one on a phone),
+  `@UploadableImage` (preview + Upload / Replace / Delete) and `@FileUpload` (any file, with an
+  optional `accept`) all store a **data URI** in a String field: the capture travels in the state
+  like any other value, with no upload endpoint.
+
+  Try it: draw a signature on the pad and press **Accept**, then **Confirm** — the toast reports its
+  size. Upload an image in the second example and press **Save**.
+examples:
+  - title: Capture — signature and photo
+    java: io.mateu.explorer.examples.behaviour.captureandimages.DeliveryProof
+  - title: Upload — image and file
+    java: io.mateu.explorer.examples.behaviour.captureandimages.ProductImages
+code:
+  - {label: "C#", path: src/main/ports/behaviour/capture-and-images/DeliveryProof.cs}
+  - {label: Python, path: src/main/ports/behaviour/capture-and-images/delivery_proof.py}

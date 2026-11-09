@@ -1,0 +1,24 @@
+id: row-route
+area: behaviour
+group: navigation
+title: Row route (the way into a record)
+covers: [behaviour:row-route]
+description: |
+  `@RowRoute("/rooms/${row.id}")` on a listing (`rowRoute:` in YAML) makes a click anywhere on a row
+  — or Enter on a focused row — **navigate** to a route built from that row. Unlike a detail pane
+  painted from the fetched row, the record is a real URL: addressable, shareable, it survives a
+  reload and Back returns to the list.
+
+  Known gap (3.0-beta.51): `@RowRoute` is read only on a listing served as a CRUD — a `Crud` or a
+  capability listing (`Navigable`, as here); on a bare `Listing` it is ignored.
+
+  Try it: open the listing on its own, click the *Suite* row — the URL becomes
+  `…/rooms/305` and the record shows *Cleaning*; press the browser's Back.
+knownIssue: >-
+  3.0-beta.51: @RowRoute is read only on a listing served as a CRUD; on a bare Listing it is ignored.
+examples:
+  - title: Rooms
+    route: x/behaviour/row-route/rooms
+pages:
+  - {route: x/behaviour/row-route/rooms, viewModel: io.mateu.explorer.examples.behaviour.rowroute.RoomList}
+  - {route: "x/behaviour/row-route/rooms/:id", viewModel: io.mateu.explorer.examples.behaviour.rowroute.RoomRecord}

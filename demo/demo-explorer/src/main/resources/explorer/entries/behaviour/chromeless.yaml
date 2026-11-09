@@ -1,0 +1,20 @@
+id: chromeless
+area: behaviour
+group: navigation
+title: Chromeless apps & the command center
+covers: [behaviour:chromeless]
+description: |
+  `@App(chromeless = true)` drops the navigation chrome: the content goes full-bleed and the only
+  way around is the **command center** — a floating button opening a full-screen palette with the
+  whole menu, recent screens and, when the app implements `GlobalSearchSupplier`, its entities.
+  `@App(commandCenter = true)` adds the same button to an ordinary shell (it then replaces ⌘K).
+
+  Try it: in the framed app press the round button at the bottom right, type `ada` and pick *Ada
+  Lovelace* — you land on *Guests*.
+examples:
+  - title: A kiosk app
+    java: io.mateu.explorer.examples.behaviour.chromeless.KioskPreview
+code:
+  - {path: src/main/java/io/mateu/explorer/examples/behaviour/chromeless/KioskApp.java}
+  - {label: "C#", path: src/main/ports/behaviour/chromeless/KioskApp.cs}
+  - {label: Python, path: src/main/ports/behaviour/chromeless/kiosk_app.py}

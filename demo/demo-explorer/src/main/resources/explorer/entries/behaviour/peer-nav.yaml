@@ -1,0 +1,20 @@
+id: peer-nav
+area: behaviour
+group: navigation
+title: Peer navigation (previous / next)
+covers: [behaviour:peer-nav]
+description: |
+  A record page implementing `PeerNavigationSupplier` returns its previous and next record — a label
+  and a route each — and the page header draws **‹ ›** arrows that navigate to them (the Redwood
+  "next object" element). A `null` route disables that side; drawers take a `PeerNav` too.
+
+  Try it: open the guest on its own and press **›** twice — *Alan Turing*, then *Grace Hopper*,
+  whose next arrow is disabled.
+examples:
+  - title: A guest record
+    java: io.mateu.explorer.examples.behaviour.peernav.GuestRecordPreview
+pages:
+  - {route: "x/behaviour/peer-nav/guests/:id", viewModel: io.mateu.explorer.examples.behaviour.peernav.GuestRecord}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/peer-nav/GuestRecord.cs}
+  - {label: Python, path: src/main/ports/behaviour/peer-nav/guest_record.py}

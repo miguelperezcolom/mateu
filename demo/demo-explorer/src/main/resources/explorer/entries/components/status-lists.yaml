@@ -1,0 +1,18 @@
+id: status-lists
+area: components
+group: status-and-kpis
+title: Status lists, ledger & process monitor
+covers: [component:StatusList, component:Ledger, component:ProcessMonitor]
+# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
+knownIssue: >-
+  Vaadin, 3.0-beta.51: StatusList row icons and avatars are not drawn, and `columns: 2` lays the rows out in three columns.
+examples:
+  - title: In YAML
+    description: "Known issues (3.0-beta.51, Vaadin): StatusList row `icon`s and `avatar`s are not drawn, and `columns: 2` lays the rows out in three columns."
+    yaml: specs/ui/explorer/components/status-lists/status.yaml
+  - title: "In Java, with actions"
+    description: "Press **Assign** on a row, or **Retry** on the failing process."
+    java: io.mateu.explorer.examples.components.statuslists.Incidents
+code:
+  - {label: "C#", path: src/main/ports/components/status-lists/Incidents.cs}
+  - {label: "Python", path: src/main/ports/components/status-lists/incidents.py}

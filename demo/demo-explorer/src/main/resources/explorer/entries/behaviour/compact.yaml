@@ -1,0 +1,20 @@
+id: compact
+area: behaviour
+group: form-layout
+title: High density (@Compact)
+covers: [behaviour:compact]
+description: |
+  `@Compact` renders a page in high density — lower controls, tighter spacing, smaller labels — while
+  the text keeps its size, so dense operational screens fit without scrolling. It works by CSS
+  custom properties, so every component inside is condensed; grids get Vaadin's compact rows.
+  `StyleConstants.COMPACT` applies the same to just part of a page.
+
+  Try it: compare the heights of the two identical forms below.
+examples:
+  - title: Regular
+    java: io.mateu.explorer.examples.behaviour.compact.RegularGuestForm
+  - title: Compact
+    java: io.mateu.explorer.examples.behaviour.compact.CompactGuestForm
+code:
+  - {label: "C#", path: src/main/ports/behaviour/compact/CompactGuestForm.cs}
+  - {label: Python, path: src/main/ports/behaviour/compact/compact_guest_form.py}

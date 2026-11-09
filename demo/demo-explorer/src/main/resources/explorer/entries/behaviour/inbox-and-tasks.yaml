@@ -1,0 +1,27 @@
+id: inbox-and-tasks
+area: behaviour
+group: app
+title: "Notification inbox & background work"
+covers: [behaviour:notifications-inbox, behaviour:task-center]
+refreshAfter: "#1080"
+description: |
+  **Inbox** — the app class implements `NotificationsSupplier`: the header gets a bell with the unread
+  count; opening it lists the notifications, a click follows the notification's route and
+  `markNotificationsRead` is called for the ones you read (or `all`).
+
+  **Background work** — a `LongTask` streams its progress to a dialog (steps + progress bar) while it
+  runs; `@Action(background = true)` fires and forgets (no busy indicator, the screen stays usable).
+  Both leave a notification in the inbox when they finish.
+
+  **Try it:** press **Rebuild index** and watch the progress dialog; then press **Export in the
+  background**, keep working, and open the bell a few seconds later — the export is there.
+
+  > The progress/notification patterns are being rebuilt in PR #1080: this entry shows the CURRENT
+  > API and will be refreshed once it merges.
+examples:
+  - title: "Inbox + jobs"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.inboxandtasks.InboxIsland
+code:
+  - {label: "Java · InboxDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/inboxandtasks/InboxDemoApp.java}
+  - {label: "Java · Jobs", path: src/main/java/io/mateu/explorer/examples/behaviour/inboxandtasks/Jobs.java}

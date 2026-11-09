@@ -1,0 +1,20 @@
+id: command-center
+area: behaviour
+group: app
+title: "Command center"
+covers: [behaviour:command-center]
+description: |
+  `@App(commandCenter = true)` adds an always-present round button (bottom-right) that opens a
+  full-screen palette: the whole menu, your records (`GlobalSearchSupplier`), recently visited screens,
+  quick-launch codes (`@AppShortcut(code)`) and the AI hand-off when the app has one. It is the
+  touch-friendly, discoverable sibling of ⌘K. `@App(chromeless = true)` also drops the navigation
+  chrome and leaves only this button.
+
+  **Try it:** open the embedded app on its own, press the round button at the bottom right, type
+  `ada` (a record), or `RMS` (a quick-launch code).
+examples:
+  - title: "A palette behind a round button"
+    description: "The demo app runs as its own mount, embedded here with its own header."
+    java: io.mateu.explorer.examples.behaviour.commandcenter.CommandCenterIsland
+code:
+  - {label: "Java · CommandCenterDemoApp", path: src/main/java/io/mateu/explorer/examples/behaviour/commandcenter/CommandCenterDemoApp.java}

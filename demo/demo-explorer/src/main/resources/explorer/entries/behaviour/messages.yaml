@@ -1,0 +1,19 @@
+id: messages
+area: behaviour
+group: actions
+title: Messages & undo
+covers: [behaviour:messages, behaviour:undo]
+description: |
+  Returning a `Message` shows a toast. `success`, `warning` and `contrast` close by themselves; an
+  `error` **stays** — with a ✕ — so it is not missed. `Message.undoable(text, actionId, params)` adds
+  an **Undo** button running `actionId` with those parameters; the undo is an ordinary `@Action`
+  reached only from the toast. A `List` returns the new state and the toast together.
+
+  Try it: press **Error** — the toast stays until you close it. Press **Mark clean**: *Room 214*
+  reads *Clean*; press **Undo** on the toast and it is *Dirty* again.
+examples:
+  - title: The housekeeping board
+    java: io.mateu.explorer.examples.behaviour.messages.HousekeepingBoard
+code:
+  - {label: "C#", path: src/main/ports/behaviour/messages/HousekeepingBoard.cs}
+  - {label: Python, path: src/main/ports/behaviour/messages/housekeeping_board.py}

@@ -1,0 +1,18 @@
+id: stereotype-tree-select
+area: behaviour
+group: forms
+title: Tree selects
+covers: [behaviour:stereotype-tree-select]
+description: |
+  `@TreeSelect` turns the dropdown into a tree: the hierarchy is options that carry `children`
+  (from an `OptionsSupplier`). With `leavesOnly = true` a group only expands — just a leaf can be
+  picked. A lookup whose selector is a `GridLayout.tree` listing opens the same tree in a dialog.
+
+  Try it: open **Region** and pick *Balearic Islands*; open **Island**, expand *Portugal* and pick
+  *Madeira*; press **Go**.
+examples:
+  - title: Pick a destination
+    java: io.mateu.explorer.examples.behaviour.stereotypetreeselect.DestinationPicker
+code:
+  - {label: "C#", path: src/main/ports/behaviour/stereotype-tree-select/DestinationPicker.cs}
+  - {label: Python, path: src/main/ports/behaviour/stereotype-tree-select/destination_picker.py}

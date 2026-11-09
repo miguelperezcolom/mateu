@@ -1,0 +1,31 @@
+id: auto-page
+area: behaviour
+group: form-layout
+title: Page-level inference (@AutoPage)
+covers: [behaviour:auto-page]
+description: |
+  Page-level inference recognises an archetype in a **plain** class and composes it: `MetricCard`
+  fields make a **dashboard** (KPI band + `@Panel` tiles); only `Button`s and presentational panels
+  make a **welcome** page. It is on by default (`@AutoPage` makes it explicit, `@AutoPage(false)` or
+  `mateu.page.inference.enabled=false` turns it off); a shape that cannot be derived fully only
+  logs a hint ("looks like a CollectionDetail").
+
+  Try it: on the page of its own, click the **Arrivals** card — this class's `openArrivals` runs;
+  press **Start check-in** on the welcome page.
+
+  Known gap (3.0-beta.51): in the embedded island (the first example) a click on the card sends
+  nothing; the same class as a page answers.
+knownIssue: >-
+  3.0-beta.51: in the embedded island a click on an inferred page's card sends nothing (the same class as a page answers).
+examples:
+  - title: Inferred dashboard
+    java: io.mateu.explorer.examples.behaviour.autopage.FrontDeskBoard
+  - title: The inferred dashboard, as a page of its own
+    route: x/behaviour/auto-page/board
+  - title: Inferred welcome page
+    java: io.mateu.explorer.examples.behaviour.autopage.FrontDeskWelcome
+pages:
+  - {route: x/behaviour/auto-page/board, viewModel: io.mateu.explorer.examples.behaviour.autopage.FrontDeskBoard}
+code:
+  - {label: "C#", path: src/main/ports/behaviour/auto-page/FrontDeskBoard.cs}
+  - {label: Python, path: src/main/ports/behaviour/auto-page/front_desk_board.py}

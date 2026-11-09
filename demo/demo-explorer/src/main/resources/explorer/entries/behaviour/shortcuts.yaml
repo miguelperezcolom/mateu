@@ -1,0 +1,19 @@
+id: shortcuts
+area: behaviour
+group: actions
+title: Keyboard shortcuts
+covers: [behaviour:shortcuts]
+description: |
+  Shortcuts are declared where the action is: `@Action(shortcut = "ctrl+alt+c")` on an action (the
+  button shows it as a tooltip), `@OnRowSelected(shortcut = "ctrl+shift")` on a grid — the combo
+  plus a digit selects that row — and `@Tab(shortcut = "alt+1")` on a tab (see *Tabs*). Letters and
+  digits match by physical key, so they work on any keyboard layout and on the numeric keypad.
+
+  Try it: click outside the fields, press **Ctrl+Shift+2** — *Alan Turing* becomes the selected
+  guest — then **Ctrl+Alt+C** to check him in.
+examples:
+  - title: The arrivals desk
+    java: io.mateu.explorer.examples.behaviour.shortcuts.ArrivalsDesk
+code:
+  - {label: "C#", path: src/main/ports/behaviour/shortcuts/ArrivalsDesk.cs}
+  - {label: Python, path: src/main/ports/behaviour/shortcuts/arrivals_desk.py}
