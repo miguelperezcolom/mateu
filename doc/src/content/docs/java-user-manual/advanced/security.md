@@ -401,14 +401,16 @@ Every Java adapter therefore serves Mateu's assets with a policy (Spring Securit
 
 On Spring they resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
 
-Compression is the application's (or its proxy's) choice. With Spring Boot:
+Mateu also **compresses its own assets** on every adapter (and in the .NET and Python ports): a request that accepts `gzip` gets the gzip variant of the renderer's JavaScript, CSS, JSON, SVG… (text formats of 1 KB or more; images and fonts are left as they are), with `Vary: Accept-Encoding` and its own `ETag`. Each asset is compressed once per process and kept in memory. You do not need to turn on response compression for them; switch it off with `mateu.static-assets.compression=false` (for instance when a proxy in front already compresses).
+
+Your own responses — the bootstrap page, the `/mateu/v3/sync` JSON answers, your own static files — are compressed only if the application (or its proxy) turns compression on. With Spring Boot:
 
 ```yaml
 server:
   compression:
     enabled: true
     min-response-size: 1KB
-    mime-types: [text/html, text/css, text/javascript, application/javascript, application/json, image/svg+xml]
+    mime-types: [text/html, application/json]
 ```
 
 Leave `text/event-stream` out of the list: a compressed stream is buffered, and SSE updates would arrive in lumps. Behind a gateway that every request passes through, enabling compression there once covers every backend.
