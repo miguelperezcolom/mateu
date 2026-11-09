@@ -50,6 +50,41 @@ class MateuSettingsTest {
   }
 
   @Test
+  void theFrameworkConfigurationIsAskedOncePerKeyUntilRefreshed() throws Exception {
+    var asked = new java.util.concurrent.atomic.AtomicInteger();
+    var values = new java.util.concurrent.ConcurrentHashMap<>(Map.of(KEY, "first"));
+    try (var ignored =
+        MateuSettings.register(
+            key -> {
+              asked.incrementAndGet();
+              return values.get(key);
+            })) {
+      assertThat(MateuSettings.get(KEY)).isEqualTo("first");
+      assertThat(MateuSettings.get(KEY)).isEqualTo("first");
+      assertThat(MateuSettings.get("mateu.test.unset")).isNull();
+      assertThat(MateuSettings.get("mateu.test.unset")).isNull();
+      assertThat(asked).hasValue(2); // one per key, a missing one included
+
+      // the system property still wins and is read live
+      System.setProperty(KEY, "from-jvm");
+      try {
+        assertThat(MateuSettings.get(KEY)).isEqualTo("from-jvm");
+      } finally {
+        System.clearProperty(KEY);
+      }
+      assertThat(MateuSettings.get(KEY)).isEqualTo("first");
+
+      // a configuration changed at runtime is seen after a refresh
+      values.put(KEY, "second");
+      assertThat(MateuSettings.get(KEY)).isEqualTo("first");
+      MateuSettings.refresh();
+      assertThat(MateuSettings.get(KEY)).isEqualTo("second");
+    }
+    // unregistering forgets the memo too
+    assertThat(MateuSettings.get(KEY)).isNull();
+  }
+
+  @Test
   void theStrictActionSwitchReadsTheFrameworkConfiguration() throws Exception {
     try (var ignored = MateuSettings.register(Map.of("mateu.actions.strict", "false")::get)) {
       assertThat(io.mateu.core.application.security.ActionMethods.isStrict()).isFalse();

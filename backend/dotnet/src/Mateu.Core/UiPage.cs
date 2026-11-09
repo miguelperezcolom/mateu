@@ -262,6 +262,43 @@ internal static class UiPage
         });
     }
 
+    // ── validators of the renderer's files: Java's StaticAssetCaching.weakEtag + AssetCompression ──
+
+    /// <summary>A weak ETag from a file's size and modification time (ms since the epoch) — the same
+    /// text Java's <c>StaticAssetCaching.weakEtag</c> sends: cheap (no hashing of the bytes), and weak
+    /// so that a compressing proxy in front does not make it wrong.</summary>
+    public static string? WeakEtag(long size, long modifiedMs) =>
+        size < 0 || modifiedMs <= 0 ? null : $"W/\"{size:x}-{modifiedMs:x}\"";
+
+    /// <summary>The validator of the gzip variant: <c>W/"a-b"</c> → <c>W/"a-b-gzip"</c> (Java's
+    /// <c>AssetCompression.gzipEtag</c>), so a cache never answers one encoding with the other's bytes.</summary>
+    public static string? GzipEtag(string? etag) =>
+        etag is null || !etag.EndsWith('"') ? etag : etag[..^1] + "-gzip\"";
+
+    /// <summary>Whether a conditional GET can be answered 304: <c>If-None-Match</c> decides when present
+    /// (weak comparison, <c>*</c> matches), else <c>If-Modified-Since</c> (second precision) — RFC 9110
+    /// §13.2.2, what Spring's resource handler does on the Java side.</summary>
+    public static bool NotModified(string? ifNoneMatch, string? ifModifiedSince, string? etag, long modifiedMs)
+    {
+        if (!string.IsNullOrWhiteSpace(ifNoneMatch))
+        {
+            if (etag is null) return false;
+            if (ifNoneMatch.Trim() == "*") return true;
+            static string Opaque(string tag)
+            {
+                tag = tag.Trim();
+                return tag.StartsWith("W/", StringComparison.Ordinal) ? tag[2..] : tag;
+            }
+            var mine = Opaque(etag);
+            return ifNoneMatch.Split(',').Any(tag => Opaque(tag) == mine);
+        }
+        if (!string.IsNullOrWhiteSpace(ifModifiedSince) && modifiedMs > 0
+            && DateTimeOffset.TryParse(ifModifiedSince.Trim(), System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeUniversal, out var since))
+            return modifiedMs / 1000 <= since.ToUnixTimeSeconds();
+        return false;
+    }
+
     public static string ContentTypeOf(string path) =>
         ContentTypes.TryGetValue(Path.GetExtension(path), out var type) ? type : "application/octet-stream";
 
@@ -346,6 +383,34 @@ internal sealed class RendererFiles
         var file = Path.GetFullPath(Path.Combine(Location, relative));
         if (!file.StartsWith(Location + Path.DirectorySeparatorChar, StringComparison.Ordinal)) return null;
         return File.Exists(file) ? File.ReadAllBytes(file) : null;
+    }
+
+    /// <summary>(size, modification time in ms since the epoch) of <paramref name="relative"/>, or null
+    /// when it is not a file of this renderer — what the asset's validators (ETag, Last-Modified) are
+    /// made of.</summary>
+    public (long Size, long ModifiedMs)? Stamp(string relative)
+    {
+        relative = relative.TrimStart('/');
+        if (relative.Length == 0 || relative.Split('/').Contains("..")) return null;
+        if (IsArchive)
+        {
+            try
+            {
+                using var jar = ZipFile.OpenRead(Location);
+                var entry = jar.GetEntry(UiPage.JarPrefix + relative);
+                if (entry is null || entry.FullName.EndsWith('/')) return null;
+                return (entry.Length, entry.LastWriteTime.ToUnixTimeMilliseconds());
+            }
+            catch (InvalidDataException)
+            {
+                return null;
+            }
+        }
+        var file = Path.GetFullPath(Path.Combine(Location, relative));
+        if (!file.StartsWith(Location + Path.DirectorySeparatorChar, StringComparison.Ordinal)) return null;
+        var info = new FileInfo(file);
+        if (!info.Exists) return null;
+        return (info.Length, new DateTimeOffset(info.LastWriteTimeUtc).ToUnixTimeMilliseconds());
     }
 
     public string IndexTemplate() =>

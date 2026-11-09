@@ -1,7 +1,9 @@
 // A dumb static file server with an SPA fallback — what Netlify's `_redirects`, an S3+CloudFront
 // error-document rule or nginx `try_files $uri /index.html` give you. It serves FILES ONLY: there is
 // no Mateu, no Java and no proxy behind it. Any request that is not a file gets index.html, so a deep
-// link such as /vcns/7 boots the SPA, which then resolves the route from manifest.json.
+// link such as /vcns/7 boots the SPA, which then resolves the route from manifest.json. Like nginx
+// `gzip_static on`, a browser that accepts gzip gets the bundle's pre-compressed `<file>.gz` sibling
+// (mateu-bundle writes one next to every text file) — never anything compressed on the fly.
 //
 // Usage: node serve-static.mjs <dir> [port]
 import http from 'node:http'
@@ -26,8 +28,19 @@ http.createServer(async (req, res) => {
     file = join(root, 'index.html') // SPA fallback
   }
   try {
-    const body = await readFile(file)
-    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' })
+    const headers = { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' }
+    let body
+    if (/\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
+      try {
+        body = await readFile(file + '.gz')
+        headers['Content-Encoding'] = 'gzip'
+        headers['Vary'] = 'Accept-Encoding'
+      } catch {
+        body = undefined // no pre-compressed sibling: the file as it is
+      }
+    }
+    body ??= await readFile(file)
+    res.writeHead(200, headers)
     res.end(body)
   } catch {
     res.writeHead(404).end('not found')

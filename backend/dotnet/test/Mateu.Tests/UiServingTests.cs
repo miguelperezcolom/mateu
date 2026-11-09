@@ -105,6 +105,12 @@ public class UiServingTests
         Assert.Contains(UiPage.DefaultFavicon, html);
         Assert.Contains("text/mateu-deferred", html); // the deferred-boot replayer travels with the page
         Assert.Contains("<script type=\"module\" crossorigin src=\"/assets/mateu-vaadin.js\">", html);
+        // the CSS-only pre-boot loader (the page painted nothing until its bundle ran), after the
+        // root element so the served <mateu-ui> keeps it, hidden once <mateu-ui> is defined
+        Assert.True(html.IndexOf("</mateu-ui>", StringComparison.Ordinal) < html.IndexOf("class=\"mateu-preboot\"", StringComparison.Ordinal));
+        Assert.Contains("mateu-ui:defined ~ .mateu-preboot { display: none; }", html);
+        var loader = html[html.IndexOf("<!-- Pre-boot loader", StringComparison.Ordinal)..html.IndexOf("</body>", StringComparison.Ordinal)];
+        Assert.DoesNotContain("<script", loader);
 
         Assert.Contains("<mateu-ui", await http.GetStringAsync("/ui-probe"));
         Assert.Contains("<mateu-ui", await http.GetStringAsync("/ui-probe/7/edit")); // any depth
@@ -149,6 +155,75 @@ public class UiServingTests
         Assert.Equal(raw, await plain.Content.ReadAsByteArrayAsync());
         Assert.False(UiPage.AcceptsGzip("gzip;q=0"));
         Assert.True(UiPage.AcceptsGzip("*"));
+    }
+
+    [Fact]
+    public async Task The_renderers_assets_carry_validators_and_a_repeat_visit_costs_a_304()
+    {
+        // Java's StaticAssetCaching: ETag + Last-Modified on every asset, 304 with no body when the
+        // browser revalidates (no-cache) an unchanged one — each encoding with its own validator
+        if (!RendererCheckedOut) return;
+        var (web, http) = await Host("", VaadinStatic);
+        await using var _ = web;
+
+        async Task<HttpResponseMessage> Get(string path, params (string Name, string Value)[] headers)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, path);
+            foreach (var (name, value) in headers) request.Headers.TryAddWithoutValidation(name, value);
+            return await http.SendAsync(request);
+        }
+
+        var plain = await Get("/assets/mateu-vaadin.js");
+        var etag = plain.Headers.ETag!.ToString();
+        Assert.StartsWith("W/\"", etag);
+        Assert.DoesNotContain("-gzip", etag);
+        Assert.NotNull(plain.Content.Headers.LastModified);
+
+        var again = await Get("/assets/mateu-vaadin.js", ("If-None-Match", etag));
+        Assert.Equal(HttpStatusCode.NotModified, again.StatusCode);
+        Assert.Empty(await again.Content.ReadAsByteArrayAsync());
+        Assert.Equal(etag, again.Headers.ETag!.ToString());
+        Assert.Equal("no-cache", again.Headers.CacheControl!.ToString());
+
+        var gz = await Get("/assets/mateu-vaadin.js", ("Accept-Encoding", "gzip"));
+        var gzEtag = gz.Headers.ETag!.ToString();
+        Assert.Equal(etag[..^1] + "-gzip\"", gzEtag);
+        // the identity validator does not validate the gzip variant (nor the reverse)
+        Assert.Equal(HttpStatusCode.OK, (await Get("/assets/mateu-vaadin.js", ("Accept-Encoding", "gzip"), ("If-None-Match", etag))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotModified, (await Get("/assets/mateu-vaadin.js", ("Accept-Encoding", "gzip"), ("If-None-Match", gzEtag))).StatusCode);
+
+        var css = await Get("/assets/index.css");
+        var lastModified = css.Content.Headers.LastModified!.Value.ToString("R");
+        Assert.Equal(HttpStatusCode.NotModified, (await Get("/assets/index.css", ("If-Modified-Since", lastModified))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Get("/assets/index.css", ("If-Modified-Since", "Thu, 01 Jan 1970 00:00:00 GMT"))).StatusCode);
+        // If-None-Match decides when present, whatever If-Modified-Since says
+        Assert.Equal(HttpStatusCode.OK, (await Get("/assets/index.css", ("If-None-Match", "W/\"other\""), ("If-Modified-Since", lastModified))).StatusCode);
+        // the page itself carries no validator (it is rendered per request)
+        Assert.Null((await Get("/")).Headers.ETag);
+    }
+
+    [Fact]
+    public void A_jar_entry_carries_validators_too()
+    {
+        if (!RendererCheckedOut) return;
+        var jar = Path.Combine(Path.GetTempPath(), "mateu-vaadin-" + Guid.NewGuid().ToString("N") + ".jar");
+        try
+        {
+            using (var zip = ZipFile.Open(jar, ZipArchiveMode.Create))
+            {
+                zip.CreateEntryFromFile(Path.Combine(VaadinStatic, "_index.html"), "static/_index.html");
+                zip.CreateEntryFromFile(Path.Combine(VaadinStatic, "assets", "index.css"), "static/assets/index.css");
+            }
+            var stamp = RendererFiles.At(jar).Stamp("/assets/index.css");
+            Assert.NotNull(stamp);
+            Assert.Equal(new FileInfo(Path.Combine(VaadinStatic, "assets", "index.css")).Length, stamp!.Value.Size);
+            Assert.True(stamp.Value.ModifiedMs > 0);
+            Assert.Null(RendererFiles.At(jar).Stamp("/assets/nope.css"));
+        }
+        finally
+        {
+            File.Delete(jar);
+        }
     }
 
     [Fact]

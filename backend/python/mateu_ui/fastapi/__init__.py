@@ -839,16 +839,37 @@ class MateuUiMiddleware:
         content_type, body, cache_control = answer
         extra = []
         path = scope["path"]
+
+        def header(name: bytes) -> str | None:
+            return next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == name), None)
+
+        is_asset = path != "/" and ui_page.is_asset(path)
+        gzip = False
         # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
         # Vaadin first load); Java's AssetCompression
-        if path != "/" and ui_page.is_asset(path) and ui_page.compressible(path):
+        if is_asset and ui_page.compressible(path):
             extra.append((b"vary", b"Accept-Encoding"))
-            accept_encoding = next(
-                (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept-encoding"), None
-            )
-            if len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(accept_encoding):
-                body = ui_page.gzipped(path, body)
-                extra.append((b"content-encoding", b"gzip"))
+            gzip = len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(header(b"accept-encoding"))
+        # validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
+        renderer = getattr(self, "renderer", None)
+        stamp = renderer.stamp(path) if is_asset and renderer is not None else None
+        if stamp is not None:
+            etag = ui_page.weak_etag(*stamp)
+            if gzip:
+                etag = ui_page.gzip_etag(etag)
+            if etag:
+                extra.append((b"etag", etag.encode("latin-1")))
+            extra.append((b"last-modified", ui_page.http_date(stamp[1]).encode("latin-1")))
+            if ui_page.not_modified(header(b"if-none-match"), header(b"if-modified-since"), etag, stamp[1]):
+                headers = list(extra)
+                if cache_control:
+                    headers.append((b"cache-control", cache_control.encode("latin-1")))
+                await send({"type": "http.response.start", "status": 304, "headers": headers})
+                await send({"type": "http.response.body", "body": b""})
+                return
+        if gzip:
+            body = ui_page.gzipped(path, body)
+            extra.append((b"content-encoding", b"gzip"))
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
         headers.extend(extra)
         if cache_control:

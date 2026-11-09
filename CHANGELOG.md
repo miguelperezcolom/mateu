@@ -47,6 +47,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **About Mateu on the phone app.** An ⓘ on the hub's bar shows the app version and build, the Mateu
   release, and which code runs — the built-in bundle or an over-the-air update and when it was
   published. "Check for updates" downloads the latest update and restarts on it at once.
+- **The Vaadin page shows a loader while its bundle downloads.** Before the renderer's JavaScript
+  ran the page painted nothing (about 4 s of a blank screen on a 3G phone); a CSS-only spinner now
+  shows after 0.7 s and goes away when the app starts. It respects dark mode and reduced motion,
+  adds no script (the page still runs under `script-src 'self'`) and is served by the .NET and
+  Python ports too, which use the same page.
+- **Static bundles ship pre-compressed files.** `mateu-bundle:bundle` writes a `.gz` next to every
+  text file (`-Dmateu.bundle.precompress=false` skips it), so nginx `gzip_static`, Caddy
+  `precompressed` or a CDN origin serves them gzipped: the static VCN demo's first load on a 3G
+  phone went from 14.4 s to 4.3 s on such a host. See *Deploy › Static UI › Hosting*.
 
 ### Fixed
 
@@ -56,6 +65,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **A radio group lists the options of its `optionsSource`.** It drew an empty group.
 
 ### Changed
+
+- **Faster requests in apps with many screens.** Route resolution looks the route up in an index
+  built once, instead of asking every `@UI` class on each request, and Mateu's settings are
+  memoised instead of resolved through the framework's configuration on every read (an app whose
+  configuration changes at runtime calls `MateuSettings.refresh()`; a Spring context refresh and
+  Spring Cloud's `EnvironmentChangeEvent` do it for you). In an app with 200 routed classes a
+  warm request is 17–40% faster.
+- **The .NET and Python ports send `ETag` and `Last-Modified` with the renderer's assets** and
+  answer a revalidation with `304 Not Modified`, as the Java adapters do: a repeat visit no longer
+  downloads the bundle again.
 
 - **Calendars mark today on the phone too**, and the museum demo's calendar no longer pins the day it
   was generated as its month and as "Today": it opens on the current month.

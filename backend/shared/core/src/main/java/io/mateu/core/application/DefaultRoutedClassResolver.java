@@ -1,8 +1,9 @@
 package io.mateu.core.application;
 
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
+
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.RunActionCommand;
-import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.RoutedClassProvider;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -20,6 +21,16 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
 
   private final List<RoutedClassProvider> providers;
   private final RouteRegistry routeRegistry;
+  private volatile RoutedClassIndex index;
+
+  /**
+   * Routed classes examined one by one since the JVM started (building an index, then only the
+   * parameterised routes a lookup tries) — {@code RequestBudgetTest} pins that a warm request does
+   * not walk them all.
+   */
+  public static long providersScanned() {
+    return RoutedClassIndex.providersScanned();
+  }
 
   /**
    * An entry AUTHORED in {@code specs/ui/routes.yaml} answers before the annotation-derived
@@ -103,31 +114,34 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
 
   @Override
   public Optional<ResolvedRoute> resolveAbsolute(String route, RunActionCommand command) {
-    var ui =
-        providers.stream()
-            .filter(DefaultRoutedClassResolver::isUi)
-            .map(
-                provider -> safe(provider, route, command, RouteAnnotationMatcher::matchesAbsolute))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
-    if (ui.isPresent()) {
-      return ui;
+    var index = index();
+    if (index.isEmpty()) {
+      return Optional.empty();
     }
-    return providers.stream()
-        .map(provider -> safe(provider, route, command, RouteAnnotationMatcher::matchesAbsolute))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst();
+    List<RoutedClassIndex.Entry> candidates;
+    try {
+      candidates = index.matching(command.baseUrl() + command.route(), null);
+    } catch (Throwable t) {
+      return unresolvable(route, t);
+    }
+    var ui = RoutedClassIndex.first(candidates, RoutedClassIndex.Entry::ui);
+    var found = ui != null ? ui : RoutedClassIndex.first(candidates, entry -> true);
+    return resolved(route, found);
   }
 
   @Override
   public Optional<ResolvedRoute> resolveApp(String route, RunActionCommand command) {
-    return providers.stream()
-        .map(provider -> safe(provider, route, command, RouteAnnotationMatcher::matchesApp))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst();
+    var index = index();
+    if (index.isEmpty()) {
+      return Optional.empty();
+    }
+    List<RoutedClassIndex.Entry> candidates;
+    try {
+      candidates = index.matching(route, null);
+    } catch (Throwable t) {
+      return unresolvable(route, t);
+    }
+    return resolved(route, RoutedClassIndex.first(candidates, entry -> isApp(entry.type(), route)));
   }
 
   @Override
@@ -151,43 +165,53 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
     if (authored.isPresent()) {
       return authored;
     }
-    return providers.stream()
-        .map(provider -> safe(provider, route, command, RouteAnnotationMatcher::matches))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst();
+    var index = index();
+    if (index.isEmpty()) {
+      return Optional.empty();
+    }
+    List<RoutedClassIndex.Entry> candidates;
+    try {
+      // RouteAnnotationMatcher.matches: the route under the request's base url matches the
+      // declared route, or the route without the command's base url EQUALS it
+      var cleanRoute = route;
+      if (cleanRoute.startsWith(command.baseUrl())) {
+        cleanRoute = cleanRoute.substring(command.baseUrl().length());
+      }
+      var baseUrl = command.httpRequest().getAttribute("baseUrl");
+      candidates = index.matching(baseUrl + route, baseUrl + cleanRoute);
+    } catch (Throwable t) {
+      return unresolvable(route, t);
+    }
+    return resolved(route, RoutedClassIndex.first(candidates, entry -> true));
   }
 
   /**
-   * Evaluate one provider against the route, isolating any failure to THAT provider: a broken or
-   * stale generated {@code RoutedClassProvider} (e.g. one whose {@code routedClass()} references a
-   * class removed at runtime) is logged and skipped instead of aborting the whole resolution — one
-   * bad provider must not 500 every route. Catches {@link Throwable} because a missing class
-   * surfaces as {@link NoClassDefFoundError} (an Error, not an Exception).
+   * The routed classes, indexed by route on first use: the providers are the container's beans, so
+   * the index lives as long as this resolver (a context refresh / dev restart builds a new one).
    */
-  private static Optional<ResolvedRoute> safe(
-      RoutedClassProvider provider, String route, RunActionCommand command, RouteMatcher matcher) {
-    try {
-      return matcher.match(route, provider.routedClass(), command);
-    } catch (Throwable t) {
-      log.warn(
-          "skipping route provider {}: its routed class could not be resolved ({})",
-          provider.getClass().getName(),
-          t.toString());
-      return Optional.empty();
+  private RoutedClassIndex index() {
+    var current = index;
+    if (current == null) {
+      synchronized (this) {
+        current = index;
+        if (current == null) {
+          current = new RoutedClassIndex(providers);
+          index = current;
+        }
+      }
     }
+    return current;
   }
 
-  private static boolean isUi(RoutedClassProvider provider) {
-    try {
-      return provider.routedClass().isAnnotationPresent(UI.class);
-    } catch (Throwable t) {
-      return false;
-    }
+  private static Optional<ResolvedRoute> resolved(String route, RoutedClassIndex.Entry entry) {
+    return entry == null
+        ? Optional.empty()
+        : Optional.of(new ResolvedRoute(route, entry.pattern(), entry.type()));
   }
 
-  @FunctionalInterface
-  private interface RouteMatcher {
-    Optional<ResolvedRoute> match(String route, Class<?> aClass, RunActionCommand command);
+  /** A request the matchers cannot read (no command, no request): nothing matches, as before. */
+  private static Optional<ResolvedRoute> unresolvable(String route, Throwable t) {
+    log.warn("route '{}' could not be matched against the routed classes: {}", route, t.toString());
+    return Optional.empty();
   }
 }

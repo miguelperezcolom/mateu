@@ -101,6 +101,18 @@ def test_the_page_is_served_at_the_mount_and_its_deep_links_aimed_at_the_mount(v
     assert c.get("/ui-probe/missing.js", headers={"accept": "text/html"}).status_code == 404
 
 
+def test_the_page_paints_a_loader_before_the_bundle_runs(vaadin_static):
+    """The Vaadin page painted nothing until its bundle ran (4 s on a 3G phone): it carries a
+    CSS-only pre-boot loader, after the root element (so the served <mateu-ui> keeps it), hidden
+    once <mateu-ui> is defined — and no script of its own (script-src 'self')."""
+    page = client(vaadin_static).get("/").text
+    assert page.index("</mateu-ui>") < page.index('class="mateu-preboot"')
+    assert "mateu-ui:defined ~ .mateu-preboot { display: none; }" in page
+    assert "prefers-reduced-motion" in page
+    loader = page[page.index("<!-- Pre-boot loader") : page.index("</body>")]
+    assert "<script" not in loader  # CSS only: adds nothing script-src has to allow
+
+
 def test_the_renderers_assets_are_served_at_the_origin_root(vaadin_static):
     c = client(vaadin_static)
     js = c.get("/assets/mateu-vaadin.js")
@@ -131,6 +143,48 @@ def test_the_renderers_text_assets_are_gzipped_to_a_browser_that_accepts_it(vaad
     assert "content-encoding" not in plain.headers and plain.content == raw
     assert plain.headers["vary"] == "Accept-Encoding"
     assert ui_page.accepts_gzip("gzip;q=0") is False and ui_page.accepts_gzip("*") is True
+
+
+def test_the_renderers_assets_carry_validators_and_a_repeat_visit_costs_a_304(vaadin_static, tmp_path):
+    """Java's StaticAssetCaching: ETag + Last-Modified on every asset, 304 with no body when the
+    browser revalidates (``no-cache``) an unchanged one — each encoding with its own validator."""
+    c = client(vaadin_static)
+    plain = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "identity"})
+    etag = plain.headers["etag"]
+    assert etag.startswith('W/"') and not etag.endswith('-gzip"')
+    assert plain.headers["last-modified"].endswith("GMT")
+    again = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "identity", "if-none-match": etag})
+    assert again.status_code == 304 and again.content == b""
+    assert again.headers["etag"] == etag and again.headers["cache-control"] == "no-cache"
+    gz = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip"})
+    assert gz.headers["etag"] == etag[:-1] + '-gzip"'
+    # the identity validator does not validate the gzip variant (nor the reverse)
+    assert c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip", "if-none-match": etag}).status_code == 200
+    assert (
+        c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip", "if-none-match": gz.headers["etag"]}).status_code
+        == 304
+    )
+    css = c.get("/assets/index.css")
+    assert c.get("/assets/index.css", headers={"if-modified-since": css.headers["last-modified"]}).status_code == 304
+    assert c.get("/assets/index.css", headers={"if-modified-since": "Thu, 01 Jan 1970 00:00:00 GMT"}).status_code == 200
+    # If-None-Match decides when present, whatever If-Modified-Since says
+    assert (
+        c.get(
+            "/assets/index.css",
+            headers={"if-none-match": 'W/"other"', "if-modified-since": css.headers["last-modified"]},
+        ).status_code
+        == 200
+    )
+    # a jar is read in place: its entries carry validators too
+    jar = tmp_path / "mateu-vaadin.jar"
+    with zipfile.ZipFile(jar, "w") as out:
+        out.write(vaadin_static / "_index.html", "static/_index.html")
+        out.write(vaadin_static / "assets/index.css", "static/assets/index.css")
+    from_jar = client(jar).get("/assets/index.css")
+    assert from_jar.status_code == 200 and from_jar.headers["etag"].startswith('W/"')
+    assert client(jar).get("/assets/index.css", headers={"if-none-match": from_jar.headers["etag"]}).status_code == 304
+    # the page itself carries no validator (it is rendered per request)
+    assert "etag" not in c.get("/").headers
 
 
 def test_the_api_and_the_apps_own_routes_are_never_answered_with_the_page(vaadin_static):

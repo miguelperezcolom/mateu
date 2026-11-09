@@ -308,6 +308,63 @@ def gzipped(path: str, raw: bytes) -> bytes:
     return out
 
 
+# ── validators of the renderer's files: Java's StaticAssetCaching.weakEtag + AssetCompression ────
+
+
+def weak_etag(size: int, modified_ms: int) -> str | None:
+    """A weak ETag from a file's size and modification time (ms) — the same text Java's
+    ``StaticAssetCaching.weakEtag`` sends: cheap (no hashing of the bytes), and weak so that a
+    compressing proxy in front does not make it wrong."""
+    if size < 0 or modified_ms <= 0:
+        return None
+    return f'W/"{size:x}-{modified_ms:x}"'
+
+
+def gzip_etag(etag: str | None) -> str | None:
+    """The validator of the gzip variant: ``W/"a-b"`` → ``W/"a-b-gzip"`` (Java's
+    ``AssetCompression.gzipEtag``), so a cache never answers one encoding with the other's bytes."""
+    if etag is None or not etag.endswith('"'):
+        return etag
+    return etag[:-1] + '-gzip"'
+
+
+def http_date(modified_ms: int) -> str:
+    """``Last-Modified``'s format (RFC 9110 IMF-fixdate)."""
+    from email.utils import formatdate
+
+    return formatdate(modified_ms / 1000, usegmt=True)
+
+
+def not_modified(
+    if_none_match: str | None, if_modified_since: str | None, etag: str | None, modified_ms: int
+) -> bool:
+    """Whether a conditional GET can be answered 304: ``If-None-Match`` decides when present (weak
+    comparison, ``*`` matches), else ``If-Modified-Since`` (second precision) — RFC 9110 §13.2.2,
+    what Spring's resource handler does on the Java side."""
+    if if_none_match is not None and if_none_match.strip():
+        if etag is None:
+            return False
+        if if_none_match.strip() == "*":
+            return True
+
+        def opaque(tag: str) -> str:
+            tag = tag.strip()
+            return tag[2:] if tag.startswith("W/") else tag
+
+        return any(opaque(tag) == opaque(etag) for tag in if_none_match.split(","))
+    if if_modified_since and modified_ms > 0:
+        from email.utils import parsedate_to_datetime
+
+        try:
+            since = parsedate_to_datetime(if_modified_since.strip())
+        except (TypeError, ValueError, IndexError):
+            return False
+        if since is None:
+            return False
+        return int(modified_ms // 1000) <= int(since.timestamp())
+    return False
+
+
 def api_hint_page(base_url: str) -> str:
     """What a BROWSER gets at the mount of a server that serves no renderer: a short explanation
     instead of a bare JSON 404 — the first thing a newcomer does with a running starter is open its
@@ -385,6 +442,36 @@ class RendererFiles:
         except ValueError:
             return None
         return file.read_bytes() if file.is_file() else None
+
+    def stamp(self, relative: str) -> tuple[int, int] | None:
+        """``(size, modification time in ms)`` of ``relative``, or None when it is not a file of this
+        renderer — what the asset's validators (``ETag``, ``Last-Modified``) are made of."""
+        relative = relative.lstrip("/")
+        if not relative or ".." in relative.split("/"):
+            return None
+        if self.is_archive:
+            try:
+                with zipfile.ZipFile(self.location) as jar:
+                    try:
+                        info = jar.getinfo(JAR_PREFIX + relative)
+                    except KeyError:
+                        return None
+                    if info.is_dir():
+                        return None
+                    import time
+
+                    return info.file_size, int(time.mktime(info.date_time + (0, 0, -1)) * 1000)
+            except (zipfile.BadZipFile, OverflowError, ValueError):
+                return None
+        file = self.location / relative
+        try:
+            file.resolve().relative_to(self.location.resolve())
+        except ValueError:
+            return None
+        if not file.is_file():
+            return None
+        stat = file.stat()
+        return stat.st_size, int(stat.st_mtime * 1000)
 
     def index_template(self) -> str:
         data = self.read(INDEX)

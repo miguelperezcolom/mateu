@@ -155,6 +155,53 @@ final class BundleWriter {
     Files.writeString(outputDirectory.resolve("_redirects"), "/*    /index.html    200\n");
   }
 
+  /** What {@link #precompress} wrote: how many {@code .gz} siblings, and the bytes before/after. */
+  record Precompressed(int files, long rawBytes, long gzipBytes) {}
+
+  /**
+   * Writes a {@code <file>.gz} next to every text file of the bundle ({@link
+   * io.mateu.core.infra.AssetCompression#COMPRESSIBLE}, at least {@link
+   * io.mateu.core.infra.AssetCompression#MIN_BYTES}), gzipped at the best level, with the
+   * original's modification time — so a host that serves pre-compressed files (nginx {@code
+   * gzip_static on}, Caddy {@code precompressed}, a CDN origin) sends them gzipped without
+   * compressing per request. A file whose gzip would not be smaller gets none (and loses a stale
+   * one). Brotli is not written: the JDK has no encoder, and the plugin adds no dependency for it.
+   */
+  static Precompressed precompress(Path outputDirectory) throws IOException {
+    int files = 0;
+    long raw = 0;
+    long gz = 0;
+    List<Path> candidates;
+    try (var walk = Files.walk(outputDirectory)) {
+      candidates =
+          walk.filter(Files::isRegularFile)
+              .filter(p -> !p.getFileName().toString().endsWith(".gz"))
+              .filter(
+                  p ->
+                      io.mateu.core.infra.AssetCompression.compressible(p.getFileName().toString()))
+              .toList();
+    }
+    for (Path file : candidates) {
+      Path sibling = file.resolveSibling(file.getFileName() + ".gz");
+      byte[] bytes = Files.readAllBytes(file);
+      if (bytes.length < io.mateu.core.infra.AssetCompression.MIN_BYTES) {
+        Files.deleteIfExists(sibling);
+        continue;
+      }
+      byte[] compressed = io.mateu.core.infra.AssetCompression.gzip(bytes);
+      if (compressed.length >= bytes.length) {
+        Files.deleteIfExists(sibling);
+        continue;
+      }
+      Files.write(sibling, compressed);
+      Files.setLastModifiedTime(sibling, Files.getLastModifiedTime(file));
+      files++;
+      raw += bytes.length;
+      gz += compressed.length;
+    }
+    return new Precompressed(files, raw, gz);
+  }
+
   /**
    * Writes the installable app's files and returns {@code index} with its head. Off, only the
    * worker is written — the one that unregisters itself — and the page is left as it was.
