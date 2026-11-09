@@ -15,6 +15,17 @@ internal sealed partial class SyncHandler
     // ── CRUD ───────────────────────────────────────────────────────────────────
     private (Type Type, Type Element, string BaseRoute)? ResolveCrud(RunActionRqDto rq)
     {
+        // a crud bound in the AUTHORED route table (a record master's tab): mounted at the shortest
+        // prefix of the route bound to it (Java's ActionInstanceCreator.mountOf)
+        if (!string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } mount
+            && registry.TypeByName(rq.ServerSideType) is { } bound
+            && ReflectionMapper.CrudElementType(bound) is { } boundElement)
+            return (bound, boundElement, mount);
+        // a sub-resource island (/_subresource/<Host>/<property>): addressed by its type
+        if (RoutedTabs.IslandCrud(registry, rq.Route, rq.ServerSideType) is { } island
+            && ReflectionMapper.CrudElementType(island.Type) is { } islandElement)
+            return (island.Type, islandElement, island.BaseRoute);
         if (!string.IsNullOrEmpty(rq.ServerSideType) && registry.Resolve(rq.ServerSideType, null) is { } byName
             && ReflectionMapper.CrudElementType(byName) is { } el1)
             return (byName, el1, "/" + (byName.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? ""));
@@ -61,6 +72,15 @@ internal sealed partial class SyncHandler
     {
         ActionGuard.EnsureViewVisible(crudType);
         var crud = Activator.CreateInstance(crudType)!;
+        // a crud inside a record master's tab gets the chain's path parameters (its customerId), and
+        // the request state hydrates its own properties (a sub-resource's parent context) — Java's
+        // mountOf + the orchestrator hydrated from the component state
+        foreach (var (p, v) in RoutedTabs.ScopeValuesFor(crudType)) SetSimple(p, crud, v);
+        foreach (var p in crudType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                     .Concat(OwnBaseProperties(crudType)))
+            if (p.CanWrite && p.GetIndexParameters().Length == 0 && p.GetValue(crud) is null
+                && rq.ComponentState.TryGetValue(Naming.CamelCase(p.Name), out var raw) && raw is not null)
+                SetSimple(p, crud, raw);
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
 
         // The row editing actions of a list property of the entity form (Java resolves the list on
@@ -215,8 +235,10 @@ internal sealed partial class SyncHandler
         return parts.Length >= 2 && parts[1] == "edit" ? ("edit", parts[0]) : ("view", parts[0]);
     }
 
+    // an island's listing is a block of the host page: it does not name the window
     private UIIncrementDto RenderCrudList(Type crudType, object crud, string baseRoute, RunActionRqDto rq) =>
-        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq);
+        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq,
+            emitWindowTitle: RoutedTabs.RequestRoute?.Contains(ReflectionMapper.EmbeddedMarker, StringComparison.Ordinal) != true);
 
     private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq) =>
         FragmentResponse(_mapper.TitleOf(element, entity), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
@@ -562,7 +584,43 @@ internal sealed partial class SyncHandler
         }, rq);
     }
 
-    private static object New(Type element) => Activator.CreateInstance(element)!;
+    private static object New(Type element)
+    {
+        var entity = Activator.CreateInstance(element)!;
+        // under a record master, a new child starts with its properties named like the chain's path
+        // parameters filled in (Java's FilteredAutoCrud.buildCreationForm + scopeValuesFor)
+        foreach (var (p, v) in RoutedTabs.ScopeValuesFor(element)) SetSimple(p, entity, v);
+        return entity;
+    }
+
+    /// <summary>The public properties an APPLICATION base class of the crud declares (between it
+    /// and Mateu's Crud&lt;T&gt;).</summary>
+    private static IEnumerable<PropertyInfo> OwnBaseProperties(Type crudType)
+    {
+        for (var t = crudType.BaseType; t is not null && t.Assembly != typeof(Crud<>).Assembly; t = t.BaseType)
+            foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                yield return p;
+    }
+
+    /// <summary>Sets a simple property from a wire value (a string, a number, a JsonElement).</summary>
+    private static void SetSimple(PropertyInfo p, object target, object? value)
+    {
+        if (value is null || !p.CanWrite) return;
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        try
+        {
+            object? converted = value is System.Text.Json.JsonElement el
+                ? System.Text.Json.JsonSerializer.Deserialize(el.GetRawText(), t)
+                : t.IsInstanceOfType(value) ? value
+                : t.IsEnum ? Enum.Parse(t, value.ToString()!, true)
+                : Convert.ChangeType(value, t, System.Globalization.CultureInfo.InvariantCulture);
+            p.SetValue(target, converted);
+        }
+        catch (Exception)
+        {
+            // a value that does not fit the property is no context
+        }
+    }
 
     private static object GetOrNew(object crud, Type crudType, Type element, string? id) =>
         (id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null) ?? New(element);

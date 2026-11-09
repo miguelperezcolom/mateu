@@ -196,6 +196,17 @@ class DispatchMixin(MixinBase):
         # tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's
         # mount, the app not on screen yet).
         routed_mount = None
+        if not rq.action_id and not rq.server_side_type:
+            # a load naming no type (a fresh deep link, a reload) of a TAB of a record master that
+            # is not on screen yet: the master renders it in its slot (Java's
+            # RouteChains.pendingAppAncestor)
+            from .. import routed_tabs
+
+            ancestor = routed_tabs.pending_app_ancestor(
+                self.routes, self.registry, rq.route, rq.consumed_route
+            )
+            if ancestor is not None:
+                return self.render_app(ancestor[0], rq, request_base_url, routed_mount=ancestor[1])
         if not rq.action_id and rq.server_side_type:
             from .. import routed_tabs
 

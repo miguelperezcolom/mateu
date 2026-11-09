@@ -4073,6 +4073,45 @@
     ]
    ]
   },
+  "Subresource": {
+   "class": [
+    [
+     "tab",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "help",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "load",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show_title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "context",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "SubscriptionSource": {
    "enum": [
     "COMPONENT",

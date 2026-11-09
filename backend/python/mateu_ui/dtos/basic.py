@@ -194,6 +194,8 @@ class TabMetadata(Wire):
     shortcut: str | None = None
     #: The tab's URL key (Java's TabDto.routeKey): the page's route followed by it opens the tab.
     route_key: str | None = None
+    #: A count on the tab — the rows of its EAGER sub-resources (Java's TabDto.badge).
+    badge: str | None = None
 
 
 class AccordionLayoutMetadata(Wire):

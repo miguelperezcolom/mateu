@@ -74,6 +74,20 @@ class CrudHandlerMixin(MixinBase):
 
     def _handle_crud(self, crud_type, element, base_route, rq: RunActionRq) -> UIIncrement:
         crud = crud_type()
+        # a crud inside a record master's tab gets the chain's path parameters (its customerId) —
+        # Java's mountOf applies them to the known type's state on every request
+        from .. import routed_tabs
+
+        for name, value in routed_tabs.scope_values_for(crud_type).items():
+            setattr(crud, name, value)
+        # the request state hydrates the crud's own fields (a sub-resource's parent context —
+        # its vcnId), as Java hydrates the orchestrator from the component state
+        from .. import subresources
+
+        for wire, name in subresources.own_fields(crud_type).items():
+            value = (rq.component_state or {}).get(wire)
+            if value is not None and getattr(crud, name, None) is None:
+                setattr(crud, name, value)
         mode, id_ = self.parse_crud_route(base_route, rq.route)
         aid = rq.action_id
 
@@ -178,7 +192,9 @@ class CrudHandlerMixin(MixinBase):
             return self.navigate(base_route if id_ is None else f"{base}/{id_}", None, rq)
         if aid in (None, ""):
             if mode == "new":
-                return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new", rq)
+                return self.render_entity(
+                    crud_type, element, self.new_child(element), "new", f"{base_route}/new", rq
+                )
             if mode == "view":
                 return self.render_entity(
                     crud_type, element, self.get_or_new(crud, element, id_), "view", f"{base_route}/{id_}", rq
@@ -187,7 +203,15 @@ class CrudHandlerMixin(MixinBase):
                 return self.render_entity(
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit", rq
                 )
-            return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
+            # an island's listing is a block of the host page: it does not name the window
+            from .. import islands
+
+            return self.fragment_response(
+                self.title(crud_type),
+                self.mapper.map_view(crud_type, crud, base_route),
+                rq,
+                with_title_command=islands.EMBEDDED_MARKER not in islands.island_flags(),
+            )
         if aid and aid.startswith(nested_forms.NESTED_ACTION_PREFIX):
             # a nested data object of the ENTITY (its record form's sub-form): Java's record form
             # is the entity's own server-side component, so the method runs on the entity's nested
@@ -444,8 +468,19 @@ class CrudHandlerMixin(MixinBase):
             self.lookup_labels(element, entity, crud_type()),
         )
 
+    @staticmethod
+    def new_child(element):
+        """A fresh record — under a record master, with its fields named like the chain's path
+        parameters filled in (Java's FilteredAutoCrud.buildCreationForm + scopeValuesFor)."""
+        from .. import routed_tabs
+
+        entity = element()
+        for name, value in routed_tabs.scope_values_for(element).items():
+            setattr(entity, name, value)
+        return entity
+
     def crud_save(self, crud, element, id_, rq: RunActionRq, base_route) -> UIIncrement:
-        entity = self.get_or_new(crud, element, id_) if id_ is not None else element()
+        entity = self.get_or_new(crud, element, id_) if id_ is not None else self.new_child(element)
         # Optimistic locking (Version()): an EDITOR save (creates don't check/bump) whose version
         # is older than the stored one is rejected with the reload/overwrite conflict dialog —
         # BEFORE the state binds, so the stored entity is never mutated on a conflict (mirrors

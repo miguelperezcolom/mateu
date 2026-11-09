@@ -2084,6 +2084,16 @@ Mateu.Uidl.StepAttribute ctor(System.Int32)
 Mateu.Uidl.StepAttribute property System.Int32 Step { get; }
 Mateu.Uidl.StereotypeAttribute ctor(System.String)
 Mateu.Uidl.StereotypeAttribute property System.String Value { get; }
+Mateu.Uidl.SubresourceAttribute ctor()
+Mateu.Uidl.SubresourceAttribute property Mateu.Uidl.SubresourceLoad Load { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.Boolean ShowTitle { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.Int32 Order { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.String Help { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.String Show { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.String Tab { get;init; }
+Mateu.Uidl.SubresourceAttribute property System.String[] Context { get;init; }
+Mateu.Uidl.SubresourceLoad enum Eager
+Mateu.Uidl.SubresourceLoad enum OnOpen
 Mateu.Uidl.SubscribeToAttribute ctor(System.String, System.String)
 Mateu.Uidl.SubscribeToAttribute property Mateu.Uidl.SubscriptionSource Source { get;init; }
 Mateu.Uidl.SubscribeToAttribute property System.String Action { get; }

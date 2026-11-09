@@ -936,6 +936,214 @@ class WireConformanceTest {
     public String simulatorNote = "simulator";
   }
 
+  /** A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*). */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Account")
+  public static class RtAccountMaster {
+    public String customerId;
+  }
+
+  /** An order of one customer: its {@code customerId} is the master's path parameter. */
+  @SuppressWarnings("unused")
+  public static class RtOrder implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String customerId;
+    public String status;
+
+    public RtOrder() {}
+
+    RtOrder(String id, String customerId, String status) {
+      this.id = id;
+      this.customerId = customerId;
+      this.status = status;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return id == null ? "New order" : "Order " + id;
+    }
+  }
+
+  static final List<RtOrder> RT_ORDERS =
+      List.of(
+          new RtOrder("7-1", "7", "OPEN"),
+          new RtOrder("7-2", "7", "SHIPPED"),
+          new RtOrder("8-1", "8", "OPEN"));
+
+  /**
+   * The master's tab: the orders of ONE customer, the one the route names — its {@code customerId}
+   * comes from the chain's path parameter, its listing filter of that name is read-only (the route
+   * fixes it) and a new order starts with it filled in.
+   */
+  @Title("Orders")
+  public static class RtAccountOrders
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<RtOrder> {
+    public String customerId;
+
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<RtOrder> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<RtOrder> findById(String id) {
+          return RT_ORDERS.stream().filter(o -> o.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(RtOrder entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<RtOrder> findAll() {
+          return RT_ORDERS.stream()
+              .filter(o -> customerId == null || o.customerId.equals(customerId))
+              .toList();
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  // ── @Subresource: a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+  /** A network item: its {@code vcnId} is the parent the listing is scoped to. */
+  @SuppressWarnings("unused")
+  public static class RtNetItem implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    public String vcnId;
+
+    public RtNetItem() {}
+
+    RtNetItem(String id, String vcnId) {
+      this.id = id;
+      this.vcnId = vcnId;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return id == null ? "New item" : id;
+    }
+  }
+
+  /** The listings of one VCN: the one its {@code vcnId} names. */
+  public abstract static class RtItemsOfVcn
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<RtNetItem> {
+    public String vcnId;
+
+    public abstract List<RtNetItem> all();
+
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<RtNetItem> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        @Override
+        public java.util.Optional<RtNetItem> findById(String id) {
+          return all().stream().filter(i -> i.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(RtNetItem entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<RtNetItem> findAll() {
+          return all().stream().filter(i -> i.vcnId.equals(vcnId)).toList();
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  @Title("Internet gateways")
+  public static class RtInternetGateways extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(new RtNetItem("ig1", "7"));
+    }
+  }
+
+  @Title("NAT gateways")
+  public static class RtNatGateways extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(new RtNetItem("nat1", "7"), new RtNetItem("nat2", "8"));
+    }
+  }
+
+  @Title("Subnets")
+  public static class RtSubnets extends RtItemsOfVcn {
+    @Override
+    public List<RtNetItem> all() {
+      return List.of(
+          new RtNetItem("s1", "7"),
+          new RtNetItem("s2", "7"),
+          new RtNetItem("s3", "7"),
+          new RtNetItem("s4", "8"));
+    }
+  }
+
+  /**
+   * A VCN's detail: Details, then Gateways (two listings stacked in their {@code order}, lazy, with
+   * a help line) and Subnets (eager: its row count on the tab, alone in its tab so untitled).
+   */
+  @SuppressWarnings("unused")
+  @Title("VCN")
+  public static class RtVcnDetail {
+    @io.mateu.uidl.annotations.ReadOnly public String id;
+
+    @Tab(value = "Details", key = "details")
+    public String cidr = "10.0.0.0/16";
+
+    @io.mateu.uidl.annotations.Subresource(tab = "gateways", order = 2, context = "vcnId=id")
+    public RtNatGateways nat;
+
+    @io.mateu.uidl.annotations.Subresource(
+        tab = "gateways",
+        order = 1,
+        help = "Gateways to the internet",
+        context = "vcnId=id")
+    public RtInternetGateways internet;
+
+    @io.mateu.uidl.annotations.Subresource(
+        tab = "subnets",
+        load = io.mateu.uidl.annotations.Subresource.Load.EAGER,
+        context = "vcnId=id")
+    public RtSubnets subnets;
+  }
+
+  /** Nothing editable but a sub-resource: it is still a form, and renders its island. */
+  @SuppressWarnings("unused")
+  @Title("Only subnets")
+  public static class RtOnlySubnets {
+    @io.mateu.uidl.annotations.ReadOnly public String id;
+
+    @io.mateu.uidl.annotations.Subresource public RtSubnets subnets;
+  }
+
+  /** The trap: an @Inline orchestrator with no route of its own fails where the cause is. */
+  @SuppressWarnings("unused")
+  @Title("Trap")
+  public static class RtInlineTrap {
+    public String name;
+
+    @io.mateu.uidl.annotations.Inline public RtNatGateways nat;
+  }
+
   /** The routed-tabs chains, authored in code (the routes.yaml {@code children:} twin). */
   public static class RoutedTabsRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
     @Override
@@ -980,7 +1188,19 @@ class WireConformanceTest {
               null,
               null,
               "notes"),
-          io.mateu.uidl.data.RouteEntry.of("conformance/rt/vcn/:id", RtVcnPage.class.getName()));
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/vcn/:id", RtVcnPage.class.getName()),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/accounts/:customerId",
+              null,
+              RtAccountMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(io.mateu.uidl.data.RouteEntry.of("orders", RtAccountOrders.class.getName()))),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/net/:id", RtVcnDetail.class.getName()),
+          io.mateu.uidl.data.RouteEntry.of(
+              "conformance/rt/only/:id", RtOnlySubnets.class.getName()),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/trap", RtInlineTrap.class.getName()));
     }
   }
 
@@ -2294,7 +2514,16 @@ class WireConformanceTest {
           java.util.Map.entry("routed-tabs-tab", RtOrdersTab.class),
           java.util.Map.entry("routed-tabs-segment-tab", RtNotesTab.class),
           java.util.Map.entry("routed-tabs-keys", RtVcnPage.class),
-          java.util.Map.entry("routed-tabs-key-in-url", RtVcnPage.class));
+          java.util.Map.entry("routed-tabs-key-in-url", RtVcnPage.class),
+          java.util.Map.entry("routed-tabs-deep-link", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-crud-listing", RtAccountOrders.class),
+          java.util.Map.entry("routed-tabs-crud-search", RtAccountOrders.class),
+          java.util.Map.entry("routed-tabs-crud-new", RtAccountOrders.class),
+          java.util.Map.entry("subresource-page", RtVcnDetail.class),
+          java.util.Map.entry("subresource-only", RtOnlySubnets.class),
+          java.util.Map.entry("subresource-inline-trap", RtInlineTrap.class),
+          java.util.Map.entry("subresource-listing", RtSubnets.class),
+          java.util.Map.entry("subresource-search", RtSubnets.class));
 
   private static final List<String> CASES =
       List.of(
@@ -2399,7 +2628,16 @@ class WireConformanceTest {
           "routed-tabs-tab",
           "routed-tabs-segment-tab",
           "routed-tabs-keys",
-          "routed-tabs-key-in-url");
+          "routed-tabs-key-in-url",
+          "routed-tabs-deep-link",
+          "routed-tabs-crud-listing",
+          "routed-tabs-crud-search",
+          "routed-tabs-crud-new",
+          "subresource-page",
+          "subresource-only",
+          "subresource-inline-trap",
+          "subresource-listing",
+          "subresource-search");
 
   static TestMateu mateu;
 
@@ -2660,6 +2898,9 @@ class WireConformanceTest {
           "wizard",
           "wizard-step-2",
           "crud-new",
+          "subresource-listing",
+          "routed-tabs-crud-new",
+          "routed-tabs-crud-listing",
           "crud-edit",
           "crud-view",
           "crud-hidden-in-edit",
@@ -2755,13 +2996,22 @@ class WireConformanceTest {
                                 ? request.get("consumedRoute").asText()
                                 : null)
                         .actionId(request.path("actionId").asText(""))
-                        .serverSideType(requested.getName())
+                        // a request.json naming "serverSideType": null is a FRESH load (no type
+                        // yet)
+                        .serverSideType(
+                            request.has("serverSideType")
+                                ? (request.get("serverSideType").isNull()
+                                    ? null
+                                    : request.get("serverSideType").asText())
+                                : requested.getName())
                         .componentState(state)
                         .build()));
         if (MEDIATED_FORMS.contains(route)) {
           answer = withoutMediatedRoute(answer);
         }
-        return MEDIATOR_PROTOCOL_ONLY.contains(route) ? withoutMediatorProtocol(answer) : answer;
+        return MEDIATOR_PROTOCOL_ONLY.contains(route)
+            ? withoutMediatorProtocol(answer, FORM_STATE_PINNED.contains(route))
+            : answer;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -2796,6 +3046,9 @@ class WireConformanceTest {
   static final Set<String> MEDIATED_FORMS =
       Set.of(
           "crud-new",
+          "subresource-listing",
+          "routed-tabs-crud-new",
+          "routed-tabs-crud-listing",
           "crud-edit",
           "crud-view",
           "crud-hidden-in-edit",
@@ -2817,9 +3070,27 @@ class WireConformanceTest {
   }
 
   /** Drops the mediator protocol of a mediated case — identical in the three runners. */
+  /**
+   * Mediated record forms whose FORM state is pinned all the same: the record's field values (what
+   * a new child under a record master starts with — its {@code customerId}) are the form's, only
+   * the mediator's private {@code _}-prefixed routing keys are protocol. Identical in the three
+   * runners.
+   */
+  static final Set<String> FORM_STATE_PINNED = Set.of("routed-tabs-crud-new");
+
   static JsonNode withoutMediatorProtocol(JsonNode increment) {
+    return withoutMediatorProtocol(increment, false);
+  }
+
+  static JsonNode withoutMediatorProtocol(JsonNode increment, boolean keepFormState) {
     for (var fragment : increment.path("fragments")) {
-      ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
+      if (keepFormState) {
+        withoutPrivateKeys(fragment.get("state"));
+        if (fragment.get("component") != null)
+          withoutPrivateKeys(fragment.get("component").get("initialData"));
+      } else {
+        ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
+      }
       if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
         // the mediator's own actions (create/save, their bubbling) are protocol; a nested data
         // object's actions are the FORM's — the record form advertises what its sub-forms dispatch
@@ -2831,7 +3102,7 @@ class WireConformanceTest {
           }
           if (actions.isEmpty()) c.remove("actions");
         }
-        c.remove("initialData");
+        if (!keepFormState) c.remove("initialData");
         // the mediator's own refresh subscriptions ("mateu-crud:*" events — a delete or a drawer
         // save tells the listing to search again); the ports re-render the listing in place
         if (c.get("triggers") instanceof com.fasterxml.jackson.databind.node.ArrayNode triggers) {
@@ -2844,6 +3115,14 @@ class WireConformanceTest {
       }
     }
     return increment;
+  }
+
+  private static void withoutPrivateKeys(JsonNode state) {
+    if (state instanceof com.fasterxml.jackson.databind.node.ObjectNode o) {
+      var names = new java.util.ArrayList<String>();
+      o.fieldNames().forEachRemaining(names::add);
+      names.stream().filter(n -> n.startsWith("_")).forEach(o::remove);
+    }
   }
 
   /** The size of the last increment {@link #roundTrip} serialised, as it travels (UTF-8 bytes). */

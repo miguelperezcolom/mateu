@@ -437,6 +437,8 @@ Mateu.Uidl.StatusList
 Mateu.Uidl.Step
 Mateu.Uidl.StepAttribute
 Mateu.Uidl.StereotypeAttribute
+Mateu.Uidl.SubresourceAttribute
+Mateu.Uidl.SubresourceLoad
 Mateu.Uidl.SubscribeToAttribute
 Mateu.Uidl.SubscriptionSource
 Mateu.Uidl.SubtitleAttribute

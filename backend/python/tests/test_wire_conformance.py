@@ -1423,13 +1423,17 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
+
+#: Mediated record forms whose FORM state is pinned all the same (Java's FORM_STATE_PINNED): the
+#: record's field values are the form's, only the _-prefixed routing keys are protocol.
+FORM_STATE_PINNED = {"routed-tabs-crud-new"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -1439,9 +1443,20 @@ def without_mediated_route(increment: dict) -> dict:
     return increment
 
 
-def without_mediator_protocol(increment: dict) -> dict:
+def _without_private_keys(state) -> None:
+    if isinstance(state, dict):
+        for key in [k for k in state if str(k).startswith("_")]:
+            state.pop(key)
+
+
+def without_mediator_protocol(increment: dict, keep_form_state: bool = False) -> dict:
     for fragment in increment.get("fragments", []):
-        fragment.pop("state", None)
+        if keep_form_state:
+            _without_private_keys(fragment.get("state"))
+            if isinstance(fragment.get("component"), dict):
+                _without_private_keys(fragment["component"].get("initialData"))
+        else:
+            fragment.pop("state", None)
         component = fragment.get("component")
         if isinstance(component, dict):
             # the mediator's own actions (create/save, their bubbling) are protocol; a nested data
@@ -1453,7 +1468,8 @@ def without_mediator_protocol(increment: dict) -> dict:
             ]
             if nested:
                 component["actions"] = nested
-            component.pop("initialData", None)
+            if not keep_form_state:
+                component.pop("initialData", None)
             # the mediator's own refresh subscriptions ("mateu-crud:*" events); this port
             # re-renders the listing in place
             if isinstance(component.get("triggers"), list):
@@ -1500,14 +1516,17 @@ def actual(view_cls, case: str | None = None) -> dict:
             inc = handler.handle(RunActionRq(
                 route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
                 action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
-                server_side_type=type_name(view_cls),
+                # a request.json naming "serverSideType": null is a FRESH load (no type yet)
+                server_side_type=(
+                    req["serverSideType"] if "serverSideType" in req else type_name(view_cls)
+                ),
             ))
         except Exception as error:  # noqa: BLE001 - the adapter's error boundary, as it travels
             inc = error_increment(error, new_correlation_id(), action_id=req.get("actionId"))
         out = normalise(inc.model_dump(by_alias=True, mode="json"))
         if case in MEDIATED_FORMS:
             out = without_mediated_route(out)
-        return without_mediator_protocol(out) if case in MEDIATED else out
+        return without_mediator_protocol(out, case in FORM_STATE_PINNED) if case in MEDIATED else out
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     out = normalise(inc.model_dump(by_alias=True, mode="json"))
     return without_mediator_protocol(out) if case in MEDIATED else out
@@ -1681,6 +1700,134 @@ class RtVcnPage:
     simulator_note: Annotated[str, Tab("Simulator", key="simulator", show="simulator")] = "simulator"
 
 
+@app("Account", variant=AppVariant.TABS)
+class RtAccountMaster:
+    """A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*)."""
+
+    customer_id: str | None = None
+
+
+class RtOrder:
+    """An order of one customer: its customer_id is the master's path parameter."""
+
+    id: str = ""
+    customer_id: str | None = None
+    status: str | None = None
+
+    def __init__(self, id="", customer_id=None, status=None):
+        self.id, self.customer_id, self.status = id, customer_id, status
+
+    def __str__(self):
+        return f"Order {self.id}" if self.id else "New order"
+
+
+RT_ORDERS = [RtOrder("7-1", "7", "OPEN"), RtOrder("7-2", "7", "SHIPPED"), RtOrder("8-1", "8", "OPEN")]
+
+
+@title("Orders")
+class RtAccountOrders(Crud[RtOrder]):
+    """The orders of ONE customer, the one the route names."""
+
+    customer_id: str | None = None
+
+    def fetch(self, search):
+        return [o for o in RT_ORDERS if self.customer_id is None or o.customer_id == self.customer_id]
+
+    def get(self, id):
+        return next((o for o in RT_ORDERS if o.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+# ── Subresource(): a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+from mateu_ui.uidl import Subresource  # noqa: E402
+
+
+class RtNetItem:
+    id: str = ""
+    vcn_id: str | None = None
+
+    def __init__(self, id="", vcn_id=None):
+        self.id, self.vcn_id = id, vcn_id
+
+    def __str__(self):
+        return self.id or "New item"
+
+
+class RtItemsOfVcn(Crud[RtNetItem]):
+    """The listings of one VCN: the one its vcn_id names."""
+
+    vcn_id: str | None = None
+
+    def items(self) -> list:
+        return []
+
+    def fetch(self, search):
+        return [i for i in self.items() if i.vcn_id == self.vcn_id]
+
+    def get(self, id):
+        return next((i for i in self.items() if i.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+@title("Internet gateways")
+class RtInternetGateways(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("ig1", "7")]
+
+
+@title("NAT gateways")
+class RtNatGateways(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("nat1", "7"), RtNetItem("nat2", "8")]
+
+
+@title("Subnets")
+class RtSubnets(RtItemsOfVcn):
+    def items(self) -> list:
+        return [RtNetItem("s1", "7"), RtNetItem("s2", "7"), RtNetItem("s3", "7"), RtNetItem("s4", "8")]
+
+
+@title("VCN")
+class RtVcnDetail:
+    """Details, then Gateways (two listings stacked in their order) and Subnets (eager)."""
+
+    id: Annotated[str | None, ReadOnly()] = None
+    cidr: Annotated[str, Tab("Details", key="details")] = "10.0.0.0/16"
+    nat: Annotated[RtNatGateways, Subresource(tab="gateways", order=2, context=("vcnId=id",))] = None  # type: ignore[assignment]
+    internet: Annotated[
+        RtInternetGateways,
+        Subresource(tab="gateways", order=1, help="Gateways to the internet", context=("vcnId=id",)),
+    ] = None  # type: ignore[assignment]
+    subnets: Annotated[RtSubnets, Subresource(tab="subnets", load="EAGER", context=("vcnId=id",))] = None  # type: ignore[assignment]
+
+
+@title("Only subnets")
+class RtOnlySubnets:
+    """Nothing editable but a sub-resource: still a form, rendering its island."""
+
+    id: Annotated[str | None, ReadOnly()] = None
+    subnets: Annotated[RtSubnets, Subresource()] = None  # type: ignore[assignment]
+
+
+@title("Trap")
+class RtInlineTrap:
+    """An Inline() orchestrator with no route of its own fails where the cause is."""
+
+    name: str | None = None
+    nat: Annotated[RtNatGateways, Inline()] = None  # type: ignore[assignment]
+
+
 class RoutedTabsRoutes(RouteEntrySupplier):
     """The routed-tabs chains, authored in code (Java's RoutedTabsRoutes)."""
 
@@ -1696,6 +1843,15 @@ class RoutedTabsRoutes(RouteEntrySupplier):
             RouteEntry(route=suppliers + "/orders", view_model=type_name(RtOrdersTab), parent=suppliers),
             RouteEntry(route=suppliers + "/notes", view_model=type_name(RtNotesTab), parent=suppliers),
             RouteEntry(route="conformance/rt/vcn/:id", view_model=type_name(RtVcnPage)),
+            RouteEntry(route="conformance/rt/accounts/:customerId", view_model=type_name(RtAccountMaster)),
+            RouteEntry(
+                route="conformance/rt/accounts/:customerId/orders",
+                view_model=type_name(RtAccountOrders),
+                parent="conformance/rt/accounts/:customerId",
+            ),
+            RouteEntry(route="conformance/rt/net/:id", view_model=type_name(RtVcnDetail)),
+            RouteEntry(route="conformance/rt/only/:id", view_model=type_name(RtOnlySubnets)),
+            RouteEntry(route="conformance/rt/trap", view_model=type_name(RtInlineTrap)),
         ]
 
 
@@ -1732,7 +1888,7 @@ class ConformanceRoutes(RouteEntrySupplier):
         ]
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage), ("routed-tabs-deep-link", RtCustomerMaster), ("routed-tabs-crud-listing", RtAccountOrders), ("routed-tabs-crud-search", RtAccountOrders), ("routed-tabs-crud-new", RtAccountOrders), ("subresource-page", RtVcnDetail), ("subresource-only", RtOnlySubnets), ("subresource-inline-trap", RtInlineTrap), ("subresource-listing", RtSubnets), ("subresource-search", RtSubnets)]
 
 
 def test_every_case_of_the_corpus_is_wired():

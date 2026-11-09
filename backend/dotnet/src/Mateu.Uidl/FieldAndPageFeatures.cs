@@ -21,6 +21,50 @@ public sealed class TabAttribute(string name) : Attribute
     public string? Show { get; init; }
 }
 
+/// <summary>When a <see cref="SubresourceAttribute"/> listing is fetched.</summary>
+public enum SubresourceLoad
+{
+    /// <summary>When its tab is opened (the default).</summary>
+    OnOpen,
+
+    /// <summary>With the page; the tab shows the listing's row count.</summary>
+    Eager,
+}
+
+/// <summary>A property whose type is a listing or crud rendered as one of the record's
+/// SUB-RESOURCES: an embedded listing with its own title, help line, filters, paging and actions,
+/// inside one of the page's tabs — several stacked in the same tab when they name it. The listing
+/// gets the parent as CONTEXT, not as filters the user can remove: the route's path parameters,
+/// the host's simple properties its listing also has, and the explicit <see cref="Context"/>
+/// bindings. (Mirrors Java's @Subresource and Python's Subresource().)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SubresourceAttribute : Attribute
+{
+    /// <summary>The tab it sits in: matched against the page's [Tab]s by key or label; a new tab
+    /// (labelled with it, its key kebab-cased) when none matches. Empty: a tab of its own, named
+    /// after the property.</summary>
+    public string Tab { get; init; } = "";
+
+    /// <summary>Its position among the sub-resources of the same tab (ascending).</summary>
+    public int Order { get; init; }
+
+    /// <summary>A one-line help text drawn under its title.</summary>
+    public string Help { get; init; } = "";
+
+    /// <summary>When it is fetched: OnOpen (default) or Eager.</summary>
+    public SubresourceLoad Load { get; init; } = SubresourceLoad.OnOpen;
+
+    /// <summary>A feature flag that must be on for it to show (<c>"flag"</c> or <c>"!flag"</c>).</summary>
+    public string? Show { get; init; }
+
+    /// <summary>Whether the embedded listing draws its own title (dropped anyway when it only
+    /// repeats the tab's label or the page's title).</summary>
+    public bool ShowTitle { get; init; } = true;
+
+    /// <summary>Explicit context bindings, <c>"listingField=hostField"</c> (or just <c>"field"</c>).</summary>
+    public string[] Context { get; init; } = [];
+}
+
 /// <summary>Answers whether a feature flag is on — the hook behind the data-driven <c>Show</c> of a
 /// routed tab (a <see cref="Mateu.Core.RouteEntry"/> child) and of an in-page <see cref="TabAttribute"/>.
 /// Implemented by any parameterless class in the scanned assemblies. With none, or none that knows

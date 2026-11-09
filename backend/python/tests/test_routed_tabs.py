@@ -3,9 +3,33 @@ FeatureFlagGate the corpus does not exercise — a hidden default tab, a negated
 
 from __future__ import annotations
 
-from mateu_ui.core import routed_tabs
+from typing import Annotated
+
+import pytest
+
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, routed_tabs, subresources, type_name
+from mateu_ui.core.reflection import view_fields
 from mateu_ui.core.route_registry import RouteEntry, RouteRegistry
-from mateu_ui.uidl import FeatureFlags
+from mateu_ui.uidl import FeatureFlags, Subresource
+
+from . import test_wire_conformance as wire
+
+
+def test_an_inline_orchestrator_with_no_route_fails_where_the_cause_is():
+    handler = SyncHandler(MateuRegistry(wire.MODULE))
+    with pytest.raises(RuntimeError, match="no route of its own"):
+        handler.handle(RunActionRq(route="/conformance/rt/trap", server_side_type=type_name(wire.RtInlineTrap)))
+
+
+class _Host:
+    id: str | None = "7"
+    subnets: Annotated[wire.RtSubnets, Subresource(context=("vcnId=nope",))] = None  # type: ignore[assignment]
+
+
+def test_a_subresource_context_naming_a_missing_host_field_is_a_configuration_error():
+    field = next(f for f in view_fields(_Host) if f.name == "subnets")
+    with pytest.raises(ValueError, match="nope"):
+        subresources.context(field, _Host())
 
 
 class AuditOff(FeatureFlags):

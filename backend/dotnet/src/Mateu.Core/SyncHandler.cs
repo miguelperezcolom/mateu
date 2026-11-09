@@ -192,6 +192,17 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
+        // 0f'. A load naming no type (a fresh deep link, a reload) of a TAB of a record master that
+        // is not on screen yet: the master renders it in its slot (Java's
+        // RouteChains.pendingAppAncestor).
+        if (string.IsNullOrEmpty(rq.ActionId) && string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.PendingAppAncestor(_routes, registry, rq.Route, rq.ConsumedRoute) is { } pendingMaster
+            && pendingMaster.GetCustomAttribute<AppAttribute>() is { } pendingApp)
+        {
+            ActionGuard.EnsureViewVisible(pendingMaster);
+            return RenderApp(pendingMaster, pendingApp.Title, rq, requestBaseUrl);
+        }
+
         // 0f. Routed tabs: an APP the client names by type that the AUTHORED route table binds under
         // the request route (a record master, a deep link to one of its tabs) renders ITSELF — its
         // tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's

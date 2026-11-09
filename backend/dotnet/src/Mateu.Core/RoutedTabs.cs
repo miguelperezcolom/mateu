@@ -209,6 +209,95 @@ internal static class RoutedTabs
         return null;
     }
 
+    /// <summary>The path parameters of the request route's chain, outermost first (<c>customerId</c>
+    /// under <c>/customers/7/orders/new</c>).</summary>
+    public static Dictionary<string, object?> ChainParams()
+    {
+        var context = Current.Value;
+        var values = new Dictionary<string, object?>();
+        foreach (var (_, path) in ChainLinks(context?.Routes, context?.Route))
+            if (context!.Routes!.Match(path) is { } match)
+                foreach (var (k, v) in match.PathParams) values[k] = v;
+        return values;
+    }
+
+    /// <summary>The names a listing's filters cannot change because the route fixes them: the path
+    /// parameters of the request route's chain and a sub-resource island's <c>_scope</c> (Java's
+    /// CrudlMapper.routeScope).</summary>
+    public static HashSet<string> RouteScope()
+    {
+        var context = Current.Value;
+        var names = ChainLinks(context?.Routes, context?.Route).Count > 1
+            ? ChainParams().Keys.ToHashSet()
+            : [];
+        var route = context?.Route ?? "";
+        var marker = ReflectionMapper.ScopeMarker + "=";
+        var at = route.IndexOf(marker, StringComparison.Ordinal);
+        if (at >= 0)
+            foreach (var name in route[(at + marker.Length)..].Split('&', '?')[0].Split(','))
+                if (!string.IsNullOrWhiteSpace(name)) names.Add(name.Trim());
+        return names;
+    }
+
+    /// <summary>Whether the request is a sub-resource island whose listing draws no title of its own.</summary>
+    public static bool HidesListingTitle() =>
+        Current.Value?.Route?.Contains(ReflectionMapper.HideTitleMarker, StringComparison.Ordinal) == true;
+
+    /// <summary>The chain's path parameters <paramref name="type"/> has a property for — what a new
+    /// child record created under a master starts with (Java's RouteChains.scopeValuesFor).</summary>
+    public static Dictionary<System.Reflection.PropertyInfo, object?> ScopeValuesFor(Type type)
+    {
+        var context = Current.Value;
+        var values = new Dictionary<System.Reflection.PropertyInfo, object?>();
+        if (ChainLinks(context?.Routes, context?.Route).Count < 2) return values;
+        var parameters = ChainParams();
+        foreach (var p in type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+            if (p.CanWrite && p.GetIndexParameters().Length == 0
+                && parameters.TryGetValue(Naming.CamelCase(p.Name), out var value))
+                values[p] = value;
+        return values;
+    }
+
+    /// <summary>The ancestor of <paramref name="route"/> that has to render it: the outermost link of
+    /// its chain beyond <paramref name="consumed"/> when that link is an ANCESTOR (not the route
+    /// itself) backed by an [App] class (Java's RouteChains.pendingAppAncestor).</summary>
+    public static Type? PendingAppAncestor(RouteRegistry routes, MateuRegistry registry, string? route, string? consumed)
+    {
+        var chain = ChainLinks(routes, route);
+        if (chain.Count < 2) return null;
+        var done = consumed is null or "_empty" ? "" : Normalize(consumed);
+        var pending = chain.FirstOrDefault(l =>
+            Normalize(l.Path).Length > done.Length && (done.Length == 0 || Normalize(l.Path).StartsWith(done, StringComparison.Ordinal)));
+        if (pending.Entry is null || pending == chain[^1] || string.IsNullOrWhiteSpace(pending.Entry.ViewModel)) return null;
+        var type = registry.TypeByName(pending.Entry.ViewModel);
+        return type?.GetCustomAttributes(typeof(AppAttribute), false).Length > 0 ? type : null;
+    }
+
+    /// <summary>The route the authored table binds a type to (one with no path parameters), or null.</summary>
+    public static string? AuthoredRouteOf(string? typeName)
+    {
+        var routes = Current.Value?.Routes;
+        if (routes is null || typeName is null) return null;
+        var entry = routes.Authored().Routes.FirstOrDefault(e => e.ViewModel == typeName && !e.Route.Contains(':'));
+        return entry is null ? null : "/" + Normalize(entry.Route);
+    }
+
+    /// <summary>The crud a sub-resource island addresses: <c>/_subresource/&lt;Host&gt;/&lt;property&gt;</c>
+    /// names a scanned host class with a [Subresource] property of that name whose type is the
+    /// request's server-side type — nothing else is resolved by type here.</summary>
+    public static (Type Type, string BaseRoute)? IslandCrud(MateuRegistry registry, string? route, string? serverSideType)
+    {
+        var parts = (route ?? "").Split('?')[0].Trim('/').Split('/');
+        if (parts.Length != 3 || parts[0] != "_subresource" || string.IsNullOrEmpty(serverSideType)) return null;
+        foreach (var host in registry.ScannedTypes.Where(t => t.Name == parts[1]))
+        foreach (var p in host.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+            if (Naming.CamelCase(p.Name) == parts[2]
+                && p.GetCustomAttributes(typeof(SubresourceAttribute), true).Length > 0
+                && p.PropertyType.FullName == serverSideType)
+                return (p.PropertyType, "/" + string.Join('/', parts));
+        return null;
+    }
+
     /// <summary>The tab key the request route ends with, or null: <c>/vcn/7/gateways</c> opens Gateways.</summary>
     public static string? RoutedTabKey(IEnumerable<string?> keys)
     {

@@ -65,6 +65,31 @@ class Tab:
 
 
 @dataclass(frozen=True)
+class Subresource:
+    """A field whose type is a listing or crud rendered as one of the record's SUB-RESOURCES: an
+    embedded listing with its own title, help line, filters, paging and actions, inside one of the
+    page's tabs — several stacked in the same tab when they name it (Java's @Subresource).
+
+    ``tab`` is matched against the page's ``Tab``s by key or label; none matching opens a new tab
+    (labelled with it, its key kebab-cased); empty = a tab of its own named after the field.
+    ``order`` places it among the sub-resources of the same tab, ``help`` is a line under its
+    title, ``load`` is ``"ON_OPEN"`` (fetched when its tab opens, the default) or ``"EAGER"``
+    (fetched with the page, its row count on the tab), ``show`` a feature flag, ``show_title``
+    whether it draws its title (dropped anyway when it only repeats the tab or the page), and
+    ``context`` explicit bindings ``"listingField=hostField"``. The listing gets the parent as
+    CONTEXT, not as filters the user can remove: the route's path parameters, the host's simple
+    fields its listing also has, and the bindings."""
+
+    tab: str = ""
+    order: int = 0
+    help: str = ""
+    load: str = "ON_OPEN"
+    show: str | None = None
+    show_title: bool = True
+    context: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class Stereotype:
     value: str
 

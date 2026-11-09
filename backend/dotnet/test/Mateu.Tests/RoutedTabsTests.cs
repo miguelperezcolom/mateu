@@ -52,6 +52,32 @@ public class RoutedTabsTests
     }
 
     [Fact]
+    public void An_inline_orchestrator_with_no_route_fails_where_the_cause_is()
+    {
+        var handler = new SyncHandler(new MateuRegistry(typeof(Wire.RtInlineTrap).Assembly));
+        var error = Assert.ThrowsAny<Exception>(() => handler.Handle(new Mateu.Dtos.RunActionRqDto
+        {
+            Route = "/conformance/rt/trap",
+            ServerSideType = typeof(Wire.RtInlineTrap).FullName,
+        }));
+        Assert.Contains("no route of its own", error.ToString());
+    }
+
+    private sealed class BadContextHost
+    {
+        public string? Id { get; set; } = "7";
+        [Subresource(Context = ["vcnId=nope"])] public Wire.RtSubnets? Subnets { get; set; }
+    }
+
+    [Fact]
+    public void A_subresource_context_naming_a_missing_host_property_is_a_configuration_error()
+    {
+        var p = typeof(BadContextHost).GetProperty(nameof(BadContextHost.Subnets))!;
+        var error = Assert.Throws<InvalidOperationException>(() => ReflectionMapper.SubresourceContext(p, new BadContextHost()));
+        Assert.Contains("nope", error.Message);
+    }
+
+    [Fact]
     public void Routes_yaml_carries_default_child_and_show()
     {
         var dir = EmptyDir();

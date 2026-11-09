@@ -194,7 +194,8 @@ class CrudMapperMixin(MixinBase):
         crud = self.client(
             CrudMetadata(
                 # a routed tab's own listing does not repeat the tab's label (Java's CrudlMapper)
-                title=routed_tabs.dedupe_title(title),
+                # a sub-resource island's listing draws no title: the host draws it above the island
+                title=None if routed_tabs.hides_listing_title() else routed_tabs.dedupe_title(title),
                 columns=columns,
                 toolbar=toolbar,
                 filters=self.crud_filters(element),
@@ -684,6 +685,11 @@ class CrudMapperMixin(MixinBase):
                     options_columns=0,
                 )
             )
+        # a filter named like a path parameter of the route's chain is fixed by where the listing is
+        # mounted, not chosen by the user (Java's CrudlMapper.routeScope)
+        scope = routed_tabs.route_scope()
+        if scope:
+            out = [f.model_copy(update={"read_only": True}) if f.field_id in scope else f for f in out]
         return _with_main_filters(element, out)
 
     def map_entity_form(

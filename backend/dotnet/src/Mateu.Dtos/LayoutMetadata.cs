@@ -36,6 +36,8 @@ public record TabMetadataDto(string Label) : ComponentMetadataDto
     /// <summary>The tab's URL key: the page's route followed by it opens the tab (mirrors
     /// io.mateu.dtos.TabDto.routeKey).</summary>
     public string? RouteKey { get; init; }
+    /// <summary>A count on the tab — the rows of its EAGER sub-resources (mirrors TabDto.badge).</summary>
+    public string? Badge { get; init; }
 }
 
 /// <summary>A KPI card in the page header (mirrors Java's io.mateu.dtos.KPIDto). The wire carries a
