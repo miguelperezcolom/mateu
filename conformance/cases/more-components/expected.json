@@ -155,6 +155,7 @@
             "type" : "ClientSide"
           } ],
           "metadata" : {
+            "orientation" : "horizontal",
             "type" : "MasterDetailLayout"
           },
           "type" : "ClientSide"
@@ -164,6 +165,7 @@
             "menu" : [ {
               "label" : "Orders",
               "path" : "/orders",
+              "route" : "/orders",
               "visible" : true
             } ],
             "type" : "ContextMenu",
@@ -185,6 +187,7 @@
               "submenus" : [ {
                 "label" : "Orders",
                 "path" : "/sales/orders",
+                "route" : "/sales/orders",
                 "visible" : true
               } ],
               "visible" : true
@@ -197,10 +200,12 @@
             "options" : [ {
               "label" : "Home",
               "path" : "/home",
+              "route" : "/home",
               "visible" : true
             }, {
               "label" : "Help",
               "path" : "/help",
+              "route" : "/help",
               "visible" : true
             } ],
             "type" : "MenuBar"

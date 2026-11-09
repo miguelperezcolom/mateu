@@ -84,7 +84,8 @@ class MoreComponentsMapperMixin(MixinBase):
             )
         if isinstance(c, mc.MasterDetailLayout):
             children = [self.map_component(x) for x in (c.master, c.detail) if x is not None]
-            return _client(MasterDetailLayoutMetadata(), c.id, children, c)
+            orientation = getattr(c.orientation, "value", c.orientation)
+            return _client(MasterDetailLayoutMetadata(orientation=orientation), c.id, children, c)
         if isinstance(c, mc.ContextMenu):
             return _client(
                 ContextMenuMetadata(
@@ -198,6 +199,10 @@ class MoreComponentsMapperMixin(MixinBase):
                 item_data=e.item_data,
                 submenus=self._menu(e.submenu),
                 separator=e.separator,
+                # a leaf says what picking it does: a MethodLink its action, a RouteLink its route
+                # (Java's ContextMenuMapper.buildMenu)
+                action_id=e.action_id if _is_leaf(e) else None,
+                route=e.path if _is_leaf(e) and e.action_id is None and e.path is not None else None,
             )
             for e in entries or ()
         ]
@@ -281,3 +286,10 @@ def java_camel_case(s: str | None) -> str | None:
             out.append(z[:1].upper() + z[1:] if pos > 0 and z.strip() else z)
         c = "".join(out)
     return c
+
+
+def _is_leaf(entry) -> bool:
+    """A menu entry that is neither a group nor a separator (Java's RouteLink / MethodLink)."""
+    from mateu_ui.uidl.more_components import MenuSeparator
+
+    return not entry.submenu and not entry.separator and not isinstance(entry, MenuSeparator)

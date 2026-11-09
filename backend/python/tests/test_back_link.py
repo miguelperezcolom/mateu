@@ -111,7 +111,7 @@ def test_a_remote_menu_with_a_path_claims_its_route_prefix_and_its_declared_labe
 
 
 def test_a_yaml_mount_is_presented_by_its_shell_and_its_page_title_names_it_when_it_has_no_title(tmp_path):
-    (tmp_path / "routes.yaml").write_text('type: Routes\nroutes:\n  - route: ""\n    definition: shell.yaml\n')
+    (tmp_path / "routes.yaml").write_text('type: Routes\nroutes:\n  - route: ""\n    layout: shell.yaml\n')
     (tmp_path / "shell.yaml").write_text(
         "type: AppShell\n"
         "pageTitle: Acme records\n"

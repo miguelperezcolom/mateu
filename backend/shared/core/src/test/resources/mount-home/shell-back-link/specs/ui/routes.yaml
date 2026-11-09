@@ -1,6 +1,6 @@
 type: Routes
 routes:
   - route: ""
-    definition: shell.yaml
+    layout: shell.yaml
   - route: overview
-    definition: overview.yaml
+    layout: overview.yaml

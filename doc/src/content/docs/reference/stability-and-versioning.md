@@ -203,7 +203,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 14 | 4 | 0 | 0 | 10 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 13 | 0 | 0 | 0 | 13 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 14 | 0 | 0 | 0 | 14 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 9 | 0 | 0 | 0 | 9 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.datamanagement` | 1 | 1 | 0 | 0 | 0 |
@@ -219,18 +219,18 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 287 | 257 | 0 | 30 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 257 | 257 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 330 | 263 | 66 | 1 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 108 | 91 | 10 | 0 | 7 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 91 | 11 | 0 | 7 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 2 | 0 | 0 | 0 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1026** | **837** | **99** | **31** | **59** |
+| **Total** | | **998** | **837** | **100** | **1** | **60** |
 
 **Experimental types** (the whole type and its members):
 
@@ -238,7 +238,7 @@ same concepts.
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
 - `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
 
 **Experimental members** of otherwise stable types:
@@ -302,7 +302,7 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.MultiView`: `wrapView`
 - `io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail`: `bindRequest`
-- `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `stateSource`
+- `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `restorable`, `restoreDeleted`, `stateSource`
 - `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.todolist.TodoList`: `bindRequest`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `currentStepField`

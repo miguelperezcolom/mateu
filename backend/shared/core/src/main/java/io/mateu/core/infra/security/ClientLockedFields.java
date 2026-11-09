@@ -639,7 +639,7 @@ public final class ClientLockedFields {
     if (!value.getClass().isRecord()) {
       return;
     }
-    for (var component : value.getClass().getRecordComponents()) {
+    for (var component : io.mateu.core.domain.Records.components(value.getClass())) {
       try {
         var child = component.getAccessor().invoke(value);
         if (child == null

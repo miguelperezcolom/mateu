@@ -15,18 +15,6 @@
                 "actionId" : "view",
                 "autoWidth" : true,
                 "dataType" : "string",
-                "label" : "Id",
-                "resizable" : true,
-                "sortable" : true,
-                "stereotype" : "regular",
-                "type" : "GridColumn",
-                "weight" : 3.0
-              },
-              "type" : "ClientSide"
-            }, {
-              "metadata" : {
-                "autoWidth" : true,
-                "dataType" : "string",
                 "label" : "Customer id",
                 "resizable" : true,
                 "sortable" : true,

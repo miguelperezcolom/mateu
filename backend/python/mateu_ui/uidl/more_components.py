@@ -164,7 +164,8 @@ class MenuEntry:
     """One entry of a :class:`ContextMenu` / :class:`Directory` / :class:`MenuBar` (Java's
     ``Actionable``: ``Menu`` when it has ``submenu`` entries, ``RouteLink`` otherwise). ``path``
     is where it leads; None = the camelCased label, as in Java. ``component`` replaces the label
-    with a component."""
+    with a component. ``action_id``: picking the entry runs that action instead of navigating
+    (Java's ``MethodLink``)."""
 
     label: str = ""
     path: str | None = None
@@ -176,6 +177,7 @@ class MenuEntry:
     item_data: Any = None
     component: Component | None = None
     separator: bool = False
+    action_id: str | None = None
 
     def __post_init__(self):
         _tuple(self, "submenu")

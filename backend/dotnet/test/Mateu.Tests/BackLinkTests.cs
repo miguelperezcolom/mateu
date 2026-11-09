@@ -78,7 +78,7 @@ public class BackLinkTests
                 type: Routes
                 routes:
                   - route: ""
-                    definition: shell.yaml
+                    layout: shell.yaml
                 """);
             File.WriteAllText(Path.Combine(dir, "shell.yaml"), """
                 type: AppShell

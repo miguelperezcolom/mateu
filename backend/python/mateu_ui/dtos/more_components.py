@@ -81,9 +81,11 @@ class FormSubSectionMetadata(Wire):
 
 
 class MasterDetailLayoutMetadata(Wire):
-    """Mirrors ``MasterDetailLayoutDto`` (no members: master and detail are the children)."""
+    """Mirrors ``MasterDetailLayoutDto``: master and detail are the children; ``orientation``
+    (horizontal | vertical) says how they are laid out."""
 
     type: Literal["MasterDetailLayout"] = "MasterDetailLayout"
+    orientation: str | None = None
 
 
 class MenuOptionRecord(Wire):
@@ -101,6 +103,10 @@ class MenuOptionRecord(Wire):
     item_data: Any = None
     submenus: list["MenuOptionRecord"] = Field(default_factory=list)
     separator: bool = False
+    #: what picking a leaf does: navigate to ``route``, or run ``action_id`` (Java's RouteLink.route /
+    #: MethodLink.methodName)
+    route: str | None = None
+    action_id: str | None = None
 
 
 class ContextMenuMetadata(Wire):

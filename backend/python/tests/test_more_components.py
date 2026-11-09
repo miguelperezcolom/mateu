@@ -64,7 +64,7 @@ def test_form_item_and_form_sub_section():
 
 def test_master_detail_layout_master_then_detail_as_children():
     w = wire(fl.MasterDetailLayout(id="md", master=t("M"), detail=t("D")))
-    assert w["metadata"] == {"type": "MasterDetailLayout"} and texts(w["children"]) == ["M", "D"]
+    assert w["metadata"] == {"type": "MasterDetailLayout", "orientation": "horizontal"} and texts(w["children"]) == ["M", "D"]
     assert texts(wire(fl.MasterDetailLayout(master=t("M")))["children"]) == ["M"]
 
 
