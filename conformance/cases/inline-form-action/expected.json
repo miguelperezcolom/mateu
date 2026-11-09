@@ -1,0 +1,9 @@
+{
+  "messages" : [ {
+    "duration" : 3000,
+    "persistence" : "toast",
+    "text" : "Verified Globex",
+    "variant" : "success"
+  } ],
+  "wireVersion" : "3.0"
+}

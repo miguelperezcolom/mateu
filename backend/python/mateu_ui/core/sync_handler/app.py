@@ -15,6 +15,7 @@ from mateu_ui.uidl import (
     NotificationsSupplier,
 )
 
+from ..mapper.app import back_link_parent
 from ..registry import type_name
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -28,6 +29,7 @@ class AppHandlerMixin(MixinBase):
         rq: RunActionRq | None = None,
         request_base_url: str | None = None,
         home_route_override: str | None = None,
+        routed_mount: str | None = None,
     ) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
         # A reflected (@menu_item-method) app is a @UI-annotated instance → CommandMapper's isPage
@@ -39,6 +41,7 @@ class AppHandlerMixin(MixinBase):
             else [UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))]
         )
         app_component = self.mapper.map_app(app_type, request_base_url)
+        app_component = self.with_back_link(app_component, back_link_parent(app_type))
         # R2 (App ≠ its Home Screen, coherence-plan #5): type the home fragment with the home
         # SCREEN's class when the home route resolves to a DIFFERENT registered type than the app —
         # a multi-screen app whose home is a distinct route. A single-screen app, a home with no
@@ -50,7 +53,17 @@ class AppHandlerMixin(MixinBase):
             # a fresh deep link to one of the app's menu routes: the shell opens ON that route
             # (Java's AppMenuResolver answers the app with the deep-linked route as its home)
             meta.home_route = home_route_override
+        if routed_mount is not None and meta is not None and rq is not None:
+            self._as_routed_master(meta, app_type, routed_mount, rq)
         home_route = getattr(meta, "home_route", None) if meta is not None else None
+        if routed_mount is not None and meta is not None:
+            # the routed master's home is its TAB's screen (Java's RouteChains.screenFor)
+            from .. import routed_tabs
+
+            chain = routed_tabs.chain_links(self.routes, home_route)
+            if chain and chain[-1][0].view_model:
+                meta.home_server_side_type = chain[-1][0].view_model
+            home_route = None
         if home_route and not home_route.endswith("_page") and not home_route.endswith("_no_home_route"):
             home_type = self.registry.resolve(None, home_route)
             if home_type is not None:
@@ -61,6 +74,84 @@ class AppHandlerMixin(MixinBase):
             commands=commands,
             fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
+
+    def _as_routed_master(self, meta, app_type, mount: str, rq: RunActionRq) -> None:
+        """An app the authored route table binds at ``mount`` with CHILDREN (a record master): an
+        app with no menu of its own offers its visible children as its tabs (label = the child's
+        title, else its segment), its route is the mount, and its home is the rest of the request
+        path — or, reached on its own, its default tab (Java's AppMenuBuilder.childRouteTabs +
+        HomeRouteResolver.getHomeRoute + ActionInstanceCreator's app-not-on-screen branch)."""
+        from mateu_ui.dtos import MenuItem
+
+        from .. import routed_tabs
+        from ..registry import normalize
+
+        requested = "/" + normalize(rq.route)
+        children = routed_tabs.visible_children_of(self.routes, mount, self.mapper.authorized)
+        if not meta.menu and children:
+            meta.menu = [
+                MenuItem(
+                    label=routed_tabs.tab_label(self.registry, child.entry, child.relative),
+                    route=child.path,
+                    server_side_type=type_name(app_type),
+                    consumed_route=mount,
+                    path=child.relative,
+                    uri_prefix=mount,
+                    selected=child.path == requested,
+                )
+                for child in children
+            ]
+            meta.total_menu_options = len(meta.menu)
+        meta.route = mount
+        meta.root_route = mount
+        if len(requested) > len(mount):
+            meta.home_route = requested
+        else:
+            default_child = routed_tabs.default_child_path(self.routes, mount, self.mapper.authorized)
+            if default_child is not None:
+                meta.home_route = default_child
+        meta.home_consumed_route = mount
+
+    # ── The "← Parent" link (@app(back_link=PARENT) / a YAML shell's backLink: PARENT) ──
+    def with_back_link(self, app_component, parent: bool):
+        """The app with its "← Parent" link when it asks for one (``parent``): no breadcrumb trail,
+        and the route and title of the nearest route above the app's that resolves to a screen,
+        resolved against what this server serves (Java's AppMapper.parentLink)."""
+        meta = getattr(app_component, "metadata", None)
+        if meta is None or not parent:
+            return app_component
+        meta.no_breadcrumbs = True
+        meta.back_route, meta.back_label = self.parent_link(meta.root_route)
+        return app_component
+
+    def parent_link(self, app_route: str | None) -> tuple[str | None, str | None]:
+        """The "← Parent" link of an app at ``app_route``: the route and label of the nearest route
+        ABOVE it that resolves to a screen — ``/customers`` ("Customers") for ``/customers/7``. The
+        label is the screen's ``@title``, else its last segment humanized. ``(None, None)`` when no
+        route above resolves (an app at its mount's root has none)."""
+        from ..naming import humanize_constant
+
+        path = (app_route or "").rstrip("/")
+        while path.rfind("/") > 0:
+            path = path[: path.rfind("/")]
+            screen = self._screen_at(path)
+            if screen is None:
+                continue
+            title = getattr(screen, "__mateu_title__", None)
+            segment = path[path.rfind("/") + 1:]
+            label = title if isinstance(title, str) and title.strip() else humanize_constant(segment.replace("-", " "))
+            return path, label
+        return None, None
+
+    def _screen_at(self, path: str):
+        """The class answering ``path``: a ``@ui`` route, else a routes.yaml entry bound to a view
+        model (a definition-only route has no class, and no title to label a link with)."""
+        found = self.registry.resolve(None, path)
+        if found is not None:
+            return found
+        match = self.routes.match(path)
+        view_model = match.entry.view_model if match is not None else None
+        return self.registry.type_by_name(view_model) if view_model else None
 
     # ── Idle session & live header values (E2 patterns; mirror Java's runners) ──
     def keep_alive_action(self, cls, rq: RunActionRq) -> UIIncrement:

@@ -1,0 +1,6 @@
+# The case's own route table: the same :param page, whose route also seeds a default parameter.
+routes:
+  - route: missions/:missionId
+    layout: mission.yaml
+    defaultParams:
+      tab: crew

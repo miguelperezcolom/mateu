@@ -15,6 +15,7 @@ from typing import (
 )
 
 from mateu_ui.dtos import Action, AppMetadata, CustomFieldMetadata, ServerSideComponent, TextMetadata
+from mateu_ui.dtos import CardMetadata, DivMetadata, FormLayoutMetadata, PageMetadata, VerticalLayoutMetadata
 from mateu_ui.dtos import (
     Button,
     ClientSideComponent,
@@ -29,7 +30,7 @@ from mateu_ui.dtos import (
     RestDataSource,
 )
 from mateu_ui.uidl import components as fluent
-from mateu_ui.uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
+from mateu_ui.uidl import Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
 from mateu_ui.uidl import ContentSlot as ContentSlotMarker
@@ -56,7 +57,9 @@ from mateu_ui.uidl import (
     Stereotype,
     TreeSelect,
     UseRadioButtons,
+    Version,
 )
+from mateu_ui.uidl import Section as SectionMarker
 
 from .. import form_columns_inference, layout_inference
 from ..rest_source_registry import source_dto
@@ -70,6 +73,8 @@ from ..reflection import (
 )
 from ._base import MixinBase
 from ..islands import EMBEDDED_MARKER, INLINE_MARKER, is_routed_view, seed_state
+from .. import nested_forms
+from ..reflection import methods_with
 from ..registry import normalize, type_name
 from ._common import (
     _id,
@@ -168,6 +173,46 @@ class FieldMapperMixin(MixinBase):
                 add(Action(id=f"codesearch-{camel_case(f.name)}", validation_required=False))
         return out
 
+    def nested_form_actions(self, cls, instance) -> list[Action]:
+        """The actions of the view's nested data objects (Java's
+        ActionMapper.addNestedFormsActions): for every nested-form field — inline or not, one
+        level — the nested class's actions in Java's FieldActionCollector order (its ``@action``
+        methods, its fields' actions, its ``@button``/``@toolbar`` methods, its FABs), each id
+        prefixed ``nested-form-action-<field>-``."""
+        from ._common import with_action_options
+
+        out: list[Action] = []
+        for f in view_fields(cls):
+            if not nested_forms.is_nested_form_field(f):
+                continue
+            value = getattr(instance, f.name, None) if not isinstance(instance, type) else None
+            nested_cls = type(value) if value is not None else f.type
+            own: list[Action] = []
+
+            def add(action: Action) -> None:
+                if all(a.id != action.id for a in own):
+                    own.append(action)
+
+            for n, fn in methods_with(nested_cls, "__mateu_action__"):
+                add(with_action_options(
+                    Action(id=camel_case(n), validation_required=False,
+                           shortcut=getattr(fn, "__mateu_shortcut__", None)),
+                    nested_cls, camel_case(n)))
+            for action in self.field_actions(nested_cls):
+                add(action)
+            for n, fn in methods_with(nested_cls, "__mateu_toolbar__") + methods_with(nested_cls, "__mateu_button__"):
+                if not hasattr(fn, "__mateu_action__"):
+                    add(with_action_options(
+                        Action(id=camel_case(n), validation_required=True,
+                               shortcut=getattr(fn, "__mateu_shortcut__", None)),
+                        nested_cls, camel_case(n)))
+            for n, fn in methods_with(nested_cls, "__mateu_fab__"):
+                if not any(hasattr(fn, m) for m in ("__mateu_action__", "__mateu_button__", "__mateu_toolbar__")):
+                    add(Action(id=camel_case(n), validation_required=False))
+            prefix = nested_forms.NESTED_ACTION_PREFIX + camel_case(f.name) + "-"
+            out.extend(a.model_copy(update={"id": prefix + a.id}) for a in own)
+        return out
+
     @staticmethod
     def grid_row_type(f) -> type | None:
         """The row type of a grid (list-of-complex-rows) field; None when the field is not a
@@ -184,7 +229,7 @@ class FieldMapperMixin(MixinBase):
         row editor's wiring: a trailing "Edit" column (``<field>_select``), the editor's position,
         column count and the grid's min height while it shows. Mirrors Java's
         GridColumnBuilder.createCrudForField."""
-        field_id = camel_case(f.name)
+        field_id = nested_forms.field_prefix() + camel_case(f.name)
         # InlineEditing() on the grid field: cells edit in place, commits accumulate in the form
         # state (the frontend's renderEditableCell form-grid path) and save with the form; it
         # replaces the row editor.
@@ -239,6 +284,10 @@ class FieldMapperMixin(MixinBase):
             )))
         on_row = f.marker(OnRowSelected)
         detail = f.marker(DetailForm) or DetailForm()
+        # the row type's Details() field opens under the row, behind a button (Java's @Details)
+        detail_path = next(
+            (camel_case(c.name) for c in view_fields(row_type) if c.has(Details)), None
+        )
         style = "min-width: 10rem; width: 100%;"
         meta = FormFieldMetadata(
             field_id=field_id,
@@ -255,8 +304,16 @@ class FieldMapperMixin(MixinBase):
             # Grid rows ride in the component initialData / fragment state, not as an initialValue.
             # OnRowSelected() binds the click to a method; an editable grid without it selects the
             # row for its editor (<field>_selected), a read-only one dispatches nothing.
+            # inside a nested form the row click runs the NESTED object's method
+            # (nested-form-action-<prefix><method> — Java's GridColumnBuilder)
             on_item_selection_action_id=(
-                camel_case(on_row.value) if on_row else (None if read_only else f"{field_id}_selected")
+                (
+                    nested_forms.NESTED_ACTION_PREFIX + nested_forms.field_prefix() + camel_case(on_row.value)
+                    if nested_forms.field_prefix()
+                    else camel_case(on_row.value)
+                )
+                if on_row
+                else (None if read_only else f"{field_id}_selected")
             ),
             row_selection_shortcut=on_row.shortcut if on_row and on_row.shortcut else None,
             form_position=detail.position,
@@ -264,11 +321,15 @@ class FieldMapperMixin(MixinBase):
             form_theme=detail.theme,
             form_columns=detail.columns or form_columns_inference.form_columns(row_type),
             min_height_when_detail_visible=detail.min_height_when_detail_visible,
+            detail_path=detail_path,
+            use_button_for_detail=detail_path is not None,
         )
         return ClientSideComponent(metadata=meta, id=field_id, children=[], style=style)
 
     def map_field(self, f, instance, read_only: bool = False) -> ClientSideComponent:
-        field_id = camel_case(f.name)
+        # inside a nested form every id carries the prefix of the fields holding it
+        # (``supplier-name`` — Java's FieldMetadataExtractor.getFieldId)
+        field_id = nested_forms.field_prefix() + camel_case(f.name)
         slot = f.marker(ContentSlotMarker)
         if slot is not None:
             # a hole for managed content: the field's value is irrelevant, the slot is resolved by
@@ -289,13 +350,15 @@ class FieldMapperMixin(MixinBase):
         holder = self.map_holder_field(f, instance)
         if holder is not None:
             return holder
+        if nested_forms.is_nested_form_field(f):
+            return self.map_nested_form(f, instance, read_only)
         if f.has(TextMarker):
             # Text(): the VALUE rendered as a sized text, interpolated from the state client-side
             # (mirrors Java's ReflectionFormFieldMapper @Text branch).
             marker = f.marker(TextMarker)
             return self.client(
                 TextMetadata(
-                    text=f"${{state.{field_id}}}",
+                    text=nested_forms.state_expression(field_id),
                     container=marker.container,
                     size=marker.size,
                     no_margins=marker.no_margins,
@@ -308,7 +371,7 @@ class FieldMapperMixin(MixinBase):
         t = f.type
         # the view's options(field_name) method wins (its options may carry children → tree
         # selects); enums keep contributing their constants
-        options = self._supplied_options(instance, field_id)
+        options = self._supplied_options(instance, camel_case(f.name))
         if not options:
             # Enum options: value = the member name, label = enum_label (Java's enumLabel rule).
             choices = t if is_enum(t) else element_enum(t)
@@ -318,7 +381,15 @@ class FieldMapperMixin(MixinBase):
         value = getattr(instance, f.name, None)
 
         # ReadOnlyUnless(): read-only unless the caller is authorized.
-        read_only = read_only or not self.authorized(f.marker(ReadOnlyUnless))
+        # ...also when the VIEW CLASS carries it (read_only_unless(...) on the class, .NET's
+        # class-level [ReadOnlyUnless])
+        # A field-level ReadOnly() locks the field too (Java's field-level @ReadOnly → readOnly).
+        read_only = (
+            read_only
+            or f.has(ReadOnly)
+            or not self.authorized(f.marker(ReadOnlyUnless))
+            or not self.authorized(getattr(instance.__class__, "__mateu_read_only_unless__", None))
+        )
         plain = f.has(PlainText) or bool(class_flag(instance.__class__, "__mateu_plain_text__", False))
         multiline = f.has(Multiline)
         stereotype = self.stereotype_of(f, plain, multiline, instance.__class__)
@@ -363,6 +434,74 @@ class FieldMapperMixin(MixinBase):
         )
         return self.client(meta, field_id, [])
 
+    def map_nested_form(self, f, instance, read_only: bool) -> ClientSideComponent:
+        """A field holding a nested data object (Java's NestedFormFieldBuilder). ``Inline()``: its
+        fields, prefixed ``<field>-``, expand into the section as a full-row CustomField holding
+        a form layout. Otherwise a sub-form: an outlined Card holding a level+1 Page titled after
+        the field, with the nested object's own form, badges, toolbar and buttons (their actions
+        dispatched as ``nested-form-action-<prefix><method>``)."""
+        from .layout import _section_columns
+
+        if nested_forms.is_being_mapped(f.type) or isinstance(instance, f.type):
+            # a type nested in itself: not expanded again (it would recurse forever)
+            return ClientSideComponent(metadata=DivMetadata(), id=camel_case(f.name), children=[])
+        value = nested_forms.nested_value(instance, f)
+        cls = type(value) if value is not None else f.type
+        prefix = nested_forms.field_prefix() + camel_case(f.name) + "-"
+        label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
+        if f.has(Inline):
+            inline_read_only = (
+                read_only or f.has(ReadOnly) or bool(class_flag(cls, "__mateu_read_only__", False))
+            )
+            max_columns = _section_columns(
+                section_of(type(instance), f), form_columns_inference.form_columns(type(instance))
+            )
+            fields = [
+                x for x in view_fields(cls)
+                if self.visible(x) and (inline_read_only or not x.has(Version))
+            ]
+            with nested_forms.nested(prefix, owner=cls):
+                rows = self.form_rows(self.map_fields(fields, value, inline_read_only), max_columns)
+            form_layout = self.client(FormLayoutMetadata(max_columns=max_columns), None, rows)
+            body = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(), children=[form_layout], style="width: 100%;"
+            )
+            return ClientSideComponent(
+                metadata=CustomFieldMetadata(label="", content=body, colspan=max_columns),
+                id=camel_case(f.name),
+                children=[],
+                style="width: 100%;",
+            )
+        level = nested_forms.nesting_level() + 1
+        action_prefix = nested_forms.NESTED_ACTION_PREFIX + prefix
+        with nested_forms.nested(prefix, level, owner=cls):
+            content = self.form_cards(cls, value) if value is not None else []
+            toolbar = [
+                b.model_copy(update={"action_id": action_prefix + b.action_id})
+                for b in (self.map_toolbar_button(n, fn) for n, fn in methods_with(cls, "__mateu_toolbar__"))
+            ]
+            buttons = [
+                b.model_copy(update={"action_id": action_prefix + b.action_id})
+                for b in (
+                    self.map_button(n, fn)
+                    for n, fn in methods_with(cls, "__mateu_button__")
+                    if not hasattr(fn, "__mateu_toolbar__")
+                )
+            ]
+            badges = self.badges(cls, value) if value is not None else []
+        page = ClientSideComponent(
+            metadata=PageMetadata(
+                title=label, level=level, badges=badges, toolbar=toolbar, buttons=buttons
+            ),
+            children=content,
+        )
+        return ClientSideComponent(
+            metadata=CardMetadata(content=page, variants=["outlined"]),
+            id=camel_case(f.name),
+            children=[],
+            style="width: 100%;",
+        )
+
     def map_holder_field(self, f, instance) -> ClientSideComponent | None:
         """A field holding a COMPONENT rather than data renders that component in its form slot
         (Java's ReflectionFormFieldMapper Component branch → CustomField): a fluent component or
@@ -387,6 +526,13 @@ class FieldMapperMixin(MixinBase):
             )
         if is_routed_view(value) and not isinstance(value, type(instance)):
             return self.map_island(f, value)
+        from .. import subresources
+
+        if subresources.is_subresource(f) or (
+            subresources.is_orchestrator(f.type) and not isinstance(instance, f.type)
+        ):
+            # an orchestrator held by a field (a sub-listing): its own island
+            return self.map_orchestrator_field(f, instance, 1)
         holds_component = isinstance(value, fluent.Component) or (
             isinstance(f.type, type) and issubclass(f.type, fluent.Component)
         )
@@ -403,6 +549,137 @@ class FieldMapperMixin(MixinBase):
             id="fieldId",
             children=[],
             style=getattr(value, "style", None),
+        )
+
+    def map_orchestrator_field(self, f, instance, max_columns: int, current_tab=None) -> ClientSideComponent:
+        """A field whose TYPE is an orchestrator (a listing, a crud): an independent island — a
+        MEDIATOR app shell bound to the type, in a ServerSide wrapper seeded with the context —
+        and, for a ``Subresource()``, its title and help line above it (Java's
+        EmbeddedOrchestratorFieldBuilder.build). ``current_tab`` = (label, sub-resources in it,
+        fields in it) when it sits in a tab."""
+        from .. import routed_tabs, subresources
+
+        cls = f.type
+        marker = subresources.marker_of(f)
+        route = "/" + normalize(getattr(cls, "__mateu_ui__", "") or "") if getattr(cls, "__mateu_ui__", None) is not None else ""
+        if not route:
+            routes, _registry = routed_tabs._tables.get()
+            entry = next(
+                (e for e in (routes.authored().routes if routes is not None else ())
+                 if e.view_model == type_name(cls) and ":" not in e.route),
+                None,
+            )
+            route = "/" + normalize(entry.route) if entry is not None else ""
+        if not route:
+            if marker is None:
+                # The island would load route "" — the app's ROOT — and render the whole page inside
+                # itself, which renders the island again: an endless reload with nothing on screen
+                # to say why. Fail where the cause is.
+                raise RuntimeError(
+                    f"{type(instance).__name__}.{f.name} embeds {cls.__name__}, an orchestrator with no"
+                    " route of its own, so its island would load the app's root route and render the"
+                    f" page inside itself forever. Give {cls.__name__} a route (@ui(\"/…\") or a"
+                    " routes.yaml entry), or declare the field Subresource()."
+                )
+            # a sub-resource needs no route of its own: its island is addressed by its type
+            route = f"/_subresource/{type(instance).__name__}/{camel_case(f.name)}"
+        inline = f.has(Inline)
+        marked = f"{route}?{subresources.EMBEDDED_MARKER}=1"
+        if inline:
+            marked += f"&{subresources.INLINE_MARKER}=1"
+        context = subresources.context(f, instance) if marker is not None else {}
+        if marker is not None:
+            marked += f"&{subresources.HIDE_TITLE_MARKER}=1"
+            if context:
+                # the names the parent fixes: the island's listing shows them as its scope
+                marked += f"&{subresources.SCOPE_MARKER}=" + ",".join(context)
+            if str(marker.load).upper() != "EAGER":
+                marked += f"&{subresources.LAZY_MARKER}=1"
+        island_type = type_name(cls)
+        component_id = f"_{camel_case(f.name)}"
+        app = ClientSideComponent(
+            metadata=AppMetadata(
+                title="",
+                variant="MEDIATOR",
+                route=route,
+                home_route=marked,
+                home_consumed_route=route,
+                home_server_side_type=island_type,
+                server_side_type=island_type,
+                root_route="_empty",
+                style="width: 100%;",
+            ),
+            id=component_id + "_app",
+            children=[],
+            style="width: 100%;",
+        )
+        initial: dict[str, Any] = {subresources.EMBEDDED_MARKER: True}
+        if inline:
+            initial[subresources.INLINE_MARKER] = True
+        if marker is not None:
+            initial[subresources.HIDE_TITLE_MARKER] = True
+            initial.update(context)
+        value = getattr(instance, f.name, None)
+        if value is not None:
+            initial.update(seed_state(value))
+        wrapper = ServerSideComponent(
+            id=component_id,
+            server_side_type=island_type,
+            route=marked,
+            children=[app],
+            initial_data=initial,
+            actions=[],
+            style="width: 100%;",
+        )
+        content: ClientSideComponent | ServerSideComponent = wrapper
+        if marker is not None:
+            content = self._subresource_header(f, marker, instance, wrapper, current_tab)
+        return ClientSideComponent(
+            metadata=CustomFieldMetadata(label="", content=content, colspan=max_columns),
+            id="fieldId",
+            children=[],
+            style="width: 100%;",
+        )
+
+    def _subresource_header(self, f, marker, instance, island, current_tab):
+        """A sub-resource's title and help line above its island; the title is left out when it
+        would only repeat the tab's label, the page's title, or a tab holding it alone."""
+        from mateu_ui.dtos import TextMetadata, VerticalLayoutMetadata
+
+        from .. import subresources
+
+        title = subresources.title(f)
+        page_title = getattr(type(instance), "__mateu_title__", None) or ""
+        show_title = (
+            marker.show_title
+            and not (
+                current_tab is not None
+                and (title.lower() == current_tab[0].lower() or (current_tab[1] == 1 and current_tab[2] == 1))
+            )
+            and title.lower() != str(page_title).lower()
+        )
+        content: list = []
+        if show_title:
+            content.append(ClientSideComponent(
+                metadata=TextMetadata(text=title, container="h3", no_margins=True),
+                children=[],
+                style="",
+                css_classes="mateu-subresource-title",
+            ))
+        if marker.help:
+            content.append(ClientSideComponent(
+                metadata=TextMetadata(text=marker.help, container="p", no_margins=True),
+                children=[],
+                style="color: var(--lumo-secondary-text-color, #666); margin: 0 0 .5rem 0;",
+                css_classes="mateu-subresource-help",
+            ))
+        if not content:
+            return island
+        return ClientSideComponent(
+            metadata=VerticalLayoutMetadata(),
+            children=[*content, island],
+            style="width: 100%; gap: .25rem;",
+            css_classes="mateu-subresource",
         )
 
     def map_island(self, f, value) -> ClientSideComponent:
@@ -769,10 +1046,16 @@ class FieldMapperMixin(MixinBase):
         marker = getattr(fn, "__mateu_toolbar__")
         label = marker if isinstance(marker, str) else humanize(name)
         style = getattr(fn, "__mateu_toolbar_style__", None)
+        look = getattr(fn, "__mateu_toolbar_look__", None)
+        color = getattr(look, "button_color", None)
+        size = getattr(look, "button_size", None)
         return Button(
             label=self.T(label),
             action_id=camel_case(name),
             button_style=style if style and style != "none" else None,
+            color=color if color and color != "none" else None,
+            size=size if size and size != "none" else None,
+            separator_before=bool(getattr(look, "separator_before", False)),
             shortcut=getattr(fn, "__mateu_shortcut__", None),
             disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
         )
@@ -789,3 +1072,15 @@ def _declared_method(source, method: str, default: str) -> str:
     if source and (method or "").upper() == default:
         return ""
     return method
+
+
+def section_of(cls, target) -> SectionMarker | None:
+    """The ``Section`` a field of ``cls`` falls in (the last one declared at or before it)."""
+    current = None
+    for f in view_fields(cls):
+        marker = f.marker(SectionMarker)
+        if marker is not None:
+            current = marker
+        if f.name == target.name:
+            return current
+    return current

@@ -204,6 +204,8 @@ public static class MateuExtensions
             ctx.Response.Headers.CacheControl = "no-cache";
             async Task Send(UIIncrementDto increment, CancellationToken token)
             {
+                // an embedded micro frontend's stream steps never name the window either
+                increment = EmbeddedWindowCommands.Strip(increment, rq);
                 await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
                 await ctx.Response.Body.FlushAsync(token);
             }
@@ -301,7 +303,9 @@ public static class MateuExtensions
         app.MapGet(prefix + MobileManifest.Path, async (HttpContext ctx, MateuRegistry registry) =>
         {
             foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
-            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl), ctx.RequestAborted);
+            // a YAML mount (no app class) is presented by its `type: AppShell` definition
+            var shell = ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl);
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell), ctx.RequestAborted);
         });
 
         // The installable web app (Mateu.Core.Pwa): its manifest, service worker, registration script
@@ -309,7 +313,8 @@ public static class MateuExtensions
         app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
         {
             var asset = Pwa.Asset(file, prefix,
-                () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)),
+                () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
+                    ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl)),
                 ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
             if (asset is null)
             {
@@ -379,7 +384,8 @@ public static class MateuExtensions
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
         var versionSkew = app.Services.GetService<VersionSkew>();
         string PwaHead(string html) => Pwa.Served(html, prefix,
-            MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)), versionSkew?.BuildId, pwaOption);
+            MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
+                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);

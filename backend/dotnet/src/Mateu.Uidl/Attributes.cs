@@ -177,13 +177,26 @@ public sealed class ButtonAttribute(string? label = null) : Attribute
 /// <summary>A method exposed as a button on the page header's TOOLBAR (Java's <c>@Toolbar</c>):
 /// labelled <see cref="Label"/>, else its [Label], else the humanized method name; styled
 /// <see cref="ButtonStyle"/> (primary | secondary | tertiary | tertiaryInline; null = the
-/// renderer's default). Advertised as an action like a [Button], with client and server
-/// validation.</summary>
+/// renderer's default), coloured <see cref="ButtonColor"/> (normal | success | error | contrast…),
+/// sized <see cref="ButtonSize"/> (small | large…), with <see cref="SeparatorBefore"/> drawing a
+/// separator before it and <see cref="Order"/> placing it among its siblings (ascending).
+/// Advertised as an action like a [Button], with client and server validation. Beside
+/// [ListToolbarButton] it only DRESSES the bulk button (Java's @Toolbar next to
+/// @ListToolbarButton): the button stays on the listing toolbar.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ToolbarAttribute(string? label = null) : Attribute
 {
     public string? Label { get; } = label;
     public string? ButtonStyle { get; init; }
+    /// <summary>The colour role; null or "none" = the default colour (Java's buttonColor).</summary>
+    public string? ButtonColor { get; init; }
+    /// <summary>The size; null or "none" = the default size (Java's buttonSize).</summary>
+    public string? ButtonSize { get; init; }
+    /// <summary>Draws a separator before this button (Java's separatorBefore).</summary>
+    public bool SeparatorBefore { get; init; }
+    /// <summary>Position among its siblings, ascending — reflection does not keep declaration
+    /// order (Java's order).</summary>
+    public int Order { get; init; }
 }
 
 /// <summary>Declares a method as a server-side ACTION without rendering a button for it: the
@@ -215,6 +228,33 @@ public sealed class ActionOptionsAttribute : Attribute
 {
     public int TimeoutMillis { get; init; }
     public bool Idempotent { get; init; }
+
+    /// <summary>Runs without the busy veil / pending marker (Java's @Action(background)).</summary>
+    public bool Background { get; init; }
+
+    /// <summary>The client calls it over the SSE endpoint (Java's @Action(sse)); a method returning
+    /// a LongTaskRun streams anyway.</summary>
+    public bool Sse { get; init; }
+
+    /// <summary>Asks the user to confirm before sending (Java's @Action(confirmationRequired)),
+    /// with the optional texts below (blank = the renderer's own wording).</summary>
+    public bool ConfirmationRequired { get; init; }
+    public string? ConfirmationTitle { get; init; }
+    public string? ConfirmationMessage { get; init; }
+    public string? ConfirmationText { get; init; }
+    public string? ConfirmationDenialText { get; init; }
+
+    /// <summary>The client navigates to this URL instead of calling the server (Java's @Action(href)).</summary>
+    public string? Href { get; init; }
+
+    /// <summary>The client runs this script instead of calling the server (Java's @Action(js);
+    /// renderers run it only where RunJS is enabled).</summary>
+    public string? Js { get; init; }
+
+    /// <summary>The client dispatches this DOM event (with <see cref="CustomEventDetail"/>) instead
+    /// of calling the server (Java's @Action(customEventName, customEventDetail)).</summary>
+    public string? CustomEventName { get; init; }
+    public string? CustomEventDetail { get; init; }
 }
 
 /// <summary>Makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
@@ -372,6 +412,85 @@ public sealed class AppAttribute(string title) : Attribute
     /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES
     /// them all. (C# analogue of Java's @App(requires = {...}).)</summary>
     public string[] Requires { get; set; } = [];
+
+    /// <summary>How the content area is arranged: "SINGLE_SLOT" (the default) or "SPLIT" (two
+    /// panes). (C# analogue of Java's @App(layout).)</summary>
+    public string Layout { get; set; } = "SINGLE_SLOT";
+
+    /// <summary>The app's accent colour (a CSS colour) for the shell's chrome; blank = the theme's.
+    /// (C# analogue of Java's @App(accentColor).)</summary>
+    public string AccentColor { get; set; } = "";
+
+    /// <summary>The AI assistant's entry label and icon; blank = the renderer's. (C# analogue of
+    /// Java's @App(askLabel, askIcon).)</summary>
+    public string AskLabel { get; set; } = "";
+
+    public string AskIcon { get; set; } = "";
+
+    /// <summary>Inline CSS / CSS classes of the app shell (Java's @Style / @CssClasses on the app class).</summary>
+    public string Style { get; set; } = "";
+
+    public string CssClasses { get; set; } = "";
+
+    /// <summary>How the app offers the way back up: <see cref="Uidl.BackLink.Breadcrumbs"/> (the
+    /// default, the automatic trail) or <see cref="Uidl.BackLink.Parent"/> — ONE "← Parent" link to
+    /// the nearest route above the app's that resolves to a screen, labelled with that screen's
+    /// [Title] (else its last segment humanized), and no breadcrumb trail: the OCI-console style
+    /// for a record master opened from a listing. (C# analogue of Java's @App(backLink).)</summary>
+    public BackLink BackLink { get; set; } = BackLink.Breadcrumbs;
+}
+
+/// <summary>How a screen offers the way back up (<c>[App(BackLink = …)]</c>, <c>AppShell.BackLink</c>,
+/// a YAML shell's <c>backLink:</c>). The C# mirror of Java's <c>BackLink</c> enum.</summary>
+public enum BackLink
+{
+    /// <summary>The automatic breadcrumb trail (the default).</summary>
+    Breadcrumbs,
+
+    /// <summary>A "← Parent" link to the nearest route above this one that resolves to a screen,
+    /// labelled with that screen's title; the pages inside this app show no breadcrumb trail.</summary>
+    Parent,
+}
+
+/// <summary>The app header's logo (a URL). (C# analogue of Java's @Logo.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class LogoAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>The browser tab's icon (a URL). (C# analogue of Java's @FavIcon.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class FavIconAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>The app's navigation drawer starts closed. (C# analogue of Java's @DrawerClosed.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class DrawerClosedAttribute : Attribute;
+
+/// <summary>Turns the automatic breadcrumb trail off: on the [UI] app class, for every page of the
+/// app; on a page class, for that page (a home, a welcome, a wizard). A trail the page declares
+/// ([Breadcrumb] / IBreadcrumbsSupplier) still shows. (C# analogue of Java's @NoBreadcrumbs.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class NoBreadcrumbsAttribute : Attribute;
+
+/// <summary>One crumb of the breadcrumb trail a page DECLARES above its content, in declaration
+/// order (repeat the attribute for each). (C# analogue of Java's @Breadcrumbs({@Breadcrumb(label,
+/// url)}); an IBreadcrumbsSupplier on the page wins over it.)</summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class BreadcrumbAttribute(string label, string url) : Attribute
+{
+    public string Label { get; } = label;
+    public string Url { get; } = url;
+}
+
+/// <summary>Implemented by a page to supply the breadcrumb trail shown above its content (wins over
+/// [Breadcrumb]); null = declares none. (C# analogue of Java's BreadcrumbsSupplier.)</summary>
+public interface IBreadcrumbsSupplier
+{
+    IReadOnlyList<Breadcrumb>? Breadcrumbs();
 }
 
 /// <summary>What the UI manifest (<c>GET {base}/mateu/v3/manifest</c>) tells the generic Mateu
@@ -499,6 +618,12 @@ public sealed class RemoteMenuAttribute(string label, string baseUrl) : Attribut
 
     /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
     public bool Explode { get; set; }
+
+    /// <summary>The section's own path in this shell (Java's <c>@Menu</c> field name, e.g.
+    /// <c>"/workflow"</c>): the route prefix the remote's screens live under, sent as the option's
+    /// <c>routePrefix</c> so the renderer knows the active section and the first breadcrumb before the
+    /// remote answers. Blank (the default) = no prefix is claimed.</summary>
+    public string Path { get; set; } = "";
 }
 
 /// <summary>Groups the following fields under a titled section (card) in a form.</summary>
@@ -534,6 +659,18 @@ public sealed class SectionAttribute(string caption) : Attribute
     /// section summarises — a "View more" button under its content. Empty = none. (Java's
     /// @Section(viewMoreAction).)</summary>
     public string ViewMoreAction { get; set; } = "";
+
+    /// <summary>The section's card is PINNED (position: sticky) while the rest of the form scrolls —
+    /// several sticky sections stack under the page header. (Java's @Section(sticky).)</summary>
+    public bool Sticky { get; set; }
+
+    /// <summary>The section's own column count; 0 (the default) = the form's ([FormLayout] or the
+    /// inferred one). An explicit 1 stacks this section even on a two-column form. (Java's
+    /// @Section(columns).)</summary>
+    public int Columns { get; set; }
+
+    /// <summary>Inline CSS of the section's content. (Java's @Section(style).)</summary>
+    public string Style { get; set; } = "";
 }
 
 /// <summary>A named column of a multi-column form. Declare several on the class (order matters)

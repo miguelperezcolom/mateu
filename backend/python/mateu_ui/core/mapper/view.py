@@ -68,6 +68,8 @@ class ViewMapperMixin(MixinBase):
 
         # @toolbar methods: the header toolbar (Java's @Toolbar); advertised before the buttons
         toolbar_methods = [(n, f) for n, f in methods_with(cls, "__mateu_toolbar__") if offered(f)]
+        # @toolbar(order=N) fixes the sequence (stable: equal orders keep declaration order)
+        toolbar_methods.sort(key=lambda m: getattr(getattr(m[1], "__mateu_toolbar_look__", None), "order", 0))
         toolbar = [self.map_toolbar_button(n, f) for n, f in toolbar_methods]
         page_button_methods = [
             (n, f)
@@ -100,7 +102,27 @@ class ViewMapperMixin(MixinBase):
         # actions, OnRowSelected() row clicks (the renderer drops a click whose action is not
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
         field_actions = self.field_actions(cls)
+        # @action methods come first, as in Java's FieldActionCollector (every @Action method is
+        # advertised, not validated, with its @action_options): the client only SENDS an
+        # advertised action, so a bare @action was reachable only from a component naming it.
+        declared_actions = [
+            with_action_options(Action(id=camel_case(n), validation_required=False), cls, camel_case(n))
+            for n, f in methods_with(cls, "__mateu_action__")
+            if offered(f) and not hasattr(f, "__mateu_button__") and not hasattr(f, "__mateu_toolbar__")
+        ]
+        field_actions = [a for a in declared_actions if all(a.id != b.id for b in field_actions)] + field_actions
+        # the nested data objects' actions (nested-form-action-<field>-<method>) come first, as in
+        # Java's ActionMapper (addNestedFormsActions before everything else)
+        nested_actions = self.nested_form_actions(cls, instance)
+        if nested_actions:
+            field_actions = nested_actions + [
+                a for a in field_actions if all(a.id != b.id for b in nested_actions)
+            ]
         actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
+        # @auto_save: the debounced save may name any action — Java's ActionMapper advertises the
+        # "*" catch-all for an @AutoSave class, after the nested form actions
+        if getattr(cls, "__mateu_auto_save__", None) is not None:
+            actions = field_actions + [Action(id="*", validation_required=False)] + actions[len(field_actions):]
         # @Section(add_action / edit_action / view_more_action): the section affordance buttons
         # dispatch the named methods — advertised so the client sends them (Java's
         # SectionAffordances buttons are claimed by the page's component).
@@ -203,9 +225,13 @@ class ViewMapperMixin(MixinBase):
         # An Inline() embedded island blends into its host: a sub-heading title (level 1) and no
         # header badges/KPIs (Java's EditableView.isInline → PageView.level=1).
         inline = is_inline_request()
+        from .. import routed_tabs
+
         page_meta = PageMetadata(
             level=1 if inline else 0,
-            title=title,
+            # a routed tab's own page does not repeat the tab's label (Java's PageMapper +
+            # RouteChains.dedupeTitle)
+            title=routed_tabs.dedupe_title(title),
             # pageTitle is the humanized class name (the derived page identity); title is the
             # declared @title. They coincide when the class name humanizes to the @title (Java parity).
             page_title=humanize(cls.__name__),
@@ -226,6 +252,8 @@ class ViewMapperMixin(MixinBase):
                 class_flag(cls, "__mateu_title_placeholder__", None)
             ),
             title_is_text=True if titled_by_data(cls, instance) else None,
+            breadcrumbs=self.declared_breadcrumbs(cls, instance),
+            no_breadcrumbs=True if getattr(cls, "__mateu_no_breadcrumbs__", False) else None,
         )
         if is_tree_supplier:
             # The tree is the fragment component: the ServerSide holds the mapped tree children

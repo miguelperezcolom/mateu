@@ -78,6 +78,47 @@ pre-rendered; edit a definition in `manifest.json`, refresh, see it.
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
 
+### From Python or .NET
+
+The two ports ship the same exporter. Each renders every route **in process, through its own sync
+handler** (no server is started) and writes the same bundle — the same `manifest.json` (both loads
+of a route under an app shell, `:param` templates, the route table, the source, action and
+translation catalogues), the same `index.html`, PWA files, `mateu/v3/manifest` and `_redirects`.
+The renderer is the `io.mateu:mateu-vaadin` jar (or its extracted `static/` folder), exactly what
+`MATEU_UI` points at when the port serves the UI itself.
+
+```bash
+# Python — the sources are what add_mateu(app, …) takes (modules, or module:Class)
+python -m mateu_ui.bundle my_app.views --ui mateu-vaadin.jar --out dist --static
+
+# a YAML-only app: no sources, just the specs directory
+python -m mateu_ui.bundle --specs specs/ui --ui mateu-vaadin.jar --out dist --static --specs-only
+```
+
+```bash
+# .NET — the Mateu.Bundle tool loads the BUILT app (dotnet build first) and runs the app's own
+# Mateu.Core, so the exporter always matches the version the app runs
+dotnet tool install --global Mateu.Bundle   # once (or a local tool: dotnet new tool-manifest first)
+dotnet mateu-bundle --ui mateu-vaadin.jar --out dist --static          # in the project directory
+dotnet mateu-bundle --app bin/Release/net8.0/MyApp.dll --ui … --out dist
+```
+
+…or let the app export itself, before it builds its web host (no tool needed):
+
+```csharp
+if (args is ["bundle", ..]) return MateuBundle.Run(args[1..], Assembly.GetExecutingAssembly());
+// dotnet run -- bundle --ui mateu-vaadin.jar --out dist --static
+```
+
+The options are the goal's: `--out`, `--specs`, `--base-url`, `--title`, `--static` (the
+[static-safety report](#the-static-safety-report), same rules), `--specs-only`,
+`--include-param-routes`, `--environment <name>`, `--mock`, `--route` (repeatable allow-list),
+`--no-pwa`, `--fail-on-empty`, `--fail-on-skipped`. A Python or C# action method without
+`@rest_action` / `[RestAction]`, a `Listing` without `@rest_listing` / `[RestListing]` and a `Crud`
+are what the report flags in the ports. The three exporters are held to one golden
+(`conformance/bundle`), and `e2e/port-bundle-probe.mjs` serves any exported bundle statically and
+checks the Vaadin renderer paints it.
+
 ## Develop with live reload
 
 While you work on the screens, run the `dev` goal instead of rebuilding by hand:

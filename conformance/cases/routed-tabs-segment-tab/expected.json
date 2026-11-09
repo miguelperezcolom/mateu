@@ -1,0 +1,100 @@
+{
+  "commands" : [ {
+    "data" : "Rt notes tab",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "customerId",
+                        "label" : "Customer id",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "text",
+                        "label" : "Text",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Rt notes tab",
+          "pageType" : "form",
+          "title" : "Rt notes tab",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "customerId" : "7",
+        "text" : "notes"
+      },
+      "pageType" : "form",
+      "route" : "/conformance/rt/customers/7",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "customerId" : "7",
+      "text" : "notes"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -1,0 +1,23 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "data" : {
+      "crud" : {
+        "page" : {
+          "content" : [ {
+            "vcnId" : "7"
+          }, {
+            "_rowNumber" : 1,
+            "vcnId" : "7"
+          }, {
+            "_rowNumber" : 2,
+            "vcnId" : "7"
+          } ],
+          "pageSize" : 10,
+          "totalElements" : 3
+        }
+      }
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -35,6 +35,7 @@ from .messages import (  # noqa: F401
     UserFacingException,
 )
 from .markers import (  # noqa: F401
+    Subresource,
     Aggregate,
     AggregateFunction,
     BulletedList,
@@ -44,12 +45,18 @@ from .markers import (  # noqa: F401
     SliderMin,
     SliderMax,
     DetailForm,
+    Details,
     Disabled,
     FileUpload,
     GroupBy,
     Hidden,
+    HiddenInCreate,
+    HiddenInEditor,
+    HiddenInList,
+    HiddenInView,
     Inline,
     Label,
+    MainFilter,
     Money,
     Multiline,
     OnRowSelected,
@@ -93,6 +100,7 @@ from .security import (  # noqa: F401
     Audience,
     audience,
     disabled_unless,
+    read_only_unless,
     DisabledUnless,
     eyes_only,
     EyesOnly,
@@ -124,6 +132,7 @@ from .suppliers import (  # noqa: F401
     PeerNav,
     PeerNavigationSupplier,
     RuleSupplier,
+    BreadcrumbsSupplier,
 )
 from .placement import (  # noqa: F401
     Aside,
@@ -138,6 +147,7 @@ from .placement import (  # noqa: F401
 )
 from .class_decorators import (  # noqa: F401
     AppVariant,
+    BackLink,
     LabelsAsideMode,
     PageBanner,
     PageBanners,
@@ -150,6 +160,8 @@ from .class_decorators import (  # noqa: F401
     auto_layout,
     auto_page,
     compact,
+    auto_save,
+    breadcrumbs,
     confirm_on_navigation_if_dirty,
     edit_in_drawer,
     emits,
@@ -157,6 +169,7 @@ from .class_decorators import (  # noqa: F401
     form_layout,
     inline_editing,
     mobile_app,
+    no_breadcrumbs,
     overline,
     page_template,
     page_width,
@@ -194,6 +207,7 @@ from .method_decorators import (  # noqa: F401
     group_action,
     kpi,
     list_toolbar_button,
+    view_toolbar_button,
     menu_group,
     menu_item,
     MenuDisplay,
@@ -212,6 +226,8 @@ from .listing import (  # noqa: F401
     E,
     Editable,
     F,
+    FilterCriterion,
+    FilterOperator,
     Filterable,
     GroupSummary,
     I,
@@ -231,6 +247,7 @@ from .views import (  # noqa: F401
     ComponentTreeSupplier,
     DetailContentSupplier,
     HeroSearch,
+    HeroSearchListing,
     LinkSupplier,
     SmartSearchPage,
     Translator,
@@ -291,12 +308,36 @@ from .adapters import (  # noqa: F401
     ComponentAdapter,
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .feature_flags import FeatureFlags  # noqa: F401
 from .request import ActionRequest  # noqa: F401
+from .editable_views import (  # noqa: F401
+    AutoEditableView,
+    DetailPart,
+    EditableView,
+    MasterDetailView,
+    NoSelection,
+)
 from .environments import Environment, SourceOverride  # noqa: F401
 from .field_types import (  # noqa: F401
     FieldType,
     FieldTypeCatalogSupplier,
     FieldTypeEntry,
+)
+from .page_templates import (  # noqa: F401
+    FormTemplate,
+    TemplateImage,
+    ItemOverviewPage,
+    WelcomePage,
+    DashboardLandingPage,
+    GeneralOverviewPage,
+    CollectionDetailPage,
+    FoldoutPage,
+    MultimediaContentPage,
+    AdvancedCreateEditPage,
+    GuidedProcessPage,
+    GuidedProcessStep,
+    DataManagementPage,
+    HeroSearchPage,
 )
 from .patterns import (  # noqa: F401
     CrudDisplay,
@@ -319,11 +360,26 @@ PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width t
 
 __all__ = [
     "ActionRequest",
+    "FormTemplate",
+    "TemplateImage",
+    "ItemOverviewPage",
+    "WelcomePage",
+    "DashboardLandingPage",
+    "GeneralOverviewPage",
+    "CollectionDetailPage",
+    "FoldoutPage",
+    "MultimediaContentPage",
+    "AdvancedCreateEditPage",
+    "GuidedProcessPage",
+    "GuidedProcessStep",
+    "DataManagementPage",
+    "HeroSearchPage",
     "Document",
     "DocumentDisposition",
     "Access",
     "Translations",
     "TranslationsSupplier",
+    "FeatureFlags",
     "Environment",
     "SourceOverride",
     "UserFacingException",
@@ -362,6 +418,7 @@ __all__ = [
     "SliderMin",
     "SliderMax",
     "DetailForm",
+    "Details",
     "Max",
     "Min",
     "Pattern",
@@ -375,27 +432,29 @@ __all__ = [
     "MenuLook",
     "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageBanners", "PageWidth", "PageType",
-    "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "Required", "Label", "Section", "Tab", "Subresource", "Stereotype", "Multiline", "Password",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "HiddenInList", "HiddenInView", "HiddenInEditor", "HiddenInCreate", "MainFilter", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "read_only_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
     "static_view",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
+    "auto_save", "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "SubscriptionSource", "TriggerType", "TriggerSpec", "trigger", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
-    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
-    "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "Restorable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
+    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button", "view_toolbar_button",
+    "Crud", "HeroSearch", "HeroSearchListing", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "Restorable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
     "AppShell", "AppSupplier", "MenuSupplier", "HomeRouteSupplier",
     "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
     "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
     # API freeze (3.0-alpha.410): names that were importable but missing from __all__
-    "app_context", "edit_in_drawer", "overline", "title_placeholder", "auto_page", "action_options",
+    "app_context", "edit_in_drawer", "overline", "title_placeholder", "no_breadcrumbs", "breadcrumbs", "BreadcrumbsSupplier", "auto_page", "action_options",
     "PrimaryColumn", "Aside", "LinkTo", "NavLink", "CollectionDetail", "GeneralOverview",
     "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
     # a crud record's own detail-page content (Java's DetailContentSupplier)
     "DetailContentSupplier",
     # parity with the Java / .NET names
     "AppVariant", "BadgeInHeader", "PageWidthStyle",
+    # @app(back_link) / AppShell.back_link / a YAML shell's backLink
+    "BackLink",
     # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
     "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
     "LiveHeaderValues",
@@ -407,4 +466,9 @@ __all__ = [
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",
     "MicroFrontendResolutionListener", "RemoteCatalogSupplier", "RemoteDescriptor",
     "RemoteIdentityStrategy", "RemoteRegistry", "ResolutionOutcome",
+    # Editable views and master-detail views (Java's EditableView / AutoEditableView /
+    # MasterDetailView orchestrators)
+    "AutoEditableView", "DetailPart", "EditableView", "MasterDetailView", "NoSelection",
+    # typed crud search criteria (Java's FilterCriterion / FilterOperator)
+    "FilterCriterion", "FilterOperator",
 ]

@@ -1,0 +1,9 @@
+{
+  "messages" : [ {
+    "duration" : 0,
+    "persistence" : "sticky",
+    "text" : "No seats left on that plan.",
+    "variant" : "error"
+  } ],
+  "wireVersion" : "3.0"
+}

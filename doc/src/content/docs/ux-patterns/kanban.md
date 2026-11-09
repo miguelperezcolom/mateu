@@ -129,7 +129,8 @@ template, `id: "${row.id}"`) —, and an item whose
 source can return, or a catch-all column, if those items must stay visible. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
 Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`); there a view
 that declares the board's proxied rows (a `RestSourceSupplier` naming it by `id`) gets them by that
-id even next to a listing, but a proxied board on a YAML definition-only page is Java-only.
+id even next to a listing, and a proxied board on a YAML definition-only page is served through
+`__restfetch__` as in Java.
 
 ## Keeping a manual order (`orderField`)
 

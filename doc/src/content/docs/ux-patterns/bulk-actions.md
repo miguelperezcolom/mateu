@@ -103,11 +103,13 @@ Every crud listing already ships a bulk **Delete** (selection + confirmation) wi
 
 ## Other servers
 
-Same wire contract from .NET and Python — with the caveat that the appearance and confirmation-text
-knobs above are **Java only** for now: the ports' `[Toolbar]` / `@toolbar` style a page-toolbar
-button only (a list-toolbar button keeps the renderer's default look), and neither port carries
-confirmation texts on the wire (no action of theirs can declare them, bulk or not).
-
+Same wire contract from .NET and Python, knobs included. The three jobs map the same way: the
+placement attribute says where the button goes, `[Toolbar]` / `@toolbar` how it looks
+(`ButtonStyle`, `ButtonColor`, `ButtonSize`, `Order`, `SeparatorBefore` — Python `button_style`,
+`button_color`, `button_size`, `order`, `separator_before`), and `[ActionOptions]` /
+`@action_options` how it behaves (the four confirmation texts, `TimeoutMillis`, `Sse`,
+`Background`…). The flags merge as in Java: the placement's `confirmationRequired` and
+`rowsSelectedRequired` are never switched off by the other two.
 
 ```csharp
 public class InvoicesCrud : Crud<Invoice>
@@ -118,6 +120,15 @@ public class InvoicesCrud : Crud<Invoice>
     [Label("Approve selected")]
     public Message Approve(List<Invoice> selection) =>
         new Message($"{selection.Count} approved");
+
+    [ListToolbarButton(confirmationRequired: true)]
+    [Toolbar(ButtonStyle = "secondary", ButtonColor = "error", Order = 10)]
+    [ActionOptions(ConfirmationTitle = "Cancel invoices",
+        ConfirmationMessage = "Cancelling voids every selected invoice. This cannot be undone.",
+        ConfirmationText = "Cancel them", ConfirmationDenialText = "Keep them")]
+    [Label("Cancel")]
+    public Message Cancel(List<Invoice> selection) =>
+        new Message($"{selection.Count} cancelled");
 }
 ```
 
@@ -128,7 +139,21 @@ class InvoicesCrud(Crud[Invoice]):
     @list_toolbar_button("Approve selected")
     def approve(self, selection: list[Invoice]):
         return Message(f"{len(selection)} approved")
+
+    @list_toolbar_button("Cancel", confirmation_required=True)
+    @toolbar(button_style="secondary", button_color="error", order=10)
+    @action_options(
+        confirmation_title="Cancel invoices",
+        confirmation_message="Cancelling voids every selected invoice. This cannot be undone.",
+        confirmation_text="Cancel them",
+        confirmation_denial_text="Keep them",
+    )
+    def cancel(self, selection: list[Invoice]):
+        return Message(f"{len(selection)} cancelled")
 ```
+
+On a plain listing (no interaction capability) the button is reached by the method's own name, as
+in Java, and the page header shows it beside the title; on a crud it is `action-on-row-<method>`.
 
 ## Principles served
 

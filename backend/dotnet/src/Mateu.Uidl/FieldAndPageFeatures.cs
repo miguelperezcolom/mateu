@@ -10,6 +10,71 @@ public sealed class TabAttribute(string name) : Attribute
     /// <summary>When true this tab is the one selected when its strip first renders (instead of the
     /// default first tab). If several tabs in the same strip set it, the first one wins.</summary>
     public bool Open { get; init; }
+
+    /// <summary>The tab's URL key: the page's route followed by it opens this tab
+    /// (<c>/vcn/7/gateways</c> opens Gateways); it travels as the tab's <c>routeKey</c>.
+    /// (Mirrors Java's @Tab(key).)</summary>
+    public string? Key { get; init; }
+
+    /// <summary>A feature flag (optionally negated with <c>!</c>): the tab is offered only while it is
+    /// on (an <see cref="IFeatureFlags"/> answers it). (Mirrors Java's @Tab(show).)</summary>
+    public string? Show { get; init; }
+}
+
+/// <summary>When a <see cref="SubresourceAttribute"/> listing is fetched.</summary>
+public enum SubresourceLoad
+{
+    /// <summary>When its tab is opened (the default).</summary>
+    OnOpen,
+
+    /// <summary>With the page; the tab shows the listing's row count.</summary>
+    Eager,
+}
+
+/// <summary>A property whose type is a listing or crud rendered as one of the record's
+/// SUB-RESOURCES: an embedded listing with its own title, help line, filters, paging and actions,
+/// inside one of the page's tabs — several stacked in the same tab when they name it. The listing
+/// gets the parent as CONTEXT, not as filters the user can remove: the route's path parameters,
+/// the host's simple properties its listing also has, and the explicit <see cref="Context"/>
+/// bindings. (Mirrors Java's @Subresource and Python's Subresource().)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SubresourceAttribute : Attribute
+{
+    /// <summary>The tab it sits in: matched against the page's [Tab]s by key or label; a new tab
+    /// (labelled with it, its key kebab-cased) when none matches. Empty: a tab of its own, named
+    /// after the property.</summary>
+    public string Tab { get; init; } = "";
+
+    /// <summary>Its position among the sub-resources of the same tab (ascending).</summary>
+    public int Order { get; init; }
+
+    /// <summary>A one-line help text drawn under its title.</summary>
+    public string Help { get; init; } = "";
+
+    /// <summary>When it is fetched: OnOpen (default) or Eager.</summary>
+    public SubresourceLoad Load { get; init; } = SubresourceLoad.OnOpen;
+
+    /// <summary>A feature flag that must be on for it to show (<c>"flag"</c> or <c>"!flag"</c>).</summary>
+    public string? Show { get; init; }
+
+    /// <summary>Whether the embedded listing draws its own title (dropped anyway when it only
+    /// repeats the tab's label or the page's title).</summary>
+    public bool ShowTitle { get; init; } = true;
+
+    /// <summary>Explicit context bindings, <c>"listingField=hostField"</c> (or just <c>"field"</c>).</summary>
+    public string[] Context { get; init; } = [];
+}
+
+/// <summary>Answers whether a feature flag is on — the hook behind the data-driven <c>Show</c> of a
+/// routed tab (a <see cref="Mateu.Core.RouteEntry"/> child) and of an in-page <see cref="TabAttribute"/>.
+/// Implemented by any parameterless class in the scanned assemblies. With none, or none that knows
+/// the flag, the flag is ON: declaring a condition never hides a tab in an app that does not answer
+/// it. (Mirrors Java's FeatureFlags and Python's FeatureFlags.)</summary>
+public interface IFeatureFlags
+{
+    /// <summary>Whether <paramref name="flag"/> is on, or null when this supplier does not know it
+    /// (the next one is asked).</summary>
+    bool? IsEnabled(string flag);
 }
 
 /// <summary>Sets a field stereotype explicitly (textarea, password, money, plainText, …).</summary>
@@ -150,6 +215,28 @@ public sealed class TooltipAttribute(string value) : Attribute
 /// (C# analogue of Java's @Disabled.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class DisabledAttribute : Attribute;
+
+/// <summary>On a property of a grid's ROW type: the row's detail — what opens under the row, behind
+/// a button, instead of a column of its own. The grid carries the property's camelCase name as its
+/// <c>detailPath</c> and sets <c>useButtonForDetail</c>. (C# analogue of Java's @Details on a row
+/// field.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DetailsAttribute : Attribute;
+
+/// <summary>On a grid (list-of-rows) property: customises its row editor — where it opens
+/// (<c>right</c> | <c>left</c> | <c>top</c> | <c>bottom</c> | <c>modal</c> | <c>modalLeft</c> |
+/// <c>modalRight</c>), its column count (0 = the row type's own), its CSS and theme, and the min
+/// height the grid keeps while the editor shows. (C# analogue of Java's @DetailFormCustomisation +
+/// @MasterDetail; Python's DetailForm.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DetailFormAttribute : Attribute
+{
+    public string Position { get; set; } = "right";
+    public int Columns { get; set; }
+    public string Style { get; set; } = "";
+    public string Theme { get; set; } = "";
+    public string MinHeightWhenDetailVisible { get; set; } = "16rem";
+}
 
 /// <summary>On a grid (list-of-rows) property: runs the named method when the user selects
 /// (clicks) a row — the clicked row is injected into a method parameter typed as the row class.

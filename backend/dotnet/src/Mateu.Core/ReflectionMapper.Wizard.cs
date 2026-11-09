@@ -66,6 +66,7 @@ internal sealed partial class ReflectionMapper
             ? Client(new ButtonMetadataDto("Back", "back") { Color = "normal" }, null, [])
             : null;
         var completing = completion is not null && current == WizardBranching.Completing(wizard, total);
+        var streamsCompletion = completing && StreamsCompletion(wizard!);
         var nextLabel = completing ? completion!
             : WizardBranching.Next(wizard, current, total) is null ? "Finish" : "Next";
         // the completion button dispatches the wizard's CompletionActionId (Java: the
@@ -107,7 +108,7 @@ internal sealed partial class ReflectionMapper
             if (wizard.CompletionAvailableFromStep is { } from && current >= from && current < completionStep)
             {
                 barButtons.Add(Client(new ButtonMetadataDto(T(completion ?? "Finish"), "complete"), "complete", []));
-                extraActions.Add(new ActionDto("complete"));
+                extraActions.Add(new ActionDto("complete") { Sse = completion is not null && StreamsCompletion(wizard) });
             }
         }
         barButtons.Add(next);
@@ -158,9 +159,16 @@ internal sealed partial class ReflectionMapper
             // Wizard.actions + its catch-all): unadvertised, neither did anything in the web client.
             [.. FieldActions(currentProps), .. extraActions,
                 .. (onResult ? Array.Empty<ActionDto>()
-                    : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false),
+                    : [new ActionDto("next", ValidationRequired: true)
+                        {
+                            // on the completion step "next" IS the completion (the default id)
+                            Sse = streamsCompletion && wizard!.CompletionActionId == "next",
+                        },
+                        new ActionDto("back", ValidationRequired: false),
                         .. (completing && wizard!.CompletionActionId != "next"
-                            ? [new ActionDto(wizard.CompletionActionId, ValidationRequired: true)]
+                            // a streamed completion is called over SSE, or the client waits for
+                            // the whole stream and the progress never shows (Java's Wizard.actions)
+                            ? [new ActionDto(wizard.CompletionActionId, ValidationRequired: true) { Sse = streamsCompletion }]
                             : Array.Empty<ActionDto>())])],
             // a wizard is a component tree in Java: the tree envelope's default container style
             [], "max-width:900px;margin: auto;", null, null)
@@ -171,4 +179,10 @@ internal sealed partial class ReflectionMapper
             Validations = onResult ? [] : MapValidations(type, currentProps),
         };
     }
+
+    /// <summary>Whether <paramref name="wizard"/> overrides <see cref="Wizard.StreamedCompletion"/>:
+    /// its completion is then called over SSE, or the client waits for the whole stream and the
+    /// progress never shows (Java advertises a completion returning a Flux with sse).</summary>
+    internal static bool StreamsCompletion(Wizard wizard) =>
+        wizard.GetType().GetMethod(nameof(Wizard.StreamedCompletion), Type.EmptyTypes)?.DeclaringType != typeof(Wizard);
 }

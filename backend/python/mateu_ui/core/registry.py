@@ -55,6 +55,9 @@ class MateuRegistry:
         # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
         # (routes.yaml wins over them). Mirrors .NET's MateuRegistry.SuppliedRoutes.
         self.supplied_routes: list = []
+        #: FeatureFlags instances found among the sources: they answer the ``show`` of a routed
+        #: tab and of an in-page Tab (Java's FeatureFlags beans).
+        self.feature_flags: list = []
         #: Every class found among the sources (they may carry @rest_source / @business_component
         #: declarations, which belong to the app whatever class they sit on).
         self.classes: list[type] = []
@@ -121,6 +124,7 @@ class MateuRegistry:
             self._by_route[normalize(route)] = cls
             self._by_name[type_name(cls)] = cls
         self._register_route_supplier(cls)
+        self._register_feature_flags(cls)
 
     def _register_microfrontend_parts(self, cls: type) -> None:
         from mateu_ui.uidl import remote
@@ -179,6 +183,19 @@ class MateuRegistry:
                         f"{previous.declared_in}.{previous.field}: a key names one slot of the application"
                     )
                 self.content_slots[slot.key] = slot
+
+    def _register_feature_flags(self, cls: type) -> None:
+        """A FeatureFlags subclass answers the deployment's flags; a broken one is skipped."""
+        from mateu_ui.uidl.feature_flags import FeatureFlags
+
+        if not (isinstance(cls, type) and issubclass(cls, FeatureFlags)) or cls is FeatureFlags:
+            return
+        if any(type(f) is cls for f in self.feature_flags):
+            return
+        try:
+            self.feature_flags.append(cls())
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("FeatureFlags %s could not be registered (%s)", cls.__name__, e)
 
     def _register_route_supplier(self, cls: type) -> None:
         """A RouteEntrySupplier subclass contributes its routes to the code-authored half. A broken

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- A small CODE app exported as a static bundle: `dotnet mateu-bundle` (the Mateu.Bundle tool)
+       or `dotnet run` with the bundle argument (the hosted entry in Program.cs). See the README. -->
+  <PropertyGroup>
+    <RootNamespace>Mateu.StaticBundle</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Mateu.AspNetCore/Mateu.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Mateu.Uidl/Mateu.Uidl.csproj" />
+  </ItemGroup>
+</Project>

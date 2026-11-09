@@ -7,6 +7,7 @@ from typing import Any
 from mateu_ui.dtos import (
     Badge,
     Banner,
+    BreadcrumbRecord,
     CustomTrigger,
     OnErrorTrigger,
     OnLoadTrigger,
@@ -19,6 +20,7 @@ from mateu_ui.dtos import (
     RecordSwitcherRecord,
 )
 from mateu_ui.uidl import (
+    BreadcrumbsSupplier,
     HeaderBadge,
     Label,
     TriggerType,
@@ -86,6 +88,19 @@ class DecorationMapperMixin(MixinBase):
             value = getattr(instance, f.name, None)
             out.append(Kpi(title=marker.title, text="" if value is None else str(value)))
         return out
+
+    def declared_breadcrumbs(self, cls, instance) -> "list[BreadcrumbRecord] | None":
+        """The breadcrumb trail the page declares: a ``BreadcrumbsSupplier`` wins over its
+        ``@breadcrumbs``; None when it declares none (Java's PageSectionExtractor.getBreadcrumbs)."""
+        if isinstance(instance, BreadcrumbsSupplier):
+            supplied = instance.breadcrumbs()
+            if supplied is None:
+                return None
+            return [BreadcrumbRecord(text=b.text, link=b.link) for b in supplied]
+        declared = getattr(cls, "__mateu_breadcrumbs__", None)
+        if not declared:
+            return None
+        return [BreadcrumbRecord(text=b.text, link=b.link) for b in declared]
 
     def peer_nav(self, instance) -> "PeerNav | None":
         """Previous/next peer-object arrows (the Redwood "next/previous object" header element)
@@ -176,6 +191,13 @@ class DecorationMapperMixin(MixinBase):
                     from_=from_ or None, condition=condition or None,
                 )
             )
+        # @auto_save: after the @trigger()s and @subscribe_to()s, as Java's TriggerMapper adds it
+        auto_save = getattr(cls, "__mateu_auto_save__", None)
+        if auto_save is not None:
+            debounce, action = auto_save
+            triggers.append(
+                {"type": "AutoSave", "actionId": camel_case(action), "debounceMillis": debounce}
+            )
         return triggers, getattr(cls, "__mateu_emits__", None)
 
 
@@ -189,6 +211,9 @@ def triggered_action_ids(cls) -> list[str]:
         if t.type in (TriggerType.on_success, TriggerType.on_error) and t.called_action:
             ids.append(camel_case(t.called_action))
     ids.extend(camel_case(a) for _e, a in getattr(cls, "__mateu_subscriptions__", ()) if a)
+    auto_save = getattr(cls, "__mateu_auto_save__", None)
+    if auto_save is not None and auto_save[1]:
+        ids.append(camel_case(auto_save[1]))
     return [i for i in dict.fromkeys(ids) if i]
 
 

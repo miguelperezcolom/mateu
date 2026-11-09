@@ -123,6 +123,29 @@ class ProxyHandlerMixin(MixinBase):
         a transport error) answers app_data._restfetchError ``{status, message}`` instead."""
         json_obj: Any = {}
         cls = self.registry.resolve(rq.server_side_type, rq.route)
+        if cls is None:
+            # a definition-only page (no class): the source is the one its OWN `actions:` — or its
+            # layout's listings / selects — declare for that kind and id, resolved against the
+            # server's catalogue (Java's SeededYamlPage as a RestSourceSupplier) — the only channel
+            # that injects ${secret.X} for such a page
+            declared = self._definition_source(rq)
+            if declared is not None:
+                if not declared.proxy and declared.url:
+                    from ..action_guard import MateuForbiddenException
+
+                    raise MateuForbiddenException(
+                        f"Forbidden: __restfetch__ {rq.parameters.get('_sourceKind')}/"
+                        f"{rq.parameters.get('_sourceId')} is not a proxied source"
+                    )
+                if sample_sources.enabled() and declared.sample is not None:
+                    method = (declared.method or "GET").strip().upper()
+                    json_obj = copy.deepcopy(declared.sample) if method in ("", "GET", "HEAD") else {}
+                    return UIIncrement(app_data={"_restfetch": json_obj})
+                try:
+                    json_obj = self._fetch_proxy(declared, _call_state(rq))
+                except ProxyError as e:
+                    return _restfetch_error(e.status, e.detail)
+                return UIIncrement(app_data={"_restfetch": json_obj})
         if cls is not None:
             kind = rq.parameters.get("_sourceKind")
             source_id = rq.parameters.get("_sourceId")
@@ -155,6 +178,13 @@ class ProxyHandlerMixin(MixinBase):
                 )
             elif source is not None:
                 state = _call_state(rq)
+                # A route's fixedParams win over the client's state and the action's parameters on
+                # this leg too (fixed > client state > …, as on the hydrating path): a pin enforced
+                # only when hydrating the view would be a suggestion to a proxied url (Java's
+                # RestProxyCalls.fetch).
+                match = self.routes.match(rq.route) if getattr(self, "routes", None) else None
+                if match is not None:
+                    state.update(match.entry.fixed_params or {})
                 if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
                     return self._for_each_selected_row(source, state)
                 try:
@@ -162,6 +192,23 @@ class ProxyHandlerMixin(MixinBase):
                 except ProxyError as e:
                     return _restfetch_error(e.status, e.detail)
         return UIIncrement(app_data={"_restfetch": json_obj})
+
+    def _definition_source(self, rq: RunActionRq):
+        """The resolved source the definition-only page declares for ``_sourceKind``/``_sourceId``
+        (an action of its ``actions:``, a listing's rows, a select's options), or None when the route
+        has no such page/source (or the caller is refused that action)."""
+        from ..translations import locale_of
+        from ..yaml_spec_loader import definition_sources, source_for
+
+        spec = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
+        if spec is None or spec.model_view:
+            return None
+        kind = rq.parameters.get("_sourceKind")
+        source_id = str(rq.parameters.get("_sourceId") or "")
+        if kind == "action" and source_id in spec.refused_actions:
+            return None
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else None
+        return source_for(definition_sources(spec, resolve), kind, source_id)
 
     def _for_each_selected_row(self, source, state: dict) -> UIIncrement:
         """Bulk (``forEachSelectedRow``): the loop runs HERE, once per selected listing row, each row

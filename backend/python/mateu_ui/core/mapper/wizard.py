@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing
 from typing import Any
 
 from mateu_ui.dtos import (
@@ -34,6 +35,7 @@ from ._common import (
     _id,
     _field_value,
     _row_cell,
+    with_action_options,
 )
 
 
@@ -88,6 +90,30 @@ def completing_step(cls, instance, total: int) -> int:
     apply, the last regular step that does (Java's WizardButtonBuilder)."""
     steps = applicable_steps(cls, instance, total)
     return steps[-1] if steps else last_regular_step(cls, total)
+
+
+def completion_streams(cls, name: str) -> bool:
+    """Whether the ``@wizard_completion_action`` method answers a ``LongTaskRun`` (its declared
+    return type): its progress streams, so the client must call it over SSE (Java advertises a
+    completion returning a Flux with ``sse``)."""
+    from mateu_ui.uidl.progress import LongTaskRun
+
+    fn = getattr(cls, name, None)
+    try:
+        hints = typing.get_type_hints(fn) if fn is not None else {}
+    except Exception:  # noqa: BLE001 - an unresolvable annotation: fall back to its spelling
+        hints = {}
+    returned = hints.get("return", getattr(fn, "__annotations__", {}).get("return"))
+    if returned is LongTaskRun:
+        return True
+    return isinstance(returned, str) and returned.split(".")[-1].strip("'\"") == "LongTaskRun"
+
+
+def completion_action(cls, name: str) -> Action:
+    """The advertised completion action: validated like Next, over SSE when it streams (its
+    return type, or an ``@action_options(sse=True)``), with its ``@action_options`` knobs."""
+    action = with_action_options(Action(id=camel_case(name), validation_required=True), cls, camel_case(name))
+    return action.model_copy(update={"sse": True}) if completion_streams(cls, name) else action
 
 
 def completion_offered_early(cls, current: int, total: int, instance=None) -> bool:
@@ -336,7 +362,7 @@ class WizardMapperMixin(MixinBase):
                 # Next validates the step on the client first (Java's Wizard.actions)
                 *([] if result_step else [Action(id="next", validation_required=True)]),
                 *(
-                    [Action(id=camel_case(completion[0]), validation_required=True)]
+                    [completion_action(cls, completion[0])]
                     if completion is not None
                     and (
                         current == completing_step(cls, instance, total)

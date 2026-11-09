@@ -11,7 +11,7 @@ from .components import RuleRecord
 from .fields import RestDataSource
 
 if TYPE_CHECKING:
-    from .envelope import UICommand
+    from .envelope import CustomEventRecord, UICommand
 
 
 # ── Flat helper records (not part of the polymorphic unions) ────────────────────
@@ -23,11 +23,18 @@ class Button(Wire):
     button_style: str | None = None
     #: The button's colour theme (e.g. "error" on a crud's Delete) — mirrors ButtonDto.color.
     color: str | None = None
+    #: The button's size (small | large…; None = the default) — mirrors ButtonDto.size.
+    size: str | None = None
+    #: Draws a separator before the button — mirrors ButtonDto.separatorBefore.
+    separator_before: bool = False
     shortcut: str | None = None
     # a bulk action (@list_toolbar_button): the renderer disables the button while no row is
     # selected — on the BUTTON so no renderer has to look the advertised action up by id
     # (mirrors Java's ButtonDto.rowsSelectedRequired)
     rows_selected_required: bool = False
+    #: A route the button NAVIGATES to on the client instead of running ``action_id`` (a
+    #: RouteLink button) — mirrors ButtonDto.route.
+    route: str | None = None
 
 
 class Option(Wire):
@@ -119,6 +126,9 @@ class MenuItem(Wire):
     action_id: str | None = None
     separator: bool = False
     visible: bool = True
+    #: The option the request route names (a record master's open tab — mirrors
+    #: MenuOptionDto.selected).
+    selected: bool = False
     submenus: list["MenuItem"] = Field(default_factory=list)
     #: Federated entry (@remote_menu): the frontend fetches the remote backend's menu from
     #: base_url and mounts its views under this option.
@@ -126,6 +136,13 @@ class MenuItem(Wire):
     base_url: str | None = None
     #: Inline the remote entries at this level instead of nesting under label.
     explode: bool = False
+    #: A remote section only: the route prefix the remote's screens live under, as far as the shell
+    #: can tell before the remote answers — its own path, without the groups the shell nests it in
+    #: (mirrors MenuOptionDto.routePrefix).
+    route_prefix: str | None = None
+    #: A remote section only: True when the shell DECLARED the label, which then wins over the one
+    #: the remote answers with (mirrors MenuOptionDto.shellLabel).
+    shell_label: bool = False
     #: A rule leaf (mirrors MenuOptionDto.rules): a menu entry that RUNS client-side rules when
     #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
     #: leaf leaves it empty.
@@ -202,6 +219,8 @@ class Banner(Wire):
 
 
 class Badge(Wire):
+    #: BadgeDto is a ComponentMetadataDto: Jackson writes its discriminator
+    type: Literal["Badge"] = "Badge"
     text: str
     color: str
     primary: bool = False
@@ -239,6 +258,27 @@ class Action(Wire):
     #: round trip (an action-catalogue entry's steps); None for a normal server-dispatched action
     #: (mirrors io.mateu.dtos.ActionDto.commands).
     commands: "list[UICommand] | None" = None
+    #: Runs without the busy veil / double-submit lock (mirrors ActionDto.background).
+    background: bool = False
+    #: The client calls the streaming (SSE) endpoint — a LongTask answer (ActionDto.sse).
+    sse: bool = False
+    #: The confirmation dialog's texts; None = the renderer's own wording.
+    confirmation_texts: "ConfirmationTextsRecord | None" = None
+    #: A link: the client navigates there instead of calling the server (ActionDto.href).
+    href: str | None = None
+    #: Client JavaScript to run (only when the page opts into RunJS; ActionDto.js).
+    js: str | None = None
+    #: A browser custom event dispatched instead of a server call (ActionDto.customEvent).
+    custom_event: "CustomEventRecord | None" = None
+
+
+class ConfirmationTextsRecord(Wire):
+    """Mirrors ``io.mateu.dtos.ConfirmationTextsDto``."""
+
+    title: str | None = None
+    message: str | None = None
+    confirmation_text: str | None = None
+    denial_text: str | None = None
 
 
 class RestAction(Wire):
@@ -250,6 +290,11 @@ class RestAction(Wire):
     source: "RestDataSource"
     success_message: str | None = None
     result_path: str | None = None
+    #: Where the client navigates after a successful call — a TEMPLATE (``people/${state.id}``)
+    #: resolved after the response merges into the state (mirrors RestActionDto.successRoute).
+    success_route: str | None = None
+    #: The call runs once per selected listing row (mirrors RestActionDto.forEachSelectedRow).
+    for_each_selected_row: bool = False
 
 
 class Trigger(Wire):

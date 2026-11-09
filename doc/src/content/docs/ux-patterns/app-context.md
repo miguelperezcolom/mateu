@@ -156,7 +156,7 @@ A data-authored shell (`type: AppShell`) declares the same pickers and header bu
 `contextSelectors:` (static `options` or an `optionsSource` REST source) and `headerActions:`
 (each navigates with `route`, or runs a shell flow / action-catalogue entry with `actionId`). See
 [App shell as data › Header extras](/define/yaml/app-shell/#header-extras-pickers-actions-inbox-and-search).
-Java only: the .NET and Python servers have no `type: AppShell`.
+The .NET and Python servers read the same `type: AppShell` keys (since 3.0 GA).
 
 ## Other servers
 

@@ -84,7 +84,11 @@ internal sealed partial class SyncHandler
                 _ => FragmentResponse(Title(profile.ListingType),
                     _mapper.MapCapabilityListing(profile, baseRoute), rq),
             },
-            { } aid when aid.StartsWith("action-on-row-") => CapabilityActionOnRows(profile, listing, rq),
+            { } aid when aid.StartsWith("action-on-row-") =>
+                CapabilityActionOnRows(profile, listing, rq, aid["action-on-row-".Length..]),
+            // a plain listing dispatches its bulk methods by their own name (Java's Listing.actions)
+            { } aid when ActionGuard.ResolveRowAction(profile.ListingType, aid) is not null =>
+                CapabilityActionOnRows(profile, listing, rq, aid),
             _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
@@ -229,12 +233,11 @@ internal sealed partial class SyncHandler
     /// <summary>A [ListToolbarButton] bulk action on the listing: same dispatch as on cruds —
     /// the selected rows rebuilt as typed row objects fill a List&lt;TRow&gt; parameter; a
     /// null/void result re-runs the capability search.</summary>
-    private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq)
+    private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq, string name)
     {
-        var name = rq.ActionId!["action-on-row-".Length..];
         var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
         if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
-        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
+        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId!);
         var result = method.Invoke(listing, BuildBulkArguments(method, rq));
         return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
     }

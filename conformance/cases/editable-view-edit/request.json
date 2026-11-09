@@ -1,0 +1,5 @@
+{
+  "route": "/conformance/editable-view/edit",
+  "consumedRoute": "/conformance/editable-view",
+  "actionId": ""
+}

@@ -75,6 +75,7 @@ internal static class MicroFrontendMapping
         // set only when declared: a micro frontend without them keeps its JSON byte for byte
         if (mf.ServerSideType is not null) meta = meta with { ServerSideType = mf.ServerSideType };
         if (mf.ActionId is not null) meta = meta with { ActionId = mf.ActionId };
+        if (mf.Chrome is { } chrome) meta = meta with { Chrome = chrome.ToString().ToUpperInvariant() };
         return meta;
     }
 

@@ -176,32 +176,40 @@ internal sealed class ActionRegistry : ISpecsCache
                 IEnumerable<object> list => list,
                 _ => null,
             };
-            var parsed = new List<CatalogAction>();
-            foreach (var node in nodes ?? [])
-            {
-                if (node is not IDictionary<object, object> map) continue;
-                var id = Str(map, "id");
-                if (string.IsNullOrWhiteSpace(id))
-                {
-                    Log.LogWarning("Ignoring an action with no id in {Path}", path);
-                    continue;
-                }
-                parsed.Add(new CatalogAction(id.Trim())
-                {
-                    Description = Str(map, "description") ?? "",
-                    Steps = StepsOf(map.TryGetValue("steps", out var s) ? s : null),
-                    RestAction = RestActionOf(map.TryGetValue("restAction", out var r) ? r : null),
-                    // remembered by id: enforced like a page's own declared action (YamlAccess)
-                    Access = YamlAccess.AccessOf(map.TryGetValue("access", out var acc) ? acc : null),
-                });
-            }
-            return ClientRunnableOnly(parsed, path);
+            return ParseNodes(nodes, path);
         }
         catch (Exception e)
         {
             Log.LogWarning(e, "Action catalogue {Path} ignored: {Error}", path, e.Message);
             return [];
         }
+    }
+
+    /// <summary>Action entries (<c>{id, steps, restAction, access}</c>, the shape a page definition
+    /// declares) as client-runnable actions — the action catalogue's files and a YAML app shell's
+    /// <c>actions:</c> read them alike. <paramref name="origin"/> names them in warnings.</summary>
+    internal static List<CatalogAction> ParseNodes(IEnumerable<object>? nodes, string origin)
+    {
+        var parsed = new List<CatalogAction>();
+        foreach (var node in nodes ?? [])
+        {
+            if (node is not IDictionary<object, object> map) continue;
+            var id = Str(map, "id");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                Log.LogWarning("Ignoring an action with no id in {Path}", origin);
+                continue;
+            }
+            parsed.Add(new CatalogAction(id.Trim())
+            {
+                Description = Str(map, "description") ?? "",
+                Steps = StepsOf(map.TryGetValue("steps", out var s) ? s : null),
+                RestAction = RestActionOf(map.TryGetValue("restAction", out var r) ? r : null),
+                // remembered by id: enforced like a page's own declared action (YamlAccess)
+                Access = YamlAccess.AccessOf(map.TryGetValue("access", out var acc) ? acc : null),
+            });
+        }
+        return ClientRunnableOnly(parsed, origin);
     }
 
     /// <summary>Drops (with a warning naming it) every entry that would need a server to run.</summary>
@@ -219,7 +227,7 @@ internal sealed class ActionRegistry : ISpecsCache
         return accepted;
     }
 
-    private static IReadOnlyList<FlowStep> StepsOf(object? node)
+    internal static IReadOnlyList<FlowStep> StepsOf(object? node)
     {
         var steps = new List<FlowStep>();
         foreach (var item in node as IEnumerable<object> ?? [])

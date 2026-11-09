@@ -1,0 +1,6 @@
+type: Routes
+routes:
+  - route: ""
+    definition: shell.yaml
+  - route: overview
+    definition: overview.yaml

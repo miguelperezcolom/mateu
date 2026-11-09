@@ -102,10 +102,17 @@ class AppMapperMixin(MixinBase):
                     folder_of(group).submenus.append(entry)
             # @remote_menu entries: federated options — the frontend fetches the remote backend's
             # menu itself and mounts its views (no server-side proxying).
-            for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
+            for label, base_url, route, explode, path in getattr(cls, "__mateu_remote_menus__", []):
+                # the section's own path (Java's @Menu field name): where its screens live
+                own = self._prepend("", path.strip()) if path and path.strip() else ""
+                declared = bool(label and label.strip())
                 items.append(MenuItem(
-                    label=self.T(label), route=route, server_side_type="",
+                    label=self.T(label) if declared else remote_label(self, own),
+                    route=route, server_side_type="", path=own,
                     consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
+                    route_prefix=remote_route_prefix(own),
+                    # the shell named it: its label wins over the one the remote answers with
+                    shell_label=declared,
                 ))
         variant = (
             AppVariant.to_wire(shell.variant)
@@ -190,6 +197,12 @@ class AppMapperMixin(MixinBase):
             theme_toggle=bool(getattr(cls, "__mateu_app_theme_toggle__", False)),
             # "Open on mobile" (experimental): opt-in, mirrors AppDto.mobileQr.
             mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
+            # @app(layout, accent_color, ask_label, ask_icon) (mirror AppDto's members)
+            **_app_presentation(cls),
+            # @no_breadcrumbs on the app class (no trail on any of its pages), or @app(back_link=
+            # PARENT): the "← Parent" link replaces the trail; the link itself (the parent screen's
+            # route and title) is resolved by the sync handler (with_back_link) — AppMapper's rule
+            no_breadcrumbs=bool(getattr(cls, "__mateu_no_breadcrumbs__", False)) or back_link_parent(cls),
             # The UI language: what the translator says, else the request's Accept-Language — the
             # chrome follows the browser, as on Java (DefaultTranslator.locale; mirrors AppDto.locale).
             locale=self._locale() or _accept_language(),
@@ -344,8 +357,9 @@ class AppMapperMixin(MixinBase):
         out = []
         for item in items:
             if getattr(item, "remote", False):
-                # Federated entry: the frontend owns its routing; leave it verbatim.
-                out.append(item)
+                # Federated entry: the frontend owns its routing; leave it verbatim — but like every
+                # entry it lives under the mount (Java's AppMenuDtoBuilder: uriPrefix = appRoute).
+                out.append(item.model_copy(update={"uri_prefix": mount}))
                 continue
             if item.rules:
                 # A rule leaf does not navigate: keep its (empty) route verbatim, do not mount it.
@@ -627,7 +641,53 @@ def _first_navigable_route(items) -> str | None:
     return None
 
 
+def back_link_parent(cls) -> bool:
+    """Whether the app (its code shell first, else its ``@app``) offers a "← Parent" link instead of
+    the breadcrumb trail (Java's AppMapper.backLinkParent)."""
+    if isinstance(cls, type) and issubclass(cls, AppSupplier):
+        shell = cls().get_app()
+        declared = getattr(shell, "back_link", None) if shell is not None else None
+        if declared is not None:
+            return str(getattr(declared, "value", declared)).strip().upper() == "PARENT"
+    return getattr(cls, "__mateu_app_back_link__", None) == "PARENT"
+
+
+def remote_label(mapper, path: str | None) -> str:
+    """What a remote section is called until the remote answers when the shell names no label: the
+    last segment of its path, humanized (Java's AppMenuDtoBuilder.remoteLabel)."""
+    from ..naming import humanize_constant
+
+    if not path or not path.strip():
+        return ""
+    segment = path[path.rfind("/") + 1:]
+    return mapper.T(humanize_constant(segment)) if segment else ""
+
+
+def remote_route_prefix(own_path: str | None) -> str | None:
+    """Where a remote section's screens live, as far as the shell can tell before the remote
+    answers: its own path, NOT the groups it sits in; None for none or the root (Java's
+    AppMenuDtoBuilder.remoteRoutePrefix)."""
+    if not own_path or not own_path.strip() or own_path.strip() == "/":
+        return None
+    own = own_path.strip()
+    return own if own.startswith("/") else "/" + own
+
+
 def _accept_language() -> str | None:
     from ..translations import accept_language
 
     return accept_language()
+
+
+def _app_presentation(cls) -> dict:
+    """What ``@app(layout=, accent_color=, ask_label=, ask_icon=)`` puts on the wire; nothing for
+    an app that declares none of it."""
+    declared = getattr(cls, "__mateu_app_presentation__", None)
+    if not declared:
+        return {}
+    return {
+        "layout": declared["layout"],
+        "accent_color": declared["accent_color"],
+        "ask_label": declared["ask_label"],
+        "ask_icon": declared["ask_icon"],
+    }

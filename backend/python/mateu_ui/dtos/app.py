@@ -78,6 +78,21 @@ class AppMetadata(Wire):
     #: @app(mobile_qr=True) (experimental): the "Open on mobile" header action — a dialog with the
     #: QR that adds this UI to the Mateu mobile app. Mirrors AppDto.mobileQr.
     mobile_qr: bool = False
+    #: @app(accent_color=...): the app's brand colour (a CSS colour) — the native apps derive
+    #: their theme from it (mirrors AppDto.accentColor). None = the renderer's.
+    accent_color: str | None = None
+    #: @app(ask_label=..., ask_icon=...): the text / icon of the AI "ask" entry (mirrors
+    #: AppDto.askLabel / askIcon). None = the renderer's own.
+    ask_label: str | None = None
+    ask_icon: str | None = None
+    #: The pages inside this app show no breadcrumb trail — ``@app(back_link=BackLink.PARENT)`` or a
+    #: YAML shell's ``backLink: PARENT`` (mirrors AppDto.noBreadcrumbs).
+    no_breadcrumbs: bool = False
+    #: ``@app(back_link=BackLink.PARENT)``: the route of the "← Parent" link (the nearest route above
+    #: the app that resolves to a screen) and its label (that screen's title); None when there is
+    #: no such route (mirrors AppDto.backRoute / backLabel).
+    back_route: str | None = None
+    back_label: str | None = None
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.
@@ -125,6 +140,25 @@ class AppMetadata(Wire):
     #: channel (``_agent-channel`` over the SSE endpoint) and shows "Connect AI" (mirrors
     #: AppDto.agentPush; conformance/mcp/README.md "Live UI push").
     agent_push: bool = False
+    # ── What a data-authored shell (a ``type: AppShell`` definition) also carries (AppDto) ──
+    logo: str | None = None
+    favicon: str | None = None
+    drawer_closed: bool = False
+    style: str | None = None
+    css_classes: str | None = None
+    #: (accent_color — the brand accent — is declared above with @app(accent_color=...); a YAML
+    #: shell sets the same member.)
+    #: The AI assistant's MCP endpoint and upload url (``ai: {mcp, upload}``; AppDto.mcpUrl/uploadUrl).
+    mcp_url: str | None = None
+    upload_url: str | None = None
+    #: The shell's own FLOWS (``actions:`` with ``steps:``), each lowered to ``commands``: a menu
+    #: rule leaf running one of them runs it in the browser (AppDto.actions).
+    actions: list["Action"] = Field(default_factory=list)
+    #: The notification inbox and the palette search fed by REST sources (AppDto
+    #: notificationsSource / notificationsReadSource / globalSearchSource).
+    notifications_source: "RestDataSource | None" = None
+    notifications_read_source: "RestDataSource | None" = None
+    global_search_source: "RestDataSource | None" = None
 
 
 class AppContextSelector(Wire):
@@ -135,6 +169,9 @@ class AppContextSelector(Wire):
     field_name: str
     label: str
     options: list["Option"] = Field(default_factory=list)
+    #: Where the options come from instead (a data-authored shell's ``optionsSource:``): a REST
+    #: source the browser fetches (AppContextSelectorDto.optionsSource).
+    options_source: "RestDataSource | None" = None
 
 
 class AppHeaderAction(Wire):
@@ -145,6 +182,8 @@ class AppHeaderAction(Wire):
     label: str = ""
     icon: str | None = None
     children: list["AppHeaderAction"] | None = None
+    #: Where the button navigates inside the app (a data-authored shell); None runs action_id.
+    route: str | None = None
 
 
 class AppShortcut(Wire):

@@ -1240,15 +1240,17 @@ def test_app_header_actions_on_the_wire():
     j = json.loads(render(inc))
     app_meta = j["fragments"][0]["component"]["metadata"]
     assert app_meta["contextActions"] == [
-        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None},
+        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None, "route": None},
         {
             "actionId": None,
             "label": "Export",
             "icon": "download",
             "children": [
-                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None},
-                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None},
+                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None, "route": None},
+                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None, "route": None},
             ],
+            # AppHeaderActionDto.route: set only by a data-authored shell's navigating buttons
+            "route": None,
         },
     ]
 
@@ -2121,12 +2123,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null, "background": false, "sse": false, "confirmationTexts": null, "href": null, "js": null, "customEvent": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null, "background": false, "sse": false, "confirmationTexts": null, "href": null, "js": null, "customEvent": null}'
     ) in j
     # The BUTTON carries the selection guard too, so the renderer can disable it while nothing is
     # selected without looking the advertised action up by id (Java's ButtonDto.rowsSelectedRequired).

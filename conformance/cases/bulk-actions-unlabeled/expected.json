@@ -1,0 +1,104 @@
+{
+  "commands" : [ {
+    "data" : "Books",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "search"
+      }, {
+        "id" : "markRead",
+        "rowsSelectedRequired" : true
+      }, {
+        "id" : "action-on-row-*"
+      }, {
+        "id" : "action-on-view-*"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Id",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Title",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "align" : "end",
+                "autoWidth" : true,
+                "dataType" : "integer",
+                "label" : "Pages",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 1.5
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filtersLayout" : "inline",
+            "gridLayout" : "auto",
+            "pageSize" : 10,
+            "searchOnEnter" : true,
+            "searchable" : false,
+            "toolbar" : [ {
+              "actionId" : "markRead",
+              "label" : "markRead",
+              "rowsSelectedRequired" : true,
+              "type" : "Button"
+            } ],
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "style" : "min-width: min(30rem, 100%); display: block;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Unlabeled bulk books",
+          "pageType" : "collection",
+          "title" : "Books",
+          "toolbar" : [ {
+            "actionId" : "markRead",
+            "label" : "markRead",
+            "rowsSelectedRequired" : true,
+            "type" : "Button"
+          } ],
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "collection",
+      "route" : "_empty",
+      "triggers" : [ {
+        "actionId" : "search",
+        "times" : 1,
+        "type" : "OnLoad"
+      } ],
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

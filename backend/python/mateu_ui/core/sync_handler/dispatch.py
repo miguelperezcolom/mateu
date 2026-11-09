@@ -175,6 +175,12 @@ class DispatchMixin(MixinBase):
         # (mirrors Java's __restfetch__ reserved action).
         if rq.action_id == "__restfetch__":
             return self._rest_fetch_response(rq)
+        # 0d+. A data-authored shell's PROXIED sources (its pickers, inbox, palette search): the
+        # browser names the ROLE, never a url (Java's RestProxyCalls.appSourceCall).
+        if rq.action_id == "_appsource":
+            from .. import yaml_app_shell
+
+            return yaml_app_shell.app_source_response(self, rq)
 
         # 0d'. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
         # routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that
@@ -185,11 +191,36 @@ class DispatchMixin(MixinBase):
             if app_t is not None and self._app_menu_claims(app_t, rq.route, request_base_url):
                 return self.render_app(app_t, rq, request_base_url, home_route_override=rq.route)
 
+        # 0f. Routed tabs: an APP the client names by type that the AUTHORED route table binds under
+        # the request route (a record master, a deep link to one of its tabs) renders ITSELF — its
+        # tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's
+        # mount, the app not on screen yet).
+        routed_mount = None
+        if not rq.action_id and not rq.server_side_type:
+            # a load naming no type (a fresh deep link, a reload) of a TAB of a record master that
+            # is not on screen yet: the master renders it in its slot (Java's
+            # RouteChains.pendingAppAncestor)
+            from .. import routed_tabs
+
+            ancestor = routed_tabs.pending_app_ancestor(
+                self.routes, self.registry, rq.route, rq.consumed_route
+            )
+            if ancestor is not None:
+                return self.render_app(ancestor[0], rq, request_base_url, routed_mount=ancestor[1])
+        if not rq.action_id and rq.server_side_type:
+            from .. import routed_tabs
+
+            routed_mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if routed_mount is not None:
+                master = self.registry.type_by_name(rq.server_side_type)
+                if master is not None and "__mateu_app__" in master.__dict__:
+                    return self.render_app(master, rq, request_base_url, routed_mount=routed_mount)
+
         # 0e. A menu leaf carries the APP's serverSideType (Java parity: there the app resolves its
         # own menu routes), so loading a menu route the app does not render itself — a route owned
         # by a registered view, or one of its CRUD sub-routes — loads that view, not the app again
         # (which the shell would nest inside its own content area).
-        if not rq.action_id and rq.server_side_type:
+        if not rq.action_id and rq.server_side_type and routed_mount is None:
             app_t = self.registry.resolve(rq.server_side_type, None)
             if app_t is not None and "__mateu_app__" in app_t.__dict__:
                 owner = self.registry.resolve_by_prefix(rq.route)
@@ -223,6 +254,12 @@ class DispatchMixin(MixinBase):
         if lst is not None:
             return self.handle_listing(*lst, rq)
 
+        # 2a'. An EditableView / MasterDetailView (by serverSideType or route prefix, so its
+        # /edit · /view · /__md/<key> sub-routes resolve) — Java's MultiView orchestrators.
+        orchestrated = self.resolve_orchestrated_view(rq)
+        if orchestrated is not None:
+            return self.handle_orchestrated_view(*orchestrated, rq)
+
         # The AUTHORED registry answers before the decorator-declared views — explicit beats
         # derived, the same precedence the layout and page inference already use. Its parameters are
         # folded into the component state here, at the single point every downstream step reads:
@@ -233,12 +270,35 @@ class DispatchMixin(MixinBase):
         # route resolution also runs in the browser (a statically deployed mount has no server to
         # ask) and a parameter pinned only there would be a suggestion, not a constraint.
         route_match = self.routes.match(rq.route)
+        if rq.server_side_type:
+            # the type the client names is resolved where it is MOUNTED in the route — the shortest
+            # prefix the authored table binds to it (Java's ActionInstanceCreator.mountOf): a page
+            # with routed in-page tabs on /vcn/7/gateways is the page answering /vcn/7
+            from .. import routed_tabs
+
+            mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if mount is not None:
+                route_match = self.routes.match(mount)
         type_ = None
+        client_state = dict(rq.component_state or {})
+        route_seeds = False
         if route_match is not None:
             from ..request_context import current_request
 
             in_flight = current_request()
             query = dict(in_flight.query_params) if in_flight is not None else {}
+            # What makes a definition-only page's route SEED it (Java's seedBareLayout): a path
+            # parameter alone does not — the browser resolves ${state.x} from the route itself.
+            entry = route_match.entry
+            route_seeds = bool(
+                entry.data is not None
+                or entry.app_data is not None
+                or entry.app_state
+                or entry.state
+                or entry.default_params
+                or entry.fixed_params
+                or query
+            )
             rq = rq.model_copy(
                 update={
                     "component_state": route_match.params(rq.component_state or {}, query)
@@ -254,19 +314,79 @@ class DispatchMixin(MixinBase):
         yaml_spec = self.yaml_specs.load_spec_for(
             rq.route, self.mapper.authorized, locale_of(self.mapper)
         )
+        # A FRESH deep link (consumedRoute "_empty") to a route of a mount whose root is a
+        # `type: AppShell`: the SHELL answers, opening on that route — the page is its content load
+        # (Java's ActionInstanceCreator.wrapsInAppShell).
+        if not rq.action_id and not rq.server_side_type and rq.consumed_route == "_empty":
+            from .. import yaml_app_shell
+
+            mount, mount_home = yaml_app_shell.mount_of(self.routes, rq.route)
+            relative = normalize(rq.route)[len(mount):].strip("/") if mount else normalize(rq.route)
+            if relative and not _is_terminal_route(rq.route):
+                root = self.yaml_specs.load_spec_for(
+                    mount, self.mapper.authorized, locale_of(self.mapper)
+                )
+                if root is not None and isinstance(root.layout, yaml_app_shell.YamlAppShell):
+                    return self.fragment_response(
+                        "",
+                        self.with_back_link(
+                            yaml_app_shell.app_component(
+                                # aimed at the route as Java aims it: "/about", the route the
+                                # shell's content slot loads (a bundle pins this answer)
+                                self.mapper, root.layout, mount, mount_home, home_route="/" + relative
+                            ),
+                            yaml_app_shell.back_link_parent(root.layout.node),
+                        ),
+                        rq,
+                        with_title_command=False,
+                    )
         if type_ is None and yaml_spec is not None:
             # A route with no view class → a YAML page. A bare layout renders as a static, unbound
             # page; a page that declares modelView: instantiates that logic class (state + actions)
             # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
-            if not yaml_spec.model_view:
-                # The route's seeds (state:, fixed/default/path params) are the page's state: a
-                # bare layout has nowhere to hold them, so a seeded page is wrapped, as Java's
-                # SeededYamlPage does (they were dropped: ${state.x} rendered blank).
-                seeded = dict(rq.component_state or {}) if route_match is not None else {}
+            from .. import yaml_app_shell
+
+            if isinstance(yaml_spec.layout, yaml_app_shell.YamlAppShell):
+                # A `type: AppShell` definition: the App of the mount, named by no class (Java's
+                # YamlAppLoader); it emits no window title of its own, as an @app class does not.
+                mount, mount_home = yaml_app_shell.mount_of(self.routes, rq.route)
                 return self.fragment_response(
-                    _definition_window_title(yaml_spec.layout, seeded, rq.route),
+                    "",
+                    self.with_back_link(
+                        yaml_app_shell.app_component(self.mapper, yaml_spec.layout, mount, mount_home),
+                        yaml_app_shell.back_link_parent(yaml_spec.layout.node),
+                    ),
+                    rq,
+                    with_title_command=False,
+                )
+            if not yaml_spec.model_view:
+                # The route's seeds (state:, fixed/default params, a query string) are the page's
+                # state: a bare layout has nowhere to hold them, so a seeded page is wrapped, as
+                # Java's SeededYamlPage does (they were dropped: ${state.x} rendered blank). So are
+                # declared actions/triggers/pageType and a proxied source. A path parameter ALONE is
+                # no seed: such a page answers its bare layout, as Java's seedBareLayout does.
+                page_actions = self._definition_page_actions(yaml_spec)
+                wraps = bool(
+                    route_seeds or yaml_spec.page_type or page_actions or list(yaml_spec.triggers)
+                )
+                # wrapped: every parameter folded in (path ones too); a page with no route entry
+                # keeps the client's state, as Java's (componentState)
+                seeded = (
+                    dict(rq.component_state or {}) if route_match is not None else client_state
+                )
+                title_state = seeded if wraps else client_state
+                # the route's PATTERN names the window, never the concrete path's id
+                title_route = route_match.entry.route if route_match is not None else rq.route
+                return self.fragment_response(
+                    _definition_window_title(yaml_spec.layout, title_state, title_route),
                     _with_declared_page_type(
-                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq, seeded
+                        self.mapper.map_component(yaml_spec.layout),
+                        yaml_spec.page_type,
+                        rq,
+                        seeded,
+                        page_actions,
+                        yaml_spec,
+                        wraps,
                     ),
                     rq,
                 )
@@ -454,6 +574,38 @@ class DispatchMixin(MixinBase):
             return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq, layout_override)
 
+    def _definition_page_actions(self, spec) -> list:
+        """What a definition-only page advertises: its DECLARED actions (a refused one is not in
+        the caller's copy), then the catalogue entries its layout — or its own flows — names but
+        does not declare (OWNER FIRST), then ``__restfetch__`` when a declared call is proxied, as a
+        Java ``RestSourceSupplier`` page does (Java's ``seedBareLayout.withCatalogue`` +
+        ``SeededYamlPage``). Never the "*" wildcard a class view advertises."""
+        from mateu_ui.dtos import Action
+
+        from ..action_registry import to_dto
+
+        declared = [a for a in spec.actions if a.id not in spec.refused_actions]
+        actions = [a.dto for a in declared]
+        if self.action_catalog is not None and spec.layout is not None:
+            named = list(self.mapper.collect_action_ids(spec.layout))
+            for a in actions:
+                for command in a.commands or []:
+                    if command.type == "RunAction" and isinstance(command.data, dict):
+                        named.append(str(command.data.get("actionId") or ""))
+            owned = {a.id for a in actions} | set(spec.refused_actions)
+            actions += [
+                to_dto(e) for e in self.action_catalog.referenced_by(named, owned, self.mapper.authorized)
+            ]
+        # a proxied call — a declared action's, or a listing's rows / a select's options read off a
+        # keyed catalogue entry — is the server's to make through __restfetch__, which only a
+        # server-side page answers (Java's SeededYamlPage as a RestSourceSupplier)
+        from ..yaml_spec_loader import definition_sources
+
+        resolve = self.rest_sources.resolve if self.rest_sources is not None else None
+        if any(getattr(d.source, "proxy", False) for d in definition_sources(spec, resolve)):
+            actions.append(Action(id="__restfetch__", validation_required=False))
+        return actions
+
     @staticmethod
     def _clicked_event_id(rq: RunActionRq) -> str | None:
         """The id inside the calendar's ``_clickedEvent`` action parameter — a map
@@ -466,25 +618,63 @@ class DispatchMixin(MixinBase):
         return None
 
 
-def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, state: dict | None = None):
+def _with_declared_page_type(
+    layout,
+    page_type: str | None,
+    rq: RunActionRq,
+    state: dict | None = None,
+    actions=(),
+    spec=None,
+    wraps: bool | None = None,
+):
     """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
     fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
     page that does (Java's ``ActionInstanceCreator.seedBareLayout`` → ``SeededYamlPage``).
+    A page that declares ``actions:`` (or names catalogue actions) is wrapped too, carrying THOSE
+    actions (wire DTOs) — never the "*" wildcard a class view advertises, which would claim every id
+    for a server that has no behaviour behind it (Java's SeededYamlPage.actions) — with the client
+    validations of its required fields and the Form's ``confirmOnNavigationIfDirty``, as Java's.
     Neither → unchanged."""
-    if not page_type and not state:
+    triggers = list(spec.triggers) if spec is not None else []
+    if wraps is None:
+        wraps = bool(page_type or state or actions or triggers)
+    if not wraps:
         return layout
     import re
 
     from mateu_ui.dtos import ServerSideComponent
 
+    from ..yaml_spec_loader import required_field_validations
+
+    bare = spec.layout if spec is not None else None
+    if not page_type:
+        # wrapped for its seeds: a page that fills a template is the template's kind of page, a
+        # listing is a collection, anything else a form (Java's SeededYamlPage.declaredPageType +
+        # the PageTypeResolver default)
+        from mateu_ui.uidl.components import Form, ListingComponent
+
+        from .. import page_templates
+
+        of_template = (
+            page_templates.page_type_of(bare.template)
+            if isinstance(bare, Form) and getattr(bare, "template", None) is not None
+            else None
+        )
+        page_type = of_template or ("collection" if isinstance(bare, ListingComponent) else "form")
     route = (rq.route or "").split("?")[0].strip("/")
     return ServerSideComponent(
         id="page_" + re.sub(r"[^A-Za-z0-9_-]", "_", route or "root"),
         server_side_type="",
-        route="/" + route,
+        route=rq.consumed_route or "_empty",
         children=[layout],
         initial_data=dict(state or {}),
         page_type=page_type,
+        actions=list(actions),
+        triggers=triggers,
+        # ComponentTreeSupplier.style()'s default: the page's reading measure
+        style="max-width:900px;margin: auto;",
+        validations=required_field_validations(bare),
+        confirm_on_navigation_if_dirty=bool(spec is not None and spec.confirm_on_navigation_if_dirty),
     )
 
 
@@ -511,7 +701,12 @@ def _definition_window_title(layout, state: dict | None, route: str | None) -> s
         if all(value_of(p) is not None for p in placeholders):
             return re.sub(r"\$\{([^}]+)}", lambda m: value_of(m.group(1)) or "", title)
     for segment in reversed((route or "").split("?", 1)[0].split("/")):
-        if segment.strip() and not segment.startswith(":") and not segment.startswith("{"):
+        if (
+            segment.strip()
+            and not segment.startswith(":")
+            and not segment.startswith("{")
+            and not segment.isdigit()  # a concrete path's id never names the window
+        ):
             return humanize_constant(segment)
     return route or ""
 

@@ -17,6 +17,12 @@ internal sealed class MateuRegistry
 
     public Type? AppType { get; }
 
+    private readonly List<IFeatureFlags> _featureFlags = [];
+
+    /// <summary>The <see cref="IFeatureFlags"/> implementers of the scanned assemblies: they answer the
+    /// <c>Show</c> of a routed tab and of an in-page [Tab] (Java's FeatureFlags beans).</summary>
+    public IReadOnlyList<IFeatureFlags> FeatureFlags => _featureFlags;
+
     /// <summary>The routes contributed IN CODE by <see cref="IRouteEntrySupplier"/> implementers found
     /// in the scanned assemblies, already flattened to absolute entries. Fed to the RouteRegistry as
     /// the code-authored half (routes.yaml wins over them).</summary>
@@ -49,6 +55,16 @@ internal sealed class MateuRegistry
             {
                 AppType = type;
                 _byName[type.FullName!] = type;
+            }
+            if (typeof(IFeatureFlags).IsAssignableFrom(type)
+                && type is { IsAbstract: false, IsInterface: false, ContainsGenericParameters: false }
+                && type.GetConstructor(Type.EmptyTypes) is not null)
+            {
+                try { _featureFlags.Add((IFeatureFlags)Activator.CreateInstance(type)!); }
+                catch
+                {
+                    // a broken supplier has no say
+                }
             }
             if (typeof(IRouteEntrySupplier).IsAssignableFrom(type)
                 && type is { IsAbstract: false, IsInterface: false }

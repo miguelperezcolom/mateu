@@ -16,7 +16,8 @@ from ._common import RunActionRq
 
 class RenderHandlerMixin(MixinBase):
     def render(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
-        route = rq.consumed_route if rq.consumed_route else "_empty"
+        # Java's DefaultMateuService: no consumed route is "_empty"; an EMPTY one stays ""
+        route = rq.consumed_route if rq.consumed_route is not None else "_empty"
         # A ComponentTreeSupplier view (and the archetypes on it, and an @auto_page-composed
         # dashboard/welcome) renders its tree directly with no Page wrapper — Java parity. It names
         # the window only when the class DECLARES a title (@title): its class name is no title,

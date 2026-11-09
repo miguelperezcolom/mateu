@@ -85,8 +85,9 @@ And it keeps as much of its page header as the value says:
 
 It works the same with `resolve = SERVER`: the host asks the remote as embedded, and the island keeps
 its chrome for every later interaction (which go from the browser straight to the remote). In YAML,
-`chrome: NONE` on a `MicroFrontend`. Both web renderers (Vaadin and Redwood) implement it; the .NET
-and Python ports do not have the option yet.
+`chrome: NONE` on a `MicroFrontend`. Both web renderers (Vaadin and Redwood) implement it, and the .NET
+and Python servers have the option too (`MicroFrontend.Chrome` / `MicroFrontend(chrome=…)`): their
+answers to an embedded island drop the window commands the same way.
 
 ## Resolving it in the server (`resolve = SERVER`)
 

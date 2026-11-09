@@ -39,6 +39,15 @@ class Section:
     edit_action: str = ""
     add_action: str = ""
     view_more_action: str = ""
+    #: Pins the section's card (``position: sticky``) while the rest of the form scrolls; several
+    #: sticky sections stack under the page header (Java's @Section(sticky=true)).
+    sticky: bool = False
+    #: The section's own column count; 0 = the form's (declared or inferred). ``columns=1``
+    #: stacks this section's fields on a form whose other sections keep two columns (Java's
+    #: @Section(columns)).
+    columns: int = 0
+    #: Extra CSS for the section's content (Java's @Section(style)).
+    style: str = ""
 
 
 @dataclass(frozen=True)
@@ -47,6 +56,37 @@ class Tab:
     # When true this tab is the one selected when its strip first renders (instead of the default
     # first tab). If several tabs in the same strip set it, the first one wins.
     open: bool = False
+    #: The tab's URL key: the page's route followed by it opens this tab (``/vcn/7/gateways``
+    #: opens Gateways) — Java's @Tab(key); it travels as the tab's ``routeKey``.
+    key: str | None = None
+    #: A feature flag (optionally negated with ``!``): the tab is offered only while it is on
+    #: (a :class:`~mateu_ui.uidl.FeatureFlags` answers it) — Java's @Tab(show).
+    show: str | None = None
+
+
+@dataclass(frozen=True)
+class Subresource:
+    """A field whose type is a listing or crud rendered as one of the record's SUB-RESOURCES: an
+    embedded listing with its own title, help line, filters, paging and actions, inside one of the
+    page's tabs — several stacked in the same tab when they name it (Java's @Subresource).
+
+    ``tab`` is matched against the page's ``Tab``s by key or label; none matching opens a new tab
+    (labelled with it, its key kebab-cased); empty = a tab of its own named after the field.
+    ``order`` places it among the sub-resources of the same tab, ``help`` is a line under its
+    title, ``load`` is ``"ON_OPEN"`` (fetched when its tab opens, the default) or ``"EAGER"``
+    (fetched with the page, its row count on the tab), ``show`` a feature flag, ``show_title``
+    whether it draws its title (dropped anyway when it only repeats the tab or the page), and
+    ``context`` explicit bindings ``"listingField=hostField"``. The listing gets the parent as
+    CONTEXT, not as filters the user can remove: the route's path parameters, the host's simple
+    fields its listing also has, and the bindings."""
+
+    tab: str = ""
+    order: int = 0
+    help: str = ""
+    load: str = "ON_OPEN"
+    show: str | None = None
+    show_title: bool = True
+    context: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -85,7 +125,15 @@ class Text:
 
 @dataclass(frozen=True)
 class Inline:
-    """On a field holding a routed VIEW (an embedded island): the island renders without its own
+    """Java's ``@Inline``, with two meanings decided by the field's TYPE.
+
+    On a field holding a plain DATA object (a nested form): its fields expand straight into the
+    section, with ids prefixed ``<field>-`` (``supplier-name``); in a multi-section form the nested
+    class's ``@toolbar`` methods sit on the section's title row and its ``@button`` methods below
+    the content, dispatched as ``nested-form-action-<field>-<method>`` and run on the nested object.
+    Without ``Inline()`` such a field renders as a sub-form in an outlined card.
+
+    On a field holding a routed VIEW (an embedded island): the island renders without its own
     page chrome — its title drops to a sub-heading, no badges/KPIs — so it blends into the host
     section or tab (Java's ``@Inline`` on an embedded orchestrator field)."""
 
@@ -119,6 +167,13 @@ class SliderMax:
     """Upper bound of a slider field (Java's ``@SliderMax``; 100 by default)."""
 
     value: int
+
+
+@dataclass(frozen=True)
+class Details:
+    """On a field of a grid's ROW type: the row's detail — what opens under the row, behind a
+    button, instead of a column of its own. The grid carries the field's camelCase name as its
+    ``detailPath`` and sets ``useButtonForDetail`` (Java's ``@Details`` on a row field)."""
 
 
 @dataclass(frozen=True)
@@ -381,3 +436,34 @@ class ContentSlot:
     #: Optional description for the content editors (the backoffice).
     description: str = ""
     degrade_to_client: bool = False
+
+
+# -- Listing / CRUD visibility markers (Java's @MainFilter, @HiddenInList/View/Editor/Create) --
+
+
+@dataclass(frozen=True)
+class MainFilter:
+    """On a field of a listing's filters class (or a Crud entity): the filter the smart search bar
+    shows first, prominently (Java's ``@MainFilter``)."""
+
+
+@dataclass(frozen=True)
+class HiddenInList:
+    """On a Crud entity field: no column for it in the listing (nor in its exports). Java's
+    ``@HiddenInList``."""
+
+
+@dataclass(frozen=True)
+class HiddenInView:
+    """On a Crud entity field: not shown on the record's read-only view. Java's ``@HiddenInView``."""
+
+
+@dataclass(frozen=True)
+class HiddenInEditor:
+    """On a Crud entity field: no input for it on the EDIT form. Java's ``@HiddenInEditor``."""
+
+
+@dataclass(frozen=True)
+class HiddenInCreate:
+    """On a Crud entity field: no input for it on the CREATE form (an id the store assigns, ...).
+    Java's ``@HiddenInCreate``."""

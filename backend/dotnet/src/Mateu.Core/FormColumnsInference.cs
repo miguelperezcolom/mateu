@@ -41,7 +41,7 @@ internal static class FormColumnsInference
     internal static int FormColumns(Type? type, IEnumerable<PropertyInfo> props)
     {
         if (!IsInferred(type)) return FormColumns(type);
-        return props.Count(RendersInAnyForm) <= MaxSingleColumnFields ? 1 : 2;
+        return props.Sum(p => Weight(p, 0)) <= MaxSingleColumnFields ? 1 : 2;
     }
 
     /// <summary>The type's [FormLayout(Columns)] when declared (≥ 1), else 0.</summary>
@@ -53,7 +53,19 @@ internal static class FormColumnsInference
         type is not null && DeclaredColumns(type) == 0 && !type.GetCustomAttributes<ZoneAttribute>().Any();
 
     internal static int VisibleFieldCount(Type type) =>
-        ReflectionMapper.EditableProperties(type).Count(RendersInAnyForm);
+        VisibleFieldCount(type, 0);
+
+    private static int VisibleFieldCount(Type type, int depth) =>
+        ReflectionMapper.EditableProperties(type).Sum(p => Weight(p, depth));
+
+    /// <summary>What a property adds to the count: 0 when it never renders, the nested object's
+    /// own visible fields for an [Inline] nested form (they expand into the form), else 1.</summary>
+    private static int Weight(PropertyInfo p, int depth)
+    {
+        if (!RendersInAnyForm(p)) return 0;
+        if (depth < 8 && ReflectionMapper.IsInlineNestedForm(p)) return VisibleFieldCount(p.PropertyType, depth + 1);
+        return 1;
+    }
 
     private static bool RendersInAnyForm(PropertyInfo p)
     {

@@ -1,0 +1,35 @@
+{
+  "commands" : [ {
+    "data" : "Record",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "backLabel" : "Records",
+        "backRoute" : "/conformance",
+        "homeConsumedRoute" : "/conformance/app-back-link",
+        "homeRoute" : "/conformance/app-back-link/overview",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-back-link",
+          "label" : "Overview",
+          "path" : "/overview",
+          "route" : "/conformance/app-back-link/overview",
+          "uriPrefix" : "/conformance/app-back-link",
+          "visible" : true
+        } ],
+        "noBreadcrumbs" : true,
+        "rootRoute" : "/conformance/app-back-link",
+        "route" : "/conformance/app-back-link",
+        "title" : "Record",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

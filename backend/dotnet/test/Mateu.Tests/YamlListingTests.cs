@@ -90,7 +90,8 @@ public class YamlListingTests
         var hero = Assert.IsType<HeroSection>(Assert.Single(Assert.IsType<VerticalLayout>(tree).Content));
         var button = Assert.IsType<Button>(Assert.Single(hero.Content));
         Assert.Equal("products", button.Route);
-        Assert.Equal("", button.ActionId);
+        // no actionId: derived from the label, as Java's Button.resolvedActionId does
+        Assert.Equal("browseProducts", button.ActionId);
 
         var dto = Assert.IsType<ButtonMetadataDto>(ComponentMapper.Map(button).Metadata);
         Assert.Equal("products", dto.Route);

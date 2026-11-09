@@ -439,7 +439,8 @@ jobs:
           # Directory.Build.props builds net10.0 only on a .NET 10 SDK (MSBuild 18): a package
           # without it would be a silent downgrade, so fail the release instead.
           for n in "$RUNNER_TEMP"/nupkgs/*.nupkg; do
-            unzip -l "$n" | grep -q "lib/net10.0/" || { echo "::error::$n has no net10.0 build"; exit 1; }
+            # (a library ships lib/<tfm>/, the mateu-bundle dotnet tool tools/<tfm>/)
+            unzip -l "$n" | grep -qE "(lib|tools)/net10.0/" || { echo "::error::$n has no net10.0 build"; exit 1; }
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

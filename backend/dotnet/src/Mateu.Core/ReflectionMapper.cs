@@ -69,6 +69,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
     /// [Audience] projects it out as well.</summary>
     private bool Visible(MemberInfo member) =>
         Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
+        // a MasterDetailView's non-selected detail parts (ReflectionMapper.EditableViews.cs)
+        && !HiddenParts(member)
         // [Timestamp] properties render as the header "last updated" text, never as form fields.
         && member.Find<Mateu.Uidl.TimestampAttribute>() == null
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
@@ -79,7 +81,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         && member.Find<Mateu.Uidl.AsideAttribute>() == null
         // [AppContext] properties are the shell header's selectors, never form fields (Java's
         // FormFieldFilter) — they leaked into the page an app without a home renders.
-        && member.Find<AppContextAttribute>() == null;
+        && member.Find<AppContextAttribute>() == null
+        // [HiddenInView] / [HiddenInEditor] / [HiddenInCreate] on the crud form being mapped
+        && !HiddenInCurrentForm(member);
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
@@ -120,6 +124,9 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
                 From = string.IsNullOrWhiteSpace(s.From) ? null : s.From,
                 Condition = string.IsNullOrWhiteSpace(s.Condition) ? null : s.Condition,
             }));
+        // [AutoSave]: the debounced save-as-you-type trigger, after the subscriptions (Java's order)
+        if (AutoSaveOf(type) is { } autoSave)
+            triggers.Add(AutoSaveTrigger(autoSave.Action, autoSave.DebounceMillis));
         return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
 
@@ -145,8 +152,17 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             .SelectMany(t => t.Type is TriggerType.OnSuccess or TriggerType.OnError
                 ? new[] { t.ActionId, t.CalledActionId } : new[] { t.ActionId })
             .Concat(type.GetCustomAttributes<SubscribeToAttribute>().Select(s => s.Action))
+            .Concat(AutoSaveOf(type) is { } autoSave ? [autoSave.Action] : [])
             .Where(a => !string.IsNullOrEmpty(a))
             .Distinct();
+
+    /// <summary>The class's [AutoSave] (directly or through a composed attribute), else null.</summary>
+    internal static AutoSaveAttribute? AutoSaveOf(Type type) => type.Find<AutoSaveAttribute>();
+
+    /// <summary>The AutoSave trigger on the wire: <c>{type: "AutoSave", actionId, debounceMillis}</c>
+    /// (mirrors Java's AutoSaveTriggerDto; debounceMillis always travels — 0 means no debounce).</summary>
+    internal static object AutoSaveTrigger(string actionId, int debounceMillis) =>
+        new { type = "AutoSave", actionId, debounceMillis };
 
     public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null,
         bool embedded = false, bool inline = false)
@@ -164,7 +180,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
         bool Offered(MethodInfo m) => ForCurrentAudience(m) && Authorized(m.Find<EyesOnlyAttribute>());
         // [Toolbar] methods: the header toolbar (Java's @Toolbar); advertised before the buttons
-        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m)).ToList();
+        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m))
+            .OrderBy(m => m.Find<ToolbarAttribute>()!.Order).ToList();
         var toolbar = toolbarMethods.Select(MapToolbarButton).ToList();
         var buttonMethods = toolbarMethods
             .Concat(declaredMethods.Where(m => m.Find<ButtonAttribute>() != null && m.Find<ToolbarAttribute>() == null && Offered(m)))
@@ -176,7 +193,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // Field-declared actions first, in Java's FieldActionCollector order: the list fields' row
         // editing actions, the [OnRowSelected] grid actions (which must be advertised or the
         // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
-        var actions = FieldActions(type);
+        // The nested data objects' actions (nested-form-action-<field>-<method>) lead (Java's
+        // ActionMapper adds the nested forms' actions first).
+        var actions = NestedFormActions(type);
+        actions.AddRange(FieldActions(type).Where(a => actions.All(x => x.Id != a.Id)));
         actions.AddRange(buttonMethods.Select(m =>
                 WithActionOptions(new ActionDto(Naming.CamelCase(m.Name))
                     { RestAction = RestActionOf(m), Shortcut = m.Find<ShortcutAttribute>()?.Keys },
@@ -192,6 +212,15 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
             actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
+        // An [Action] method with no button is advertised too, with its [ActionOptions] — what a
+        // trigger, a link or a component dispatches (Java's ActionMapper over @Action methods; its
+        // validationRequired defaults to false).
+        foreach (var m in declaredMethods.Where(m => m.Find<ActionAttribute>() != null && Offered(m)))
+        {
+            var id = Naming.CamelCase(m.Name);
+            if (actions.All(x => x.Id != id))
+                actions.Add(WithActionOptions(new ActionDto(id, ValidationRequired: false), type, id));
+        }
         // A page [Fab] dispatches its method like a button, and the web client only SENDS what the
         // component advertises: unadvertised, a click on the floating button did nothing. No client
         // validation — a floating "Add" acts on the page, not on a filled-in form (Java's
@@ -277,8 +306,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // pageTitle is the humanized class name; title is the declared [Title] (falling back to the
         // same). Java derives pageTitle from the class, so a class whose [Title] differs from its
         // name emits two distinct header strings (mirrors ReflectionPageMapper).
+        // a routed tab's own page does not repeat the tab's label (Java's PageMapper +
+        // RouteChains.dedupeTitle)
         var pageMeta = new PageMetadataDto(
-            title, T(Naming.Humanize(type.Name)),
+            RoutedTabs.DedupeTitle(title), T(Naming.Humanize(type.Name)),
             OptT(type.Find<SubtitleAttribute>()?.Value), toolbar, buttons)
         {
             // an [Inline] island nests under the host section: its title demotes to a sub-heading
@@ -296,6 +327,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             Overline = OptT(type.Find<OverlineAttribute>()?.Value),
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
             TitleIsText = TitledByData(type, instance) ? true : null,
+            Breadcrumbs = BreadcrumbsOf(type, instance),
+            NoBreadcrumbs = type.Find<NoBreadcrumbsAttribute>() is not null ? true : null,
         };
         // The tree-supplier's children ARE the supplied tree (Page-less); a reflected form wraps its
         // content in a Page. The container style comes from the supplier for a tree view (Java's
@@ -386,6 +419,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         foreach (var id in TriggeredActionIds(type))
             if (actions.All(a => a.Id != id) && ActionGuard.HandlesTreeAction(type, id))
                 actions.Add(new ActionDto(id, ValidationRequired: false));
+        // [AutoSave]: the debounced save may follow any change, so the component claims every
+        // action ("*", first — Java's ActionMapper adds it for an @AutoSave class)
+        if (AutoSaveOf(type) is not null && actions.All(a => a.Id != "*"))
+            actions.Insert(0, new ActionDto("*", ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });
@@ -474,9 +511,12 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         var type = view.GetType();
         var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
         // A wizard opens on its first step; any other routed view maps as its own page.
-        return typeof(Wizard).IsAssignableFrom(type)
-            ? MapWizard(type, view, route, 1)
-            : MapView(type, view, route);
+        if (typeof(Wizard).IsAssignableFrom(type)) return MapWizard(type, view, route, 1);
+        var mapped = MapView(type, view, route);
+        // an island is a block of the host page, not a page: the automatic breadcrumb trail would
+        // trace the HOST's menu and address above it (a trail the view DECLARES is still drawn) —
+        // Java's EmbeddedView branch; a composed (tree-supplier) view gets no page of its own there
+        return view is IComponentTreeSupplier ? mapped : (ServerSideComponentDto)PageBreadcrumbs.Off(mapped, deep: false);
     }
 
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>

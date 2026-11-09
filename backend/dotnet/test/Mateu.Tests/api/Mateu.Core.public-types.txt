@@ -1,4 +1,5 @@
 Mateu.Core.AppShell (forwarded)
+Mateu.Core.Bundle.MateuBundle
 Mateu.Core.DevSpecs
 Mateu.Core.DocumentStore
 Mateu.Core.DocumentStore+Parked

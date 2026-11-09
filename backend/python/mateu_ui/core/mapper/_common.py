@@ -258,10 +258,37 @@ def with_action_options(action: Action, cls, action_id: str) -> Action:
         if camel_case(name) != action_id:
             continue
         timeout_millis, idempotent = fn.__mateu_action_options__
-        return action.model_copy(
-            update={"timeout_millis": timeout_millis, "idempotent": idempotent}
-        )
+        update: dict = {"timeout_millis": timeout_millis, "idempotent": idempotent}
+        update.update(_action_extras(getattr(fn, "__mateu_action_extras__", None)))
+        return action.model_copy(update=update)
     return action
+
+
+def _action_extras(extras: dict | None) -> dict:
+    """The rest of Java's @Action on the wire (Action.of + ActionDtoMapper): blank texts are
+    absent, and the confirmation texts / custom event only travel when one of their parts is set."""
+    if not extras:
+        return {}
+    from mateu_ui.dtos import ConfirmationTextsRecord, CustomEventRecord
+
+    texts = [extras.get(k) for k in (
+        "confirmation_title", "confirmation_message", "confirmation_text", "confirmation_denial_text")]
+    event, detail = extras.get("custom_event"), extras.get("custom_event_detail")
+    return {
+        "background": bool(extras.get("background")),
+        **({"confirmation_required": True} if extras.get("confirmation_required") else {}),
+        "sse": bool(extras.get("sse")),
+        "href": extras.get("href") or None,
+        "js": extras.get("js") or None,
+        "confirmation_texts": (
+            ConfirmationTextsRecord(
+                title=texts[0], message=texts[1], confirmation_text=texts[2], denial_text=texts[3])
+            if any(texts) else None
+        ),
+        "custom_event": (
+            CustomEventRecord(event_name=event or "", detail=detail) if event or detail else None
+        ),
+    }
 
 
 def for_current_audience(gate: Audience | None) -> bool:

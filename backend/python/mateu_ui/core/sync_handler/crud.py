@@ -28,14 +28,15 @@ from mateu_ui.dtos import (
 
 from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl.export import ListingExport
-from mateu_ui.uidl.messages import UserFacingException
+from mateu_ui.uidl.messages import Message, UserFacingException
 
-from .. import action_guard
+from .. import action_guard, nested_forms
 from ..naming import camel_case
 from ..reflection import class_flag, view_fields
 from ..registry import normalize
 from ..export import FORMATS
 from ..mapper.crud import _capable
+from ..mapper.crud_modes import crud_form_mode, without_hidden_inputs
 from ._base import MixinBase
 from mateu_ui.uidl import Restorable
 from .undo_delete import deleted_message, is_restorable, restore_ids, restored_message
@@ -75,6 +76,20 @@ class CrudHandlerMixin(MixinBase):
 
     def _handle_crud(self, crud_type, element, base_route, rq: RunActionRq) -> UIIncrement:
         crud = crud_type()
+        # a crud inside a record master's tab gets the chain's path parameters (its customerId) —
+        # Java's mountOf applies them to the known type's state on every request
+        from .. import routed_tabs
+
+        for name, value in routed_tabs.scope_values_for(crud_type).items():
+            setattr(crud, name, value)
+        # the request state hydrates the crud's own fields (a sub-resource's parent context —
+        # its vcnId), as Java hydrates the orchestrator from the component state
+        from .. import subresources
+
+        for wire, name in subresources.own_fields(crud_type).items():
+            value = (rq.component_state or {}).get(wire)
+            if value is not None and getattr(crud, name, None) is None:
+                setattr(crud, name, value)
         mode, id_ = self.parse_crud_route(base_route, rq.route)
         aid = rq.action_id
 
@@ -190,7 +205,9 @@ class CrudHandlerMixin(MixinBase):
             return self.navigate(base_route if id_ is None else f"{base}/{id_}", None, rq)
         if aid in (None, ""):
             if mode == "new":
-                return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new", rq)
+                return self.render_entity(
+                    crud_type, element, self.new_child(element), "new", f"{base_route}/new", rq
+                )
             if mode == "view":
                 return self.render_entity(
                     crud_type, element, self.get_or_new(crud, element, id_), "view", f"{base_route}/{id_}", rq
@@ -199,10 +216,77 @@ class CrudHandlerMixin(MixinBase):
                 return self.render_entity(
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit", rq
                 )
-            return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
+            # an island's listing is a block of the host page: it does not name the window
+            from .. import islands
+
+            return self.fragment_response(
+                self.title(crud_type),
+                self.mapper.map_view(crud_type, crud, base_route),
+                rq,
+                with_title_command=islands.EMBEDDED_MARKER not in islands.island_flags(),
+            )
+        if aid and aid.startswith(nested_forms.NESTED_ACTION_PREFIX):
+            # a nested data object of the ENTITY (its record form's sub-form): Java's record form
+            # is the entity's own server-side component, so the method runs on the entity's nested
+            # object hydrated from the form's flattened state (RunMethodActionRunner). A detached
+            # copy: an in-memory get() may hand out the stored instance, and an action persists
+            # nothing.
+            import copy
+
+            entity = copy.deepcopy(self.get_or_new(crud, element, id_)) if id_ is not None else element()
+            self.bind_state(
+                entity, without_hidden_inputs(element, rq.component_state or {}, id_ is None)
+            )
+            with crud_form_mode("new" if id_ is None else "edit"):
+                return self._run_nested_action(element, entity, rq)
         if aid and aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
+        if aid and aid.startswith("action-on-view-"):
+            return self.action_on_view(crud, crud_type, element, id_, base_route, rq)
         action_guard.no_such_action(crud_type, aid)
+
+    def action_on_view(self, crud, crud_type, element, id_, base_route, rq: RunActionRq) -> UIIncrement:
+        """A @view_toolbar_button on the record view page: runs the crud method on the record
+        rebuilt from the page state (mirrors Java's ActionOnViewActionHandler). None / the record
+        → the record page re-rendered in place; messages only → shown over the record RELOADED;
+        the record with messages → both; anything else maps as a regular action result."""
+        fn = action_guard.resolve_view_action(crud_type, (rq.action_id or "")[len("action-on-view-"):])
+        if fn is None:
+            action_guard.no_such_action(crud_type, rq.action_id)
+        action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
+        record = element()
+        self.bind_state(record, rq.component_state or {})
+        record_id = id_ if id_ is not None else self._row_id(rq)
+        if record_id is not None and hasattr(record, "id"):
+            setattr(record, "id", record_id)
+        method = fn.__get__(crud, crud_type)
+        args = []
+        for p in list(inspect.signature(method).parameters.values()):
+            if p.kind not in (p.POSITIONAL_OR_KEYWORD, p.POSITIONAL_ONLY):
+                continue
+            args.append(rq if p.name == "request" or p.annotation in (RunActionRq, "RunActionRq") else record)
+        result = method(*args)
+        items = list(result) if isinstance(result, (list, tuple)) else [result]
+        messages = [i for i in items if isinstance(i, Message)]
+        others = [i for i in items if i is not None and not isinstance(i, Message)]
+        shown = None
+        if not others:
+            if result is None:
+                shown = record
+            elif record_id is not None:
+                # it acted on the record and only has something to SAY: show it again, reloaded
+                shown = crud.get(record_id) or record
+        elif len(others) == 1 and isinstance(others[0], element):
+            shown = others[0]
+        if shown is None:
+            return self.map_result(result, rq)
+        route = f"{base_route.rstrip('/')}/{record_id}" if record_id is not None else base_route
+        page = self.render_entity(crud_type, element, shown, "view", route, rq)
+        if messages:
+            page = page.model_copy(update={
+                "messages": [*page.messages, *self.map_result(messages, rq).messages]
+            })
+        return page
 
     def export_listing(self, crud, crud_type, element, action_id: str, rq: RunActionRq) -> UIIncrement:
         """export-csv / export-excel / export-pdf on an exportable crud: the WHOLE filtered result
@@ -401,8 +485,19 @@ class CrudHandlerMixin(MixinBase):
             self.lookup_labels(element, entity, crud_type()),
         )
 
+    @staticmethod
+    def new_child(element):
+        """A fresh record — under a record master, with its fields named like the chain's path
+        parameters filled in (Java's FilteredAutoCrud.buildCreationForm + scopeValuesFor)."""
+        from .. import routed_tabs
+
+        entity = element()
+        for name, value in routed_tabs.scope_values_for(element).items():
+            setattr(entity, name, value)
+        return entity
+
     def crud_save(self, crud, element, id_, rq: RunActionRq, base_route) -> UIIncrement:
-        entity = self.get_or_new(crud, element, id_) if id_ is not None else element()
+        entity = self.get_or_new(crud, element, id_) if id_ is not None else self.new_child(element)
         # Optimistic locking (Version()): an EDITOR save (creates don't check/bump) whose version
         # is older than the stored one is rejected with the reload/overwrite conflict dialog —
         # BEFORE the state binds, so the stored entity is never mutated on a conflict (mirrors
@@ -426,13 +521,20 @@ class CrudHandlerMixin(MixinBase):
                         rq.action_id,
                         rq,
                     )
-        self.bind_state(entity, rq.component_state)
+        # a field the form does not render (HiddenInCreate / HiddenInEditor) takes no value from
+        # the client either — Java's ClientWritableFields
+        self.bind_state(entity, without_hidden_inputs(element, rq.component_state, id_ is None))
         if id_ is not None:
             setattr(entity, "id", id_)
-        missing = self.required_missing(entity, element)
+        # a required field the form does not render is not the user's to fill (Java's
+        # ServerConstraintCheck skips @HiddenInCreate / @HiddenInEditor fields)
+        # and neither are its Min/Max/Length/Pattern constraints: the form sent no validation for
+        # it, so the server does not check it there either
+        with crud_form_mode("new" if id_ is None else "edit"):
+            missing = self.required_missing(entity, element)
+            broken = self.constraint_violations(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
-        broken = self.constraint_violations(entity, element)
         if broken:
             return self.error("; ".join(broken))
         if version is not None:
@@ -588,9 +690,16 @@ class CrudHandlerMixin(MixinBase):
         locked = {camel_case(f.name) for f in view_fields(element) if read_only or f.has(ReadOnly)}
         self.bind_state(entity, {k: v for k, v in row.items() if k not in locked})
         entity.id = stored.id if hasattr(stored, "id") else raw_id
-        missing = self.required_missing(entity, element)
+        # the row is the EDIT form's record: a HiddenInEditor() field is not the user's to fill,
+        # and the constraints the editor would check are checked here too (Java's
+        # FilteredAutoCrud.updateRow → ServerConstraintCheck)
+        with crud_form_mode("edit"):
+            missing = self.required_missing(entity, element)
+            broken = self.constraint_violations(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
+        if broken:
+            return self.error("; ".join(broken))
         # Optimistic locking (Version()): an inline-edit over someone else's save is rejected
         # with the same reload/overwrite dialog; Overwrite re-sends the SAME edited row (the
         # button's parameters merge into the action request), Reload re-runs the search

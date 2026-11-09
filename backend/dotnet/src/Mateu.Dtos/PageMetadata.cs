@@ -76,6 +76,17 @@ public record PageMetadataDto(
     /// <summary>The page's "last updated" timestamp shown in the header (from a [Timestamp]
     /// property); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.timestamp.)</summary>
     public string? Timestamp { get; init; }
+    /// <summary>The breadcrumb trail the page DECLARES ([Breadcrumb] / IBreadcrumbsSupplier); null —
+    /// and omitted — when it declares none (the shell builds the automatic one). (Mirrors
+    /// io.mateu.dtos.PageDto.breadcrumbs.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<BreadcrumbDto>? Breadcrumbs { get; init; }
+    /// <summary>True when the page opts out of the automatic breadcrumb trail ([NoBreadcrumbs] on the
+    /// page, an embedded view, or a page under a [App(BackLink = Parent)] ancestor of its routes.yaml
+    /// chain); null — and omitted — = the shell shows it. A declared trail still shows. (Mirrors
+    /// io.mateu.dtos.PageDto.noBreadcrumbs.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? NoBreadcrumbs { get; init; }
 }
 
 /// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>
@@ -89,6 +100,8 @@ public record BannerDto(string Theme, string? Title, string? Description)
 /// <summary>A status chip shown in the page header strip.</summary>
 public record BadgeDto(string Text, string Color)
 {
+    /// <summary>The wire discriminator Java's BadgeDto carries.</summary>
+    public string Type => "Badge";
     public bool Primary { get; init; }
     public bool Small { get; init; }
     public bool Pill { get; init; } = true;
@@ -112,6 +125,10 @@ public record VerticalLayoutMetadataDto : ComponentMetadataDto
     /// <summary>Cross-axis alignment of the children: START, CENTER, END, STRETCH, BASELINE (Java
     /// HorizontalAlignmentDto); null = the renderer default.</summary>
     public string? HorizontalAlignment { get; init; }
+
+    /// <summary>Takes the whole width of its container (Java's VerticalLayoutDto.fullWidth).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FullWidth { get; init; }
 }
 
 public record FormLayoutMetadataDto : ComponentMetadataDto

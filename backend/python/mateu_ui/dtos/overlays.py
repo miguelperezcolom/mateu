@@ -78,6 +78,10 @@ class MicroFrontendMetadata(Wire):
     #: renderer has to ask — the shape every micro frontend had before (mirrors
     #: ``MicroFrontendDto.resolved``).
     resolved: Any | None = None
+    #: ``NONE`` / ``COMPACT`` / ``PAGE`` when the island is EMBEDDED in this page (renderers drop its
+    #: window commands and mark its requests ``embeddedChrome``); omitted for a top-level micro
+    #: frontend (mirrors ``MicroFrontendDto.chrome``, NON_NULL).
+    chrome: str | None = None
     #: What the host needs to resolve it (a ``mateu_ui.core.microfrontends.ServerResolution``);
     #: server side only, never serialised (mirrors ``MicroFrontendDto.server``).
     _server: Any = PrivateAttr(default=None)
@@ -87,6 +91,8 @@ class MicroFrontendMetadata(Wire):
         data = handler(self)
         if data.get("resolved", 0) is None:
             del data["resolved"]
+        if data.get("chrome", 0) is None:
+            del data["chrome"]
         return data
 
 
@@ -105,3 +111,7 @@ class DialogMetadata(Wire):
     height: str | None = None
     close_button_on_header: bool = True
     initial_data: Any | None = None
+    draggable: bool = False
+    resizable: bool = False
+    top: str | None = None
+    left: str | None = None

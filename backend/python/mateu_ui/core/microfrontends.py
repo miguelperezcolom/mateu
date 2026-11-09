@@ -889,6 +889,8 @@ class MicroFrontendServerResolver:
             "parameters": {},
             "initiatorComponentId": micro_frontend_id(plan.base_url, plan.route, meta.consumed_route,
                                                       meta.server_side_type),
+            # an EMBEDDED island asks as one: its server then sends no window commands
+            **({"embeddedChrome": meta.chrome} if meta.chrome else {}),
         }
 
     # -- cache --

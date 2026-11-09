@@ -34,7 +34,7 @@ public sealed record SearchRequest
 
     /// <summary>The raw component state the request was built from (camelCase keys; range bounds
     /// as &lt;field&gt;_from/&lt;field&gt;_to, multi-selects as value lists) — what a database
-    /// pushdown (<see cref="Crud{T}.Find"/>) filters by. Empty when the request was built by hand.</summary>
+    /// pushdown (<c>Crud&lt;T&gt;.Find</c>) filters by. Empty when the request was built by hand.</summary>
     public IReadOnlyDictionary<string, object?> FilterState { get; init; } =
         new Dictionary<string, object?>();
 

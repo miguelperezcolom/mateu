@@ -1,0 +1,13 @@
+# A definition-only page declaring content slots (the YAML twin of [ContentSlot]): resolved by the
+# server against the content remote like the attribute's. Used by MicroFrontendServerResolutionTests.
+layout:
+  type: VerticalLayout
+  content:
+    - type: ContentSlot
+      key: front-office.home.destacado
+      fallback: No news
+      description: The featured block
+    - type: ContentSlot
+      key: front-office.home.vacio
+      fallback: Nothing yet
+      timeoutMs: 400

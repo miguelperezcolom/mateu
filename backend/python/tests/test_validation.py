@@ -131,9 +131,13 @@ def test_a_conditionally_hidden_field_is_relaxed_while_hidden():
     assert ("nick", f"(!state.special) || ({REQUIRED('nick')})", "Cannot be empty") in entries(Constrained)
 
 
-def test_a_field_the_user_cannot_type_into_carries_no_constraint():
-    assert not [e for e in entries(Constrained) if e[0] in ("locked", "caption")]
-    assert entries(ReadOnlyView) == []
+def test_a_locked_field_keeps_its_constraint_like_the_java_reference():
+    # Java's rendersAsInput does not drop a field-level @ReadOnly / @PlainText field (conformance
+    # validation-locked), nor a @read_only class (validation-read-only-view); a display-only Text
+    # field has no constraint to send
+    assert ("locked", REQUIRED("locked"), "Cannot be empty") in entries(Constrained)
+    assert not [e for e in entries(Constrained) if e[0] == "caption"]
+    assert entries(ReadOnlyView) == [("name", REQUIRED("name"), "Cannot be empty")]
 
 
 def test_a_fractional_bound_keeps_its_decimals():
@@ -230,3 +234,22 @@ def test_the_server_refuses_a_button_when_a_constraint_is_broken():
     assert "• Nights: Must be at most 10" in message["text"]
     assert "• Rooms: Must be at least 1" in message["text"]
     assert "Nick" not in message["text"]
+
+
+@ui("val-open-length")
+@title("Open length")
+class OpenLength:
+    nickname: Annotated[str, Length(min=2)] = ""
+
+
+def test_an_open_maximum_reads_as_javas_integer_max_value():
+    # Java's @Size(min = 2): max defaults to Integer.MAX_VALUE — no `<=` entry, and the message
+    # names it (it said "∞" here, a wire difference from Java and .NET)
+    assert entries(OpenLength) == [
+        (
+            "nickname",
+            "state['nickname'] == null || state['nickname'] === '' || state['nickname'].length === undefined"
+            " || state['nickname'].length >= 2",
+            "Size must be between 2 and 2147483647",
+        )
+    ]

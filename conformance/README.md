@@ -22,12 +22,48 @@ conformance/
       request.json    optional: pin a SECOND request instead of the first load
 ```
 
+Beside it, `conformance/bundle/` pins the static-bundle EXPORTERS (Java's `mateu-bundle:bundle`,
+`python -m mateu_ui.bundle`, `dotnet mateu-bundle`): one normalised `manifest.json` per case — see
+its README.
+
 A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
 optional) is rendered by sending that request to the case's fixture type — how an interaction step
 (the shell's content load, an action) is pinned, not only the first render. The second-request
 cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view`,
-`wizard-step-2`, `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
-(the server-side validation re-check) and `error-boundary` (an unexpected exception).
+`wizard-step-2`, `wizard-completion-error` (a refused completion stays on its step), `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
+(the server-side validation re-check), `error-boundary` (an unexpected exception),
+`dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `crud-hidden-constraints-edit`/`-new`, `editable-view`/`-edit`,
+`view-toolbar-button` and `inline-form-action` (a nested `@Inline` object's action, its fields read back from the flattened state),
+`crud-nested-form` (a crud record form whose entity holds a nested data object: the form advertises
+its `nested-form-action-*` — the one part of a mediated form's actions the runners keep) and
+`crud-nested-form-action` (one of them, sent to the entity's server-side type).
+
+A case with a `specs/ui/` directory is a **YAML case**: no fixture type at all. Each runner serves
+that directory as its specs (Java through a classloader overlay on a Mateu booted for the case
+alone, the ports by pointing their specs directory at it) and loads the `request.json` route. The
+first one, `definition-actions`, pins a definition-only page that declares `actions:`;
+`definition-triggers` one that declares `triggers:`, and `definition-proxied-listing` one whose
+listing rows and select options come from proxied catalogue entries. `definition-path-params` pins a
+page under a `:param` route that seeds nothing else (its BARE layout: a path parameter is no seed)
+and `definition-path-params-seeded` the same page whose route also declares `defaultParams` (wrapped,
+its state carrying the path parameter too).
+
+The `routed-tabs-*` cases pin ROUTED TABS — a record master whose route-registry `children` are its
+tabs, and in-page `@Tab(key)` tabs that are URLs — over route chains authored in code
+(`RoutedTabsRoutes`, the routes.yaml `children:` twin) and a deployment's feature flags
+(`ConformanceFlags`, Java's `FeatureFlags` / .NET `IFeatureFlags` / Python `FeatureFlags`): the master
+offering its visible children as tabs and opening its default one (`-master`, `-default-child`), a deep
+link to a tab rendering the master with that tab as its home (`-master-on-tab`), a flagged-off tab left
+out of the bar while its route still answers (`-hidden-tab`), a tab's page not repeating the tab's
+label (`-tab`, `-segment-tab`: `RouteChains.dedupeTitle`), and the URL key opening an in-page tab
+(`-keys`, `-key-in-url`). `-deep-link` pins a fresh load naming no type (a request.json with
+`"serverSideType": null` is sent with none): the master answers. `-crud-listing`, `-crud-search`,
+`-crud-new` pin a CRUD inside a tab: resolved at its mount, its route-fixed filter `readOnly`, scoped to
+the chain's path parameter, a new child pre-filled with it (`crud-new` keeps the form's state: the
+runners' `FORM_STATE_PINNED`). The `subresource-*` cases pin `@Subresource` (Java) / `[Subresource]`
+(.NET) / `Subresource()` (Python): sub-listings placed in the tabs they name, stacked in order, lazy or
+eager (row count on the tab), with the parent as context and scope, the island's own load and search,
+a page holding only one, and an `@Inline` orchestrator with no route failing where the cause is.
 
 ## The contract
 
@@ -111,6 +147,15 @@ Some cases cannot be mirrored member for member, and that is information, not an
   `initialData`/`state`, like the mediated CRUD cases; everything it draws is pinned. Java names a
   step after its field and the ports number them, so the port fixtures supply the step titles
   through `StepTitle(n)` / `step_title(n)`.
+
+- **An editable view is a mediator in Java too.** `editable-view` and `editable-view-edit` pin the
+  content loads of the view and edit pages and leave the mediator protocol out, like the CRUD
+  record forms. A `save` is not pinned: Java pushes history from its mediator, .NET navigates and
+  Python re-renders in place — the same screen.
+
+- **Java's `@Action` order is the JVM's.** `Class.getDeclaredMethods()` has no specified order (it
+  changed between two runs of one build), so a case never pins several bare `@Action` methods side
+  by side: `action-extras` carries every knob on ONE action.
 
 Recording these is the point: a difference nobody wrote down is a difference somebody rediscovers.
 

@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/dialog-placement",
+  "actionId": "openNotes",
+  "componentState": {
+    "name": "Ada"
+  }
+}

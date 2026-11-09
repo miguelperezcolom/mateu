@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from ..page_breadcrumbs import with_back_link_breadcrumbs
+
 from ._common import (  # noqa: F401 - the public import path of every helper
     Action,
     Aggregate,
@@ -129,7 +131,26 @@ from .contract import ContractHandlerMixin
 from .actions import ActionHandlerMixin
 from .helpers import ResponseHelpersMixin
 from .grid_field import GridFieldHandlerMixin
+from .editable_view import EditableViewHandlerMixin
 
+
+
+#: What names or moves the window: never sent to an embedded micro frontend (Java's
+#: EmbeddedWindowCommands.WINDOW_COMMANDS).
+WINDOW_COMMANDS = frozenset({"SetWindowTitle", "SetFavicon", "PushStateToHistory"})
+
+
+def without_window_commands(increment):
+    """The increment without its window commands — the answer to an EMBEDDED micro frontend's
+    request: the island is a block of another page, and the window (its title, the address bar,
+    the favicon) belongs to that page. Stripped at the end of every answer, so no producer of
+    those commands has to know (mirrors Java's EmbeddedWindowCommands.strip)."""
+    if increment is None or not increment.commands:
+        return increment
+    kept = [c for c in increment.commands if c is None or c.type not in WINDOW_COMMANDS]
+    if len(kept) == len(increment.commands):
+        return increment
+    return increment.model_copy(update={"commands": kept})
 
 
 def referenced_rest_source_names(increment) -> tuple[set[str], bool]:
@@ -206,6 +227,7 @@ class SyncHandler(
     ActionHandlerMixin,
     ResponseHelpersMixin,
     GridFieldHandlerMixin,
+    EditableViewHandlerMixin,
     MixinBase,
 ):
     def __init__(
@@ -381,10 +403,19 @@ class SyncHandler(
             task_id = (rq.parameters or {}).get("taskId")
             identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
             return progress.snapshot(None if task_id is None else str(task_id), identity)
+        from .. import routed_tabs
+
         pending, token = mfe.begin_pending()
+        # the request route + the deployment's flags, for the routed tabs deep in the mapping
+        routed = routed_tabs.begin(
+            rq.route, getattr(self.registry, "feature_flags", ()), self.routes, self.registry
+        )
         try:
             increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
+            # a page under a back-link app (its routes.yaml chain) carries no trail of its own
+            increment = with_back_link_breadcrumbs(increment, self.routes, self.registry, rq.route)
         finally:
+            routed_tabs.end(routed)
             mfe.end_pending(token)
         request = current_request()
         # the REMOTE side: a view other hosts embed declares on its loads whether they may cache it
@@ -395,6 +426,8 @@ class SyncHandler(
         # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
         if pending[0] and self.microfrontends is not None:
             increment = self.microfrontends.resolve_sync(increment, request)
+        if rq.embedded():
+            increment = without_window_commands(increment)
         return self.store_inbox_messages(increment)
 
     def store_inbox_messages(self, increment: UIIncrement) -> UIIncrement:

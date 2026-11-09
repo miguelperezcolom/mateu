@@ -1,4 +1,4 @@
-"""View base classes: HeroSearch, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier,
+"""View base classes: HeroSearch, HeroSearchListing, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier,
 DetailContentSupplier, LinkSupplier."""
 
 from __future__ import annotations
@@ -37,6 +37,29 @@ class HeroSearch(Crud[T]):
     def hero_image(self) -> str | None:
         """Background image URL, rendered with a dark overlay."""
         return None
+
+
+class HeroSearchListing(Listing[R], Filterable[F], Searchable, Generic[F, R]):
+    """A search-first READ-ONLY page over a declarative listing with its own filters type — the
+    shape of Java's ``HeroSearch<Filters, Row>`` (EXPERIMENTAL): a centered hero header over the
+    listing, the ``F`` fields as the facet bar, results as cards (override :meth:`grid_layout`),
+    starting EMPTY — the user searches. Implement ``search(request, http)`` as on any
+    :class:`Listing`. For a hero page over a WRITABLE entity crud whose facets are the entity's
+    own fields, keep :class:`HeroSearch`. (.NET's ``HeroSearch<TFilters, TRow>``.)"""
+
+    def hero_title(self) -> str | None:
+        return None
+
+    def hero_subtitle(self) -> str | None:
+        return None
+
+    def hero_image(self) -> str | None:
+        """Background image URL, rendered with a dark overlay."""
+        return None
+
+    def grid_layout(self) -> str:
+        """Results as cards by default (Java's ``HeroSearch.gridLayout``)."""
+        return "cards"
 
 
 class SmartSearchPage(Listing[R], Filterable[F], Searchable, Generic[F, R]):

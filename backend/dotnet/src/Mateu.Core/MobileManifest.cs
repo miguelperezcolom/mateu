@@ -48,24 +48,38 @@ internal static class MobileManifest
     /// there, else the registry's [App] class.</summary>
     public static string ForMount(MateuRegistry registry, string? baseUrl) => Json(AppTypeOf(registry, baseUrl));
 
+    /// <summary>As <see cref="ForMount(MateuRegistry, string?)"/>, for a mount whose app may be a
+    /// <c>type: AppShell</c> definition (<paramref name="shell"/>, null = none): a mount with no app
+    /// class is presented by its shell — <c>title:</c>, else <c>pageTitle:</c>; <c>logo:</c> /
+    /// <c>favicon:</c>; <c>accentColor:</c> (Java's MobileManifest.sourceOf(AppShell)).</summary>
+    public static string ForMount(MateuRegistry registry, string? baseUrl, IDictionary<object, object>? shell) =>
+        Json(AppTypeOf(registry, baseUrl), RunningMateuVersion(), shell);
+
     /// <summary>The members that describe the app itself — what the web app manifest of the PWA
     /// (<see cref="Pwa"/>) is derived from too, so a rename reaches both.</summary>
     internal sealed record Derived(string Name, string ShortName, string? Icon, string? ThemeColor);
 
     /// <summary>The name, short name, icon and theme colour of <paramref name="appType"/> (null = an
     /// anonymous "Mateu" app), each from its environment variable, else [MobileApp], else the app.</summary>
-    internal static Derived Derive(Type? appType)
+    /// <remarks>With no app class, a YAML app shell (<paramref name="shell"/>) presents the mount:
+    /// its title, else its pageTitle, its logo else favicon, its accent colour — each still below
+    /// its environment variable.</remarks>
+    internal static Derived Derive(Type? appType, IDictionary<object, object>? shell = null)
     {
         var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
         var app = appType?.GetCustomAttribute<AppAttribute>();
+        var fromShell = appType is null ? shell : null;
         var name = Setting("MATEU_MOBILE_NAME")
                    ?? Blank(mobile?.Name)
                    ?? Blank(app?.Title)
                    ?? Blank(appType?.GetCustomAttribute<TitleAttribute>()?.Value)
+                   ?? (fromShell is null ? null : YamlAppShell.NameOf(fromShell))
                    ?? (appType is null ? "Mateu" : Naming.Humanize(appType.Name));
         var shortName = Setting("MATEU_MOBILE_SHORT_NAME") ?? Blank(mobile?.ShortName) ?? name;
-        var icon = Setting("MATEU_MOBILE_ICON") ?? Blank(mobile?.Icon);
-        var themeColor = Setting("MATEU_MOBILE_THEME_COLOR") ?? Blank(mobile?.ThemeColor);
+        var icon = Setting("MATEU_MOBILE_ICON") ?? Blank(mobile?.Icon)
+                   ?? (fromShell is null ? null : YamlAppShell.IconOf(fromShell));
+        var themeColor = Setting("MATEU_MOBILE_THEME_COLOR") ?? Blank(mobile?.ThemeColor)
+                         ?? (fromShell is null ? null : YamlAppShell.AccentOf(fromShell));
         return new Derived(name, shortName, icon, themeColor);
     }
 
@@ -76,10 +90,12 @@ internal static class MobileManifest
     /// As <see cref="Json(Type?)"/>, with the running Mateu version given: it travels as
     /// <c>mateuVersion</c> when it names a release, so a hub app can tell whether it predates this UI.
     /// </summary>
-    public static string Json(Type? appType, string? mateuVersion)
+    /// <remarks>With no app class, the mount's YAML app shell <paramref name="shell"/> presents it
+    /// (see <see cref="Derive"/>).</remarks>
+    public static string Json(Type? appType, string? mateuVersion, IDictionary<object, object>? shell = null)
     {
         var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
-        var (name, shortName, icon, themeColor) = Derive(appType);
+        var (name, shortName, icon, themeColor) = Derive(appType, shell);
         var minAppVersion = Setting("MATEU_MOBILE_MIN_APP_VERSION") ?? Blank(mobile?.MinAppVersion)
                             ?? DefaultMinAppVersion;
         var issuer = Setting("MATEU_MOBILE_OIDC_ISSUER") ?? Blank(mobile?.OidcIssuer);
@@ -139,7 +155,7 @@ internal static class MobileManifest
         return Release.IsMatch(v) ? v : null;
     }
 
-    private static string? RunningMateuVersion() =>
+    internal static string? RunningMateuVersion() =>
         typeof(MobileManifest).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
     private static string? Setting(string env) => Blank(Environment.GetEnvironmentVariable(env));

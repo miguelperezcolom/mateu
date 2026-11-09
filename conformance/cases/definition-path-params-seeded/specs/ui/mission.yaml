@@ -1,0 +1,7 @@
+# A definition-only record page read through a path parameter: no view model, no actions, no
+# triggers — but its route seeds a default parameter.
+type: Form
+title: Mission ${state.missionId}
+content:
+  - {type: Text, text: "Mission ${state.missionId}"}
+  - {type: FormField, id: name, label: Name, dataType: string}

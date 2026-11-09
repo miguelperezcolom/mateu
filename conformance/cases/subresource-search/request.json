@@ -1,0 +1,11 @@
+{
+  "route": "/_subresource/RtVcnDetail/subnets?_embeddedMediator=1&_hideTitle=1&_scope=vcnId",
+  "consumedRoute": "/_subresource/RtVcnDetail/subnets",
+  "actionId": "search",
+  "componentState": {
+    "vcnId": "7",
+    "searchText": "",
+    "page": 0,
+    "size": 10
+  }
+}
