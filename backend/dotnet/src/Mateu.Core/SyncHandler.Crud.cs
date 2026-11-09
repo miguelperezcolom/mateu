@@ -556,7 +556,7 @@ internal sealed partial class SyncHandler
     private static void SetVersion(object entity, PropertyInfo version, long value)
     {
         var t = Nullable.GetUnderlyingType(version.PropertyType) ?? version.PropertyType;
-        version.SetValue(entity, t == typeof(int) ? (int)value : value);
+        version.SetValue(entity, Convert.ChangeType(value, t, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>A detached property-by-property copy of the stored entity, so the editor's binding

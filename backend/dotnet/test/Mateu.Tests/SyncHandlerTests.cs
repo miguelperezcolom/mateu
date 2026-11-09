@@ -719,6 +719,26 @@ public class Articles : Crud<Article>
     public override void Save(Article entity) => Store[entity.Id] = entity;
 }
 
+// The same optimistic locking with an int version (a ternary once boxed it as a long and the save crashed).
+public class CountedArticle
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    [Version] public int Version { get; set; }
+}
+
+[UI("counted-articles"), Title("Articles")]
+public class CountedArticles : Crud<CountedArticle>
+{
+    public static readonly Dictionary<string, CountedArticle> Store = new();
+
+    public override IEnumerable<CountedArticle> Fetch(string? search) => Store.Values;
+
+    public override CountedArticle? Get(string id) => Store.GetValueOrDefault(id);
+
+    public override void Save(CountedArticle entity) => Store[entity.Id] = entity;
+}
+
 // The same locked articles edited in the create/edit drawer.
 [UI("articles-drawer"), Title("Articles")]
 public class ArticlesInDrawer : Articles
@@ -2986,6 +3006,29 @@ public class SyncHandlerTests
         Assert.DoesNotContain("Modified by another user", Render(inc));
         Assert.Equal("Final", Articles.Store["a1"].Name);
         Assert.Equal(2, Articles.Store["a1"].Version);
+    }
+
+    [Fact]
+    public void An_int_version_is_bumped_and_stays_an_int()
+    {
+        CountedArticles.Store.Clear();
+        CountedArticles.Store["a1"] = new CountedArticle { Id = "a1", Name = "Draft", Version = 1 };
+
+        Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "save",
+            Route = "counted-articles/a1/edit",
+            ServerSideType = typeof(CountedArticles).FullName,
+            ComponentState = new()
+            {
+                ["name"] = JsonSerializer.SerializeToElement("Final"),
+                ["version"] = JsonSerializer.SerializeToElement(1),
+            },
+            Parameters = new(),
+        });
+
+        Assert.Equal("Final", CountedArticles.Store["a1"].Name);
+        Assert.Equal(2, CountedArticles.Store["a1"].Version);
     }
 
     [Fact]
