@@ -116,14 +116,6 @@
         "condition" : "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined || state['name'].length > 0)",
         "fieldId" : "name",
         "message" : "Cannot be empty"
-      }, {
-        "condition" : "state['code'] != null && state['code'] !== '' && (state['code'].length === undefined || state['code'].length > 0)",
-        "fieldId" : "code",
-        "message" : "Cannot be empty"
-      }, {
-        "condition" : "state['caption'] == null || state['caption'] === '' || state['caption'].length === undefined || state['caption'].length >= 3",
-        "fieldId" : "caption",
-        "message" : "Size must be between 3 and 2147483647"
       } ]
     },
     "state" : {

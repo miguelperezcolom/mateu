@@ -682,6 +682,8 @@ internal sealed partial class SyncHandler
         ReflectionMapper.EditableProperties(element)
             // a field the form did not render cannot be asked for (Java's ServerConstraintCheck)
             .Where(p => creating is null || !ReflectionMapper.HiddenInForm(p, creating.Value ? "new" : "edit"))
+            // nor one the user cannot edit: a locked field carries no constraint
+            .Where(p => ReflectionMapper.IsEditable(element, p))
             .Where(p => p.Find<RequiredAttribute>() != null
                         && string.IsNullOrWhiteSpace(p.GetValue(entity)?.ToString()))
             .Select(p => p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))

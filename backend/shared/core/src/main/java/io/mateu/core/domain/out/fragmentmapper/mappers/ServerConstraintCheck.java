@@ -44,7 +44,9 @@ import java.util.Map;
  * ValidationMapper} sends validations for, with the same messages — so a request a well-behaved
  * client lets through is never refused here. A field whose constraint the client relaxes with a
  * {@code @Hidden("expression")} is skipped (the expression is the browser's to evaluate), as is a
- * view that supplies its own validations ({@link ValidationSupplier}).
+ * field the user cannot edit ({@link PageFormBuilder#isEditable}: locked, plain text, read-only by
+ * permission or in a read-only view — the server never writes those either) and a view that
+ * supplies its own validations ({@link ValidationSupplier}).
  */
 public final class ServerConstraintCheck {
 
@@ -85,8 +87,8 @@ public final class ServerConstraintCheck {
       if (hidden != null && !hidden.value().isBlank()) {
         continue;
       }
-      if (httpRequest != null
-          && !PageFormBuilder.rendersAsInput(field, instance, forCreationForm, httpRequest)) {
+      // only a field the user can edit carries its constraints (the same ones the client gets)
+      if (!PageFormBuilder.isEditable(field, instance, forCreationForm, httpRequest)) {
         continue;
       }
       Object value;

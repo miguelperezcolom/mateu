@@ -211,7 +211,8 @@ class HiddenFieldValidationSyncTest {
 
   @Test
   void theEditFormDoesNotValidateAFieldItHidesFromEditing() {
-    assertThat(validatedFieldsAt("/models/m1/edit")).contains("id", "name").doesNotContain("newId");
+    // nor the id: shown there, but @ReadOnly — a constraint the user cannot fix is not sent
+    assertThat(validatedFieldsAt("/models/m1/edit")).contains("name").doesNotContain("newId", "id");
   }
 
   @Test
@@ -222,8 +223,11 @@ class HiddenFieldValidationSyncTest {
   }
 
   @Test
-  void aHandWrittenCrudsEditFormStillValidatesThatField() {
+  void aHandWrittenCrudsEditFormDoesNotValidateTheLockedField() {
+    // rendered in the edit form, but @ReadOnly: only a field the user can edit carries its
+    // constraints
     assertThat(validatedFieldsAt("/forms/f1/edit", "/forms", FormsCrud.class))
-        .contains("id", "name");
+        .contains("name")
+        .doesNotContain("id");
   }
 }

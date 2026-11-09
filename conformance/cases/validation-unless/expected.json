@@ -97,10 +97,6 @@
         "condition" : "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined || state['name'].length > 0)",
         "fieldId" : "name",
         "message" : "Cannot be empty"
-      }, {
-        "condition" : "state['notes'] != null && state['notes'] !== '' && (state['notes'].length === undefined || state['notes'].length > 0)",
-        "fieldId" : "notes",
-        "message" : "Cannot be empty"
       } ]
     },
     "state" : {

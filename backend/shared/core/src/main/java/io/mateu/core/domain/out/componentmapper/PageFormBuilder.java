@@ -213,4 +213,53 @@ public class PageFormBuilder {
     return FormFieldFilter.filterField(field, forCreationForm, false, instance, httpRequest)
         && !FormFieldFilter.hiddenInEditor(field, forCreationForm);
   }
+
+  /**
+   * Whether the user can EDIT this field: it renders as an input ({@link #rendersAsInput}) and is
+   * not locked — not {@code @ReadOnly} (on the field or the view), not {@code @PlainText} (the
+   * field or its class), not a {@code @ReadOnlyUnless}/{@code @DisabledUnless} the caller does not
+   * satisfy, not generated or editable only when creating. Only these fields carry their
+   * constraints (to the client as validations, and in the server's own re-check): a constraint the
+   * user cannot fix would block the submit for ever, naming a value nobody can change.
+   *
+   * <p>Without an {@link HttpRequest} there is no form context (a listing, a static export, where
+   * access keys are cosmetic): the declared locks are consulted, the rendering and the permission
+   * ones are not.
+   */
+  public static boolean isEditable(
+      Field field, Object instance, boolean forCreationForm, HttpRequest httpRequest) {
+    if (httpRequest != null && !rendersAsInput(field, instance, forCreationForm, httpRequest)) {
+      return false;
+    }
+    var viewClass = instance != null ? instance.getClass() : field.getDeclaringClass();
+    if (MetaAnnotations.isPresent(viewClass, ReadOnly.class)
+        || MetaAnnotations.isPresent(field, ReadOnly.class)
+        || MetaAnnotations.isPresent(field, GeneratedValue.class)
+        || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))
+        || MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.PlainText.class)
+        || MetaAnnotations.isPresent(viewClass, io.mateu.uidl.annotations.PlainText.class)
+        || MetaAnnotations.isPresent(
+            field.getDeclaringClass(), io.mateu.uidl.annotations.PlainText.class)
+        || isPlainTextStereotype(field)) {
+      return false;
+    }
+    if (httpRequest == null) {
+      return true;
+    }
+    if (readOnlyByPermission(field, instance, httpRequest)) {
+      return false;
+    }
+    var disabledUnless =
+        MetaAnnotations.find(field, io.mateu.uidl.annotations.DisabledUnless.class);
+    if (disabledUnless != null && !Authorizer.isAuthorized(disabledUnless, httpRequest)) {
+      return false;
+    }
+    return !(instance instanceof ReadOnlySupplier ros
+        && ros.isReadOnly(field.getName(), httpRequest));
+  }
+
+  private static boolean isPlainTextStereotype(Field field) {
+    var stereotype = MetaAnnotations.find(field, io.mateu.uidl.annotations.Stereotype.class);
+    return stereotype != null && stereotype.value() == io.mateu.uidl.data.FieldStereotype.plainText;
+  }
 }

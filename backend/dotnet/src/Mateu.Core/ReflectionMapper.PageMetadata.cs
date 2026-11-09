@@ -31,7 +31,7 @@ internal sealed partial class ReflectionMapper
         List<ValidationDto> validations, int depth)
     {
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }
-                     && (only is null || only.Contains(p))))
+                     && (only is null || only.Contains(p)) && IsEditable(type, p)))
         {
             if (IsInlineNestedForm(p))
             {
@@ -80,6 +80,25 @@ internal sealed partial class ReflectionMapper
             validations.AddRange(field.Select(v => v with { Message = T(v.Message) }));
         }
     }
+
+    /// <summary>Whether the user can EDIT <paramref name="p"/> of a <paramref name="type"/> view (Java's
+    /// <c>PageFormBuilder.isEditable</c>): not [ReadOnly] / [PlainText] (on the property, or on the
+    /// view class), not locked by a [ReadOnlyUnless] (property or class) or a [DisabledUnless] the
+    /// caller does not satisfy. Only these fields carry their constraints — to the client and in the
+    /// server's re-check: a constraint the user cannot fix would block the submit for ever
+    /// (conformance cases <c>validation-locked</c>, <c>validation-unless</c>,
+    /// <c>validation-read-only-view</c>). The server never WRITES the locked ones either
+    /// (<see cref="ActionGuard.MayWrite"/>).</summary>
+    internal static bool IsEditable(Type type, PropertyInfo p) =>
+        p.Find<ReadOnlyAttribute>() is null
+        && p.Find<PlainTextAttribute>() is null
+        && type.Find<ReadOnlyAttribute>() is null
+        && type.Find<PlainTextAttribute>() is null
+        && p.DeclaringType?.Find<PlainTextAttribute>() is null
+        && ActionGuard.Authorized(p.Find<ReadOnlyUnlessAttribute>())
+        && ActionGuard.Authorized(type.Find<ReadOnlyUnlessAttribute>())
+        && (p.DeclaringType is not { } owner || ActionGuard.Authorized(owner.Find<ReadOnlyUnlessAttribute>()))
+        && ActionGuard.Authorized(p.Find<DisabledUnlessAttribute>());
 
     /// <summary>Java's <c>Integer.MAX_VALUE</c>: what an open maximum reads as in a length message
     /// ("Size must be between 3 and 2147483647"), so the three servers say the same.</summary>
@@ -194,6 +213,8 @@ internal sealed partial class ReflectionMapper
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
         {
             if (include is not null && !include(p)) continue;
+            // a field the user cannot edit carries no constraint (the client got none for it)
+            if (!IsEditable(type, p)) continue;
             if (p.Find<HiddenAttribute>()?.Value is { } hidden && !string.IsNullOrWhiteSpace(hidden)) continue;
             if (IsInlineNestedForm(p))
             {

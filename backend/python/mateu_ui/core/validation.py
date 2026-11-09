@@ -81,18 +81,45 @@ def required_condition(ref: str) -> str:
     return f"{ref} != null && {ref} !== '' && ({ref}.length === undefined || {ref}.length > 0)"
 
 
+def editable(mapper, cls, f) -> bool:
+    """Whether the user can EDIT field ``f`` of ``cls`` (Java's ``PageFormBuilder.isEditable``): not
+    ``ReadOnly()`` / ``PlainText()`` (on the field, or ``@read_only`` / ``@plain_text`` on the class),
+    not locked by a ``ReadOnlyUnless`` (field or class) or a ``DisabledUnless`` the caller does not
+    satisfy. Only these fields carry their constraints — to the client and in the server's re-check:
+    a constraint the user cannot fix would block the submit for ever (conformance cases
+    ``validation-locked``, ``validation-unless``, ``validation-read-only-view``). The server never
+    WRITES the locked ones either (``action_guard.may_write``)."""
+    from mateu_ui.uidl import DisabledUnless, PlainText, ReadOnly, ReadOnlyUnless
+
+    from .reflection import class_flag
+
+    if f.has(ReadOnly) or f.has(PlainText):
+        return False
+    if cls is not None and (
+        class_flag(cls, "__mateu_read_only__", False) or class_flag(cls, "__mateu_plain_text__", False)
+    ):
+        return False
+    if mapper is None:
+        return True
+    return (
+        mapper.authorized(f.marker(ReadOnlyUnless))
+        and mapper.authorized(getattr(cls, "__mateu_read_only_unless__", None))
+        and mapper.authorized(f.marker(DisabledUnless))
+    )
+
+
 def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | None = None) -> list:
-    """The fields a form sends constraints for: the ones it renders. A field-level ``ReadOnly()`` /
-    ``PlainText()`` (or a ``@plain_text`` class) still sends its constraints, as Java's
-    ``PageFormBuilder.rendersAsInput`` does — its value travels pre-filled; whether the reference
-    should skip locked fields is an open question, and the ports follow the reference meanwhile
-    (conformance case ``validation-locked``). So does a field locked by an unauthorized
-    ``ReadOnlyUnless`` and every field of a ``@read_only`` class (``validation-unless``,
-    ``validation-read-only-view``): Java's ValidationMapper asks neither. Only ``read_only=True``
-    from the caller — a page that is not a form at all, like a crud record's view page — sends none."""
+    """The fields a form sends constraints for: the ones it renders as an input the user can EDIT
+    (``editable``) — a locked field (``ReadOnly()``, ``PlainText()``, an unauthorized
+    ``ReadOnlyUnless``, a ``@read_only`` class) sends none, as in Java. ``read_only=True`` from the
+    caller — a page that is not a form at all, like a crud record's view page — sends none."""
     if read_only:
         return []
-    return [f for f in (fields if fields is not None else view_fields(cls)) if mapper.visible(f)]
+    return [
+        f
+        for f in (fields if fields is not None else view_fields(cls))
+        if mapper.visible(f) and editable(mapper, cls, f)
+    ]
 
 
 def client_validations(
@@ -252,6 +279,7 @@ __all__ = [
     "field_violations",
     "form_violations",
     "required_condition",
+    "editable",
     "validated_fields",
     "violations",
 ]

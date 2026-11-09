@@ -131,13 +131,13 @@ def test_a_conditionally_hidden_field_is_relaxed_while_hidden():
     assert ("nick", f"(!state.special) || ({REQUIRED('nick')})", "Cannot be empty") in entries(Constrained)
 
 
-def test_a_locked_field_keeps_its_constraint_like_the_java_reference():
-    # Java's rendersAsInput does not drop a field-level @ReadOnly / @PlainText field (conformance
-    # validation-locked), nor a @read_only class (validation-read-only-view); a display-only Text
-    # field has no constraint to send
-    assert ("locked", REQUIRED("locked"), "Cannot be empty") in entries(Constrained)
+def test_a_locked_field_sends_no_constraint_like_the_java_reference():
+    # a constraint applies only to a field the user can edit (Java's PageFormBuilder.isEditable): a
+    # field-level @ReadOnly / @PlainText field sends none (conformance validation-locked), nor does a
+    # @read_only class (validation-read-only-view); a display-only Text field has none to send
+    assert not [e for e in entries(Constrained) if e[0] == "locked"]
     assert not [e for e in entries(Constrained) if e[0] == "caption"]
-    assert entries(ReadOnlyView) == [("name", REQUIRED("name"), "Cannot be empty")]
+    assert entries(ReadOnlyView) == []
 
 
 def test_a_fractional_bound_keeps_its_decimals():

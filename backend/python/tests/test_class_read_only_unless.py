@@ -53,12 +53,17 @@ def load(identity):
     return handler(identity).handle(RunActionRq(route="salary")).model_dump(by_alias=True, mode="json")
 
 
-def test_the_unauthorized_see_every_field_read_only_and_keep_its_constraints():
+def test_the_unauthorized_see_every_field_read_only_and_get_no_constraint_for_them():
     inc = load(Identity(roles=("staff",)))
     found = fields(inc, {})
     assert found["employee"].get("readOnly") is True and found["amount"].get("readOnly") is True
-    # Java's ValidationMapper does not ask ReadOnlyUnless: the locked value travels pre-filled and
-    # its constraint with it (conformance validation-unless)
+    # a constraint applies only to a field the user can edit: a locked one sends none — the user
+    # could not fix it (conformance validation-unless, Java's PageFormBuilder.isEditable)
+    assert [v["fieldId"] for v in inc["fragments"][0]["component"]["validations"]] == []
+
+
+def test_the_authorized_get_the_constraints():
+    inc = load(Identity(roles=("hr",)))
     assert [v["fieldId"] for v in inc["fragments"][0]["component"]["validations"]] == ["employee"]
 
 
@@ -86,12 +91,15 @@ class UnsetSalary:
         SEEN.append("ran")
 
 
-def test_the_server_rechecks_a_locked_fields_constraint_like_java():
-    # Java's ServerConstraintCheck asks rendersAsInput, which does not consult @ReadOnlyUnless: the
-    # locked (unwritable) value is still checked, as the client checks it
+def test_the_server_does_not_check_a_locked_fields_constraint_like_java():
+    # Java's ServerConstraintCheck asks isEditable: a field the caller cannot edit is neither
+    # written nor checked — the user could not fix it — while an editor still gets the check
     SEEN.clear()
     rq = RunActionRq(server_side_type=type_name(UnsetSalary), action_id="check", component_state={})
+    handler(Identity(roles=("staff",))).handle(rq)
+    assert SEEN == ["ran"]
+    SEEN.clear()
     with pytest.raises(UserFacingException) as refused:
-        handler(Identity(roles=("staff",))).handle(rq)
+        handler(Identity(roles=("hr",))).handle(rq)
     assert SEEN == []
     assert "• Employee: Cannot be empty" in str(refused.value)
