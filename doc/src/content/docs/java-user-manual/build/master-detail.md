@@ -162,3 +162,5 @@ This is the Mateu way to build master-detail UIs.
 
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — when to use `@Lookup`, `List<Entity>`, or an embedded orchestrator
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — the same pattern applied with a full adapter and repository stack
+
+**See it live in the Explorer:** [Row selection driving a self-reloading island](https://explorer.mateu.io/behaviour/communication/master-detail)

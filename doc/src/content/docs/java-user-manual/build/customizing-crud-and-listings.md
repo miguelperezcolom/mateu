@@ -457,3 +457,5 @@ Move to more advanced techniques only when needed.
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — see all of these techniques applied in a realistic business UI
+
+**See it live in the Explorer:** [CRUD button labels and @Not* subtraction](https://explorer.mateu.io/behaviour/listings/crud-labels) · [Exports (CSV, Excel)](https://explorer.mateu.io/behaviour/listings/export)

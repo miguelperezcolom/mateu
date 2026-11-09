@@ -61,3 +61,5 @@ The same model must produce the same screen wherever it runs. The
 fixtures; the conformance corpus requires the Java, .NET and Python backends to produce identical
 wire output; and the [parity matrix](/reference/parity/) states what each one supports. More in
 [Quality](/quality/).
+
+**See it live in the Explorer:** [Error boundary](https://explorer.mateu.io/behaviour/resilience-a11y/error-boundary)

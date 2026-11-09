@@ -498,3 +498,5 @@ See [`@UISpec`](/java-ui-definition/annotations/uispec/) for the full reference.
 | Fully dynamic / programmatic layout | `ComponentTreeSupplier` |
 
 YAML pages and Java pages can coexist freely in the same application.
+
+**See it live in the Explorer:** [Item overview page](https://explorer.mateu.io/page-templates/templates/item-overview-page) · [Row route (the way into a record)](https://explorer.mateu.io/behaviour/navigation/row-route)

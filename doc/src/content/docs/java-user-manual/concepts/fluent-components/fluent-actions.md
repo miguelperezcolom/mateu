@@ -281,3 +281,5 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 - [Rules](/java-user-manual/concepts/fluent-components/fluent-rules/)
 - [Triggers](/java-user-manual/concepts/fluent-components/fluent-triggers/)
 - [Validations](/java-user-manual/concepts/fluent-components/fluent-validations/)
+
+**See it live in the Explorer:** [Fluent buttons with handlers](https://explorer.mateu.io/behaviour/actions/fluent-handlers)

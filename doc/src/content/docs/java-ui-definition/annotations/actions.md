@@ -748,3 +748,5 @@ Object check() {
     return new PageBanner(BannerTheme.SUCCESS, "Check passed", "System is healthy.");
 }
 ```
+
+**See it live in the Explorer:** [@Toolbar, @Button and @Action](https://explorer.mateu.io/behaviour/actions/action-annotations) · [Confirmations](https://explorer.mateu.io/behaviour/actions/confirmations) · [Floating action buttons](https://explorer.mateu.io/behaviour/actions/fabs) · [Banners from actions](https://explorer.mateu.io/behaviour/actions/action-banners)

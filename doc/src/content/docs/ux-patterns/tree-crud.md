@@ -161,3 +161,5 @@ For a **non-hierarchical** listing you usually choose nothing: a listing you do 
 - [Split View](/ux-patterns/split-view/) — the flat (non-hierarchical) master-detail CRUD this pattern builds on.
 - [Listing layout](/java-user-manual/build/listing-layout/) — every `GridLayout` value and when to reach for each.
 - [Workspace](/ux-patterns/workspace/) — composing several heterogeneous panels on one screen.
+
+**See it live in the Explorer:** [Listing layouts](https://explorer.mateu.io/behaviour/listings/grid-layouts)

@@ -371,3 +371,5 @@ All variants include the command palette automatically — there is nothing to c
 - **Tiles hub + Command palette** — deep apps where some users prefer keyboard, others prefer scanning cards
 - **Sidebar + Command palette** — complex apps where the sidebar gives orientation and the palette gives speed
 - **Rail + Command palette** — compact apps for expert users who want maximum content space
+
+**See it live in the Explorer:** [App shell variants](https://explorer.mateu.io/behaviour/navigation/shell-variants) · [Deep links & back / forward](https://explorer.mateu.io/behaviour/navigation/deep-links) · [Peer navigation (previous / next)](https://explorer.mateu.io/behaviour/navigation/peer-nav)

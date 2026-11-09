@@ -391,3 +391,5 @@ String description;
 ```
 
 See [field-types](/java-ui-definition/annotations/field-types/) for the complete `FieldStereotype` enum reference.
+
+**See it live in the Explorer:** [Plain-text rendering](https://explorer.mateu.io/behaviour/forms/plain-text) · [Separators & text sizes](https://explorer.mateu.io/behaviour/form-layout/separators-text-sizes)

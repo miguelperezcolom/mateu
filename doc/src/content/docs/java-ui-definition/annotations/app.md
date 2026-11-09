@@ -320,3 +320,5 @@ public class WorkflowHome {
     WorkflowMenu workflow;
 }
 ```
+
+**See it live in the Explorer:** [App shell variants](https://explorer.mateu.io/behaviour/navigation/shell-variants) · [Dark / light theme toggle](https://explorer.mateu.io/behaviour/app/theme-toggle)

@@ -73,4 +73,4 @@ drag is still over it — before it may read the data — whether what comes is 
 
 Demo: `demo-vb-pms` → Financials → Windows.
 
-**See it live in the Explorer:** [Drag rows to a drop zone](https://explorer.mateu.io/behaviour/listings/drag-rows)
+**See it live in the Explorer:** [Drag rows to a drop zone](https://explorer.mateu.io/behaviour/listings/drag-rows) · [DropZone (drag rows to a destination)](https://explorer.mateu.io/components/listings-and-data/drop-zone)

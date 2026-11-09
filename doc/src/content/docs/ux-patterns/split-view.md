@@ -76,3 +76,5 @@ The split layout wires up these actions automatically:
 ## Hierarchical collections
 
 When the collection is a **tree** rather than a flat list — categories inside categories, an org chart, a folder structure — render the master list as an expandable tree grid (`gridLayout() = GridLayout.tree`) on the same `@SplitCrud`. See [Tree CRUD](/ux-patterns/tree-crud/).
+
+**See it live in the Explorer:** [Split & master-detail](https://explorer.mateu.io/components/layout/split-and-master-detail)

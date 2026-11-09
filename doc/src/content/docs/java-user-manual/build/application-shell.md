@@ -238,3 +238,5 @@ See [Security](/java-user-manual/advanced/security/) for details.
 - [Dashboard home page](/java-user-manual/build/dashboard-home-page/) — build KPI cards, charts, and activity feeds as the landing page
 - [Navigation and menus](/java-user-manual/build/navigation-and-menus/) — declare menu entries, sub-menus, route links, and remote menus
 - [Security](/java-user-manual/advanced/security/) — where identity comes from, and `@EyesOnly` for role-based visibility
+
+**See it live in the Explorer:** [App shell variants](https://explorer.mateu.io/behaviour/navigation/shell-variants) · [App header actions](https://explorer.mateu.io/behaviour/app/header-actions)

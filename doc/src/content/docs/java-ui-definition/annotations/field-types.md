@@ -438,3 +438,5 @@ The merging happens on the server: the modal carries the ids the field held when
 | UI widget | Incremental-search dropdown (inline) | Text display + "Search" button → modal (chips + «Add» for a `List`/`Set`/array of ids) |
 | Selector class | `LookupOptionsSupplier` (list of `Option`) | `Listing` + `Selector` (full screen) |
 | Suitable for | Simple option lists, fast lookups | Complex grids with filters, actions, or CRUD |
+
+**See it live in the Explorer:** [Every basic field type](https://explorer.mateu.io/behaviour/forms/field-types-basic) · [Choices & enum labels](https://explorer.mateu.io/behaviour/forms/stereotype-choices) · [Signatures, photos, images & files](https://explorer.mateu.io/behaviour/forms/capture-and-images) · [Tree selects](https://explorer.mateu.io/behaviour/forms/stereotype-tree-select) · [Ranges (date & number)](https://explorer.mateu.io/behaviour/forms/stereotype-ranges) · [Rich text, Markdown & HTML](https://explorer.mateu.io/behaviour/forms/stereotype-rich-text)

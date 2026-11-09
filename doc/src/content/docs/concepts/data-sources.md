@@ -322,3 +322,5 @@ at all: **have the endpoint serve the shape the screen needs**. `demo-starwars` 
 — it uses only `itemsPath` and `totalPath`, no `fields` at all, because the service it reads
 denormalises on the way out (`homeworldName` beside `homeworldId`). That is also why it is not
 evidence that the mapping is sufficient: it never exercises the gap.
+
+**See it live in the Explorer:** [REST source catalogue](https://explorer.mateu.io/behaviour/data/rest-sources) · [Proxied sources and ${secret.X}](https://explorer.mateu.io/behaviour/data/proxy-secrets) · [Sample data mode](https://explorer.mateu.io/behaviour/data/sample-data)

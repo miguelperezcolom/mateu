@@ -872,3 +872,5 @@ In this example:
 - `invoiceNumber` is set once at creation and locked thereafter.
 - `vatAmount` is computed after the first save, so it is suppressed from the grid column list and from the create form.
 - `margin` is only visible to users with the `ADMIN` role.
+
+**See it live in the Explorer:** [Rules (hidden, disabled, required)](https://explorer.mateu.io/behaviour/forms/rules) · [Permissions (role switcher)](https://explorer.mateu.io/behaviour/app/permissions)

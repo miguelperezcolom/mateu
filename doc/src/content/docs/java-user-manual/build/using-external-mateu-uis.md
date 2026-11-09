@@ -260,3 +260,5 @@ What was verified (Mateu master, October 2026):
 
 The changes EventConductor needs on its side are tracked in the project's readiness notes
 (`design/readiness/eventconductor-uis.md`).
+
+**See it live in the Explorer:** [In-process UI modules (mateu.ui.modules)](https://explorer.mateu.io/distributed/mounts/ui-modules)

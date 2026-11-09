@@ -127,3 +127,5 @@ String name;
 - [Action behavior](/java-user-manual/concepts/action-behavior/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
+
+**See it live in the Explorer:** [Validation (client + server)](https://explorer.mateu.io/behaviour/forms/validation)

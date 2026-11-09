@@ -114,3 +114,5 @@ The home page is the route the shell opens on. It resolves in this order: the sh
   entry, and shells in code.
 - [Application shell](/java-user-manual/build/application-shell/): variants and layout.
 - [UI federation](/mateu-about/ui-federation/).
+
+**See it live in the Explorer:** [App shell variants](https://explorer.mateu.io/behaviour/navigation/shell-variants)

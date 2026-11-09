@@ -96,3 +96,5 @@ public void Lookup() { }
 def lookup(self):
     ...
 ```
+
+**See it live in the Explorer:** [Writing from YAML (restAction)](https://explorer.mateu.io/behaviour/data/rest-actions)

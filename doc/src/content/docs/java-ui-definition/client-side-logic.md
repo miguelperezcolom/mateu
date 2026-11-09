@@ -61,3 +61,5 @@ renderers" would quietly stop being true.
 ## Why this matters
 
 This gives you dynamic behavior without introducing a separate frontend application layer.
+
+**See it live in the Explorer:** [Rules (hidden, disabled, required)](https://explorer.mateu.io/behaviour/forms/rules) · [RunJS (off by default)](https://explorer.mateu.io/behaviour/actions/run-js)

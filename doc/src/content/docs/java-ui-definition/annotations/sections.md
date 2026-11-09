@@ -246,3 +246,5 @@ public class OrderForm {
 - The `Totals` section returns to a two-column layout for the numeric fields.
 - `paymentTerms` appears in the footer slot below all sections.
 - `save` and `cancel` are rendered as buttons in the toolbar at the top of the page.
+
+**See it live in the Explorer:** [Sections](https://explorer.mateu.io/behaviour/form-layout/sections)

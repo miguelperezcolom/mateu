@@ -303,3 +303,5 @@ public interface Named extends Identifiable {
 
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the lower-level orchestrator for full control over each operation
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrator that consumes this store
+
+**See it live in the Explorer:** [AutoCrud](https://explorer.mateu.io/archetypes/collections/auto-crud)

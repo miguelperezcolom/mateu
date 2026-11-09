@@ -155,3 +155,5 @@ that is down claims nothing; it no longer fails the shell's request.
 The shell is a container.
 
 Each service plugs its UI into it.
+
+**See it live in the Explorer:** [RemoteMenu federation & deep links](https://explorer.mateu.io/distributed/federation/remote-menu)

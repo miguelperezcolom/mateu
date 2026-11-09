@@ -55,3 +55,5 @@ Use skeletons in place of content that arrives late — e.g. as the initial valu
 ## When to use it
 
 Show an **empty state** whenever "no results" is a normal situation (fresh accounts, filtered lists) — always say what the user can do next. Show a **skeleton** when you know content is coming and its shape matters; keep the built-in loader overlay for short, unpredictable waits.
+
+**See it live in the Explorer:** [Notices, callouts & empty states](https://explorer.mateu.io/components/display/notices) · [Skeleton while a route loads](https://explorer.mateu.io/behaviour/resilience-a11y/skeleton-loading)

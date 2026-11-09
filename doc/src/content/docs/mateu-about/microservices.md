@@ -99,3 +99,5 @@ Because each service owns its UI and exposes it through a remote menu endpoint, 
 - [UI federation](/mateu-about/ui-federation) — how federation works in detail
 - [Shell and remote menus](/mateu-about/shell-and-remote-menus) — how to configure the shell
 - [Mateu and system architecture](/mateu-about/system-architecture) — where Mateu fits in distributed backend designs
+
+**See it live in the Explorer:** [A Python remote in the same shell](https://explorer.mateu.io/distributed/federation/cross-backend) · [MicroFrontend — CLIENT vs SERVER resolution](https://explorer.mateu.io/distributed/microfrontends/client-vs-server)

@@ -134,3 +134,5 @@ public interface ToolbarSupplier {
 ```
 
 Same semantics as `ButtonsSupplier` but for the toolbar area of the page.
+
+**See it live in the Explorer:** [@Toolbar, @Button and @Action](https://explorer.mateu.io/behaviour/actions/action-annotations) · [Navigate, window title, announce](https://explorer.mateu.io/behaviour/actions/commands)

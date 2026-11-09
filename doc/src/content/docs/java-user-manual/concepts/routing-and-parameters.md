@@ -131,3 +131,5 @@ No intermediate layer. No boilerplate.
 - [UI vs Route](/java-user-manual/concepts/ui-vs-route/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Action behavior](/java-user-manual/concepts/action-behavior/)
+
+**See it live in the Explorer:** [Route parameters & precedence](https://explorer.mateu.io/behaviour/navigation/route-params)

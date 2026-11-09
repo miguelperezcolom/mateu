@@ -474,3 +474,5 @@ is identity-dependent, so a static bundle keeps it backend-served (and `staticOn
   problem the file solves.
 - An entry naming a **class that is not on the classpath** is logged and falls through to the
   annotation-derived resolution, rather than failing the request.
+
+**See it live in the Explorer:** [Home routes](https://explorer.mateu.io/behaviour/navigation/home-routes) · [Route scopes: state / appState / data / appData](https://explorer.mateu.io/behaviour/data/route-scopes) · [Several mounts in one app](https://explorer.mateu.io/distributed/mounts/several-mounts)

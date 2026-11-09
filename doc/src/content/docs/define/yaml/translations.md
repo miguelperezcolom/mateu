@@ -130,3 +130,5 @@ With no server nobody resolves the expressions on the way out, so the browser do
 
 - [Internationalization](/java-user-manual/advanced/i18n/) — `Translator` and the code side.
 - [Permissions in YAML](/define/yaml/permissions/) and [Environments](/deploy/environments/).
+
+**See it live in the Explorer:** [Translations (en / es)](https://explorer.mateu.io/behaviour/app/i18n)

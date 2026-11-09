@@ -131,3 +131,5 @@ Define the data. Mateu chooses the control. Override with `@Stereotype` only whe
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Validation](/java-user-manual/concepts/validation/)
 - [Declarative vs fluent](/java-user-manual/concepts/declarative-vs-fluent/)
+
+**See it live in the Explorer:** [Choices & enum labels](https://explorer.mateu.io/behaviour/forms/stereotype-choices) · [Money fields](https://explorer.mateu.io/behaviour/forms/stereotype-money) · [Lookups (foreign keys)](https://explorer.mateu.io/behaviour/forms/stereotype-lookup) · [Rich text, Markdown & HTML](https://explorer.mateu.io/behaviour/forms/stereotype-rich-text) · [Ranges (date & number)](https://explorer.mateu.io/behaviour/forms/stereotype-ranges) · [Tree selects](https://explorer.mateu.io/behaviour/forms/stereotype-tree-select)
