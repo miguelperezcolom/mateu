@@ -65,6 +65,9 @@ class RestProxySecretsSyncTest {
 
     @RestAction(url = "${secret.UPSTREAM}/gone", method = "DELETE", proxy = true)
     public void remove() {}
+
+    @RestAction(url = "${secret.UPSTREAM}/moved", method = "POST", proxy = true)
+    public void moved() {}
   }
 
   static class TestSecrets implements SecretsProvider {
@@ -92,8 +95,8 @@ class RestProxySecretsSyncTest {
           headers.put(":body", body);
           received.add(headers);
           int status = statusFor.getOrDefault(exchange.getRequestURI().getRawPath(), 200);
-          if (status == 204) {
-            exchange.sendResponseHeaders(204, -1);
+          if (status == 204 || status == 302) {
+            exchange.sendResponseHeaders(status, -1);
           } else {
             var out =
                 ("{\"id\":42,\"echo\":" + (body.isBlank() ? "null" : body) + "}")
@@ -106,6 +109,7 @@ class RestProxySecretsSyncTest {
     upstream.start();
     statusFor.put("/fail", 500);
     statusFor.put("/gone", 204);
+    statusFor.put("/moved", 302);
     mateu = TestMateu.withUisAndBeans(List.of(new TestSecrets()), ProxySecretsForm.class);
   }
 
@@ -197,5 +201,13 @@ class RestProxySecretsSyncTest {
     var appData = (Map<String, Object>) increment.appData();
     assertThat(received.get(0).get(":method")).isEqualTo("DELETE");
     assertThat(appData).containsEntry("_restfetch", Map.of()).doesNotContainKey("_restfetchError");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void aRedirectIsAFailedCallNotAnEmptySuccess() {
+    var appData = (Map<String, Object>) fetch("moved", Map.of()).appData();
+    assertThat(appData).doesNotContainKey("_restfetch");
+    assertThat((Map<String, Object>) appData.get("_restfetchError")).containsEntry("status", 302);
   }
 }

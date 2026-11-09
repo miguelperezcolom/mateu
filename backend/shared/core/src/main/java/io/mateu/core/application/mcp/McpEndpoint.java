@@ -23,6 +23,22 @@ public final class McpEndpoint {
   /** Property that turns the endpoint on (it is off unless set to true). */
   public static final String ENABLED_PROPERTY = "mateu.mcp.enabled";
 
+  /** How long a tool call waits for a {@code LongTask} before cancelling it, in seconds. */
+  public static final String TASK_TIMEOUT_PROPERTY = "mateu.mcp.task-timeout-seconds";
+
+  private static final long DEFAULT_TASK_TIMEOUT = 120;
+
+  /** The {@value #TASK_TIMEOUT_PROPERTY} setting (at least one second). */
+  static java.time.Duration taskTimeout() {
+    var configured = io.mateu.core.infra.MateuSettings.get(TASK_TIMEOUT_PROPERTY);
+    try {
+      return java.time.Duration.ofSeconds(
+          Math.max(1, configured == null ? DEFAULT_TASK_TIMEOUT : Long.parseLong(configured)));
+    } catch (NumberFormatException e) {
+      return java.time.Duration.ofSeconds(DEFAULT_TASK_TIMEOUT);
+    }
+  }
+
   /** Where it is served (the root mount). */
   public static final String PATH = "/mateu/mcp";
 

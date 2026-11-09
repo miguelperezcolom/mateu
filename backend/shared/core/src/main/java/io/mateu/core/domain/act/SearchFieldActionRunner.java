@@ -6,6 +6,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
@@ -53,18 +54,18 @@ public class SearchFieldActionRunner implements ActionRunner {
       if (target.child() != null) {
         var parentFieldName = target.parent();
         var childFieldName = target.child();
+        var viewModelClass = getViewModelClass(instance, httpRequest);
+        var parentField = getFieldByName(viewModelClass, parentFieldName);
+        ActionMethods.checkFieldVisible(parentField, viewModelClass, httpRequest);
         var rowClass =
-            getGenericClass(
-                (ParameterizedType)
-                    getFieldByName(getViewModelClass(instance, httpRequest), parentFieldName)
-                        .getGenericType(),
-                List.class,
-                "E");
-        optionsSupplier =
-            getLookupOptionsSupplier(instance, getFieldByName(rowClass, childFieldName));
+            getGenericClass((ParameterizedType) parentField.getGenericType(), List.class, "E");
+        var childField = getFieldByName(rowClass, childFieldName);
+        ActionMethods.checkFieldVisible(childField, rowClass, httpRequest);
+        optionsSupplier = getLookupOptionsSupplier(instance, childField);
       } else {
-        optionsSupplier =
-            getLookupOptionsSupplier(instance, lookupField(instance, fieldName, httpRequest));
+        var field = lookupField(instance, fieldName, httpRequest);
+        ActionMethods.checkFieldVisible(field, instance.getClass(), httpRequest);
+        optionsSupplier = getLookupOptionsSupplier(instance, field);
       }
 
       if (optionsSupplier == null) {

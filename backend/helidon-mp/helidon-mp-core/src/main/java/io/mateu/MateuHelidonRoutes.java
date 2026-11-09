@@ -535,14 +535,18 @@ public class MateuHelidonRoutes {
       throws IOException {
     // the first event BEFORE anything is committed: the request is guarded lazily, and once the
     // output stream is open a refusal can no longer be answered as a 403
-    var events = increments.toIterable().iterator();
-    events.hasNext();
-    res.header("Content-Type", "text/event-stream");
-    res.header("Cache-Control", "no-cache");
-    try (OutputStream out = res.outputStream()) {
-      while (events.hasNext()) {
-        out.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
-        out.flush();
+    // closing the Stream is what cancels the work: when the client leaves, the write fails here and
+    // nothing else would tell the Flux (a toIterable() iterator cannot be cancelled)
+    try (var stream = increments.toStream()) {
+      var events = stream.iterator();
+      events.hasNext();
+      res.header("Content-Type", "text/event-stream");
+      res.header("Cache-Control", "no-cache");
+      try (OutputStream out = res.outputStream()) {
+        while (events.hasNext()) {
+          out.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
+          out.flush();
+        }
       }
     }
   }

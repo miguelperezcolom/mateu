@@ -310,6 +310,19 @@ class ProgressReportingSyncTest {
   }
 
   @Test
+  void aCallerThatTakesOneIncrementAndLeavesCancelsTheTaskAtOnce() throws Exception {
+    // the /sync leg: nothing can resume it, so there is nothing to wait a grace period for
+    CANCELLED.set(false);
+    var first = mateu.run(rq("endless"));
+    var taskId = progressOf(List.of(first)).get(0).taskId();
+    for (int i = 0; i < 100 && !CANCELLED.get(); i++) {
+      Thread.sleep(20);
+    }
+    assertThat(CANCELLED).isTrue();
+    assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+  }
+
+  @Test
   void aClosedStreamLeavesTheTaskRunningAndAResumePicksItUp() throws Exception {
     CANCELLED.set(false);
     var seen = new CopyOnWriteArrayList<UIIncrementDto>();

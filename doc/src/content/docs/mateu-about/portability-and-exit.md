@@ -53,7 +53,7 @@ Because the runtime is Apache 2.0 and lives in your build, "the vendor disappear
 - Continuity is then **independent of upstream** — you are running your own code.
 
 ### 2. Ship the static bundle (no backend at all)
-For screens that are pre-renderable, `mvn -Pbundle package` (or `GET /mateu/v3/bundle`) produces a
+For screens that are pre-renderable, `mvn -Pbundle package` (or `GET /mateu/v3/bundle`, once `mateu.bundle.endpoint.enabled=true`) produces a
 static SPA (`index.html` + `manifest.json` + assets) that a CDN serves **with no Mateu backend**. See
 [Static bundle](/deploy/static-bundle/). This subset of your UI outlives the runtime
 today. (Its limits: no server-side behaviour/secrets, and it depends on any external APIs being

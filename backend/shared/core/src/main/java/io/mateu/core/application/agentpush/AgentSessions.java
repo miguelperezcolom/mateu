@@ -87,6 +87,8 @@ public final class AgentSessions {
     Instant connectedAt;
     Instant disconnectedAt;
     Consumer<Message> sink;
+    final Deque<Outgoing> outbox = new ArrayDeque<>();
+    boolean flushing;
     Runnable onReplaced;
     Object channelToken;
     final LinkedHashMap<String, String> pairings = new LinkedHashMap<>();
@@ -114,6 +116,15 @@ public final class AgentSessions {
       return sink != null;
     }
   }
+
+  /** A message on its way to the stream that was open when it was sent. */
+  private record Outgoing(Consumer<Message> sink, Message message) {}
+
+  /** What opening a channel left to do once the registry's lock is released. */
+  private record Opening(Session session, Runnable replaced, Channel channel) {}
+
+  /** The most messages waiting for one stream: past it, a stalled stream loses the oldest. */
+  private static final int MAX_QUEUED_MESSAGES = 64;
 
   private final Clock clock;
   private final Random random;
@@ -189,7 +200,7 @@ public final class AgentSessions {
    * @param sink where this stream's messages go
    * @param onReplaced called when a newer stream for the same session takes over
    */
-  public synchronized Channel open(
+  public Channel open(
       String sessionId,
       String secret,
       String principal,
@@ -208,7 +219,32 @@ public final class AgentSessions {
    * AgentPush#MAX_ANONYMOUS_SESSIONS_PER_ADDRESS_PROPERTY}, against one client flooding the
    * registry. Both are inside the global {@value AgentPush#MAX_SESSIONS_PROPERTY}.
    */
-  public synchronized Channel open(
+  public Channel open(
+      String sessionId,
+      String secret,
+      String principal,
+      String clientAddress,
+      String route,
+      String renderer,
+      Consumer<Message> sink,
+      Runnable onReplaced) {
+    Opening opening;
+    synchronized (this) {
+      opening =
+          register(sessionId, secret, principal, clientAddress, route, renderer, sink, onReplaced);
+    }
+    if (opening.replaced() != null) {
+      try {
+        opening.replaced().run();
+      } catch (RuntimeException ignored) {
+        // the old stream is gone anyway
+      }
+    }
+    flush(opening.session());
+    return opening.channel();
+  }
+
+  private Opening register(
       String sessionId,
       String secret,
       String principal,
@@ -254,16 +290,9 @@ public final class AgentSessions {
     session.channelToken = token;
     session.connectedAt = now;
     session.disconnectedAt = null;
-    if (previous != null) {
-      try {
-        previous.run();
-      } catch (RuntimeException ignored) {
-        // the old stream is gone anyway
-      }
-    }
     send(session, status(session));
     var opened = session;
-    return () -> closed(opened, token);
+    return new Opening(session, previous, () -> closed(opened, token));
   }
 
   /** A new one-time pairing code for the session: {@code {code, expiresInSeconds}}. */
@@ -294,21 +323,25 @@ public final class AgentSessions {
   }
 
   /** Removes every pairing of the session (and its pending code) and tells its channel. */
-  public synchronized void unpair(String sessionId, String secret, String principal) {
-    sweep(clock.instant());
-    requireIds(sessionId, secret);
-    var session = bySessionId.get(sessionId);
-    if (session == null) {
-      return;
+  public void unpair(String sessionId, String secret, String principal) {
+    Session session;
+    synchronized (this) {
+      sweep(clock.instant());
+      requireIds(sessionId, secret);
+      session = bySessionId.get(sessionId);
+      if (session == null) {
+        return;
+      }
+      owned(session, secret, principal);
+      if (session.code != null) {
+        byCode.remove(session.code);
+        session.code = null;
+      }
+      session.pairings.clear();
+      session.capabilityPaired = false;
+      send(session, status(session));
     }
-    owned(session, secret, principal);
-    if (session.code != null) {
-      byCode.remove(session.code);
-      session.code = null;
-    }
-    session.pairings.clear();
-    session.capabilityPaired = false;
-    send(session, status(session));
+    flush(session);
   }
 
   // ── the MCP side ──────────────────────────────────────────────────────────────────────────
@@ -336,7 +369,7 @@ public final class AgentSessions {
   }
 
   /** Pairs the session whose code this is to the caller (the code dies), and tells the UI. */
-  public synchronized Entry pair(AgentCaller caller, String rawCode) {
+  public Entry pair(AgentCaller caller, String rawCode) {
     return pair(caller, rawCode, null);
   }
 
@@ -346,7 +379,18 @@ public final class AgentSessions {
    * its agent key is still one address, and anonymous callers at different addresses do not share
    * one bucket (which let one of them lock every other out).
    */
-  public synchronized Entry pair(AgentCaller caller, String rawCode, String address) {
+  public Entry pair(AgentCaller caller, String rawCode, String address) {
+    Session session;
+    Entry entry;
+    synchronized (this) {
+      session = paired(caller, rawCode, address);
+      entry = entry(session);
+    }
+    flush(session);
+    return entry;
+  }
+
+  private Session paired(AgentCaller caller, String rawCode, String address) {
     var now = clock.instant();
     sweep(now);
     var where = address == null || address.isBlank() ? null : address.trim();
@@ -383,7 +427,7 @@ public final class AgentSessions {
         caller.logLabel(),
         fingerprint(session.handle),
         session.principal);
-    return entry(session);
+    return session;
   }
 
   /**
@@ -402,17 +446,20 @@ public final class AgentSessions {
    * @param what the log's detail ({@code target=drawer}, {@code event=x}, {@code route=/r})
    * @param bytes the size of the message, for the log
    */
-  public synchronized void deliver(
-      AgentCaller caller, String handle, Message message, String what, int bytes) {
-    var now = clock.instant();
-    sweep(now);
-    var session = reachable(caller, handle);
-    prune(session.deliveries, now);
-    if (session.deliveries.size() >= ratePerMinute.getAsInt()) {
-      throw new UserFacingException(AgentPush.RATE_LIMITED);
+  public void deliver(AgentCaller caller, String handle, Message message, String what, int bytes) {
+    Session session;
+    synchronized (this) {
+      var now = clock.instant();
+      sweep(now);
+      session = reachable(caller, handle);
+      prune(session.deliveries, now);
+      if (session.deliveries.size() >= ratePerMinute.getAsInt()) {
+        throw new UserFacingException(AgentPush.RATE_LIMITED);
+      }
+      session.deliveries.addLast(now);
+      send(session, message);
     }
-    session.deliveries.addLast(now);
-    send(session, message);
+    flush(session);
     log.info(
         "Mateu agent push: caller={} session={} kind={} {} bytes={}",
         caller.logLabel(),
@@ -482,14 +529,43 @@ public final class AgentSessions {
     session.disconnectedAt = clock.instant();
   }
 
+  /** Queues a message for the session's stream. Called holding the registry's lock. */
   private void send(Session session, Message message) {
-    var sink = session.sink;
-    if (sink == null) return;
-    try {
-      sink.accept(message);
-    } catch (RuntimeException e) {
-      log.debug(
-          "agent push: the stream of session {} refused a message", fingerprint(session.handle), e);
+    if (session.sink == null) return;
+    if (session.outbox.size() >= MAX_QUEUED_MESSAGES) {
+      session.outbox.removeFirst();
+    }
+    session.outbox.addLast(new Outgoing(session.sink, message));
+  }
+
+  /**
+   * Hands the session's queued messages to its stream, in order, NEVER holding the registry's lock:
+   * a sink can block in a socket write, and a stalled browser must not stop every other session. A
+   * thread already flushing this session delivers what is queued here too, so a stalled session
+   * occupies one thread and the others carry on.
+   */
+  private void flush(Session session) {
+    synchronized (this) {
+      if (session.flushing) return;
+      session.flushing = true;
+    }
+    while (true) {
+      Outgoing next;
+      synchronized (this) {
+        next = session.outbox.pollFirst();
+        if (next == null) {
+          session.flushing = false;
+          return;
+        }
+      }
+      try {
+        next.sink().accept(next.message());
+      } catch (RuntimeException e) {
+        log.debug(
+            "agent push: the stream of session {} refused a message",
+            fingerprint(session.handle),
+            e);
+      }
     }
   }
 

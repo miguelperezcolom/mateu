@@ -62,6 +62,36 @@ final class JavaNames {
 
   private JavaNames() {}
 
+  /** Contract text as the inside of a Java string literal: it cannot end the literal. */
+  static String stringContent(String raw) {
+    var out = new StringBuilder();
+    for (var c : raw.toCharArray()) {
+      switch (c) {
+        case '\\' -> out.append("\\\\");
+        case '"' -> out.append("\\\"");
+        case '\n' -> out.append("\\n");
+        case '\r' -> out.append("\\r");
+        case '\t' -> out.append("\\t");
+        default -> {
+          if (c < ' ') {
+            out.append(String.format("\\u%04x", (int) c));
+          } else {
+            out.append(c);
+          }
+        }
+      }
+    }
+    return out.toString();
+  }
+
+  /**
+   * Contract text as Javadoc: on one line, and unable to close the comment — neither with a {@code
+   * *}{@code /} nor with a unicode escape for one, which javac expands before it reads the comment.
+   */
+  static String javadoc(String raw) {
+    return raw.replace("*/", "*&#47;").replace("\\u", "\\ u").replaceAll("\\s*[\\r\\n]+\\s*", " ");
+  }
+
   /** {@code order-lines} / {@code order_lines} / {@code order lines} → {@code orderLines}. */
   static String camel(String raw) {
     var pascal = pascal(raw);

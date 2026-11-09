@@ -41,6 +41,9 @@ import java.util.TreeSet;
  */
 public final class ServerSkeleton {
 
+  /** The Boot line the generated module targets by default: the one Mateu's adapters run on. */
+  public static final String DEFAULT_SPRING_BOOT_VERSION = "4.1.1";
+
   /** One file to write, at a path relative to the module root. */
   public record GeneratedFile(String path, String content) {}
 
@@ -63,7 +66,7 @@ public final class ServerSkeleton {
       artifactId = blankTo(artifactId, "api-server");
       version = blankTo(version, "0.0.1-SNAPSHOT");
       basePackage = blankTo(basePackage, groupId + "." + JavaNames.camel(artifactId));
-      springBootVersion = blankTo(springBootVersion, "3.3.4");
+      springBootVersion = blankTo(springBootVersion, DEFAULT_SPRING_BOOT_VERSION);
       javaVersion = blankTo(javaVersion, "21");
       provenance = blankTo(provenance, "generate");
     }
@@ -290,9 +293,10 @@ public final class ServerSkeleton {
       methods
           .append("\n  /** ")
           .append(
-              operation.summary().isBlank()
-                  ? operation.httpMethod() + " " + operation.path()
-                  : operation.summary())
+              JavaNames.javadoc(
+                  operation.summary().isBlank()
+                      ? operation.httpMethod() + " " + operation.path()
+                      : operation.summary()))
           .append(" */\n  ")
           .append(returnType(resolved, operation))
           .append(" ")
@@ -342,7 +346,7 @@ public final class ServerSkeleton {
           .append("\n  @")
           .append(mapping(operation.httpMethod()))
           .append("(\"")
-          .append(operation.path())
+          .append(JavaNames.stringContent(operation.path()))
           .append("\")\n  public ")
           .append(returnType(resolved, operation))
           .append(" ")
@@ -456,7 +460,7 @@ public final class ServerSkeleton {
       // a path parameter ({id} in the mapping) binds with @PathVariable: as a @RequestParam the
       // generated endpoint answered 400 to every request, the value never being in the query
       out.append(parameter.inPath() ? "@PathVariable(name = \"" : "@RequestParam(name = \"")
-          .append(parameter.name())
+          .append(JavaNames.stringContent(parameter.name()))
           .append("\", required = ")
           .append(parameter.inPath() || parameter.required())
           .append(") ")

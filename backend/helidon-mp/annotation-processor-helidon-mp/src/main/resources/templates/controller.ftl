@@ -113,9 +113,12 @@ public class ${simpleClassName}MateuController implements MateuController {
         httpRequest.setAttribute("baseUrl", baseUrl);
         var increments = service.runAction(uiId, rq, baseUrl, httpRequest);
         return output -> {
-            for (UIIncrementDto increment : increments.toIterable()) {
-                output.write(WireMapper.sseEvent(increment).getBytes(StandardCharsets.UTF_8));
-                output.flush();
+            // closing the Stream cancels the work when the client leaves (the write fails)
+            try (var stream = increments.toStream()) {
+                for (var events = stream.iterator(); events.hasNext(); ) {
+                    output.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
+                    output.flush();
+                }
             }
         };
     }

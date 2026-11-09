@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
@@ -16,23 +17,25 @@ final class WizardLookupHandler {
   static Data handleSearch(String actionId, Wizard orchestrator, HttpRequest httpRequest) {
     String fieldName = actionId.substring(actionId.indexOf('-') + 1);
     LookupOptionsSupplier optionsSupplier;
+    var stepClass = orchestrator.currentStepField().getType();
     if (fieldName.contains("-")) {
       var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
       var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+      var parentField = getFieldByName(stepClass, parentFieldName);
+      ActionMethods.checkFieldVisible(parentField, stepClass, httpRequest);
       var rowClass =
           io.mateu.uidl.reflection.GenericClassProvider.getGenericClass(
-              (java.lang.reflect.ParameterizedType)
-                  getFieldByName(orchestrator.currentStepField().getType(), parentFieldName)
-                      .getGenericType(),
+              (java.lang.reflect.ParameterizedType) parentField.getGenericType(),
               java.util.List.class,
               "E");
-      var fkAnnotation =
-          MetaAnnotations.find(getFieldByName(rowClass, childFieldName), Lookup.class);
+      var childField = getFieldByName(rowClass, childFieldName);
+      ActionMethods.checkFieldVisible(childField, rowClass, httpRequest);
+      var fkAnnotation = MetaAnnotations.find(childField, Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     } else {
-      var fkAnnotation =
-          MetaAnnotations.find(
-              getFieldByName(orchestrator.currentStepField().getType(), fieldName), Lookup.class);
+      var field = getFieldByName(stepClass, fieldName);
+      ActionMethods.checkFieldVisible(field, stepClass, httpRequest);
+      var fkAnnotation = MetaAnnotations.find(field, Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     }
     Pageable pageable = httpRequest.getParameters(Pageable.class);

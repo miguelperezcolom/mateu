@@ -23,17 +23,26 @@ import java.util.function.Function;
  * under a reference id and answers 500 with {@code {"error": "Something went wrong", "message": "An
  * unexpected error occurred. Reference: <id>"}} — the raw exception only with {@value
  * ErrorBoundary#DETAILED} — and is not cached.
+ *
+ * <p><b>OFF unless {@value #ENABLED_PROPERTY}{@code =true}</b>, like the MCP endpoint: it renders
+ * every screen for whoever asks, with no caller. Off, it answers 404.
  */
 public final class BundleEndpoint {
 
   /** Where it is served. */
   public static final String PATH = "/mateu/v3/bundle";
 
+  /** The setting that turns it on; off by default. */
+  public static final String ENABLED_PROPERTY = "mateu.bundle.endpoint.enabled";
+
   /** The query parameter that also bundles {@code :param} routes, as templates. */
   public static final String PARAMS_QUERY = "params";
 
   /** HTTP 200. */
   public static final int OK = 200;
+
+  /** HTTP 404. */
+  public static final int NOT_FOUND = 404;
 
   /** HTTP 500. */
   public static final int SERVER_ERROR = 500;
@@ -76,6 +85,9 @@ public final class BundleEndpoint {
    * @param includeParamRoutes the {@value #PARAMS_QUERY} query parameter
    */
   public Answer render(boolean includeParamRoutes) {
+    if (!enabled()) {
+      return new Answer(NOT_FOUND, errorBody("Not found", "No such endpoint"));
+    }
     var out = includeParamRoutes ? cachedWithParams : cached;
     if (out == null) {
       try {
@@ -91,6 +103,11 @@ public final class BundleEndpoint {
       }
     }
     return new Answer(OK, out);
+  }
+
+  /** Whether the endpoint is on ({@value #ENABLED_PROPERTY}). */
+  public static boolean enabled() {
+    return Boolean.parseBoolean(MateuSettings.get(ENABLED_PROPERTY));
   }
 
   /**

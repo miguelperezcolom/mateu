@@ -149,7 +149,7 @@ mvn mateu-bundle:server     # → target/mateu-server/, a runnable Spring Boot m
 | `outputDirectory` | `target/mateu-server` | where the module is written |
 | `groupId` / `artifactId` / `version` | the project's, with `-api` appended | the module's coordinates |
 | `basePackage` | `<groupId>.<artifactId>` | the module's base package |
-| `springBootVersion` / `javaVersion` | `3.3.4` / `21` | the module's parent and language level |
+| `springBootVersion` / `javaVersion` | `4.1.1` / `21` | the module's parent and language level |
 | `provenance` | `generate` | which operations to implement: `generate`, `existing` or `all` |
 | `failOnEmpty` | `false` | fail when the contract asks this project for nothing |
 

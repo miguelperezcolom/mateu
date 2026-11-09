@@ -22,6 +22,14 @@ public class FakeHttpRequest implements HttpRequest {
     return this;
   }
 
+  private String path = "";
+
+  /** The path the request (simulated) arrived on. */
+  public FakeHttpRequest withPath(String path) {
+    this.path = path;
+    return this;
+  }
+
   public FakeHttpRequest withHeader(String key, String value) {
     headers.put(key, value);
     return this;
@@ -94,7 +102,7 @@ public class FakeHttpRequest implements HttpRequest {
 
   @Override
   public String path() {
-    return "";
+    return path;
   }
 
   @Override

@@ -18,7 +18,7 @@ live `@RestOptions` select). Two ways to see the bundle:
 
 ```bash
 cd demo/demo-static-bundle
-mvn spring-boot:run            # then GET http://localhost:8097/mateu/v3/bundle  (runtime, no build)
+mvn spring-boot:run            # then GET http://localhost:8097/mateu/v3/bundle  (runtime, no build; the demo turns it on)
 mvn -Pbundle package           # then serve target/mateu-bundle/ from any static host (no backend)
 ```
 
@@ -123,19 +123,28 @@ otherwise leaves only a line in a build log.
 
 ## Serving the bundle at runtime (no build step)
 
-You don't have to run the Maven goal: a running Mateu app exposes the same bundle live at
+You don't have to run the Maven goal: a running Mateu app can expose the same bundle live, once you
+turn it on:
+
+```properties
+mateu.bundle.endpoint.enabled=true
+```
 
 ```
 GET /mateu/v3/bundle
 ```
 
-which returns the identical `manifest.json`, rendered from the app's real bean graph — so it has
+It is **off by default** (the path answers 404): it renders every screen for whoever asks, with no
+caller — so identity-dependent screens render as anonymous, and it is one more thing to protect. Leave
+it off in production unless something consumes it; the `mateu-bundle:bundle` goal does not need it.
+
+It returns the identical `manifest.json`, rendered from the app's real bean graph — so it has
 **full fidelity** (services/DB available, no skipped service-backed loads) and needs no build. Add
 `?params=true` to also include [`:param` route templates](#param-route-templates). Two uses:
 
 - **Point a static shell at it** — host a small `index.html` + the renderer assets on a CDN and set
   `<mateu-ui bundleUrl="https://your-app/mateu/v3/bundle">`. The shell fetches the bundle over CORS
-  (the endpoint sends the header) and answers loads from it — instant first paint, backend still there
+  (see the note below) and answers loads from it — instant first paint, backend still there
   for actions. (Same-origin `bundleUrl="/mateu/v3/bundle"` works too.)
 - **Snapshot it** — `curl https://your-app/mateu/v3/bundle > manifest.json` to produce the bundle in
   CI without the Maven goal.
