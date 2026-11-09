@@ -32,7 +32,7 @@ test('reads only the facts: CDN stylesheets, scripts, settings, bundle map', () 
 })
 
 test('carries every marker the controllers rely on, once', () => {
-  for (const m of ['<base href="/">', '<!-- AQUIKEYCLOAK -->', '<title>AQUIELTITULODELAPAGINA</title>',
+  for (const m of ['<base href="/">', '<title>AQUIELTITULODELAPAGINA</title>',
     '<!-- AQUIJS -->', '<!-- HASTAAQUIJS -->', '<!-- AQUIUI --><!-- HASTAAQUIUI -->']) {
     assert.equal(page.split(m).length, 2, m)
   }

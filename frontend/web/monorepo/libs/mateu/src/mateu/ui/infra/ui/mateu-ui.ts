@@ -262,21 +262,6 @@ export class MateuUi extends LitElement {
         this.setAttribute('route', this.route)
         this.instant = nanoid()
         this._lastUrl = w.location.href
-        if (w.location.search) {
-            const urlParams = new URLSearchParams(w.location.search);
-            const configParam = urlParams.get('overrides')
-            if (configParam) {
-                this.config = configParam
-                if (this.config) {
-                    try {
-                        const parsedConfig = JSON.parse(this.config)
-                        appState.value = {...appState.value, ...parsedConfig}
-                    } catch (e) {
-                        appState.value = {...appState.value, config: this.config}
-                    }
-                }
-            }
-        }
     }
 
     extractRouteFromUrl(w: Window) {

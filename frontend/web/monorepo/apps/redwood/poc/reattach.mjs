@@ -1,5 +1,5 @@
 import { callMateu, runMateuActionSse } from './transport.mjs'
-import { taskCenter, progressCommandsOf } from './tasks.mjs'
+import { taskCenter, progressCommandsOf, setTaskRecovery } from './tasks.mjs'
 import { noteDetachedMessages, applyNotificationsChanged } from './inbox.mjs'
 // REATTACH (design/progress-and-notifications.md, "Reattach"): a task survives a reload of the tab.
 //
@@ -77,7 +77,8 @@ export async function resumeTask(t, { center = taskCenter, stream = runMateuActi
   const origin = reattachedOrigin(t)
   try {
     await stream(origin.base, null, origin.route, '_progress-resume', {}, {
-      parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType,
+      // no screen behind it (a boot's first navigation must not cut it), and the last try
+      parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType, view: null, recover: false,
       onIncrement: async (inc) => {
         for (const p of progressCommandsOf(inc)) center.upsert(p, origin)
         noteDetachedMessages(inc && inc.messages)
@@ -93,6 +94,43 @@ export async function resumeTask(t, { center = taskCenter, stream = runMateuActi
   }
   return center.get(t.taskId)
 }
+
+/** How long a broken stream waits before each attempt to find its tasks again (the blip's length). */
+export const RECOVERY_WAITS_MS = [1000, 3000, 8000]
+
+/** A stream broke or ended under tasks still running: the server keeps them for its grace period, so
+ *  before showing them as failed — with a Retry that would start the work twice — ask for them and
+ *  follow the ones still running. They keep their origin (Cancel, Retry). Out of reach: failed. */
+export async function recoverBrokenTasks(origin, ids, error, { center = taskCenter, call = callMateu, stream = runMateuActionSse, waits = RECOVERY_WAITS_MS } = {}) {
+  const fail = (id) => {
+    const now = center.get(id)
+    if (now && now.state === 'running') center.upsert({ ...now, state: 'failed', error: error || now.error || null }, origin)
+  }
+  const base = origin.base || ''
+  for (const wait of waits) {
+    await new Promise((resolve) => setTimeout(resolve, wait))
+    let answer = null
+    try {
+      answer = await call(base, {
+        route: origin.route || '', actionId: '_progress-tasks', componentState: {},
+        parameters: { taskIds: ids }, serverSideType: origin.serverSideType || undefined,
+      }, { isolated: true })
+    } catch (e) {
+      continue // still cut off: the next attempt
+    }
+    const found = new Map(progressCommandsOf(answer).map((p) => [String(p.taskId), p]))
+    for (const id of ids) {
+      const p = found.get(id)
+      if (!p) { fail(id); forgetTasks([id]); continue } // the server no longer knows it
+      center.upsert(p, origin)
+      if (p.state === 'running') void resumeTask({ taskId: id, baseUrl: base, route: origin.route, serverSideType: origin.serverSideType }, { center, stream })
+    }
+    return
+  }
+  ids.forEach(fail)
+}
+
+setTaskRecovery((origin, ids, error) => { void recoverBrokenTasks(origin, ids, error) })
 
 /** On boot: asks every backend the remembered tasks came from which are still the caller's, puts
  *  them back in the center and resumes the running ones. Answers the task ids picked up. */

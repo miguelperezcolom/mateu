@@ -15,7 +15,7 @@ import { chromeText } from './i18n.mjs'
 import { noteDocumentBase } from './files.mjs'
 import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
-import { noteProgress, withoutProgressCommands, isEmptyIncrement, setTaskTransport } from './tasks.mjs'
+import { noteProgress, progressCommandsOf, withoutProgressCommands, isEmptyIncrement, setTaskTransport, recoverUnfinishedTasks } from './tasks.mjs'
 import { noteDetachedMessages } from './inbox.mjs'
 
 /** An absolute base url on another origin than the page's (false outside a browser). */
@@ -330,9 +330,10 @@ export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
  *  its progress keeps reaching the center, what it would paint on the old screen is dropped (an
  *  `inbox` message lands in the session's inbox), and the call ends as a stale response. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
-  const { onIncrement, ...bodyExtra } = extra || {}
-  // tied to the current screen, like callMateu: each increment is checked as it arrives
-  const view = currentView()
+  const { onIncrement, view: ownView, recover = true, ...bodyExtra } = extra || {}
+  // tied to the current screen, like callMateu (each increment is checked as it arrives) — unless
+  // the caller says otherwise: `view: null` belongs to no screen (a reattached task's resume)
+  const view = extra && 'view' in extra ? ownView : currentView()
   ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
   base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -356,11 +357,13 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       route: bare ? `/${bare}` : '',
       actionId,
     }),
-  }, { actionId, timeoutMillis: -1, view })
+  }, { actionId, timeoutMillis: -1, view, readsPastStale: true })
   // who started the task(s) this stream reports: Cancel, Retry and result actions go back there
   const origin = {
     base, route: bare ? `/${bare}` : '', actionId, view,
     parameters: bodyExtra.parameters || {},
+    // the @AppContext values travel with a Retry too
+    appState: bodyExtra.appState || {},
     componentState: componentState || (ctx && ctx.state) || {},
     serverSideType: bodyExtra.serverSideType || outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
     consumedRoute: bodyExtra.consumedRoute != null ? bodyExtra.consumedRoute : (outbound.consumedRoute || ''),
@@ -370,17 +373,22 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   let reader
   let reportsTasks = false
   let detached = false
+  // the tasks this stream reported: if it ends or breaks before they do, they are looked for
+  const reported = new Set()
   const handle = async (raw) => {
     const line = raw.trim()
     if (!line.startsWith('data:')) return
+    const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
+    observeWireVersion(answer)
+    for (const p of progressCommandsOf(answer)) reported.add(String(p.taskId))
+    if (noteProgress(answer, origin)) reportsTasks = true
+    // Its FIRST event decides what it is: nothing is cancelled before, because closing a stream
+    // that has not reported its task yet disposes the work on the server, with no trace
     if (isViewStale(view) && !reportsTasks) {
       if (reader && reader.cancel) reader.cancel().catch(() => undefined)
       throw staleResponseError(actionId)
     }
-    const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
-    observeWireVersion(answer)
     adoptReferencedSources(answer)
-    if (noteProgress(answer, origin)) reportsTasks = true
     if (isViewStale(view)) {
       // the screen that started the task is gone: the task goes on in the center
       detached = true
@@ -392,25 +400,34 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
     const consumed = onIncrement ? await onIncrement(inc) : false
     if (!consumed) increments.push(inc)
   }
-  if (res.body && res.body.getReader) {
-    reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    for (;;) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      let cut
-      while ((cut = buffer.indexOf('\n\n')) >= 0) {
-        await handle(buffer.slice(0, cut))
-        buffer = buffer.slice(cut + 2)
+  const readToTheEnd = async () => {
+    if (res.body && res.body.getReader) {
+      reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        let cut
+        while ((cut = buffer.indexOf('\n\n')) >= 0) {
+          await handle(buffer.slice(0, cut))
+          buffer = buffer.slice(cut + 2)
+        }
       }
+      if (buffer.trim()) await handle(buffer)
+    } else {
+      for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
     }
-    if (buffer.trim()) await handle(buffer)
-  } else {
-    for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
   }
-  if (detached) throw staleResponseError(actionId)
+  try {
+    await readToTheEnd()
+  } catch (error) {
+    if (recover) recoverUnfinishedTasks(origin, reported, error && error.message)
+    throw error
+  }
+  if (recover) recoverUnfinishedTasks(origin, reported)
+  if (detached || isViewStale(view)) throw staleResponseError(actionId)
   return increments
 }
 
@@ -420,6 +437,7 @@ setTaskTransport((kind, origin, body) => (kind === 'cancel'
   : runMateuActionSse((origin && origin.base) || '', null, body.route, body.actionId, body.componentState, {
     parameters: body.parameters, serverSideType: body.serverSideType,
     consumedRoute: body.consumedRoute, initiatorComponentId: body.initiatorComponentId,
+    ...(body.appState ? { appState: body.appState } : {}),
   })))
 
 /**

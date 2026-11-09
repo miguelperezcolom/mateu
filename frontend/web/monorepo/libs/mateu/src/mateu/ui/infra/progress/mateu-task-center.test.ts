@@ -9,6 +9,7 @@ vi.mock('@infra/a11y/announcer.ts', () => ({ announce: (...a: unknown[]) => anno
 import './mateu-task-center'
 import type { MateuTaskCenter } from './mateu-task-center'
 import { taskStore } from './taskStore'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import type { Progress } from '@mateu/shared/apiClients/dtos/Progress.ts'
 
 /**
@@ -108,6 +109,21 @@ describe('mateu-task-center', () => {
         expect(buttons()).toEqual(['Open report', 'Close'])
         $$('button')[0].click()
         expect(routes).toEqual(['/reports/1'])
+    })
+
+    it('a result action declined at the unsaved-changes prompt leaves the task, the only link to its result', async () => {
+        const leave = vi.spyOn(dirtyGuard, 'confirmLeave').mockReturnValue(false)
+        const initiator = document.createElement('div')
+        document.body.appendChild(initiator)
+        taskStore.upsert(p('a', { blocking: true }), { initiator })
+        taskStore.upsert(p('a', { blocking: true, state: 'done', resultActions: [{ label: 'Open report', route: '/reports/1' }] }))
+        await settle()
+        $$('button')[0].click()
+        expect(taskStore.find('a')).toBeDefined()
+        leave.mockReturnValue(true)
+        $$('button')[0].click()
+        expect(taskStore.find('a')).toBeUndefined()
+        leave.mockRestore()
     })
 
     it('several tasks at once: one modal at most, the rest in the list', async () => {

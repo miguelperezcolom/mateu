@@ -30,7 +30,6 @@
   "assets/vendor-ol.js",
   "assets/vendor-vaadin.js",
   "assets/vendor.js",
-  "js/keycloak.min.js",
   "myassets/background.svg"
  ]
 }

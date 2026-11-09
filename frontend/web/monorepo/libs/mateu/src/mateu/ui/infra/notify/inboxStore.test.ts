@@ -21,6 +21,17 @@ describe('inboxStore (pure)', () => {
         ])
     })
 
+    it('a pushed entry is the server\'s (its actions, read and dismiss go there); a message\'s is the session\'s', () => {
+        const pushed = applyChange(emptyInbox(), { notification: n('p1') }).state
+        expect(mergedEntries(pushed)[0].local).toBe(false)
+        expect(entryOfMessage({ text: 'Hi' }, new Date()).local).toBe(true)
+    })
+
+    it('a fresh server list keeps a pushed entry it does not list yet', () => {
+        const pushed = applyChange(emptyInbox(), { notification: n('p1') }).state
+        expect(mergedEntries(withServerList(pushed, [n('a')])).map((e) => e.id)).toEqual(['p1', 'a'])
+    })
+
     it('a fresh server list drops the session copies of what it now lists', () => {
         let s = withSessionEntry(emptyInbox(), { ...n('pushed'), local: true })
         s = withServerList(s, [n('pushed', { title: 'stored' })])

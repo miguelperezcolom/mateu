@@ -33,6 +33,8 @@ const event = (commands: unknown[]) => 'data: ' + JSON.stringify({ commands }) +
 let live: Live
 let values: Values
 
+const scoped = (key: string, baseUrl: string, type = 'com.example.Ops') => live.scopedKey(key, live.liveScopeOf(baseUrl, type))
+
 const flush = async () => {
     for (let i = 0; i < 10; i++) await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
@@ -76,7 +78,7 @@ describe('the live-updates stream', () => {
         const body = JSON.parse(init.body as string)
         expect(body).toMatchObject({ actionId: '_live-updates', serverSideType: 'com.example.Ops', route: '/ops' })
         // this tab is the leader
-        expect(JSON.parse(localStorage.getItem(live.LEADER_KEY)!).tab).toBeTruthy()
+        expect(JSON.parse(localStorage.getItem(scoped(live.LEADER_KEY, 'http://host/app'))!).tab).toBeTruthy()
         expect(values.headerValuesList().find((v) => v.id === 'businessDate')?.value).toBe('2026-10-18')
 
         // syncing again with the same app does not open a second stream
@@ -96,9 +98,9 @@ describe('the live-updates stream', () => {
         await flush()
 
         // the other tabs were told (a storage event is fired by the write)…
-        expect(setItem.mock.calls.some(([key]) => key === live.INBOX_CHANGE_KEY)).toBe(true)
+        expect(setItem.mock.calls.some(([key]) => key === scoped(live.INBOX_CHANGE_KEY, 'http://host/app'))).toBe(true)
         // …and the entry's content does not stay at rest in the browser
-        expect(localStorage.getItem(live.INBOX_CHANGE_KEY)).toBeNull()
+        expect(localStorage.getItem(scoped(live.INBOX_CHANGE_KEY, 'http://host/app'))).toBeNull()
     })
 
     it('an app without a root route streams on the _no_route path', async () => {
@@ -112,13 +114,13 @@ describe('the live-updates stream', () => {
     it('another tab that holds a fresh lead keeps this one off the stream', async () => {
         const fetchMock = vi.fn(() => Promise.resolve(sseResponse([], { hold: true })))
         vi.stubGlobal('fetch', fetchMock)
-        localStorage.setItem(live.LEADER_KEY, JSON.stringify({ tab: 'other-tab', at: Date.now() }))
+        localStorage.setItem(scoped(live.LEADER_KEY, ''), JSON.stringify({ tab: 'other-tab', at: Date.now() }))
         live.syncLiveUpdates(app(), '')
         await flush()
         expect(fetchMock).not.toHaveBeenCalled()
         // and leaving does not remove the OTHER tab's lead
         live.syncLiveUpdates(undefined, '')
-        expect(JSON.parse(localStorage.getItem(live.LEADER_KEY)!).tab).toBe('other-tab')
+        expect(JSON.parse(localStorage.getItem(scoped(live.LEADER_KEY, ''))!).tab).toBe('other-tab')
     })
 
     it('reconnects after the server ends the stream, and backs off after a failure', async () => {
@@ -156,7 +158,7 @@ describe('the live-updates stream', () => {
 
         live.syncLiveUpdates(app({ liveUpdates: false }), '')
         expect(signal?.aborted).toBe(true)
-        expect(localStorage.getItem(live.LEADER_KEY)).toBeNull()
+        expect(localStorage.getItem(scoped(live.LEADER_KEY, ''))).toBeNull()
     })
 
     it('another app (a different server-side type) restarts the stream', async () => {
@@ -187,17 +189,74 @@ describe('the live-updates stream', () => {
         await vi.advanceTimersByTimeAsync(0)
         expect(signal?.aborted).toBe(false)
         // another tab claims the lead (e.g. this one was asleep past STALE_MS)
-        localStorage.setItem(live.LEADER_KEY, JSON.stringify({ tab: 'other-tab', at: Date.now() + 60_000 }))
+        localStorage.setItem(scoped(live.LEADER_KEY, ''), JSON.stringify({ tab: 'other-tab', at: Date.now() + 60_000 }))
         await vi.advanceTimersByTimeAsync(live.HEARTBEAT_MS)
         expect(signal?.aborted).toBe(true)
+    })
+
+    it('two apps on one origin elect their own leader and stream their own events', async () => {
+        const fetchMock = vi.fn(() => Promise.resolve(sseResponse([], { hold: true })))
+        vi.stubGlobal('fetch', fetchMock)
+        // another app of this origin leads ITS stream: this tab still leads its own
+        localStorage.setItem(scoped(live.LEADER_KEY, '', 'com.example.Admin'), JSON.stringify({ tab: 'other-tab', at: Date.now() }))
+        live.syncLiveUpdates(app(), '')
+        await flush()
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+        expect(JSON.parse(localStorage.getItem(scoped(live.LEADER_KEY, ''))!).tab).not.toBe('other-tab')
+    })
+
+    it('an inbox change relayed for another app is not this app\'s', async () => {
+        vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(sseResponse([], { hold: true }))))
+        const { inboxStore } = await import('@infra/notify/inboxStore.ts')
+        live.syncLiveUpdates(app(), '')
+        await flush()
+        const relay = (key: string, id: string) => window.dispatchEvent(new StorageEvent('storage', {
+            key, newValue: JSON.stringify({ tab: 'other-tab', change: { notification: { id, title: id, unread: true } } }),
+        }))
+        relay(scoped(live.INBOX_CHANGE_KEY, '', 'com.example.Admin'), 'theirs')
+        relay(scoped(live.INBOX_CHANGE_KEY, ''), 'ours')
+        expect(inboxStore.entries().map((e) => e.id)).toEqual(['ours'])
+    })
+
+    it('a header value is broadcast under the app\'s own key', async () => {
+        vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(sseResponse([], { hold: true }))))
+        live.syncLiveUpdates(app({ liveUpdates: false }), '/admin')
+        values.updateHeaderValue('shift', 'Night', { quiet: true })
+        expect(localStorage.getItem(values.STORAGE_KEY)).toBeNull()
+        expect(JSON.parse(localStorage.getItem(scoped(values.STORAGE_KEY, '/admin'))!).value).toBe('Night')
+    })
+
+    it('tabs with a token each: every tab holds its own stream, relays nothing and broadcasts nothing', async () => {
+        const { configureAuthToken, resetAuthTokenConfig } = await import('@infra/http/authToken.ts')
+        configureAuthToken({ storage: 'sessionStorage' })
+        try {
+            const setItem = vi.spyOn(Storage.prototype, 'setItem')
+            const fetchMock = vi.fn(() => Promise.resolve(sseResponse([
+                event([{ type: 'NotificationsChanged', data: { notification: { id: 'n1', title: 'For Ana only' } } }]),
+            ], { hold: true })))
+            vi.stubGlobal('fetch', fetchMock)
+            // a fresh lead held by a tab of ANOTHER user does not keep this one off its stream
+            localStorage.setItem(scoped(live.LEADER_KEY, ''), JSON.stringify({ tab: 'other-tab', at: Date.now() }))
+            setItem.mockClear()
+
+            live.syncLiveUpdates(app(), '')
+            await flush()
+
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+            expect(setItem).not.toHaveBeenCalled()
+            values.updateHeaderValue('shift', 'Night', { quiet: true })
+            expect(setItem).not.toHaveBeenCalled()
+        } finally {
+            resetAuthTokenConfig()
+        }
     })
 
     it('closing the page gives up the lead', async () => {
         vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(sseResponse([], { hold: true }))))
         live.syncLiveUpdates(app(), '')
         await flush()
-        expect(localStorage.getItem(live.LEADER_KEY)).not.toBeNull()
+        expect(localStorage.getItem(scoped(live.LEADER_KEY, ''))).not.toBeNull()
         window.dispatchEvent(new Event('pagehide'))
-        expect(localStorage.getItem(live.LEADER_KEY)).toBeNull()
+        expect(localStorage.getItem(scoped(live.LEADER_KEY, ''))).toBeNull()
     })
 })

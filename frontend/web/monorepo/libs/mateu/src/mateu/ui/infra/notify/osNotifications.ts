@@ -114,7 +114,7 @@ const taskStates = new Map<string, string>()
 
 /** Pure: the session's new unread entries (pushed / inbox messages) since `seen`. */
 export const newSessionEntries = (state: InboxState, seen: Set<string>): InboxEntry[] =>
-    (state.session ?? []).filter((e) => e.local && e.unread && !seen.has(e.id))
+    (state.session ?? []).filter((e) => e.unread && !seen.has(e.id))
 
 /** Pure: whether an entry is a background task that just finished (it was running before). */
 export const finishedInBackground = (entry: TaskEntry, before: string | undefined): boolean =>

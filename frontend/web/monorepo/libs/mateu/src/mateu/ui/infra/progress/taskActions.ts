@@ -51,19 +51,21 @@ export const retryTask = (taskId: string): void => {
 
 /**
  * A finished task's result action: on the component that started the task when it is still on
- * screen; a route opens from wherever the user is now.
+ * screen; a route opens from wherever the user is now. Answers whether it ran: declined at the
+ * unsaved-changes prompt, it did not, and the task (the only link to its result) has to stay.
  */
-export const runResultAction = (taskId: string, action: MessageAction): void => {
+export const runResultAction = (taskId: string, action: MessageAction): boolean => {
     const initiator = taskStore.find(taskId)?.origin?.initiator
     if (initiator?.isConnected) {
-        runMessageAction(action, initiator)
-        return
+        return runMessageAction(action, initiator)
     }
     if (action.route) {
         const from = taskCenterElement()
-        if (from && dirtyGuard.confirmLeave()) navigateToRoute(from, action.route)
-        return
+        if (!from || !dirtyGuard.confirmLeave()) return false
+        navigateToRoute(from, action.route)
+        return true
     }
     // eslint-disable-next-line no-console -- a diagnostic, not a warning: the task simply outlived its screen
     console.debug?.('mateu: the screen that started the task is gone; its action cannot run there', action.actionId)
+    return false
 }

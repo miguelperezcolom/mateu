@@ -48,6 +48,15 @@ export interface RunActionOptions {
      * history, favicon) — the window belongs to the host page. Undefined for a top-level request.
      */
     embeddedChrome?: string
+    /** Streams only: this run is the re-run that follows a re-authentication (one per action). */
+    afterReauthentication?: boolean
+    /** Streams only: Retry pressed in the task center — a failure is told even with no screen left. */
+    fromTaskCenter?: boolean
+    /**
+     * Streams only: a `_progress-resume` stream, and the tasks it follows. They count as reported
+     * from the first byte, and it is the last try: what it leaves running ends failed.
+     */
+    resumesTasks?: string[]
 }
 
 export interface MateuApiClient {

@@ -24,6 +24,8 @@ import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra
 import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 
 let abortControllers: AbortController[] = []
+/** What each in-flight call repeats: the loop breaker aborts ITS repetitions, nobody else's. */
+const signatureOf = new WeakMap<AbortController, string>()
 
 /** Default ceiling for a sync call. Overridable per action via `@Action(timeoutMillis = …)`. */
 const DEFAULT_TIMEOUT_MS = 60000
@@ -236,9 +238,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
     }
 
     async post(uri: string, data: unknown, timeoutMillis?: number,
-               isStale?: () => boolean): Promise<AxiosResponse<any>> {
+               isStale?: () => boolean, loopSignature?: string): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
+        if (loopSignature) signatureOf.set(abortController, loopSignature)
         return this.axiosInstance.post(uri, data,{
             signal: abortController.signal,
             // only Mateu's own endpoints are told who calls (rendererIdentity.ts)
@@ -249,9 +252,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }).finally(() => this.release(abortController));
     }
 
-    async abortAll() {
-        abortControllers.forEach(c => c.abort());
-        abortControllers = []
+    /** Aborts the in-flight calls of one looping request; a Save running next to it is not touched. */
+    private abortRepetitions(loopSignature: string) {
+        const looping = abortControllers.filter(c => signatureOf.get(c) === loopSignature)
+        looping.forEach(c => c.abort())
+        abortControllers = abortControllers.filter(c => !looping.includes(c))
     }
 
     async runAction(baseUrl: string, route: string, consumedRoute: string,
@@ -326,7 +331,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             initiatorComponentId].join('')
         const loop = loopGuard.check(loopSignature)
         if (loop.blocked) {
-            await this.abortAll()
+            this.abortRepetitions(loopSignature)
             if (loop.firstTrip) {
                 console.error('[mateu] request loop detected — aborting repeated request', loopSignature)
                 reportClientError({ kind: 'request-loop', message: 'A repeating request was detected and stopped',
@@ -370,7 +375,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             ...(options.embeddedChrome ? { embeddedChrome: options.embeddedChrome } : {}),
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
-        const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)
+        const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale, loopSignature)
             .then((response) => {
                 observeWireVersion(response.data)
                 // redeployed while the page was open? (buildWatch.ts)

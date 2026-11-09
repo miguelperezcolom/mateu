@@ -47,6 +47,13 @@ const metaStorage = (): AuthTokenStorage | undefined => {
 /** The storage in effect: the configured one, else the `<meta>` declaration, else localStorage. */
 export const authTokenStorage = (): AuthTokenStorage => configuredStorage ?? metaStorage() ?? 'localStorage'
 
+/**
+ * Whether every tab of this origin acts as the same user. True for cookies and for a token in
+ * `localStorage`; with a token in `sessionStorage`, in memory or behind a provider each tab holds
+ * its own identity, so nothing about the user may pass from one tab to another.
+ */
+export const tabsShareIdentity = (): boolean => !provider && authTokenStorage() === 'localStorage'
+
 export const configureAuthToken = (options: {
     storage?: AuthTokenStorage
     provider?: (() => string | null | undefined) | null

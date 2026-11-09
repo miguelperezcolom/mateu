@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import type { Progress } from '@mateu/shared/apiClients/dtos/Progress.ts'
-import { byBaseUrl, reattachTasks, resetReattach, type ReattachDeps } from './reattach'
+import { byBaseUrl, reattachTasks, recoverBrokenTasks, resetReattach, type ReattachDeps } from './reattach'
 import { forgetTask, MAX_REMEMBERED, rememberedTasks, rememberTask, TASK_MEMORY_KEY } from './taskMemory'
 import { applyGlobalCommand } from './globalCommands'
 import { taskStore } from './taskStore'
@@ -22,6 +22,56 @@ beforeEach(() => {
     taskStore.reset()
     resetReattach()
     resetTaskCenterMount()
+})
+
+describe('a broken stream goes looking for its tasks', () => {
+    const NO_WAIT = [0, 0]
+    const retry = vi.fn()
+    const started = (id: string) => taskStore.upsert(progress(id), { baseUrl: '/app', retry })
+    const answering = (...found: Progress[]): ReattachDeps => ({
+        list: vi.fn(async () => ({ commands: found.map(command) }) as never),
+        resume: vi.fn(),
+    })
+
+    it('a task still running is followed again and stays as it was, Retry included', async () => {
+        started('t1')
+        const deps = answering(progress('t1', { text: 'half way' }))
+        await recoverBrokenTasks('/app', 'x.Import', ['t1'], 'reset', deps, NO_WAIT)
+        expect(deps.resume).toHaveBeenCalledWith({ taskId: 't1', baseUrl: '/app', serverSideType: 'x.Import' })
+        expect(taskStore.find('t1')?.progress).toMatchObject({ state: 'running', text: 'half way' })
+        expect(taskStore.find('t1')?.origin?.retry).toBe(retry)
+    })
+
+    it('a task that ended meanwhile takes its real end, with no stream', async () => {
+        started('t1')
+        const deps = answering(progress('t1', { state: 'done' }))
+        await recoverBrokenTasks('/app', undefined, ['t1'], 'reset', deps, NO_WAIT)
+        expect(taskStore.find('t1')?.progress.state).toBe('done')
+        expect(deps.resume).not.toHaveBeenCalled()
+    })
+
+    it('a task the server no longer knows ends failed, with what broke', async () => {
+        started('t1')
+        await recoverBrokenTasks('/app', undefined, ['t1'], 'reset', answering(), NO_WAIT)
+        expect(taskStore.find('t1')?.progress).toMatchObject({ state: 'failed', error: 'reset' })
+    })
+
+    it('tries again while the backend is out of reach, then gives up and fails the task', async () => {
+        started('t1')
+        const deps: ReattachDeps = { list: vi.fn().mockRejectedValue(new Error('offline')), resume: vi.fn() }
+        await recoverBrokenTasks('/app', undefined, ['t1'], 'reset', deps, NO_WAIT)
+        expect(deps.list).toHaveBeenCalledTimes(2)
+        expect(taskStore.find('t1')?.progress).toMatchObject({ state: 'failed', error: 'reset' })
+    })
+
+    it('a blip shorter than the waits costs nothing', async () => {
+        started('t1')
+        const deps = answering(progress('t1'))
+        vi.mocked(deps.list).mockRejectedValueOnce(new Error('offline'))
+        await recoverBrokenTasks('/app', undefined, ['t1'], 'reset', deps, NO_WAIT)
+        expect(taskStore.find('t1')?.progress.state).toBe('running')
+        expect(deps.resume).toHaveBeenCalledTimes(1)
+    })
 })
 
 describe('task memory', () => {

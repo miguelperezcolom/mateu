@@ -15171,7 +15171,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!isolated) connectivity.noteReachable()
         // another deployment answered than the one this page started with: «app updated», once
         reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
-        if (isViewStale(view)) dropStale()
+        // `readsPastStale`: a stream only knows what it is at its first event (runMateuActionSse)
+        if (isViewStale(view) && !options.readsPastStale) dropStale()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
@@ -16743,6 +16744,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // how the center talks to the server: set by transport.mjs (no import cycle), replaced in tests
   let taskTransport = null
   function setTaskTransport(fn) { taskTransport = typeof fn === 'function' ? fn : null }
+  // what to do with tasks a stream left running: set by reattach.mjs (no import cycle)
+  let taskRecovery = null
+  function setTaskRecovery(fn) { taskRecovery = typeof fn === 'function' ? fn : null }
+  /** A stream ended or broke: the tasks it reported that have not ended are looked for on the server. */
+  function recoverUnfinishedTasks(origin, ids, error, center = taskCenter) {
+    const running = [...ids].filter((id) => { const t = center.get(id); return t && t.state === 'running' })
+    if (running.length && taskRecovery) taskRecovery(origin, running, error)
+    return running
+  }
   // how a task's action runs again ON THE SCREEN (the content page's chain), when still on it
   let taskActionSink = null
   function setTaskActionSink(fn) { taskActionSink = typeof fn === 'function' ? fn : null }
@@ -16784,7 +16794,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (!taskTransport) return false
     taskTransport('stream', o, {
-      route: o.route || '', actionId, parameters: parameters || {}, componentState: o.componentState || {},
+      route: o.route || '', actionId, parameters: parameters || {}, componentState: o.componentState || {}, appState: o.appState,
       serverSideType: o.serverSideType, consumedRoute: o.consumedRoute || '', initiatorComponentId: o.initiatorComponentId || '',
     }).catch(() => undefined)
     return true
@@ -19633,6 +19643,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
   // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
   // renderer's libs/mateu appShortcuts.ts / headerValues.ts / liveUpdates.ts / idleSession.ts:
@@ -19703,6 +19714,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const HEADER_VALUES_KEY = 'mateu-header-values'
   const LIVE_LEADER_KEY = 'mateu-live-leader'
+  /** A key of one app: two apps on one origin neither elect one leader nor paint each other's header. */
+  const scopedLiveKey = (key, base, serverSideType) => `${key}:${base}|${serverSideType}`
   const LIVE_HEARTBEAT_MS = 5000
   const LIVE_STALE_MS = 15000
 
@@ -19713,6 +19726,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const headerValues = new Map()
   let headerPainter = null
+  // where a change is broadcast; null = this tab alone (set per app by syncLive)
+  let headerBroadcastKey = HEADER_VALUES_KEY
 
   /** The values to paint, in the order the app declared them. */
   const headerValuesList = () => [...headerValues.values()]
@@ -19733,7 +19748,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     headerValues.set(id, { id, label: current ? current.label : null, value: text })
     if (headerPainter) headerPainter([id])
     if (!options.quiet) announce(chromeText('headerValueChanged', { label: (current && current.label) || id, value: text }))
-    if (options.broadcast !== false) storeSet(HEADER_VALUES_KEY, JSON.stringify({ id, value: text, at: Date.now() }))
+    if (options.broadcast !== false && headerBroadcastKey) storeSet(headerBroadcastKey, JSON.stringify({ id, value: text, at: Date.now() }))
     return true
   }
 
@@ -19818,14 +19833,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let liveController = null
   let liveFailures = 0
   let liveTimer = null
-  const readLeader = () => { try { return JSON.parse(storeGet(LIVE_LEADER_KEY) || 'null') } catch (e) { return null } }
+  // embedded under a host that supplies the identity: tabs need not be the same user, so no sharing
+  let liveOwnStream = false
+  const liveLeaderKey = (t) => scopedLiveKey(LIVE_LEADER_KEY, t.base, t.serverSideType)
+  const readLeader = (t) => { try { return JSON.parse(storeGet(liveLeaderKey(t)) || 'null') } catch (e) { return null } }
+  const releaseLead = (t) => { if (!t || liveOwnStream) return; const r = readLeader(t); if (r && r.tab === tabId) storeRemove(liveLeaderKey(t)) }
 
   function liveTick() {
     if (!liveTarget) return
+    if (liveOwnStream) { if (!liveController) liveConnect(); return }
     const now = Date.now()
-    if (shouldLeadLive(readLeader(), tabId, now)) {
-      storeSet(LIVE_LEADER_KEY, JSON.stringify({ tab: tabId, at: now }))
-      const again = readLeader()
+    if (shouldLeadLive(readLeader(liveTarget), tabId, now)) {
+      storeSet(liveLeaderKey(liveTarget), JSON.stringify({ tab: tabId, at: now }))
+      const again = readLeader(liveTarget)
       if (again && again.tab === tabId) { if (!liveController) liveConnect(); return }
     }
     liveStop()
@@ -19880,17 +19900,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function syncLive(shell, base) {
+    const shared = !hasHostHeaderProvider()
+    // header values also change through ordinary answers: scoped whether or not there is a stream
+    headerBroadcastKey = shared ? scopedLiveKey(HEADER_VALUES_KEY, base, (shell && shell.serverSideType) || '') : null
     if (!(shell && shell.liveUpdates)) {
       if (liveTarget) {
+        const previous = liveTarget
         liveTarget = null
         clearInterval(liveHeartbeat); liveHeartbeat = null
         liveStop()
-        const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+        releaseLead(previous)
       }
       return
     }
     const next = { base, serverSideType: shell.serverSideType || '' }
-    if (liveTarget && (liveTarget.base !== next.base || liveTarget.serverSideType !== next.serverSideType)) liveStop()
+    if (liveTarget && (liveTarget.base !== next.base || liveTarget.serverSideType !== next.serverSideType)) {
+      liveStop()
+      releaseLead(liveTarget)
+    }
+    liveOwnStream = !shared
     liveTarget = next
     if (!liveHeartbeat) liveHeartbeat = setInterval(liveTick, LIVE_HEARTBEAT_MS)
     liveTick()
@@ -20049,7 +20077,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     headerPainter = paintHeaderValues
     // the other tabs: header values, activity, sign-out
     win.addEventListener('storage', (e) => {
-      if (e.key === HEADER_VALUES_KEY && e.newValue) {
+      if (headerBroadcastKey && e.key === headerBroadcastKey && e.newValue) {
         try { const c = JSON.parse(e.newValue); if (c.id) updateHeaderValue(c.id, c.value, { broadcast: false }) } catch (err) { /* not ours */ }
       }
       if (e.key === IDLE_SIGN_OUT_KEY && e.newValue && extrasShell && extrasShell.idleSession) idleSignOut(doc, false)
@@ -20057,7 +20085,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     win.addEventListener('pagehide', () => {
       liveStop()
-      const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+      releaseLead(liveTarget)
     })
     // activity (ignored while the warning is up: only «Stay» keeps the session). Not 'scroll': the
     // shell scrolls by itself (sticky headers, focus), and that is not the user being there
@@ -23238,9 +23266,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  its progress keeps reaching the center, what it would paint on the old screen is dropped (an
    *  `inbox` message lands in the session's inbox), and the call ends as a stale response. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
-    const { onIncrement, ...bodyExtra } = extra || {}
-    // tied to the current screen, like callMateu: each increment is checked as it arrives
-    const view = currentView()
+    const { onIncrement, view: ownView, recover = true, ...bodyExtra } = extra || {}
+    // tied to the current screen, like callMateu (each increment is checked as it arrives) — unless
+    // the caller says otherwise: `view: null` belongs to no screen (a reattached task's resume)
+    const view = extra && 'view' in extra ? ownView : currentView()
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -23264,11 +23293,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         route: bare ? `/${bare}` : '',
         actionId,
       }),
-    }, { actionId, timeoutMillis: -1, view })
+    }, { actionId, timeoutMillis: -1, view, readsPastStale: true })
     // who started the task(s) this stream reports: Cancel, Retry and result actions go back there
     const origin = {
       base, route: bare ? `/${bare}` : '', actionId, view,
       parameters: bodyExtra.parameters || {},
+      // the @AppContext values travel with a Retry too
+      appState: bodyExtra.appState || {},
       componentState: componentState || (ctx && ctx.state) || {},
       serverSideType: bodyExtra.serverSideType || outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
       consumedRoute: bodyExtra.consumedRoute != null ? bodyExtra.consumedRoute : (outbound.consumedRoute || ''),
@@ -23278,17 +23309,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let reader
     let reportsTasks = false
     let detached = false
+    // the tasks this stream reported: if it ends or breaks before they do, they are looked for
+    const reported = new Set()
     const handle = async (raw) => {
       const line = raw.trim()
       if (!line.startsWith('data:')) return
+      const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
+      observeWireVersion(answer)
+      for (const p of progressCommandsOf(answer)) reported.add(String(p.taskId))
+      if (noteProgress(answer, origin)) reportsTasks = true
+      // Its FIRST event decides what it is: nothing is cancelled before, because closing a stream
+      // that has not reported its task yet disposes the work on the server, with no trace
       if (isViewStale(view) && !reportsTasks) {
         if (reader && reader.cancel) reader.cancel().catch(() => undefined)
         throw staleResponseError(actionId)
       }
-      const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
-      observeWireVersion(answer)
       adoptReferencedSources(answer)
-      if (noteProgress(answer, origin)) reportsTasks = true
       if (isViewStale(view)) {
         // the screen that started the task is gone: the task goes on in the center
         detached = true
@@ -23300,25 +23336,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const consumed = onIncrement ? await onIncrement(inc) : false
       if (!consumed) increments.push(inc)
     }
-    if (res.body && res.body.getReader) {
-      reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      for (;;) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        let cut
-        while ((cut = buffer.indexOf('\n\n')) >= 0) {
-          await handle(buffer.slice(0, cut))
-          buffer = buffer.slice(cut + 2)
+    const readToTheEnd = async () => {
+      if (res.body && res.body.getReader) {
+        reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          let cut
+          while ((cut = buffer.indexOf('\n\n')) >= 0) {
+            await handle(buffer.slice(0, cut))
+            buffer = buffer.slice(cut + 2)
+          }
         }
+        if (buffer.trim()) await handle(buffer)
+      } else {
+        for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
       }
-      if (buffer.trim()) await handle(buffer)
-    } else {
-      for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
     }
-    if (detached) throw staleResponseError(actionId)
+    try {
+      await readToTheEnd()
+    } catch (error) {
+      if (recover) recoverUnfinishedTasks(origin, reported, error && error.message)
+      throw error
+    }
+    if (recover) recoverUnfinishedTasks(origin, reported)
+    if (detached || isViewStale(view)) throw staleResponseError(actionId)
     return increments
   }
 
@@ -23328,6 +23373,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     : runMateuActionSse((origin && origin.base) || '', null, body.route, body.actionId, body.componentState, {
       parameters: body.parameters, serverSideType: body.serverSideType,
       consumedRoute: body.consumedRoute, initiatorComponentId: body.initiatorComponentId,
+      ...(body.appState ? { appState: body.appState } : {}),
     })))
 
   /**
@@ -24083,7 +24129,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const origin = reattachedOrigin(t)
     try {
       await stream(origin.base, null, origin.route, '_progress-resume', {}, {
-        parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType,
+        // no screen behind it (a boot's first navigation must not cut it), and the last try
+        parameters: { taskId: t.taskId }, serverSideType: origin.serverSideType, view: null, recover: false,
         onIncrement: async (inc) => {
           for (const p of progressCommandsOf(inc)) center.upsert(p, origin)
           noteDetachedMessages(inc && inc.messages)
@@ -24099,6 +24146,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     return center.get(t.taskId)
   }
+
+  /** How long a broken stream waits before each attempt to find its tasks again (the blip's length). */
+  const RECOVERY_WAITS_MS = [1000, 3000, 8000]
+
+  /** A stream broke or ended under tasks still running: the server keeps them for its grace period, so
+   *  before showing them as failed — with a Retry that would start the work twice — ask for them and
+   *  follow the ones still running. They keep their origin (Cancel, Retry). Out of reach: failed. */
+  async function recoverBrokenTasks(origin, ids, error, { center = taskCenter, call = callMateu, stream = runMateuActionSse, waits = RECOVERY_WAITS_MS } = {}) {
+    const fail = (id) => {
+      const now = center.get(id)
+      if (now && now.state === 'running') center.upsert({ ...now, state: 'failed', error: error || now.error || null }, origin)
+    }
+    const base = origin.base || ''
+    for (const wait of waits) {
+      await new Promise((resolve) => setTimeout(resolve, wait))
+      let answer = null
+      try {
+        answer = await call(base, {
+          route: origin.route || '', actionId: '_progress-tasks', componentState: {},
+          parameters: { taskIds: ids }, serverSideType: origin.serverSideType || undefined,
+        }, { isolated: true })
+      } catch (e) {
+        continue // still cut off: the next attempt
+      }
+      const found = new Map(progressCommandsOf(answer).map((p) => [String(p.taskId), p]))
+      for (const id of ids) {
+        const p = found.get(id)
+        if (!p) { fail(id); forgetTasks([id]); continue } // the server no longer knows it
+        center.upsert(p, origin)
+        if (p.state === 'running') void resumeTask({ taskId: id, baseUrl: base, route: origin.route, serverSideType: origin.serverSideType }, { center, stream })
+      }
+      return
+    }
+    ids.forEach(fail)
+  }
+
+  setTaskRecovery((origin, ids, error) => { void recoverBrokenTasks(origin, ids, error) })
 
   /** On boot: asks every backend the remembered tasks came from which are still the caller's, puts
    *  them back in the center and resumes the running ones. Answers the task ids picked up. */

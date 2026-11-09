@@ -89,14 +89,11 @@ describe('booting from the URL', () => {
         expect(mocks.loadBundleManifest).toHaveBeenCalledWith('/bundle/manifest.json')
     })
 
-    it('?overrides= seeds the app state (JSON, or kept raw when it is not)', async () => {
+    it('a link cannot write the app state: ?overrides= is an ordinary query parameter', async () => {
         at('/?overrides=' + encodeURIComponent('{"hotel":"H1"}'))
         await mount()
-        expect(appState.value).toMatchObject({ hotel: 'H1' })
-        document.body.innerHTML = ''
-        at('/?overrides=plain')
-        await mount()
-        expect(appState.value).toMatchObject({ config: 'plain' })
+        expect(appState.value).not.toHaveProperty('hotel')
+        expect(appState.value).not.toHaveProperty('config')
     })
 
     it('a config attribute seeds the app state too', async () => {

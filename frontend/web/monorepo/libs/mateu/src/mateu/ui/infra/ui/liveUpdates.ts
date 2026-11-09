@@ -2,7 +2,8 @@ import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
-import { updateHeaderValue } from '@infra/ui/headerValues.ts'
+import { scopeHeaderValues, updateHeaderValue } from '@infra/ui/headerValues.ts'
+import { tabsShareIdentity } from '@infra/http/authToken.ts'
 import { inboxStore, notificationChangesOf } from '@infra/notify/inboxStore.ts'
 import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progress.ts'
 
@@ -17,6 +18,11 @@ import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progres
  * others through the header-values store's storage broadcast. No polling: the server pushes, and an
  * idle stream only carries a heartbeat.
  *
+ * The election and the relay are per APP (base url + server-side type): two apps on one origin each
+ * follow their own stream. And when the tabs do not share an identity (a token per tab, see
+ * `tabsShareIdentity`) nothing is relayed: what is pushed to one user must not reach another's tab,
+ * so each tab holds its own stream.
+ *
  * The stream is the existing SSE endpoint (`/mateu/v3/sse/…`) running the app-level
  * `_live-updates` action — no new endpoint in any adapter. The server ends it every few minutes on
  * purpose; the leader reconnects at once (with a back-off on errors).
@@ -24,6 +30,11 @@ import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progres
 export const LEADER_KEY = 'mateu-live-leader'
 /** How the leader tab hands a live inbox change to the other tabs of the browser. */
 export const INBOX_CHANGE_KEY = 'mateu-inbox-change'
+
+/** Pure: which app a stream belongs to. */
+export const liveScopeOf = (baseUrl: string, serverSideType: string): string => `${baseUrl}|${serverSideType}`
+/** Pure: a storage key of one app (`LEADER_KEY`, `INBOX_CHANGE_KEY`). */
+export const scopedKey = (key: string, scope: string): string => `${key}:${scope}`
 export const HEARTBEAT_MS = 5_000
 export const STALE_MS = 15_000
 
@@ -50,20 +61,28 @@ const tabId = Math.random().toString(36).slice(2) + Date.now().toString(36)
 interface Target { baseUrl: string, route: string, serverSideType: string }
 
 let target: Target | null = null
+/** The tabs do not share an identity: this one holds its own stream and relays nothing. */
+let ownStream = false
 let heartbeat: ReturnType<typeof setInterval> | undefined
 let controller: AbortController | null = null
 let failures = 0
 let reconnectTimer: ReturnType<typeof setTimeout> | undefined
 
-const readLeader = (): LeaderRecord | null => safeLocalStorage.getJson<LeaderRecord | null>(LEADER_KEY, null)
+const leaderKey = (of: Target): string => scopedKey(LEADER_KEY, liveScopeOf(of.baseUrl, of.serverSideType))
+const inboxKey = (of: Target): string => scopedKey(INBOX_CHANGE_KEY, liveScopeOf(of.baseUrl, of.serverSideType))
+const readLeader = (of: Target): LeaderRecord | null => safeLocalStorage.getJson<LeaderRecord | null>(leaderKey(of), null)
 
 const tick = () => {
     if (!target) return
+    if (ownStream) {
+        if (!controller) connect()
+        return
+    }
     const now = Date.now()
-    if (shouldLead(readLeader(), tabId, now)) {
-        safeLocalStorage.setJson(LEADER_KEY, { tab: tabId, at: now })
+    if (shouldLead(readLeader(target), tabId, now)) {
+        safeLocalStorage.setJson(leaderKey(target), { tab: tabId, at: now })
         // re-read: two tabs claiming in the same instant — the last writer wins, the other yields
-        if (readLeader()?.tab === tabId) {
+        if (readLeader(target)?.tab === tabId) {
             if (!controller) connect()
             return
         }
@@ -82,7 +101,9 @@ const connect = () => {
     if (!target || controller) return
     const own = new AbortController()
     controller = own
-    const { baseUrl, route, serverSideType } = target
+    const streaming = target
+    const { baseUrl, route, serverSideType } = streaming
+    const relays = !ownStream
     const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
     const path = (route || '_no_route').replace(/^\/+/, '')
     Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + path), rendererHeaders())
@@ -117,11 +138,12 @@ const connect = () => {
                     // the inbox of this user changed (LiveNotifications.publish): the bell follows
                     for (const change of notificationChangesOf(increment)) {
                         inboxStore.applyChange(change)
+                        if (!relays) continue
                         // and so do the other tabs (they hold no stream: storage tells them)
-                        safeLocalStorage.setJson(INBOX_CHANGE_KEY, { at: Date.now(), tab: tabId, change })
+                        safeLocalStorage.setJson(inboxKey(streaming), { at: Date.now(), tab: tabId, change })
                         // the write already fired their storage event: the entry (another user's,
                         // on a shared machine after a sign-out) must not stay at rest in the browser
-                        safeLocalStorage.remove(INBOX_CHANGE_KEY)
+                        safeLocalStorage.remove(inboxKey(streaming))
                     }
                 } catch { /* a heartbeat or a malformed chunk: skip it */ }
             }
@@ -137,9 +159,9 @@ const connect = () => {
     })
 }
 
-const release = () => {
+const release = (of: Target | null = target) => {
     stopStream()
-    if (readLeader()?.tab === tabId) safeLocalStorage.remove(LEADER_KEY)
+    if (of && !ownStream && readLeader(of)?.tab === tabId) safeLocalStorage.remove(leaderKey(of))
 }
 
 let unloadHooked = false
@@ -149,29 +171,34 @@ let unloadHooked = false
  * the lead; off → it lets go. Called on every shell update; cheap when nothing changed.
  */
 export const syncLiveUpdates = (app: App | undefined, baseUrl: string) => {
+    const shared = tabsShareIdentity()
+    // header values also change through ordinary answers: scoped whether or not there is a stream
+    scopeHeaderValues(shared ? liveScopeOf(baseUrl, app?.serverSideType ?? '') : null)
     const want = !!app?.liveUpdates && typeof window !== 'undefined' && typeof fetch === 'function'
     if (!want) {
         if (target) {
+            const previous = target
             target = null
             clearInterval(heartbeat)
             heartbeat = undefined
-            release()
+            release(previous)
         }
         return
     }
     const next: Target = { baseUrl, route: app!.rootRoute || '', serverSideType: app!.serverSideType ?? '' }
     const changed = !target || target.baseUrl !== next.baseUrl || target.serverSideType !== next.serverSideType
+    if (changed) release(target)
+    ownStream = !shared
     target = next
-    if (changed) stopStream()
     if (!heartbeat) {
         heartbeat = setInterval(tick, HEARTBEAT_MS)
     }
     if (!unloadHooked) {
         unloadHooked = true
-        window.addEventListener('pagehide', release)
+        window.addEventListener('pagehide', () => release())
         // an inbox change the leader tab received
         window.addEventListener('storage', (e: StorageEvent) => {
-            if (e.key !== INBOX_CHANGE_KEY || !e.newValue) return
+            if (!target || ownStream || e.key !== inboxKey(target) || !e.newValue) return
             try {
                 const record = JSON.parse(e.newValue) as { tab?: string, change?: NotificationsChanged }
                 if (record.tab !== tabId && record.change) inboxStore.applyChange(record.change)

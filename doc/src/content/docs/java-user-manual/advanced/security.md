@@ -397,7 +397,7 @@ Every Java adapter therefore serves Mateu's assets with a policy (Spring Securit
 | Path | `Cache-Control` | Why |
 |---|---|---|
 | `/version_<n>/**` (Redwood) | `max-age=31536000, public, immutable` | the build stamps a new number into the path whenever the bundle changes |
-| `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle, keycloak.min.js…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
+| `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
 
 On Spring they resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
 
