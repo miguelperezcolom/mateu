@@ -1,8 +1,7 @@
 # ResponsiveGrid is the general layout foundation: `columns` are tracks (fill = share the rest,
 # hug = as wide as the content, fixed = a length), `stackBelow` collapses it to one column on
 # narrow screens. With `gridTemplateAreas`, Slotted children name the area they go to.
-# A main + aside + footer page body is a ResponsiveGrid with three named areas (ContentLayout,
-# which did the same, is removed in 3.0.0).
+# A main + aside + footer page body is a ResponsiveGrid with three named areas.
 content:
   - {type: Text, text: "Tracks: fixed 10rem · fill · hug", container: h4}
   - type: ResponsiveGrid

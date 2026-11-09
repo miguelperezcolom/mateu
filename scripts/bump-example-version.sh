@@ -26,7 +26,8 @@ done
 # The starters' YAML (and the AGENTS.md beside it) point `$schema` at the schemas OF THE RELEASE they
 # pin — the raw files at tag v<version>, never master, which can be ahead of that release. The New
 # Project generator rewrites the same URL to the version it writes (new-project.json `replacements`).
-for f in $(grep -rlE "raw\.githubusercontent\.com/miguelperezcolom/mateu/v$REL/backend/shared/uidl/" starters || true); do
+# starters/generator/cases.json is excluded: its versions are fixed test inputs (v3.0-alpha.999), not a pin.
+for f in $(grep -rlE --exclude=cases.json "raw\.githubusercontent\.com/miguelperezcolom/mateu/v$REL/backend/shared/uidl/" starters || true); do
   sed -E -i.bak "s#(raw\.githubusercontent\.com/miguelperezcolom/mateu/)v$REL(/backend/shared/uidl/)#\1v$new\3#g" "$f"   # \2 is REL's own group
   rm -f "$f.bak"
   echo "$f (\$schema) → v$new"

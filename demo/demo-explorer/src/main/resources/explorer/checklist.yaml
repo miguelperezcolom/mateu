@@ -71,7 +71,6 @@ groups:
   - {id: "component:BoardLayoutRow", title: "BoardLayoutRow"}
   - {id: "component:CarouselLayout", title: "CarouselLayout", doc: "https://mateu.io/java-ui-definition/components/carousel-layout/"}
   - {id: "component:Container", title: "Container", doc: "https://mateu.io/java-ui-definition/components/container/"}
-  - {id: "component:ContentLayout", title: "ContentLayout"}
   - {id: "component:Div", title: "Div"}
   - {id: "component:FullWidth", title: "FullWidth", doc: "https://mateu.io/java-ui-definition/components/full-width/"}
   - {id: "component:HorizontalLayout", title: "HorizontalLayout", doc: "https://mateu.io/java-ui-definition/components/horizontal-layout/"}
