@@ -75,8 +75,20 @@ object MateuUpdater {
 
     /** Restarts the app; its launcher applies the staged update before the IDE starts again. */
     fun restart() {
+        if (startedWithoutLauncher(System.getProperty("os.name", ""), System.getenv("IDEA_RESTART_VIA_EXIT_CODE"))) {
+            val product = loadMateuConfig().productName
+            notify("Close $product to update", "Then open it from its shortcut: that applies the update.", NotificationType.INFORMATION, null)
+            return
+        }
         ApplicationManager.getApplication().invokeLater { ApplicationManager.getApplication().restart() }
     }
+
+    /**
+     * Windows: a `mateu://` link starts `idea64.exe` itself (the registered handler is never a batch
+     * file), so a session it started has no launcher waiting to apply the update on a restart.
+     */
+    internal fun startedWithoutLauncher(osName: String, restartViaExitCode: String?): Boolean =
+        osName.lowercase().contains("win") && restartViaExitCode.isNullOrBlank()
 
     private fun check(): UpdateResult = synchronized(lock) {
         val result = UpdateCheck(settings(), AppRegistry.installedPluginVersion()).run()

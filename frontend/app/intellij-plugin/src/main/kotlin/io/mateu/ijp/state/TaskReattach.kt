@@ -18,8 +18,8 @@ data class TaskOriginEntry(
     val serverSideType: String?,
 )
 
-/** A remembered task as it is kept on disk: where it came from, and since when. */
-data class StoredTask(val origin: TaskOriginEntry, val rememberedAt: Long)
+/** A remembered task as it is kept on disk: where it came from, since when, and whose session it was. */
+data class StoredTask(val origin: TaskOriginEntry, val rememberedAt: Long, val scope: String)
 
 /** Where the ledgers are kept between IDE runs (the plugin's application-level state). */
 interface TaskLedgerStore {
@@ -32,6 +32,8 @@ class TaskLedger(
     private val max: Int = 50,
     private val now: () -> Long = System::currentTimeMillis,
     private val onChange: () -> Unit = {},
+    /** Whose session these tasks belong to ([io.mateu.ijp.api.TokenProvider.sessionScope]); null = anonymous. */
+    val scope: String? = null,
 ) {
     private val entries = LinkedHashMap<String, TaskOriginEntry>()
     private val rememberedAt = HashMap<String, Long>()
@@ -77,7 +79,7 @@ class TaskLedger(
 
     /** What goes to disk. */
     @Synchronized
-    fun stored(): List<StoredTask> = entries.values.map { StoredTask(it, rememberedAt[it.taskId] ?: 0L) }
+    fun stored(): List<StoredTask> = entries.values.map { StoredTask(it, rememberedAt[it.taskId] ?: 0L, scope.orEmpty()) }
 
     @Synchronized fun get(taskId: String): TaskOriginEntry? = entries[taskId]
 
@@ -88,11 +90,11 @@ class TaskLedger(
 
 /**
  * One ledger per app for the whole IDE: a new [AppSession] of the same app finds its tasks, and with
- * a [TaskLedgerStore] attached so does the next IDE run. Each backend keeps its own list (scoped by
- * base url, at most 50 tasks each, like the web's memory), and an entry older than [TTL_MILLIS] is
- * not brought back: the server's grace period is a minute by default, a remembered id is worth one
- * question at most, and for an anonymous caller it is the capability to see the task, so it does not
- * stay on disk indefinitely.
+ * a [TaskLedgerStore] attached so does the next IDE run. Each backend and identity keeps its own list
+ * (at most 50 tasks each, like the web's memory), and an entry older than [TTL_MILLIS] is not brought
+ * back: the server's grace period is a minute by default and a remembered id is worth one question at
+ * most. An ANONYMOUS session's tasks never reach the disk: there the id is the capability to see and
+ * cancel the task, and the next person on this profile must not inherit it.
  */
 object TaskLedgers {
     const val TTL_MILLIS = 60L * 60L * 1000L
@@ -104,8 +106,8 @@ object TaskLedgers {
     /** The clock of the ledgers (test hook). */
     @Volatile var now: () -> Long = System::currentTimeMillis
 
-    fun of(baseUrl: String): TaskLedger = ledgers.computeIfAbsent(keyOf(baseUrl)) {
-        TaskLedger(now = { now() }, onChange = { persist() })
+    fun of(baseUrl: String, scope: String? = null): TaskLedger = ledgers.computeIfAbsent(keyOf(baseUrl, scope)) {
+        TaskLedger(now = { now() }, onChange = { persist() }, scope = scope)
     }
 
     /** Brings back what [store] kept (once per store; it is application-wide) and saves from now on. */
@@ -115,17 +117,17 @@ object TaskLedgers {
         this.store = store
         val cutoff = now() - TTL_MILLIS
         store.load()
-            .filter { it.origin.taskId.isNotBlank() && it.origin.baseUrl.isNotBlank() && it.rememberedAt >= cutoff }
-            .groupBy { keyOf(it.origin.baseUrl) }
-            .forEach { (key, tasks) -> of(key).restore(tasks) }
+            .filter { it.origin.taskId.isNotBlank() && it.origin.baseUrl.isNotBlank() && it.scope.isNotBlank() && it.rememberedAt >= cutoff }
+            .groupBy { it.origin.baseUrl to it.scope }
+            .forEach { (key, tasks) -> of(key.first, key.second).restore(tasks) }
         persist() // what expired does not stay on disk
     }
 
     private fun persist() {
-        store?.save(ledgers.values.flatMap { it.stored() })
+        store?.save(ledgers.values.filter { it.scope != null }.flatMap { it.stored() })
     }
 
-    private fun keyOf(baseUrl: String) = baseUrl.trimEnd('/')
+    private fun keyOf(baseUrl: String, scope: String?) = baseUrl.trimEnd('/') + "|" + scope.orEmpty()
 
     /** test hook */
     fun clear() {

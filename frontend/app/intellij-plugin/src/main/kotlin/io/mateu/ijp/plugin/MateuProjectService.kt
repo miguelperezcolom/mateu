@@ -118,7 +118,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         if (session != null) return
         // the running tasks remembered by the previous IDE run, before any session asks for its ledger
         io.mateu.ijp.state.TaskLedgers.attach(MateuTaskStore.getInstance())
-        val s = AppSession(baseUrl, config, io.mateu.ijp.auth.MateuAuthService.getInstance(project))
+        val s = AppSession(baseUrl, config, io.mateu.ijp.auth.MateuAuthService.getInstance(project).forCurrentUi())
         session = s
         val viewManager = MateuViewManager(project, s)
         s.openViewHandler = viewManager::openView

@@ -79,6 +79,57 @@ class MicroFrontendResolvedRenderTest : BasePlatformTestCase() {
         assertEquals("remote.Widget", remote.requests.single().path("serverSideType").asText())
     }
 
+    /** The island's panel inside a page body, the way a real render leaves it. */
+    private fun renderedIn(ctx: AppContext): javax.swing.JPanel {
+        val page = javax.swing.JPanel()
+        page.add(render(ctx, answer))
+        settle()
+        return page
+    }
+
+    fun testAnIslandEndsWithThePageItWasRenderedIn() {
+        val ctx = host()
+        val page = renderedIn(ctx)
+        val sessions = ctx.islandSessions
+        assertEquals(1, sessions.size)
+        assertNotSame(ctx.session, sessions.single())
+        assertFalse(sessions.single().executor.isShutdown)
+
+        ctx.retireIslandsUnder(page)
+
+        assertTrue(ctx.islandSessions.isEmpty())
+        assertTrue("its own session stops with it", sessions.single().executor.isShutdown)
+        assertFalse("the host goes on", ctx.session.executor.isShutdown)
+    }
+
+    fun testAnIslandOutsideWhatIsReplacedGoesOn() {
+        val ctx = host()
+        renderedIn(ctx)
+        ctx.retireIslandsUnder(javax.swing.JPanel())
+        assertEquals(1, ctx.islandSessions.size)
+        assertFalse(ctx.islandSessions.single().executor.isShutdown)
+    }
+
+    fun testEndingTheSessionEndsTheIslandsOfEveryView() {
+        val ctx = host()
+        renderedIn(ctx)
+        val island = ctx.islandSessions.single()
+        ctx.session.dispose()
+        assertTrue(island.executor.isShutdown)
+    }
+
+    fun testADisposedIslandDoesNotBringItsPollingBack() {
+        val ctx = host()
+        val island = AppContext(AppSession("http://127.0.0.1:9"))
+        island.silentErrors = true
+        island.contentPane = island.newSlot()
+        ctx.adoptIsland(island, island.contentPane!!)
+        island.dispose()
+        island.applyIncrement(json(answer)) // the answer that was in flight
+        settle()
+        assertNull(island.lastContent)
+    }
+
     fun testAnUnresolvedMicroFrontendAsksItsRemoteAsAlways() {
         render(host(), null)
         val until = System.currentTimeMillis() + 5_000

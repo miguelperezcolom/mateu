@@ -74,7 +74,7 @@ class MateuVisualEditor(
                     if (frame?.isMain == true) installBridge()
                 }
             }, b.cefBrowser)
-            b.loadURL("http://127.0.0.1:$port/index.html")
+            b.loadURL(MateuVisualEditorServer.editorUrl(port))
         }
         // Out-of-band edits (the raw YAML text tab, or the file changing on disk) must reach the canvas
         // or it silently desyncs — mirror VSCode's onDidChangeTextDocument. Our own writes are skipped

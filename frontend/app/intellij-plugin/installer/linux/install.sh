@@ -15,38 +15,48 @@ APPS="$DATA_HOME/applications"
 ENTRY="$APPS/@SLUG@.desktop"
 HUB=@HUB@
 
+# The settings and workspace wait here during an upgrade: beside the install (a rename on one
+# filesystem) and with a fixed name, so a run that dies never leaves them in a temp dir the next
+# reboot clears, and the next run still finds them.
+KEEP="$DEST.keep"
+
 if [ "${1:-}" = "--uninstall" ]; then
   rm -f "$ENTRY"
-  rm -rf "$DEST"
+  rm -rf "$DEST" "$KEEP"
   command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" || true
   echo "@PRODUCT@ removed."
   exit 0
 fi
 
+restore_kept() {
+  for d in data/config workspace; do
+    if [ -d "$KEEP/$d" ]; then
+      rm -rf "${DEST:?}/$d"
+      mkdir -p "$DEST/$(dirname "$d")"
+      mv "$KEEP/$d" "$DEST/$d"
+    fi
+  done
+  rm -rf "$KEEP"
+}
+
 if [ "$SRC" != "$DEST" ]; then
-  KEEP=""
   if [ -d "$DEST" ]; then
-    KEEP="$(mktemp -d)"
     for d in data/config workspace; do
-      if [ -d "$DEST/$d" ]; then
+      # already kept by a run that died: that copy is the user's, what is in $DEST is not
+      if [ -d "$DEST/$d" ] && [ ! -e "$KEEP/$d" ]; then
         mkdir -p "$KEEP/$(dirname "$d")"
         mv "$DEST/$d" "$KEEP/$d"
       fi
     done
-    rm -rf "$DEST"
   fi
+  # whatever happens from here on, the user's data goes back into the install
+  trap restore_kept EXIT
+  trap 'exit 130' INT TERM HUP
+  rm -rf "$DEST"
   mkdir -p "$DEST"
   cp -R "$SRC/." "$DEST/"
-  if [ -n "$KEEP" ]; then
-    for d in data/config workspace; do
-      if [ -d "$KEEP/$d" ]; then
-        rm -rf "${DEST:?}/$d"
-        mkdir -p "$DEST/$(dirname "$d")"
-        mv "$KEEP/$d" "$DEST/$d"
-      fi
-    done
-    rm -rf "$KEEP"
-  fi
+  trap - EXIT INT TERM HUP
+  restore_kept
 fi
 
 mkdir -p "$APPS"

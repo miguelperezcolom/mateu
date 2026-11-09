@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import junit.framework.TestCase
 
 /** Reattach bookkeeping: what the session remembers, what it asks the server, what it resumes. */
+private const val SCOPE = "https://idp|client"
+
 class TaskReattachTest : TestCase() {
 
     private val json = ObjectMapper()
@@ -100,7 +102,7 @@ class TaskReattachTest : TestCase() {
     }
 
     private fun stored(id: String, base: String = "http://app", at: Long) =
-        StoredTask(TaskOriginEntry(id, base, "/imports", "app.Imports"), at)
+        StoredTask(TaskOriginEntry(id, base, "/imports", "app.Imports"), at, SCOPE)
 
     override fun tearDown() {
         TaskLedgers.clear()
@@ -112,14 +114,14 @@ class TaskReattachTest : TestCase() {
         TaskLedgers.now = { 1_000L }
         val store = MemoryStore()
         TaskLedgers.attach(store)
-        TaskLedgers.of("http://app").observe(task("t1", "running"), origin("t1"))
+        TaskLedgers.of("http://app", SCOPE).observe(task("t1", "running"), origin("t1"))
         assertEquals(listOf(stored("t1", at = 1_000L)), store.kept)
 
         // the IDE is opened again: nothing in memory, the same store
         TaskLedgers.clear()
         TaskLedgers.now = { 2_000L }
         TaskLedgers.attach(store)
-        val back = TaskLedgers.of("http://app").get("t1")!!
+        val back = TaskLedgers.of("http://app", SCOPE).get("t1")!!
         assertEquals("/imports", back.route)
         assertEquals("app.Imports", back.serverSideType)
     }
@@ -129,7 +131,7 @@ class TaskReattachTest : TestCase() {
         val now = System.currentTimeMillis()
         val store = MemoryStore(listOf(stored("t1", at = now)))
         TaskLedgers.attach(store)
-        val ledger = TaskLedgers.of("http://app")
+        val ledger = TaskLedgers.of("http://app", SCOPE)
         assertEquals(listOf("t1"), TaskReattach.lost(ledger) { false }.map { it.taskId })
         ledger.forget(listOf("t1"))
         assertEquals(emptyList<StoredTask>(), store.kept)
@@ -139,7 +141,7 @@ class TaskReattachTest : TestCase() {
         TaskLedgers.clear()
         val store = MemoryStore()
         TaskLedgers.attach(store)
-        val ledger = TaskLedgers.of("http://app")
+        val ledger = TaskLedgers.of("http://app", SCOPE)
         ledger.observe(task("t1", "running"), origin("t1"))
         ledger.observe(task("t1", "done"), origin("t1"))
         assertEquals(emptyList<StoredTask>(), store.kept)
@@ -149,8 +151,8 @@ class TaskReattachTest : TestCase() {
         TaskLedgers.clear()
         val now = System.currentTimeMillis()
         TaskLedgers.attach(MemoryStore(listOf(stored("a1", "http://a/", now), stored("b1", "http://b", now))))
-        assertEquals(listOf("a1"), TaskLedgers.of("http://a").all().map { it.taskId })
-        assertEquals(listOf("b1"), TaskLedgers.of("http://b/").all().map { it.taskId })
+        assertEquals(listOf("a1"), TaskLedgers.of("http://a", SCOPE).all().map { it.taskId })
+        assertEquals(listOf("b1"), TaskLedgers.of("http://b/", SCOPE).all().map { it.taskId })
     }
 
     fun testAnOldEntryIsNotBroughtBackAndLeavesTheDisk() {
@@ -161,7 +163,7 @@ class TaskReattachTest : TestCase() {
             listOf(stored("old", at = now - TaskLedgers.TTL_MILLIS - 1), stored("fresh", at = now - TaskLedgers.TTL_MILLIS)),
         )
         TaskLedgers.attach(store)
-        assertEquals(listOf("fresh"), TaskLedgers.of("http://app").all().map { it.taskId })
+        assertEquals(listOf("fresh"), TaskLedgers.of("http://app", SCOPE).all().map { it.taskId })
         assertEquals(listOf("fresh"), store.kept.map { it.origin.taskId })
     }
 
@@ -169,11 +171,38 @@ class TaskReattachTest : TestCase() {
         TaskLedgers.clear()
         val store = MemoryStore()
         TaskLedgers.attach(store)
-        val ledger = TaskLedgers.of("http://app")
+        val ledger = TaskLedgers.of("http://app", SCOPE)
         ledger.observe(task("t1", "running"), origin("t1"))
         store.kept = emptyList() // a second project opening must not re-read the store
         TaskLedgers.attach(store)
         assertEquals(listOf("t1"), ledger.all().map { it.taskId })
+    }
+
+
+    fun testAnAnonymousSessionsTasksNeverReachTheDisk() {
+        TaskLedgers.clear()
+        val store = MemoryStore()
+        TaskLedgers.attach(store)
+        val anonymous = TaskLedgers.of("http://app")
+        anonymous.observe(task("t1", "running"), origin("t1"))
+        assertEquals(listOf("t1"), anonymous.all().map { it.taskId }) // this run still follows it
+        assertEquals(emptyList<StoredTask>(), store.kept)
+    }
+
+    fun testWhatADiskEntryWithoutAnIdentitySaysIsNotBelieved() {
+        TaskLedgers.clear()
+        val now = System.currentTimeMillis()
+        val store = MemoryStore(listOf(StoredTask(TaskOriginEntry("t1", "http://app", "/r", "s"), now, "")))
+        TaskLedgers.attach(store)
+        assertTrue(TaskLedgers.of("http://app").isEmpty())
+        assertEquals(emptyList<StoredTask>(), store.kept)
+    }
+
+    fun testIdentitiesOnTheSameBackendDoNotSeeEachOthersTasks() {
+        TaskLedgers.clear()
+        TaskLedgers.of("http://app", "issuer-a|c").observe(task("t1", "running"), origin("t1"))
+        assertTrue(TaskLedgers.of("http://app", "issuer-b|c").isEmpty())
+        assertTrue(TaskLedgers.of("http://app").isEmpty())
     }
 
     fun testARestoredLedgerStillKeepsAtMostWhatTheServerLooksAt() {
@@ -186,7 +215,7 @@ class TaskReattachTest : TestCase() {
     fun testWhatThisRunKnowsWinsOverTheDisk() {
         val ledger = TaskLedger(now = { 5L })
         ledger.observe(task("t1", "running"), origin("t1"))
-        ledger.restore(listOf(StoredTask(TaskOriginEntry("t1", "http://app", "/stale", null), 1L)))
+        ledger.restore(listOf(StoredTask(TaskOriginEntry("t1", "http://app", "/stale", null), 1L, SCOPE)))
         assertEquals("/imports", ledger.get("t1")!!.route)
         assertEquals(5L, ledger.stored().single().rememberedAt)
     }

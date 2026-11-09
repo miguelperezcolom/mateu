@@ -199,13 +199,53 @@ class AppContext(val session: AppSession) {
     /** Set by navigations: the next ServerSide render is a NEW screen even if it looks the same. */
     private var freshScreen = true
 
-    /** The view was closed: pending periodic refreshes and event subscriptions die with it. */
+    /** The view was closed: pending periodic refreshes, event subscriptions and its islands die with it. */
     fun dispose() {
+        if (disposed) return
+        disposed = true
         polling.stop()
         autoSaveTimer?.stop()
         session.unsubscribeAll(this)
         if (session.activeView === this) session.activeView = null
+        islands.toList().forEach { it.context.dispose() }
+        islands.clear()
+        host?.session?.forgetIsland(this)
+        if (ownsSession) session.dispose()
     }
+
+    private var disposed = false
+
+    /** An embedded island this view rendered, and the panel it fills. */
+    private class Island(val context: AppContext, val slot: JComponent)
+
+    private val islands = ArrayList<Island>()
+
+    /** The view that rendered this one as an island (null for a top-level view). */
+    private var host: AppContext? = null
+
+    /** This view has a session of its own (another origin's), which ends with it. */
+    var ownsSession: Boolean = false
+
+    /**
+     * [island] was rendered inside [slot]: it ends when [slot] is rendered over, when this view goes
+     * and with the session. Without this, each re-render of the host adds another island whose polling
+     * goes on for ever.
+     */
+    fun adoptIsland(island: AppContext, slot: JComponent) {
+        island.host = this
+        islands += Island(island, slot)
+        session.rememberIsland(island)
+    }
+
+    /** What [root] holds is about to be replaced: the islands rendered in it end. */
+    internal fun retireIslandsUnder(root: JComponent) {
+        val gone = islands.filter { SwingUtilities.isDescendingFrom(it.slot, root) }
+        islands.removeAll(gone.toSet())
+        gone.forEach { it.context.dispose() }
+    }
+
+    /** The sessions of the islands this view has rendered and not retired (test hook). */
+    internal val islandSessions: List<AppSession> get() = islands.map { it.context.session }
 
     /** The last component rendered into this view's content slot — what the assistant is told is on screen. */
     var lastContent: JsonNode? = null
@@ -243,6 +283,7 @@ class AppContext(val session: AppSession) {
             node.alignmentX = java.awt.Component.LEFT_ALIGNMENT
             target.add(node)
         } else {
+            retireIslandsUnder(target)
             target.removeAll()
             target.layout = BorderLayout()
             target.add(node, BorderLayout.CENTER)
@@ -259,6 +300,7 @@ class AppContext(val session: AppSession) {
 
     /** Render [children] into [container]: one child fills (BorderLayout), several stack vertically. */
     private fun putChildren(container: JComponent, renderer: ComponentRenderer, children: JsonNode, state: JsonNode, data: JsonNode) {
+        retireIslandsUnder(container)
         container.removeAll()
         val list = if (children.isArray) children.toList() else emptyList()
         if (list.size == 1) {
@@ -310,6 +352,7 @@ class AppContext(val session: AppSession) {
     }
 
     fun navigate(route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) {
+        if (disposed) return
         val target = contentPane ?: return
         val loading = loadingLabel()
         fill(target, loading, add = false)
@@ -380,7 +423,7 @@ class AppContext(val session: AppSession) {
         silent: Boolean = false,
         onDone: ((Boolean) -> Unit)? = null,
     ) {
-        if (contentPane == null) { onDone?.invoke(false); return }
+        if (contentPane == null || disposed) { onDone?.invoke(false); return }
 
         // A blocking task covers this view: nothing the user presses (a toolbar button outside the
         // layer, a shortcut) starts another action on it. Triggers and polling are silent and go on.
@@ -790,7 +833,8 @@ class AppContext(val session: AppSession) {
 
     // ── increment application ─────────────────────────────────────────────────────────
     fun applyIncrement(increment: JsonNode?) {
-        if (increment == null) return
+        // an answer still in flight when the view went must not bring its polling back
+        if (increment == null || disposed) return
         // first: the components about to render may fetch from the sources they name
         session.sources.addReferencedRestSources(increment.path("restSources"))
 
@@ -1238,14 +1282,14 @@ class AppContext(val session: AppSession) {
     }
 
     // ── documents ──────────────────────────────────────────────────────────────────────
-    /** Fetches the document off the EDT, then saves it (attachment) or opens/prints it (inline). */
+    /** Fetches the document off the EDT, then opens/prints it (a viewer type shown inline) or saves it. */
     private fun presentDocument(plan: io.mateu.ijp.ui.Documents.Plan) {
         Thread({
             val bytes = runCatching { io.mateu.ijp.ui.Documents.bytesOf(plan) }
             SwingUtilities.invokeLater {
                 bytes.onFailure { showMessage(it.message ?: "The document could not be fetched", "error") }
                 bytes.onSuccess { content ->
-                    if (plan.inline) {
+                    if (io.mateu.ijp.ui.Documents.opensWithOs(plan)) {
                         val file = io.mateu.ijp.ui.Documents.tempFileOf(plan, content)
                         if (!io.mateu.ijp.ui.Documents.openWithOs(file, plan.print)) saveDocument(plan, content)
                     } else {
@@ -1297,6 +1341,7 @@ class AppContext(val session: AppSession) {
                     island.silentErrors = true
                     // An island's SetWindowTitle must not leak to the navigator tool window.
                     island.titleConsumer = {}
+                    adoptIsland(island, container)
                     if (homeRoute.isNotBlank() || homeSST.isNotBlank()) {
                         island.navigate(homeRoute, homeConsumedRoute, homeSST, "")
                     }

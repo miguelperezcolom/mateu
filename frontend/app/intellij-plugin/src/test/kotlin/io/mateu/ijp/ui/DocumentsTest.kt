@@ -23,6 +23,28 @@ class DocumentsTest : TestCase() {
         assertTrue(plan.print)
     }
 
+    private fun inline(filename: String, mimeType: String?, disposition: String = "inline") = Documents.planOf(
+        json("""{"filename":"$filename"${if (mimeType != null) ""","mimeType":"$mimeType"""" else ""},"base64Content":"YQ==","disposition":"$disposition"}"""),
+        "http://x",
+    )!!
+
+    fun testOnlyAViewerTypeOpensWithTheOsUnasked() {
+        assertTrue(Documents.opensWithOs(inline("report.pdf", "application/pdf")))
+        assertTrue(Documents.opensWithOs(inline("REPORT.PDF", "application/pdf; qs=1")))
+        assertTrue(Documents.opensWithOs(inline("a.jpeg", "image/jpeg")))
+        assertTrue(Documents.opensWithOs(inline("notes.txt", "text/plain; charset=utf-8")))
+    }
+
+    fun testWhatARemoteServerNamesIsNeverRunByTheOs() {
+        for (name in listOf("report.bat", "x.exe", "x.cmd", "x.vbs", "x.jar", "x.hta", "x.desktop", "x.lnk", "noextension", "x.pdf.exe", "x.csv")) {
+            assertFalse(name, Documents.opensWithOs(inline(name, "application/pdf")))
+        }
+        // the name and the MIME type have to agree, and both have to be there
+        assertFalse(Documents.opensWithOs(inline("report.pdf", "application/x-msdownload")))
+        assertFalse(Documents.opensWithOs(inline("report.pdf", null)))
+        assertFalse(Documents.opensWithOs(inline("report.pdf", "application/pdf", disposition = "attachment")))
+    }
+
     fun testInlineBytesAreDecoded() {
         val plan = Documents.planOf(json("""{"filename":"a.csv","mimeType":"text/csv","base64Content":"YTtiCg=="}"""), "http://x")!!
         assertFalse(plan.inline)

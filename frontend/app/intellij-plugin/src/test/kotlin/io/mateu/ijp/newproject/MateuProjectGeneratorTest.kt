@@ -119,10 +119,34 @@ class MateuProjectGeneratorTest : TestCase() {
         assertEquals("3.0.0-alpha.408", MateuProjectGenerator.nugetVersion("3.0-alpha.408"))
         assertEquals("3.0.0a408", MateuProjectGenerator.pypiVersion("3.0-alpha.408"))
         assertEquals("3.1.0", MateuProjectGenerator.pypiVersion("3.1"))
-        val xml = "<metadata><versioning><latest>3.0-alpha.410</latest><release>3.0-alpha.409</release></versioning></metadata>"
-        assertEquals("3.0-alpha.409", MateuProjectGenerator.latestMateuVersion(manifest, "x") { xml })
         assertEquals("fallback", MateuProjectGenerator.latestMateuVersion(manifest, "fallback") { error("offline") })
         assertTrue(MateuProjectGenerator.pinnedVersion(sources, "static").matches(Regex("^\\d+\\.\\d+.*")))
+    }
+
+    private fun metadata(release: String, vararg versions: String) =
+        "<metadata><versioning><latest>$release</latest><release>$release</release><versions>" +
+            versions.joinToString("") { "<version>$it</version>" } + "</versions></versioning></metadata>"
+
+    fun testANewProjectGetsTheHighestReleaseOfThePinsMajor() {
+        val xml = metadata("4.0.0-beta.1", "3.0-beta.55", "3.0.0", "3.1.0", "3.10.0", "3.9.2", "4.0.0-beta.1", "4.0.0")
+        assertEquals("3.10.0", MateuProjectGenerator.versionFromMetadata(xml, "3.0-beta.55"))
+    }
+
+    fun testAPreReleaseIsNeverPickedOverARelease() {
+        val xml = metadata("3.2-rc.1", "3.0.0", "3.2-rc.1")
+        assertEquals("3.0.0", MateuProjectGenerator.versionFromMetadata(xml, "3.0.0"))
+    }
+
+    fun testBeforeTheGaTheNewestPreReleaseOfTheMajorIsKept() {
+        val xml = metadata("3.0-alpha.412", "3.0-alpha.412", "3.0-beta.9", "3.0-beta.55", "3.0-rc.1", "4.0-alpha.1")
+        assertEquals("3.0-rc.1", MateuProjectGenerator.versionFromMetadata(xml, "3.0-beta.55"))
+        assertEquals("3.0-beta.55", MateuProjectGenerator.versionFromMetadata(metadata("x", "3.0-beta.9", "3.0-beta.55"), "3.0-beta.1"))
+    }
+
+    fun testWithNothingOfThePinsMajorThePinStays() {
+        val xml = metadata("4.0.0", "4.0.0", "2.9.0")
+        assertEquals("3.0-beta.55", MateuProjectGenerator.latestMateuVersion(manifest, "3.0-beta.55") { xml })
+        assertEquals("3.0-beta.55", MateuProjectGenerator.latestMateuVersion(manifest, "3.0-beta.55") { "<metadata/>" })
     }
 
     fun testValidation() {
