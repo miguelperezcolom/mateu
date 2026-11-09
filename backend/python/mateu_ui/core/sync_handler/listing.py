@@ -32,6 +32,7 @@ from ..mapper import (
 )
 from ..registry import normalize
 from ._base import MixinBase
+from .crud import _messages_only, _with_messages_of
 from ._common import (
     RunActionRq,
     SAVED_IN_DRAWER_EVENT,
@@ -257,6 +258,9 @@ class ListingHandlerMixin(MixinBase):
         action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)
         method = fn.__get__(view, cls)
         result = method(*self._build_bulk_arguments(method, row_type, rq))
+        if _messages_only(result):
+            # only messages: the rows changed all the same — refresh and tell
+            return _with_messages_of(self.listing_search(view, rq), self.map_result(result, rq))
         if result is not None:
             return self.map_result(result, rq)
         return self.listing_search(view, rq)

@@ -1216,6 +1216,11 @@ class ComponentMapperMixin(MixinBase):
             return self.map_component(view)
         cls = type(view)
         route = "/" + normalize(getattr(cls, "__mateu_ui__", ""))
+        # an object a ComponentAdapter renders is drawn BY ITS ADAPTER, as it is as a route or a
+        # form field (it used to be reflected field by field — no adapter components or actions)
+        adapter = self.adapter_of(view)
+        if adapter is not None:
+            return self.map_adapted(view, adapter, route)
         if isinstance(view, Wizard):
             # The embedded wizard opens on its first step; its "next"/"back" buttons carry the
             # wizard's own serverSideType so navigation routes back to it.
@@ -1420,6 +1425,9 @@ class ComponentMapperMixin(MixinBase):
                 return
             if type(node).__name__ == "ServerSideComponent":
                 return
+            # an Element's `on` maps a DOM event to an action id of the view, like an action_id
+            if type(node).__name__ == "Element" and isinstance(getattr(node, "on", None), dict):
+                out.extend(v for v in node.on.values() if isinstance(v, str) and v)
             package = ".".join((getattr(type(node), "__module__", "") or "").split(".")[:2])
             if package not in {"mateu_ui.uidl", "mateu_ui.dtos", "mateu_ui.core"}:
                 return

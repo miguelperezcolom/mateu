@@ -146,6 +146,11 @@ describe('railColumns', () => {
         const a = col(), b = col(), c = col(), d = col()
         expect(railColumns([a, b, c, d])).toEqual([a, b, c])
     })
+
+    it('the fallback skips action / menu columns — they say nothing about the row', () => {
+        const act = col({ dataType: 'action' }), a = col(), b = col()
+        expect(railColumns([act, a, b])).toEqual([a, b])
+    })
 })
 
 describe('selectFiltersLayout', () => {

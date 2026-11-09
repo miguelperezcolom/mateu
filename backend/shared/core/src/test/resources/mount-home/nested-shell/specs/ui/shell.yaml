@@ -1,0 +1,7 @@
+# A shell bound to /museum, not to the mount root: its menu routes are relative to the shell.
+type: AppShell
+title: City Museum
+homeRoute: collection
+menu:
+  - {type: RouteLink, label: Collection, route: collection}
+  - {type: RouteLink, label: Visitors, route: visitors}

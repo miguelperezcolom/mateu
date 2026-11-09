@@ -98,7 +98,28 @@ fun renderBadge(metadata: JsonNode): JComponent {
     label.isOpaque = true
     label.background = badgeColor(metadata.text("color"))
     label.border = JBUI.Borders.empty(2, 8)
+    // its icon inside the chip: iconOnLeft before the text, iconOnRight after it (never drawn before)
+    badgeIconOf(metadata)?.let { (name, after) ->
+        (uxActionIcon(name) ?: badgeArrowIcon(name))?.let { icon ->
+            label.icon = icon
+            label.horizontalTextPosition = if (after) javax.swing.SwingConstants.LEADING else javax.swing.SwingConstants.TRAILING
+        }
+    }
     return label
+}
+
+/** A Badge's icon and whether it goes AFTER the text — a label holds one: iconOnLeft wins. */
+internal fun badgeIconOf(metadata: JsonNode): Pair<String, Boolean>? {
+    val left = metadata.text("iconOnLeft")
+    if (left.isNotBlank()) return left to false
+    val right = metadata.text("iconOnRight")
+    return if (right.isNotBlank()) right to true else null
+}
+
+private fun badgeArrowIcon(name: String): javax.swing.Icon? = when (name) {
+    "vaadin:arrow-right" -> com.intellij.icons.AllIcons.General.ArrowRight
+    "vaadin:arrow-left" -> com.intellij.icons.AllIcons.General.ArrowLeft
+    else -> null
 }
 
 fun renderAnchor(ctx: AppContext, metadata: JsonNode): JComponent {
@@ -131,7 +152,25 @@ fun renderProgressBar(metadata: JsonNode, state: JsonNode): JComponent {
         bar.string = text
         bar.accessibleName(text)
     }
+    // the bar's theme (success / error / warning): the platform's own status colours, as the
+    // test runner's bar uses them — every bar used to be the accent colour
+    progressBarStatus(metadata.text("theme"))?.let { status ->
+        bar.putClientProperty("ProgressBar.status", status)
+        bar.foreground = when (status) {
+            "passed" -> ToneColors.solid(ToneColors.Tone.SUCCESS).first
+            "warning" -> ToneColors.solid(ToneColors.Tone.WARNING).first
+            else -> ToneColors.solid(ToneColors.Tone.DANGER).first
+        }
+    }
     return bar
+}
+
+/** A ProgressBar's wire theme as the platform's ProgressBar.status (passed / warning / error). */
+internal fun progressBarStatus(theme: String): String? = when (theme.trim().lowercase()) {
+    "success" -> "passed"
+    "warning" -> "warning"
+    "error", "danger" -> "error"
+    else -> null
 }
 
 private fun stackChildren(r: ComponentRenderer, panel: javax.swing.JPanel, component: JsonNode, state: JsonNode, data: JsonNode) {

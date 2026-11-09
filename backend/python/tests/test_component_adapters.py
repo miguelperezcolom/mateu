@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_ui.uidl import AdaptedView, ComponentAdapter, Message, ui  # noqa: E402
+from mateu_ui.uidl import AdaptedView, ComponentAdapter, Message, action, ui  # noqa: E402
 from mateu_ui.uidl import components as fluent  # noqa: E402
 
 MODULE = sys.modules[__name__]
@@ -72,6 +72,15 @@ class OrderHost:
     def __init__(self):
         self.order = Order()
         self.order.customer = "Luis"
+
+
+@ui("adapter-in-drawer")
+class OrderDrawerHost:
+    x: str = "hi"
+
+    @action
+    def open_order(self) -> fluent.Drawer:
+        return fluent.Drawer(id="d", header_title="Order", content=fluent.EmbeddedView(Order()))
 
 
 def handler() -> SyncHandler:
@@ -147,3 +156,25 @@ def test_the_island_round_trips_through_the_adapter_by_its_type_name():
 def test_the_wire_cannot_write_a_component_holder_field():
     out = load(OrderHost, component_state={"banner": "hacked"})
     assert "a component in a form slot" in json.dumps(out)
+
+
+def test_an_embedded_view_of_an_adapted_object_is_drawn_by_its_adapter():
+    out = load(OrderDrawerHost, action_id="openOrder", component_state={"x": "hi"})
+    islands = []
+
+    def walk(n):
+        if isinstance(n, dict):
+            if n.get("type") == "ServerSide" and n.get("serverSideType") == type_name(Order):
+                islands.append(n)
+            for v in n.values():
+                walk(v)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v)
+
+    walk(out)
+    island = islands[0]
+    # the adapter's state and actions, not the object's attributes reflected one by one
+    assert island["initialData"] == {"customer": "Ana", "lines": 2, "confirmed": False}
+    assert [a["id"] for a in island["actions"]] == ["confirm", "cancelAll"]
+    assert "pending" in json.dumps(island)

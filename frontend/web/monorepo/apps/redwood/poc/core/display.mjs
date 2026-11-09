@@ -1244,6 +1244,8 @@ export function microFrontendOf(m) {
     resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
     // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
     chrome: embeddedChromeOf(m.chrome),
+    // a block of the host page whatever its chrome: never names or moves the window (transport.mjs)
+    windowless: true,
     surface: true,
     lazy: false,
   }

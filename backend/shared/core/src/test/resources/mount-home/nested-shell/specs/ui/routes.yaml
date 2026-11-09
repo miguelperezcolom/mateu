@@ -1,0 +1,14 @@
+type: Routes
+routes:
+  - route: ""
+    layout: home.yaml
+  - route: museum
+    layout: shell.yaml
+  - route: museum/collection
+    layout: collection.yaml
+  - route: museum/visitors
+    layout: visitors.yaml
+  - route: gallery
+    viewModel: io.mateu.core.application.NestedAppShellSyncTest$GalleryShell
+  - route: gallery/rooms
+    layout: rooms.yaml

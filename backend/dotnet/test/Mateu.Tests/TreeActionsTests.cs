@@ -27,6 +27,8 @@ public class TreeActionsView : IComponentTreeSupplier
                 OpenActionId = "openBlock", RangeSelectActionId = "selectRange",
             },
             new HorizontalLayout { Content = [new Mateu.Uidl.Map { MarkerActionId = "openMarker" }] },
+            // an Element's `on` maps DOM events to action ids of the view
+            new Element("button") { On = new Dictionary<string, string> { ["click"] = "elementClicked" } },
             new Card { Content = new EntityHeader { Title = "Ana", Facts = [new Fact { Label = "Visits", Value = "3", ActionId = "openVisits" }, new Fact { Label = "Plain" }] } },
             new TabLayout { Tabs = [new TabPanel("Merge", new RecordMerge { MergeActionId = "mergeRecords" })] },
             new ResponsiveGrid
@@ -82,6 +84,7 @@ public class TreeActionsView : IComponentTreeSupplier
     public void FormSave() { }
     public void FormFab() { }
     public void SwitchRecord() { }
+    public void ElementClicked() { }
 }
 
 #pragma warning restore CS0618, MATEU002
@@ -99,7 +102,7 @@ public class TreeActionsTests
         "openSales", "createFirst", "moveBlock", "selectBlock", "resizeBlock", "openBlock", "selectRange",
         "openMarker", "openVisits", "mergeRecords", "heroGo", "asideGo", "footerGo", "overviewButton",
         "panelGo", "summaryGo", "toParent", "toPrevious", "toNext", "editOverview", "formInside",
-        "formTool", "formSave", "formFab", "_switchRecord",
+        "formTool", "formSave", "formFab", "_switchRecord", "elementClicked",
     ];
 
     [Fact]

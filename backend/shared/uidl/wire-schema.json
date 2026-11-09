@@ -3573,6 +3573,9 @@
       "properties" : {
         "type" : {
           "const" : "MasterDetailLayout"
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/OrientationDto"
         }
       },
       "required" : [ "type" ]
@@ -5399,6 +5402,9 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "data" : {
+          "description" : "Any JSON value."
+        },
         "emitsName" : {
           "type" : "string"
         },
@@ -5843,6 +5849,12 @@
         },
         "text" : {
           "type" : "string"
+        },
+        "variants" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
         }
       },
       "required" : [ "type" ]

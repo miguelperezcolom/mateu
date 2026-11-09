@@ -243,6 +243,10 @@ class CrudHandlerMixin(MixinBase):
         action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
         method = fn.__get__(crud, crud_type)
         result = method(*self._build_bulk_arguments(method, element, rq))
+        if _messages_only(result):
+            # a result that only TELLS the user something changed the rows all the same: the
+            # listing is searched again and the messages ride along (it used to stay stale)
+            return _with_messages_of(self.crud_search(crud, element, rq), self.map_result(result, rq))
         if result is not None:
             return self.map_result(result, rq)
         return self.crud_search(crud, element, rq)
@@ -670,3 +674,22 @@ class CrudHandlerMixin(MixinBase):
                 UIFragment(target_component_id=self.target(rq), component=dialog, action="Add")
             ]
         )
+
+
+def _messages_only(result) -> bool:
+    """Whether a bulk action's result is nothing but messages (a Message, or a list of them)."""
+    from mateu_ui.uidl.messages import Message
+
+    if isinstance(result, Message):
+        return True
+    return (
+        isinstance(result, (list, tuple))
+        and len(result) > 0
+        and all(isinstance(item, Message) for item in result)
+    )
+
+
+def _with_messages_of(refreshed, told):
+    """The refreshed listing's increment, carrying the messages the action answered."""
+    refreshed.messages = list(refreshed.messages) + list(told.messages)
+    return refreshed

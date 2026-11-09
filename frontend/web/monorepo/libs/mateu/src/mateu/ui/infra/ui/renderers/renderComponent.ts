@@ -2,6 +2,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
@@ -74,6 +75,17 @@ export const envelopeStyleOf = (component: Component): string | undefined => {
 const EMPTY = {}
 const orEmpty = (map: object | undefined) => map && Object.keys(map).length > 0 ? map : EMPTY
 
+/**
+ * The data a server-side component renders with: the host's, with the island's OWN on top. An
+ * island delivered inside another page's answer (an EmbeddedView) has no fragment of its own, so
+ * what its page would carry in the fragment's data (a lookup's `<field>-label`) travels with it —
+ * without it a lookup showed the stored id instead of its label.
+ */
+export const islandDataOf = (component: Component, data: ComponentData): ComponentData => {
+    const own = (component as ServerSideComponent).data
+    return own && typeof own === 'object' ? { ...data, ...(own as ComponentData) } : { ...data }
+}
+
 export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered?: boolean | undefined): TemplateResult => {
     if (!component) {
         return html``;
@@ -102,7 +114,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          style="${serverSideStyle(envelopeStyleOf(component))}"
                          class="${component.cssClasses}"
                          .state="${guard([component, seed, orEmpty(state)], () => ({...(seed ?? {}), ...state}))}"
-                         .data="${guard([component, orEmpty(data)], () => ({...data}))}"
+                         .data="${guard([component, orEmpty(data)], () => islandDataOf(component, data))}"
                          .appState="${appState}"
                          .appData="${appData}"
         >

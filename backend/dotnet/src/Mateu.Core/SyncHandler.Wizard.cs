@@ -39,36 +39,38 @@ internal sealed partial class SyncHandler
             step = resume;
         // The completion's target step: the result step, or past the last step for a classic Finish.
         var completionTarget = resultStep ? total : total + 1;
-        // the last step from which a plain forward move (Next/Skip) is not the completion
-        var lastPlain = resultStep ? total - 2 : total - 1;
         // the completion button names the wizard's CompletionActionId: on the completion step it
         // moves forward exactly like "next" (which stays accepted there)
         var actionId = resultStep && w.CompletionActionId != "next" && rq.ActionId == w.CompletionActionId
-                       && step == total - 1
+                       && step == WizardBranching.Completing(w, total)
             ? "next"
             : rq.ActionId;
         switch (actionId)
         {
             case "back" or "next" or "goToStep" or "skip" or "complete" or "saveDraft" or "saveAndClose" when completed: break;
-            case "back" when step > 1:
-                if (w.BeforeStepNavigate(step, step - 1) is { } backVeto) return MapResult(backVeto, rq);
-                step--;
+            // branching (Wizard.StepApplies): the steps that do not apply are skipped both ways
+            case "back" when WizardBranching.Previous(w, step, total) is { } previous:
+                if (w.BeforeStepNavigate(step, previous) is { } backVeto) return MapResult(backVeto, rq);
+                step = previous;
                 break;
-            case "next" when step >= total:
+            case "next" when !resultStep && WizardBranching.Next(w, step, total) is null:
                 if (w.BeforeStepNavigate(step, completionTarget) is { } finishVeto) return MapResult(finishVeto, rq);
                 return MapResult(w.Complete());
             case "next":
-                if (w.BeforeStepNavigate(step, step + 1) is { } nextVeto) return MapResult(nextVeto, rq);
-                w.OnNext(step, step + 1);
-                step++;
+                // the completing step moves on to the result step
+                var forward = WizardBranching.Next(w, step, total) ?? total;
+                if (w.BeforeStepNavigate(step, forward) is { } nextVeto) return MapResult(nextVeto, rq);
+                w.OnNext(step, forward);
+                step = forward;
                 break;
             // "Skip" (Wizard.StepSkippable + WizardDisplay.Skip): moves on WITHOUT requiring the
             // step — never from the completion step, and not when the skip is Off/Disabled (a
             // disabled affordance cannot be forced from the client either).
-            case "skip" when step <= lastPlain && w.StepSkippable(step) && w.Display.Skip.Enabled():
-                if (w.BeforeStepNavigate(step, step + 1) is { } skipVeto) return MapResult(skipVeto, rq);
-                w.OnNext(step, step + 1);
-                step++;
+            case "skip" when WizardBranching.Next(w, step, total) is { } skipTo && w.StepSkippable(step)
+                             && w.Display.Skip.Enabled():
+                if (w.BeforeStepNavigate(step, skipTo) is { } skipVeto) return MapResult(skipVeto, rq);
+                w.OnNext(step, skipTo);
+                step = skipTo;
                 break;
             // Early completion (CompletionAvailableFromStep): offered beside Next from that step on.
             case "complete" when w.CompletionAvailableFromStep is { } from && step >= from && step < total:
@@ -93,7 +95,8 @@ internal sealed partial class SyncHandler
                 }, rq);
             // The drawer step pager's jump-to-step: `_stepId` = the bullet id "step-N"; jump only
             // BACKWARD (to an already-visited step) so we never skip a step's validation forward.
-            case "goToStep" when GoToStepTarget(rq) is { } t && t >= 1 && t < step:
+            case "goToStep" when GoToStepTarget(rq) is { } t && t >= 1 && t < step
+                                 && WizardBranching.Applies(w, t, total):
                 if (w.BeforeStepNavigate(step, t) is { } jumpVeto) return MapResult(jumpVeto, rq);
                 step = t;
                 break;

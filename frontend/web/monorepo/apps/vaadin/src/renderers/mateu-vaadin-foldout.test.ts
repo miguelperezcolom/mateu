@@ -83,4 +83,18 @@ describe('mateu-vaadin-foldout', () => {
         const { $ } = await mount({ panels: [] as never })
         expect($('.section-head')).toBeNull()
     })
+
+    it('a height the author declared wins over the viewport fill (YAML style: "height: 24rem")', async () => {
+        const declared = document.createElement('mateu-vaadin-foldout') as MateuVaadinFoldout
+        declared.setAttribute('style', 'height: 24rem;')
+        Object.assign(declared, { panels: [] })
+        document.body.appendChild(declared)
+        await declared.updateComplete
+        expect(declared.style.getPropertyValue('--mateu-foldout-fill')).toBe('0px')
+
+        const { f } = await mount({ panels: [] as never })
+        // a foldout that IS the page still runs down to the viewport bottom
+        expect(f.style.getPropertyValue('--mateu-foldout-fill')).not.toBe('0px')
+        expect(f.style.getPropertyValue('--mateu-foldout-fill')).toMatch(/px$/)
+    })
 })

@@ -1,0 +1,5 @@
+# Fixture for NestedAppShellSyncTest: an app shell bound BELOW the mount root.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

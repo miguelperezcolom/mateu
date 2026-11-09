@@ -87,6 +87,33 @@ export const insideIsland = (node: Node | null | undefined): boolean => {
     return false
 }
 
+/** Set on the `mateu-ux` of EVERY micro frontend island, whatever its chrome (microFrontendRenderer). */
+export const MICRO_FRONTEND_ATTRIBUTE = 'micro-frontend'
+
+/**
+ * Whether `node` lives inside a micro frontend island — one with no declared chrome included. For
+ * the breadcrumb: an island's automatic trail traced the HOST's menu and address (a remote page
+ * embedded with the default chrome drew the host's trail inside the box).
+ */
+export const isInsideMicroFrontend = (node: Node | null | undefined): boolean => {
+    let current: Node | null = node ?? null
+    let guard = 0
+    while (current && guard++ < 500) {
+        if (isUx(current) && (current as Element).hasAttribute?.(MICRO_FRONTEND_ATTRIBUTE)) return true
+        current = parentOf(current)
+    }
+    return false
+}
+
+/**
+ * Whether `node` lives where the window is NOT its own: inside an embedded micro frontend (any
+ * chrome) or inside any micro frontend island at all. An island with the default chrome used to
+ * apply its own PushStateToHistory: a crud row opened inside it replaced the HOST page's address
+ * (and the host then reloaded what the island pushed).
+ */
+export const isWindowless = (node: Node | null | undefined): boolean =>
+    embeddingChromeOf(node) !== undefined || isInsideMicroFrontend(node)
+
 /** Whether a command must not be applied from where `node` lives. */
 export const isSuppressedWindowCommand = (type: string | undefined, node: Node | null | undefined): boolean =>
-    !!type && WINDOW_COMMANDS.has(type) && embeddingChromeOf(node) !== undefined
+    !!type && WINDOW_COMMANDS.has(type) && isWindowless(node)

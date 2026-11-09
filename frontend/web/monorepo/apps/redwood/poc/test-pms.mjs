@@ -2716,6 +2716,86 @@ test('a Listing in a foldout panel is drawn there with the rows it loaded (an ex
   assert.deepEqual(listing.cards.map((c) => c.title), ['Harvesters'])
 })
 
+// ── Explorer findings (3.0-beta.51): layouts and fields authored in YAML ─────────────────────────
+
+test('a FormItem in a FormLayout: its fields join the oj-form-layout, nothing is left over', () => {
+  const atoms = atomsOf(node({ type: 'FormLayout', maxColumns: 2 }, [
+    node({ type: 'FormField', fieldId: 'a', dataType: 'string', label: 'A' }),
+    node({ type: 'FormItem' }, [node({ type: 'FormField', fieldId: 'invoiceTo', dataType: 'string', label: 'Invoice to' })]),
+  ]))
+  assert.equal(atoms.length, 1, JSON.stringify(atoms.map((a) => Object.keys(a))))
+  assert.deepEqual(atoms[0].fields.map((f) => f.fieldId || f.id), ['a', 'invoiceTo'])
+})
+
+test('a FormRow keeps its fields on one line: its own form layout with one column per field', () => {
+  const atoms = atomsOf(node({ type: 'FormLayout', maxColumns: 1 }, [
+    node({ type: 'FormField', fieldId: 'before', dataType: 'string', label: 'Before' }),
+    node({ type: 'FormRow' }, [
+      node({ type: 'FormField', fieldId: 'deposit', dataType: 'money', label: 'Deposit' }),
+      node({ type: 'FormField', fieldId: 'paidOn', dataType: 'date', label: 'Paid on' }),
+    ]),
+    node({ type: 'FormField', fieldId: 'after', dataType: 'string', label: 'After' }),
+  ]))
+  const layouts = atoms.filter((a) => a.isFormLayout)
+  assert.equal(layouts.length, 3)
+  assert.equal(layouts[1].columns, 2)
+  assert.deepEqual(layouts[1].fields.map((f) => f.fieldId || f.id), ['deposit', 'paidOn'])
+  assert.equal(layouts[0].columns, 1)
+})
+
+test('a money field given a plain number (YAML initialValue, a BigDecimal) shows the number', () => {
+  const [layout] = atomsOf(node({ type: 'FormLayout' }, [
+    node({ type: 'FormField', fieldId: 'deposit', dataType: 'money', label: 'Deposit' }),
+    node({ type: 'FormField', fieldId: 'fee', dataType: 'number', stereotype: 'money', label: 'Fee' }),
+  ]), { deposit: 250, fee: '12.5' })
+  assert.deepEqual(layout.fields.map((f) => [f.isMoney, f.value]), [[true, 250], [true, 12.5]])
+})
+
+test('a vertical MasterDetailLayout puts the detail below the master (no side-by-side columns)', () => {
+  const blocks = islandContentOf({ tree: node({ type: 'Page' }, [
+    node({ type: 'MasterDetailLayout', orientation: 'vertical' }, [node({ type: 'Text', text: 'master' }), node({ type: 'Text', text: 'detail' })]),
+  ]), state: {}, data: {} })
+  assert.ok(blocks.every((b) => !/mateu-split-pane/.test(b.colClass || '')))
+  assert.deepEqual(blocks.flatMap((b) => b.items).filter((a) => a.isText).map((a) => a.text), ['master', 'detail'])
+})
+
+test('a BoardLayout keeps its rows: each row\'s items share the row by boardCols, a row starts a line', () => {
+  const item = (text, extra = {}) => node({ type: 'BoardLayoutItem', ...extra }, [node({ type: 'Text', text })])
+  const blocks = islandContentOf({ tree: node({ type: 'Page' }, [node({ type: 'BoardLayout' }, [
+    node({ type: 'BoardLayoutRow' }, [item('occupancy', { boardCols: 2 }), item('arrivals'), item('departures')]),
+    node({ type: 'BoardLayoutRow' }, [item('ooo'), item('payments')]),
+  ])]), state: {}, data: {} })
+  const md = (b) => parseInt((String(b.colClass).match(/oj-md-(\d+)/) || [])[1] || '0', 10)
+  assert.deepEqual(blocks.map(md), [6, 3, 3, 6, 6])
+  assert.deepEqual(blocks.map((b) => b.items[0].text), ['occupancy', 'arrivals', 'departures', 'ooo', 'payments'])
+  // the columns of a row always add up to the row, so the next row starts a line of its own
+  const five = islandContentOf({ tree: node({ type: 'Page' }, [node({ type: 'BoardLayout' }, [
+    node({ type: 'BoardLayoutRow' }, ['a', 'b', 'c', 'd', 'e'].map((t) => item(t))),
+  ])]), state: {}, data: {} })
+  assert.equal(five.map(md).reduce((x, y) => x + y, 0), 12)
+})
+
+test('FullWidth stretches the button it holds', () => {
+  const atoms = atomsOf(node({ type: 'Page' }, [
+    node({ type: 'FullWidth' }, [node({ type: 'Button', label: 'Confirm', actionId: 'confirm' })]),
+    node({ type: 'Button', label: 'Plain', actionId: 'plain' }),
+  ]))
+  const bars = atoms.filter((a) => a.isButtons)
+  assert.equal(bars.length, 2)
+  assert.equal(bars[0].fullWidth, true)
+  assert.ok(!bars[1].fullWidth)
+  assert.match(readFileSync(join(here, 'templates', 'atoms.html'), 'utf8'), /mateu-buttons-full/)
+})
+
+test('a page foldout honours the height its style declares', () => {
+  const foldout = (style) => ({ id: HOST_ID, kind: 'host', state: {}, data: {}, tree: { type: 'ServerSide', id: 'f', children: [
+    { ...node({ type: 'FoldoutLayout', panels: [{ title: 'A' }] }, [{ ...node({ type: 'Text', text: 'o' }), slot: 'overview' }]), style },
+  ] } })
+  assert.deepEqual(foldoutOf(foldout('height: 24rem;')).hostStyle, { height: '24rem' })
+  assert.deepEqual(foldoutOf(foldout('')).hostStyle, {})
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuFoldoutEl"[^>]*:style="\[\[ \$application\.variables\.mateuFoldout\.hostStyle/)
+})
+
 console.log(`\n${pass} tests PMS OK`)
 
 test('a page that DECLARES the Item overview page template (YAML template: ItemOverviewPage) → Spectra\'s, from the slots by id', () => {

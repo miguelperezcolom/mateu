@@ -78,6 +78,7 @@ import { dirtyGuard, enclosingOverlay } from '@infra/ui/dirtyGuard.ts'
 import { isConflictDialogAnswer, isLeaveAction } from '@infra/ui/leaveActions.ts'
 import { humanizeFieldId } from '@infra/ui/humanize.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
+import { ISLAND_HOST_STYLE } from '@infra/ui/islandHost.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -1344,9 +1345,7 @@ export class MateuComponent extends ComponentElement {
         `
     }
 
-    static styles = [css`
-        :host {
-        }
+    static styles = [ISLAND_HOST_STYLE, css`
 
         /* Sizing intent (coherence-plan #8), applied via the data-sizing attribute set from
            component.sizing. "fill" grows to take the space its parent (a flex column) leaves and

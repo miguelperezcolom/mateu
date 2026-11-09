@@ -65,6 +65,24 @@ describe('neutral form layout', () => {
         expect(band.querySelectorAll('[data-child]')).toHaveLength(2)
         expect(band.innerHTML).toContain('flex: 1 1 50%')
     })
+
+    it('draws a form item — the components of one field — in its own cell, as wide as its widest field', () => {
+        const el = draw(renderFormLayout(container, cs('f', { type: 'FormLayout', maxColumns: 2 },
+            [cs('item', { type: 'FormItem' }, [field('invoiceTo', { label: 'Invoice to', colspan: 2 }), cs('hint', { type: 'Text' })])]), undefined, {}, {}, {}, {}))
+        expect(el.textContent).not.toContain('Unknown metadata type')
+        expect(el.querySelector('[data-child="invoiceTo"]')).toBeTruthy()
+        expect(el.querySelector('[data-child="hint"]')).toBeTruthy()
+        expect(el.querySelector('[data-child="invoiceTo"]')!.closest('div[style*="span 2"]')).toBeTruthy()
+        // labels on top: the field draws its own label
+        expect(el.querySelector('label')).toBeNull()
+    })
+
+    it('with labels aside a form item is headed by its first labelled field', () => {
+        const el = draw(renderFormLayout(container, cs('f', { type: 'FormLayout', labelsAside: true },
+            [cs('item', { type: 'FormItem' }, [field('invoiceTo', { label: 'Invoice to' })])]), undefined, {}, {}, {}, {}))
+        expect(el.querySelector('label')!.textContent).toBe('Invoice to')
+        expect(el.querySelector('[data-child="invoiceTo"]')!.getAttribute('data-label-rendered')).toBe('yes')
+    })
 })
 
 describe('neutral flex layouts', () => {
@@ -102,6 +120,13 @@ describe('master/detail', () => {
         expect(staticDetail.querySelector('[data-child="detail"]')).toBeTruthy()
         const dynamic = draw(renderMasterDetailLayout(container, cs('m', {}, [cs('master', {})]), undefined, {}, { hasDetail: true, detailComponent: cs('dyn', {}) }, {}, {}))
         expect(dynamic.querySelector('[data-child="dyn"]')).toBeTruthy()
+    })
+
+    it('orientation vertical puts the detail below the master', () => {
+        const vertical = draw(renderMasterDetailLayout(container, cs('m', { type: 'MasterDetailLayout', orientation: 'vertical' }, [cs('master', {}), cs('detail', {})]), undefined, {}, {}, {}, {}))
+        expect(vertical.firstElementChild!.getAttribute('style')).toContain('flex-direction: column')
+        const beside = draw(renderMasterDetailLayout(container, cs('m', { type: 'MasterDetailLayout' }, [cs('master', {}), cs('detail', {})]), undefined, {}, {}, {}, {}))
+        expect(beside.firstElementChild!.getAttribute('style')).toContain('flex-direction: row')
     })
 })
 
@@ -149,18 +174,36 @@ describe('simple wrappers', () => {
         ['scroller', renderScroller, 'overflow: auto'],
         ['full width', renderFullWidth, 'width: 100%'],
         ['container', renderContainer, 'max-width: min(100%, 1200px)'],
-        ['board', renderBoardLayout, 'display: grid'],
+        ['board', renderBoardLayout, 'flex-direction: column'],
         ['board row', renderBoardLayoutRow, 'flex-wrap: wrap'],
     ])('%s wraps its children', (_n, fn, expected) => {
         const el = draw((fn as any)(container, cs('w', {}, [cs('a', {}), cs('b', {})]), undefined, {}, {}, {}, {}))
         expect(el.firstElementChild!.getAttribute('style')).toContain(expected)
+        expect(el.firstElementChild!.getAttribute('style')).not.toContain('undefined')
         expect(el.querySelectorAll('[data-child]')).toHaveLength(2)
+    })
+
+    it('a board stacks its rows — the rows are never cells of one grid', () => {
+        const el = draw(renderBoardLayout(container, cs('b', { type: 'BoardLayout' }, [cs('r1', {}), cs('r2', {})]), undefined, {}, {}, {}, {}))
+        const style = el.firstElementChild!.getAttribute('style')!
+        expect(style).not.toContain('grid-template-columns')
+        expect(style).toContain('flex-direction: column')
+    })
+
+    it('full width stretches what it holds, not only its own box', () => {
+        const el = draw(renderFullWidth(container, cs('w', { type: 'FullWidth' }, [cs('button', {})]), undefined, {}, {}, {}, {}))
+        expect(el.firstElementChild!.getAttribute('style')).toContain('align-items: stretch')
     })
 
     it('a board item grows by its declared columns', () => {
         const el = draw(renderBoardLayoutItem(container, cs('i', { boardCols: 2 }, [cs('a', {})]), undefined, {}, {}, {}, {}))
         expect(el.firstElementChild!.getAttribute('style')).toContain('flex: 2 1 0')
+        // what the item holds fills its share of the row
+        expect(el.firstElementChild!.getAttribute('style')).toContain('align-items: stretch')
         const def = draw(renderBoardLayoutItem(container, cs('i', {}, []), undefined, {}, {}, {}, {}))
         expect(def.firstElementChild!.getAttribute('style')).toContain('flex: 1 1 0')
+        // the wire sends boardCols 0 for an item that declares none: it still takes its share
+        const zero = draw(renderBoardLayoutItem(container, cs('i', { boardCols: 0 }, []), undefined, {}, {}, {}, {}))
+        expect(zero.firstElementChild!.getAttribute('style')).toContain('flex: 1 1 0')
     })
 })

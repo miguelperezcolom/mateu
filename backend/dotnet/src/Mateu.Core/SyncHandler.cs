@@ -252,6 +252,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
         // what is rendered. Access control is [EyesOnly]/[DisabledUnless] against the identity.
+        ReflectionMapper.SetCurrentRegistry(registry);
         ReflectionMapper.SetCurrentAudience(
             rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
     }

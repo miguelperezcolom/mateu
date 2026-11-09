@@ -27,7 +27,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
     const metadata = component.metadata as MicroFrontend
 
     return html`
-        <mateu-api-caller>
+        <mateu-api-caller inline-failures>
         <mateu-ux baseUrl="${metadata.baseUrl}"
                   route="${metadata.route}"
                   consumedRoute="${metadata.consumedRoute}"
@@ -36,6 +36,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   .appState="${metadata.appState}"
                   .preloaded="${metadata.resolved}"
                   embedded-chrome="${chromeOf(metadata.chrome) ?? nothing}"
+                  micro-frontend
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"
         ></mateu-ux>

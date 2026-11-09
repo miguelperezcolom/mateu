@@ -21,6 +21,27 @@ def normalize(route: str | None) -> str:
     return "" if r in ("", "_empty", "_no_route", "_no_home_route") else r
 
 
+def _flatten_sources(sources) -> list:
+    """The modules and classes to register: ``add_mateu(app, A, B)``, ``add_mateu(app, [A, B])``
+    and any nesting of lists/tuples/sets alike.
+
+    A list used to be neither a module nor a class, so it was skipped WITHOUT A WORD and every
+    route answered "Route not found". Anything that is not a module, a class or a collection of
+    them now fails the registration, naming what it got."""
+    flat: list = []
+    for src in sources:
+        if isinstance(src, (ModuleType, type)):
+            flat.append(src)
+        elif isinstance(src, (list, tuple, set, frozenset)):
+            flat.extend(_flatten_sources(src))
+        else:
+            raise TypeError(
+                "add_mateu/MateuRegistry takes modules and classes (or lists of them); got "
+                f"{type(src).__name__}: {src!r}"
+            )
+    return flat
+
+
 class MateuRegistry:
     def __init__(self, *sources: ModuleType | type):
         self._by_route: dict[str, type] = {}
@@ -68,11 +89,11 @@ class MateuRegistry:
         #: The ContentSlot fields of the registered classes, by key (a malformed or repeated key
         #: fails the registration — the port's twin of Java's compile error).
         self.content_slots: dict = {}
-        for src in sources:
+        for src in _flatten_sources(sources):
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
                     self._register(cls)
-            elif isinstance(src, type):
+            else:
                 self._register(src)
 
     @property

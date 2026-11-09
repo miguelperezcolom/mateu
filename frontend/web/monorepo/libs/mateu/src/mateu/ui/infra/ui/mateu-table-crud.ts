@@ -30,7 +30,6 @@ import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColu
 import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
-    compactColumns,
     railColumns,
 } from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
@@ -1194,7 +1193,10 @@ export class MateuTableCrud extends LitElement {
 
         const gridLayout = this.effectiveGridLayout
         const allCols = this.cols
-        const compact = compactColumns(allCols)
+        // the list's item columns: the compact set (identifier, priority 1–2), else the first
+        // columns — the same fallback as the master/detail rail; with no @Priority the list used
+        // to draw blank items
+        const compact = railColumns(allCols)
         // The search result envelope: page + (optionally) whole-set aggregates and per-group
         // summaries — the table layouts pick those up for totals/group rows.
         const listing = this.data[this.id] as ListingData | undefined

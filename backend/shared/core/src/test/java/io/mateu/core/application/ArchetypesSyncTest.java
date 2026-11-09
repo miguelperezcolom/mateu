@@ -41,7 +41,6 @@ import io.mateu.dtos.GanttDto;
 import io.mateu.dtos.HeatmapDto;
 import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.HorizontalLayoutDto;
-import io.mateu.dtos.KPIDto;
 import io.mateu.dtos.KanbanDto;
 import io.mateu.dtos.LedgerDto;
 import io.mateu.dtos.MarkdownDto;
@@ -1731,7 +1730,12 @@ class ArchetypesSyncTest {
 
   @Test
   void statSerializesValueDeltaAndSparkline() {
-    var stat = findFirst(sync("/component-showcase"), StatDto.class);
+    // the showcase's standalone KPI travels as a Stat too: pick the Stat declared as one
+    var stat =
+        findAll(sync("/component-showcase"), StatDto.class).stream()
+            .filter(c -> "MRR".equals(((StatDto) c.metadata()).label()))
+            .findFirst()
+            .orElse(null);
     assertThat(stat).isNotNull();
     var m = (StatDto) stat.metadata();
     assertThat(m.label()).isEqualTo("MRR");
@@ -1857,9 +1861,10 @@ class ArchetypesSyncTest {
     var increment = sync("/component-showcase");
     var badge = (BadgeDto) findFirst(increment, BadgeDto.class).metadata();
     assertThat(badge.text()).isEqualTo("Active");
-    var kpi = (KPIDto) findFirst(increment, KPIDto.class).metadata();
-    assertThat(kpi.title()).isEqualTo("Open tickets");
-    assertThat(kpi.text()).isEqualTo("17");
+    // a standalone KPI is a title/value pair drawn as a Stat (KPIDto is not a wire type)
+    var kpi = (StatDto) findFirst(increment, StatDto.class).metadata();
+    assertThat(kpi.label()).isEqualTo("Open tickets");
+    assertThat(kpi.value()).isEqualTo("17");
     var progress = (ProgressBarDto) findFirst(increment, ProgressBarDto.class).metadata();
     assertThat(progress.min()).isEqualTo(0);
     assertThat(progress.max()).isEqualTo(100);

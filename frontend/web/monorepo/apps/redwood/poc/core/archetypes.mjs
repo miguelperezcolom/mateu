@@ -82,6 +82,9 @@ export function foldoutOf(ctx, { parent = null } = {}) {
     // the panels; 'horizontal' = the overview runs across the top, the panels below it
     orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
     overviewOnTop: md.orientation === 'horizontal',
+    // the height the layout's `style` declares (a YAML `style: "height: 24rem"`), bound as an object
+    // on oj-sp-foldout-layout — it was dropped, so the layout ran down to the viewport bottom
+    hostStyle: foldoutHostStyleOf(node.style),
     // the navigation header, the overview's Edit and the badges: what may change between two
     // records of the same foldout (re-bound in place, like the panels' content)
     header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
@@ -118,6 +121,23 @@ export function foldoutOf(ctx, { parent = null } = {}) {
       ...foldoutSummaryOf(bySlot['summary-' + i], (ctx && ctx.state) || {}),
     })),
   }
+}
+
+/** The sizing a foldout's wire `style` declares (height / min-height / max-height) as a style
+ *  object for the template's `:style`; {} when it declares none. */
+export function foldoutHostStyleOf(style) {
+  const out = {}
+  for (const decl of String(style || '').split(';')) {
+    const at = decl.indexOf(':')
+    if (at < 0) continue
+    const prop = decl.slice(0, at).trim().toLowerCase()
+    const value = decl.slice(at + 1).trim()
+    if (!value) continue
+    if (prop === 'height') out.height = value
+    else if (prop === 'min-height') out.minHeight = value
+    else if (prop === 'max-height') out.maxHeight = value
+  }
+  return out
 }
 
 /** A foldout panel's icon → a Redwood icon class: a bare name is a Vaadin one ("user" →

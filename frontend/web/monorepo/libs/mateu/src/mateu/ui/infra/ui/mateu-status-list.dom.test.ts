@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './mateu-status-list'
 import type { MateuStatusList } from './mateu-status-list'
+import { statusGridTemplate } from './mateu-status-list'
 
 /** The status list: classic rows (avatar/icon, title, description, chip) or stacked cards with actions. */
 describe('mateu-status-list (DOM)', () => {
@@ -90,8 +91,27 @@ describe('mateu-status-list (DOM)', () => {
         const el = await mount({ items: PLAIN as never, columns: 3 })
         const list = $(el, '.list')
         expect(list.classList.contains('grid')).toBe(true)
-        expect(list.getAttribute('style')).toContain('100% / 3')
+        expect(list.getAttribute('style')).toContain(statusGridTemplate(3))
         expect($$(el, 'h3.cell-title').map(h => h.textContent)).toEqual(['Leaking tap', 'Broken TV'])
         expect($(el, '.cell-actions')).toBeNull()
+    })
+
+    it('stacked cards keep their icon or avatar (a row with lines turned the whole list stacked and lost them)', async () => {
+        const el = await mount({ items: [
+            { id: 'a', icon: '🔧', title: 'Room 305', status: 'Open' },
+            { id: 'b', avatar: 'MR', title: 'Marta Ruiz', lines: ['14 rooms inspected'] },
+        ] as never })
+        const cells = $$(el, '.cell')
+        expect(cells).toHaveLength(2)
+        expect(cells[0].querySelector('.icon')?.textContent).toBe('🔧')
+        expect(cells[1].querySelector('.avatar')?.textContent).toBe('MR')
+    })
+
+    it('columns: N lays out AT MOST N columns (columns: 2 drew three on a wide page)', () => {
+        // each track is at least 1/N of the row (minus the gaps), so a (N+1)th never fits; narrow
+        // rows still collapse, a track never being narrower than 18rem
+        const two = statusGridTemplate(2)
+        expect(two).toContain('repeat(auto-fit, minmax(max(min(18rem, 100%), calc((100% - 1 * var(--mateu-status-grid-column-gap, 2.5rem)) / 2 - 1px)), 1fr))')
+        expect(statusGridTemplate(3)).toContain('(100% - 2 * var(--mateu-status-grid-column-gap, 2.5rem)) / 3')
     })
 })

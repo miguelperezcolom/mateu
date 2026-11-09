@@ -49,17 +49,9 @@ import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
 
-/**
- * The base an app's own content has to be fetched with.
- *
- * `homeBaseUrl` is what an app calls itself FROM ITS OWN ORIGIN. For an app aggregated by a shell
- * that is not where the browser reached it, and taking it verbatim sent that app's content back to
- * the SHELL — the "not found" you get from pasting a link to a page inside a federated app. So the
- * base the browser actually used wins, unless the app names an ABSOLUTE one: a different host,
- * which only the app can know.
- */
-export const reachableBaseUrl = (app: App, reachedAt: string | undefined): string | undefined =>
-    (app.homeBaseUrl ?? '').includes('://') ? app.homeBaseUrl : (reachedAt || app.homeBaseUrl)
+// the rule lives in appContentTarget.ts (pure, tested); re-exported for existing importers
+export { reachableBaseUrl } from '@infra/ui/appContentTarget.ts'
+import { reachableBaseUrl } from '@infra/ui/appContentTarget.ts'
 
 /**
  * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell —

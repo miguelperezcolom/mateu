@@ -45,6 +45,12 @@ public abstract class Wizard
     /// skippable. (Java's Wizard.stepSkippable.)</summary>
     public virtual bool StepSkippable(int step) => false;
 
+    /// <summary>Whether step <paramref name="step"/> (1-based) applies given the answers so far: a
+    /// step that does not is skipped by Next and Back alike and left out of the progress; when the
+    /// penultimate step does not apply, the completion moves to the last step that does. The result
+    /// step always applies. Default: every step applies. (Java's Wizard.stepApplies.)</summary>
+    public virtual bool StepApplies(int step) => true;
+
     /// <summary>Cancelable hook run BEFORE the wizard moves from step <paramref name="from"/> to
     /// step <paramref name="to"/> (1-based; the state is already bound): Next, Back, Skip, a jump to
     /// a visited step and the completion all pass through it. For a completion, <paramref name="to"/>

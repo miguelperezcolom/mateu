@@ -1927,6 +1927,7 @@ Mateu.Uidl.Wizard property System.Int32? CompletionAvailableFromStep { get; }
 Mateu.Uidl.Wizard property System.String CompletionActionId { get; }
 Mateu.Uidl.Wizard property System.String CompletionActionLabel { get; }
 Mateu.Uidl.Wizard property System.String WizardTitle { get; }
+Mateu.Uidl.Wizard virtual method System.Boolean StepApplies(System.Int32)
 Mateu.Uidl.Wizard virtual method System.Boolean StepSkippable(System.Int32)
 Mateu.Uidl.Wizard virtual method System.Object BeforeStepNavigate(System.Int32, System.Int32)
 Mateu.Uidl.Wizard virtual method System.String StepTitle(System.Int32)

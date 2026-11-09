@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.MasterDetailLayoutDto;
+import io.mateu.dtos.OrientationDto;
 import io.mateu.uidl.data.MasterDetailLayout;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
@@ -18,7 +19,13 @@ public class MasterDetailLayoutMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    var metadataDto = MasterDetailLayoutDto.builder().build();
+    var metadataDto =
+        MasterDetailLayoutDto.builder()
+            .orientation(
+                masterDetailLayout.orientation() != null
+                    ? OrientationDto.valueOf(masterDetailLayout.orientation().name())
+                    : null)
+            .build();
     var children = new ArrayList<ComponentDto>();
     children.add(
         mapComponentToDto(

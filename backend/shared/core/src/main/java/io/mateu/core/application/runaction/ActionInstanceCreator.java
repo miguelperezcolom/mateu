@@ -271,11 +271,72 @@ public class ActionInstanceCreator {
    */
   private io.mateu.uidl.fluent.AppShell shellFor(RunActionCommand command) {
     var httpRequest = command.httpRequest();
+    var nested = nestedShellRouteFor(command.route());
+    if (nested != null) {
+      var shell =
+          yamlAppLoader.load(
+              definitionOf(nested),
+              null,
+              httpRequest,
+              path -> routeRegistry.isReachable(path, httpRequest));
+      // its menu and home are relative to the route it is bound to, as an @UI app's are to its
+      // mount (the menu is built against the request's resolved route)
+      if (shell != null && httpRequest != null) {
+        io.mateu.core.domain.ComponentState.setResolvedRoute(httpRequest, "/" + nested);
+      }
+      if (shell == null) {
+        return null;
+      }
+      var home = shell.homeRoute();
+      if (home != null && !home.isBlank() && !home.startsWith("/")) {
+        // a relative home is relative to the shell, not to the mount
+        shell = shell.withHomeRoute("/" + nested + "/" + home);
+      }
+      return shell.route() != null && !shell.route().isBlank()
+          ? shell
+          : shell.withRoute("/" + nested);
+    }
     return yamlAppLoader.load(
         routeRegistry.rootDefinitionFor(command.route()),
         routeRegistry.mountHomeFor(command.route()),
         httpRequest,
         path -> routeRegistry.isReachable(path, httpRequest));
+  }
+
+  /**
+   * The deepest route ABOVE a mount root (the route itself included) that routes.yaml binds to a
+   * {@code type: AppShell} definition, or null. A shell does not have to sit at a mount root: bound
+   * to {@code /museum} it draws its chrome there and wraps {@code /museum/**}. Only the definition
+   * of the mount's root route used to be read as a shell, so a shell bound anywhere else answered
+   * "Page not found" (its own route) and its menu routes resolved against the mount.
+   */
+  private String nestedShellRouteFor(String route) {
+    if (route == null) {
+      return null;
+    }
+    var path = io.mateu.core.infra.Slashes.trim(stripQuery(route));
+    while (!path.isEmpty()) {
+      if (routeRegistry.isMountRoot(path)) {
+        return null; // a mount root's shell is the mount's: the root path below handles it
+      }
+      var definition = definitionOf(path);
+      if (definition != null && yamlAppLoader.isAppShell(definition)) {
+        return path;
+      }
+      var slash = path.lastIndexOf('/');
+      path = slash < 0 ? "" : path.substring(0, slash);
+    }
+    return null;
+  }
+
+  /** The definition the authored entry for exactly {@code path} binds (no parameters), or null. */
+  private String definitionOf(String path) {
+    return routeRegistry.authored().routes().stream()
+        .filter(entry -> path.equals(io.mateu.core.infra.Slashes.trim(entry.route())))
+        .map(io.mateu.uidl.data.RouteEntry::definition)
+        .filter(definition -> definition != null && !definition.isBlank())
+        .findFirst()
+        .orElse(null);
   }
 
   /**
@@ -559,7 +620,23 @@ public class ActionInstanceCreator {
         app ->
             appMenuResolver
                 .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
-                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand)));
+                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand))
+                // A route bound to a DEFINITION only has no class to find: the content load an
+                // app shell sends naming its own type (the fresh deep link's second request)
+                // answered "Page not found", while the same load with no type (an embedded page)
+                // rendered the definition. Only for an app the client named and a route it does
+                // not claim as a menu entry.
+                .switchIfEmpty(
+                    (Mono)
+                        Mono.defer(
+                            () ->
+                                isAuthoredDefinitionOnly(finalCommand.route())
+                                        && (isApp(app.getClass(), finalCommand.route())
+                                            // a view returning a fluent AppShell is an app too
+                                            || AppMenuResolver.shellTreeOf(finalCommand, app)
+                                                != null)
+                                    ? loadYamlPage(finalCommand)
+                                    : Mono.empty())));
   }
 
   /**
@@ -689,7 +766,8 @@ public class ActionInstanceCreator {
         || isAppLevelAction(command)) {
       return false;
     }
-    return yamlAppLoader.isAppShell(routeRegistry.rootDefinitionFor(command.route()));
+    return nestedShellRouteFor(command.route()) != null
+        || yamlAppLoader.isAppShell(routeRegistry.rootDefinitionFor(command.route()));
   }
 
   /**

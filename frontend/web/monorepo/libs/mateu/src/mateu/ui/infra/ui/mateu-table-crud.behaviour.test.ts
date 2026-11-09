@@ -274,6 +274,36 @@ describe('the crud header and toolbar', () => {
     })
 })
 
+describe('two listings on one page keep their search to themselves', () => {
+    const typeIn = (root: ParentNode, fieldId: string, value: unknown) =>
+        root.querySelector('mateu-filter-bar')!.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { fieldId, value }, bubbles: true, composed: true }))
+
+    it('with another listing on the page, a search stays in its own listing', async () => {
+        const page = document.createElement('div')
+        document.body.appendChild(page)
+        const heard: unknown[] = []
+        page.addEventListener('value-changed', (e) => heard.push((e as CustomEvent).detail))
+        const first = await mount(crud({}, 'artworks'), rows, {}, page)
+        const second = await mount(crud({}, 'loans'), rows, {}, page)
+        typeIn(first.root, 'searchText', 'gogh')
+        // the component around never sees it: it would hand it to the other listing as its state
+        expect(heard).toEqual([])
+        expect(first.el.state.searchText).toBe('gogh')
+        expect(second.el.state.searchText).toBeUndefined()
+    })
+
+    it('a listing alone on its page keeps telling the page (unchanged)', async () => {
+        const page = document.createElement('div')
+        document.body.appendChild(page)
+        const heard: unknown[] = []
+        page.addEventListener('value-changed', (e) => heard.push((e as CustomEvent).detail))
+        const only = await mount(crud(), rows, {}, page)
+        typeIn(only.root, 'searchText', 'ana')
+        expect(heard).toEqual([{ fieldId: 'searchText', value: 'ana' }])
+    })
+})
+
 describe('row actions in the shared layouts', () => {
     const actionCols = [
         col('id', { identifier: true }), col('customer'),

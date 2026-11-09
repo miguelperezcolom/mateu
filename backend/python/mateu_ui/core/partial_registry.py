@@ -20,6 +20,7 @@ as with ``@Overline``.
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -91,7 +92,11 @@ class PartialRegistry:
         path = self._dir / relative
         try:
             root = yaml.safe_load(path.read_text())
-        except (OSError, yaml.YAMLError):
+        except (OSError, yaml.YAMLError) as e:
+            # a partial that cannot be read is left out — but said, with its file and the reason
+            logging.getLogger("mateu_ui.partials").warning(
+                "Could not read the partial %r: %s: %s. It is left out of the page.", ref, relative, e
+            )
             return _NONE
         if root is None:
             return _NONE

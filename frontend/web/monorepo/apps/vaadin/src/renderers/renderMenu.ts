@@ -10,6 +10,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import type { MenuBarItem } from "@vaadin/menu-bar";
 import type { MenuBarItem as AppMenuBarItem } from "@infra/ui/mateu-app.ts";
 import { markActiveSection } from "@infra/ui/renderers/activeSection.ts";
+import { isMenuGroup, selectContentMenuOption } from "@infra/ui/contentMenus.ts";
 import "@vaadin/menu-bar";
 import "@vaadin/tooltip";
 import "@vaadin/context-menu";
@@ -41,6 +42,7 @@ export const renderContextMenu = (container: LitElement, component: ClientSideCo
                              style="${component.style}" 
                              class="${component.cssClasses}"
                              open-on="${metadata.activateOnLeftClick?'click':nothing}"
+                             @item-selected=${onContentItemSelected}
                              slot="${component.slot??nothing}">
             ${renderComponent(container, metadata.wrapped, baseUrl, state, data, appState, appData)}
         </vaadin-context-menu>
@@ -53,9 +55,18 @@ export const renderMenuBar = (container: LitElement, component: ClientSideCompon
     return html`
         <vaadin-menu-bar .items=${mapItems(container, metadata.options, baseUrl, state, data, appState, appData)}
                          style="${component.style}" class="${component.cssClasses}"
+                         @item-selected=${onContentItemSelected}
                          slot="${component.slot??nothing}">
         </vaadin-menu-bar>
             `
+}
+
+/** The wire option each item was made from: picking it navigates or runs its action. */
+type ContentMenuItem = MenuBarItem & { option?: MenuOption }
+
+export const onContentItemSelected = (e: CustomEvent) => {
+    const item = (e.detail as { value?: ContentMenuItem })?.value
+    selectContentMenuOption(e.currentTarget as HTMLElement, item?.option)
 }
 
 const createItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
@@ -64,9 +75,10 @@ const createItem = (container: LitElement, component: Component, baseUrl: string
     return item
 }
 
-const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): MenuBarItem[] => {
-    return options.map(option => {
-        if (option.submenus) {
+export const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): ContentMenuItem[] => {
+    return (options ?? []).map(option => {
+        // a leaf arrives with `submenus: []` — only a non-empty list makes a group
+        if (isMenuGroup(option)) {
             return {
                 text: option.component?undefined:option.label,
                 route: option.path,
@@ -75,12 +87,12 @@ const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string 
                 className: option.className,
                 component: option.component?createItem(container, option.component, baseUrl, state, data, appState, appData):undefined,
                 children: mapItems(container, option.submenus, baseUrl, state, data, appState, appData)
-            }
+            } as ContentMenuItem
         }
         if (option.separator) {
             return {
                 component: 'hr'
-            }
+            } as ContentMenuItem
         }
         return {
             text: option.component?undefined:option.label,
@@ -89,6 +101,7 @@ const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string 
             disabled: option.disabled,
             className: option.className,
             component: option.component?createItem(container, option.component, baseUrl, state, data, appState, appData):undefined,
-        }
+            option,
+        } as ContentMenuItem
     })
 }

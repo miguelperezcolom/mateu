@@ -2401,7 +2401,7 @@ public class SyncHandlerTests
     }
 
     [Fact]
-    public void List_toolbar_button_non_null_result_maps_as_usual()
+    public void List_toolbar_button_answering_a_message_shows_it_and_researches()
     {
         var inc = Handler().Handle(new RunActionRqDto
         {
@@ -2410,6 +2410,8 @@ public class SyncHandlerTests
         });
 
         Assert.Equal("Restocked", Assert.Single(inc.Messages).Text);
+        // the rows changed all the same: the listing is searched again (it used to stay stale)
+        Assert.Contains("\"totalElements\":", Render(inc));
     }
 
     [Fact]

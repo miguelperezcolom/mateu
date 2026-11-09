@@ -317,3 +317,23 @@ fun renderMarkdown(metadata: JsonNode): JComponent {
     }
     return pane
 }
+
+internal fun markdownToHtml(md: String): String {
+    val sb = StringBuilder("<html><body>")
+    var inList = false
+    for (rawLine in md.lines()) {
+        val lineHtml = rawLine
+            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace(Regex("\\*\\*([^*]+)\\*\\*"), "<b>$1</b>")
+            .replace(Regex("\\*([^*]+)\\*"), "<i>$1</i>")
+        if (lineHtml.trimStart().startsWith("- ")) {
+            if (!inList) { sb.append("<ul>"); inList = true }
+            sb.append("<li>").append(lineHtml.trimStart().removePrefix("- ")).append("</li>")
+        } else {
+            if (inList) { sb.append("</ul>"); inList = false }
+            if (lineHtml.isNotBlank()) sb.append(lineHtml).append("<br>")
+        }
+    }
+    if (inList) sb.append("</ul>")
+    return sb.append("</body></html>").toString()
+}

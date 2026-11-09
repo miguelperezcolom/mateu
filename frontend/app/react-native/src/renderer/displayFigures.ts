@@ -2,6 +2,7 @@
 // intensities, funnel stages, checklist and task progress, ledger totals, rating stars, file-type
 // icons, avatars and the initial open/selected state of the stateful pieces. Pure TypeScript,
 // tested by node's runner.
+import { materialIconOf } from '../ui/wireIcons.ts';
 
 /** A Stat's bar-sparkline: each value as a bar height from 4 to 26 points. */
 export function sparkHeights(spark: number[]): number[] {
@@ -113,3 +114,40 @@ export const noticeShows = (text: unknown, childCount: number): { hasText: boole
   const hasText = !!((text as string) ?? '').trim();
   return { hasText, shows: hasText || childCount > 0 };
 };
+
+/** A Text's emphasis from its wire `variants`: b → bold, i → italic; nothing otherwise. */
+export function textEmphasis(variants: unknown): { fontWeight?: 'bold'; fontStyle?: 'italic' } {
+  const list = Array.isArray(variants) ? variants : [];
+  return {
+    ...(list.includes('b') ? { fontWeight: 'bold' as const } : {}),
+    ...(list.includes('i') ? { fontStyle: 'italic' as const } : {}),
+  };
+}
+
+/** A Badge's wire icons (iconOnLeft / iconOnRight) as Material icon names; undefined = none. */
+export function badgeIconsOf(m: { iconOnLeft?: unknown; iconOnRight?: unknown }): { iconLeft?: string; iconRight?: string } {
+  return {
+    iconLeft: materialIconOf(typeof m.iconOnLeft === 'string' ? m.iconOnLeft : undefined),
+    iconRight: materialIconOf(typeof m.iconOnRight === 'string' ? m.iconOnRight : undefined),
+  };
+}
+
+export type OfferFooter =
+  | { kind: 'current'; label?: string }
+  | { kind: 'cta'; label: string; price?: string; added: boolean; enabled: boolean }
+  | { kind: 'price'; price: string };
+
+/** An OfferCard's footer, as the web's offerFooterOf: the CTA (the addedLabel once added, the price
+ *  inside) shows whenever it has a label - INERT without an actionId, not dropped - and a price
+ *  alone still shows. A card without an action used to lose its price and CTA, and added showed nothing. */
+export function offerFooterOf(m: {
+  current?: boolean; currentLabel?: string; priceLabel?: string; actionLabel?: string;
+  actionId?: string; added?: boolean; addedLabel?: string;
+}): OfferFooter | null {
+  if (m.current === true) return { kind: 'current', label: m.currentLabel };
+  const added = m.added === true;
+  const label = added ? (m.addedLabel || m.actionLabel) : m.actionLabel;
+  if (label) return { kind: 'cta', label, price: m.priceLabel, added, enabled: !!m.actionId };
+  if (m.priceLabel) return { kind: 'price', price: m.priceLabel };
+  return null;
+}

@@ -33,8 +33,13 @@ export class MateuMoneyField extends LitElement {
     @property()
     data?: ComponentData
 
+    /**
+     * An Amount — or a plain number (a YAML `initialValue: 250`, a Java BigDecimal declared
+     * @Stereotype(money)): shown as the amount in the default currency and committed back as a
+     * plain number, which is what the server holds.
+     */
     @property()
-    value?: Amount
+    value?: Amount | number | string
 
     @property()
     autoFocus?: boolean
@@ -56,7 +61,28 @@ export class MateuMoneyField extends LitElement {
         return { value: 0, currency: this.defaultCurrency || 'EUR', locale: 'es-ES' } as Amount
     }
 
+    /** The value as an Amount (a plain number is an amount in the default currency). */
+    private get amount(): Amount | undefined {
+        const v = this.value
+        if (v === null || v === undefined || v === '') return undefined
+        if (typeof v === 'object') return v
+        const n = typeof v === 'number' ? v : parseFloat(String(v))
+        return Number.isNaN(n) ? undefined : { ...this.empty, value: n }
+    }
+
+    /** It was given a plain number: it answers with a plain number. */
+    private get plain(): boolean {
+        return typeof this.value === 'number' || typeof this.value === 'string'
+    }
+
     private commit = (amount: Amount) => {
+        if (this.plain) {
+            this.value = amount.value
+            this.dispatchEvent(new CustomEvent('value-changed', {
+                detail: { value: amount.value, fieldId: this.fieldId }
+            }))
+            return
+        }
         this.value = amount
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
@@ -67,13 +93,13 @@ export class MateuMoneyField extends LitElement {
     }
 
     currencyChanged = (e: CustomEvent) => {
-        const current = this.value ?? this.empty
+        const current = this.amount ?? this.empty
         if (!e.detail.value || e.detail.value === current.currency) return
         this.commit({ ...current, currency: e.detail.value })
     }
 
     valueChanged = (e: CustomEvent) => {
-        const current = this.value ?? this.empty
+        const current = this.amount ?? this.empty
         // An EMPTIED amount used to be dropped here, because '' is falsy: the field showed nothing
         // while the state kept the previous figure, so what the user saw and what would be saved
         // disagreed silently — and clearing an amount is exactly what someone does when it turns
@@ -87,7 +113,7 @@ export class MateuMoneyField extends LitElement {
     /** Euro and US Dollar, plus the amount's or the declared currency when it is another one. */
     private currencies(): { label: string, value: string }[] {
         const items = [{ label: 'Euro', value: 'EUR' }, { label: 'US Dollar', value: 'USD' }]
-        for (const code of [this.value?.currency, this.defaultCurrency]) {
+        for (const code of [this.amount?.currency, this.defaultCurrency]) {
             if (code && !items.some((i) => i.value === code)) items.push({ label: code, value: code })
         }
         return items
@@ -100,7 +126,7 @@ export class MateuMoneyField extends LitElement {
                     id="${this.fieldId}"
                     label="${this.label}"
                     @value-changed="${this.valueChanged}"
-                    .value="${this.value?.value}"
+                    .value="${this.amount?.value}"
                     .helperText="${this.helperText}"
                     ?autofocus="${this.autofocus}"
                     ?required="${this.required || nothing}"
@@ -110,7 +136,7 @@ export class MateuMoneyField extends LitElement {
                     item-value-path="value"
                     .items="${this.currencies()}"
                     @value-changed="${this.currencyChanged}"
-                    .value="${this.value?.currency ?? this.empty.currency}"
+                    .value="${this.amount?.currency ?? this.empty.currency}"
                     style="max-width: 100px;"
                     theme="small"
             ></vaadin-select></div></vaadin-number-field>

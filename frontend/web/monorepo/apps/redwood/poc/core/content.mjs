@@ -6,7 +6,7 @@ import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
-import { ojIconOrGenericOf } from './shellNav.mjs'
+import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
@@ -266,6 +266,21 @@ export function styledTextOf(cls, wireStyle) {
   return { cls: out.trim(), style }
 }
 
+/** A Badge's icons as Redwood icon classes ('' = none, or a name with no Redwood glyph). */
+export function badgeIconsOf(m) {
+  const cls = (name) => (ojIconOf(name) ? ojIconOf(name) + ' mateu-badge-icon' : '')
+  return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
+}
+
+/** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
+export function withTextVariants(m, styled) {
+  const variants = Array.isArray(m && m.variants) ? m.variants : []
+  let cls = styled.cls
+  if (variants.includes('b') && !/\boj-typography-bold\b/.test(cls)) cls = (cls + ' oj-typography-bold').trim()
+  const style = variants.includes('i') ? { ...styled.style, fontStyle: 'italic' } : styled.style
+  return { cls, style }
+}
+
 /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
 export const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
 
@@ -358,6 +373,20 @@ export function dateConverterOf(kind) {
   const key = (kind === 'dateTime' ? 'dateTime' : 'date') + '|' + options.locale + '|' + (converterFactory ? 'f' : '')
   if (!dateConverters.has(key)) dateConverters.set(key, converterOf({ type: 'datetime', options }))
   return dateConverters.get(key)
+}
+
+/** A board row's items as twelfths of the oj-flex row, by their weights (boardCols), adding up to
+ *  12 (largest remainder; each at least 1) — a sum short of 12 would let the next row join this line. */
+export function boardTwelfthsOf(weights) {
+  const ws = weights.map((w) => (w > 0 ? w : 1)).slice(0, 12)
+  const total = ws.reduce((a, b) => a + b, 0)
+  const exact = ws.map((w) => (w * 12) / total)
+  const out = exact.map((x) => Math.max(1, Math.floor(x)))
+  let left = 12 - out.reduce((a, b) => a + b, 0)
+  const order = exact.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)
+  for (let k = 0; left > 0; k = (k + 1) % order.length) { out[order[k]]++; left-- }
+  for (let i = out.length - 1; left < 0 && i >= 0; i--) if (out[i] > 1) { out[i]--; left++ }
+  return out
 }
 
 export function islandContentOf(ctx, opts = {}) {
@@ -679,7 +708,37 @@ export function islandContentOf(ctx, opts = {}) {
       const walkLayout = (n) => {
         if (!n || typeof n !== 'object') return
         const md = n.metadata
-        if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+        // a FormItem (the components of ONE field) is transparent: its fields join the layout — it
+        // used to cut the layout, its field drawn loose outside the oj-form-layout
+        if (md && md.type === 'FormItem') { kidsOf(n).forEach(walkLayout); return }
+        // a FormRow of an AUTO-RESPONSIVE layout (the server's reflective forms: one row per line of
+        // its columns) is the layout's own grid — its fields flow into the one oj-form-layout
+        if (md && md.type === 'FormRow' && m.autoResponsive) { kidsOf(n).forEach(walkLayout); return }
+        // an authored FormRow (fluent / YAML) keeps its fields on ONE line: a form layout of its own
+        // with a column per field (flattened, they flowed into the columns like any other field)
+        if (md && md.type === 'FormRow') {
+          const rowKids = kidsOf(n)
+          const fieldCount = rowKids.filter((k) => k && k.metadata && k.metadata.type === 'FormField').length
+          layout = null
+          if (fieldCount) {
+            const rowColumns = Math.min(4, fieldCount)
+            layout = { isFormLayout: true, columns: rowColumns, fields: [] }
+            layouts.push(layout)
+            atom(layout, container)
+          }
+          const own = layout
+          for (const k of rowKids) {
+            const kmd = k && k.metadata
+            const field = kmd && kmd.type === 'FormField' && own ? layoutFieldOf(kmd, state, ctx.data, own.columns) : null
+            if (field) {
+              if (editorNodeIds && k.id) field.nodeId = String(k.id)
+              own.fields.push(field)
+            } else if (k) visit(k, container)
+          }
+          // what follows the row starts a layout of its own again
+          layout = null
+          return
+        }
         const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
         if (field) {
           if (editorNodeIds && n.id) field.nodeId = String(n.id)
@@ -983,6 +1042,35 @@ export function islandContentOf(ctx, opts = {}) {
       visitDashboardPanel(node, null)
       return
     }
+    // BOARD (BoardLayout of BoardLayoutRows of BoardLayoutItems): each row's items share the row by
+    // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
+    // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
+    // another block there are no columns to share out: stacked, in order.
+    if (t === 'BoardLayout' && !container) {
+      const rows = kidsOf(node).filter(Boolean)
+      const before = blocks.length
+      let ok = true
+      for (const row of rows) {
+        const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+        if (!items.length) continue
+        const cols = boardTwelfthsOf(items.map((it) => Number(it.metadata && it.metadata.boardCols) || 1))
+        if (!projectSized(items, items.map((_, i) => 'oj-flex-item oj-sm-12 oj-md-' + (cols[i] || 12) + ' oj-sm-padding-4x-end'),
+          items.map(() => ({ fromColumns: true })))) { ok = false; break }
+      }
+      if (ok) return
+      blocks.splice(before)
+    }
+    // FULL WIDTH: what it holds spans the row — its buttons fill it (a plain button bar keeps its
+    // natural width, right-aligned)
+    if (t === 'FullWidth') {
+      const scratch = { items: [] }
+      for (const child of kidsOf(node)) visit(child, scratch)
+      for (const a of scratch.items) {
+        if (a && a.isButtons) a.fullWidth = true
+        atom(a, container)
+      }
+      return
+    }
     if (t === 'Scoreboard') {
       const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
       if (metrics.length) atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
@@ -1085,10 +1173,10 @@ export function islandContentOf(ctx, opts = {}) {
             isH2: m.container === 'h2',
             text,
             // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-            ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
+            ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
           }, container)
         } else {
-          atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
+          atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
         }
       }
       return
@@ -1394,7 +1482,13 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Badge') {
-      atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+      atom({
+        isBadge: true,
+        label: interp(m.text),
+        badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+        // its icons, inside the chip before/after the text (they were never drawn)
+        ...badgeIconsOf(m),
+      }, container)
       return
     }
     if (t === 'ResourceGrid') {
@@ -1430,7 +1524,11 @@ export function islandContentOf(ctx, opts = {}) {
         currentLabel: m.current ? (m.currentLabel || '') : '',
         addedLabel: m.added ? (m.addedLabel || '') : '',
         priceLabel: interp(m.priceLabel || ''),
-        actionLabel: m.actionId ? (m.actionLabel || '') : '',
+        // the CTA shows whenever it has a label (once added: the addedLabel) — with no actionId it
+        // is INERT, not dropped; `added` used to show nothing at all
+        actionLabel: m.current ? '' : interp((m.added ? (m.addedLabel || m.actionLabel) : m.actionLabel) || ''),
+        ctaDisabled: !m.actionId,
+        ctaChroming: m.added ? 'outlined' : 'callToAction',
         actionId: m.actionId || '',
         parameters: {},
       }, container)
@@ -1477,6 +1575,9 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isStatusList: true,
         wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
+        // columns: N = AT MOST N cells per line: the cells are fixed (22rem), so the wrapper is capped
+        // at N of them and their gaps — uncapped, a wide page fitted three or four
+        wrapStyle: cols > 1 ? { maxWidth: 'calc(' + cols + ' * 22rem + ' + (cols - 1) + ' * 40px)' } : {},
         items: (m.items || []).map((it) => {
           // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
           // array; a row WITH actions is painted STACKED (title+chip /
@@ -1502,7 +1603,9 @@ export function islandContentOf(ctx, opts = {}) {
             cellClass,
             statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
             avatar: it.avatar || '',
-            icon: it.icon || '',
+            // an emoji/text icon is printed; a token (vaadin:…) becomes its Redwood icon class
+            icon: it.icon && !String(it.icon).includes(':') ? it.icon : '',
+            iconClass: it.icon && String(it.icon).includes(':') ? (ojIconOf(it.icon) || '') : '',
             title: interp(it.title),
             description: interp(it.description || ''),
             status: interp(it.status || ''),
@@ -1597,7 +1700,7 @@ export function islandContentOf(ctx, opts = {}) {
       // and no action of its own: its buttons join the row, as a toolbar group's join the header
       const buttons = groupMembersOf(m).map(buttonOf)
       if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
-      if (last && last.isButtons) last.buttons.push(...buttons)
+      if (last && last.isButtons && !last.fullWidth) last.buttons.push(...buttons)
       else atom({ isButtons: true, buttons }, container)
       return
     }

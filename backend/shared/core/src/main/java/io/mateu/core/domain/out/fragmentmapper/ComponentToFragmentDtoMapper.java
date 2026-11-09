@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ComponentTreeSuppl
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CrudlMapper.mapCrudlToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FieldMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormMapper.mapFormToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPageToDto;
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
@@ -104,6 +103,32 @@ public final class ComponentToFragmentDtoMapper {
       children.addAll(island.children());
     }
     return island.withChildren(children);
+  }
+
+  /**
+   * The archetype bridge page-level inference substitutes for a plain class (the same rule {@code
+   * ReflectionUiIncrementMapper} applies to a routed one), or null when it composes nothing.
+   */
+  static Component inferredPage(Object view) {
+    if (io.mateu.core.domain.out.componentmapper.PageInference.composesDashboard(view.getClass())) {
+      return new io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard(view);
+    }
+    if (io.mateu.core.domain.out.componentmapper.PageInference.composesWelcome(view.getClass())) {
+      return new io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome(view);
+    }
+    return null;
+  }
+
+  /**
+   * The data an embedded view renders with, as its page's fragment would carry it; null if none.
+   */
+  static Object islandData(Object view, HttpRequest httpRequest) {
+    Object data =
+        view instanceof io.mateu.uidl.interfaces.DataSupplier dataSupplier
+            ? dataSupplier.data(httpRequest)
+            : io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.createData(
+                view, httpRequest);
+    return data instanceof java.util.Map<?, ?> map && map.isEmpty() ? null : data;
   }
 
   private static void warnIfGuidedProcessDrawerTooLong(Object view) {
@@ -278,6 +303,19 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof EmbeddedView embeddedView) {
       var view = embeddedView.view();
+      // an orchestrator (a crud…) is a mediator island routed relative to ITSELF — mapped through
+      // its own dto() it was bound to the host's route and loaded the host inside itself
+      if (view instanceof io.mateu.core.infra.declarative.orchestrators.MultiView) {
+        return mapComponentToDto(
+            null,
+            io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder.embedded(
+                view, initiatorComponentId, httpRequest),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+      }
       if (view instanceof Component c) {
         return withOwnHeading(
             mapComponentToDto(
@@ -288,6 +326,28 @@ public final class ComponentToFragmentDtoMapper {
             consumedRoute,
             initiatorComponentId,
             httpRequest);
+      }
+      // an object a ComponentAdapter renders is drawn BY THE ADAPTER, as it is as a route or a form
+      // field: the bridge is an island of the adapted model (its type, state and actions). It used
+      // to be reflected field by field — no adapter components, labels or actions.
+      var adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(view.getClass());
+      if (adapter != null) {
+        return mapComponentToDto(
+            null,
+            new io.mateu.core.infra.adapters.AdaptedComponentTree(view, adapter),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+      }
+      // page-level inference (@AutoPage) composes the class as it does on a page of its own: a
+      // plain class of metric cards is a dashboard island, and its cards' actions are advertised
+      // (reflected as a form, the cards were fields and a click on one sent nothing)
+      var inferred = inferredPage(view);
+      if (inferred != null) {
+        return mapComponentToDto(
+            null, inferred, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
       warnIfGuidedProcessDrawerTooLong(view);
       // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
@@ -329,11 +389,23 @@ public final class ComponentToFragmentDtoMapper {
           PageWidthResolver.wirePageWidth(view),
           PageTypeResolver.wirePageType(view),
           StaticViewResolver.isStatic(view),
-          null);
+          null,
+          // what a page of its own carries in its fragment's data (a lookup's label…): the island
+          // has no fragment, so it travels with it — the stored id used to be shown raw
+          islandData(view, httpRequest));
     }
     if (component instanceof FutureComponent futureComponent) {
-      return mapFutureComponentToDto(
-          futureComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      // the same island as an EmbeddedView: the instance's own tree (a component tree's
+      // component()), its state field by field and its own actions. It used to be rendered
+      // reflectively with the raw object as its state and no actions.
+      return mapComponentToDto(
+          null,
+          new EmbeddedView(futureComponent.instance()),
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
       if (componentSupplier instanceof DtoSupplier dtoSupplier) {

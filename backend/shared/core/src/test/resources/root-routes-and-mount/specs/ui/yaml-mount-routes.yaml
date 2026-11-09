@@ -1,0 +1,4 @@
+type: Routes
+routes:
+  - route: second
+    layout: second.yaml

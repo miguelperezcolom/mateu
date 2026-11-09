@@ -180,6 +180,13 @@ class AppSession(
      *  A Crud listing is placed in the bottom tool window; anything else in a central editor tab. */
     var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
+    /** Like [openViewHandler] for content of ANOTHER backend: (label, route, consumedRoute, sst,
+     *  actionId, baseUrl) — a remote menu option, or a remote screen mounted as the home. */
+    var openRemoteViewHandler: ((String, String?, String?, String?, String?, String) -> Unit)? = null
+
+    /** The app's `homeBaseUrl` (AppDto): absolute when the server mounted a REMOTE screen as the home. */
+    var homeBaseUrl: String? = null
+
     /** Like [openViewHandler] but for a **row detail** — always opens in a central editor tab, even
      *  when the detail form contains nested grids (which would otherwise look like a Crud listing). */
     var openDetailHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
@@ -208,6 +215,15 @@ class AppSession(
     fun openMenuEntry(item: com.fasterxml.jackson.databind.JsonNode) {
         fun t(f: String) = item.path(f).takeIf { it.isTextual }?.asText() ?: ""
         if (!ShellFlows.isRuleLeaf(item)) {
+            // an option of another backend (a remote menu's leaf) loads from there, naming its own
+            // view type or none — never the shell's (ContentTarget)
+            val remote = openRemoteViewHandler
+            if (remote != null && ContentTarget.isForeign(t("baseUrl"), baseUrl)) {
+                remote(t("label"), t("route"), t("consumedRoute"),
+                    ContentTarget.optionServerSideType(t("serverSideType"), t("baseUrl"), baseUrl, appServerSideType),
+                    t("actionId"), ContentTarget.optionBase(t("baseUrl"), baseUrl))
+                return
+            }
             openViewHandler?.invoke(t("label"), t("route"), t("consumedRoute"), t("serverSideType"), t("actionId"))
             return
         }

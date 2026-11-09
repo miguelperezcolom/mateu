@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { remoteHomeBaseUrl } from '../core/homeTarget';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { CommonActions, NavigationContainer, createNavigationContainerRef, useIsFocused } from '@react-navigation/native';
 import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
@@ -82,6 +83,8 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   homeRoute?: string;
   homeConsumedRoute?: string;
   homeServerSideType?: string;
+  /** Where the home is loaded from: ABSOLUTE when the server mounted a remote screen as the home. */
+  homeBaseUrl?: string;
   serverSideType?: string;
   rootRoute?: string;
   variant?: string;
@@ -981,6 +984,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     route: appMeta.homeRoute ?? '',
     consumedRoute: appMeta.homeConsumedRoute ?? '',
     serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
+    // a remote screen mounted as the home (a link to /fed/stock) is loaded from the remote
+    baseUrl: remoteHomeBaseUrl(appMeta),
   });
 
   const variant = appMeta.variant ?? 'NAVIGATION_LAYOUT';
@@ -1129,9 +1134,10 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       route: appMeta.homeRoute ?? '',
       consumedRoute: appMeta.homeConsumedRoute ?? '',
       serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
+      baseUrl: remoteHomeBaseUrl(appMeta),
     });
     setContextVersion((v) => v + 1);
-  }, [appMeta.homeRoute, appMeta.homeConsumedRoute, appMeta.homeServerSideType, appMeta.serverSideType]);
+  }, [appMeta.homeRoute, appMeta.homeConsumedRoute, appMeta.homeServerSideType, appMeta.serverSideType, appMeta.homeBaseUrl]);
   const guard = (content: React.ReactNode) => (
     <IdleSessionGuard meta={appMeta} runAppAction={(id) => void runAppAction(id)} onSignOut={goHome}>
       {content}

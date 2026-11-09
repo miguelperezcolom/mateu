@@ -60,6 +60,14 @@ public class AdapterHost
     public Pedido Pedido { get; set; } = new();
 }
 
+/// <summary>A page opening an adapted object in a drawer through an EmbeddedView.</summary>
+[UI("pedido-en-drawer"), Title("Pedido en drawer")]
+public class EmbeddedPedidoHost
+{
+    [Action]
+    public Drawer Abrir() => new() { Id = "d", HeaderTitle = "Pedido", Content = new EmbeddedView(new Pedido()) };
+}
+
 /// <summary>A domain type whose adapter is NOT discoverable by scan (no parameterless
 /// constructor): only a DI registration makes it known.</summary>
 [UI("greeting")]
@@ -152,6 +160,20 @@ public class IslandTests
         Assert.Equal(12, (long)component["initialData"]!["cantidad"]!);
         Assert.Equal("guardar", (string?)Assert.Single(component["actions"]!.AsArray())!["id"]);
         Assert.Contains(Objects(component), o => (string?)o["fieldId"] == "referencia");
+    }
+
+    [Fact]
+    public void An_embedded_view_of_an_adapted_object_is_drawn_by_its_adapter()
+    {
+        var root = Node(Handler().Handle(new RunActionRqDto
+        {
+            Route = "pedido-en-drawer", ActionId = "abrir", ServerSideType = typeof(EmbeddedPedidoHost).FullName,
+        }));
+        var island = Assert.Single(Objects(root), o => (string?)o["serverSideType"] == typeof(Pedido).FullName);
+        // the adapter's tree, state and actions — it used to be reflected field by field
+        Assert.Contains(Objects(island), o => (string?)o["fieldId"] == "referencia");
+        Assert.Equal("PED-2026-0042", (string?)island["initialData"]!["referencia"]);
+        Assert.Equal("guardar", (string?)Assert.Single(island["actions"]!.AsArray())!["id"]);
     }
 
     [Fact]

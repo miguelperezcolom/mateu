@@ -14,6 +14,8 @@ import { headingA11y } from '../a11y/a11y';
 import { buttonA11y } from '../a11y/a11y';
 import { popoverOpensOnPress } from './hoverDetails';
 import { openExternal } from './openExternal';
+import { badgeIconsOf } from './displayFigures';
+import { progressBarColor } from './displayTones';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -151,7 +153,8 @@ export function SplitRenderer({ component, state }: { component: unknown; state:
 
 // ── Badge / Anchor / ProgressBar ────────────────────────────────────────────────
 export function BadgeRenderer({ metadata }: { metadata: Dict }) {
-  return <StatusChip label={(metadata['text'] as string) ?? ''} tone={(metadata['color'] as string) ?? ''} />;
+  // its iconOnLeft / iconOnRight inside the chip (they were never drawn)
+  return <StatusChip label={(metadata['text'] as string) ?? ''} tone={(metadata['color'] as string) ?? ''} {...badgeIconsOf(metadata)} />;
 }
 
 export function AnchorRenderer({ metadata }: { metadata: Dict }) {
@@ -182,7 +185,7 @@ export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state
       accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100) }}
     >
       {!!text && <Text style={styles.progressText}>{text}</Text>}
-      <ProgressBar progress={frac} color={theme.primary} style={styles.progressTrack} />
+      <ProgressBar progress={frac} color={progressBarColor(metadata['theme'] as string | undefined)} style={styles.progressTrack} />
     </View>
   );
 }

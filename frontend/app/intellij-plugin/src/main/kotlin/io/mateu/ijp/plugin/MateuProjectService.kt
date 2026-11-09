@@ -120,6 +120,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         session = s
         val viewManager = MateuViewManager(project, s)
         s.openViewHandler = viewManager::openView
+        s.openRemoteViewHandler = viewManager::openRemoteView
         s.openDetailHandler = viewManager::openDetail
         // an assistant-rendered screen (render-screen, target content) → a transient preview tab
         s.contentPreviewHandler = viewManager::showPreview
@@ -223,6 +224,13 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
      *  fills a central editor tab, a Crud listing lands in the bottom results panel. */
     private fun openHomeView(s: AppSession) {
         val home = s.homeRoute
+        val homeBase = io.mateu.ijp.state.ContentTarget.homeBase(s.homeBaseUrl, s.baseUrl)
+        val remote = s.openRemoteViewHandler
+        if (!home.isNullOrBlank() && remote != null && io.mateu.ijp.state.ContentTarget.isForeign(homeBase, s.baseUrl)) {
+            // a remote screen mounted as the home: loaded from ITS backend, not the shell's
+            remote(s.appTitle ?: "Home", home, s.homeConsumedRoute, s.homeServerSideType, null, homeBase)
+            return
+        }
         if (!home.isNullOrBlank()) {
             s.openViewHandler?.invoke(
                 s.appTitle ?: "Home",

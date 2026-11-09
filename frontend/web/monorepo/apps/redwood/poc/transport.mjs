@@ -5,23 +5,39 @@
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands } from './reduceContexts.mjs'
-import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
+import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
+import { chromeText } from './i18n.mjs'
 import { noteDocumentBase } from './files.mjs'
 import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
 import { noteProgress, withoutProgressCommands, isEmptyIncrement, setTaskTransport } from './tasks.mjs'
 import { noteDetachedMessages } from './inbox.mjs'
 
+/** An absolute base url on another origin than the page's (false outside a browser). */
+export function isForeignBase(base) {
+  if (!base || !/^https?:\/\//i.test(String(base))) return false
+  try {
+    return typeof location !== 'undefined' && !!location.origin && new URL(String(base)).origin !== location.origin
+  } catch {
+    return false
+  }
+}
+
 /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
  *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
  *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
  *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
 export async function callMateu(base, body, options = {}) {
+  // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
+  // says nothing about the user's connection: its request is isolated from the connectivity tracker,
+  // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the
+  // page-wide "no connection" band, and "connection restored" right after.
+  if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
   const view = options.view !== undefined ? options.view
     : (options.quiet || options.isolated) ? null : currentView()
   const bare = (body.route || '').replace(/^\//, '')
@@ -183,7 +199,7 @@ export function setMountWithoutApp(value) { mountWithoutApp = !!value }
  *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
  *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
  *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
-export const loadRoute = async (base, route, initiator = '', extra = {}) => {
+export const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
   // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
   if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
     extra = { ...extra, consumedRoute: '_empty' }
@@ -205,7 +221,7 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
     const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
     if (bundled) return bundled
   }
-  return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+  return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
 }
 
 /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -262,7 +278,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
       release()
       if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
       // …and whatever an older remote still sends, the window is not the island's to name
-      return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
+      return outbound.embeddedChrome || outbound.windowless ? withoutWindowCommands(inc) : inc
     }, (e) => { release(); throw e })
 }
 
@@ -599,17 +615,30 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
     // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
-    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
+    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+    // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
+    // opened inside one replaced the host page's address)
+    ...(sub.windowless ? { windowless: true } : {}) }
   // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
   // its actions and triggers still go to ITS baseUrl (outbound, below)
-  const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+  let answer
+  try {
+    answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
     ...extra,
     consumedRoute: sub.consumedRoute,
     serverSideType: sub.serverSideType,
     componentState: sub.componentState || {},
     ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
-  })
-  let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
+  // a micro frontend's load is a block of the page: whatever happens to it reports in ITS box
+  // (loadSubresources), never in the page-wide error band
+  }, sub.windowless ? { quiet: true } : {})
+  } catch (error) {
+    // a micro frontend that fails says so INSIDE its own box (its load is quiet: no page band);
+    // any other subresource is reported by the error band (onSettle) and rethrown, as before
+    if (!sub.windowless || isStaleResponse(error)) throw error
+    return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
+  }
+  let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
   next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
   for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
     const ctx = next.contexts[sub.id]
@@ -620,7 +649,7 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   }
   // an embedded island leaves the window as the HOST named it: its load does not take the host's
   // title (nor its history push) away from the chains that apply them after loading the blocks
-  if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
+  if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
   return next
 }
 
@@ -690,7 +719,9 @@ export async function registerInlineIsland(base, reg, sub, extra = {}) {
         // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
         // previous incarnation held
         state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
-        data: (previous && previous.data) || {},
+        // an EmbeddedView island brings the data its page's fragment would (a lookup's
+        // `<field>-label`): it has no fragment of its own — the stored id used to be shown raw
+        data: { ...((previous && previous.data) || {}), ...(node.data && typeof node.data === 'object' ? node.data : {}) },
         dirty: false,
         outbound,
       },
@@ -812,6 +843,25 @@ export async function loadSubresources(base, reg, blocks, extra = {}) {
     } catch (ignored) { /* the error band already reports it (onSettle) */ }
   }
   return next
+}
+
+/** The answer a micro frontend that could not be loaded paints in its own box: a danger Notice
+ *  with what went wrong (the classified failure's words, else the renderer's own). */
+export function surfaceFailureIncrement(id, error) {
+  const reason = error && error.failure && error.failure.message
+  const text = reason ? `${chromeText('surfaceUnavailable')} ${reason}` : chromeText('surfaceUnavailable')
+  return {
+    commands: [],
+    messages: [],
+    fragments: [{
+      targetComponentId: id,
+      action: 'Replace',
+      component: { type: 'ServerSide', id, serverSideType: '', actions: [], triggers: [], children: [
+        { type: 'ClientSide', id: `${id}-failure`, children: [], metadata: { type: 'Notice', theme: 'danger', text } },
+      ] },
+      state: {},
+    }],
+  }
 }
 
 /**

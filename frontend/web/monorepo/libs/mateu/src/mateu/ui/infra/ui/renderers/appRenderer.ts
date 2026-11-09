@@ -25,6 +25,7 @@ import "@infra/ui/mateu-card-menu.ts";
 import { isCardsGroup } from "@infra/ui/mateu-card-menu.ts";
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
+import { contentBaseUrl, contentServerSideType } from '@infra/ui/appContentTarget.ts'
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -311,24 +312,8 @@ export const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
     }
     return metadata.homeConsumedRoute
 }
-export const chooseBaseUrl = (container: MateuApp, metadata: App) => {
-    if (container.selectedRoute) {
-        return container.selectedBaseUrl??container.baseUrl
-    }
-    // `homeBaseUrl` is what the app calls itself FROM ITS OWN ORIGIN, and for a federated app that
-    // is not where the browser reached it: the shell fetched it at the remote's base, and its
-    // content has to keep talking to that base. Taking the metadata's value verbatim sent the
-    // listing's own load back to the SHELL — a path the shell does not serve, which is the "not
-    // found" you get from pasting a link to a page inside a remote app. Only a deep link takes this
-    // branch; clicking the menu goes through selectedBaseUrl above, which is why it worked there.
-    return container.baseUrl || metadata.homeBaseUrl
-}
-export const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
-    if (container.selectedRoute) {
-        return container.selectedServerSideType??metadata.serverSideType
-    }
-    return metadata.homeServerSideType
-}
+export const chooseBaseUrl = (container: MateuApp, metadata: App) => contentBaseUrl(container, metadata)
+export const chooseAppServerSideType = (container: MateuApp, metadata: App) => contentServerSideType(container, metadata)
 export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedUriPrefix
