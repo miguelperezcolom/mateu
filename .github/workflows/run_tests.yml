@@ -172,6 +172,7 @@ jobs:
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-subheader-overflow.mjs test-e2.mjs test-agent-push.mjs test-e2-dom.mjs test-mobile.mjs
           test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs test-chat-events.mjs
+          test-templates.mjs test-progress.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -255,6 +256,13 @@ jobs:
           npm ci --ignore-scripts
           npm test
           npm run build
+
+      # The one-step import every front door runs (mateu-bundle:figma, IntelliJ, VS Code): frame
+      # selection, file statuses, the Figma API errors. No dependencies to install.
+      - name: Figma import — driver
+        run: |
+          cd design/figma/import
+          npm test
 
   # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
   # schema, wire-type parity, headless rendering of every component type, the YAML binding

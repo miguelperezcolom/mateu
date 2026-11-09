@@ -63,6 +63,8 @@ export class MateuForm extends MetadataDrivenElement {
         .mateu-hlayout {
             display: flex;
             flex-direction: row;
+            /* a row of buttons wraps at phone width instead of scrolling sideways (W-V-REFLOW-2) */
+            flex-wrap: wrap;
             align-items: center;
             gap: var(--lumo-space-m, 1rem);
         }

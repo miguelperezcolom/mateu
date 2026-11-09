@@ -214,6 +214,19 @@ describe('mateu-filter-bar (smart search)', () => {
         expect(events.at(-1)!.type).toBe('search-requested')
     })
 
+    it('the saved-view star is a named toggle drawn from the icon set (W-V-GLYPHS)', async () => {
+        saveView(window.location.pathname, { name: 'mine', values: { status: 'CLOSED' } })
+        setDefaultView(window.location.pathname, 'mine')
+        const bar = await mount({ status: 'OPEN' })
+        ;($(bar, '.views-button') as HTMLButtonElement).click()
+        await bar.updateComplete
+        const star = $(bar, '.view-star')
+        expect(star.getAttribute('aria-pressed')).toBe('true')
+        expect(star.getAttribute('aria-label')).toBeTruthy()
+        expect(star.querySelector('[data-icon="vaadin:star"]')).toBeTruthy()
+        expect($(bar, '.views-panel').textContent).not.toMatch(/[★✕]/u)
+    })
+
     it('the default saved view is applied on open when the URL carries no params', async () => {
         vi.useFakeTimers()
         saveView(window.location.pathname, { name: 'mine', values: { status: 'CLOSED' } })

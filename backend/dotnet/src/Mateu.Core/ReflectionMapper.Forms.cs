@@ -8,6 +8,9 @@ namespace Mateu.Core;
 // Forms: sections, zones, tabs, folded layouts, fields and buttons (Java: SectionFormRenderer, FormLayoutBuilder, ReflectionFormFieldMapper, FieldTypeMapper).
 internal sealed partial class ReflectionMapper
 {
+    /// <summary>A [FoldedLayout] section column: grows, and wraps below the previous one under 20rem.</summary>
+    internal const string FoldedColumnStyle = "flex: 1 1 20rem; min-width: min(20rem, 100%);";
+
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
     public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route,
         ICrudAffordances? drawerOf = null)
@@ -154,13 +157,19 @@ internal sealed partial class ReflectionMapper
         if (zones.Count > 0 && sections.Count > 1)
             return [BuildZones(type, zones, sections, sectionZones, sectionAttrs, instance, readOnly)];
 
-        // [FoldedLayout]: the section cards side by side in one horizontal row (zones win).
+        // [FoldedLayout]: the section cards side by side in one horizontal row (zones win). The
+        // row wraps and each column has a basis and a floor, so at phone width the sections stack
+        // instead of the second one being cut off at the screen edge (mirrors Java's
+        // FOLDED_COLUMN_STYLE).
         if (type.Find<FoldedLayoutAttribute>() != null && sections.Count > 1)
             return [new ClientSideComponentDto(
-                new HorizontalLayoutMetadataDto { Spacing = true }, null,
-                sections.Select((s, i) => (ComponentDto)SectionCard(
-                    s.Title, MapFields(s.Props, instance, readOnly),
-                    sectionAttrs[i], type, s.Props, titled: true)).ToList(),
+                new HorizontalLayoutMetadataDto { Spacing = true, Wrap = true }, null,
+                sections.Select((s, i) => (ComponentDto)new ClientSideComponentDto(
+                    new DivMetadataDto(), null,
+                    [SectionCard(
+                        s.Title, MapFields(s.Props, instance, readOnly),
+                        sectionAttrs[i], type, s.Props, titled: true)],
+                    FoldedColumnStyle, null, null)).ToList(),
                 null, null, null)];
 
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
@@ -610,6 +619,8 @@ internal sealed partial class ReflectionMapper
     {
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .FirstOrDefault(m => Naming.CamelCase(m.Name) == actionId);
+        // a method answering a LongTask streams its progress: the client calls it over SSE
+        if (method?.ReturnType == typeof(LongTaskRun)) action = action with { Sse = true };
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
         return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };

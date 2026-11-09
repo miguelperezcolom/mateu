@@ -39,7 +39,7 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
         panel.addStacked(o, 2)
     }
     val title = JBLabel(plain(metadata.text("title")), SwingConstants.CENTER)
-    title.font = title.font.deriveFont(Font.BOLD, 24f)
+    title.font = title.font.deriveFont(Font.BOLD, PageChrome.fontSize(24f))
     title.foreground = Color.WHITE
     panel.addStacked(title, 6)
     val subtitle = metadata.text("subtitle")
@@ -48,7 +48,25 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
         l.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         panel.addStacked(l, 10)
     }
-    for (child in component.path("children")) panel.addStacked(r.render(child, state, data), 6)
+    // The hero's call-to-action buttons sit side by side in one centred row (they were stretched
+    // into full-width bars, one per line); any other child keeps its own line.
+    // (Built first, stacked after: addStacked freezes a child's height when it is added.)
+    val blocks = ArrayList<JComponent>()
+    var ctas: JPanel? = null
+    for (child in component.path("children")) {
+        if (child.path("metadata").text("type") == "Button") {
+            val row = ctas ?: JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(8), 0)).also {
+                it.isOpaque = false
+                blocks.add(it)
+                ctas = it
+            }
+            row.add(r.render(child, state, data))
+        } else {
+            ctas = null
+            blocks.add(r.render(child, state, data))
+        }
+    }
+    for (block in blocks) panel.addStacked(block, 6)
     return panel
 }
 
@@ -58,9 +76,9 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     // An emoji glyph shows; a web icon token ("vaadin:list-select") is not a glyph — it printed as
     // raw text above the title.
     val icon = metadata.text("icon").takeUnless { it.contains(':') }.orEmpty()
-    if (icon.isNotBlank()) panel.addStacked(JBLabel(plain(icon), SwingConstants.CENTER).apply { font = font.deriveFont(28f) }, 4)
+    if (icon.isNotBlank()) panel.addStacked(JBLabel(plain(icon), SwingConstants.CENTER).apply { font = font.deriveFont(PageChrome.fontSize(28f)) }, 4)
     val title = metadata.text("title")
-    if (title.isNotBlank()) panel.addStacked(JBLabel(plain(title), SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
+    if (title.isNotBlank()) panel.addStacked(JBLabel(plain(title), SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, PageChrome.fontSize(15f)) }, 2)
     val description = metadata.text("description")
     if (description.isNotBlank()) {
         panel.addStacked(JBLabel(plain(description), SwingConstants.CENTER).apply {
@@ -85,13 +103,14 @@ fun renderSkeleton(metadata: JsonNode): JComponent {
     val panel = verticalPanel(6)
     repeat(count) {
         val block = JPanel()
-        block.background = Color(0xE4, 0xE6, 0xE9)
+        // a tint of the theme (a fixed #E4E6E9 glared as white bars in a dark IDE), scaled for HiDPI
+        block.background = SurfaceColors.placeholder
         block.isOpaque = true
         block.preferredSize = when (variant) {
-            "card" -> Dimension(320, 96)
-            "grid" -> Dimension(420, 32)
-            "form" -> Dimension(320, 40)
-            else -> Dimension(280, 16)
+            "card" -> JBUI.size(320, 96)
+            "grid" -> JBUI.size(420, 32)
+            "form" -> JBUI.size(320, 40)
+            else -> JBUI.size(280, 16)
         }
         block.maximumSize = block.preferredSize
         panel.addStacked(block, 4)
@@ -137,38 +156,50 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
         return col
     }
 
-    fun widthUnits(spec: String): Double =
-        spec.removeSuffix("rem").trim().toDoubleOrNull() ?: 22.0
+    // Each column keeps its declared width (FoldoutPanel.width; the overview the renderer default,
+    // 22rem) and the row scrolls sideways when they do not fit — the web's anatomy. It used to be a
+    // weighted grid squeezed into the window: nine panels at 1200px became ~110px slivers with their
+    // headings cut ("Not…") and every line wrapped word by word.
+    fun widthPx(spec: String): Int = JBUI.scale(((FoldoutFit.widthPx(spec, 0.0) ?: 352.0)).toInt().coerceAtLeast(160))
 
-    val row = JPanel(java.awt.GridBagLayout())
+    val row = JPanel()
+    row.layout = javax.swing.BoxLayout(row, javax.swing.BoxLayout.X_AXIS)
     row.isOpaque = false
-    val constraints = java.awt.GridBagConstraints()
-    constraints.gridy = 0
-    constraints.anchor = java.awt.GridBagConstraints.NORTHWEST
-    constraints.fill = java.awt.GridBagConstraints.BOTH
-    constraints.weighty = 1.0
+    fun add(columnWidth: Int, col: JComponent) {
+        val fixed = object : JPanel(BorderLayout()) {
+            override fun getPreferredSize() = Dimension(columnWidth, super.getPreferredSize().height)
+            override fun getMinimumSize() = preferredSize
+            override fun getMaximumSize() = Dimension(columnWidth, Int.MAX_VALUE)
+        }
+        fixed.isOpaque = false
+        fixed.alignmentY = java.awt.Component.TOP_ALIGNMENT
+        // panels after the first are divided by the theme's separator line, like the web's panels
+        if (row.componentCount > 0) fixed.border = JBUI.Borders.compound(
+            JBUI.Borders.customLineLeft(com.intellij.ui.JBColor.border()), JBUI.Borders.emptyLeft(16))
+        fixed.add(col, BorderLayout.CENTER)
+        row.add(fixed)
+    }
 
     val overview = children.firstOrNull { it.text("slot") == "overview" }
         ?: children.firstOrNull { !it.text("slot").startsWith("summary-") && !it.text("slot").startsWith("panel-") }
-    var gridx = 0
     if (overview != null) {
-        constraints.gridx = gridx++
-        constraints.weightx = 22.0
-        row.add(column(metadata.text("headerTitle"), "", r.render(overview, state, data)), constraints)
+        add(widthPx("22rem"), column(metadata.text("headerTitle"), "", r.render(overview, state, data)))
     }
     for ((i, info) in panelsInfo.withIndex()) {
         val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: continue
-        constraints.gridx = gridx++
-        constraints.weightx = widthUnits(info.text("width", "22rem"))
         val summary = PageSlots.foldoutSummary(children, i)?.let { node ->
             r.render(node, state, data).apply { foreground = uxMuted() }
         }
-        row.add(
-            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data), summary),
-            constraints,
-        )
+        add(widthPx(info.text("width", "22rem")),
+            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data), summary))
     }
-    return row
+    val scroll = ContentHeightScrollPane(row)
+    scroll.border = JBUI.Borders.empty()
+    scroll.isOpaque = false
+    scroll.viewport.isOpaque = false
+    scroll.verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+    scroll.accessibleContext.accessibleName = metadata.text("headerTitle").ifBlank { "Record" }
+    return scroll
 }
 
 /** Gantt: labels column + proportional bars over the tasks' date range, with a today marker. */
@@ -262,29 +293,38 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
     // the declared text alternative (Image.alt) is the accessible name a screen reader reads
     val alt = metadata.text("alt").trim()
     if (src.isBlank()) return JPanel().apply { isOpaque = false }
-    val img = runCatching {
-        if (src.startsWith("data:")) {
-            val base64 = src.substringAfter("base64,", "")
-            if (base64.isNotBlank()) javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) else null
-        } else {
-            javax.imageio.ImageIO.read(java.net.URI.create(src).toURL())
-        }
-    }.getOrNull()
-    return if (img != null) {
-        val scale = minOf(1.0, 360.0 / img.width)
-        JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH))).apply {
-            if (alt.isNotEmpty()) {
-                accessibleName(alt)
-                toolTipText = plainTip(alt)
-            }
-        }
-    } else {
-        // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be
-        // the src itself — a data URI dumped as a wall of base64 across the page.
-        val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
-        JBLabel(plain("🖼 $shown")).apply {
-            toolTipText = plainTip(alt.ifEmpty { shown })
-            accessibleContext.accessibleName = alt.ifEmpty { "Image" }
-        }
+    fun iconOf(img: java.awt.image.BufferedImage): javax.swing.Icon {
+        val scale = minOf(1.0, JBUI.scale(360).toDouble() / img.width)
+        return javax.swing.ImageIcon(img.getScaledInstance(
+            (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))
     }
+    // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be the
+    // src itself — a data URI dumped as a wall of base64 across the page.
+    val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
+    val label = JBLabel(plain("🖼 ${alt.ifEmpty { shown }}"))
+    label.foreground = ToneColors.secondaryText()
+    label.toolTipText = plainTip(alt.ifEmpty { shown })
+    label.accessibleContext.accessibleName = alt.ifEmpty { "Image" }
+    fun show(img: java.awt.image.BufferedImage) {
+        label.text = null
+        label.foreground = null
+        label.icon = iconOf(img)
+        label.revalidate()
+        label.repaint()
+    }
+    if (src.startsWith("data:")) {
+        val base64 = src.substringAfter("base64,", "")
+        runCatching { javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) }.getOrNull()?.let(::show)
+    } else if (isRemoteImage(src)) {
+        // Off the EDT: the url used to be fetched WHILE rendering, so a slow image host froze the
+        // whole IDE until it answered (or timed out). Meanwhile a short status, not the raw url.
+        label.text = plain(if (alt.isNotEmpty()) "🖼 $alt" else "Loading image…")
+        Thread {
+            val img = runCatching { javax.imageio.ImageIO.read(java.net.URI.create(src.trim()).toURL()) }.getOrNull()
+            javax.swing.SwingUtilities.invokeLater {
+                if (img != null) show(img) else if (alt.isEmpty()) label.text = "Image unavailable"
+            }
+        }.apply { isDaemon = true; name = "mateu-image" }.start()
+    }
+    return label
 }

@@ -543,7 +543,7 @@ export class MateuPage extends LitElement {
             <div class="page-body ${this._tocVisible ? `with-toc toc-${this._tocPlacement}` : ''}">
                 <div class="form-content">
                     <slot @slotchange=${this._onSlotChange}></slot>
-                    <div style="display: flex; gap: var(--lumo-space-m, 1rem);" class="form-buttons">
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem);" class="form-buttons">
                         <slot name="buttons"></slot>
                     </div>
                 </div>

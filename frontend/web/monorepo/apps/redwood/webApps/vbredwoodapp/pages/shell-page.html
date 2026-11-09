@@ -146,7 +146,7 @@
         </oj-button>
       </oj-bind-if>
       <!-- inbox BELL (the App's NotificationsSupplier): oj-button with the unread
-           badge and an oj-popup with an oj-list-view; activating an entry marks it read and navigates -->
+           badge and an oj-popup with the inbox panel the bridge paints (poc/inbox.mjs) -->
       <oj-bind-if test="[[ $application.variables.mateuNotifications.enabled ]]">
         <span class="mateu-bell oj-sm-margin-1x-start">
           <oj-button id="mateuBellButton" chroming="borderless" display="icons" class="oj-color-invert"
@@ -167,20 +167,10 @@
                 <oj-button chroming="borderless" on-oj-action="[[ $listeners.bellMarkAllRead ]]"><oj-bind-text value="[[ $application.translations.appBundle.markAllRead ]]"></oj-bind-text></oj-button>
               </oj-bind-if>
             </div>
-            <oj-bind-if test="[[ $application.variables.mateuNotifications.empty ]]">
-              <div class="oj-text-color-secondary oj-sm-padding-4x-vertical"><oj-bind-text value="[[ $application.translations.appBundle.allCaughtUp ]]"></oj-bind-text></div>
-            </oj-bind-if>
-            <oj-list-view id="mateuBellList" :aria-label="[[ $application.translations.appBundle.notifications ]]" class="mateu-bell-list"
-              data="[[ $application.variables.mateuNotifications.provider ]]"
-              selection-mode="single" on-oj-item-action="[[ $listeners.bellItemAction ]]">
-              <template slot="itemTemplate" data-oj-as="item">
-                <oj-list-item-layout>
-                  <div :class="[[ item.data.titleClass ]]"><oj-bind-text value="[[ item.data.title ]]"></oj-bind-text></div>
-                  <div slot="secondary" class="oj-typography-body-sm"><oj-bind-text value="[[ item.data.text ]]"></oj-bind-text></div>
-                  <div slot="tertiary" class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ item.data.when ]]"></oj-bind-text></div>
-                </oj-list-item-layout>
-              </template>
-            </oj-list-view>
+            <!-- the entries: painted by the bridge (poc/inbox.mjs) — filters unread / all / resolved,
+                 grouped by category, each with its actions, its detail or route, and Dismiss -->
+            <div id="mateuBellPanel" class="mateu-bell-list" data-oj-binding-provider="none"
+              :aria-label="[[ $application.translations.appBundle.notifications ]]"></div>
           </div>
         </oj-popup>
       </oj-bind-if>

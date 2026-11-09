@@ -145,34 +145,25 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
 
 private fun buildSidebar(session: AppSession, menu: JsonNode): JComponent {
     val panel = verticalPanel(4)
-    panel.border = JBUI.Borders.empty(8)
-    addMenuItems(session, panel, menu, 0)
-    return panel
-}
-
-private fun addMenuItems(session: AppSession, panel: javax.swing.JPanel, menu: JsonNode, depth: Int) {
-    if (!menu.isArray) return
-    for (item in menu) {
-        if (item.bool("separator")) {
-            panel.addStacked(JSeparator(), 4)
-            continue
-        }
-        val label = item.text("label")
-        val submenus = item.path("submenus")
+    panel.border = JBUI.Borders.empty(4, 0)
+    // Consecutive plain entries form one TREE — the IDE's navigator idiom (IJ-13: they were a column
+    // of hyperlinks, with no selected row, no keyboard navigation and no speed search); a
+    // `display: cards` group keeps its cards between them.
+    val pending = ArrayList<JsonNode>()
+    fun flush() {
+        if (pending.isNotEmpty()) panel.addStacked(MenuTree.build(pending.toList()) { openMenuEntry(session, it) }, 0)
+        pending.clear()
+    }
+    if (menu.isArray) for (item in menu) {
         if (MenuCards.isCardsGroup(item)) {
-            addMenuCards(session, panel, item, depth)
-        } else if (submenus.isArray && !submenus.isEmpty) {
-            val header = JBLabel(plain(if (depth == 0) label.uppercase() else label))
-            header.font = header.font.deriveFont(Font.BOLD)
-            header.border = JBUI.Borders.empty(6, depth * 12, 2, 0)
-            panel.addStacked(header, 2)
-            addMenuItems(session, panel, submenus, depth + 1)
+            flush()
+            addMenuCards(session, panel, item, 0)
         } else {
-            val link = ActionLink(plain(label)) { openMenuEntry(session, item) }
-            link.border = JBUI.Borders.emptyLeft(depth * 12)
-            panel.addStacked(link, 2)
+            pending.add(item)
         }
     }
+    flush()
+    return panel
 }
 
 /** Opens a menu leaf exactly like a click on its navigator link (a rule leaf RUNS its flow). */

@@ -182,42 +182,13 @@ define([
       } else if (clientFlow) {
         applyInc({ commands: clientFlow, fragments: [], messages: [] });
       } else if (isSse) {
-        // LongTask: the progress dialog is painted LIVE as the stream arrives; its
-        // increments (the Dialog's Add + the progress state-only ones) are CONSUMED here and
-        // not reduced — the commands/messages of the last one (e.g. the refresh's
-        // dispatchEvent) are, via rest
-        const progressWatcher = bridge.longTaskWatcher();
-        let progressOpen = false;
+        // LongTask: its Progress goes to the bridge's task center as it arrives (tasks.mjs: the
+        // dialog of a blocking task, the docked task list); the rest is applied here at the end
         const increments = await bridge.runMateuActionSse(
           base, transportCtx, route, id, componentState, {
-            ...transportExtra,
-            parameters: parameters || {}, appState,
-            onIncrement: async (inc) => {
-              const ev = progressWatcher.consume(inc);
-              if (!ev) return false;
-              if (ev.title != null) $page.variables.mateuProgressTitle = ev.title;
-              if (ev.text != null) $page.variables.mateuProgressText = ev.text;
-              if (ev.value != null) $page.variables.mateuProgressValue = Math.round(ev.value * 100);
-              if (ev.kind === 'open' && !progressOpen) {
-                progressOpen = true;
-                await Actions.callComponentMethod(context, {
-                  selector: '#mateuProgressDialog', method: 'open',
-                });
-              }
-              if (ev.rest.commands.length || ev.rest.messages.length) {
-                applyInc(ev.rest);
-              }
-              return true;
-            },
+            ...transportExtra, parameters: parameters || {}, appState,
           });
         increments.forEach(applyInc);
-        if (progressOpen) {
-          await new Promise((resolve) => setTimeout(
-            resolve, progressWatcher.closeAfter != null ? progressWatcher.closeAfter : 600));
-          await Actions.callComponentMethod(context, {
-            selector: '#mateuProgressDialog', method: 'close',
-          });
-        }
       } else {
         applyInc(await bridge.runMateuAction(
           base, transportCtx, route, id, componentState,

@@ -30,15 +30,54 @@ export interface ToastMessage {
      */
     actionLabel?: string
     onAction?: () => void
+    /** the message's title (shown before the text when present) */
+    title?: string
+    /** toast | sticky | inbox (design/progress-and-notifications.md) */
+    persistence?: string | null
+    /**
+     * The actions the message offers, ready to run (labels resolved). When present they replace
+     * the single undo control: a newer server sends the undo as one of them.
+     */
+    actions?: ToastAction[]
+    /** a toast with the same key replaces the one on screen */
+    key?: string | null
+}
+
+/** One action of a toast, ready to render. */
+export interface ToastAction {
+    label: string
+    style?: string | null
+    run: () => void
 }
 
 /**
  * How long a toast stays, in ms (0 = until dismissed). An ERROR stays until the user dismisses it,
  * whatever duration it arrived with — in every renderer and backend (owner, 2026-10-12): read in
- * three seconds and gone, the reason a save failed was often never seen.
+ * three seconds and gone, the reason a save failed was often never seen. A STICKY message stays too.
  */
 export const toastDuration = (message: ToastMessage, fallback: number): number =>
-    message.variant === 'error' ? 0 : (message.duration ?? fallback)
+    message.variant === 'error' || message.persistence === 'sticky' ? 0 : (message.duration ?? fallback)
+
+/**
+ * Toasts on screen by key, so one with the same key replaces it (a progress-ish "Syncing… → Synced",
+ * a repeated warning). Each notifier registers how to close the toast it drew.
+ */
+const keyed = new Map<string, () => void>()
+
+/** Closes the toast on screen with `key` (if any) and remembers how to close the new one. */
+export const replaceKeyedToast = (key: string | null | undefined, close: () => void): void => {
+    if (!key) return
+    const previous = keyed.get(key)
+    if (previous && previous !== close) {
+        try { previous() } catch { /* already gone */ }
+    }
+    keyed.set(key, close)
+}
+
+/** Forgets a keyed toast once it closed on its own. */
+export const forgetKeyedToast = (key: string | null | undefined, close: () => void): void => {
+    if (key && keyed.get(key) === close) keyed.delete(key)
+}
 
 export interface Notifier {
     /**

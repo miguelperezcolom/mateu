@@ -16,7 +16,7 @@ compiles and boots on every change. The Mateu version is the latest release on M
 |---|---|
 | **IntelliJ IDEA** (Mateu plugin) | **File › New › Project… › Mateu** — choose the options, the project opens when it is created. |
 | **VS Code** (Mateu extension) | Command palette › **Mateu: New Project…** — quick picks, then a folder; the project opens when it is created. |
-| **Maven** | `mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app -Dauthoring=code` |
+| **Maven** | `mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=MATEU_VERSION -DgroupId=com.acme -DartifactId=my-app -Dauthoring=code` |
 
 The first choice is **how you author the UI**:
 
@@ -33,10 +33,7 @@ products sample, the home page's call to action and the **Products** menu entry 
 Then, where they apply: the **runtime**, the **renderer** (Vaadin, or Oracle Redwood for Spring
 Boot), the sample to start from, **sample pages from the page templates** (for the YAML flavours, in
 the IDEs) and the Maven coordinates. The archetype takes `-Dauthoring=code|yaml|static`,
-`-Drenderer=vaadin|redwood` and `-Dsample=crud|empty`, on Spring Boot (MVC); run it with a JDK 21–25
-(the archetype plugin's Groovy cannot read newer class files yet: on JDK 26+ it stops with
-*"Unsupported class file major version 70"* and leaves a half-generated folder — delete it and rerun
-with `JAVA_HOME` on a JDK 21–25). The build tool is Maven.
+`-Drenderer=vaadin|redwood` and `-Dsample=crud|empty`, on Spring Boot (MVC), with any JDK from 21 on. The build tool is Maven.
 
 Every generated project carries an **`AGENTS.md`** — what the project is, its layout, how to run it,
 where the UI is declared and the rules an AI assistant must respect (view models are per request,

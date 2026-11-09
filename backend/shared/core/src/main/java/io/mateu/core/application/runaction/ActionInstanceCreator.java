@@ -356,7 +356,7 @@ public class ActionInstanceCreator {
     if (layout == null || !layout.getClass().isRecord()) {
       return null;
     }
-    for (var component : layout.getClass().getRecordComponents()) {
+    for (var component : io.mateu.core.domain.Records.components(layout.getClass())) {
       if (!"title".equals(component.getName()) || component.getType() != String.class) {
         continue;
       }

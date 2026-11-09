@@ -10,7 +10,8 @@ import javax.swing.SwingUtilities
 /**
  * The APP EVENT STREAM of `@App(liveUpdates)` on the desktop: one background thread holds
  * `POST {base}/mateu/v3/sse/<route>` running the app-level `_live-updates` action and applies every
- * `UpdateHeaderValue` it carries to the session's header values (on the EDT). The server ends the
+ * `UpdateHeaderValue` it carries to the session's header values, and every `NotificationsChanged`
+ * to the session's inbox ([InboxSync]) — both on the EDT. The server ends the
  * stream every few minutes on purpose; it reconnects at once, with a back-off after errors
  * ([HeaderValues.reconnectDelayMillis]). One per app session (the desktop has no tabs to share it
  * with); [stop] — called when the session is disposed — ends it.
@@ -74,11 +75,14 @@ class LiveUpdatesStream(private val session: AppSession) {
             while (running && it.hasNext()) {
                 val line = it.next().trim()
                 if (!line.startsWith("data:")) continue
-                val changes = runCatching { HeaderValues.changesOf(session.mapper.readTree(line.removePrefix("data:").trim())) }
-                    .getOrDefault(emptyList())
+                val increment = runCatching { session.mapper.readTree(line.removePrefix("data:").trim()) }.getOrNull() ?: continue
+                val changes = runCatching { HeaderValues.changesOf(increment) }.getOrDefault(emptyList())
                 if (changes.isNotEmpty()) {
                     SwingUtilities.invokeLater { changes.forEach { (id, value) -> session.updateHeaderValue(id, value) } }
                 }
+                // the inbox pushed to this user's sessions (LiveNotifications → NotificationsChanged)
+                val inboxChanges = runCatching { InboxItems.changesOf(increment) }.getOrDefault(emptyList())
+                if (inboxChanges.isNotEmpty()) SwingUtilities.invokeLater { session.inbox.applyChanges(inboxChanges) }
             }
         }
     }

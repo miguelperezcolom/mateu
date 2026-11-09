@@ -59,6 +59,14 @@ describe('mateu-planning-board (DOM)', () => {
         Element.prototype.setPointerCapture = origCapture
     })
 
+    it('the scrolling frame is a named, focusable region a keyboard can scroll (W-V-SCROLLREGION)', async () => {
+        const b = await mount()
+        const frame = $(b, '.frame')
+        expect(frame.getAttribute('tabindex')).toBe('0')
+        expect(frame.getAttribute('role')).toBe('region')
+        expect(frame.getAttribute('aria-label')).toBeTruthy()
+    })
+
     it('renders nothing without resources or without a window', async () => {
         const b = await mount({ resources: [] })
         expect($(b, '.frame')).toBeNull()

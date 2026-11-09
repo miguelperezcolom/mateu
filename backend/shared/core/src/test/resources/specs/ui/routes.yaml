@@ -44,6 +44,13 @@ routes:
     definition: yaml-write.yaml
     state:
       name: Leia
+  # A definition-only RECORD page: read-only fields whose values arrive raw (249, AVAILABLE).
+  - route: yaml-readonly-record
+    layout: yaml-readonly-record.yaml
+    state:
+      id: P-001
+      price: 249
+      status: AVAILABLE
 
   # A definition-only Listing whose Delete acts on the SELECTED rows (bulk restAction).
   - route: bulk-list

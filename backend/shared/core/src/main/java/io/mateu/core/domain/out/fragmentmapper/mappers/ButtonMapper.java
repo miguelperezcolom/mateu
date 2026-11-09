@@ -9,6 +9,7 @@ import io.mateu.dtos.ButtonStyleDto;
 import io.mateu.dtos.ButtonVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,7 +25,7 @@ public class ButtonMapper {
                     : null)
             .color(button.color() != null ? ButtonColorDto.valueOf(button.color().name()) : null)
             .label(button.label())
-            .actionId(button.resolvedActionId())
+            .actionId(io.mateu.core.domain.act.FluentHandlerButtons.actionIdOf(button))
             .size(button.size() != null ? ButtonSizeDto.valueOf(button.size().name()) : null)
             .variant(
                 button.variant() != null ? ButtonVariantDto.valueOf(button.variant().name()) : null)
@@ -43,6 +44,28 @@ public class ButtonMapper {
         List.of(),
         button.style(),
         button.cssClasses(),
+        null);
+  }
+
+  /**
+   * A {@link ButtonGroup} placed in CONTENT (not a toolbar): the same wire shape a toolbar group
+   * has — a {@code Button} whose {@code children} are the group's buttons — wrapped like any
+   * content button. Before, the dispatcher had no branch for it and the group was dropped silently.
+   */
+  public static ClientSideComponentDto mapButtonGroupToDto(ButtonGroup group) {
+    var buttons = group.buttons() != null ? group.buttons() : List.<Button>of();
+    return new ClientSideComponentDto(
+        ButtonDto.builder()
+            .label(group.label())
+            .iconOnLeft(group.iconOnLeft())
+            .iconOnRight(group.iconOnRight())
+            .separatorBefore(group.separatorBefore())
+            .children(buttons.stream().map(b -> (ButtonDto) mapButtonToDto(b).metadata()).toList())
+            .build(),
+        group.id() != null ? group.id() : UUID.randomUUID().toString(),
+        List.of(),
+        null,
+        null,
         null);
   }
 

@@ -83,7 +83,7 @@ public final class ReferencedRestSources {
       if (!type.isRecord() || !type.getPackageName().startsWith("io.mateu.dtos")) {
         return;
       }
-      for (RecordComponent component : type.getRecordComponents()) {
+      for (RecordComponent component : io.mateu.core.domain.Records.components(type)) {
         try {
           collect(component.getAccessor().invoke(node));
         } catch (ReflectiveOperationException e) {

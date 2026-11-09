@@ -1,85 +1,164 @@
 package io.mateu.uidl.data;
 
-import io.mateu.dtos.UIFragmentDto;
-import java.util.HashMap;
-import java.util.Map;
+import io.mateu.dtos.ProgressDto;
+import io.mateu.dtos.UICommandDto;
+import io.mateu.dtos.UICommandTypeDto;
+import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.annotations.Experimental;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 
 /**
- * Sends incremental progress updates to the frontend dialog opened by {@link LongTask}.
- *
- * <p>An instance is provided by {@link LongTask#run}; callers should not construct it directly.
- * Each {@code step} method returns an object that must be emitted by the work flux — the return
- * value is the SSE payload, not a side-effect:
+ * Reports the progress of the task run by {@link LongTask}. Each {@code step} returns the update to
+ * stream — the item the work flux must emit, not a side effect:
  *
  * <pre>{@code
  * .run(progress -> Flux.range(1, total)
- *         .map(i -> progress.step("Processed: " + i, i / (double) total)))
+ *         .map(i -> progress.step("Processed: " + i, i, total)))
  * }</pre>
+ *
+ * <p>Every update carries the whole current state of the task (a {@code Progress} command), so each
+ * renderer shows it its own way: a modal progress, its task center, the IDE's background-task
+ * indicator…
+ *
+ * <p>An instance is provided by {@link LongTask#run}; callers do not construct it.
  */
 public class ProgressReporter {
 
-  private final String dialogId;
+  private final AtomicReference<ProgressDto> current;
   private final boolean progressBar;
 
-  ProgressReporter(String dialogId, boolean progressBar) {
-    this.dialogId = dialogId;
+  /**
+   * A reporter for the task {@code taskId}, running, with no title yet.
+   *
+   * @deprecated use {@link LongTask#run} instead, which hands the reporter to the work
+   */
+  @Deprecated(since = "3.0-rc.1", forRemoval = true)
+  ProgressReporter(String taskId, boolean progressBar) {
+    this(
+        ProgressDto.builder()
+            .taskId(taskId)
+            .title("")
+            .text("")
+            .state(io.mateu.dtos.ProgressStateDto.running)
+            .blocking(true)
+            .fraction(progressBar ? 0.0 : null)
+            .build(),
+        progressBar);
+  }
+
+  ProgressReporter(ProgressDto initial, boolean progressBar) {
+    this.current = new AtomicReference<>(initial);
     this.progressBar = progressBar;
   }
 
+  /** The task's current state (what the last update said). */
+  ProgressDto current() {
+    return current.get();
+  }
+
+  Object update(UnaryOperator<ProgressDto> change) {
+    return increment(current.updateAndGet(change));
+  }
+
+  static UIIncrementDto increment(ProgressDto progress) {
+    return increment(progress, List.of());
+  }
+
+  static UIIncrementDto increment(ProgressDto progress, List<UICommandDto> more) {
+    return increment(progress, more, List.of());
+  }
+
+  static UIIncrementDto increment(
+      ProgressDto progress, List<UICommandDto> more, List<io.mateu.dtos.MessageDto> messages) {
+    var commands = new java.util.ArrayList<UICommandDto>();
+    commands.add(new UICommandDto(null, UICommandTypeDto.Progress, progress));
+    commands.addAll(more);
+    return UIIncrementDto.builder()
+        .commands(commands)
+        .messages(messages)
+        .wireVersion(UIIncrementDto.WIRE_VERSION)
+        .build();
+  }
+
   /**
-   * Updates the dialog body text.
+   * Updates the status text.
    *
-   * @param text new status message to display in the dialog
+   * @param text what the task is doing now
    */
   public Object step(String text) {
-    return UIFragmentDto.builder()
-        .targetComponentId(dialogId)
-        .state(Map.of("progressText", text))
-        .build();
+    return update(p -> p.toBuilder().text(text).build());
   }
 
   /**
-   * Updates both the dialog body text and the header title.
+   * Updates the status text and the task's title.
    *
    * @param text new status message
-   * @param title new dialog header title
+   * @param title new title
    */
   public Object step(String text, String title) {
-    return UIFragmentDto.builder()
-        .targetComponentId(dialogId)
-        .state(Map.of("progressText", text, "title", title))
-        .build();
+    return update(p -> p.toBuilder().text(text).title(title).build());
   }
 
   /**
-   * Updates the dialog body text and advances the progress bar.
+   * Updates the status text and advances the progress.
    *
-   * <p>Has no effect on the bar if {@link LongTask#withProgressBar()} was not called.
+   * <p>The fraction is ignored if {@link LongTask#withProgressBar()} was not called (the task stays
+   * indeterminate).
    *
    * @param text new status message
-   * @param progress value between {@code 0.0} (empty) and {@code 1.0} (full)
+   * @param progress value between {@code 0.0} and {@code 1.0}
    */
   public Object step(String text, double progress) {
-    Map<String, Object> state = new HashMap<>();
-    state.put("progressText", text);
-    if (progressBar) state.put(LongTask.PROGRESS_VALUE_KEY, progress);
-    return UIFragmentDto.builder().targetComponentId(dialogId).state(state).build();
+    return update(
+        p -> {
+          var next = p.toBuilder().text(text);
+          if (progressBar) next.fraction(clamp(progress));
+          return next.build();
+        });
   }
 
   /**
-   * Updates the dialog body text, the header title, and the progress bar.
+   * Updates the status text, the title and the progress.
    *
-   * <p>Has no effect on the bar if {@link LongTask#withProgressBar()} was not called.
+   * <p>The fraction is ignored if {@link LongTask#withProgressBar()} was not called.
    *
    * @param text new status message
-   * @param title new dialog header title
-   * @param progress value between {@code 0.0} (empty) and {@code 1.0} (full)
+   * @param title new title
+   * @param progress value between {@code 0.0} and {@code 1.0}
    */
   public Object step(String text, String title, double progress) {
-    Map<String, Object> state = new HashMap<>();
-    state.put("progressText", text);
-    state.put("title", title);
-    if (progressBar) state.put(LongTask.PROGRESS_VALUE_KEY, progress);
-    return UIFragmentDto.builder().targetComponentId(dialogId).state(state).build();
+    return update(
+        p -> {
+          var next = p.toBuilder().text(text).title(title);
+          if (progressBar) next.fraction(clamp(progress));
+          return next.build();
+        });
+  }
+
+  /**
+   * Updates the status text with a count of the work ("12 of 300"): the task becomes determinate
+   * ({@code done / total}) whether or not {@link LongTask#withProgressBar()} was called — a count
+   * is the most honest progress there is.
+   *
+   * @param text new status message
+   * @param done items done so far
+   * @param total items in all (0 or less: the count is unknown, the task stays as it was)
+   */
+  @Experimental("progress and notifications patterns (3.0)")
+  public Object step(String text, int done, int total) {
+    return update(
+        p -> {
+          var next = p.toBuilder().text(text);
+          if (total > 0) {
+            next.done(done).total(total).fraction(clamp(done / (double) total));
+          }
+          return next.build();
+        });
+  }
+
+  private static double clamp(double value) {
+    return Double.isNaN(value) ? 0 : Math.max(0, Math.min(1, value));
   }
 }

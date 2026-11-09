@@ -18,8 +18,23 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
     public string? UndoActionId { get; init; }
     public IReadOnlyDictionary<string, object?>? UndoParameters { get; init; }
 
+    /// <summary>How long the message stays: toast, sticky or inbox (null: an error is sticky,
+    /// anything else a toast). (Mirrors io.mateu.uidl.data.Message.persistence.) EXPERIMENTAL.</summary>
+    public MessagePersistence? Persistence { get; init; }
+
+    /// <summary>What the user can do from the message (Undo is one of them, style "undo").
+    /// (Mirrors io.mateu.uidl.data.Message.actions.) EXPERIMENTAL.</summary>
+    public IReadOnlyList<MessageAction> Actions { get; init; } = [];
+
+    /// <summary>Deduplication key: a message with the same key replaces the one on screen.
+    /// (Mirrors io.mateu.uidl.data.Message.key.) EXPERIMENTAL.</summary>
+    public string? Key { get; init; }
+
+    /// <summary>The style hint of an undo action. EXPERIMENTAL.</summary>
+    public const string StyleUndo = "undo";
+
     /// <summary>A toast with an Undo button dispatching the given action (10 s so there is time
-    /// to react).</summary>
+    /// to react). The undo travels both as the legacy Undo* members and as one of the actions.</summary>
     public static Message Undoable(
         string text, string undoActionId, IReadOnlyDictionary<string, object?>? undoParameters = null) =>
         new(text, MessageVariant.Contrast)
@@ -27,7 +42,57 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
             Duration = 10000,
             UndoActionId = undoActionId,
             UndoParameters = undoParameters,
+            Actions = [new MessageAction(null, undoActionId, undoParameters, null, StyleUndo)],
         };
+
+    /// <summary>The same message offering one more action. EXPERIMENTAL.</summary>
+    public Message WithAction(MessageAction action) => Copy(actions: [.. Actions, action]);
+
+    /// <summary>The same message with another persistence. EXPERIMENTAL.</summary>
+    public Message WithPersistence(MessagePersistence persistence) => Copy(persistence: persistence);
+
+    /// <summary>The same message with a deduplication key. EXPERIMENTAL.</summary>
+    public Message WithKey(string key) => Copy(key: key);
+
+    private Message Copy(IReadOnlyList<MessageAction>? actions = null, MessagePersistence? persistence = null,
+        string? key = null) =>
+        new(Text, Variant, Title)
+        {
+            Duration = Duration,
+            UndoLabel = UndoLabel,
+            UndoActionId = UndoActionId,
+            UndoParameters = UndoParameters,
+            Persistence = persistence ?? Persistence,
+            Actions = actions ?? Actions,
+            Key = key ?? Key,
+        };
+}
+
+/// <summary>How long a <see cref="Message"/> stays (mirrors io.mateu.uidl.data.MessagePersistence):
+/// Toast goes away on its own, Sticky stays until dismissed, Inbox is a toast that also lands in
+/// the notification inbox. EXPERIMENTAL.</summary>
+public enum MessagePersistence { Toast, Sticky, Inbox }
+
+/// <summary>An action offered by a <see cref="Message"/>, a finished <see cref="LongTask"/> or an
+/// inbox <see cref="AppNotification"/>: <c>Route</c> navigates, otherwise <c>ActionId</c> (with
+/// <c>Parameters</c>) runs. <c>Style</c> is a hint: primary | secondary | danger | undo. (Mirrors
+/// io.mateu.uidl.data.MessageAction.) EXPERIMENTAL.</summary>
+public sealed record MessageAction(
+    string? Label,
+    string? ActionId = null,
+    IReadOnlyDictionary<string, object?>? Parameters = null,
+    string? Route = null,
+    string? Style = null)
+{
+    /// <summary>An action that runs <paramref name="actionId"/>.</summary>
+    public static MessageAction Run(string label, string actionId,
+        IReadOnlyDictionary<string, object?>? parameters = null) => new(label, actionId, parameters);
+
+    /// <summary>An action that navigates to <paramref name="route"/>.</summary>
+    public static MessageAction Open(string label, string route) => new(label, Route: route);
+
+    /// <summary>The same action with a style hint.</summary>
+    public MessageAction WithStyle(string style) => this with { Style = style };
 }
 
 /// <summary>Navigation link rendered as an icon at the right side of a form field (see [LinkTo]
@@ -89,7 +154,25 @@ public interface IAppActionsSupplier
 /// unread, and a display timestamp (already formatted — the server owns the locale/relative
 /// formatting). (C# analogue of io.mateu.uidl.data.AppNotification.)</summary>
 public sealed record AppNotification(
-    string Id, string Title, string? Text, string? Route, bool Unread = true, string? When = null);
+    string Id, string Title, string? Text, string? Route, bool Unread = true, string? When = null)
+{
+    /// <summary>Groups the entry in the inbox (by source or type). EXPERIMENTAL.</summary>
+    public string? Category { get; init; }
+
+    /// <summary>The entry's severity. EXPERIMENTAL.</summary>
+    public MessageVariant? Variant { get; init; }
+
+    /// <summary>Acted upon (approved, done…): kept in the list, shown under "resolved". EXPERIMENTAL.</summary>
+    public bool Resolved { get; init; }
+
+    /// <summary>What the user can do from the entry — run by
+    /// <see cref="INotificationsSupplier.OnNotificationAction"/>. EXPERIMENTAL.</summary>
+    public IReadOnlyList<MessageAction> Actions { get; init; } = [];
+
+    /// <summary>Clicking it asks the server for its detail
+    /// (<see cref="INotificationsSupplier.NotificationDetail"/>) instead of navigating. EXPERIMENTAL.</summary>
+    public bool HasDetail { get; init; }
+}
 
 /// <summary>Implemented by the app class to give the shell a NOTIFICATION INBOX: a bell on the
 /// header with the unread count, opening a panel that lists <see cref="AppNotification"/>s. The
@@ -102,6 +185,20 @@ public interface INotificationsSupplier
     IReadOnlyList<AppNotification> Notifications();
 
     void MarkNotificationsRead(IReadOnlyList<string> ids);
+
+    /// <summary>Runs one of an entry's actions (the <c>_notifications-act</c> app-level action) —
+    /// approve, reject, assign… and usually mark it Resolved. What it returns is answered like any
+    /// action's result; the refreshed list follows. Not implemented: refused. The id comes from the
+    /// browser: check it belongs to the caller. EXPERIMENTAL.</summary>
+    object? OnNotificationAction(string id, string actionId) =>
+        throw new UserFacingException("This notification has no actions");
+
+    /// <summary>Removes entries from the caller's inbox (the per-item dismiss). EXPERIMENTAL.</summary>
+    void DismissNotifications(IReadOnlyList<string> ids) { }
+
+    /// <summary>The detail of an entry with HasDetail (the <c>_notifications-open</c> app-level
+    /// action): typically a Drawer or a Dialog. Null: nothing opens. EXPERIMENTAL.</summary>
+    object? NotificationDetail(string id) => null;
 }
 
 /// <summary>One hit of the app-wide entity search (the command palette's data results): a label,

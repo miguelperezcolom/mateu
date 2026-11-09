@@ -517,14 +517,14 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
   'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-  'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
+  'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
 export const CONTENT_ACTION_SINKS = Object.freeze([
   'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
   'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-  'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink',
+  'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
 ])
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -557,6 +557,15 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   installAppExtras: 'shell-level: app shortcuts, header values and the idle session belong to the host page',
   // live UI push: the "Connect AI" control lives in the app header, which a host page does not have
   installAgentPush: 'shell-level: the Connect AI control and the tab channel belong to the app header',
+  // a route named by a toast action or a finished task's result action is an in-app navigation of
+  // the SHELL's router; an embedded component never routes by path (its actions still run)
+  setToastNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+  setTaskNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+  // the notification inbox is the app header's bell: a host page has its own header
+  setInboxIncrementSink: 'shell-level: the inbox bell belongs to the app header',
+  setInboxNavigateSink: 'shell-level: the inbox bell belongs to the app header',
+  setInboxSessionActionSink: 'shell-level: the inbox bell belongs to the app header',
+  setInboxModelSink: 'shell-level: the inbox bell belongs to the app header',
 })
 
 /**

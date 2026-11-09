@@ -1,4 +1,6 @@
 import { moneyValueText } from '../core/money.ts';
+import { temporalText } from '../core/temporalText.ts';
+import { humanizeConstant } from '../core/readOnlyDisplay.ts';
 
 /**
  * What a listing cell shows for a row value. A column that declares `valueLabels` (an enum column:
@@ -19,5 +21,9 @@ export function cellText(
     return String(v['message'] ?? v['value'] ?? JSON.stringify(value));
   }
   const label = valueLabels ? valueLabels[String(value)] : undefined;
-  return label !== undefined && label !== null ? label : String(value);
+  if (label !== undefined && label !== null) return label;
+  // a status word with no label reads as words ("OUT_OF_STOCK" → "Out of stock"), like the web
+  if (column?.dataType === 'status' && typeof value === 'string') return humanizeConstant(value);
+  // a date / dateTime / time column: in the UI's locale ("5/11/2026"), not the ISO text
+  return String(temporalText(value, column?.dataType));
 }

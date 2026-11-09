@@ -235,6 +235,10 @@ final class DisplayComponentDispatcher {
     if (component instanceof Button button) {
       return mapButtonToDto(button);
     }
+    if (component instanceof io.mateu.uidl.data.ButtonGroup group) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonGroupToDto(
+          group);
+    }
     if (component instanceof Card card) {
       return mapCardToDto(card, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }

@@ -91,6 +91,45 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+      <!--
+        mateu-bundle:figma runs the Figma → YAML converter with node. It is copied in from where it
+        is authored at build time (never a checked-in copy): the driver (design/figma/import), the
+        converter (design/figma/to-yaml/src), the contract and the authoring schema it resolves every
+        key against. FigmaMojo extracts META-INF/mateu/figma-import/ to a temp folder and runs it.
+      -->
+      <resource>
+        <directory>${project.basedir}/../../design/figma/import</directory>
+        <targetPath>META-INF/mateu/figma-import/import</targetPath>
+        <includes>
+          <include>figma-import.mjs</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../../design/figma/to-yaml/src</directory>
+        <targetPath>META-INF/mateu/figma-import/to-yaml/src</targetPath>
+        <includes>
+          <include>**/*.mjs</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../../design/figma</directory>
+        <targetPath>META-INF/mateu/figma-import</targetPath>
+        <includes>
+          <include>contract.json</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../shared/uidl</directory>
+        <targetPath>META-INF/mateu/figma-import</targetPath>
+        <includes>
+          <include>uidl-schema.json</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

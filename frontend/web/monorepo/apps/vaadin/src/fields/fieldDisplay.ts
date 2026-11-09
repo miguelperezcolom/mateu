@@ -4,6 +4,8 @@
  */
 
 import { formatMoneyValue, isAmount } from '@infra/ui/moneyFormat.ts'
+import { formatTemporalCell } from '@infra/ui/dateFormat.ts'
+import { uiLocale } from '@infra/ui/uiLocale.ts'
 export type { AmountLike } from '@infra/ui/moneyFormat.ts'
 
 /**
@@ -12,6 +14,37 @@ export type { AmountLike } from '@infra/ui/moneyFormat.ts'
  * Non-numeric input comes back as-is.
  */
 export const formatMoney = (raw: unknown): string => formatMoneyValue(raw)
+
+/** The LABEL of the option `value` names (a select / radio / enum field read-only), else undefined. */
+export const optionLabel = (options: unknown, value: unknown): string | undefined => {
+    if (!Array.isArray(options) || value === null || value === undefined || value === '') return undefined
+    const option = (options as { value?: unknown, label?: unknown }[]).find((o) => o && o.value == value)
+    return option && option.label !== null && option.label !== undefined ? String(option.label) : undefined
+}
+
+/** `{value: label}` of a field's options — what a status chip reads its label from. */
+export const optionLabels = (options: unknown): Record<string, string> | undefined => {
+    if (!Array.isArray(options) || options.length === 0) return undefined
+    const labels: Record<string, string> = {}
+    for (const o of options as { value?: unknown, label?: unknown }[]) if (o && o.value !== undefined && o.value !== null && o.label != null) labels[String(o.value)] = String(o.label)
+    return labels
+}
+
+/**
+ * The text a read-only field shows for `raw`, as a reflected Java form shows it: an amount of money
+ * (dataType or stereotype money) formatted in the UI's locale ("249.00"), the option's LABEL for a
+ * field with options ("Available", not AVAILABLE), else the value. A definition-only YAML page
+ * reads its values from a REST source, so they arrive raw and this is where they become readable.
+ */
+export const readOnlyText = (raw: unknown, field: { dataType?: string, stereotype?: string, options?: unknown } | undefined): unknown => {
+    let v: unknown = raw
+    if (v && typeof v === 'object' && 'value' in v && !isAmount(v)) v = (v as { value: unknown }).value
+    const money = field?.dataType === 'money' || field?.stereotype === 'money'
+    if (money && v !== null && v !== undefined && v !== '') return formatMoney(v)
+    if (isAmount(v)) v = (v as { value: unknown }).value
+    // a date / date-time / time reads in the UI's locale, like the listing column next to it
+    return optionLabel(field?.options, v) ?? formatTemporalCell(v, field?.dataType, uiLocale())
+}
 
 export interface DisplayedValue {
     /** A boolean is drawn as an icon, not as text. */
@@ -28,7 +61,7 @@ export interface DisplayedValue {
  * The value a read-only field displays: an `Amount`/`{value}` unwrapped, booleans recognised (by
  * data type or by value), money formatted, and an em dash for "no value".
  */
-export const displayedValue = (raw: unknown, dataType?: string, stereotype?: string): DisplayedValue => {
+export const displayedValue = (raw: unknown, dataType?: string, stereotype?: string, options?: unknown): DisplayedValue => {
     let v: unknown = raw
     const amount = isAmount(v) ? v : undefined
     if (amount && amount.value) v = amount.value
@@ -41,6 +74,9 @@ export const displayedValue = (raw: unknown, dataType?: string, stereotype?: str
     if (isMoney && hasValue) {
         const num = typeof v === 'number' ? v : parseFloat(String(v))
         if (!isNaN(num)) display = formatMoney(amount ? { ...amount, value: num } : num)
+    } else if (hasValue) {
+        // a select / radio read-only: its option's label, not the code
+        display = optionLabel(options, v) ?? display
     }
     return { isBool, checked: v === true || v === 'true', isMoney, hasValue, display }
 }

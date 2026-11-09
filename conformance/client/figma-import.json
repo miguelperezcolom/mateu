@@ -1,0 +1,148 @@
+{
+  "$comment": "Generated from frontend/app/vscode-extension/src/figmaImport.ts (the reference) by figmaImport.conformance.test.ts with FIGMA_IMPORT_WRITE=true. Run by the Maven goal mateu-bundle:figma (FigmaImportConformanceTest) and the IntelliJ plugin (FigmaImportConformanceTest). `expected: null` = the routes file is left unchanged.",
+  "fileKeys": [
+    {
+      "input": "https://www.figma.com/design/AbCdEf123456XyZ/Star-Wars?node-id=12-3&t=xyz",
+      "key": "AbCdEf123456XyZ"
+    },
+    {
+      "input": "https://www.figma.com/file/AbCdEf123456XyZ/Star-Wars",
+      "key": "AbCdEf123456XyZ"
+    },
+    {
+      "input": "figma.com/design/AbCdEf123456XyZ",
+      "key": "AbCdEf123456XyZ"
+    },
+    {
+      "input": "https://www.figma.com/proto/AbCdEf123456XyZ/Star-Wars?page-id=0%3A1",
+      "key": "AbCdEf123456XyZ"
+    },
+    {
+      "input": "https://www.figma.com/design/AbCdEf123456XyZ/Star-Wars/branch/BrAnCh987654/Star-Wars?node-id=0-1",
+      "key": "BrAnCh987654"
+    },
+    {
+      "input": "  AbCdEf123456XyZ  ",
+      "key": "AbCdEf123456XyZ"
+    },
+    {
+      "input": "https://www.figma.com/board/BoArD1234567/Ideas",
+      "key": "BoArD1234567"
+    },
+    {
+      "input": "https://example.com/design/AbCdEf123456XyZ",
+      "error": true
+    },
+    {
+      "input": "https://www.figma.com/files/recents",
+      "error": true
+    },
+    {
+      "input": "not a key!",
+      "error": true
+    },
+    {
+      "input": "",
+      "error": true
+    }
+  ],
+  "routeAppends": [
+    {
+      "name": "block list: after the last entry, comments kept",
+      "text": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n",
+      "route": "species",
+      "layout": "species.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n  - route: species\n    layout: species.yaml\n"
+    },
+    {
+      "name": "already declared: nothing changes",
+      "text": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n",
+      "route": "people",
+      "layout": "people.yaml",
+      "expected": null
+    },
+    {
+      "name": "already declared under another layout: still nothing",
+      "text": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n",
+      "route": "people",
+      "layout": "people-2.yaml",
+      "expected": null
+    },
+    {
+      "name": "before the __ROUTES__ marker, at its indentation",
+      "text": "type: Routes\nroutes:\n  - route: welcome\n    layout: welcome.yaml\n  # __ROUTES__\n  - route: people/:id\n    layout: person.yaml\n",
+      "route": "species/new",
+      "layout": "species-new.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: welcome\n    layout: welcome.yaml\n  - route: species/new\n    layout: species-new.yaml\n  # __ROUTES__\n  - route: people/:id\n    layout: person.yaml\n"
+    },
+    {
+      "name": "empty flow list becomes a block list",
+      "text": "type: Routes\nroutes: []\n",
+      "route": "welcome",
+      "layout": "welcome.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: welcome\n    layout: welcome.yaml\n"
+    },
+    {
+      "name": "no routes key: one is added at the end",
+      "text": "type: Routes\n",
+      "route": "welcome",
+      "layout": "welcome.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: welcome\n    layout: welcome.yaml\n"
+    },
+    {
+      "name": "a sub-folder page keeps its folder",
+      "text": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n",
+      "route": "admin/users",
+      "layout": "admin/users.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n  - route: admin/users\n    layout: admin/users.yaml\n"
+    },
+    {
+      "name": "a name that needs quoting",
+      "text": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n",
+      "route": "yes",
+      "layout": "yes.yaml",
+      "expected": "type: Routes\nroutes:\n  - route: \"\"          # the shell\n    layout: app.yaml\n  - route: people\n    layout: people.yaml\n  - route: \"yes\"\n    layout: yes.yaml\n"
+    },
+    {
+      "name": "CRLF line endings are kept",
+      "text": "type: Routes\r\nroutes:\r\n  - route: \"\"          # the shell\r\n    layout: app.yaml\r\n  - route: people\r\n    layout: people.yaml\r\n",
+      "route": "fleet",
+      "layout": "fleet.yaml",
+      "expected": "type: Routes\r\nroutes:\r\n  - route: \"\"          # the shell\r\n    layout: app.yaml\r\n  - route: people\r\n    layout: people.yaml\r\n  - route: fleet\r\n    layout: fleet.yaml\r\n"
+    }
+  ],
+  "pageRoutes": [
+    {
+      "path": "species.yaml",
+      "route": "species"
+    },
+    {
+      "path": "admin/users.yaml",
+      "route": "admin/users"
+    },
+    {
+      "path": "about-this-demo.yml",
+      "route": "about-this-demo"
+    }
+  ],
+  "routesFiles": [
+    {
+      "files": [
+        "routes.yaml",
+        "admin/routes.yaml"
+      ],
+      "chosen": "routes.yaml"
+    },
+    {
+      "files": [
+        "admin/routes.yaml",
+        "aa-routes.yaml"
+      ],
+      "chosen": "aa-routes.yaml"
+    },
+    {
+      "files": [],
+      "chosen": null
+    }
+  ]
+}

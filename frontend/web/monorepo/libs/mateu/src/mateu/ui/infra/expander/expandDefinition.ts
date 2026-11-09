@@ -55,9 +55,11 @@ export function isClientExpandable(spec: DefinitionSpec): boolean {
 function layoutOf(spec: DefinitionSpec): FluentNode | undefined {
     if (spec.layout && typeof spec.layout === 'object') return spec.layout
     // Bare tree: the whole object is the layout, as long as it looks like a component node. Its
-    // `pageType:` is the page's, not the root component's (the server's loader ignores it there).
+    // `pageType:` is the page's, not the root component's (the server's loader ignores it there) —
+    // and so are its `actions:`/`triggers:` (YamlUidlLoader reads them off the root as the PAGE's;
+    // left on the root component they reached its metadata as raw, unlowered flow steps).
     if (typeof spec.type === 'string') {
-        const { pageType: _pageType, ...tree } = spec
+        const { pageType: _pageType, actions: _actions, triggers: _triggers, ...tree } = spec
         return tree as unknown as FluentNode
     }
     return undefined

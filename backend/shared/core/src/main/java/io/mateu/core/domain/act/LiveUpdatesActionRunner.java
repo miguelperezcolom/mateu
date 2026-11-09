@@ -69,15 +69,55 @@ public class LiveUpdatesActionRunner implements ActionRunner {
                     }
                   });
             });
+    // the notification inbox's changes, only those for THIS caller (or for everyone)
+    var caller =
+        io.mateu.core.infra.security.IdentityResolver.resolve(command.httpRequest()).name();
+    Flux<UIIncrementDto> notifications =
+        Flux.create(
+            sink -> {
+              var subscription =
+                  io.mateu.uidl.LiveNotifications.subscribe(
+                      change -> {
+                        if (isFor(change, caller)) {
+                          sink.next(increment(List.of(notificationsChanged(change))));
+                        }
+                      });
+              sink.onDispose(
+                  () -> {
+                    try {
+                      subscription.close();
+                    } catch (Exception ignored) {
+                      // nothing to release
+                    }
+                  });
+            });
     Flux<UIIncrementDto> heartbeat =
         Flux.interval(Duration.ofSeconds(HEARTBEAT_SECONDS))
             .map(tick -> UIIncrementDto.builder().build());
-    return catchUp.concatWith(Flux.merge(changes, heartbeat).take(Duration.ofMinutes(MAX_MINUTES)));
+    return catchUp.concatWith(
+        Flux.merge(changes, notifications, heartbeat).take(Duration.ofMinutes(MAX_MINUTES)));
   }
 
   static UICommandDto command(String id, String value) {
     return new UICommandDto(
         null, UICommandTypeDto.UpdateHeaderValue, new HeaderValueDto(id, null, value));
+  }
+
+  /** Whether a change reaches the caller: addressed to everyone, or to the caller's name. */
+  static boolean isFor(io.mateu.uidl.LiveNotifications.Change change, String caller) {
+    return change.principal() == null
+        || (caller != null && !caller.isBlank() && caller.equals(change.principal()));
+  }
+
+  static UICommandDto notificationsChanged(io.mateu.uidl.LiveNotifications.Change change) {
+    return new UICommandDto(
+        null,
+        UICommandTypeDto.NotificationsChanged,
+        new io.mateu.dtos.NotificationsChangedDto(
+            change.notification() != null
+                ? NotificationsActionRunner.toDto(change.notification())
+                : null,
+            change.removedId()));
   }
 
   private static UIIncrementDto increment(List<UICommandDto> commands) {

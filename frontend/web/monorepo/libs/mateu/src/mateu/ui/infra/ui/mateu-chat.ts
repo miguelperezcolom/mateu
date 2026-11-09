@@ -792,8 +792,8 @@ export class MateuChat extends LitElement {
                     <div class="attachments">
                         ${this.attachments.map(a => html`
                             <span class="attachment-chip" title="${a.path}">
-                                📎 ${a.name}
-                                <button class="attachment-remove" @click="${() => this.removeAttachment(a.path)}" aria-label="${chromeTextf('removeNamed', { name: a.name })}">✕</button>
+                                ${icon('vaadin:paperclip')} ${a.name}
+                                <button class="attachment-remove" @click="${() => this.removeAttachment(a.path)}" aria-label="${chromeTextf('removeNamed', { name: a.name })}">${icon('vaadin:close-small')}</button>
                             </span>`)}
                     </div>
                 ` : nothing}
@@ -801,7 +801,7 @@ export class MateuChat extends LitElement {
                     ${this.uploadUrl ? html`
                         <button class="mic-btn" title="${chromeText('attachFiles')}"
                                 @click="${this.pickFiles}" ?disabled="${this.uploading}"
-                                aria-label="${chromeText('attachFiles')}">${this.uploading ? '…' : '📎'}</button>
+                                aria-label="${chromeText('attachFiles')}">${this.uploading ? '…' : icon('vaadin:paperclip')}</button>
                         <input class="file-input" type="file" multiple hidden
                                @change="${this.onFilesPicked}"/>
                     ` : nothing}

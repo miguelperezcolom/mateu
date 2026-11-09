@@ -486,17 +486,31 @@ class AppContext(val session: AppSession) {
         )
         val generation = polling.generation
         if (screen.isStreamed(actionId)) {
-            // a LongTask: each progress increment is applied as it arrives
+            // a LongTask: each increment is applied as it arrives — its Progress commands feed the
+            // session's task center (platform tasks), which outlives this view
+            val taskIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+            val retry: () -> Unit = { runAction(actionId, parameters, silent) }
             background(
                 work = {
                     apiClient.runActionStream(
                         currentRoute, currentConsumedRoute, actionId, serverSideType,
                         currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
-                    ) { increment -> SwingUtilities.invokeLater { applyIncrement(increment) } }
+                    ) { increment ->
+                        ProgressTasks.commandsOf(increment).forEach { taskIds.add(it.taskId) }
+                        SwingUtilities.invokeLater {
+                            streamRetry = retry
+                            try { applyIncrement(increment) } finally { streamRetry = null }
+                        }
+                    }
                     com.fasterxml.jackson.databind.node.NullNode.instance
                 },
-                onOk = { polling.actionSucceeded(generation, actionId); onDone?.invoke(true) },
+                onOk = {
+                    session.tasks.streamEnded(taskIds)
+                    polling.actionSucceeded(generation, actionId)
+                    onDone?.invoke(true)
+                },
                 onErr = {
+                    session.tasks.streamEnded(taskIds)
                     if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
                     else showError("Action failed: ${it.message}")
                     onDone?.invoke(false)
@@ -768,25 +782,35 @@ class AppContext(val session: AppSession) {
         val fragments = increment.path("fragments")
         if (fragments.isArray) for (fragment in fragments) applyFragment(fragment)
 
-        val messages = increment.path("messages")
-        if (messages.isArray) {
-            for (msg in messages) {
-                val text = msg.text("text")
-                val variant = msg.text("variant", "info")
-                val title = msg.text("title")
-                // Undoable toast (MessageDto.undoActionId): an Undo action link on the balloon
-                // dispatching the reverse action (with undoParameters) on THIS context — the
-                // initiator component whose action produced the message.
-                val undoActionId = msg.text("undoActionId")
-                val undo: Pair<String, () -> Unit>? = if (undoActionId.isNotBlank()) {
-                    val undoParams = jsonToParams(msg.path("undoParameters"))
-                    msg.text("undoLabel").ifBlank { "Undo" } to { runAction(undoActionId, undoParams) }
-                } else {
-                    null
+        // Messages are semantics (MessageDto: severity, persistence, actions, key): the host shows
+        // them as IDE notifications. Their actions — Undo among them (style `undo`) — run on THIS
+        // context, the initiator component whose action produced the message.
+        for (spec in MessageSpecs.messagesOf(increment)) {
+            if (spec.text.isBlank()) continue
+            val presenter = session.messagePresenter
+            if (presenter != null && !silentErrors) {
+                SwingUtilities.invokeLater { presenter(spec) { action -> runNoticeAction(action) } }
+            } else {
+                val first = spec.actions.firstOrNull()
+                val undo: Pair<String, () -> Unit>? = first?.let {
+                    it.labelFor(io.mateu.ijp.ui.MoneyValues.uiLocale()) to { runNoticeAction(it) }
                 }
-                if (text.isNotBlank()) SwingUtilities.invokeLater { showMessage(text, variant, title, undo) }
+                SwingUtilities.invokeLater { showMessage(spec.text, spec.variant, spec.title, undo) }
             }
         }
+
+        // Long-running tasks (Progress commands): the session's task center, shown by the platform.
+        for (task in ProgressTasks.commandsOf(increment)) {
+            val retry = streamRetry
+            session.tasks.report(
+                task, increment,
+                cancel = { cancelTask(task) },
+                runAction = { runNoticeAction(it) },
+                retry = retry,
+            )
+        }
+        // the inbox changed (NotificationsChanged in an action's answer)
+        session.inbox.applyChanges(InboxItems.changesOf(increment))
 
         val commands = increment.path("commands")
         if (commands.isArray) for (cmd in commands) handleCommand(cmd)
@@ -1136,7 +1160,39 @@ class AppContext(val session: AppSession) {
                 val id = cmdData.text("id")
                 if (id.isNotBlank()) SwingUtilities.invokeLater { session.updateHeaderValue(id, cmdData.text("value")) }
             }
+            // Progress / NotificationsChanged: read off the whole increment by applyIncrement (the
+            // task center and the inbox), nothing to do per command.
             // PushStateToHistory: no browser history on desktop.
+        }
+    }
+
+    // ── tasks and notices ──────────────────────────────────────────────────────────────
+    /** Set (EDT) while a streamed action's increment is applied: Retry runs that action again. */
+    private var streamRetry: (() -> Unit)? = null
+
+    /** Runs one of a message's / finished task's actions: a route navigates, an action id runs here. */
+    fun runNoticeAction(action: NoticeAction) {
+        val route = action.route
+        if (route != null) {
+            openRoute(route)
+            return
+        }
+        action.actionId?.let { runAction(it, action.parameters) }
+    }
+
+    /** Asks the server to stop a task the caller owns (`_progress-cancel`); its answer is applied. */
+    private fun cancelTask(task: ProgressTask) {
+        val route = currentRoute
+        val consumed = currentConsumedRoute
+        val sst = currentServerSideType
+        session.executor.submit {
+            val answer = runCatching {
+                apiClient.runAction(
+                    route, consumed, ProgressTasks.CANCEL_ACTION, sst, task.taskId,
+                    emptyMap(), appState, ProgressTasks.cancelParameters(task),
+                )
+            }.onFailure { println("[Mateu] cancel of task ${task.taskId} failed: ${it.message}") }.getOrNull()
+            if (answer != null) SwingUtilities.invokeLater { applyIncrement(answer) }
         }
     }
 
@@ -1230,6 +1286,11 @@ class AppContext(val session: AppSession) {
                 val fresh = freshScreen
                 freshScreen = false
                 polling.enterScreen("${serverSideType.ifBlank { currentServerSideType }}|${route.ifBlank { currentRoute }}", triggers, fresh)
+                // A composed page (wizard, dashboard, welcome, item overview…) has a plain layout at
+                // its root, with no gutter of its own: it touched the window's edges.
+                if (io.mateu.ijp.ui.PageChrome.padsAsPage(sscNode)) {
+                    container.border = com.intellij.util.ui.JBUI.Borders.empty(io.mateu.ijp.ui.PageChrome.GUTTER)
+                }
                 SwingUtilities.invokeLater {
                     putChildren(container, ComponentRenderer(this), children, state, state)
                     if (triggers.isArray) fireOnLoadTriggers(triggers)

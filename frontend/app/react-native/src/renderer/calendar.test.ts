@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  agenda, anchorOf, dayA11yLabel, dayInfo, dayParameters, eventA11yLabel, eventsOn, initialView, isDayActionable,
+  agenda, anchorOf, dayA11yLabel, dayInfo, dayParameters, eventA11yLabel, eventsOn, initialView, initialViewFor, isDayActionable,
+  switcherViewsFor,
   monthWeeks, parseIso, periodDates, periodTitle, switcherViews, timeRange, todayIso, type CalendarMeta,
 } from './calendar.ts';
 
@@ -113,4 +114,16 @@ test('a month cell does not nest the event buttons inside the day button', async
 test('today is the device date as an ISO date, the cell the calendar marks', () => {
   assert.equal(todayIso(new Date(2026, 10, 8, 23, 59)), '2026-11-08');
   assert.equal(todayIso(new Date(2026, 0, 3, 0, 1)), '2026-01-03');
+});
+
+test('RN-27: a phone opens a month calendar on its agenda, the grid one tap away', () => {
+  const month: CalendarMeta = { month: '2026-10-29' };
+  assert.equal(initialViewFor(month, true), 'list');
+  assert.equal(initialViewFor(month, false), 'month');
+  assert.deepEqual(switcherViewsFor(month, true), ['month', 'list']);
+  assert.deepEqual(switcherViewsFor(month, false), []);
+  // a declared week/day view is kept; a switcher that already has list is not duplicated
+  assert.equal(initialViewFor({ view: 'week' }, true), 'week');
+  assert.deepEqual(switcherViewsFor({ views: ['month', 'list'] }, true), ['month', 'list']);
+  assert.deepEqual(switcherViewsFor({ view: 'day', views: ['day', 'week'] }, true), ['day', 'week']);
 });

@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, pwa, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -449,12 +449,14 @@ def add_mateu(
             parsed = rq
 
             def first_increment():
-                if parsed.action_id != agent_push.CHANNEL_ACTION:
-                    return handler.handle(parsed, mateu_request.base_url)
-                with agent_push.bound_channel(channel):
-                    return handler.handle(parsed, mateu_request.base_url)
+                # a LongTask the action returns hands its stream over here (core.progress)
+                with progress.collecting_streams() as streams:
+                    if parsed.action_id != agent_push.CHANNEL_ACTION:
+                        return handler.handle(parsed, mateu_request.base_url), streams
+                    with agent_push.bound_channel(channel):
+                        return handler.handle(parsed, mateu_request.base_url), streams
 
-            first = await run_in_threadpool(run_bound, mateu_request, first_increment)
+            first, task_streams = await run_in_threadpool(run_bound, mateu_request, first_increment)
         except MateuForbiddenException:
             return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
         except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
@@ -476,6 +478,16 @@ def add_mateu(
                 media_type="text/event-stream",
                 headers=headers,
             )
+        if task_streams:
+            # a LongTask: its updates as they come; the browser going away cancels it
+            return StreamingResponse(
+                _task_stream(
+                    request, task_streams[0], event(first), event,
+                    lambda fn: run_bound(mateu_request, fn),
+                ),
+                media_type="text/event-stream",
+                headers=headers,
+            )
         if rq.action_id != "_live-updates":
 
             async def single():
@@ -485,10 +497,32 @@ def add_mateu(
 
         from mateu_ui.dtos import UICommand, UIIncrement
 
+        from mateu_ui.uidl import LiveNotifications, NotificationChange
+
         def push(change) -> None:
             enqueue(change)
 
-        unsubscribe = LiveHeaderValues.subscribe(push)
+        # the inbox changes reach only the caller's own sessions (or everyone's)
+        caller = await run_in_threadpool(
+            run_bound,
+            mateu_request,
+            lambda: getattr(
+                handler.mapper.identity_provider() if handler.mapper.identity_provider else None,
+                "name",
+                None,
+            ),
+        )
+
+        def push_notification(change) -> None:
+            if LiveNotifications.is_for(change, caller):
+                enqueue(change)
+
+        unsubscribe_header = LiveHeaderValues.subscribe(push)
+        unsubscribe_notifications = LiveNotifications.subscribe(push_notification)
+
+        def unsubscribe() -> None:
+            unsubscribe_header()
+            unsubscribe_notifications()
 
         async def stream():
             try:
@@ -503,7 +537,11 @@ def add_mateu(
                             queue.get(), timeout=min(LIVE_HEARTBEAT_SECONDS, remaining)
                         )
                         increment = UIIncrement.of(
-                            commands=[UICommand.update_header_value(change.id, change.value)]
+                            commands=[
+                                LiveNotifications.command(change)
+                                if isinstance(change, NotificationChange)
+                                else UICommand.update_header_value(change.id, change.value)
+                            ]
                         )
                     except asyncio.TimeoutError:
                         increment = UIIncrement.of()
@@ -655,6 +693,29 @@ AGENT_HEARTBEAT_SECONDS: float = 20
 AGENT_MAX_SECONDS: float = 300
 
 
+_END = object()
+
+
+async def _task_stream(request: Request, increments, first: str, event, bound):
+    """A LongTask's SSE stream (core.progress.stream): its first increment, then each update as
+    the work produces it — the work runs in the threadpool, one step at a time, bound to the
+    request. The browser going away closes the generator, which cancels the task (``on_cancel``)."""
+    finished = False
+    try:
+        yield first
+        while True:
+            increment = await run_in_threadpool(bound, lambda: next(increments, _END))
+            if increment is _END:
+                finished = True
+                break
+            if await request.is_disconnected():
+                break
+            yield event(increment)
+    finally:
+        if not finished:
+            await run_in_threadpool(bound, increments.close)
+
+
 async def _agent_stream(request: Request, queue, channel, handler: SyncHandler, first: str, event):
     """The ``_agent-channel`` stream: the status first, then one increment per message (an
     ``AgentPush`` command), an empty heartbeat every AGENT_HEARTBEAT_SECONDS; ends after
@@ -776,7 +837,20 @@ class MateuUiMiddleware:
         if not state["swallow"]:
             return
         content_type, body, cache_control = answer
+        extra = []
+        path = scope["path"]
+        # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
+        # Vaadin first load); Java's AssetCompression
+        if path != "/" and ui_page.is_asset(path) and ui_page.compressible(path):
+            extra.append((b"vary", b"Accept-Encoding"))
+            accept_encoding = next(
+                (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept-encoding"), None
+            )
+            if len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(accept_encoding):
+                body = ui_page.gzipped(path, body)
+                extra.append((b"content-encoding", b"gzip"))
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
+        headers.extend(extra)
         if cache_control:
             headers.append((b"cache-control", cache_control.encode("latin-1")))
         await send({"type": "http.response.start", "status": self.status, "headers": headers})

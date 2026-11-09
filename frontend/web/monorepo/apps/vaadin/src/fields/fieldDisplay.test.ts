@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { displayedValue, formatMoney } from './fieldDisplay'
+import { displayedValue, formatMoney, optionLabel, readOnlyText } from './fieldDisplay'
 
 // money follows the UI locale (libs/mateu moneyFormat): an English one here
 beforeAll(() => { vi.stubGlobal('navigator', { language: 'en-US' }) })
@@ -43,5 +43,29 @@ describe('displayedValue', () => {
     })
     it('shows anything else as text', () => {
         expect(displayedValue(42)).toMatchObject({ display: '42', isBool: false, isMoney: false })
+    })
+})
+
+// A definition-only YAML record page reads its values raw from a REST source: 249, AVAILABLE
+describe('readOnlyText (what a read-only field shows)', () => {
+    const options = [{ value: 'AVAILABLE', label: 'Available' }, { value: 'OUT_OF_STOCK', label: 'Out of stock' }]
+    it('formats an amount declared by stereotype or data type', () => {
+        expect(readOnlyText(249, { stereotype: 'money', dataType: 'number' })).toBe('249.00')
+        expect(readOnlyText('89.5', { dataType: 'money' })).toBe('89.50')
+    })
+    it('shows the option label of a field with options', () => {
+        expect(readOnlyText('AVAILABLE', { options })).toBe('Available')
+        expect(optionLabel(options, 'NOPE')).toBeUndefined()
+        expect(readOnlyText('NOPE', { options })).toBe('NOPE')
+    })
+    it('leaves a plain value alone', () => {
+        expect(readOnlyText('Espresso machine', { dataType: 'string' })).toBe('Espresso machine')
+        expect(readOnlyText(undefined, { stereotype: 'money' })).toBeUndefined()
+    })
+    it('writes a read-only date in the UI locale', () => {
+        expect(readOnlyText('2026-11-05', { dataType: 'date' })).toBe('11/5/2026')
+    })
+    it('plain-text / property rows show the option label too', () => {
+        expect(displayedValue('OUT_OF_STOCK', 'string', 'plainText', options).display).toBe('Out of stock')
     })
 })

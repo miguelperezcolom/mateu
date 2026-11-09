@@ -73,19 +73,18 @@
       "replacements": [
         {"from": "MateuStarter", "to": "${namespace}"},
         {"from": "\"My app\"", "to": "\"${appTitle}\""},
-        {"from": "__NUGET_VERSION__", "to": "${nugetVersion}"}
+        {"regex": "<PackageReference Include=\"Mateu\\.AspNetCore\" Version=\"[^\"]*\" />", "to": "<PackageReference Include=\"Mateu.AspNetCore\" Version=\"${nugetVersion}\" />"},
+        {"regex": "<PackageReference Include=\"Mateu\\.Uidl\" Version=\"[^\"]*\" />", "to": "<PackageReference Include=\"Mateu.Uidl\" Version=\"${nugetVersion}\" />"}
       ],
-      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}, {"from": "MateuStarter.csproj", "to": "${namespace}.csproj"}],
-      "overlays": ["standalone"]
+      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}, {"from": "MateuStarter.csproj", "to": "${namespace}.csproj"}]
     },
     "python": {
       "sampleFiles": [],
       "replacements": [
-        {"from": "__PYPI_VERSION__", "to": "${pypiVersion}"},
+        {"regex": "mateu-ui==[0-9A-Za-z.]+", "to": "mateu-ui==${pypiVersion}"},
         {"from": "\"My app\"", "to": "\"${appTitle}\""}
       ],
-      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}],
-      "overlays": ["standalone"]
+      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}]
     }
   }
 }

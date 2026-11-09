@@ -775,7 +775,10 @@ def _unwrap_optional(t):
 def listing_data_type(t) -> str:
     """A LISTING column's dataType (Java: ColumnTypeMapper.getDataTypeForListingColumn): booleans
     are "bool", numbers keep their number-ness ("integer" / "number") so the renderers right-align
-    them, and everything else — text, enums, dates — is "string"."""
+    them, dates and times say so ("date" / "dateTime" / "time") so the renderers write them in the
+    UI's locale, and everything else — text, enums — is "string"."""
+    import datetime as _dt
+
     t = _unwrap_optional(t)
     if t is bool:
         return "bool"
@@ -783,6 +786,13 @@ def listing_data_type(t) -> str:
         return "integer"
     if t in (float, Decimal):
         return "number"
+    # datetime is a subclass of date: check it first
+    if isinstance(t, type) and issubclass(t, _dt.datetime):
+        return "dateTime"
+    if isinstance(t, type) and issubclass(t, _dt.date):
+        return "date"
+    if isinstance(t, type) and issubclass(t, _dt.time):
+        return "time"
     return "string"
 
 

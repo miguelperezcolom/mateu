@@ -1,0 +1,16 @@
+{
+  "name": "mateu-figma-import",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The one-step Figma import every front door runs (mateu-bundle:figma, IntelliJ and VS Code \"Import from Figma…\"): fetch the file, keep the frames asked for, convert with ../to-yaml, write the pages, report as JSON.",
+  "bin": {
+    "figma-import": "figma-import.mjs"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

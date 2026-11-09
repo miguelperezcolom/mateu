@@ -975,18 +975,18 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"quickLookup\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":5000,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":5000,\"shortcut\":null,\"idempotent\":false,\"sse\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"recalculateTotals\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":120000,\"shortcut\":null,\"idempotent\":true,\"restAction\":null}", json);
+            + "\"timeoutMillis\":120000,\"shortcut\":null,\"idempotent\":true,\"sse\":false,\"restAction\":null}", json);
         // Safe defaults when nothing is declared: the client's own timeout applies, and the action
         // is never re-sent on its own — after a timeout the client cannot know whether the server
         // already applied it.
         Assert.Contains(
             "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"sse\":false,\"restAction\":null}", json);
     }
 
     // ── route seeding (state / appState / data / appData) ──────────────────────────
@@ -1883,6 +1883,9 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"HorizontalLayout\"", json);
         Assert.Contains("One", json);
         Assert.Contains("Two", json);
+        // W-V-REFLOW-2: the row wraps and each column has a floor, so a phone stacks the sections.
+        Assert.Contains("\"wrap\":true", json);
+        Assert.Contains("min-width: min(20rem, 100%);", json);
     }
 
     [Fact]
@@ -2356,11 +2359,11 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
             + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"sse\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
             + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"sse\":false,\"restAction\":null}", json);
         // The BUTTON carries the selection guard too, so the renderer can disable it while nothing
         // is selected without looking the advertised action up by id (Java's
         // ButtonDto.rowsSelectedRequired); a button that is not gated omits it.
@@ -3154,12 +3157,12 @@ public class SyncHandlerTests
         InboxApp.Inbox.Add(new AppNotification("n3", "Backup completado", null, null, false, "ayer"));
     }
 
-    private static IReadOnlyList<AppNotification> NotificationsFrom(UIIncrementDto inc)
+    private static IReadOnlyList<AppNotificationDto> NotificationsFrom(UIIncrementDto inc)
     {
         var frag = Assert.Single(inc.Fragments);
         Assert.Null(frag.Component);
         var data = Assert.IsType<Dictionary<string, object?>>(frag.Data);
-        return Assert.IsAssignableFrom<IReadOnlyList<AppNotification>>(data["_notifications"]);
+        return Assert.IsAssignableFrom<IReadOnlyList<AppNotificationDto>>(data["_notifications"]);
     }
 
     [Fact]
@@ -3192,7 +3195,8 @@ public class SyncHandlerTests
         // the entries serialize camelCase on the wire
         Assert.Contains(
             "{\"id\":\"n1\",\"title\":\"Factura aprobada\",\"text\":\"F-2026-001\","
-            + "\"route\":\"/invoices/1\",\"unread\":true,\"when\":\"hace 2 min\"}",
+            + "\"route\":\"/invoices/1\",\"unread\":true,\"when\":\"hace 2 min\","
+            + "\"category\":null,\"variant\":null,\"resolved\":false,\"actions\":[],\"hasDetail\":false}",
             Render(inc));
     }
 

@@ -55,6 +55,9 @@ from ..islands import EMBEDDED_MARKER
 from ._base import MixinBase
 from ._common import _field_value, _row_cell
 
+# A @folded_layout section column: grows, and wraps below the previous one under 20rem.
+FOLDED_COLUMN_STYLE = "flex: 1 1 20rem; min-width: min(20rem, 100%);"
+
 
 def _has_affordances(section: "Section | None") -> bool:
     return section is not None and bool(
@@ -207,14 +210,21 @@ class LayoutMapperMixin(MixinBase):
             return [self.build_zones(
                 declared_zones, sections, section_zones, section_markers, instance, read_only)]
 
-        # @folded_layout: the section cards side by side in one horizontal row (zones win).
+        # @folded_layout: the section cards side by side in one horizontal row (zones win). The
+        # row wraps and each column has a basis and a floor, so at phone width the sections stack
+        # instead of the second one being cut off at the screen edge (mirrors Java's
+        # FOLDED_COLUMN_STYLE).
         if class_flag(cls, "__mateu_folded_layout__", False) and len(sections) > 1:
             return [ClientSideComponent(
-                metadata=HorizontalLayoutMetadata(spacing=True),
+                metadata=HorizontalLayoutMetadata(spacing=True, wrap=True),
                 children=[
-                    self.section_card(
-                        t, self.map_fields(fs, instance, read_only),
-                        labels_aside=aside, max_columns=max_columns, titled=True,
+                    ClientSideComponent(
+                        metadata=DivMetadata(),
+                        children=[self.section_card(
+                            t, self.map_fields(fs, instance, read_only),
+                            labels_aside=aside, max_columns=max_columns, titled=True,
+                        )],
+                        style=FOLDED_COLUMN_STYLE,
                     )
                     for t, fs in sections
                 ],

@@ -129,10 +129,10 @@ knows only the goal, finds controls by visible text / accessible name.
 | IJ-10 | Any CRUD listing in a headless context (probe, unit tests) | — | `ColumnChooser`/`SavedViews` called `PropertiesComponent.getInstance()` and crashed the whole crud render without an Application | Probe stack trace | Robustness (tooling) | P3 | **Fixed** `UserPrefs` (in-memory fallback) |
 | IJ-11 | Wizard | — | Title rendered as body text; progress text ("Step 1") dropped; progress bar unnamed | Probe dump | WCAG 2.4.6 / 4.1.2; H1 | P2 | **Fixed**: h1–h6 → bold scaled title; bar paints and names its text; test |
 | IJ-12 | Everywhere (43 places) | — | Secondary text (subtitles, captions, hints) painted with the theme's DISABLED label colour: live content read as greyed-out controls | Code | IntelliJ UI guidelines (context-help foreground for secondary text); H4 | P2 | **Fixed** `ToneColors.secondaryText()` |
-| IJ-13 | Navigator | App menu | Menu entries are 16px hyperlinks, no selection state; IDE navigators are trees/lists with a selected row | Probe dump | IntelliJ UI guidelines (tool windows) | P3 | Open |
-| IJ-14 | Listing headers | Price column | Header left-aligned over right-aligned numbers | `ij-products.png` | Few | P3 | Open |
+| IJ-13 | Navigator | App menu | Menu entries are 16px hyperlinks, no selection state; IDE navigators are trees/lists with a selected row | Probe dump | IntelliJ UI guidelines (tool windows) | P3 | **Fixed** (desktop review D-09: `MenuTree`, pinned by `AppShellRenderTest`) |
+| IJ-14 | Listing headers | Price column | Header left-aligned over right-aligned numbers | `ij-products.png` | Few | P3 | **Fixed** (desktop review D-16: `ColumnAlign`) |
 | IJ-15 | Render probe | App-shell navigator PNG | Glyphs dropped in the offscreen paint without a booted IDE (tree dump fine; content screens fine) | `probe` runs | Tooling | P3 | Open (tried forcing the font, `printAll`, a Robot screen capture — same) |
-| IJ-16 | Listing dates | Products → Added | ISO dates ("2026-05-11") not in the user's locale format | `ij-products.png` | H2 | P3 | Open |
+| IJ-16 | Listing dates | Products → Added | ISO dates ("2026-05-11") not in the user's locale format | `ij-products.png` | H2 | P3 | **Fixed** (desktop review D-15: `DateValues`) |
 
 ## Counts
 
@@ -151,3 +151,25 @@ knows only the goal, finds controls by visible text / accessible name.
 - **Web renderers** (from the developer-journey pass): an action nobody handles is dropped with no
   feedback; a YAML listing's `dataType: status` column shows raw constants; the generated CRUD page has
   no side gutter at 1280px.
+
+## Estado 2026-11-08 (pre-GA re-check)
+
+React Native re-checked on `master` @ `fcba5e110` as expo web (390×844) against
+`demo/demo-admin-panel` (core and bundle built from this branch). The IntelliJ items are left to the
+stream polishing the plugin this release (no plugin code touched here). Evidence in [`shots/`](shots/).
+
+| ID | Open on 2026-11-08? | Status | Evidence / why |
+|---|---|---|---|
+| RN-21 half-dark | No | ✅ verified | the theme toggle turns the content dark too (`RN-21-dark-products.png`) — fixed by the Material 3 / themed-stylesheet work |
+| RN-22 header title | Yes (the bar shows the app title, the screen title is in the body) | ⏸ deferred — product decision | title ownership between bar and page still needs the owner's call |
+| RN-23 type scale | Partly (one stray 13 pt, About screen) | ✅ fixed | 8 sizes, all ≥ 11 pt, all Material 3 steps (11/12/14/16/22/24/28/32); pinned by `src/ui/typeScale.test.ts` |
+| RN-24 raw booleans in list rows | No | ✅ verified | a true boolean is a chip with its label ("Certified"), false is left out |
+| RN-25 toast position | — | ⏸ deferred | toast / Message code belongs to the stream rebuilding those patterns |
+| RN-26 «Back to list» beside the back arrow | **Yes** | ✅ fixed | a record pushed over its listing drops `cancel-view` / `backToList` (an island or a record opened from a link keeps it) — `withoutRedundantBack` (`uxRules.test.ts`), `RN-26-detail-no-back-to-list.png` |
+| RN-27 calendar on a phone | **Yes** | ✅ fixed | below 600 dp a month calendar opens on its agenda, Month one tap away (`initialViewFor` / `switcherViewsFor`, `calendar.test.ts`) — `RN-27-calendar-agenda-390.png` |
+| (regression) selection checkboxes | **Yes** — `rn-a11y-probe` Products **5/7**: 20 checkboxes (10 named by the icon glyph "󰄱", no checked state) and 20 nested controls | ✅ fixed | the Material migration wrapped Paper's own checkbox inside ours: now one named checkbox; the list row's chevron is a decoration, not a disabled button inside the row. Probe **7/7** |
+| IJ-13 … IJ-16 | not re-checked | ⏸ deferred | the IntelliJ plugin is owned by another stream this release |
+
+**rn-a11y-probe on this build:** home 6/6, Products 5/7 → **7/7**, Dashboard 6/6. The probe (and
+`rn-task-metrics.mjs`) now load with `waitUntil: 'load'`: an app with `@App(liveUpdates)` keeps a
+stream open, so `networkidle` never came and the probe timed out before looking at anything.

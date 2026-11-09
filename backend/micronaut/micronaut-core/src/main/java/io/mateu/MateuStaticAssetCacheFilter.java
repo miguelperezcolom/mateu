@@ -28,6 +28,11 @@ public class MateuStaticAssetCacheFilter {
     String policy = StaticAssetCaching.cacheControlFor(request.getPath());
     if (policy != null) {
       response.getHeaders().set("Cache-Control", policy);
+      if (io.mateu.core.infra.AssetCompression.compressible(request.getPath())) {
+        // Netty compresses the text assets on the way out (micronaut.server.netty
+        // .compression-threshold): a cache keeps the variants apart by this header
+        response.getHeaders().set("Vary", "Accept-Encoding");
+      }
     }
   }
 }

@@ -11,6 +11,8 @@ import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
+import { TaskCenter } from './taskCenter.ts';
+import { InboxStore } from './inbox.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
 import { uiLocale } from './money.ts';
 import type { StaticBundle } from './staticBundle.ts';
@@ -25,6 +27,10 @@ export interface NotifyOptions {
   undo?: { label: string; onPress: () => void };
   /** Stays until dismissed, whatever the variant. */
   sticky?: boolean;
+  /** Every action of the message (Message.actions); when set, `undo` is not drawn twice. */
+  actions?: { label: string; onPress: () => void; style?: string | null }[];
+  /** A message with the same key replaces the one on screen. */
+  key?: string | null;
 }
 
 export interface NavTarget {
@@ -88,6 +94,10 @@ export class MateuSession {
   /** The UI session (id + channel secret) the assistant chat and the live-push channel share, and
    *  the paired state the channel reports (core/agentPush.ts). One per running app. */
   readonly agent: AgentPushState;
+  /** The long-running tasks this UI started (Progress commands), running and recently finished. */
+  readonly tasks: TaskCenter;
+  /** The notification inbox: the server's list + this session's own entries. */
+  readonly inbox: InboxStore;
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
   notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
@@ -198,6 +208,9 @@ export class MateuSession {
     this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
     // per app instance, never process-wide: two hub UIs are two UI sessions
     this.agent = storesFrom?.agent ?? new AgentPushState();
+    // per UI too: an island's task (its LongTask) shows in the app's task center
+    this.tasks = storesFrom?.tasks ?? new TaskCenter();
+    this.inbox = storesFrom?.inbox ?? new InboxStore();
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });

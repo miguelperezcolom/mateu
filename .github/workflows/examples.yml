@@ -127,6 +127,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # The starter names the NuGet packages; inside the repository starters/Directory.Build.targets
+      # swaps them for Mateu.NET's sources, so this checks it against this commit.
       # The starter targets net8.0, but it builds Mateu.NET from source (ProjectReference), which
       # targets net8.0 AND net10.0: an SDK 8 alone cannot build the net10.0 half (NETSDK1045).
       # Same SDK pair as the release/NuGet job.
@@ -150,10 +152,13 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
+      # The starter names the PUBLISHED mateu-ui (so it can be copied out of the repository); here it
+      # runs against this commit's sources instead: their dependencies + the starter's other ones.
       - name: Install and test the Python starter
         working-directory: starters/python
         run: |
-          pip install --only-binary :all: -r requirements.txt pytest httpx
+          grep -v '^mateu-ui==' requirements.txt > "$RUNNER_TEMP/starter-requirements.txt"
+          pip install --only-binary :all: -r ../../backend/python/requirements.txt -r "$RUNNER_TEMP/starter-requirements.txt"
           PYTHONPATH=../../backend/python:. pytest -q
 
   # The check to require on master (design/ci-required-checks.md): always reports, green when every

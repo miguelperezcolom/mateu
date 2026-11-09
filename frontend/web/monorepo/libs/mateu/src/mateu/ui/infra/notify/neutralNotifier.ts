@@ -5,7 +5,7 @@
  * carries zero `@vaadin` (or other DS) imports. Installed as the default by mateu-ui; a DS app
  * may override it via {@link setNotifier} (e.g. the Vaadin app's VaadinNotifier).
  */
-import { Notifier, ToastMessage, setNotifier, toastDuration } from '@application/Notifier.ts'
+import { Notifier, ToastAction, ToastMessage, forgetKeyedToast, replaceKeyedToast, setNotifier, toastDuration } from '@application/Notifier.ts'
 import { requestActionOn } from '@infra/ui/requestAction.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -42,6 +42,24 @@ function variantColors(variant: string | undefined): { bg: string; fg: string } 
     }
 }
 
+/**
+ * The inline controls of a toast: a client-side closure (Retry) wins; else the message's actions
+ * (the undo among them); else, from an older server, the single legacy undo.
+ */
+export function controlsOf(message: ToastMessage, initiator: HTMLElement): ToastAction[] {
+    if (message.onAction) return [{ label: message.actionLabel ?? chromeText('retry'), run: message.onAction }]
+    if (message.actions && message.actions.length > 0) return message.actions
+    if (message.undoActionId) {
+        return [{
+            label: message.undoLabel ?? chromeText('undo'),
+            run: () => requestActionOn(initiator, {
+                actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
+            }),
+        }]
+    }
+    return []
+}
+
 export const neutralNotifier: Notifier = {
     show(message: ToastMessage, initiator: HTMLElement): void {
         const { bg, fg } = variantColors(message.variant)
@@ -73,29 +91,26 @@ export const neutralNotifier: Notifier = {
             ...corner,
         } as Partial<CSSStyleDeclaration>)
 
+        if (message.title) {
+            const title = document.createElement('strong')
+            title.textContent = message.title
+            title.style.fontWeight = '600'
+            toast.appendChild(title)
+        }
         const text = document.createElement('span')
         text.textContent = message.text
         toast.appendChild(text)
 
         const remove = () => {
+            forgetKeyedToast(message.key, remove)
             toast.style.opacity = '0'
             setTimeout(() => toast.remove(), 200)
         }
 
-        // One inline control, from either source: a client-side closure (Retry) or a server
-        // action (Undo). The closure wins when both are present.
-        const control = message.onAction
-            ? { label: message.actionLabel ?? chromeText('retry'), run: message.onAction }
-            : message.undoActionId
-                ? {
-                    label: message.undoLabel ?? chromeText('undo'),
-                    run: () => requestActionOn(initiator, {
-                        actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
-                    }),
-                }
-                : undefined
-
-        if (control) {
+        // The inline controls: a client-side closure (Retry), or the message's actions (Undo is
+        // one of them), or — from an older server — the single legacy undo.
+        const controls = controlsOf(message, initiator)
+        for (const control of controls) {
             const button = document.createElement('button')
             button.textContent = control.label
             button.style.cssText =
@@ -108,6 +123,7 @@ export const neutralNotifier: Notifier = {
             })
             toast.appendChild(button)
         }
+        const control = controls.length > 0
 
         const duration = toastDuration(message, control ? 10000 : 5000)
         if (duration <= 0) {
@@ -121,6 +137,8 @@ export const neutralNotifier: Notifier = {
             toast.appendChild(close)
         }
 
+        // a toast with the same key replaces the one on screen
+        replaceKeyedToast(message.key, remove)
         document.body.appendChild(toast)
         requestAnimationFrame(() => { toast.style.opacity = '1' })
 

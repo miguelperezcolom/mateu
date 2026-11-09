@@ -93,19 +93,26 @@ class CrudFeaturesRenderTest : RenderTestCase() {
         assertTrue(lastParameters().path("_editedRow").path("active").asBoolean())
     }
 
+    /** The pager's icon buttons, by their accessible name — they are focusable (keyboard reachable). */
+    private fun pagerButton(c: javax.swing.JComponent, name: String) =
+        buttons(c).first { it.accessibleContext.accessibleName == name }.also {
+            assertTrue("$name is in the Tab order", it.isFocusable)
+            assertEquals(name, it.toolTipText)
+        }
+
     fun testThePagerSaysWhereTheUserIsAndStepsThePage() {
         val ctx = crudContext()
         val c = crud(ctx, """{"type":"Crud","columns":[{"metadata":{"id":"name","label":"Name"}}]}""",
             """{"page":{"content":[{"name":"a"}],"totalElements":25,"pageNumber":1,"pageSize":10}}""")
-        assertTrue(texts(c).contains("  Page 2 of 3 (25 total)"))
-        assertTrue(button(c, "‹ Prev").isEnabled)
-        button(c, "Next ›").doClick()
-        button(c, "‹ Prev").doClick()
+        assertTrue(texts(c).contains("Page 2 of 3 · 25 items"))
+        assertTrue(pagerButton(c, "Previous page").isEnabled)
+        pagerButton(c, "Next page").doClick()
+        pagerButton(c, "Previous page").doClick()
         awaitRequests(2)
         assertEquals(listOf("nextPage", "prevPage"), server.actionIds())
         ctx.applyIncrement(json("""{"fragments":[{"targetComponentId":"crud1","data":{"page":{"content":[],"totalElements":0}}}]}"""))
-        assertTrue(texts(c).contains("  Page 1 of 1 (0 total)"))
-        assertFalse(button(c, "Next ›").isEnabled)
+        assertTrue(texts(c).contains("Page 1 of 1 · 0 items"))
+        assertFalse(pagerButton(c, "Next page").isEnabled)
     }
 
     fun testMasterDetailShowsTheSelectedRow() {

@@ -9,7 +9,7 @@ import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -376,6 +376,9 @@ export function islandContentOf(ctx, opts = {}) {
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
   })
+  // a group (a Button with `children`, no action of its own) stands for its buttons
+  const groupMembersOf = (m) =>
+    (!m.actionId && Array.isArray(m.children) && m.children.length ? m.children.filter(Boolean) : [m])
   const buttonOf = (m) => {
     // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
     // route on it): the click goes to that route instead of running actionId on the server, which
@@ -452,9 +455,11 @@ export function islandContentOf(ctx, opts = {}) {
   const collectButtons = (node, out) => {
     if (!node || typeof node !== 'object') return out
     if (node.metadata && node.metadata.type === 'Button') {
-      const button = buttonOf(node.metadata)
-      if (editorNodeIds && node.id) button.nodeId = String(node.id)
-      out.push(button)
+      for (const member of groupMembersOf(node.metadata)) {
+        const button = buttonOf(member)
+        if (editorNodeIds && node.id) button.nodeId = String(node.id)
+        out.push(button)
+      }
       return out
     }
     for (const child of kidsOf(node)) collectButtons(child, out)
@@ -778,8 +783,19 @@ export function islandContentOf(ctx, opts = {}) {
         const raw = state[fieldId] != null ? state[fieldId]
           : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
         const lookupLabel = fromData(fieldId + '-label')
-        const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
-        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
+        // a lookup's label is already text; else money formatted, an option by its label, a status as a chip
+        const shown = lookupLabel != null && lookupLabel !== ''
+          ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
+          : readOnlyDisplayOf(m, raw, ctx.data)
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+        return
+      }
+      if (m.dataType === 'status') {
+        // a status FIELD (a YAML record page's `dataType: status`) is a chip under its label, the
+        // listing's: no layout widget draws it, and it used to vanish
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        const shown = readOnlyDisplayOf(m, raw, ctx.data)
+        atom({ isPropertyRow: true, stacked: true, label: interp(m.label || fieldId), value: shown.text || EMPTY_VALUE, valueClass: shown.badgeClass }, container)
         return
       }
       // editable FLUENT FormField (e.g. the charge search box of the check-out mode):
@@ -1577,10 +1593,12 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Button') {
       const target = container || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
-      const button = buttonOf(m)
-      if (editorNodeIds && node.id) button.nodeId = String(node.id)
-      if (last && last.isButtons) last.buttons.push(button)
-      else atom({ isButtons: true, buttons: [button] }, container)
+      // a ButtonGroup in content travels as a Button with `children` (the toolbar group's shape)
+      // and no action of its own: its buttons join the row, as a toolbar group's join the header
+      const buttons = groupMembersOf(m).map(buttonOf)
+      if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
+      if (last && last.isButtons) last.buttons.push(...buttons)
+      else atom({ isButtons: true, buttons }, container)
       return
     }
     // ── display components with their own projection (core/display.mjs) ──

@@ -1,6 +1,7 @@
 {
   "messages" : [ {
     "duration" : 0,
+    "persistence" : "sticky",
     "position" : "middle",
     "text" : "• Name: Cannot be empty",
     "title" : "There are validation errors",

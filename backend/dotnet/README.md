@@ -204,3 +204,26 @@ dispatch the method of the same name on the view (drill-in navigation, CTAs).
 orchestrators) reflect over the subclass's public component-holding properties and compose the
 layout for you — `[Panel(Title, Subtitle, ColSpan, RowSpan, Icon, Open)]` marks tiles / fold-out
 panels / tabs. See `samples/Mateu.Demo/SalesDashboard.cs`.
+
+### Progress and notifications (EXPERIMENTAL)
+
+The two UX patterns of `design/progress-and-notifications.md`, on the same wire as Java:
+
+- **Long-running tasks.** An action returns `LongTask.Create("Importing…")…Run((progress, ct) => …)`
+  (a `LongTaskRun`): over `POST …/mateu/v3/sse/{route}` each `progress.Step(...)` streams a
+  `Progress` command carrying the whole task state (`Step(text, done, total)` = "12 of 300");
+  `Background()`, `Backgroundable()`, `Cancellable()` / `OnCancel(…)`, `Retryable()`,
+  `ResultAction(MessageAction.Open(…))`, `NotifyWhenDone()`, `WithProgressBar()`, `Done(…)`,
+  `CloseAfter(…)`, `WithCommand(…)`. `_progress-cancel {taskId}` cancels the work's
+  `CancellationToken` — only for the caller that started it (owner = hash of the principal and its
+  grants; another caller or an unknown id gets an empty answer); closing the stream cancels it too.
+  A task that ends without `done` gets a `failed` (with the error message the user saw) or
+  `cancelled` Progress. On the sync endpoint the whole stream is run and merged into one answer.
+- **Messages** carry `Persistence` (toast | sticky | inbox; an error is sticky), any number of
+  `Actions` (`MessageAction.Run/Open`, the undo is one with style `undo`) and a dedup `Key`.
+- **Inbox**: `AppNotification` gains `Category`, `Variant`, `Resolved`, `Actions`, `HasDetail`;
+  `INotificationsSupplier` gains `OnNotificationAction` (`_notifications-act`),
+  `DismissNotifications` (`_notifications-dismiss`) and `NotificationDetail` (`_notifications-open`)
+  as default members. `LiveNotifications.Publish(principal, item)` / `PublishToAll` / `Remove` /
+  `Refresh` reach, as `NotificationsChanged`, only the live-updates streams
+  (`[App(LiveUpdates = true)]`) of that authenticated user.

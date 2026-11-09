@@ -110,6 +110,12 @@ export class MateuPlanningBoard extends LitElement {
             border-radius: var(--lumo-border-radius-l, 12px);
             overflow-x: auto;
         }
+        /* the frame scrolls sideways at phone width: it takes the focus so a keyboard user can
+           scroll it too (WCAG 2.1.1, W-V-SCROLLREGION) */
+        .frame:focus-visible {
+            outline: 2px solid var(--lumo-primary-color);
+            outline-offset: 2px;
+        }
         .corner, .label, .group, .day-head {
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.06));
             box-sizing: border-box;
@@ -545,7 +551,7 @@ export class MateuPlanningBoard extends LitElement {
             rows.push(this.renderRow(resource, win, days, todayVisible ? todayIdx : null))
         })
         return html`
-            <div class="frame" style="grid-template-columns: minmax(${8 + 4.5 * this.attributeColumns.length}rem, ${12 + 4.5 * this.attributeColumns.length}rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
+            <div class="frame" tabindex="0" role="region" aria-label="${chromeText('planningBoard')}" style="grid-template-columns: minmax(${8 + 4.5 * this.attributeColumns.length}rem, ${12 + 4.5 * this.attributeColumns.length}rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
                 <div class="corner"><span class="res-name">${chromeText('resource')}</span>${this.attributeColumns.map(c => html`<span class="attr">${c}</span>`)}</div>
                 ${days.map((day, i) => html`
                     <div class="day-head ${this.isWeekend(day) ? 'weekend' : ''} ${i === todayIdx ? 'today' : ''}">

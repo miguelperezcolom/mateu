@@ -19,6 +19,17 @@ import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction } from './shellFlows.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
+import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } from './taskCenter.ts';
+import { inboxChangeOf } from './inbox.ts';
+import type { ToastAction } from './componentContext.ts';
+
+/** The action whose answer an increment is (a streamed task's Retry runs it again). */
+export interface IncrementOrigin {
+  actionId: string;
+  parameters: Json;
+  /** The tasks this stream reported (to fail the ones it left running). */
+  taskIds?: Set<string>;
+}
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {
@@ -356,8 +367,11 @@ export class MateuViewController {
     const generation = this.polling.currentGeneration;
     try {
       if (this.actionSse[actionId]) {
-        // a LongTask: each progress increment is applied as it arrives
-        await this.session.api.runActionStream(
+        // a LongTask: each progress increment is applied as it arrives — its Progress commands feed
+        // the session's task center, which outlives this screen
+        const origin: IncrementOrigin = { actionId, parameters: parameters ?? {}, taskIds: new Set() };
+        try {
+          await this.session.api.runActionStream(
           {
             route: this.currentRoute,
             consumedRoute: this.currentConsumedRoute,
@@ -368,8 +382,12 @@ export class MateuViewController {
             appState: this.session.appState,
             parameters: parameters ?? {},
           },
-          (increment) => this.applyIncrement(increment as Json),
-        );
+          (increment) => this.applyIncrement(increment as Json, origin),
+          );
+        } finally {
+          // a stream that ended without saying how its tasks ended (the connection dropped): failed
+          this.announceTaskEvents(this.session.tasks.failRunning(origin.taskIds!, 'The connection was lost before the task finished'));
+        }
         this.polling.actionSucceeded(generation, actionId);
         return true;
       }
@@ -667,7 +685,7 @@ export class MateuViewController {
 
   // ── increment application ───────────────────────────────────────────────────────────
 
-  applyIncrement(increment: Json): void {
+  applyIncrement(increment: Json, origin?: IncrementOrigin): void {
     // first: the components about to render may fetch from the sources they name
     this.session.sources.addReferenced(increment['restSources']);
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
@@ -679,16 +697,33 @@ export class MateuViewController {
         devLog(`[Mateu] ${toast.variant}: ${toast.text}`);
         continue;
       }
-      // Undoable message (Message.undoActionId): the toast's Undo button dispatches the reverse
-      // action on THIS controller — the initiator whose action produced the message.
+      // The message's actions (an Undo among them) run on THIS controller — the initiator whose
+      // action produced the message; a route navigates.
+      const actions = toast.actions.map((a) => ({ label: a.label, style: a.style, onPress: () => this.runToastAction(a) }));
       const undo = toast.undo;
       this.session.notify(toast.title, toast.text, toast.variant, {
         duration: toast.duration,
         undo: undo ? { label: undo.label, onPress: () => void this.runAction(undo.actionId, undo.parameters) } : undefined,
+        actions,
+        sticky: toast.persistence === 'sticky' ? true : undefined,
+        key: toast.key,
       });
+      // an inbox message is also an entry of this session's inbox (deduplicated by its key)
+      if (toast.persistence === 'inbox') {
+        this.session.inbox.addSession({
+          id: toast.key ?? `message-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          title: toast.title || toast.text,
+          text: toast.title ? toast.text : null,
+          unread: true,
+          variant: toast.variant,
+          actions: toast.actions,
+          local: true,
+          run: (a) => this.runToastAction(a as ToastAction),
+        });
+      }
     }
 
-    for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd);
+    for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd, origin);
 
     // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
     const banners = asArray(increment['banners']) as PageBanner[];
@@ -945,10 +980,65 @@ export class MateuViewController {
     seedSearchFromRoute(this.currentComponentState, this.currentRoute);
   }
 
-  private handleCommand(cmd: Json): void {
+  /** A message's / a finished task's action: a route navigates, an action id runs here. */
+  private runToastAction(action: TaskAction | ToastAction): void {
+    if (action.route) {
+      this.handleCommand({ type: 'NavigateTo', data: action.route });
+      return;
+    }
+    if (action.actionId) void this.runAction(action.actionId, (action.parameters as Json) ?? {});
+  }
+
+  /** `_progress-cancel`: asks the server to stop the task (it answers it, cancelled). */
+  private async cancelTask(taskId: string): Promise<void> {
+    try {
+      const increment = await this.session.api.runAction({
+        route: this.currentRoute,
+        consumedRoute: this.currentConsumedRoute,
+        actionId: '_progress-cancel',
+        serverSideType: this.currentServerSideType || null,
+        initiatorComponentId: this.currentComponentId,
+        componentState: {},
+        appState: this.session.appState,
+        parameters: { taskId },
+      });
+      for (const cmd of asArray((increment as Json)?.['commands'])) {
+        if (str(cmd['type']) === 'Progress') this.handleCommand(cmd);
+      }
+    } catch (e) {
+      this.session.notify(null, `The task could not be cancelled: ${errorText(e)}`, 'error');
+    }
+  }
+
+  /** Start / end of a task, said to the screen reader (politely). */
+  private announceTaskEvents(events: TaskEvent[]): void {
+    for (const event of events) {
+      if (!event) continue;
+      announceLive(event.kind === 'started' ? `${event.task.title || 'Task'} started` : finishedAnnouncement(event.task), false);
+    }
+  }
+
+  private handleCommand(cmd: Json, origin?: IncrementOrigin): void {
     const type = str(cmd['type']);
     const cmdData = cmd['data'];
     switch (type) {
+      case 'Progress': {
+        // a long-running task (LongTask): upserted in the session's task center by taskId
+        const progress = progressOf(cmdData);
+        if (!progress) break;
+        origin?.taskIds?.add(progress.taskId);
+        const event = this.session.tasks.upsert(progress, {
+          cancel: () => void this.cancelTask(progress.taskId),
+          retry: origin ? () => void this.runAction(origin.actionId, origin.parameters) : undefined,
+          runAction: (a) => this.runToastAction(a),
+        });
+        this.announceTaskEvents([event]);
+        break;
+      }
+      case 'NotificationsChanged':
+        // the inbox changed (normally on the live-updates stream, handled by the shell too)
+        this.session.inbox.apply(inboxChangeOf(cmdData));
+        break;
       case 'SetWindowTitle': {
         const title = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['title']);
         if (title && !title.startsWith('[')) {

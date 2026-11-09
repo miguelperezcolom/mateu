@@ -3,7 +3,7 @@ title: Long-Running Jobs
 description: Give a dignified UX to asynchronous processes without freezing the interface.
 ---
 
-**Status:** ✅ Implemented — `LongTask`, `Flux<?>`, `@Action(background)`
+**Status:** ✅ Implemented — `LongTask` (a task in the user's task center), `Flux<?>`, `@Action(background)`
 
 ## Intent
 
@@ -21,7 +21,7 @@ Mateu offers three strategies depending on how much feedback the operation can p
 
 | Strategy | When to use |
 |---|---|
-| `LongTask` + `Flux<?>` | Operation emits incremental steps; show a live progress dialog |
+| `LongTask` + `Flux<?>` | Operation emits incremental steps; it is a task the user follows (blocking or in the background), can cancel and retry |
 | `Flux<?>` (low-level) | Need full control over what is streamed to the client |
 | `@Action(background = true)` | Fire-and-forget; the UI stays interactive, no progress shown |
 
@@ -44,7 +44,7 @@ streaming. The two concerns are independent:
 
 ---
 
-## `LongTask` — live progress dialog
+## `LongTask` — a task the user can follow
 
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
@@ -53,8 +53,19 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-`LongTask` is the high-level API for streaming progress to a modal dialog. Return the result of
-`LongTask.run(...)` directly from a `@Button` method:
+`LongTask` is the high-level API for long work. It does not draw anything: it reports a **task** —
+its title, what it is doing, how far it got, whether it is done, failed or cancelled — and each
+renderer presents it the way its platform does:
+
+| Renderer | Blocking task | Background task |
+|---|---|---|
+| Web (Vaadin) | a modal progress with Cancel / Background | the task center: an indicator with the number of running tasks, opening the list |
+| Redwood | an `oj-dialog` with `oj-progress-bar` | a docked task panel |
+| Phone app | a modal with a progress bar | a strip ("3 tasks running") opening a sheet |
+| IntelliJ / desktop | the platform's modal progress (with Background) | the platform's background tasks in the status bar |
+
+Several tasks can run at once, and a task keeps running — and stays in the task center — when the
+user leaves the screen. Return the result of `LongTask.run(...)` from a `@Button` method:
 
 ```java
 @Button
@@ -67,27 +78,38 @@ public Flux<?> generateReport() {
 }
 ```
 
-Internally, `LongTask` composes a `Flux.concat` of three segments:
-
-1. **Opening event** — sends a dialog component to the frontend, showing the progress dialog.
-2. **Work flux** — your flux, streamed live as each `progress.step(...)` is emitted.
-3. **Closing event** — updates the dialog to its final state and dispatches any configured commands.
+The stream is the task's start (running, "Starting..." — translated by your `Translator`), one
+update per `progress.step(...)`, and its end (done, with the `done` texts and result actions, then
+the `withCommand` commands). If the work fails the task ends **failed** with the message the user
+sees (the error boundary's: your `UserFacingException` text, or the generic one with a reference);
+if it is cancelled it ends **cancelled**. On the wire every update is a `Progress` command carrying
+the whole state of the task (`taskId`, `title`, `text`, `fraction` — null when indeterminate —,
+`done`/`total`, `state`, `blocking`, `cancellable`…).
 
 ### `LongTask` builder methods
 
 | Method | Description |
 |---|---|
-| `LongTask.create(title)` | Opens the dialog with the given header title |
-| `.done(doneTitle, doneText)` | Sets the header and body shown when the flux completes |
-| `.withProgressBar()` | Adds a determinate progress bar to the dialog |
-| `.closeAfter(seconds)` | Auto-closes the dialog N seconds after completion |
-| `.withCommand(commands…)` | Dispatches `UICommand`s when the task completes |
-| `.run(work)` | Builds the flux; returns this to the `@Button` method |
+| `LongTask.create(title)` | The task's title |
+| `.done(doneTitle, doneText)` | The title and text shown once the work completes |
+| `.withProgressBar()` | Determinate: `step(text, fraction)` moves it; it fills when done |
+| `.closeAfter(seconds)` | A finished blocking task's surface closes N seconds after completion |
+| `.withCommand(commands…)` | `UICommand`s run when the task completes |
+| `.startingText(text)` | The status shown until the first step |
+| `.background()` 🧪 | A background task: the user keeps working (default: blocking) |
+| `.backgroundable()` 🧪 | Blocking, but the user may move it to the background |
+| `.cancellable()` / `.onCancel(hook)` 🧪 | The user may cancel it; the hook runs on cancel |
+| `.retryable()` 🧪 | A failed run offers Retry (the same action again) |
+| `.resultAction(MessageAction)` 🧪 | "Open report", "View errors" on the finished task |
+| `.notifyWhenDone()` 🧪 | The finished task also lands in the [notification inbox](/ux-patterns/notification-inbox/) |
+| `.run(work)` | Builds the flux; return it from the `@Button` method |
+
+🧪 = `@Experimental` (3.0).
 
 ### Updating progress with `ProgressReporter`
 
-The `work` lambda receives a `ProgressReporter`. Each call to `step(...)` returns the SSE payload
-that must be emitted by the flux — it is not a side-effect:
+The `work` lambda receives a `ProgressReporter`. Each call to `step(...)` returns the update that
+must be emitted by the flux — it is not a side-effect:
 
 ```java
 LongTask.create("Processing...")
@@ -95,55 +117,42 @@ LongTask.create("Processing...")
                 .map(item -> progress.step("Processing: " + item.name())));
 ```
 
-`ProgressReporter` offers four overloads:
-
 | Signature | Updates |
 |---|---|
-| `step(text)` | Dialog body text |
-| `step(text, title)` | Dialog body text + header title |
-| `step(text, progress)` | Dialog body text + progress bar (0.0 – 1.0) |
-| `step(text, title, progress)` | Dialog body text + header title + progress bar |
+| `step(text)` | The status text |
+| `step(text, title)` | The status text + the title |
+| `step(text, fraction)` | The status text + the fraction (0.0 – 1.0, with `withProgressBar()`) |
+| `step(text, title, fraction)` | All three |
+| `step(text, done, total)` 🧪 | The status text + a count ("12 of 300"); makes the task determinate |
 
-### Progress bar
+A count is the most honest progress there is: prefer it when the work is countable. Mateu sends
+no ETA — renderers show the elapsed time instead.
 
-Add `.withProgressBar()` to show a determinate progress bar. Pass a `double` between `0.0` and
-`1.0` as the progress argument to `step()`. The bar automatically fills to `1.0` when the flux
-completes.
+### A background task the user can cancel
 
 ```java
 @Button
-@Action(validationRequired = false)
-public Flux<?> importData() {
-    return LongTask.create("Importing data...")
-            .withProgressBar()
-            .done("Done", "Import complete")
+public Flux<?> importAll() {
+    return LongTask.create("Importing customers")
+            .background()
+            .cancellable()
+            .onCancel(importService::rollBack)
+            .retryable()
+            .done("Import finished", "All customers imported")
+            .resultAction(MessageAction.open("Open report", "/imports/latest"))
+            .notifyWhenDone()
             .run(progress -> importService.rows()
-                    .map(row -> progress.step(
-                            "Imported: " + row.name(),
-                            row.index() / (double) row.total())));
+                    .map(row -> progress.step("Imported " + row.name(), row.index(), row.total())));
 }
 ```
 
-### Auto-closing the dialog
+Cancel sends the reserved action `_progress-cancel` with the task id: the server stops the work
+flux (Reactor cancels it — write the work so that a cancel stops it), runs `onCancel` and ends the
+task cancelled. Only the caller who started a task can cancel it (an anonymous caller's task is
+cancellable by whoever holds its random id). Closing the stream — the user closes the tab — also
+cancels it. In a cluster the cancel must reach the node running the task (sticky sessions).
 
-Add `.closeAfter(seconds)` to close the dialog automatically once the task finishes, without
-requiring the user to dismiss it manually. Useful for fire-and-forget operations where the final
-message is informational:
-
-```java
-LongTask.create("Importing data...")
-        .withProgressBar()
-        .done("Done", "Import complete")
-        .closeAfter(3)
-        .run(progress -> importService.rows()
-                .map(row -> progress.step("Imported: " + row.name())));
-```
-
-### Running a command on completion
-
-Add `.withCommand(UICommand...)` to execute one or more UI commands when the task finishes.
-Commands run immediately after the dialog is updated to its final state, before any auto-close
-timer fires. Multiple commands are supported:
+### Auto-closing and commands on completion
 
 ```java
 LongTask.create("Importing data...")
@@ -155,16 +164,13 @@ LongTask.create("Importing data...")
                 .map(row -> progress.step("Imported: " + row.name())));
 ```
 
-Available commands and their behaviour from a dialog element:
+The commands run after the task is reported done, on the screen that started it.
 
-| Command | Works | Notes |
-|---|---|---|
-| `UICommand.navigateTo(url)` | ✅ | Changes `window.location.href`; relative and absolute URLs |
-| `UICommand.pushStateToHistory(url)` | ✅ | Pushes a history entry without full reload |
-| `UICommand.dispatchEvent(name, detail)` | ✅ | Dispatches a custom DOM event that bubbles up |
-| `UICommand.runAction(actionId, targetId)` | ✅ | Triggers an action on a specific component |
-| `UICommand.runAction(actionId)` | ⚠️ | Requires the dialog to handle action events; prefer the two-arg form |
-| `CloseModal` | ❌ | Use `.closeAfter(seconds)` instead |
+### Not yet (3.1)
+
+A reloaded tab does not reattach to tasks still running (the reload closes the stream, which
+cancels them); there is no ETA; finished tasks are not posted to the operating system's
+notifications.
 
 ### Validation
 

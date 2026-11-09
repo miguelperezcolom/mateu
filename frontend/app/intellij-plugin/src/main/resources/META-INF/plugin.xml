@@ -68,6 +68,14 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <programRunner implementation="io.mateu.ijp.live.MateuAppDebugRunner"/>
         <!-- an error stays until dismissed, in every renderer (owner, 2026-10-12) -->
         <notificationGroup id="Mateu errors" displayType="STICKY_BALLOON"/>
+        <!-- what a backend notice MEANS picks its group (io.mateu.ijp.plugin.MessageGroups):
+             a toast fades and is not kept; sticky stays; inbox entries live in the Notifications
+             tool window (the fetched list quietly, a live one with a balloon); task results. -->
+        <notificationGroup id="Mateu messages" displayType="BALLOON" isLogByDefault="false"/>
+        <notificationGroup id="Mateu sticky" displayType="STICKY_BALLOON"/>
+        <notificationGroup id="Mateu inbox" displayType="NONE"/>
+        <notificationGroup id="Mateu inbox (new)" displayType="BALLOON"/>
+        <notificationGroup id="Mateu tasks" displayType="BALLOON"/>
         <!-- File | New | Project… › Mateu: the shared project generator over the bundled starters
              (io.mateu.ijp.newproject; same data as the VS Code "Mateu: New Project" command). -->
         <newProjectWizard.generator implementation="io.mateu.ijp.newproject.MateuNewProjectWizard"/>
@@ -152,6 +160,15 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
             <add-to-group group-id="RunMenu" anchor="last"/>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
+        <!-- Import from Figma…: a Figma file designed with the Mateu library → specs/ui YAML pages + their
+             routes, through the bundled converter (design/figma/import) run with node. Also listed in
+             New | Mateu (MateuNewFileGroup). The token lives in the IDE's password store. -->
+        <action id="io.mateu.ImportFromFigma" class="io.mateu.ijp.figma.ImportFromFigmaAction"
+                text="Import from Figma…" description="Write specs/ui YAML pages (and their routes) from a Figma file designed with the Mateu library">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="io.mateu.ForgetFigmaToken" class="io.mateu.ijp.figma.ForgetFigmaTokenAction"
+                text="Forget the Figma Token" description="Remove the Figma token Import from Figma… keeps in the IDE's password store"/>
         <!-- Add Route…: append one entry to a type: Routes file (shown only on such a file). -->
         <action id="io.mateu.AddRoute" class="io.mateu.ijp.newfile.AddMateuRouteAction"
                 text="Add Mateu Route…" description="Append a route to this Mateu route registry (type: Routes)">

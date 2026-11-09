@@ -282,6 +282,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       idleStay: 'Stay signed in',
       idleSignOut: 'Sign out',
       idleSigningOut: 'Signing out…',
+      // ── task center (tasks.mjs) ──
+      tasks: 'Tasks',
+      tasksRunning: '{n} running',
+      tasksTitle: 'Tasks, {n} running',
+      taskCount: '{done} of {total}',
+      taskElapsed: '{time} elapsed',
+      taskRunning: 'Running',
+      taskDone: 'Done',
+      taskFailed: 'Failed',
+      taskCancelled: 'Cancelled',
+      taskCancel: 'Cancel',
+      taskBackground: 'Background',
+      taskDismiss: 'Dismiss',
+      tasksClearFinished: 'Clear finished',
+      tasksEmpty: 'No tasks',
+      taskStarted: 'Started: {title}',
+      taskFinished: '{title}: done',
+      taskFailedAnnounce: '{title} failed: {error}',
+      taskCancelledAnnounce: '{title} cancelled',
+      // ── inbox (inbox.mjs) ──
+      inboxUnread: 'Unread',
+      inboxAll: 'All',
+      inboxResolved: 'Resolved',
+      inboxDismiss: 'Dismiss',
+      inboxOpen: 'Open',
+      inboxOther: 'Other',
+      inboxNew: 'New notification: {title}',
     },
     es: {
       close: 'Cerrar',
@@ -533,6 +560,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       idleStay: 'Seguir conectado',
       idleSignOut: 'Cerrar sesión',
       idleSigningOut: 'Cerrando sesión…',
+      tasks: 'Tareas',
+      tasksRunning: '{n} en curso',
+      tasksTitle: 'Tareas, {n} en curso',
+      taskCount: '{done} de {total}',
+      taskElapsed: '{time} transcurrido',
+      taskRunning: 'En curso',
+      taskDone: 'Terminada',
+      taskFailed: 'Ha fallado',
+      taskCancelled: 'Cancelada',
+      taskCancel: 'Cancelar',
+      taskBackground: 'En segundo plano',
+      taskDismiss: 'Descartar',
+      tasksClearFinished: 'Quitar las terminadas',
+      tasksEmpty: 'No hay tareas',
+      taskStarted: 'Empieza: {title}',
+      taskFinished: '{title}: terminada',
+      taskFailedAnnounce: '{title} ha fallado: {error}',
+      taskCancelledAnnounce: '{title} cancelada',
+      inboxUnread: 'Sin leer',
+      inboxAll: 'Todas',
+      inboxResolved: 'Resueltas',
+      inboxDismiss: 'Descartar',
+      inboxOpen: 'Abrir',
+      inboxOther: 'Otras',
+      inboxNew: 'Nueva notificación: {title}',
     },
     // partial languages: only the words they have (the rest falls back to English)
     ca: { selectValue: 'Seleccioneu un valor' },
@@ -610,6 +662,79 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function dateConverterOptions(kind, locale) {
     const options = { locale: locale || dateLocale(), year: 'numeric', month: 'numeric', day: 'numeric' }
     return kind === 'dateTime' ? { ...options, hour: '2-digit', minute: '2-digit' } : options
+  }
+
+  // A listing cell of a date / dateTime / time column: the row carries ISO text ("2026-11-05",
+  // "2026-11-05T10:15:30.000Z", "10:15:30"); it is written in the UI's locale with the web date
+  // fields' rule (apps/vaadin dateLocale.ts dateFormatSpec / formatDateParts): the locale's order,
+  // separator (. / - else /) and padding, the year always in four digits; a time as the locale's
+  // hour:minute. The ISO components are read LITERALLY — never shifted to another time zone.
+  const dateSpecs = new Map()
+
+  /** How `locale` writes a numeric date: {order, separator, padDay, padMonth} (en-US when unusable). */
+  function dateFormatSpecOf(locale) {
+    const key = String(locale || '')
+    if (dateSpecs.has(key)) return dateSpecs.get(key)
+    let spec = { order: ['month', 'day', 'year'], separator: '/', padDay: false, padMonth: false }
+    try {
+      const parts = new Intl.DateTimeFormat(key || undefined, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' })
+        .formatToParts(new Date(Date.UTC(2027, 0, 5)))
+      const order = parts.map((p) => p.type).filter((t) => t === 'day' || t === 'month' || t === 'year')
+      if (order.length === 3 && new Set(order).size === 3) {
+        const literal = ((parts.find((p) => p.type === 'literal') || {}).value || '').trim()
+        spec = {
+          order,
+          separator: /^[./-]$/.test(literal) ? literal : '/',
+          padDay: ((parts.find((p) => p.type === 'day') || {}).value || '').length > 1,
+          padMonth: ((parts.find((p) => p.type === 'month') || {}).value || '').length > 1,
+        }
+      }
+    } catch (e) {
+      // an unknown locale keeps the en-US spec
+    }
+    dateSpecs.set(key, spec)
+    return spec
+  }
+
+  const padTo = (n, width) => String(n).padStart(width, '0')
+  const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/
+  const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?/
+
+  function dateWritten(year, month, day, locale) {
+    const spec = dateFormatSpecOf(locale)
+    return spec.order.map((part) => (part === 'year' ? padTo(year, 4)
+      : part === 'month' ? padTo(month, spec.padMonth ? 2 : 1)
+        : padTo(day, spec.padDay ? 2 : 1))).join(spec.separator)
+  }
+
+  function timeWritten(hour, minute, locale) {
+    try {
+      return new Intl.DateTimeFormat(locale || undefined, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(2027, 0, 5, hour, minute)))
+    } catch (e) {
+      return padTo(hour, 2) + ':' + padTo(minute, 2)
+    }
+  }
+
+  /** A temporal value as `dataType` (date | dateTime | time) reads in `locale` (default: the date
+   *  locale); anything that is not that ISO text comes back as it is. */
+  function temporalText(value, dataType, locale) {
+    if (typeof value !== 'string') return value
+    const loc = locale || dateLocale()
+    const text = value.trim()
+    if (dataType === 'time') {
+      const t = ISO_TIME.exec(text)
+      return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? timeWritten(Number(t[1]), Number(t[2]), loc) : value
+    }
+    if (dataType !== 'date' && dataType !== 'dateTime') return value
+    const d = ISO_DATE.exec(text)
+    if (!d || Number(d[2]) < 1 || Number(d[2]) > 12 || Number(d[3]) < 1 || Number(d[3]) > 31) return value
+    const date = dateWritten(Number(d[1]), Number(d[2]), Number(d[3]), loc)
+    if (dataType === 'date') return date
+    const rest = text.slice(d[0].length)
+    if (!rest) return date
+    const t = /^[T ]/.test(rest) ? ISO_TIME.exec(rest.slice(1)) : null
+    return t && Number(t[1]) < 24 && Number(t[2]) < 60 ? date + ' ' + timeWritten(Number(t[1]), Number(t[2]), loc) : value
   }
 
   function intl(locale, options) {
@@ -2917,55 +3042,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return i < 0 ? list : list.slice(0, i).concat(list.slice(i + 1))
   }
 
-  /** Watcher of a LongTask's progress dialog over the SSE stream: consumes the Add of the
-   *  Dialog-with-ProgressBar and the state-only fragments targeted at its id; returns events
-   *  {kind: open|progress, title?, text?, value?, rest} so the chain paints the
-   *  oj-dialog — `rest` carries the increment's commands/messages (the last one brings them:
-   *  the refresh dispatchEvent) WITHOUT the dialog fragment, ready to reduce. */
-  function longTaskWatcher() {
-    const hasProgressBar = (node) => {
-      if (!node || typeof node !== 'object') return false
-      if (node.metadata && node.metadata.type === 'ProgressBar') return true
-      for (const v of Object.values(node)) {
-        if (Array.isArray(v)) { if (v.some(hasProgressBar)) return true }
-        else if (v && typeof v === 'object' && hasProgressBar(v)) return true
-      }
-      return false
-    }
-    const w = { dialogId: null, closeAfter: null }
-    w.consume = (inc) => {
-      for (const fragment of inc.fragments || []) {
-        const md = fragment.component && fragment.component.metadata
-        if (fragment.action === 'Add' && md && md.type === 'Dialog' && hasProgressBar(fragment.component)) {
-          w.dialogId = md.id
-          const seed = md.initialData || {}
-          return {
-            kind: 'open',
-            title: seed.title,
-            text: seed.progressText,
-            value: seed.progressValue || 0,
-            rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
-          }
-        }
-      }
-      if (!w.dialogId) return null
-      const frs = inc.fragments || []
-      if (frs.length && frs.every((f) => !f.component && f.targetComponentId === w.dialogId)) {
-        const st = frs[0].state || {}
-        if (st._closeAfterMillis != null) w.closeAfter = st._closeAfterMillis
-        return {
-          kind: 'progress',
-          title: st.title,
-          text: st.progressText,
-          value: st.progressValue,
-          rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
-        }
-      }
-      return null
-    }
-    return w
-  }
-
   /** RENDER helper: collects the texts (metadata.type Text) of a subtree. */
   function collectTexts(node, out = []) {
     if (!node || typeof node !== 'object') return out
@@ -4770,8 +4846,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // cards) was taken for an item overview and drawn as its first section + the tab bar — every
     // other section, and the form's buttons, were gone
     const parent = parentOfNode(ctx.tree, tabLayout)
-    const keyCard = ((parent && parent.children) || [])
+    const siblings = ((parent && parent.children) || []).filter(Boolean)
+    const keyCard = siblings
       .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
+    // …and the key card and the tab bar are ALL there is: a page whose content merely includes a
+    // card and some tabs among other blocks (the Mateu Explorer's entry page: a description, one card
+    // per example, a heading and the code tabs) is a page, not an item overview — claimed, it lost its
+    // header, its description and every card but the first
+    if (siblings.some((c) => c !== keyCard && c !== tabLayout)) return null
     // The archetype is key-data panel + tabs: without a panel this is not an item overview,
     // it is a FORM that happens to carry tabs inside. Claiming it anyway left the page
     // without its fields (there is no key card to paint) and the tabs reduced to their labels
@@ -5458,6 +5540,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       label: b.label,
       badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
     })
+    // a group (a Button with `children`, no action of its own) stands for its buttons
+    const groupMembersOf = (m) =>
+      (!m.actionId && Array.isArray(m.children) && m.children.length ? m.children.filter(Boolean) : [m])
     const buttonOf = (m) => {
       // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
       // route on it): the click goes to that route instead of running actionId on the server, which
@@ -5534,9 +5619,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const collectButtons = (node, out) => {
       if (!node || typeof node !== 'object') return out
       if (node.metadata && node.metadata.type === 'Button') {
-        const button = buttonOf(node.metadata)
-        if (editorNodeIds && node.id) button.nodeId = String(node.id)
-        out.push(button)
+        for (const member of groupMembersOf(node.metadata)) {
+          const button = buttonOf(member)
+          if (editorNodeIds && node.id) button.nodeId = String(node.id)
+          out.push(button)
+        }
         return out
       }
       for (const child of kidsOf(node)) collectButtons(child, out)
@@ -5860,8 +5947,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const raw = state[fieldId] != null ? state[fieldId]
             : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
           const lookupLabel = fromData(fieldId + '-label')
-          const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
-          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
+          // a lookup's label is already text; else money formatted, an option by its label, a status as a chip
+          const shown = lookupLabel != null && lookupLabel !== ''
+            ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
+            : readOnlyDisplayOf(m, raw, ctx.data)
+          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+          return
+        }
+        if (m.dataType === 'status') {
+          // a status FIELD (a YAML record page's `dataType: status`) is a chip under its label, the
+          // listing's: no layout widget draws it, and it used to vanish
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          const shown = readOnlyDisplayOf(m, raw, ctx.data)
+          atom({ isPropertyRow: true, stacked: true, label: interp(m.label || fieldId), value: shown.text || EMPTY_VALUE, valueClass: shown.badgeClass }, container)
           return
         }
         // editable FLUENT FormField (e.g. the charge search box of the check-out mode):
@@ -6659,10 +6757,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Button') {
         const target = container || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
-        const button = buttonOf(m)
-        if (editorNodeIds && node.id) button.nodeId = String(node.id)
-        if (last && last.isButtons) last.buttons.push(button)
-        else atom({ isButtons: true, buttons: [button] }, container)
+        // a ButtonGroup in content travels as a Button with `children` (the toolbar group's shape)
+        // and no action of its own: its buttons join the row, as a toolbar group's join the header
+        const buttons = groupMembersOf(m).map(buttonOf)
+        if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
+        if (last && last.isButtons) last.buttons.push(...buttons)
+        else atom({ isButtons: true, buttons }, container)
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
@@ -8890,6 +8990,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
     // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
     if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
+    // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
+    if (isTemporalColumn(c) && typeof value === 'string') return temporalText(value, c.dataType)
     const labels = c && c.valueLabels
     if (!labels || value == null || typeof value === 'object') return value
     const label = labels[String(value)]
@@ -8898,6 +9000,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** A column of amounts: an Amount (dataType money) or a number declared money (stereotype). */
   const isMoneyColumn = (c) => !!c && (c.dataType === 'money' || c.stereotype === 'money')
+
+  /** A column of dates, date-times or times (LocalDate / DateOnly / date… on the server). */
+  const isTemporalColumn = (c) => !!c && (c.dataType === 'date' || c.dataType === 'dateTime' || c.dataType === 'time')
 
   /** Whether a (non-status, non-editable) column reads its values through their labels. */
   const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
@@ -8910,7 +9015,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function labelColumn(c) {
-    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c))) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -10041,12 +10146,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       headerValues: [], // UICommand.updateHeaderValue: [{ id, value }] (appExtras.mjs)
     }
 
-    for (const m of increment.messages || [])
+    for (const m of increment.messages || []) {
+      // what the message offers: its `actions` (Undo is one of them, style `undo`); an older server
+      // sends only the undo* fields — the same action
+      const actions = (Array.isArray(m.actions) ? m.actions : [])
+        .filter((a) => a && (a.actionId || a.route))
+        .map((a) => ({ label: a.label || '', actionId: a.actionId || '', parameters: a.parameters || {}, route: a.route || '', style: a.style || '' }))
+      if (!actions.length && m.undoActionId) actions.push({ label: m.undoLabel || '', actionId: m.undoActionId, parameters: m.undoParameters || {}, route: '', style: 'undo' })
+      const undo = actions.find((a) => a.style === 'undo' && a.actionId)
       effects.toasts.push({
         text: m.text || m.title, variant: m.variant || 'info',
+        ...(m.title && m.text ? { title: m.title } : {}),
+        // toast | sticky | inbox (absent = a toast, or sticky when the server says duration 0)
+        ...(m.persistence ? { persistence: m.persistence } : {}),
+        ...(m.key ? { key: String(m.key) } : {}),
+        ...(actions.length && m.duration ? { duration: m.duration } : {}),
+        ...(actions.length ? { actions } : {}),
         // Message.undoable: the toast carries its «Undo» (notify.mjs paints it with oj-message)
-        ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
+        ...(undo ? { undoActionId: undo.actionId, undoLabel: undo.label || m.undoLabel || 'Undo', undoParameters: undo.parameters || {} } : {}),
       })
+    }
 
     // PageBanner(s) an ACTION returned (Vaadin draws them under the page header): they were left in
     // effects.banners and nothing drew them. Each goes to the shell's message band as a toast marked
@@ -10687,6 +10806,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function shownReadOnlyValueOf(md, value) {
     if (!md || md.stereotype !== 'password') return value
     return value == null || value === '' ? '' : PASSWORD_MASK
+  }
+
+  /**
+   * How a READ-ONLY value reads (a property row, a status field — the record page of a YAML
+   * definition, whose values come raw from a REST source): `{text, badgeClass}`. An amount (dataType
+   * or stereotype money) in the UI's locale (moneyText: "249.00", an Amount in its own currency);
+   * a value among the field's `options` by its option's LABEL; a status as a chip — a `{type,
+   * message}` as it comes, a plain word by the listing's tone rule (AVAILABLE → success) labelled by
+   * its option or humanised ("Out of stock"). `badgeClass` is '' unless it is a status.
+   */
+  function readOnlyDisplayOf(md, value, data) {
+    const f = md || {}
+    const options = (f.options && f.options.length) || (data && data[f.fieldId] && data[f.fieldId].content) ? optionsOf(f, data) : []
+    const optionLabel = (v) => {
+      const option = v == null || v === '' || typeof v === 'object' ? null : options.find((o) => o && o.value == v) // eslint-disable-line eqeqeq
+      return option ? String(option.label) : null
+    }
+    if (f.dataType === 'status') {
+      if (value == null || value === '') return { text: '', badgeClass: '' }
+      if (typeof value === 'object') {
+        const type = value.type || 'NONE'
+        return { text: String(value.message ?? value.label ?? ''), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+      }
+      const type = statusTypeOfValue(value, f.tones)
+      const label = optionLabel(value)
+      return { text: label != null ? label : String(humanizeConstant(String(value))), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE }
+    }
+    if ((f.dataType === 'money' || f.stereotype === 'money') && value != null && value !== '') {
+      return { text: moneyText(value), badgeClass: '' }
+    }
+    const plain = plainValueOf(value)
+    const label = optionLabel(plain)
+    if (label != null) return { text: label, badgeClass: '' }
+    const shown = shownReadOnlyValueOf(f, plain)
+    return { text: shown == null ? '' : String(shown), badgeClass: '' }
   }
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }
@@ -16235,6 +16389,876 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // TASK CENTER: the progress-reporting pattern (design/progress-and-notifications.md) in Redwood.
+  //
+  // The server reports long-running work as `Progress` commands (ProgressDto: taskId, title, text,
+  // fraction | null = indeterminate, done/total, state running|done|failed|cancelled, blocking,
+  // backgroundable, cancellable, retryable, startedAt, closeAfterSeconds, error, resultActions). Each
+  // command is the WHOLE current state of its task, so the center upserts by taskId. Several tasks can
+  // run at once; a task belongs to the center, not to the screen that started it — the stream keeps
+  // feeding it after the user navigates away (transport.mjs runMateuActionSse).
+  //
+  // Presentation (Redwood / JET, painted outside Knockout: data-oj-binding-provider="none"):
+  //  - a BLOCKING task that is running (and not moved to the background) → an oj-dialog with an
+  //    oj-c-progress-bar (value -1 = indeterminate; the legacy oj-progress-bar does not register
+  //    at runtime against the CDN, DESIGN-NOTES «JET GOTCHA»), its text, "12 of 300", the elapsed time and
+  //    Background / Cancel; once finished it shows the outcome (result actions, Retry) and closes on
+  //    its own when the task says so;
+  //  - everything else → a docked task panel (bottom end) whose button counts the running tasks and
+  //    opens the list: per task its state, progress, text or error, Cancel / Retry / result actions /
+  //    Dismiss, and «Clear finished».
+  //
+  // Cancel → the app-level `_progress-cancel {taskId}`; Retry → the action that started the task,
+  // again; a result action → its route (navigate) or its actionId (run like the task's action).
+
+  // ── pure model ────────────────────────────────────────────────────────────────────────────────
+
+  const TASK_STATES = ['running', 'done', 'failed', 'cancelled']
+  const isTaskTerminal = (state) => state === 'done' || state === 'failed' || state === 'cancelled'
+
+  /** The Progress commands an increment carries (their data), in order. */
+  function progressCommandsOf(increment) {
+    return ((increment && increment.commands) || [])
+      .filter((c) => c && c.type === 'Progress' && c.data && c.data.taskId)
+      .map((c) => c.data)
+  }
+
+  /** The increment without its Progress commands (the same object when it has none). */
+  function withoutProgressCommands(increment) {
+    const commands = (increment && increment.commands) || []
+    if (!commands.some((c) => c && c.type === 'Progress')) return increment
+    return { ...increment, commands: commands.filter((c) => !(c && c.type === 'Progress')) }
+  }
+
+  /** Nothing left to apply: no commands, messages, fragments or banners. */
+  function isEmptyIncrement(increment) {
+    if (!increment) return true
+    return !((increment.commands || []).length || (increment.messages || []).length
+      || (increment.fragments || []).length || (increment.banners || []).length
+      || increment.appData != null || increment.appState != null)
+  }
+
+  /**
+   * A task center: tasks by id, running ones first (oldest first), then the finished ones (latest
+   * first, at most `keepFinished`). `upsert` answers what happened: 'started' | 'updated' | 'finished'
+   * | 'ignored' (an update for a task that already ended — a late step, a second cancelled echo).
+   */
+  function createTaskCenter({ keepFinished = 10, now = () => Date.now() } = {}) {
+    const tasks = new Map()
+    const listeners = new Set()
+    const emit = (event) => { for (const l of [...listeners]) { try { l(event) } catch (e) { /* a painter must not stop the center */ } } }
+    const prune = () => {
+      const finished = [...tasks.values()].filter((t) => isTaskTerminal(t.state)).sort((a, b) => b.finishedAt - a.finishedAt)
+      for (const t of finished.slice(keepFinished)) tasks.delete(t.taskId)
+    }
+    const center = {
+      upsert(progress, origin) {
+        if (!progress || !progress.taskId) return 'ignored'
+        const id = String(progress.taskId)
+        const prev = tasks.get(id)
+        if (prev && isTaskTerminal(prev.state)) return 'ignored'
+        const state = TASK_STATES.includes(progress.state) ? progress.state : 'running'
+        const at = now()
+        const task = {
+          ...progress,
+          taskId: id,
+          state,
+          resultActions: Array.isArray(progress.resultActions) ? progress.resultActions : [],
+          origin: (prev && prev.origin) || origin || null,
+          // a background task never takes the dialog; a blocking one does until moved/closed
+          backgrounded: prev ? prev.backgrounded : !progress.blocking,
+          seenAt: prev ? prev.seenAt : at,
+          finishedAt: isTaskTerminal(state) ? at : null,
+        }
+        tasks.set(id, task)
+        const kind = !prev ? (isTaskTerminal(state) ? 'finished' : 'started') : (isTaskTerminal(state) ? 'finished' : 'updated')
+        prune()
+        emit({ kind, task })
+        return kind
+      },
+      get: (id) => tasks.get(String(id)) || null,
+      list() {
+        const all = [...tasks.values()]
+        const running = all.filter((t) => !isTaskTerminal(t.state)).sort((a, b) => a.seenAt - b.seenAt)
+        const finished = all.filter((t) => isTaskTerminal(t.state)).sort((a, b) => b.finishedAt - a.finishedAt)
+        return running.concat(finished)
+      },
+      /** The user sends a blocking task to the background (or its finished dialog closes). */
+      background(id) {
+        const t = tasks.get(String(id))
+        if (!t || t.backgrounded) return false
+        tasks.set(t.taskId, { ...t, backgrounded: true })
+        emit({ kind: 'backgrounded', task: tasks.get(t.taskId) })
+        return true
+      },
+      /** Removes a FINISHED task from the list (a running one cannot be dismissed: cancel it). */
+      dismiss(id) {
+        const t = tasks.get(String(id))
+        if (!t || !isTaskTerminal(t.state)) return false
+        tasks.delete(t.taskId)
+        emit({ kind: 'dismissed', task: t })
+        return true
+      },
+      clearFinished() {
+        let n = 0
+        for (const t of [...tasks.values()]) if (isTaskTerminal(t.state)) { tasks.delete(t.taskId); n++ }
+        if (n) emit({ kind: 'cleared', task: null })
+        return n
+      },
+      subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+      clear() { tasks.clear(); emit({ kind: 'cleared', task: null }) },
+    }
+    return center
+  }
+
+  /** 83 s → "1:23", 3723 s → "1:02:03". */
+  function formatElapsed(ms) {
+    const total = Math.max(0, Math.floor((ms || 0) / 1000))
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const s = total % 60
+    const pad = (n) => String(n).padStart(2, '0')
+    return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`
+  }
+
+  /** What one task shows (pure: `now` is the clock). */
+  function taskViewOf(task, now = Date.now()) {
+    const running = task.state === 'running'
+    const fraction = typeof task.fraction === 'number' && isFinite(task.fraction) ? Math.max(0, Math.min(1, task.fraction)) : null
+    // elapsed from the server's start when it sent one, else from when this tab first saw the task
+    const started = typeof task.startedAt === 'number' ? Math.min(task.startedAt, task.seenAt || task.startedAt) : task.seenAt
+    const end = running ? now : (task.finishedAt || now)
+    const count = task.total != null && task.total > 0 && task.done != null
+      ? chromeText('taskCount', { done: task.done, total: task.total }) : ''
+    const stateLabel = chromeText({ running: 'taskRunning', done: 'taskDone', failed: 'taskFailed', cancelled: 'taskCancelled' }[task.state])
+    const value = fraction == null ? (running ? -1 : (task.state === 'done' ? 100 : 0)) : Math.round(fraction * 100)
+    return {
+      id: task.taskId,
+      title: task.title || '',
+      text: task.text || '',
+      error: task.state === 'failed' ? (task.error || task.text || '') : '',
+      state: task.state,
+      stateLabel,
+      running,
+      finished: !running,
+      indeterminate: value === -1,
+      value,
+      count,
+      elapsed: started != null ? formatElapsed(end - started) : '',
+      // what a screen reader reads off the bar: the count, else the percent, else the state
+      valueText: count || (fraction != null ? `${value}%` : stateLabel),
+      canCancel: running && !!task.cancellable,
+      canBackground: running && !!task.blocking && !!task.backgroundable && !task.backgrounded,
+      canRetry: task.state === 'failed' && !!task.retryable && !!(task.origin && task.origin.actionId),
+      resultActions: task.state === 'done' ? (task.resultActions || []).filter((a) => a && (a.route || a.actionId)) : [],
+      blocking: !!task.blocking && !task.backgrounded,
+    }
+  }
+
+  /** The whole center: the task in the dialog (if any), the docked list and its taskButton. */
+  function taskCenterViewOf(tasks, now = Date.now()) {
+    const views = (tasks || []).map((t) => taskViewOf(t, now))
+    const dialog = views.find((v) => v.blocking) || null
+    const docked = views.filter((v) => v !== dialog)
+    const running = views.filter((v) => v.running).length
+    return {
+      dialog,
+      docked,
+      running,
+      hasDocked: docked.length > 0,
+      hasFinished: docked.some((v) => v.finished),
+      badge: running > 9 ? '9+' : String(running),
+      buttonLabel: running ? `${chromeText('tasks')} · ${chromeText('tasksRunning', { n: running })}` : chromeText('tasks'),
+      ariaLabel: chromeText('tasksTitle', { n: running }),
+    }
+  }
+
+  /** How long a finished blocking dialog stays: ms, or null = until the user closes it. A cancel
+   *  closes it at once; a failure, or a result the user can act on, waits for the user. */
+  function autoCloseDelayOf(task) {
+    if (!task || !isTaskTerminal(task.state)) return null
+    if (task.state === 'cancelled') return 0
+    if (task.closeAfterSeconds != null && task.closeAfterSeconds >= 0) return task.closeAfterSeconds * 1000
+    if (task.state === 'failed') return null
+    return (task.resultActions || []).length ? null : 600
+  }
+
+  /** What the screen reader is told about a transition (polite; a failure is assertive). */
+  function taskAnnouncementOf(event) {
+    if (!event || !event.task) return null
+    const t = event.task
+    const title = t.title || chromeText('tasks')
+    if (event.kind === 'started') return { text: chromeText('taskStarted', { title }), assertive: false }
+    if (event.kind !== 'finished') return null
+    if (t.state === 'done') return { text: chromeText('taskFinished', { title }), assertive: false }
+    if (t.state === 'failed') return { text: chromeText('taskFailedAnnounce', { title, error: t.error || t.text || '' }), assertive: true }
+    return { text: chromeText('taskCancelledAnnounce', { title }), assertive: false }
+  }
+
+  // ── the center of this tab, and what feeds it ────────────────────────────────────────────────
+
+  const taskCenter = createTaskCenter()
+
+  /** Feeds the center from an increment of a stream started by `origin` ({ base, route, actionId,
+   *  parameters, componentState, serverSideType, consumedRoute, initiatorComponentId, view }).
+   *  Returns how many Progress commands it carried. */
+  function noteProgress(increment, origin) {
+    const all = progressCommandsOf(increment)
+    for (const p of all) taskCenter.upsert(p, origin)
+    return all.length
+  }
+
+  // how the center talks to the server: set by transport.mjs (no import cycle), replaced in tests
+  let taskTransport = null
+  function setTaskTransport(fn) { taskTransport = typeof fn === 'function' ? fn : null }
+  // how a task's action runs again ON THE SCREEN (the content page's chain), when still on it
+  let taskActionSink = null
+  function setTaskActionSink(fn) { taskActionSink = typeof fn === 'function' ? fn : null }
+  // how a result action navigates
+  let taskNavigateSink = null
+  function setTaskNavigateSink(fn) { taskNavigateSink = typeof fn === 'function' ? fn : null }
+  // the current view generation (resilience.currentView), to know whether the screen changed
+  let taskCurrentView = () => null
+  function setTaskViewClock(fn) { taskCurrentView = typeof fn === 'function' ? fn : () => null }
+
+  /** Cancel: `_progress-cancel {taskId}` to the backend that runs it; its answer (Progress
+   *  cancelled) is fed back to the center. */
+  async function cancelTask(taskId, center = taskCenter) {
+    const t = center.get(taskId)
+    if (!t || t.state !== 'running' || !taskTransport) return false
+    const o = t.origin || {}
+    try {
+      const increment = await taskTransport('cancel', o, {
+        route: o.route || '', actionId: '_progress-cancel', parameters: { taskId: t.taskId },
+        componentState: {}, serverSideType: o.serverSideType, consumedRoute: o.consumedRoute || '',
+        initiatorComponentId: o.initiatorComponentId || '',
+      })
+      for (const p of progressCommandsOf(increment)) center.upsert(p, o)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  /** Runs `actionId` (with `parameters`) the way the task's own action ran: on the screen through
+   *  the page's chain while it is still the screen that started it, else straight to the backend
+   *  (its progress lands in the center; the screen it would repaint is gone). */
+  function runTaskAction(task, actionId, parameters) {
+    const o = (task && task.origin) || {}
+    if (!actionId) return false
+    if (taskActionSink && o.view != null && o.view === taskCurrentView()) {
+      taskActionSink(actionId, parameters || {}, {})
+      return true
+    }
+    if (!taskTransport) return false
+    taskTransport('stream', o, {
+      route: o.route || '', actionId, parameters: parameters || {}, componentState: o.componentState || {},
+      serverSideType: o.serverSideType, consumedRoute: o.consumedRoute || '', initiatorComponentId: o.initiatorComponentId || '',
+    }).catch(() => undefined)
+    return true
+  }
+
+  /** Retry: the action that started the failed task, with the same parameters. The old entry goes
+   *  (the new run is a new task). */
+  function retryTask(taskId, center = taskCenter) {
+    const t = center.get(taskId)
+    if (!t || t.state !== 'failed' || !t.retryable || !(t.origin && t.origin.actionId)) return false
+    center.dismiss(t.taskId)
+    return runTaskAction(t, t.origin.actionId, t.origin.parameters)
+  }
+
+  /** A result action: its route navigates, its actionId runs like the task's action. */
+  function runResultAction(taskId, index, center = taskCenter) {
+    const t = center.get(taskId)
+    const a = t && (t.resultActions || [])[index]
+    if (!a) return false
+    if (a.route) { if (taskNavigateSink) taskNavigateSink(a.route); return !!taskNavigateSink }
+    return runTaskAction(t, a.actionId, a.parameters)
+  }
+
+  // ── DOM (JET components created outside Knockout) ────────────────────────────────────────────
+
+  const taskDoc = () => (typeof document !== 'undefined' ? document : null)
+  let taskCenterInstalled = null
+
+  function taskEl(doc, tag, attrs = {}, text) {
+    const e = doc.createElement(tag)
+    for (const [k, v] of Object.entries(attrs)) if (v != null && v !== false) e.setAttribute(k, v === true ? '' : String(v))
+    if (text != null) e.textContent = text
+    return e
+  }
+
+  function taskButton(doc, label, onAction, { chroming = 'outlined', id, cls } = {}) {
+    const b = taskEl(doc, 'oj-button', { chroming, id, class: cls })
+    b.textContent = label
+    b.addEventListener('ojAction', onAction)
+    return b
+  }
+
+  function taskProgressBar(doc, v) {
+    const bar = taskEl(doc, 'oj-c-progress-bar', {
+      class: 'mateu-task-bar', max: '100', value: String(v.value),
+      'aria-label': v.title, 'aria-valuetext': v.valueText,
+    })
+    bar.value = v.value
+    return bar
+  }
+
+  function taskActionsOf(doc, v, center, { inDialog } = {}) {
+    const row = taskEl(doc, 'div', { class: 'mateu-task-actions oj-flex oj-sm-flex-wrap oj-sm-justify-content-flex-end' })
+    if (v.canBackground) row.appendChild(taskButton(doc, chromeText('taskBackground'), () => center.background(v.id)))
+    if (v.canCancel) row.appendChild(taskButton(doc, chromeText('taskCancel'), () => cancelTask(v.id, center), { cls: 'mateu-task-cancel' }))
+    if (v.canRetry) row.appendChild(taskButton(doc, chromeText('retry'), () => retryTask(v.id, center), { chroming: 'callToAction' }))
+    v.resultActions.forEach((a, i) => row.appendChild(taskButton(doc, a.label || a.route || a.actionId,
+      () => { runResultAction(v.id, i, center); if (inDialog) center.background(v.id) },
+      { chroming: a.style === 'primary' || i === 0 ? 'callToAction' : 'outlined' })))
+    if (v.finished) {
+      row.appendChild(taskButton(doc, inDialog ? chromeText('close') : chromeText('taskDismiss'),
+        () => (inDialog ? center.background(v.id) : center.dismiss(v.id)), { chroming: 'borderless' }))
+    }
+    return row
+  }
+
+  function taskBody(doc, v, { noTitle } = {}) {
+    const box = taskEl(doc, 'div', { class: 'mateu-task', 'data-task-id': v.id, 'data-task-state': v.state })
+    const head = taskEl(doc, 'div', { class: 'oj-flex oj-sm-justify-content-space-between oj-sm-align-items-center' })
+    if (!noTitle) head.appendChild(taskEl(doc, 'span', { class: 'mateu-task-title oj-typography-body-md oj-typography-bold' }, v.title))
+    head.appendChild(taskEl(doc, 'span', { class: 'mateu-task-state oj-typography-body-xs oj-text-color-secondary' }, v.stateLabel))
+    box.appendChild(head)
+    if (v.running || v.state === 'done') box.appendChild(taskProgressBar(doc, v))
+    const text = v.error || v.text
+    if (text) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-text oj-typography-body-sm' + (v.error ? ' oj-text-color-danger' : '') }, text))
+    const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+    if (meta) box.appendChild(taskEl(doc, 'div', { class: 'mateu-task-meta oj-typography-body-xs oj-text-color-secondary', 'data-elapsed-for': v.id }, meta))
+    return box
+  }
+
+  function paintTaskCenter(state) {
+    const { doc, center, root, dock, dockButton, list, dialog, dialogBody, dialogFooter, dialogTitle } = state
+    const view = taskCenterViewOf(center.list(), Date.now())
+    // the dialog: the blocking task
+    const d = view.dialog
+    if (d) {
+      dialogTitle.textContent = d.title
+      dialog.setAttribute('aria-label', d.title)
+      dialogBody.textContent = ''
+      dialogBody.appendChild(taskBody(doc, d, { noTitle: true }))
+      dialogFooter.textContent = ''
+      dialogFooter.appendChild(taskActionsOf(doc, d, center, { inDialog: true }))
+      if (state.dialogTask !== d.id) {
+        state.dialogTask = d.id
+        state.returnFocus = doc.activeElement
+        if (typeof dialog.open === 'function') dialog.open()
+        dialog.setAttribute('data-open', '')
+        // keyboard: the first of its buttons (Background / Cancel) takes the focus
+        const first = dialogFooter.querySelector('oj-button')
+        if (first && typeof first.focus === 'function') setTimeout(() => first.focus(), 0)
+      }
+    } else if (state.dialogTask) {
+      state.dialogTask = null
+      if (typeof dialog.close === 'function') dialog.close()
+      dialog.removeAttribute('data-open')
+      const back = state.returnFocus
+      state.returnFocus = null
+      if (back && back.isConnected && typeof back.focus === 'function') back.focus()
+    }
+    // the dock: its taskButton (count) and its list
+    taskToggleHidden(dock, !view.hasDocked)
+    dockButton.textContent = view.buttonLabel
+    dockButton.setAttribute('aria-label', view.ariaLabel)
+    dockButton.setAttribute('aria-expanded', state.open ? 'true' : 'false')
+    taskToggleHidden(list, !state.open)
+    list.textContent = ''
+    if (!view.docked.length) list.appendChild(taskEl(doc, 'div', { class: 'oj-text-color-secondary oj-sm-padding-2x' }, chromeText('tasksEmpty')))
+    for (const v of view.docked) {
+      const item = taskEl(doc, 'div', { class: 'mateu-task-item', role: 'listitem' })
+      item.appendChild(taskBody(doc, v))
+      item.appendChild(taskActionsOf(doc, v, center))
+      list.appendChild(item)
+    }
+    if (view.hasFinished) {
+      list.appendChild(taskButton(doc, chromeText('tasksClearFinished'), () => center.clearFinished(), { chroming: 'borderless', cls: 'mateu-task-clear' }))
+    }
+    // the clock: the elapsed time moves while something runs
+    const anyRunning = view.running > 0
+    if (anyRunning && !state.timer) state.timer = setInterval(() => tickTaskCenter(state), 1000)
+    if (!anyRunning && state.timer) { clearInterval(state.timer); state.timer = null }
+    void root
+  }
+
+  function tickTaskCenter(state) {
+    const now = Date.now()
+    for (const t of state.center.list()) {
+      if (t.state !== 'running') continue
+      const v = taskViewOf(t, now)
+      const meta = [v.count, v.elapsed ? chromeText('taskElapsed', { time: v.elapsed }) : ''].filter(Boolean).join(' · ')
+      for (const node of state.doc.querySelectorAll(`[data-elapsed-for="${TASK_CSS_ESCAPE(t.taskId)}"]`)) node.textContent = meta
+    }
+  }
+
+  function taskToggleHidden(node, hidden) {
+    if (hidden) node.setAttribute('hidden', ''); else node.removeAttribute('hidden')
+  }
+
+  const TASK_CSS_ESCAPE = (s) => String(s).replace(/["\\]/g, '\\$&')
+
+  /** Paints the center in `doc` (once; later calls answer the same handle). */
+  function installTaskCenter(doc = taskDoc(), center = taskCenter) {
+    if (taskCenterInstalled && taskCenterInstalled.doc === doc && taskCenterInstalled.center === center) return taskCenterInstalled
+    if (!doc || !doc.body) return null
+    // the JET modules these elements need, when the bridge runs inside VB's AMD loader
+    if (typeof require === 'function') { try { require(['ojs/ojdialog', 'oj-c/progress-bar', 'ojs/ojbutton'], () => undefined, () => undefined) } catch (e) { /* not AMD */ } }
+    const root = taskEl(doc, 'div', { id: 'mateuTaskCenter', class: 'mateu-task-center', 'data-oj-binding-provider': 'none' })
+    const dialog = taskEl(doc, 'oj-dialog', { id: 'mateuTaskDialog', 'cancel-behavior': 'none', 'drag-affordance': 'none', modality: 'modal', role: 'dialog', 'aria-modal': 'true' })
+    const header = taskEl(doc, 'div', { slot: 'header' })
+    const dialogTitle = taskEl(doc, 'span', { class: 'oj-dialog-title', id: 'mateuTaskDialogTitle' })
+    header.appendChild(dialogTitle)
+    const dialogBody = taskEl(doc, 'div', { slot: 'body', class: 'mateu-task-dialog-body' })
+    const dialogFooter = taskEl(doc, 'div', { slot: 'footer' })
+    dialog.appendChild(header); dialog.appendChild(dialogBody); dialog.appendChild(dialogFooter)
+    const dock = taskEl(doc, 'div', { class: 'mateu-task-dock' })
+    taskToggleHidden(dock, true)
+    const state = { doc, center, root, dock, dialog, dialogBody, dialogFooter, dialogTitle, open: false, dialogTask: null, timer: null, returnFocus: null }
+    const dockButton = taskButton(doc, chromeText('tasks'), () => { state.open = !state.open; paintTaskCenter(state) },
+      { chroming: 'solid', id: 'mateuTaskDockButton', cls: 'mateu-task-dock-button' })
+    dockButton.setAttribute('aria-controls', 'mateuTaskList')
+    const list = taskEl(doc, 'div', { id: 'mateuTaskList', class: 'mateu-task-list', role: 'list', 'aria-label': chromeText('tasks') })
+    taskToggleHidden(list, true)
+    dock.appendChild(list); dock.appendChild(dockButton)
+    root.appendChild(dialog); root.appendChild(dock)
+    doc.body.appendChild(root)
+    state.dockButton = dockButton; state.list = list
+    // Esc closes the open list (the dialog has no Esc: its buttons say what happens to the task)
+    dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.open) { state.open = false; paintTaskCenter(state); dockButton.focus && dockButton.focus() } })
+    const timers = new Map()
+    center.subscribe((event) => {
+      const said = taskAnnouncementOf(event)
+      if (said) announce(said.text, { politeness: said.assertive ? 'assertive' : 'polite' })
+      // a finished blocking dialog closes on its own when the task says so
+      if (event.kind === 'finished' && event.task && event.task.blocking && !event.task.backgrounded) {
+        const delay = autoCloseDelayOf(event.task)
+        if (delay != null) timers.set(event.task.taskId, setTimeout(() => { timers.delete(event.task.taskId); center.background(event.task.taskId) }, delay))
+      }
+      // a newly backgrounded task opens the list, so the user sees where it went
+      if (event.kind === 'backgrounded' && event.task && event.task.state === 'running') state.open = true
+      paintTaskCenter(state)
+    })
+    taskCenterInstalled = { doc, center, state, repaint: () => paintTaskCenter(state) }
+    paintTaskCenter(state)
+    return taskCenterInstalled
+  }
+
+  /** Test hook: forget the taskCenterInstalled painter. */
+  function resetTaskCenterForTests() {
+    if (taskCenterInstalled && taskCenterInstalled.state.timer) clearInterval(taskCenterInstalled.state.timer)
+    taskCenterInstalled = null
+    taskCenter.clear()
+  }
+
+
+
+
+
+  // NOTIFICATION INBOX as a pattern (design/progress-and-notifications.md), in Redwood.
+  //
+  // What the bell lists = the app's list (NotificationsSupplier, `_notifications-list`) ∪ the
+  // SESSION's own entries (a message with persistence `inbox`, one a task posted when done, a pushed
+  // entry the server list does not carry yet), deduplicated by id. Each entry may say its `category`
+  // (the panel groups by it), `variant`, whether it is `resolved`, what can be done from it
+  // (`actions`, run server-side with `_notifications-act {id, actionId}`) and whether it has a
+  // `detail` the server answers (`_notifications-open {id}`, e.g. a Drawer) — else its `route`.
+  // The panel filters unread / all / resolved, marks all read, dismisses an entry
+  // (`_notifications-dismiss {ids}`). Live: `NotificationsChanged` on the `_live-updates` stream
+  // (appExtras.mjs) upserts / removes an entry or asks for the list again.
+  //
+  // The panel is painted by the bridge (JET components outside Knockout, in #mateuBellPanel inside the
+  // shell's oj-popup); the bell's badge stays bound to $application.variables.mateuNotifications.
+
+  const INBOX_FILTERS = ['unread', 'all', 'resolved']
+
+  /** An action as the panel and the toasts draw it ({label, actionId, parameters, route, style}). */
+  function messageActionOf(a) {
+    if (!a || typeof a !== 'object') return null
+    if (!a.actionId && !a.route) return null
+    return {
+      label: a.label == null ? '' : String(a.label),
+      actionId: a.actionId || '',
+      parameters: a.parameters && typeof a.parameters === 'object' ? a.parameters : {},
+      route: a.route || '',
+      style: a.style || '',
+    }
+  }
+
+  /** One entry of the inbox, normalised (a server AppNotification, or a session one). */
+  function inboxEntryOf(n, session = false) {
+    const unread = n.unread !== false
+    const resolved = !!n.resolved
+    return {
+      id: String(n.id),
+      title: n.title || '',
+      text: n.text || '',
+      when: n.when || '',
+      route: n.route || '',
+      unread,
+      resolved,
+      category: n.category || '',
+      variant: n.variant || '',
+      actions: (n.actions || []).map(messageActionOf).filter(Boolean),
+      hasDetail: !!n.hasDetail,
+      session: !!session,
+      titleClass: 'oj-typography-body-md' + (unread ? ' oj-typography-bold' : ''),
+    }
+  }
+
+  let inboxSessionCounter = 0
+  const inboxClock = () => {
+    const d = new Date()
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+  }
+
+  /** The session entry a message with persistence `inbox` becomes (its key is its id: the same key
+   *  replaces it). */
+  function sessionEntryOfMessage(m) {
+    const id = m.key ? String(m.key) : 'message-' + (++inboxSessionCounter)
+    const hasBoth = m.title && m.text
+    return inboxEntryOf({
+      id,
+      title: hasBoth ? m.title : (m.text || m.title || ''),
+      text: hasBoth ? m.text : '',
+      when: inboxClock(),
+      unread: true,
+      variant: m.variant || '',
+      actions: m.actions || [],
+    }, true)
+  }
+
+  /** The NotificationsChanged data an increment carries, in order. */
+  function notificationsChangedOf(increment) {
+    return ((increment && increment.commands) || [])
+      .filter((c) => c && c.type === 'NotificationsChanged')
+      .map((c) => (c.data && typeof c.data === 'object' ? c.data : {}))
+  }
+
+  /** The inbox's state (pure: every operation answers a new one). */
+  function createInbox() {
+    return { server: [], session: [], filter: 'all' }
+  }
+
+  function withServerList(inboxState, list) {
+    const server = (list || []).map((n) => inboxEntryOf(n))
+    // a session entry the server now lists is the server's
+    const ids = new Set(server.map((e) => e.id))
+    return { ...inboxState, server, session: inboxState.session.filter((e) => !ids.has(e.id)) }
+  }
+
+  function withSessionEntry(inboxState, entry) {
+    const inServer = inboxState.server.some((e) => e.id === entry.id)
+    if (inServer) return { ...inboxState, server: inboxState.server.map((e) => (e.id === entry.id ? { ...entry, session: false } : e)) }
+    return { ...inboxState, session: [entry].concat(inboxState.session.filter((e) => e.id !== entry.id)) }
+  }
+
+  /** A pushed change: an entry upserted (the app's: it goes to the server half), one removed, or —
+   *  `refetch: true` — the list has to be asked for again. */
+  function withChange(inboxState, change) {
+    if (change && change.notification) {
+      const entry = inboxEntryOf(change.notification)
+      const exists = inboxState.server.some((e) => e.id === entry.id)
+      return {
+        inbox: {
+          ...inboxState,
+          server: exists ? inboxState.server.map((e) => (e.id === entry.id ? entry : e)) : [entry].concat(inboxState.server),
+          session: inboxState.session.filter((e) => e.id !== entry.id),
+        },
+        added: exists ? null : entry,
+        refetch: false,
+      }
+    }
+    if (change && change.removedId != null) {
+      const id = String(change.removedId)
+      return { inbox: { ...inboxState, server: inboxState.server.filter((e) => e.id !== id), session: inboxState.session.filter((e) => e.id !== id) }, added: null, refetch: false }
+    }
+    return { inbox: inboxState, added: null, refetch: true }
+  }
+
+  /** Marks entries read locally (`'all'` = every unread one). */
+  function withRead(inboxState, ids) {
+    const which = ids === 'all' ? null : new Set([].concat(ids || []).map(String))
+    const read = (e) => (!which || which.has(e.id) ? { ...e, unread: false, titleClass: 'oj-typography-body-md' } : e)
+    return { ...inboxState, server: inboxState.server.map(read), session: inboxState.session.map(read) }
+  }
+
+  function withoutEntries(inboxState, ids) {
+    const which = new Set([].concat(ids || []).map(String))
+    return { ...inboxState, server: inboxState.server.filter((e) => !which.has(e.id)), session: inboxState.session.filter((e) => !which.has(e.id)) }
+  }
+
+  function withFilter(inboxState, filter) {
+    return INBOX_FILTERS.includes(filter) ? { ...inboxState, filter } : inboxState
+  }
+
+  /** Every entry: the session's (newest first) over the server's. */
+  function entriesOf(inboxState) {
+    return inboxState.session.concat(inboxState.server)
+  }
+
+  function filteredEntries(entries, filter) {
+    if (filter === 'unread') return entries.filter((e) => e.unread && !e.resolved)
+    if (filter === 'resolved') return entries.filter((e) => e.resolved)
+    return entries
+  }
+
+  /** The entries grouped by category, in first-appearance order (no category → «Other», last,
+   *  and no heading at all when nothing declares a category). */
+  function groupsOf(entries) {
+    const named = new Map()
+    const other = []
+    for (const e of entries) {
+      if (!e.category) { other.push(e); continue }
+      if (!named.has(e.category)) named.set(e.category, [])
+      named.get(e.category).push(e)
+    }
+    const groups = [...named.entries()].map(([label, items]) => ({ label, items }))
+    if (other.length) groups.push({ label: groups.length ? chromeText('inboxOther') : '', items: other })
+    return groups
+  }
+
+  let notificationsProviderFactory = null
+  function setInboxProviderFactory(f) { notificationsProviderFactory = f }
+
+  /** The bell's model (what $application.variables.mateuNotifications holds): the unread count of
+   *  EVERY entry (the badge does not depend on the filter), and the entries the filter shows. */
+  function inboxModelOf(inboxState) {
+    const all = entriesOf(inboxState)
+    const shown = filteredEntries(all, inboxState.filter)
+    const unread = all.filter((e) => e.unread && !e.resolved).length
+    const items = shown.map((e, i) => ({ ...e, _rowNumber: i }))
+    return {
+      enabled: true,
+      unread,
+      badge: unread > 9 ? '9+' : String(unread),
+      hasUnread: unread > 0,
+      label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
+      empty: items.length === 0,
+      items,
+      groups: groupsOf(items),
+      filter: inboxState.filter,
+      filters: INBOX_FILTERS.map((f) => ({ id: f, label: chromeText({ unread: 'inboxUnread', all: 'inboxAll', resolved: 'inboxResolved' }[f]), selected: f === inboxState.filter })),
+      provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
+    }
+  }
+
+  // ── the inbox of this tab ─────────────────────────────────────────────────────────────────────
+
+  let inboxState = createInbox()
+  let inboxEnabled = false
+  let inboxContext = null // { base, serverSideType, appState }
+  const inboxSinks = { model: null, increment: null, navigate: null, sessionAction: null }
+
+  /** Where the inbox talks to (the app's backend and App type) — set by the shell at boot. */
+  function setInboxContext(ctx) { inboxContext = ctx || null; inboxEnabled = !!ctx }
+  /** The bell's model goes here (the VB variable). */
+  function setInboxModelSink(fn) { inboxSinks.model = typeof fn === 'function' ? fn : null }
+  /** An answer to paint on the content page (a detail Drawer, an action's Message / commands). */
+  function setInboxIncrementSink(fn) { inboxSinks.increment = typeof fn === 'function' ? fn : null }
+  /** A route to navigate to. */
+  function setInboxNavigateSink(fn) { inboxSinks.navigate = typeof fn === 'function' ? fn : null }
+  /** A session entry's action (it came from a message: it runs on the screen, like the toast's). */
+  function setInboxSessionActionSink(fn) { inboxSinks.sessionAction = typeof fn === 'function' ? fn : null }
+
+  function currentInbox() { return inboxState }
+  function currentInboxModel() { return inboxModelOf(inboxState) }
+
+  function commitInbox(next) {
+    inboxState = next
+    const model = inboxModelOf(inboxState)
+    if (inboxSinks.model) inboxSinks.model(model)
+    repaintInboxPanel()
+    return model
+  }
+
+  /** The server's list arrived (notify.fetchNotifications): merged with the session's entries. */
+  function adoptServerList(list) { inboxState = withServerList(inboxState, list); repaintInboxPanel(); return inboxModelOf(inboxState) }
+  function markReadLocally(ids) { inboxState = withRead(inboxState, ids); repaintInboxPanel(); return inboxModelOf(inboxState) }
+  function sessionIdsOf(ids) {
+    const session = new Set(inboxState.session.map((e) => e.id))
+    return ids === 'all' ? [...session] : [].concat(ids || []).map(String).filter((id) => session.has(id))
+  }
+
+  /** A message with persistence `inbox` lands in the session's inbox (its toast is shown apart). */
+  function noteInboxMessage(m) {
+    if (!m) return null
+    return commitInbox(withSessionEntry(inboxState, sessionEntryOfMessage(m)))
+  }
+
+  /** Messages of a stream whose screen is gone: only the `inbox` ones are kept (in the inbox). */
+  function noteDetachedMessages(messages) {
+    for (const m of messages || []) if (m && m.persistence === 'inbox') noteInboxMessage(m)
+  }
+
+  /** A NotificationsChanged (live updates): upsert / remove, or ask for the list again. */
+  async function applyNotificationsChanged(change) {
+    const { inbox: next, added, refetch } = withChange(inboxState, change)
+    if (refetch) return refreshInbox()
+    commitInbox(next)
+    if (added && added.unread) announce(chromeText('inboxNew', { title: added.title }))
+    return inboxModelOf(inboxState)
+  }
+
+  function strippedOfInboxData(increment) {
+    return { ...increment, fragments: (increment.fragments || []).filter((f) => !(f && f.data && Array.isArray(f.data._notifications))) }
+  }
+
+  async function inboxAppLevel(actionId, parameters) {
+    if (!inboxContext) return null
+    const increment = await callMateu(inboxContext.base || '', {
+      route: '', actionId, componentState: {}, parameters: parameters || {},
+      serverSideType: inboxContext.serverSideType || undefined, appState: inboxContext.appState || {},
+    }, { isolated: true })
+    const list = ((increment && increment.fragments) || []).find((f) => f && f.data && Array.isArray(f.data._notifications))
+    if (list) inboxState = withServerList(inboxState, list.data._notifications)
+    return increment
+  }
+
+  /** Asks for the list again (a NotificationsChanged with nothing in it, or the popup opening). */
+  async function refreshInbox() {
+    if (!inboxEnabled) return inboxModelOf(inboxState)
+    try { await inboxAppLevel('_notifications-list') } catch (e) { /* keep what we had */ }
+    return commitInbox(inboxState)
+  }
+
+  /** Runs one of an entry's actions. A session entry's runs on the screen (or navigates); a
+   *  server entry's goes to `_notifications-act`, whose answer (a Message, a command, an overlay)
+   *  is painted on the content page and whose refreshed list replaces the panel's. */
+  async function actOnEntry(id, index) {
+    const entry = entriesOf(inboxState).find((e) => e.id === String(id))
+    const action = entry && entry.actions[index]
+    if (!action) return false
+    if (action.route && (entry.session || !action.actionId)) {
+      if (inboxSinks.navigate) inboxSinks.navigate(action.route)
+      commitInbox(withRead(inboxState, [entry.id]))
+      return true
+    }
+    if (entry.session) {
+      if (inboxSinks.sessionAction) inboxSinks.sessionAction(action.actionId, action.parameters, {})
+      commitInbox(withRead(inboxState, [entry.id]))
+      return true
+    }
+    try {
+      const answer = await inboxAppLevel('_notifications-act', { id: entry.id, actionId: action.actionId })
+      if (answer && inboxSinks.increment) inboxSinks.increment(strippedOfInboxData(answer))
+    } catch (e) { /* the server refused: the entry stays as it was */ }
+    commitInbox(inboxState)
+    return true
+  }
+
+  /** Opens an entry: its detail (the server answers it) or its route; it is read from then on. */
+  async function openEntry(id) {
+    const entry = entriesOf(inboxState).find((e) => e.id === String(id))
+    if (!entry) return false
+    if (entry.session) {
+      commitInbox(withRead(inboxState, [entry.id]))
+      if (entry.route && inboxSinks.navigate) inboxSinks.navigate(entry.route)
+      return true
+    }
+    try {
+      await inboxAppLevel('_notifications-read', { ids: [entry.id] })
+      if (entry.hasDetail) {
+        const answer = await inboxAppLevel('_notifications-open', { id: entry.id })
+        if (answer && inboxSinks.increment) inboxSinks.increment(strippedOfInboxData(answer))
+      } else if (entry.route && inboxSinks.navigate) {
+        inboxSinks.navigate(entry.route)
+      }
+    } catch (e) { inboxState = withRead(inboxState, [entry.id]) }
+    commitInbox(inboxState)
+    return true
+  }
+
+  /** Dismisses an entry (gone from the list; the server's through `_notifications-dismiss`). */
+  async function dismissEntry(id) {
+    const key = String(id)
+    const entry = entriesOf(inboxState).find((e) => e.id === key)
+    if (!entry) return false
+    inboxState = withoutEntries(inboxState, [key])
+    if (!entry.session) { try { await inboxAppLevel('_notifications-dismiss', { ids: [key] }) } catch (e) { /* the next listing tells */ } }
+    commitInbox(inboxState)
+    return true
+  }
+
+  function chooseFilter(filter) { return commitInbox(withFilter(inboxState, filter)) }
+
+  /** Test hook. */
+  function resetInboxForTests() { inboxState = createInbox(); inboxEnabled = false; inboxContext = null; inboxPanel = null }
+
+  // ── the panel (DOM) ───────────────────────────────────────────────────────────────────────────
+
+  let inboxPanel = null // { doc, host }
+
+  /** Paints the panel in `host` (#mateuBellPanel) now and after every change. */
+  function mountInboxPanel(host, doc = typeof document !== 'undefined' ? document : null) {
+    if (!host || !doc) return
+    inboxPanel = { doc, host }
+    repaintInboxPanel()
+  }
+
+  function repaintInboxPanel() {
+    if (!inboxPanel) return
+    const { doc, host } = inboxPanel
+    if (!host.isConnected && host.isConnected !== undefined) { inboxPanel = null; return }
+    const model = inboxModelOf(inboxState)
+    const e = (tag, attrs = {}, text) => {
+      const n = doc.createElement(tag)
+      for (const [k, v] of Object.entries(attrs)) if (v != null && v !== false) n.setAttribute(k, v === true ? '' : String(v))
+      if (text != null) n.textContent = text
+      return n
+    }
+    const btn = (label, onAction, attrs = {}) => {
+      const b = e('oj-button', { chroming: 'borderless', ...attrs })
+      b.textContent = label
+      b.addEventListener('ojAction', onAction)
+      return b
+    }
+    host.textContent = ''
+    const filters = e('div', { class: 'mateu-inbox-filters oj-flex oj-sm-margin-2x-bottom', role: 'group', 'aria-label': chromeText('notifications') })
+    for (const f of model.filters) {
+      filters.appendChild(btn(f.label, () => chooseFilter(f.id), {
+        chroming: f.selected ? 'solid' : 'borderless', 'aria-pressed': f.selected ? 'true' : 'false', 'data-filter': f.id,
+      }))
+    }
+    host.appendChild(filters)
+    if (model.empty) host.appendChild(e('div', { class: 'oj-text-color-secondary oj-sm-padding-4x-vertical' }, chromeText('allCaughtUp')))
+    for (const group of model.groups) {
+      if (group.label) host.appendChild(e('div', { class: 'mateu-inbox-group oj-typography-subheading-xs oj-sm-margin-2x-top' }, group.label))
+      const list = e('ul', { class: 'mateu-inbox-list', role: 'list' })
+      for (const item of group.items) {
+        const li = e('li', { class: 'mateu-inbox-item' + (item.unread ? ' mateu-inbox-unread' : '') + (item.resolved ? ' mateu-inbox-resolved' : ''), 'data-id': item.id })
+        if (item.variant) li.setAttribute('data-variant', item.variant)
+        const head = e('div', { class: 'oj-flex oj-sm-justify-content-space-between oj-sm-align-items-center' })
+        const opens = item.hasDetail || !!item.route
+        const title = e(opens ? 'a' : 'span', { class: item.titleClass + ' mateu-inbox-title', href: opens ? '#' : null }, item.title)
+        if (opens) title.addEventListener('click', (ev) => { if (ev.preventDefault) ev.preventDefault(); openEntry(item.id) })
+        head.appendChild(title)
+        const dismiss = btn(chromeText('inboxDismiss'), () => dismissEntry(item.id), { display: 'icons', 'aria-label': chromeText('inboxDismiss') + ': ' + item.title, class: 'mateu-inbox-dismiss' })
+        dismiss.appendChild(e('span', { slot: 'startIcon', class: 'oj-ux-ico-close' }))
+        head.appendChild(dismiss)
+        li.appendChild(head)
+        if (item.text) li.appendChild(e('div', { class: 'oj-typography-body-sm' }, item.text))
+        if (item.when) li.appendChild(e('div', { class: 'oj-typography-body-xs oj-text-color-secondary' }, item.when))
+        if (item.actions.length && !item.resolved) {
+          const row = e('div', { class: 'mateu-inbox-actions oj-flex oj-sm-flex-wrap' })
+          item.actions.forEach((a, i) => row.appendChild(btn(a.label || (a.style === 'undo' ? chromeText('undo') : a.actionId || a.route),
+            () => actOnEntry(item.id, i), { chroming: a.style === 'primary' || a.style === 'danger' ? 'callToAction' : 'outlined' })))
+          li.appendChild(row)
+        }
+        list.appendChild(li)
+      }
+      host.appendChild(list)
+    }
+  }
+
+
+
+
+
 
   // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
   //
@@ -16257,32 +17281,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  let notificationsProviderFactory = null
-  function setNotificationsProviderFactory(f) { notificationsProviderFactory = f }
+  function setNotificationsProviderFactory(f) { setInboxProviderFactory(f) }
 
-  /** The bell's model: unread ones (and their badge), and the entries ready for the list. */
+  /** The bell's model for a list (inbox.mjs inboxModelOf): unread ones (and their badge), the entries
+   *  ready for the panel, grouped by category, with the filters. */
   function notificationsOf(list) {
-    const items = (list || []).map((n, i) => ({
-      _rowNumber: i,
-      id: String(n.id),
-      title: n.title || '',
-      text: n.text || '',
-      when: n.when || '',
-      route: n.route || '',
-      unread: n.unread !== false,
-      titleClass: 'oj-typography-body-md' + (n.unread !== false ? ' oj-typography-bold' : ''),
-    }))
-    const unread = items.filter((n) => n.unread).length
-    return {
-      enabled: true,
-      unread,
-      badge: unread > 9 ? '9+' : String(unread),
-      hasUnread: unread > 0,
-      label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
-      empty: items.length === 0,
-      items,
-      provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
-    }
+    return inboxModelOf(withServerList(createInbox(), list))
   }
 
   // the inbox last listed from a shell SOURCE: "mark as read" acts on it locally (a source may have
@@ -16304,7 +17308,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (!ids) {
         try { await list() } catch (e) { /* inbox unavailable: keep whatever list we had */ }
-        return notificationsOf(sourcedInbox)
+        return adoptServerList(sourcedInbox)
       }
       const all = ids === 'all'
       const which = all ? sourcedInbox.filter((n) => n.unread).map((n) => n.id) : [].concat(ids).map(String)
@@ -16318,32 +17322,57 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           sourcedInbox = sourcedInbox.map((n) => (local.some((l) => l.id === n.id && !l.unread) ? { ...n, unread: false } : n))
         } catch (e) { /* the server keeps them unread; the next listing says so */ }
       }
-      return notificationsOf(sourcedInbox)
+      return adoptServerList(sourcedInbox)
     }
+    // the session's own entries (an `inbox` message…) are read here: the server does not know them
+    const sessionIds = ids ? sessionIdsOf(ids) : []
+    if (sessionIds.length) markReadLocally(sessionIds)
+    const serverIds = ids === 'all' ? 'all' : ids ? [].concat(ids).map(String).filter((id) => !sessionIds.includes(id)) : null
+    if (ids && serverIds !== 'all' && !serverIds.length) return markReadLocally([])
     const increment = await callMateu(base, {
       route: '',
-      actionId: ids ? '_notifications-read' : '_notifications-list',
+      actionId: serverIds ? '_notifications-read' : '_notifications-list',
       componentState: {},
-      parameters: ids ? { ids } : {},
+      parameters: serverIds ? { ids: serverIds } : {},
       serverSideType: serverSideType || undefined,
       appState: appState || {},
     })
-    return notificationsOf(notificationListOf(increment) || [])
+    const listed = notificationListOf(increment)
+    return listed ? adoptServerList(listed) : markReadLocally([])
   }
 
-  // ── toasts with «Undo» ─────────────────────────────────────────────────────────────────────────
+  // ── toasts with actions («Undo», «Open»…), sticky ones, deduplicated ones ───────────────────────
   let undoSink = null
   function setUndoSink(fn) { undoSink = typeof fn === 'function' ? fn : null }
+  let toastNavigateSink = null
+  /** Where a toast action with a `route` navigates. */
+  function setToastNavigateSink(fn) { toastNavigateSink = typeof fn === 'function' ? fn : null }
 
-  /** Separates from the toasts those that can be undone (in place: the chains read the same list). */
+  /** A toast that needs JET's oj-message (which can hold buttons and stay): it offers actions, it is
+   *  sticky, or it carries a key (the same key replaces the one on screen). An error or a warning
+   *  with nothing to act on goes to the shell's message band, which already stays until closed. */
+  function isActionToast(t) {
+    if (!t || t.banner) return false
+    if ((t.actions && t.actions.length) || t.undoActionId) return true
+    if (t.variant === 'error' || t.variant === 'warning') return false
+    return !!t.key || t.persistence === 'sticky'
+  }
+
+  /** Separates from the toasts those that need oj-message (in place: the chains read the same list). */
   function takeUndoToasts(effects) {
     if (!effects || !Array.isArray(effects.toasts)) return []
-    const undo = effects.toasts.filter((t) => t && t.undoActionId)
+    const undo = effects.toasts.filter(isActionToast)
     if (undo.length) {
-      const rest = effects.toasts.filter((t) => !(t && t.undoActionId))
+      const rest = effects.toasts.filter((t) => !isActionToast(t))
       effects.toasts.splice(0, effects.toasts.length, ...rest)
     }
     return undo
+  }
+  const takeActionToasts = takeUndoToasts
+
+  /** The toasts with persistence `inbox`: they also land in the session's inbox (inbox.mjs). */
+  function inboxToastsOf(effects) {
+    return ((effects && effects.toasts) || []).filter((t) => t && t.persistence === 'inbox')
   }
 
   /** An error or warning Message is NOT a toast in Redwood: oj-sp-messages-toast only supports
@@ -16360,15 +17389,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
-  /** The oj-message message object for a toast with undo. */
+  /** The oj-message message object for a toast with actions. */
   function undoMessageOf(toast) {
+    const sticky = toast.variant === 'error' || toast.persistence === 'sticky'
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
-      summary: toast.text || '',
-      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12)
-      autoTimeout: toast.variant === 'error' ? 'off' : 10000,
+      summary: toast.title || toast.text || '',
+      ...(toast.title && toast.text ? { detail: toast.text } : {}),
+      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12); so does a sticky one
+      autoTimeout: sticky ? 'off' : (toast.duration > 0 ? toast.duration : 10000),
       closeAffordance: 'defaults',
     }
+  }
+
+  /** The actions a toast offers (its `actions`, else its legacy undo). */
+  function toastActionsOf(toast) {
+    if (toast.actions && toast.actions.length) return toast.actions
+    return toast.undoActionId ? [{ label: toast.undoLabel || '', actionId: toast.undoActionId, parameters: toast.undoParameters || {}, route: '', style: 'undo' }] : []
   }
 
   function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? document : null) {
@@ -16385,25 +17422,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       doc.body.appendChild(wrap)
     }
     for (const toast of toasts) {
+      // the same key replaces the message on screen instead of stacking another one
+      if (toast.key) {
+        for (const old of host.querySelectorAll('oj-message')) {
+          if (old.getAttribute('data-key') === toast.key) old.remove()
+        }
+      }
       const msg = doc.createElement('oj-message')
+      if (toast.key) msg.setAttribute('data-key', toast.key)
       msg.message = undoMessageOf(toast)
-      const detail = doc.createElement('div')
-      detail.setAttribute('slot', 'detail')
-      const button = doc.createElement('oj-button')
-      button.setAttribute('chroming', 'borderless')
-      button.className = 'mateu-undo-button'
-      button.textContent = toast.undoLabel || chromeText('undo')
-      button.addEventListener('ojAction', () => {
-        if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
-        if (typeof msg.close === 'function') msg.close()
-      })
-      detail.appendChild(button)
-      msg.appendChild(detail)
+      const actions = toastActionsOf(toast)
+      if (actions.length) {
+        const detail = doc.createElement('div')
+        detail.setAttribute('slot', 'detail')
+        if (toast.title && toast.text) {
+          const text = doc.createElement('div')
+          text.className = 'oj-typography-body-sm'
+          text.textContent = toast.text
+          detail.appendChild(text)
+        }
+        for (const action of actions) {
+          const button = doc.createElement('oj-button')
+          button.setAttribute('chroming', 'borderless')
+          button.className = action.style === 'undo' ? 'mateu-undo-button' : 'mateu-toast-action'
+          button.textContent = action.label || (action.style === 'undo' ? chromeText('undo') : action.actionId || action.route)
+          button.addEventListener('ojAction', () => {
+            if (action.route) { if (toastNavigateSink) toastNavigateSink(action.route) } else if (undoSink) undoSink(action.actionId, action.parameters || {}, {})
+            if (typeof msg.close === 'function') msg.close()
+          })
+          detail.appendChild(button)
+        }
+        msg.appendChild(detail)
+      }
       // closed (by the user or by time), out of the DOM
       msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
   }
+
 
 
 
@@ -16612,7 +17668,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const d of effects.downloads || (effects.download ? [effects.download] : []))
       if (triggerDownload(d, env)) n++
     if (effects.print) printPage(env)
-    // toasts with «Undo» go out through JET's oj-message (notify.mjs), not through the normal toast
+    // a message with persistence `inbox` also lands in the session's inbox (inbox.mjs)
+    for (const t of inboxToastsOf(effects)) ((env && env.mateuInboxMessage) || noteInboxMessage)(t)
+    // toasts with actions («Undo»…), sticky or keyed go out through JET's oj-message (notify.mjs),
+    // not through the normal toast
     const undo = takeUndoToasts(effects)
     if (undo.length && env && env.document) showUndoToasts(undo, env.document)
     // the Announce command: through the live regions installAnnouncer created at boot (polite, or
@@ -18419,6 +19478,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
   // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
   // renderer's libs/mateu appShortcuts.ts / headerValues.ts / liveUpdates.ts / idleSession.ts:
@@ -18649,7 +19709,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         for (const event of events) {
           const line = event.trim()
           if (!line.startsWith('data:')) continue
-          try { for (const c of headerChangesOf(JSON.parse(line.slice(5).trim()))) updateHeaderValue(c.id, c.value) } catch (e) { /* heartbeat */ }
+          try {
+            const inc = JSON.parse(line.slice(5).trim())
+            for (const c of headerChangesOf(inc)) updateHeaderValue(c.id, c.value)
+            // the inbox changed for this user (LiveNotifications.publish): the bell follows (inbox.mjs)
+            for (const change of notificationsChangedOf(inc)) applyNotificationsChanged(change)
+          } catch (e) { /* heartbeat */ }
         }
       }
     }).catch(() => { if (!own.signal.aborted) liveFailures++ })
@@ -21692,6 +22757,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
@@ -21980,10 +23047,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** SSE action (Action.sse(true), e.g. LongTask): POST {base}/mateu/v3/sse/{route} with
    *  Accept text/event-stream — the response is a STREAM of UIIncrements (data: …\n\n).
-   *  Increments are DELIVERED LIVE via `extra.onIncrement(inc)` (async; the LongTask's progress
-   *  dialog is painted while the stream advances); if the callback returns
-   *  true, the increment is considered CONSUMED and excluded from the returned list. Without a
-   *  callback, classic behaviour: full list at the end. */
+   *  Every `Progress` command goes to the TASK CENTER (tasks.mjs) as it arrives and is taken out of
+   *  the increment (one left with nothing else is not delivered). The rest is DELIVERED LIVE via
+   *  `extra.onIncrement(inc)` (async); if the callback returns true, the increment is considered
+   *  CONSUMED and excluded from the returned list. Without a callback, classic behaviour: full list
+   *  at the end.
+   *  A task outlives its screen: once the stream has reported a task, a navigation does not cut it —
+   *  its progress keeps reaching the center, what it would paint on the old screen is dropped (an
+   *  `inbox` message lands in the session's inbox), and the call ends as a stale response. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
     // tied to the current screen, like callMateu: each increment is checked as it arrives
@@ -22012,18 +23083,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         actionId,
       }),
     }, { actionId, timeoutMillis: -1, view })
+    // who started the task(s) this stream reports: Cancel, Retry and result actions go back there
+    const origin = {
+      base, route: bare ? `/${bare}` : '', actionId, view,
+      parameters: bodyExtra.parameters || {},
+      componentState: componentState || (ctx && ctx.state) || {},
+      serverSideType: bodyExtra.serverSideType || outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+      consumedRoute: bodyExtra.consumedRoute != null ? bodyExtra.consumedRoute : (outbound.consumedRoute || ''),
+      initiatorComponentId: bodyExtra.initiatorComponentId || (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+    }
     const increments = []
     let reader
+    let reportsTasks = false
+    let detached = false
     const handle = async (raw) => {
       const line = raw.trim()
       if (!line.startsWith('data:')) return
-      if (isViewStale(view)) {
+      if (isViewStale(view) && !reportsTasks) {
         if (reader && reader.cancel) reader.cancel().catch(() => undefined)
         throw staleResponseError(actionId)
       }
-      const inc = answeredBy(base, JSON.parse(line.slice(5).trim()))
-      observeWireVersion(inc)
-      adoptReferencedSources(inc)
+      const answer = answeredBy(base, JSON.parse(line.slice(5).trim()))
+      observeWireVersion(answer)
+      adoptReferencedSources(answer)
+      if (noteProgress(answer, origin)) reportsTasks = true
+      if (isViewStale(view)) {
+        // the screen that started the task is gone: the task goes on in the center
+        detached = true
+        noteDetachedMessages(answer.messages)
+        return
+      }
+      const inc = withoutProgressCommands(answer)
+      if (inc !== answer && isEmptyIncrement(inc)) return
       const consumed = onIncrement ? await onIncrement(inc) : false
       if (!consumed) increments.push(inc)
     }
@@ -22045,8 +23136,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     } else {
       for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
     }
+    if (detached) throw staleResponseError(actionId)
     return increments
   }
+
+  // the task center's way back to the server: a Cancel (sync) or a re-run of a task's action (stream)
+  setTaskTransport((kind, origin, body) => (kind === 'cancel'
+    ? callMateu((origin && origin.base) || '', body, { isolated: true })
+    : runMateuActionSse((origin && origin.base) || '', null, body.route, body.actionId, body.componentState, {
+      parameters: body.parameters, serverSideType: body.serverSideType,
+      consumedRoute: body.consumedRoute, initiatorComponentId: body.initiatorComponentId,
+    })))
 
   /**
    * A mediator whose WRAPPER arrives as a chrome App (ClientSide type App) instead of wrapped in a
@@ -27839,14 +28939,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
+    'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
   const CONTENT_ACTION_SINKS = Object.freeze([
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-    'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink',
+    'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -27879,6 +28979,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installAppExtras: 'shell-level: app shortcuts, header values and the idle session belong to the host page',
     // live UI push: the "Connect AI" control lives in the app header, which a host page does not have
     installAgentPush: 'shell-level: the Connect AI control and the tab channel belong to the app header',
+    // a route named by a toast action or a finished task's result action is an in-app navigation of
+    // the SHELL's router; an embedded component never routes by path (its actions still run)
+    setToastNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+    setTaskNavigateSink: 'shell-level: in-app navigation by route belongs to the shell router',
+    // the notification inbox is the app header's bell: a host page has its own header
+    setInboxIncrementSink: 'shell-level: the inbox bell belongs to the app header',
+    setInboxNavigateSink: 'shell-level: the inbox bell belongs to the app header',
+    setInboxSessionActionSink: 'shell-level: the inbox bell belongs to the app header',
+    setInboxModelSink: 'shell-level: the inbox bell belongs to the app header',
   })
 
   /**
@@ -28374,6 +29483,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     bannerNotificationOf,
     notificationsOf,
     setUndoSink,
+    setToastNavigateSink,
+    // the task center (progress reporting, tasks.mjs) and the inbox as a pattern (inbox.mjs)
+    installTaskCenter,
+    taskCenter,
+    setTaskActionSink,
+    setTaskNavigateSink,
+    setTaskViewClock,
+    setInboxContext,
+    setInboxModelSink,
+    setInboxIncrementSink,
+    setInboxNavigateSink,
+    setInboxSessionActionSink,
+    mountInboxPanel,
+    refreshInbox,
+    applyNotificationsChanged,
     setCalendarActionSink,
     // @Toc: the sticky sections index (projection + DOM wiring)
     tocOf,
@@ -28561,7 +29685,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     sectionHomeOf,
     ojIconOf,
     ojIconOrGenericOf,
-    longTaskWatcher,
     findAllByType,
     cardOf,
     welcomeOf,

@@ -71,7 +71,7 @@
             }, {
               "metadata" : {
                 "autoWidth" : true,
-                "dataType" : "string",
+                "dataType" : "date",
                 "label" : "Day",
                 "resizable" : true,
                 "sortable" : true,
@@ -83,7 +83,7 @@
             }, {
               "metadata" : {
                 "autoWidth" : true,
-                "dataType" : "string",
+                "dataType" : "dateTime",
                 "label" : "At",
                 "resizable" : true,
                 "sortable" : true,

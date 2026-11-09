@@ -84,8 +84,8 @@ class CrudListingRenderTest : BasePlatformTestCase() {
         val table = table(view)
         assertEquals(2, table.rowCount)
         assertEquals(listOf("Id", "Name", "Status", "Price"), (0 until table.columnCount).map { table.getColumnName(it) })
-        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("Page 1 of 3 (25 total)") })
-        val (prev, next) = all(view).filterIsInstance<JButton>().let { b -> b.first { it.text == "‹ Prev" } to b.first { it.text == "Next ›" } }
+        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("Page 1 of 3 · 25 items") })
+        val (prev, next) = all(view).filterIsInstance<JButton>().let { b -> b.first { it.accessibleContext.accessibleName == "Previous page" } to b.first { it.accessibleContext.accessibleName == "Next page" } }
         assertFalse(prev.isEnabled)
         assertTrue(next.isEnabled)
         assertEquals("No products yet", (table as com.intellij.ui.table.JBTable).emptyText.text)
@@ -99,7 +99,7 @@ class CrudListingRenderTest : BasePlatformTestCase() {
         ctx.applyIncrement(json("""{"fragments":[{"targetComponentId":"crud1","data":{"page":{"content":[{"id":"p9","name":"Mate"}],"totalElements":1,"pageNumber":0,"pageSize":10}}}]}"""))
         val table = table(view)
         assertEquals(1, table.rowCount)
-        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("Page 1 of 1 (1 total)") })
+        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("Page 1 of 1 · 1 item") })
     }
 
     fun testTheSearchBoxSearchesWithTheTextFromPageZero() {
@@ -169,11 +169,11 @@ class CrudListingRenderTest : BasePlatformTestCase() {
         val view = render(ctx, metadata, "{}")
         val table = table(view)
         await("the rows from the source") { table.rowCount == 2 }
-        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("(3 total)") })
+        assertTrue(all(view).filterIsInstance<JLabel>().any { it.text.contains("· 3 items") })
         val search = all(view).filterIsInstance<SearchTextField>().single()
         search.text = "tea"
         search.textEditor.postActionEvent()
-        await("the in-memory search") { table.rowCount == 2 && all(view).filterIsInstance<JLabel>().any { it.text.contains("(2 total)") } }
+        await("the in-memory search") { table.rowCount == 2 && all(view).filterIsInstance<JLabel>().any { it.text.contains("· 2 items") } }
         assertTrue("a REST listing never asks the Mateu server", server.requests.none { it.path("actionId").asText() == "search" })
     }
 }

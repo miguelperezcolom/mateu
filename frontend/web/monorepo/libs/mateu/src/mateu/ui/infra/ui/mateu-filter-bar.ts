@@ -17,6 +17,7 @@ import {
 } from "../savedViewsStore.ts";
 import { ListenerSlot } from '@infra/ui/connectionScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { icon } from '@infra/ui/renderers/neutralIcon.ts'
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -456,9 +457,11 @@ export class MateuFilterBar extends LitElement {
                         <span class="view-name" @click="${() => this.applyView(view)}">${view.name}</span>
                         <button class="view-star ${view.isDefault ? 'view-star--on' : ''}"
                                 title="${view.isDefault ? chromeText('unsetDefaultView') : chromeText('openWithView')}"
-                                @click="${() => { setDefaultView(this.viewsScope, view.name); this.requestUpdate() }}">★</button>
+                                aria-label="${view.isDefault ? chromeText('unsetDefaultView') : chromeText('openWithView')}"
+                                aria-pressed="${view.isDefault ? 'true' : 'false'}"
+                                @click="${() => { setDefaultView(this.viewsScope, view.name); this.requestUpdate() }}">${icon(view.isDefault ? 'vaadin:star' : 'vaadin:star-o')}</button>
                         <button class="chip-remove" aria-label="${chromeTextf('deleteViewNamed', { name: view.name })}"
-                                @click="${() => { deleteView(this.viewsScope, view.name); this.requestUpdate() }}">✕</button>
+                                @click="${() => { deleteView(this.viewsScope, view.name); this.requestUpdate() }}">${icon('vaadin:close-small')}</button>
                     </div>`)}
                 ${anySet ? html`
                     <div class="panel-input-row" @mousedown="${(e: Event) => e.stopPropagation()}">
@@ -548,7 +551,7 @@ export class MateuFilterBar extends LitElement {
                             <span class="chip-label">${chip.label}:</span> ${chip.display}
                             <button class="chip-remove" aria-label="${chromeTextf('removeFilterNamed', { name: chip.label })}"
                                     @mousedown="${this.keepFocus}"
-                                    @click="${(e: Event) => { e.stopPropagation(); this.removeChip(chip.fieldId) }}">✕</button>
+                                    @click="${(e: Event) => { e.stopPropagation(); this.removeChip(chip.fieldId) }}">${icon('vaadin:close-small')}</button>
                         </span>`)}
                     ${this.metadata?.searchable !== false ? html`
                         <input class="free-text" type="text" id="searchText"

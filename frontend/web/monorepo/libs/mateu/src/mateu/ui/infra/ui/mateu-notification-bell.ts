@@ -1,31 +1,59 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import type { MessageAction } from "@mateu/shared/apiClients/dtos/Progress.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
-import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf, type ChromeTextKey } from '@infra/ui/chromeTexts.ts'
 import { markReadVars, notificationsOf, runAppSource } from '@infra/ui/appSources.ts'
+import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
+import { notify } from '@application/Notifier.ts'
+import { actionLabelOf, runMessageAction } from '@infra/notify/messageToast.ts'
+import {
+    filtered, groupedByCategory, inboxStore, unreadCount, type InboxEntry, type InboxFilter,
+} from '@infra/notify/inboxStore.ts'
 
-/** One inbox entry as served by the _notifications-list / _notifications-read actions. */
-interface AppNotification {
-    id: string
-    title: string
-    text?: string | null
-    route?: string | null
-    unread: boolean
-    when?: string | null
+/** The reserved app-level actions of the inbox (NotificationsSupplier on the app class). */
+export const NOTIFICATIONS_LIST = '_notifications-list'
+export const NOTIFICATIONS_READ = '_notifications-read'
+export const NOTIFICATIONS_ACT = '_notifications-act'
+export const NOTIFICATIONS_DISMISS = '_notifications-dismiss'
+export const NOTIFICATIONS_OPEN = '_notifications-open'
+
+const FILTERS: { id: InboxFilter, label: ChromeTextKey }[] = [
+    { id: 'all', label: 'notificationFilterAll' },
+    { id: 'unread', label: 'notificationFilterUnread' },
+    { id: 'resolved', label: 'notificationFilterResolved' },
+]
+
+/** The `_notifications` list an answer carries (a Data fragment), if any. */
+const listOf = (increment: unknown): InboxEntry[] | undefined => {
+    for (const fragment of (increment as { fragments?: { data?: Record<string, unknown> }[] } | undefined)?.fragments ?? []) {
+        const list = fragment?.data?.['_notifications']
+        if (Array.isArray(list)) return list as InboxEntry[]
+    }
+    return undefined
 }
 
 /**
  * The notification inbox bell on the app header (shown when App.notificationsEnabled — the app
  * class implements NotificationsSupplier). A bell icon button with an unread-count badge toggling
- * a dropdown panel with the inbox entries; clicking an entry marks it read (the app-level
- * _notifications-read action, same rail as the @AppContext pickers' remote search: dispatched with
- * the APP's serverSideType + rootRoute) and, when the entry carries a route, navigates exactly
- * like a local menu click (route-changed + navigate-to-requested, handled by mateu-ui). Styled
- * with Lumo CSS vars with fallbacks so every design system can theme it.
+ * a panel with the inbox (design/progress-and-notifications.md):
+ *
+ * - entries grouped by `category`, filtered (all / unread / resolved), "mark all read";
+ * - clicking an entry marks it read and opens it: its `route` (navigated like a local menu click:
+ *   route-changed + navigate-to-requested, handled by mateu-ui) or, for `hasDetail`, the detail the
+ *   server answers for `_notifications-open` (a Drawer, a Dialog…) on the on-screen component;
+ * - an entry's actions run on the server (`_notifications-act`, which usually resolves it); its ✕
+ *   dismisses it (`_notifications-dismiss`);
+ * - the list is the server's (`_notifications-list`) merged with the session's own entries (an
+ *   `inbox` message, an entry pushed live), deduplicated by id (inboxStore.ts); a live change
+ *   updates the badge without polling.
+ *
+ * Every action goes to the APP (its serverSideType + rootRoute), the same rail as the @AppContext
+ * pickers' remote search. Styled with Lumo CSS vars with fallbacks so every design system can theme it.
  */
 @customElement('mateu-notification-bell')
 export class MateuNotificationBell extends LitElement {
@@ -40,14 +68,28 @@ export class MateuNotificationBell extends LitElement {
     private opened = false
 
     @state()
-    private notifications: AppNotification[] = []
+    private entries: InboxEntry[] = inboxStore.entries()
+
+    @state()
+    private filter: InboxFilter = 'all'
 
     private fetched = false
     private outsideClick: ((e: Event) => void) | undefined
+    private unsubscribe: (() => void)[] = []
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.entries = inboxStore.entries()
+        this.unsubscribe.push(inboxStore.subscribe(() => { this.entries = inboxStore.entries() }))
+        // a live change too big to describe ("refresh"): ask the server again
+        this.unsubscribe.push(inboxStore.onRefetch(() => { void this.refresh() }))
+    }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.detachOutsideClick()
+        this.unsubscribe.forEach((u) => u())
+        this.unsubscribe = []
     }
 
     protected updated() {
@@ -60,7 +102,7 @@ export class MateuNotificationBell extends LitElement {
     }
 
     private unreadCount(): number {
-        return this.notifications.filter(notification => notification.unread).length
+        return unreadCount(this.entries)
     }
 
     // ── server round-trips (same client mechanism as the @AppContext pickers) ──
@@ -82,16 +124,31 @@ export class MateuNotificationBell extends LitElement {
                 this,
                 true
             )
-            for (const fragment of increment?.fragments ?? []) {
-                const data = fragment.data as Record<string, any> | undefined
-                const list = data?.['_notifications']
-                if (Array.isArray(list)) {
-                    this.notifications = list as AppNotification[]
-                    return
-                }
-            }
+            const list = listOf(increment)
+            if (list) inboxStore.setServerList(list)
         } catch {
             // inbox unavailable: keep whatever list we had
+        }
+    }
+
+    /**
+     * An action whose answer may be more than the list — a message, a Drawer with the entry's
+     * detail: run on the component on screen (dispatchAppHeaderAction), so it lands on a real
+     * component; the refreshed list it also carries reaches the inbox.
+     */
+    private async runOnScreen(actionId: string, parameters: Record<string, unknown>) {
+        const app = this.app
+        if (!app?.serverSideType) return
+        const root = this.getRootNode() as ShadowRoot | Document
+        const shell = ((root as ShadowRoot).host ?? document.body) as HTMLElement & { baseUrl?: string }
+        const container = Object.assign(shell, { baseUrl: this.baseUrl ?? shell.baseUrl ?? '' })
+        try {
+            await dispatchAppHeaderAction(app, container, actionId, parameters, (increment) => {
+                const list = listOf(increment)
+                if (list) inboxStore.setServerList(list)
+            })
+        } catch {
+            notify({ text: chromeText('notificationActionFailed'), variant: 'error' }, this)
         }
     }
 
@@ -101,19 +158,27 @@ export class MateuNotificationBell extends LitElement {
         const source = this.app?.notificationsSource
         if (this.app && source) {
             return runAppSource(this.app, this.baseUrl ?? '', 'notifications', source, {}, this)
-                .then((json) => { this.notifications = notificationsOf(json, source) })
+                .then((json) => { inboxStore.setServerList(notificationsOf(json, source)) })
                 .catch(() => undefined) // inbox unavailable: keep whatever list we had
         }
-        return this.runNotificationsAction('_notifications-list', {})
+        return this.runNotificationsAction(NOTIFICATIONS_LIST, {})
+    }
+
+    private isServerEntry(entry: InboxEntry): boolean {
+        return !entry.local
     }
 
     private async markRead(ids: string[] | 'all') {
+        // read locally at once: an inbox with no "mark as read" call is still read on screen
+        const serverIds = ids === 'all'
+            ? 'all'
+            : ids.filter((id) => this.entries.some((e) => e.id === id && this.isServerEntry(e)))
+        inboxStore.markRead(ids)
+        if (serverIds !== 'all' && serverIds.length === 0) return
         if (this.app?.notificationsSource) {
             const read = this.app.notificationsReadSource
-            const all = ids === 'all'
-            const which = all ? this.notifications.filter((n) => n.unread).map((n) => n.id) : ids
-            // read locally at once: an inbox with no "mark as read" call is still read on screen
-            this.notifications = this.notifications.map((n) => which.includes(n.id) ? { ...n, unread: false } : n)
+            const all = serverIds === 'all'
+            const which = all ? this.entries.filter((n) => n.unread).map((n) => n.id) : serverIds
             if (read) {
                 try {
                     await runAppSource(this.app, this.baseUrl ?? '', 'notificationsRead', read, markReadVars(which, all), this)
@@ -124,7 +189,27 @@ export class MateuNotificationBell extends LitElement {
             }
             return
         }
-        return this.runNotificationsAction('_notifications-read', { ids })
+        return this.runNotificationsAction(NOTIFICATIONS_READ, { ids: serverIds })
+    }
+
+    private async dismiss(entry: InboxEntry) {
+        inboxStore.remove(entry.id)
+        if (!this.isServerEntry(entry) || this.app?.notificationsSource) return
+        await this.runNotificationsAction(NOTIFICATIONS_DISMISS, { ids: [entry.id] })
+    }
+
+    private async act(entry: InboxEntry, action: MessageAction) {
+        if (action.route) {
+            this.navigate(action.route)
+            return
+        }
+        if (!this.isServerEntry(entry)) {
+            // a session entry made from a message: its actions run where the message came from
+            if (entry.initiator?.isConnected) runMessageAction(action, entry.initiator)
+            return
+        }
+        if (!action.actionId) return
+        await this.runOnScreen(NOTIFICATIONS_ACT, { id: entry.id, actionId: action.actionId })
     }
 
     // ── panel ────────────────────────────────────────────────────────────────
@@ -152,51 +237,81 @@ export class MateuNotificationBell extends LitElement {
         this.opened = false
     }
 
-    private async entryClicked(notification: AppNotification) {
+    private navigate(route: string): boolean {
+        // navigate exactly like a local menu click on the shell:
+        // route-changed pushes the URL, navigate-to-requested re-routes the top-level ux
+        if (!dirtyGuard.confirmLeave()) return false
+        this.closePanel()
+        this.dispatchEvent(new CustomEvent('route-changed', {
+            detail: { route }, bubbles: true, composed: true,
+        }))
+        this.dispatchEvent(new CustomEvent('navigate-to-requested', {
+            detail: { route }, bubbles: true, composed: true,
+        }))
+        return true
+    }
+
+    private async entryClicked(notification: InboxEntry) {
         if (notification.unread) {
             await this.markRead([notification.id])
         }
-        const route = notification.route
-        if (route) {
-            // navigate exactly like a local menu click on the shell:
-            // route-changed pushes the URL, navigate-to-requested re-routes the top-level ux
-            if (!dirtyGuard.confirmLeave()) return
+        if (notification.route) {
+            this.navigate(notification.route)
+        } else if (notification.hasDetail && this.isServerEntry(notification)) {
             this.closePanel()
-            this.dispatchEvent(new CustomEvent('route-changed', {
-                detail: { route }, bubbles: true, composed: true,
-            }))
-            this.dispatchEvent(new CustomEvent('navigate-to-requested', {
-                detail: { route }, bubbles: true, composed: true,
-            }))
+            await this.runOnScreen(NOTIFICATIONS_OPEN, { id: notification.id })
         }
     }
 
     // ── rendering ────────────────────────────────────────────────────────────
 
-    private renderEntry(notification: AppNotification): TemplateResult {
+    private renderEntry(notification: InboxEntry): TemplateResult {
+        const actions = notification.resolved ? [] : (notification.actions ?? [])
         return html`
-            <div role="button" tabindex="0" class="entry ${notification.unread ? 'entry--unread' : ''}"
-                 @click="${() => this.entryClicked(notification)}" @keydown="${onActivate(() => this.entryClicked(notification))}">
-                <span class="unread-dot" aria-hidden="true"></span>
-                <div class="entry-body">
-                    <div class="entry-top">
-                        <span class="entry-title">${notification.title}</span>
-                        ${notification.when ? html`<span class="entry-when">${notification.when}</span>` : nothing}
+            <div class="item ${notification.resolved ? 'item--resolved' : ''} ${notification.variant ? 'item--' + notification.variant : ''}">
+                <div role="button" tabindex="0" class="entry ${notification.unread ? 'entry--unread' : ''}"
+                     @click="${() => this.entryClicked(notification)}" @keydown="${onActivate(() => this.entryClicked(notification))}">
+                    <span class="unread-dot" aria-hidden="true"></span>
+                    <div class="entry-body">
+                        <div class="entry-top">
+                            <span class="entry-title">${notification.title}</span>
+                            ${notification.when ? html`<span class="entry-when">${notification.when}</span>` : nothing}
+                        </div>
+                        ${notification.text ? html`<div class="entry-text">${notification.text}</div>` : nothing}
+                        ${notification.resolved ? html`<div class="entry-resolved">${chromeText('notificationResolved')}</div>` : nothing}
                     </div>
-                    ${notification.text ? html`<div class="entry-text">${notification.text}</div>` : nothing}
                 </div>
+                <button class="dismiss" aria-label="${chromeTextf('notificationDismissOf', { title: notification.title })}"
+                        title="${chromeText('notificationDismiss')}"
+                        @click="${() => this.dismiss(notification)}">✕</button>
+                ${actions.length > 0 ? html`
+                    <div class="entry-actions">
+                        ${actions.map((action, i) => html`
+                            <button class="entry-action ${i === 0 || action.style === 'primary' ? 'entry-action--primary' : ''} ${action.style === 'danger' ? 'entry-action--danger' : ''}"
+                                    @click="${() => this.act(notification, action)}">${actionLabelOf(action)}</button>`)}
+                    </div>` : nothing}
             </div>`
     }
 
     private renderPanel(): TemplateResult {
+        const shown = filtered(this.entries, this.filter)
+        const groups = groupedByCategory(shown)
         return html`
             <div class="panel">
-                <div class="entries">
-                    ${this.notifications.length === 0 ? html`
-                        <div class="empty">${chromeText('noNotifications')}</div>` : nothing}
-                    ${this.notifications.map(notification => this.renderEntry(notification))}
+                <div class="filters" role="group" aria-label="${chromeText('notificationFilters')}">
+                    ${FILTERS.map((f) => html`
+                        <button class="filter ${this.filter === f.id ? 'filter--on' : ''}"
+                                aria-pressed="${this.filter === f.id ? 'true' : 'false'}"
+                                @click="${() => { this.filter = f.id }}">${chromeText(f.label)}</button>`)}
                 </div>
-                ${this.notifications.length > 0 ? html`
+                <div class="entries">
+                    ${shown.length === 0 ? html`
+                        <div class="empty">${chromeText('noNotifications')}</div>` : nothing}
+                    ${groups.map((group) => html`
+                        ${group.category ? html`<div class="group" role="heading" aria-level="3">${group.category}</div>` : nothing}
+                        ${group.entries.map(notification => this.renderEntry(notification))}`)}
+                </div>
+                ${this.entries.length > 0 ? html`
                     <div class="footer">
                         <button class="mark-all" ?disabled="${this.unreadCount() === 0}"
                                 @click="${() => this.markRead('all')}">${chromeText('markAllRead')}</button>
@@ -351,6 +466,85 @@ export class MateuNotificationBell extends LitElement {
             white-space: nowrap;
             font-size: var(--lumo-font-size-xs, 0.75rem);
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
+        }
+        .filters {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.4rem 0.4rem 0;
+        }
+        .filter {
+            font: inherit;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, 0.15));
+            background: transparent;
+            color: var(--lumo-body-text-color, #1a1a1a);
+            cursor: pointer;
+        }
+        .filter--on {
+            background: var(--lumo-primary-color-10pct, rgba(25, 118, 210, 0.1));
+            border-color: var(--lumo-primary-color, #1976d2);
+            color: var(--lumo-primary-text-color, #1976d2);
+        }
+        .group {
+            padding: 0.5rem 0.5rem 0.15rem;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--lumo-secondary-text-color, #5f6b7a);
+        }
+        .item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: start;
+        }
+        .item--resolved .entry-title {
+            color: var(--lumo-secondary-text-color, #5f6b7a);
+        }
+        .item--error .entry--unread .unread-dot { background: var(--lumo-error-color, #c62828); }
+        .item--warning .entry--unread .unread-dot { background: var(--lumo-warning-color, #f9a825); }
+        .entry-resolved {
+            font-size: var(--lumo-font-size-xxs, 0.7rem);
+            color: var(--lumo-success-text-color, #2e7d32);
+        }
+        .dismiss {
+            font: inherit;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            background: none;
+            border: none;
+            color: var(--lumo-secondary-text-color, #5f6b7a);
+            cursor: pointer;
+            padding: 0.45rem 0.4rem;
+            border-radius: var(--lumo-border-radius-s, 4px);
+        }
+        .dismiss:hover { background: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04)); }
+        .entry-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            padding: 0 0.5rem 0.45rem 1.35rem;
+        }
+        .entry-action {
+            font: inherit;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, 0.15));
+            background: transparent;
+            color: var(--lumo-primary-text-color, #1976d2);
+            cursor: pointer;
+        }
+        .entry-action--primary {
+            background: var(--lumo-primary-color, #1976d2);
+            color: var(--lumo-primary-contrast-color, #fff);
+            border-color: transparent;
+        }
+        .entry-action--danger {
+            color: var(--lumo-error-text-color, #c62828);
         }
         .footer {
             border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.08));

@@ -76,7 +76,14 @@ public final class ClasspathAssets {
      * or (with no {@code If-None-Match}) its {@code If-Modified-Since} is not older than the asset.
      */
     public boolean notModified(String ifNoneMatch, String ifModifiedSince) {
-      String etag = etag();
+      return notModified(ifNoneMatch, ifModifiedSince, etag());
+    }
+
+    /**
+     * {@link #notModified(String, String)} against a given validator — the one of the variant being
+     * answered ({@link AssetCompression#gzipEtag} for the gzip bytes).
+     */
+    public boolean notModified(String ifNoneMatch, String ifModifiedSince, String etag) {
       if (ifNoneMatch != null) {
         if (etag == null) {
           return false;

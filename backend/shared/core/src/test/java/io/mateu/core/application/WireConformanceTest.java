@@ -869,9 +869,17 @@ class WireConformanceTest {
     Discontinued
   }
 
-  /** The starters' Product: an id, a text, a number and an enum. */
+  /**
+   * The starters' Product: an id, a text, a number and an enum — and, like the starters', a {@code
+   * toString()} that names the record, so its record pages are titled after it in every port.
+   */
   public record Product(String id, String name, double price, ProductStatus status)
-      implements io.mateu.uidl.interfaces.Identifiable {}
+      implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String toString() {
+      return name != null && !name.isBlank() ? name : "New product";
+    }
+  }
 
   static final List<Product> PRODUCTS =
       List.of(
@@ -1590,12 +1598,17 @@ class WireConformanceTest {
     return increment;
   }
 
+  /** The size of the last increment {@link #roundTrip} serialised, as it travels (UTF-8 bytes). */
+  private static int lastRawBytes;
+
   private static JsonNode roundTrip(Object increment) {
     // Round-trip through text so a BigDecimal (DecimalNode) and the same value read back from the
     // golden (DoubleNode) compare equal: they serialise to the identical "1250.5", and it is that
     // serialised form the corpus pins — not Jackson's in-memory numeric node type.
     try {
-      return normalise(MAPPER.readTree(MAPPER.writeValueAsString(increment)));
+      var json = MAPPER.writeValueAsString(increment);
+      lastRawBytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+      return normalise(MAPPER.readTree(json));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -1620,6 +1633,63 @@ class WireConformanceTest {
           .as("case '%s' — the reference no longer produces what the corpus pins", name)
           .isEqualTo(MAPPER.readTree(Files.readString(file)));
     }
+  }
+
+  /**
+   * The response-size budget: the RAW wire JSON (before normalisation — what the browser downloads)
+   * of every corpus screen stays under the ceiling pinned in {@code
+   * src/test/resources/perf/response-size-budget.json} (measured + 10%). Sizes are deterministic,
+   * so this gates where a latency check could not: a mapper that starts emitting a duplicated
+   * subtree, empty husks or a whole catalogue per screen fails here instead of slowing every app.
+   *
+   * <p>Re-baseline (a reviewed change, saying why in the file's {@code reason}) with {@code
+   * -Dresponse.size.write=true}.
+   */
+  @Test
+  void everyCaseStaysWithinItsResponseSizeBudget() throws IOException {
+    var file =
+        Path.of(System.getProperty("user.dir"))
+            .resolve("src/test/resources/perf/response-size-budget.json");
+    var measured = new java.util.TreeMap<String, Integer>();
+    for (var name : CASES) {
+      actual(name);
+      measured.put(name, lastRawBytes);
+    }
+    if (Boolean.getBoolean("response.size.write")) {
+      var out = MAPPER.createObjectNode();
+      out.put(
+          "note",
+          "Ceiling per corpus screen = raw wire JSON bytes measured + 10%. Raise one only as a"
+              + " reviewed change, saying why in 'reason'. Regenerate with"
+              + " -Dresponse.size.write=true.");
+      out.put("reason", System.getProperty("response.size.reason", "baseline 2026-11"));
+      var ceilings = out.putObject("ceilings");
+      var raw = out.putObject("measured");
+      measured.forEach(
+          (name, bytes) -> {
+            ceilings.put(name, (int) Math.ceil(bytes * 1.10));
+            raw.put(name, bytes);
+          });
+      Files.createDirectories(file.getParent());
+      Files.writeString(
+          file, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(out) + "\n");
+      return;
+    }
+    assertThat(Files.exists(file))
+        .as("response-size budget (generate it with -Dresponse.size.write=true)")
+        .isTrue();
+    var ceilings = MAPPER.readTree(Files.readString(file)).path("ceilings");
+    var over = new ArrayList<String>();
+    measured.forEach(
+        (name, bytes) -> {
+          var ceiling = ceilings.path(name);
+          if (ceiling.isMissingNode()) {
+            over.add(name + ": no ceiling (re-baseline with -Dresponse.size.write=true)");
+          } else if (bytes > ceiling.asInt()) {
+            over.add(name + ": " + bytes + " bytes > ceiling " + ceiling.asInt());
+          }
+        });
+    assertThat(over).as("corpus screens over their response-size budget").isEmpty();
   }
 
   /**

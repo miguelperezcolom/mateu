@@ -13,6 +13,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Progress is a task, shown the platform's way.** A `LongTask` no longer builds a dialog on the
+  server: it reports a task (`Progress` command: title, text, fraction or indeterminate, "12 of
+  300", state) and each renderer shows it natively — a modal progress for a blocking task, a task
+  center (several tasks at once, kept when the user leaves the screen) for a background one, and on
+  IntelliJ the platform's own background tasks. New, `@Experimental`: `.background()`,
+  `.backgroundable()`, `.cancellable()` / `.onCancel(…)` (Cancel stops the work; only the caller who
+  started the task can cancel it), `.retryable()` (a failed task offers Retry), `.resultAction(…)`
+  ("Open report"), `.notifyWhenDone()` (the outcome lands in the inbox) and `step(text, done,
+  total)`. A task that fails ends failed with the message the user sees. Existing `LongTask` code
+  keeps compiling and working.
+- **Messages say what they mean.** `Message` gains a persistence (`toast`, `sticky`, `inbox` — an
+  error is sticky), any number of `actions` (Undo is one of them) and a dedup `key`; `position` is
+  now only a hint for the web.
+- **An inbox you act on, pushed live.** `AppNotification` gains a category, a severity, actions,
+  a resolved state and a server-built detail; `NotificationsSupplier` gains `onNotificationAction`,
+  `dismissNotifications` and `notificationDetail`; the bell groups, filters (unread / all /
+  resolved) and dismisses. `LiveNotifications.publish(user, entry)` pushes a change to that user's
+  open sessions only (apps with `@App(liveUpdates = true)`). IntelliJ shows messages and inbox entries
+  as platform notifications. Java, .NET and Python.
 - **Publish a design from Figma as a UI with no backend.** The Mateu Publish plugin reads the open
   file, builds a static site and uploads it to Netlify or Cloudflare Pages, or hands over a zip. It
   needs no Figma token, no Java and no repository.
@@ -89,6 +108,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **A phone app built outside EAS asks for the `production` over-the-air updates** (the Play bundle
   built locally, the GitHub APK). It carried no update channel, so the updates each release publishes
   never reached it.
+- **Desktop app: the navigator menu is a tree.** The app menu was a column of hyperlinks; it is now
+  the IDE's own tree, with the selected row, arrow keys, expandable groups and type-to-search. Card
+  menus keep their cards.
+- **Desktop app: read-only values read as text.** A record's view mode showed every value as a
+  greyed-out input (about 2:1 contrast). Values are now plain text you can select and copy, numbers are
+  written in the UI's locale (`77`, not `77.0`), and a read-only field drops its required asterisk.
+- **Desktop app: pages scale with the IDE font and get a margin.** Titles and other large text used
+  fixed point sizes, so the IDE's zoom and font settings left them behind; they now scale with it.
+  Composed pages (wizards, dashboards, welcome and item overview pages, YAML forms) no longer touch
+  the window's edges.
+- **Desktop app: the welcome hero's buttons sit in one centred row**, instead of one full-width bar
+  each.
 
 ### Removed
 
@@ -147,6 +178,43 @@ removable in 4.0) and the deprecated wire DTOs.
   every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
   those three lines.
   The desktop app moves to IntelliJ IDEA Community 2025.2.6.4 (the latest patch of its base).
+- **Open items of the October UX review, closed before GA** (status table in
+  `design/ux-review/*-findings.md`, "Estado 2026-11-08"):
+  - **Nothing pushes a phone page sideways any more.** A form's row of buttons wraps, and a
+    `@FoldedLayout`'s sections stack under 20rem instead of the second one being cut off at the
+    screen edge (Java, .NET and Python lay the row out the same way).
+  - **Planning board blocks read on any colour**: when neither the light nor the dark ink reaches
+    4.5:1 on a block's own colour (violet), the text is black. Its scrolling frame takes the focus,
+    so a keyboard can scroll it.
+  - **A disabled resource-grid card is `aria-disabled` and out of the tab order**; the selected one
+    says it is pressed, and its status chip keeps its contrast.
+  - **The rich-text toolbar, the chat's attachments and the saved-view star use the icon set**, not
+    emoji; the star is a named toggle with its pressed state.
+  - **Phone app:** a listing's selection boxes are one named checkbox each again (the Material
+    migration had nested Paper's own checkbox, named by its icon glyph, inside ours) and a row's
+    chevron is no longer a button inside the row; a month calendar opens on its agenda on a phone,
+    the grid one tap away; a record pushed over its listing drops its «Back to list», which the
+    back arrow already is; every font size is a step of the type scale (pinned by a test).
+  - **An unreadable page in `specs/ui` is reported once**, by its own loader, instead of a second
+    warning that called it a "route file".
+- **Desktop app: YAML record pages work again.** A YAML page's title showed the raw `${state.name}`
+  and its toolbar (Edit, Back to People) was missing, so a record could be neither edited nor left.
+  Its header is now the same as any page's. `${state.x}` also works in texts, images, avatars, badges,
+  links and Markdown. A button with a `route` navigates there, in the page and in the IDE toolbar,
+  instead of sending its action id.
+- **Desktop app: the primary button is the platform's default button.** It used the "Got It" tooltip
+  style, which was unreadable (dark text on dark grey) in the light theme.
+- **Desktop app: boards and skeletons follow the theme.** Kanban columns and loading skeletons used
+  fixed light greys, which showed as white slabs in a dark IDE. Kanban card titles are no longer cut
+  early by the card's menu button.
+- **Desktop app: foldouts are readable.** Each panel keeps its declared width and the row scrolls
+  sideways, as on the web; panels used to be squeezed into slivers. Markdown now draws headings,
+  tables, numbered lists, code and links (it showed `###` and `| Date | Concept |` as typed).
+- **Desktop app: long text wraps**, instead of being cut at the edge of its column.
+- **Desktop app: images load without freezing the IDE.** An image URL was fetched while the screen
+  was being drawn, so a slow image host froze the window.
+- **Desktop app: the RAIL wizard's form fills the row.** The form kept its narrow preferred width beside
+  the step rail; `flex` sizes in a row are now honoured, including fixed widths.
 - **A listing's page header sends each toolbar button once.** A button declared
   `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
   page toolbar through both annotations and was sent twice; the listing's copy, which carries the

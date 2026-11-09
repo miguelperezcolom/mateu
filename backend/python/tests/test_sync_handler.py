@@ -1682,6 +1682,9 @@ def test_folded_layout_puts_the_section_cards_in_one_horizontal_row():
     j = render(inc)
     assert '"type": "HorizontalLayout"' in j
     assert "One" in j and "Two" in j
+    # W-V-REFLOW-2: the row wraps and each column has a floor, so a phone stacks the sections.
+    assert '"wrap": true' in j
+    assert "min-width: min(20rem, 100%);" in j
 
 
 def test_zones_lay_sections_out_as_side_by_side_columns():

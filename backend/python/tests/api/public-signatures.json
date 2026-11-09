@@ -186,8 +186,37 @@
      "when",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "category",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "resolved",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "has_detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
-   ]
+   ],
+   "members": {
+    "to_json": [],
+    "to_wire": []
+   }
   },
   "AppShell": {
    "class": [
@@ -2052,6 +2081,177 @@
     ]
    }
   },
+  "LiveNotifications": {
+   "class": [],
+   "members": {
+    "command": [
+     [
+      "change",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "is_for": [
+     [
+      "change",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "caller",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "publish": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "notification",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "publish_to_all": [
+     [
+      "notification",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "refresh": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "remove": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "subscribe": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "LongTask": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "background": [],
+    "backgroundable": [],
+    "cancellable": [],
+    "close_after": [
+     [
+      "seconds",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "create": [
+     [
+      "title",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "done": [
+     [
+      "done_title",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "done_text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "notify_when_done": [],
+    "on_cancel": [
+     [
+      "hook",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "result_action": [
+     [
+      "action",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "retryable": [],
+    "run": [
+     [
+      "work",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "starting_text": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "with_command": [
+     [
+      "commands",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ],
+    "with_progress_bar": []
+   }
+  },
+  "LongTaskRun": {
+   "class": [
+    [
+     "task",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "work",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "end": [
+     [
+      "last",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "start": []
+   }
+  },
   "Lookup": {
    "class": []
   },
@@ -2167,9 +2367,25 @@
      "undo_parameters",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "persistence",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ],
    "members": {
+    "to_wire": [],
     "undoable": [
      [
       "text",
@@ -2186,8 +2402,104 @@
       "POSITIONAL_OR_KEYWORD",
       true
      ]
+    ],
+    "with_action": [
+     [
+      "action",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "with_key": [
+     [
+      "key",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "with_persistence": [
+     [
+      "persistence",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
     ]
    }
+  },
+  "MessageAction": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "open": [
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "route",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "run": [
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "action_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "parameters",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ],
+    "to_wire": [],
+    "with_style": [
+     [
+      "style",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "MessagePersistence": {
+   "enum": [
+    "INBOX",
+    "STICKY",
+    "TOAST"
+   ]
   },
   "MessageVariant": {
    "enum": [
@@ -2327,9 +2639,40 @@
     "to_command": []
    }
   },
+  "NotificationChange": {
+   "class": [
+    [
+     "principal",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "notification",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "removed_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "NotificationsSupplier": {
    "class": [],
    "members": {
+    "dismiss_notifications": [
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
     "mark_notifications_read": [
      [
       "ids",
@@ -2342,7 +2685,36 @@
       false
      ]
     ],
+    "notification_detail": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
     "notifications": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "on_notification_action": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "action_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
      [
       "request",
       "POSITIONAL_OR_KEYWORD",
@@ -2605,6 +2977,50 @@
      true
     ]
    ]
+  },
+  "ProgressReporter": {
+   "class": [
+    [
+     "initial",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "progress_bar",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "current": "property",
+    "step": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "title",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ],
+     [
+      "progress",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ],
+     [
+      "done",
+      "KEYWORD_ONLY",
+      true
+     ],
+     [
+      "total",
+      "KEYWORD_ONLY",
+      true
+     ]
+    ]
+   }
   },
   "RangeFilter": {
    "class": []

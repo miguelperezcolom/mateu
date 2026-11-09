@@ -460,7 +460,7 @@ public final class ActionMethods {
     int params = method.getParameterCount();
     var declaring = method.getDeclaringClass();
     if (declaring.isRecord() && params == 0) {
-      for (var component : declaring.getRecordComponents()) {
+      for (var component : io.mateu.core.domain.Records.components(declaring)) {
         if (component.getName().equals(name)) {
           return true;
         }

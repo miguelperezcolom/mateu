@@ -6,6 +6,8 @@ import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
 
 /**
  * A Mateu button DTO → a Swing [JButton]. `actionId` (fallback `id`), `label` (fallback actionId),
@@ -14,6 +16,7 @@ import javax.swing.JComponent
  * keep-mine/keep-theirs buttons) into the action.
  */
 fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
+    if (isButtonGroup(metadata)) return renderButtonGroup(ctx, metadata)
     val id = metadata.text("id")
     val actionId = metadata.text("actionId", id)
     val label = metadata.text("label", actionId)
@@ -25,11 +28,54 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     // A declared shortcut (`@Action(shortcut=…)`): an `alt+<letter>` one IS the button's access key
     // and reserves that letter; any other keeps its binding and takes no automatic letter.
     metadata.text("shortcut").takeIf { it.isNotBlank() }?.let { button.putClientProperty(AccessKeys.SHORTCUT_PROPERTY, it) }
-    if (metadata.text("buttonStyle").equals("Primary", ignoreCase = true)) {
-        button.putClientProperty("gotItButton", true)
-        button.putClientProperty("JButton.buttonType", "default")
-    }
+    // The page's primary action gets the platform's DEFAULT-button look (the filled accent button).
+    // It used to set "gotItButton" — the Got It tooltip style, dark-on-dark grey under the light
+    // theme (the welcome page's "Start check-in" was unreadable) and plain under Darcula.
+    if (isPrimary(metadata)) markPrimary(button)
+    // A button carrying a `route` (a RouteLink — YAML toolbars, "Back to People") NAVIGATES; its
+    // actionId is only the label's echo, and sending it answered 403.
+    val route = metadata.text("route")
     val parameters = ctx.jsonToParams(metadata.path("parameters"))
-    button.addActionListener { ctx.runAction(actionId, parameters.ifEmpty { null }) }
+    button.addActionListener {
+        if (route.isNotBlank()) ctx.openRoute(route) else ctx.runAction(actionId, parameters.ifEmpty { null })
+    }
     return button
+}
+
+internal fun isPrimary(metadata: JsonNode) = metadata.text("buttonStyle").equals("Primary", ignoreCase = true)
+
+/** The platform's default-button style (DarculaButtonUI reads this key), without making it the
+ *  root pane's default — Enter in a field must not fire a page action. */
+internal fun markPrimary(button: JButton) {
+    button.putClientProperty(com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+}
+
+/** Client property of a group's trigger holding its menu (the popup is not a child of the trigger). */
+const val BUTTON_GROUP_MENU = "mateu.buttonGroupMenu"
+
+/**
+ * A ButtonGroup placed in CONTENT travels as a Button carrying its buttons as `children`, with no
+ * action of its own (the toolbar group's shape) — before, it drew as one button that did nothing.
+ */
+fun isButtonGroup(metadata: JsonNode): Boolean =
+    metadata.path("children").let { it.isArray && it.size() > 0 } && metadata.text("actionId").isBlank()
+
+/** The group → a "label ▾" button opening a menu of its buttons, each running its own action. */
+private fun renderButtonGroup(ctx: AppContext, metadata: JsonNode): JComponent {
+    val label = metadata.text("label")
+    val trigger = JButton(plain("$label ▾"))
+    trigger.accessibleName(label)
+    val menu = JPopupMenu(label)
+    for (child in metadata.path("children")) {
+        val childAction = child.text("actionId", child.text("id"))
+        val item = JMenuItem(plain(child.text("label", childAction)))
+        item.isEnabled = !child.bool("disabled")
+        val parameters = ctx.jsonToParams(child.path("parameters"))
+        item.addActionListener { ctx.runAction(childAction, parameters.ifEmpty { null }) }
+        menu.add(item)
+    }
+    trigger.putClientProperty(BUTTON_GROUP_MENU, menu)
+    trigger.isEnabled = !metadata.bool("disabled")
+    trigger.addActionListener { menu.show(trigger, 0, trigger.height) }
+    return trigger
 }

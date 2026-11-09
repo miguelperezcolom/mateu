@@ -117,6 +117,22 @@ def test_the_renderers_assets_are_served_at_the_origin_root(vaadin_static):
     assert files.read("assets/index.css") is not None
 
 
+def test_the_renderers_text_assets_are_gzipped_to_a_browser_that_accepts_it(vaadin_static):
+    """Java's AssetCompression: the bundles travel gzipped (2.6 MB → 0.65 MB on a first load)."""
+    c = client(vaadin_static)
+    raw = (vaadin_static / "assets/mateu-vaadin.js").read_bytes()
+    gz = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip, br"})
+    assert gz.status_code == 200
+    assert gz.headers["content-encoding"] == "gzip"
+    assert gz.headers["vary"] == "Accept-Encoding"
+    assert int(gz.headers["content-length"]) < len(raw) / 2
+    assert gz.content == raw  # httpx inflates it
+    plain = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "identity"})
+    assert "content-encoding" not in plain.headers and plain.content == raw
+    assert plain.headers["vary"] == "Accept-Encoding"
+    assert ui_page.accepts_gzip("gzip;q=0") is False and ui_page.accepts_gzip("*") is True
+
+
 def test_the_api_and_the_apps_own_routes_are_never_answered_with_the_page(vaadin_static):
     c = client(vaadin_static)
     # an API miss stays a miss (a data fetch to a missing endpoint must never get the index)

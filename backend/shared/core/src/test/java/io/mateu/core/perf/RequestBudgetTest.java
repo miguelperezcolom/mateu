@@ -215,7 +215,7 @@ class RequestBudgetTest {
   }
 
   /** What one warm request costs: the lookups it made and the classes it walked for injection. */
-  record Cost(Map<String, Integer> lookups, long injectionFieldScans) {
+  record Cost(Map<String, Integer> lookups, long injectionFieldScans, long recordShapeReads) {
     int totalLookups() {
       return lookups.values().stream().mapToInt(Integer::intValue).sum();
     }
@@ -225,10 +225,12 @@ class RequestBudgetTest {
     assertThat(scenario.get()).isNotNull(); // warm-up
     mateu.resetLookups();
     long scansBefore = ReflectionInstanceFactory.injectionFieldScans();
+    long shapesBefore = io.mateu.core.domain.Records.shapeReads();
     assertThat(scenario.get()).isNotNull();
     return new Cost(
         new TreeMap<>(mateu.lookups()),
-        ReflectionInstanceFactory.injectionFieldScans() - scansBefore);
+        ReflectionInstanceFactory.injectionFieldScans() - scansBefore,
+        io.mateu.core.domain.Records.shapeReads() - shapesBefore);
   }
 
   static String bean(Class<?> type) {
@@ -261,6 +263,42 @@ class RequestBudgetTest {
             + cost.lookups());
     assertThat(cost.lookups()).as(scenario + " container lookups").isEqualTo(lookups);
     assertThat(cost.injectionFieldScans()).as(scenario + " injection field scans").isEqualTo(scans);
+    // the generic walks of the wire records read each record class's shape once per process
+    // (io.mateu.core.domain.Records): reading it per node was 66% of a listing load's CPU
+    assertThat(cost.recordShapeReads()).as(scenario + " record shapes read").isZero();
+  }
+
+  /**
+   * {@link Class#getRecordComponents()} is read through {@code io.mateu.core.domain.Records} (or a
+   * walker's own per-class cache): the JVM does not cache it, and a walk that called it per node
+   * was 66% of a listing load's CPU (2026-11). A new direct call fails here.
+   */
+  @Test
+  void recordShapesAreReadThroughTheCache() throws java.io.IOException {
+    var allowed =
+        java.util.Set.of(
+            "io/mateu/core/domain/Records.java",
+            // per-class caches of their own (a ConcurrentHashMap of shapes)
+            "io/mateu/core/application/runaction/ComponentRecords.java",
+            "io/mateu/core/application/microfrontends/MicroFrontendTree.java");
+    var root = java.nio.file.Path.of(System.getProperty("user.dir"), "src/main/java");
+    try (var files = java.nio.file.Files.walk(root)) {
+      var offenders =
+          files
+              .filter(f -> f.toString().endsWith(".java"))
+              .filter(
+                  f -> {
+                    try {
+                      return java.nio.file.Files.readString(f).contains(".getRecordComponents()");
+                    } catch (java.io.IOException e) {
+                      throw new java.io.UncheckedIOException(e);
+                    }
+                  })
+              .map(f -> root.relativize(f).toString().replace('\\', '/'))
+              .filter(f -> !allowed.contains(f))
+              .toList();
+      assertThat(offenders).as("direct getRecordComponents() calls").isEmpty();
+    }
   }
 
   @Test

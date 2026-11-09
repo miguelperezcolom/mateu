@@ -6,6 +6,7 @@ import { AddRouteCommand } from './AddRouteCommand'
 import { NewProjectCommand } from './NewProjectCommand'
 import { ProjectSettingsCommand } from './ProjectSettingsCommand'
 import { LiveRunCommand } from './LiveRunCommand'
+import { FigmaImportCommand } from './FigmaImportCommand'
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(MateuVisualEditorProvider.register(context))
@@ -15,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(NewProjectCommand.register(context))
     context.subscriptions.push(ProjectSettingsCommand.register())
     context.subscriptions.push(LiveRunCommand.register())
+    context.subscriptions.push(FigmaImportCommand.register(context))
 }
 
 export function deactivate() {}

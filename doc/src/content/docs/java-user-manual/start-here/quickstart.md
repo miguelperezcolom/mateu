@@ -16,17 +16,10 @@ You need **Java 21** and **Maven 3.9+**.
 :::tip[Generate it instead]
 This exact project is one click away: **File › New › Project… › Mateu** in IntelliJ, **Mateu: New
 Project…** in VS Code, or `mvn archetype:generate -DarchetypeGroupId=io.mateu
--DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.example
+-DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=MATEU_VERSION -DgroupId=com.example
 -DartifactId=my-app` — with your package, the latest Mateu release and an `AGENTS.md`/`CLAUDE.md`
 for AI assistants. See [Create your project](/java-create-your-project/). Prefer no code at all?
 [Quickstart: YAML only](/define/yaml/quickstart/).
-:::
-
-:::caution[The archetype needs a JDK 21–25]
-Maven's archetype plugin runs a Groovy script that cannot read newer class files: on JDK 26+ it
-fails with *"BUG! exception in phase 'semantic analysis' … Unsupported class file major version
-70"* and leaves a half-generated folder (`variants/`, `generator/`). Delete that folder and rerun
-with `JAVA_HOME` pointing at a JDK 21–25. The IDE wizards have no such limit.
 :::
 
 ![The home page the quickstart builds](/images/docs/first-app/starter-home.png)

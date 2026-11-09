@@ -27,6 +27,8 @@ from .documents import (  # noqa: F401
 from .messages import (  # noqa: F401
     BannerTheme,
     Message,
+    MessageAction,
+    MessagePersistence,
     MessageVariant,
     T,
     UserFacingError,
@@ -98,6 +100,8 @@ from .security import (  # noqa: F401
     ReadOnlyUnless,
 )
 from .live_header_values import LiveHeaderValues  # noqa: F401
+from .live_notifications import LiveNotifications, NotificationChange  # noqa: F401
+from .progress import LongTask, LongTaskRun, ProgressReporter  # noqa: F401
 from .suppliers import (  # noqa: F401
     AppShortcutEntry,
     HeaderValue,
@@ -393,6 +397,9 @@ __all__ = [
     # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
     "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
     "LiveHeaderValues",
+    # Progress and notifications patterns (EXPERIMENTAL)
+    "LongTask", "LongTaskRun", "ProgressReporter", "MessageAction", "MessagePersistence",
+    "LiveNotifications", "NotificationChange",
     # Server-resolved micro frontends + content slots (EXPERIMENTAL)
     "ContentSlot", "cacheable_fragment", "CorrelationIdProvider", "FragmentCachePolicy",
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",

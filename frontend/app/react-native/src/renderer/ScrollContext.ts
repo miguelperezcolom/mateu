@@ -22,3 +22,10 @@ export const useFitsContent = (): boolean => useContext(FitsContent);
  */
 export const PageShowsToolbar = createContext(false);
 export const usePageShowsToolbar = (): boolean => useContext(PageShowsToolbar);
+
+/**
+ * Whether the screen was pushed over another one, so a back arrow (in the shell's bar or the
+ * screen's own) and Android's system Back already lead back (RN-26).
+ */
+export const ScreenHasBack = createContext(false);
+export const useScreenHasBack = (): boolean => useContext(ScreenHasBack);

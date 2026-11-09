@@ -1347,10 +1347,12 @@ test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de l
   assert.equal(undoMessageOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }).autoTimeout, 'off')
 })
 
-test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain; JET oj-message lleva el Undo', () => {
+test('campana y deshacer: la shell pinta la campana y el bridge su panel; JET oj-message lleva el Undo', () => {
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /id="mateuBellButton"/)
-  assert.match(shell, /<oj-list-view id="mateuBellList"[^>]*on-oj-item-action="\[\[ \$listeners\.bellItemAction \]\]"/)
+  // the entries are the bridge's (inbox.mjs: filters, categories, actions, dismiss), outside Knockout
+  assert.match(shell, /<div id="mateuBellPanel"[^>]*data-oj-binding-provider="none"/)
+  assert.match(webApp('pages/shell-page-chains/mateuBell.js'), /bridge\.mountInboxPanel\(document\.getElementById\('mateuBellPanel'\)/)
   const json = webApp('pages/shell-page.json')
   assert.match(json, /"oj-list-view": \{\s*"path": "ojs\/ojlistview"/)
   assert.match(json, /"oj-list-item-layout": \{\s*"path": "ojs\/ojlistitemlayout"/)

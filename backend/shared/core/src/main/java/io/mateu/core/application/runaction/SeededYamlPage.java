@@ -174,7 +174,7 @@ record SeededYamlPage(
       return;
     }
     if (node.getClass().isRecord() && node.getClass().getName().startsWith("io.mateu.uidl")) {
-      for (var component : node.getClass().getRecordComponents()) {
+      for (var component : io.mateu.core.domain.Records.components(node.getClass())) {
         var type = component.getType();
         if (Component.class.isAssignableFrom(type)
             || java.util.Collection.class.isAssignableFrom(type)) {
@@ -254,7 +254,16 @@ record SeededYamlPage(
     if (!node.getClass().isRecord() || !node.getClass().getName().startsWith("io.mateu.uidl")) {
       return;
     }
-    for (var component : node.getClass().getRecordComponents()) {
+    for (var component : io.mateu.core.domain.Records.components(node.getClass())) {
+      var type = component.getType();
+      // a scalar never holds a field (the record shapes are read once per class, #1091)
+      if (type.isPrimitive()
+          || type == String.class
+          || Number.class.isAssignableFrom(type)
+          || type == Boolean.class
+          || type.isEnum()) {
+        continue;
+      }
       try {
         collectRequired(component.getAccessor().invoke(node), out, seen);
       } catch (ReflectiveOperationException e) {

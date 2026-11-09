@@ -16,6 +16,7 @@ import { MateuViewHost } from '../renderer/MateuViewHost';
 import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
 import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
+import { TaskHost } from '../renderer/TaskHost';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -31,6 +32,7 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
     <>
       <MateuRoot initialRoute={initialRoute} />
       <OverlayHost visible={visible} />
+      <TaskHost visible={visible} />
       <ToastHost visible={visible} />
       <DirtyGuardHost />
     </>
@@ -43,6 +45,10 @@ interface Toast {
   text: string;
   variant: 'info' | 'warning' | 'error';
   undo?: { label: string; onPress: () => void };
+  /** Every action of the message (Message.actions); drawn instead of `undo` when present. */
+  actions?: { label: string; onPress: () => void; style?: string | null }[];
+  /** A message with the same key replaces this one. */
+  key?: string | null;
   /** ms; 0 = stays until dismissed (gets a ✕) */
   lifetime: number;
 }
@@ -58,9 +64,10 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
     session.notify = (title, text, variant, options) => {
       // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed;
       // an error (or a sticky notice) stays until dismissed (toastLifetime)
-      const duration = toastLifetime(variant, options);
-      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo, lifetime: duration };
-      setToasts((t) => [...t, toast]);
+      const duration = toastLifetime(variant, { ...options, undo: options?.undo ?? (options?.actions?.length ? true : undefined) });
+      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo, actions: options?.actions, key: options?.key, lifetime: duration };
+      // the same key replaces the toast on screen instead of stacking a second one
+      setToasts((t) => [...t.filter((x) => !(toast.key && x.key === toast.key)), toast]);
       if (duration > 0) setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
     };
   }, [session]);
@@ -81,12 +88,30 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
           wrapperStyle={styles.toastWrapper}
           style={[styles.toast, t.variant === 'error' && styles.toastError]}
           theme={t.variant === 'error' ? { colors: { inverseOnSurface: theme.onFill, inversePrimary: theme.onFill } } : undefined}
-          action={t.undo ? { label: t.undo.label, onPress: () => { t.undo!.onPress(); dismiss(t.id); } } : undefined}
+          action={
+            t.actions && t.actions.length === 1
+              ? { label: t.actions[0].label, onPress: () => { t.actions![0].onPress(); dismiss(t.id); } }
+              : !t.actions?.length && t.undo
+                ? { label: t.undo.label, onPress: () => { t.undo!.onPress(); dismiss(t.id); } }
+                : undefined
+          }
           onIconPress={t.lifetime === 0 ? () => dismiss(t.id) : undefined}
           iconAccessibilityLabel="Dismiss"
           accessibilityRole={t.variant === 'error' ? 'alert' : undefined}
         >
-          {t.title ? `${t.title} — ${t.text}` : t.text}
+          {t.actions && t.actions.length > 1 ? (
+            // several actions: Material's snackbar takes one — the rest go under the text
+            <View style={styles.toastBody}>
+              <PaperText style={styles.toastText}>{t.title ? `${t.title} — ${t.text}` : t.text}</PaperText>
+              <View style={styles.toastActions}>
+                {t.actions.map((a, i) => (
+                  <TouchableOpacity key={i} {...buttonA11y({ label: a.label })} style={styles.toastAction} onPress={() => { a.onPress(); dismiss(t.id); }}>
+                    <PaperText style={styles.toastActionText}>{a.label}</PaperText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : t.title ? `${t.title} — ${t.text}` : t.text}
         </Snackbar>
       ))}
     </View>
@@ -329,6 +354,11 @@ const styles = themed(() => StyleSheet.create({
   toastWrapper: { position: 'relative' },
   toast: { borderRadius: 4 },
   toastError: { backgroundColor: theme.danger },
+  toastBody: { gap: 4 },
+  toastText: { color: theme.background },
+  toastActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 4 },
+  toastAction: { minHeight: theme.minTouch, justifyContent: 'center', paddingHorizontal: 8 },
+  toastActionText: { color: theme.primaryContainer, fontWeight: '600' },
   overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'flex-end' },
   dialogBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   dialog: { width: '100%', maxWidth: 560, maxHeight: '85%', borderRadius: theme.radiusLg, paddingTop: 12, paddingBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },

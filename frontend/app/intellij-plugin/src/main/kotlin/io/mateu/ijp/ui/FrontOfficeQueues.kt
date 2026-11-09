@@ -101,18 +101,28 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
             col.layout = BoxLayout(col, BoxLayout.Y_AXIS)
             col.alignmentY = java.awt.Component.TOP_ALIGNMENT
             col.border = JBUI.Borders.empty(10)
-            col.background = Color(0xF4, 0xF4, 0xF5)
+            // The column is a quiet tint of the THEME's panel (it was a fixed #F4F4F5: a white slab
+            // in a dark IDE, under dark cards whose text sat at ~1.3:1); the cards are list-coloured
+            // surfaces with the theme's border, so both read in light and dark alike.
+            col.background = SurfaceColors.tint
             col.isOpaque = true
             val head = JBLabel(plain("${column.title}  (${column.cards.size})"))
             head.font = head.font.deriveFont(Font.BOLD)
             col.addStacked(head, 6)
             for (card in column.cards) {
                 val cardPanel = verticalPanel(3)
-                cardPanel.border = JBUI.Borders.empty(8)
-                cardPanel.background = JBColor.background()
+                cardPanel.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(7))
+                cardPanel.background = SurfaceColors.surface
                 cardPanel.isOpaque = true
                 val titleRow = JPanel(java.awt.BorderLayout()).apply { isOpaque = false }
-                titleRow.add(JBLabel(plain(card.title)).apply { font = font.deriveFont(Font.BOLD) }, java.awt.BorderLayout.CENTER)
+                // a narrow column cuts long titles: the whole title stays reachable on hover
+                titleRow.add(JBLabel(plain(card.title)).apply {
+                    font = font.deriveFont(Font.BOLD)
+                    toolTipText = plainTip(card.title)
+                    // a tooltip registers a key listener: keep the label out of the focus cycle,
+                    // the card itself is the keyboard target
+                    isFocusable = false
+                }, java.awt.BorderLayout.CENTER)
                 cardPanel.addStacked(titleRow, 2)
                 if (card.description.isNotBlank()) {
                     cardPanel.addStacked(JBLabel(plain(card.description)).apply {
@@ -129,6 +139,11 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
                         isBorderPainted = false
                         isContentAreaFilled = false
                         isFocusable = true
+                        // a glyph-sized target: the L&F's 72px button minimum ate half the card and
+                        // cut every title ("Mount fabrica…") with room to spare
+                        margin = JBUI.emptyInsets()
+                        preferredSize = JBUI.size(24, 20)
+                        minimumSize = preferredSize
                         accessibleName("Move ${card.title}")
                         toolTipText = plainTip("Move ${card.title}")
                         putClientProperty(CARD_MOVE_KEY, card.id)
@@ -197,7 +212,7 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
     for (group in metadata.arr("groups")) {
         val label = group.text("label")
         if (label.isNotBlank()) panel.addStacked(JBLabel(plain(label.uppercase())).apply {
-            font = font.deriveFont(Font.BOLD, 10f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(10f))
             foreground = uxMuted()
         }, 4)
         for (item in group.arr("items")) {
@@ -258,11 +273,11 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
                 isOpaque = true
                 background = uxAccent()
                 border = JBUI.Borders.empty(0, 4)
-                font = font.deriveFont(Font.BOLD, 8f)
+                font = font.deriveFont(Font.BOLD, PageChrome.fontSize(8f))
             })
         }, 2)
         card.addStacked(JBLabel(plain(item.text("title"))).apply {
-            font = font.deriveFont(Font.BOLD, 16f)
+            font = font.deriveFont(Font.BOLD, PageChrome.fontSize(16f))
             if (disabled) foreground = uxMuted()
         }, 1)
         val subtitle = item.text("subtitle")
@@ -275,7 +290,7 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val note = item.text("note")
         if (note.isNotBlank()) card.addStacked(JBLabel(plain("● $note")).apply {
             foreground = uxPaletteColor(item.text("noteColor"))
-            font = font.deriveFont(10f)
+            font = font.deriveFont(PageChrome.fontSize(10f))
         }, 0)
         if (!disabled) {
             card.activatable {

@@ -7,6 +7,8 @@
  */
 const DARK = '#1a1a1a' // design-token-ok: the ink paired with a data colour, not a theme colour
 const LIGHT = '#fff' // design-token-ok: idem
+const BLACK = '#000' // design-token-ok: idem — only when neither ink above reaches AA
+const AA = 4.5
 
 const channels = (color: string): [number, number, number] | undefined => {
     const c = color.trim().toLowerCase()
@@ -33,5 +35,12 @@ export const contrastRatio = (a: string, b: string): number | undefined => {
 
 export const inkOn = (background: string | undefined | null): string | undefined => {
     if (!background || !channels(background)) return undefined
-    return (contrastRatio(background, LIGHT) ?? 0) >= (contrastRatio(background, DARK) ?? 0) ? LIGHT : DARK
+    const light = contrastRatio(background, LIGHT) ?? 0
+    const dark = contrastRatio(background, DARK) ?? 0
+    const best = light >= dark ? LIGHT : DARK
+    // A mid-luminance colour (violet #8b5cf6: 4.2:1 with white, 4.1:1 with the soft dark ink)
+    // passes with neither; pure black still reaches AA there (5.0:1) — the planning-board blocks
+    // the October review flagged were exactly that case.
+    if (Math.max(light, dark) < AA && (contrastRatio(background, BLACK) ?? 0) >= AA) return BLACK
+    return best
 }

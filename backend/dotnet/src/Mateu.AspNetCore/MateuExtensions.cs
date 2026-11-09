@@ -205,9 +205,29 @@ public static class MateuExtensions
             }
             if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
             {
+                // An action that answers a LongTask streams its progress (one increment per step,
+                // cancellable with _progress-cancel; closing the stream cancels it); any other
+                // action streams its single increment.
+                var slot = SyncHandler.BeginStream();
                 var increment = await RunGuarded(ctx, rq, () =>
                     handler.HandleAsync(rq, prefix, ctx.RequestAborted));
-                await Send(increment, ctx.RequestAborted);
+                if (!slot.HasStream)
+                {
+                    await Send(increment, ctx.RequestAborted);
+                    return;
+                }
+                if (increment.Commands.Count > 0 || increment.Messages.Count > 0 || increment.Fragments.Count > 0)
+                    await Send(increment, ctx.RequestAborted);
+                try
+                {
+                    await foreach (var step in handler.ContinueStream(slot,
+                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted))
+                        await Send(step, ctx.RequestAborted);
+                }
+                catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+                {
+                    // the browser went away: the task was cancelled with its stream
+                }
                 return;
             }
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
@@ -216,6 +236,13 @@ public static class MateuExtensions
             queue.Writer.TryWrite(SyncHandler.LiveUpdatesSnapshot());
             using var subscription = LiveHeaderValues.Subscribe(change =>
                 queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.LiveUpdateCommand(change.Id, change.Value)])));
+            // the notification inbox's changes, only those for THIS caller (or for everyone)
+            var caller = PrincipalName(ctx);
+            using var notifications = LiveNotifications.Subscribe(change =>
+            {
+                if (SyncHandler.IsFor(change, caller))
+                    queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.NotificationsChangedCommand(change)]));
+            });
             using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
                 LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
             try
@@ -337,6 +364,18 @@ public static class MateuExtensions
             var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
+            var path = ctx.Request.Path.Value ?? "/";
+            // the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
+            // Vaadin first load); Java's AssetCompression
+            if (UiPage.IsAsset(path) && UiPage.IsCompressible(path))
+            {
+                ctx.Response.Headers.Vary = "Accept-Encoding";
+                if (body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString()))
+                {
+                    body = UiPage.Gzipped(path, body);
+                    ctx.Response.Headers.ContentEncoding = "gzip";
+                }
+            }
             ctx.Response.StatusCode = StatusCodes.Status200OK;
             ctx.Response.ContentType = contentType;
             ctx.Response.ContentLength = body.Length;

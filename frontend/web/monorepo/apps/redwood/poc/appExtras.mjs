@@ -1,3 +1,4 @@
+import { notificationsChangedOf, applyNotificationsChanged } from './inbox.mjs'
 import { chromeText } from './i18n.mjs'
 import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
@@ -236,7 +237,12 @@ function liveConnect() {
       for (const event of events) {
         const line = event.trim()
         if (!line.startsWith('data:')) continue
-        try { for (const c of headerChangesOf(JSON.parse(line.slice(5).trim()))) updateHeaderValue(c.id, c.value) } catch (e) { /* heartbeat */ }
+        try {
+          const inc = JSON.parse(line.slice(5).trim())
+          for (const c of headerChangesOf(inc)) updateHeaderValue(c.id, c.value)
+          // the inbox changed for this user (LiveNotifications.publish): the bell follows (inbox.mjs)
+          for (const change of notificationsChangedOf(inc)) applyNotificationsChanged(change)
+        } catch (e) { /* heartbeat */ }
       }
     }
   }).catch(() => { if (!own.signal.aborted) liveFailures++ })

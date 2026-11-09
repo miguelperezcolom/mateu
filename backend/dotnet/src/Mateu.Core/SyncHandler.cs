@@ -78,7 +78,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
         }
         var pending = MicroFrontends.MicroFrontendPending.Begin();
-        var increment = HandleUnresolved(rq, requestBaseUrl);
+        var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
         return pending.Value
@@ -98,7 +98,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
         var pending = MicroFrontends.MicroFrontendPending.Begin();
-        var increment = HandleUnresolved(rq, requestBaseUrl);
+        var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
         return pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
             : increment;
@@ -115,6 +115,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         EstablishRequestContext(rq);
         rq = FoldRouteMarkers(rq);
         rq = GuardYamlAccess(rq);
+
+        // 0a. The user cancels a running task (the renderer's Cancel on a LongTask): no instance
+        // to resolve, and only the caller's own task can be stopped (mirrors Java's ProgressTasks).
+        if (rq.ActionId == ProgressTasks.CancelAction) return CancelTask(rq);
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -765,14 +769,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private static UIIncrementDto MapResult(object? result, RunActionRqDto? rq = null) => result switch
     {
         null => UIIncrementDto.Of(),
+        // A LongTask: streamed by the SSE endpoint, run to the end on the sync leg (ProgressTasks).
+        LongTaskRun run => ParkStream(run, rq),
         // A Document is shown or downloaded: a DownloadFile command, the bytes inline when small,
         // a single-use URL when large or lazy (mirrors Java's CommandMapper).
         Document doc => UIIncrementDto.Of(commands:
             [new UICommandDto(rq is null ? "ux_main" : Target(rq), "DownloadFile",
                 DocumentCommands.ToFileDownload(doc, RequestBaseUrl.Value))]),
-        Message msg => UIIncrementDto.Of(messages:
-            [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration,
-                msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)]),
+        Message msg => UIIncrementDto.Of(messages: [MessageOf(msg)]),
         // Action-returned page banner(s) → UIIncrement.banners. A PageBanners carries the mode too
         // (append accumulates over what earlier actions showed; replace, the default, swaps them).
         PageBanners pbs => UIIncrementDto.Of(banners: pbs.Banners.Select(BannerOf).Cast<object>().ToList(),
@@ -803,6 +807,26 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         IEnumerable<object> many => Merge(many.Select(r => MapResult(r, rq))),
         _ => UIIncrementDto.Of(),
     };
+
+    /// <summary>A returned <see cref="Message"/> on the wire: persistence as declared (else an error is
+    /// sticky, anything else a toast), the declared actions plus the legacy undo as one of them
+    /// (style undo) when it is not already listed, the dedup key (mirrors Java's MessageMapper).</summary>
+    private static MessageDto MessageOf(Message msg)
+    {
+        var variant = msg.Variant.ToString().ToLowerInvariant();
+        var actions = msg.Actions.Select(LongTask.ToDto).ToList();
+        if (msg.UndoActionId is not null && msg.Actions.All(a => a.ActionId != msg.UndoActionId))
+            actions.Add(new MessageActionDto(msg.UndoLabel, msg.UndoActionId, msg.UndoParameters, null, Message.StyleUndo));
+        var dto = new MessageDto(variant, "middle", msg.Title, msg.Text, msg.Duration,
+            msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)
+        {
+            Actions = actions,
+            Key = msg.Key,
+        };
+        return msg.Persistence is { } persistence
+            ? dto with { Persistence = persistence.ToString().ToLowerInvariant() }
+            : dto;
+    }
 
     /// <summary>Concatenates the commands, messages, fragments and banners of several increments.</summary>
     private static UIIncrementDto Merge(IEnumerable<UIIncrementDto> increments)

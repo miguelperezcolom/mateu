@@ -107,4 +107,14 @@ class MountRegistryTest {
     assertThat(table.match("orders").orElseThrow().entry().viewModel())
         .isEqualTo("com.acme.Orders");
   }
+
+  @Test
+  void onlyAFileNamedLikeARouteFileIsReportedAsOne() {
+    // DX-17: an unreadable PAGE (products.yaml) was logged as a "route file"; its own loader
+    // reports it with the line, so this walk only speaks up for route files
+    assertThat(MountRegistry.looksLikeRouteFile("specs/ui/routes.yaml")).isTrue();
+    assertThat(MountRegistry.looksLikeRouteFile("specs/ui/admin/admin-routes.yml")).isTrue();
+    assertThat(MountRegistry.looksLikeRouteFile("specs/ui/products.yaml")).isFalse();
+    assertThat(MountRegistry.looksLikeRouteFile("specs/ui/subroutes-page.yaml")).isFalse();
+  }
 }

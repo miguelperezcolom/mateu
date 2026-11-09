@@ -99,7 +99,13 @@ class FormFieldRenderTest : BasePlatformTestCase() {
     }
 
     fun testReadOnlyAndDisabledFieldsAreNotEditable() {
-        assertFalse(field(render(context(), """{"fieldId":"x","label":"X","readOnly":true}""")).isEnabled)
+        // read-only shows the VALUE as selectable text (not a greyed-out input); disabled keeps the
+        // disabled control
+        val readOnly = field(render(context(), """{"fieldId":"x","label":"X","readOnly":true}""", state = """{"x":"RES-0007"}"""))
+            as javax.swing.text.JTextComponent
+        assertFalse(readOnly.isEditable)
+        assertTrue("a read-only value stays selectable/copyable", readOnly.isEnabled)
+        assertEquals("RES-0007", readOnly.text)
         assertFalse(field(render(context(), """{"fieldId":"x","label":"X","disabled":true}""")).isEnabled)
     }
 

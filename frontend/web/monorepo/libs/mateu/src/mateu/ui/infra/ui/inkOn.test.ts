@@ -8,6 +8,10 @@ describe('inkOn (text on a data-supplied colour)', () => {
         expect(inkOn('#3b82f6')).toBe('#1a1a1a')       // mid blue: white is 3.7:1, dark is 4.8:1
         expect(inkOn('rgb(255, 255, 0)')).toBe('#1a1a1a')
     })
+    it('falls back to pure black when neither ink reaches AA (violet: 4.2 / 4.1 → 5.0:1)', () => {
+        expect(inkOn('#8b5cf6')).toBe('#000')
+        expect(contrastRatio('#8b5cf6', inkOn('#8b5cf6')!)!).toBeGreaterThanOrEqual(4.5)
+    })
     it('leaves a colour it cannot read to the theme', () => {
         expect(inkOn('var(--lumo-primary-color)')).toBeUndefined()
         expect(inkOn(undefined)).toBeUndefined()

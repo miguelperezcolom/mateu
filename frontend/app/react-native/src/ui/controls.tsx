@@ -78,18 +78,23 @@ export function StatusChip({ label, tone, style }: { label: string; tone?: strin
 /** A Material (Android-style box) checkbox on both platforms — the iOS variant draws no box when
  *  unchecked, which reads as "nothing here" in a list. Announced as a checkbox with its state. */
 export function SelectBox({ checked, label, onToggle, style, disabled }: { checked: boolean; label: string; onToggle: () => void; style?: StyleProp<ViewStyle>; disabled?: boolean }) {
+  // ONE control: Paper's checkbox already is a role=checkbox with its state, so it carries the name
+  // (and the aria-checked alias react-native-web reads) itself. Wrapping it in a second accessible
+  // checkbox — what this did after the Paper migration — nested a control inside a control and left
+  // the inner one named by its icon glyph ("󰄱"), unchecked-state-less (rn-a11y-probe, 2026-11-08).
   return (
-    <View
-      style={style}
-      accessible
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked, disabled: !!disabled }}
-      // the ARIA alias too: react-native-web only emits aria-checked from it
-      aria-checked={checked}
-      onAccessibilityTap={onToggle}
-    >
-      <Checkbox.Android hitSlop={6} status={checked ? 'checked' : 'unchecked'} onPress={onToggle} disabled={disabled} color={theme.primary} uncheckedColor={theme.muted} />
+    <View style={style}>
+      <Checkbox.Android
+        hitSlop={6}
+        status={checked ? 'checked' : 'unchecked'}
+        onPress={onToggle}
+        disabled={disabled}
+        color={theme.primary}
+        uncheckedColor={theme.muted}
+        accessibilityLabel={label}
+        // the ARIA alias too: react-native-web only emits aria-checked from it
+        aria-checked={checked}
+      />
     </View>
   );
 }

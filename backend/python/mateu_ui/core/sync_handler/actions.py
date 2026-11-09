@@ -9,7 +9,6 @@ import inspect
 
 from mateu_ui.dtos import (
     Banner as BannerDto,
-    Message as MessageDto,
     UICommand,
     UIFragment,
     UIIncrement,
@@ -119,6 +118,26 @@ class ActionHandlerMixin(MixinBase):
                 args.append(None)
         return args
 
+    def _long_task(self, run, rq: RunActionRq | None) -> UIIncrement:
+        """A LongTask an action returned: the first increment (the task, running) when an SSE
+        endpoint is collecting the rest of the stream, else the whole task run to the end."""
+        from .. import error_boundary, progress
+
+        identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+        increments = progress.stream(
+            run,
+            identity,
+            map_item=lambda item: self.map_result(item, rq),
+            describe_error=lambda error: error_boundary.describe(
+                error, rq.action_id if rq is not None else None
+            ),
+        )
+        holder = progress.pending_streams.get()
+        if holder is None:
+            return progress.drain(increments)
+        holder.append(increments)
+        return next(increments)
+
     def map_result(self, result, rq: RunActionRq | None = None) -> UIIncrement:
         if result is None:
             return UIIncrement.of()
@@ -144,20 +163,13 @@ class ActionHandlerMixin(MixinBase):
                 ]
             )
         if isinstance(result, Message):
-            return UIIncrement.of(
-                messages=[
-                    MessageDto(
-                        variant=result.variant.value,
-                        position="middle",
-                        title=result.title,
-                        text=result.text,
-                        duration=result.duration,
-                        undo_label=result.undo_label,
-                        undo_action_id=result.undo_action_id,
-                        undo_parameters=result.undo_parameters,
-                    )
-                ]
-            )
+            return UIIncrement.of(messages=[result.to_wire()])
+        # A LongTask: its progress streams over the SSE endpoint (which collects the generator
+        # through progress.pending_streams); the sync endpoint runs it to the end.
+        from mateu_ui.uidl.progress import LongTaskRun
+
+        if isinstance(result, LongTaskRun):
+            return self._long_task(result, rq)
         # PageBanners: the same banners with an explicit replace / append mode (Java parity).
         if isinstance(result, PageBanners):
             inc = self.map_result(list(result.banners), rq) if result.banners else UIIncrement.of()

@@ -1951,3 +1951,26 @@ tocan; los desplegados siguen así mientras la página es la misma y una navegac
 > recién abierto.
 
 Tests: `test-pms.mjs`, `test-dom.mjs`. Evidencia: `poc/shots/foldout-open-false-*.png`.
+
+## Progreso y notificaciones como patrones (2026-11-08)
+
+Spec: `design/progress-and-notifications.md`. Un `LongTask` ya no emite un Dialog construido en el
+servidor: emite comandos `Progress` (el estado completo de la tarea cada vez) y `poc/tasks.mjs` lleva un
+CENTRO DE TAREAS (por `taskId`, varias a la vez). `runMateuActionSse` le pasa cada Progress al llegar y los
+quita del increment; un stream que ya informó de una tarea no se corta al navegar — el progreso sigue
+llegando al centro, un mensaje `inbox` va a la bandeja y la llamada acaba como respuesta obsoleta. Pintado
+fuera de Knockout: tarea bloqueante → `oj-dialog` + `oj-c-progress-bar` (-1 = indeterminado), «12 de 300»,
+tiempo transcurrido, En segundo plano / Cancelar, el resultado con sus acciones / Reintentar; el resto →
+la lista acoplada (abajo al final) con el número en curso. Cancelar = `_progress-cancel {taskId}`;
+Reintentar / una acción de resultado con actionId = la acción de la tarea otra vez; una ruta = navegación.
+Desaparecen `#mateuProgressDialog`, las variables `mateuProgress*`, `longTaskWatcher` y el fixture
+`fo-sse-scan-stream` (nuevo `progress-scan-stream.json`).
+
+Mensajes: el reducer lee `actions` (el undo* de un servidor anterior = una acción de estilo `undo`),
+`persistence` y `key`; un toast con acciones, fijo o con clave va a `oj-message` de JET (un botón por
+acción, misma clave reemplaza), uno `inbox` además entra en la bandeja. La bandeja (`poc/inbox.mjs`) es la
+lista del servidor ∪ las entradas de la sesión; el cuerpo del popup de la campana lo pinta el bridge
+(`#mateuBellPanel`): filtros sin leer / todas / resueltas, grupos por categoría, acciones de la entrada
+(`_notifications-act`), descartar (`_notifications-dismiss`), detalle (`_notifications-open`, lo pinta la
+página de contenido por `application:mateuChatPreview`) o ruta; `NotificationsChanged` del stream
+`_live-updates` inserta / quita / vuelve a pedir la lista. Tests: `test-progress.mjs` (27).
