@@ -39,28 +39,7 @@
        page keeps running under script-src 'self' — after the root element so the server's
        <mateu-ui> keeps it, and gone the moment <mateu-ui> is defined (the app's own loading
        indicators take over). It shows after 300 ms, so a fast load never sees it. -->
-  <style>
-    :root[theme~="dark"] { background-color: hsl(214, 35%, 21%); }
-    .mateu-preboot {
-      position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
-      display: flex; align-items: center; justify-content: center;
-      color: hsl(214, 100%, 48%); opacity: 0;
-      animation: mateu-preboot-in 0.2s ease-out 0.3s forwards;
-    }
-    :root[theme~="dark"] .mateu-preboot { color: hsl(214, 100%, 70%); }
-    .mateu-preboot svg { width: 3rem; height: 3rem; animation: mateu-preboot-spin 0.9s linear infinite; }
-    .mateu-preboot-label {
-      position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
-      clip-path: inset(50%); white-space: nowrap;
-    }
-    mateu-ui:defined ~ .mateu-preboot { display: none; }
-    @keyframes mateu-preboot-in { to { opacity: 1; } }
-    @keyframes mateu-preboot-spin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) {
-      .mateu-preboot { animation-duration: 0s; }
-      .mateu-preboot svg { animation: none; }
-    }
-  </style>
+  <style>:root[theme~=dark]{background-color:#233348}.mateu-preboot{z-index:2147483000;pointer-events:none;color:#006af5;opacity:0;justify-content:center;align-items:center;animation:.2s ease-out .3s forwards mateu-preboot-in;display:flex;position:fixed;inset:0}:root[theme~=dark] .mateu-preboot{color:#66a8ff}.mateu-preboot svg{width:3rem;height:3rem;animation:.9s linear infinite mateu-preboot-spin}.mateu-preboot-label{clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}mateu-ui:defined~.mateu-preboot{display:none}@keyframes mateu-preboot-in{to{opacity:1}}@keyframes mateu-preboot-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.mateu-preboot{animation-duration:0s}.mateu-preboot svg{animation:none}}</style>
   <div class="mateu-preboot" role="status">
     <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
       <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="4"/>

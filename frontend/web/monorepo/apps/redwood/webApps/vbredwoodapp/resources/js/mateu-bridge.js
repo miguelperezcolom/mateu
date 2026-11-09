@@ -67,6 +67,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       calendarEvents: '{count} events',
       hideUnpopulated: 'Hide unpopulated',
       mapUnavailable: 'The map could not be loaded.',
+      surfaceUnavailable: 'This part of the page could not be loaded.',
       // ── shell ──
       menu: 'Menu',
       context: 'Context',
@@ -361,6 +362,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       calendarEvents: '{count} eventos',
       hideUnpopulated: 'Ocultar vacías',
       mapUnavailable: 'No se ha podido cargar el mapa.',
+      surfaceUnavailable: 'No se ha podido cargar esta parte de la página.',
       menu: 'Menú',
       context: 'Contexto',
       workContext: 'Contexto de trabajo',
@@ -3150,6 +3152,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
       orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
       overviewOnTop: md.orientation === 'horizontal',
+      // the height the layout's `style` declares (a YAML `style: "height: 24rem"`), bound as an object
+      // on oj-sp-foldout-layout — it was dropped, so the layout ran down to the viewport bottom
+      hostStyle: foldoutHostStyleOf(node.style),
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
       header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
@@ -3186,6 +3191,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...foldoutSummaryOf(bySlot['summary-' + i], (ctx && ctx.state) || {}),
       })),
     }
+  }
+
+  /** The sizing a foldout's wire `style` declares (height / min-height / max-height) as a style
+   *  object for the template's `:style`; {} when it declares none. */
+  function foldoutHostStyleOf(style) {
+    const out = {}
+    for (const decl of String(style || '').split(';')) {
+      const at = decl.indexOf(':')
+      if (at < 0) continue
+      const prop = decl.slice(0, at).trim().toLowerCase()
+      const value = decl.slice(at + 1).trim()
+      if (!value) continue
+      if (prop === 'height') out.height = value
+      else if (prop === 'min-height') out.minHeight = value
+      else if (prop === 'max-height') out.maxHeight = value
+    }
+    return out
   }
 
   /** A foldout panel's icon → a Redwood icon class: a bare name is a Vaadin one ("user" →
@@ -4898,6 +4920,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'vaadin:gift': 'oj-ux-ico-gift',
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
+    'vaadin:arrow-right': 'oj-ux-ico-arrow-right',
+    'vaadin:arrow-left': 'oj-ux-ico-arrow-left',
     'vaadin:clock': 'oj-ux-ico-clock',
     'vaadin:list': 'oj-ux-ico-list',
     // the tray badge's bell (header widget)
@@ -5369,6 +5393,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { cls: out.trim(), style }
   }
 
+  /** A Badge's icons as Redwood icon classes ('' = none, or a name with no Redwood glyph). */
+  function badgeIconsOf(m) {
+    const cls = (name) => (ojIconOf(name) ? ojIconOf(name) + ' mateu-badge-icon' : '')
+    return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
+  }
+
+  /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
+  function withTextVariants(m, styled) {
+    const variants = Array.isArray(m && m.variants) ? m.variants : []
+    let cls = styled.cls
+    if (variants.includes('b') && !/\boj-typography-bold\b/.test(cls)) cls = (cls + ' oj-typography-bold').trim()
+    const style = variants.includes('i') ? { ...styled.style, fontStyle: 'italic' } : styled.style
+    return { cls, style }
+  }
+
   /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
   const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
 
@@ -5461,6 +5500,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const key = (kind === 'dateTime' ? 'dateTime' : 'date') + '|' + options.locale + '|' + (converterFactory ? 'f' : '')
     if (!dateConverters.has(key)) dateConverters.set(key, converterOf({ type: 'datetime', options }))
     return dateConverters.get(key)
+  }
+
+  /** A board row's items as twelfths of the oj-flex row, by their weights (boardCols), adding up to
+   *  12 (largest remainder; each at least 1) — a sum short of 12 would let the next row join this line. */
+  function boardTwelfthsOf(weights) {
+    const ws = weights.map((w) => (w > 0 ? w : 1)).slice(0, 12)
+    const total = ws.reduce((a, b) => a + b, 0)
+    const exact = ws.map((w) => (w * 12) / total)
+    const out = exact.map((x) => Math.max(1, Math.floor(x)))
+    let left = 12 - out.reduce((a, b) => a + b, 0)
+    const order = exact.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)
+    for (let k = 0; left > 0; k = (k + 1) % order.length) { out[order[k]]++; left-- }
+    for (let i = out.length - 1; left < 0 && i >= 0; i--) if (out[i] > 1) { out[i]--; left++ }
+    return out
   }
 
   function islandContentOf(ctx, opts = {}) {
@@ -5782,7 +5835,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const walkLayout = (n) => {
           if (!n || typeof n !== 'object') return
           const md = n.metadata
-          if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+          // a FormItem (the components of ONE field) is transparent: its fields join the layout — it
+          // used to cut the layout, its field drawn loose outside the oj-form-layout
+          if (md && md.type === 'FormItem') { kidsOf(n).forEach(walkLayout); return }
+          // a FormRow of an AUTO-RESPONSIVE layout (the server's reflective forms: one row per line of
+          // its columns) is the layout's own grid — its fields flow into the one oj-form-layout
+          if (md && md.type === 'FormRow' && m.autoResponsive) { kidsOf(n).forEach(walkLayout); return }
+          // an authored FormRow (fluent / YAML) keeps its fields on ONE line: a form layout of its own
+          // with a column per field (flattened, they flowed into the columns like any other field)
+          if (md && md.type === 'FormRow') {
+            const rowKids = kidsOf(n)
+            const fieldCount = rowKids.filter((k) => k && k.metadata && k.metadata.type === 'FormField').length
+            layout = null
+            if (fieldCount) {
+              const rowColumns = Math.min(4, fieldCount)
+              layout = { isFormLayout: true, columns: rowColumns, fields: [] }
+              layouts.push(layout)
+              atom(layout, container)
+            }
+            const own = layout
+            for (const k of rowKids) {
+              const kmd = k && k.metadata
+              const field = kmd && kmd.type === 'FormField' && own ? layoutFieldOf(kmd, state, ctx.data, own.columns) : null
+              if (field) {
+                if (editorNodeIds && k.id) field.nodeId = String(k.id)
+                own.fields.push(field)
+              } else if (k) visit(k, container)
+            }
+            // what follows the row starts a layout of its own again
+            layout = null
+            return
+          }
           const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
           if (field) {
             if (editorNodeIds && n.id) field.nodeId = String(n.id)
@@ -6086,6 +6169,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         visitDashboardPanel(node, null)
         return
       }
+      // BOARD (BoardLayout of BoardLayoutRows of BoardLayoutItems): each row's items share the row by
+      // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
+      // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
+      // another block there are no columns to share out: stacked, in order.
+      if (t === 'BoardLayout' && !container) {
+        const rows = kidsOf(node).filter(Boolean)
+        const before = blocks.length
+        let ok = true
+        for (const row of rows) {
+          const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+          if (!items.length) continue
+          const cols = boardTwelfthsOf(items.map((it) => Number(it.metadata && it.metadata.boardCols) || 1))
+          if (!projectSized(items, items.map((_, i) => 'oj-flex-item oj-sm-12 oj-md-' + (cols[i] || 12) + ' oj-sm-padding-4x-end'),
+            items.map(() => ({ fromColumns: true })))) { ok = false; break }
+        }
+        if (ok) return
+        blocks.splice(before)
+      }
+      // FULL WIDTH: what it holds spans the row — its buttons fill it (a plain button bar keeps its
+      // natural width, right-aligned)
+      if (t === 'FullWidth') {
+        const scratch = { items: [] }
+        for (const child of kidsOf(node)) visit(child, scratch)
+        for (const a of scratch.items) {
+          if (a && a.isButtons) a.fullWidth = true
+          atom(a, container)
+        }
+        return
+      }
       if (t === 'Scoreboard') {
         const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
         if (metrics.length) atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
@@ -6188,10 +6300,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               isH2: m.container === 'h2',
               text,
               // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-              ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
+              ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
             }, container)
           } else {
-            atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
+            atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
           }
         }
         return
@@ -6497,7 +6609,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Badge') {
-        atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+        atom({
+          isBadge: true,
+          label: interp(m.text),
+          badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+          // its icons, inside the chip before/after the text (they were never drawn)
+          ...badgeIconsOf(m),
+        }, container)
         return
       }
       if (t === 'ResourceGrid') {
@@ -6533,7 +6651,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           currentLabel: m.current ? (m.currentLabel || '') : '',
           addedLabel: m.added ? (m.addedLabel || '') : '',
           priceLabel: interp(m.priceLabel || ''),
-          actionLabel: m.actionId ? (m.actionLabel || '') : '',
+          // the CTA shows whenever it has a label (once added: the addedLabel) — with no actionId it
+          // is INERT, not dropped; `added` used to show nothing at all
+          actionLabel: m.current ? '' : interp((m.added ? (m.addedLabel || m.actionLabel) : m.actionLabel) || ''),
+          ctaDisabled: !m.actionId,
+          ctaChroming: m.added ? 'outlined' : 'callToAction',
           actionId: m.actionId || '',
           parameters: {},
         }, container)
@@ -6580,6 +6702,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isStatusList: true,
           wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
+          // columns: N = AT MOST N cells per line: the cells are fixed (22rem), so the wrapper is capped
+          // at N of them and their gaps — uncapped, a wide page fitted three or four
+          wrapStyle: cols > 1 ? { maxWidth: 'calc(' + cols + ' * 22rem + ' + (cols - 1) + ' * 40px)' } : {},
           items: (m.items || []).map((it) => {
             // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
             // array; a row WITH actions is painted STACKED (title+chip /
@@ -6605,7 +6730,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               cellClass,
               statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
               avatar: it.avatar || '',
-              icon: it.icon || '',
+              // an emoji/text icon is printed; a token (vaadin:…) becomes its Redwood icon class
+              icon: it.icon && !String(it.icon).includes(':') ? it.icon : '',
+              iconClass: it.icon && String(it.icon).includes(':') ? (ojIconOf(it.icon) || '') : '',
               title: interp(it.title),
               description: interp(it.description || ''),
               status: interp(it.status || ''),
@@ -6700,7 +6827,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // and no action of its own: its buttons join the row, as a toolbar group's join the header
         const buttons = groupMembersOf(m).map(buttonOf)
         if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
-        if (last && last.isButtons) last.buttons.push(...buttons)
+        if (last && last.isButtons && !last.fullWidth) last.buttons.push(...buttons)
         else atom({ isButtons: true, buttons }, container)
         return
       }
@@ -13437,6 +13564,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
       // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
       chrome: embeddedChromeOf(m.chrome),
+      // a block of the host page whatever its chrome: never names or moves the window (transport.mjs)
+      windowless: true,
       surface: true,
       lazy: false,
     }
@@ -22796,11 +22925,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+  /** An absolute base url on another origin than the page's (false outside a browser). */
+  function isForeignBase(base) {
+    if (!base || !/^https?:\/\//i.test(String(base))) return false
+    try {
+      return typeof location !== 'undefined' && !!location.origin && new URL(String(base)).origin !== location.origin
+    } catch {
+      return false
+    }
+  }
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
    *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
   async function callMateu(base, body, options = {}) {
+    // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
+    // says nothing about the user's connection: its request is isolated from the connectivity tracker,
+    // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the
+    // page-wide "no connection" band, and "connection restored" right after.
+    if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
@@ -22962,7 +23107,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
    *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
    *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
-  const loadRoute = async (base, route, initiator = '', extra = {}) => {
+  const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
       extra = { ...extra, consumedRoute: '_empty' }
@@ -22984,7 +23129,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
-    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -23041,7 +23186,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
         // …and whatever an older remote still sends, the window is not the island's to name
-        return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
+        return outbound.embeddedChrome || outbound.windowless ? withoutWindowCommands(inc) : inc
       }, (e) => { release(); throw e })
   }
 
@@ -23378,17 +23523,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
       // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
-      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+      // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
+      // opened inside one replaced the host page's address)
+      ...(sub.windowless ? { windowless: true } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
     // its actions and triggers still go to ITS baseUrl (outbound, below)
-    const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    let answer
+    try {
+      answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
       componentState: sub.componentState || {},
       ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
-    })
-    let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
+    // a micro frontend's load is a block of the page: whatever happens to it reports in ITS box
+    // (loadSubresources), never in the page-wide error band
+    }, sub.windowless ? { quiet: true } : {})
+    } catch (error) {
+      // a micro frontend that fails says so INSIDE its own box (its load is quiet: no page band);
+      // any other subresource is reported by the error band (onSettle) and rethrown, as before
+      if (!sub.windowless || isStaleResponse(error)) throw error
+      return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
+    }
+    let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
       const ctx = next.contexts[sub.id]
@@ -23399,7 +23557,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     // an embedded island leaves the window as the HOST named it: its load does not take the host's
     // title (nor its history push) away from the chains that apply them after loading the blocks
-    if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
+    if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
   }
 
@@ -23469,7 +23627,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
           // previous incarnation held
           state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
-          data: (previous && previous.data) || {},
+          // an EmbeddedView island brings the data its page's fragment would (a lookup's
+          // `<field>-label`): it has no fragment of its own — the stored id used to be shown raw
+          data: { ...((previous && previous.data) || {}), ...(node.data && typeof node.data === 'object' ? node.data : {}) },
           dirty: false,
           outbound,
         },
@@ -23591,6 +23751,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       } catch (ignored) { /* the error band already reports it (onSettle) */ }
     }
     return next
+  }
+
+  /** The answer a micro frontend that could not be loaded paints in its own box: a danger Notice
+   *  with what went wrong (the classified failure's words, else the renderer's own). */
+  function surfaceFailureIncrement(id, error) {
+    const reason = error && error.failure && error.failure.message
+    const text = reason ? `${chromeText('surfaceUnavailable')} ${reason}` : chromeText('surfaceUnavailable')
+    return {
+      commands: [],
+      messages: [],
+      fragments: [{
+        targetComponentId: id,
+        action: 'Replace',
+        component: { type: 'ServerSide', id, serverSideType: '', actions: [], triggers: [], children: [
+          { type: 'ClientSide', id: `${id}-failure`, children: [], metadata: { type: 'Notice', theme: 'danger', text } },
+        ] },
+        state: {},
+      }],
+    }
   }
 
   /**
