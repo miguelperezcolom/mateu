@@ -9,6 +9,8 @@
   "menu": [
     { "name": "Generate the library", "command": "generate" },
     { "separator": true },
-    { "name": "Mateu Library Self-test", "command": "selftest" }
+    { "name": "Mateu Library Self-test", "command": "selftest" },
+    { "separator": true },
+    { "name": "Mateu Sample Screens", "command": "samples" }
   ]
 }

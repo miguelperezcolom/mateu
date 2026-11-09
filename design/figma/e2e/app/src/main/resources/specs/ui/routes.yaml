@@ -1,0 +1,18 @@
+# One route per sample screen; each layout is the page the converter wrote for the Figma frame of
+# the same name. The record route fetches the clicked row through the `artwork` source.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: welcome
+    layout: welcome.yaml
+  - route: contact
+    layout: contact.yaml
+  - route: artworks
+    layout: artworks.yaml
+  - route: artworks/:id
+    layout: artwork.yaml
+    data: artwork
+  - route: dashboard
+    layout: dashboard.yaml
+  - route: onboarding
+    layout: onboarding.yaml

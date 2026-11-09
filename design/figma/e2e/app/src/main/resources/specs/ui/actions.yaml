@@ -1,0 +1,12 @@
+# What the designed buttons' actionIds do. A designer sets `actionId: save` on the contact form's
+# Save button in Figma; the developer says here what `save` means — validate, then post the form.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Actions
+actions:
+  - id: save
+    description: Validate the contact form and send it
+    validationRequired: true
+    restAction:
+      source:
+        ref: contacts-create
+      successMessage: Contact saved

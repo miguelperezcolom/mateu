@@ -1,0 +1,5067 @@
+{
+ "name": "Mateu sample screens (synthetic)",
+ "synthetic": "Built by design/figma/e2e (npm run fixture) from design/figma/plugin/src/samples.ts. Replace with a real download: npm run e2e:refresh -- <fileKey>.",
+ "document": {
+  "id": "0:0",
+  "name": "Document",
+  "type": "DOCUMENT",
+  "children": [
+   {
+    "id": "0:1",
+    "name": "Screens (sample)",
+    "type": "CANVAS",
+    "children": [
+     {
+      "id": "2:1",
+      "name": "_contact — about",
+      "type": "TEXT",
+      "characters": "contact: A free form: a page header with Save/Cancel in its toolbar, two sections of fields"
+     },
+     {
+      "id": "2:2",
+      "name": "contact",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:6",
+        "name": "Mateu/Page/Header",
+        "type": "INSTANCE",
+        "componentId": "2:27",
+        "componentProperties": {
+         "title#2:3": {
+          "type": "TEXT",
+          "value": "New contact"
+         },
+         "subtitle#2:4": {
+          "type": "TEXT",
+          "value": "Who should the gallery write to?"
+         },
+         "slot:toolbar#2:5": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 9
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:6;2:7",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:3"
+          },
+          "characters": "New contact"
+         },
+         {
+          "id": "I2:6;2:8",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "subtitle#2:4"
+          },
+          "characters": "Who should the gallery write to?"
+         },
+         {
+          "id": "I2:6;2:9",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#2:5"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:6;2:26",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Button instances"
+           },
+           {
+            "id": "I2:6;2:14",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:19",
+            "componentProperties": {
+             "style": {
+              "value": "primary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "save"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "route"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Save"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:6;2:14;2:17",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Save"
+             },
+             {
+              "id": "I2:6;2:14;2:18",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:6;2:14;2:15",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "save"
+               },
+               {
+                "id": "I2:6;2:14;2:16",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "route"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:6;2:20",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:25",
+            "componentProperties": {
+             "style": {
+              "value": "secondary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "artworks"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Cancel"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:6;2:20;2:23",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Cancel"
+             },
+             {
+              "id": "I2:6;2:20;2:24",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:6;2:20;2:21",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:6;2:20;2:22",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "artworks"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "2:33",
+        "name": "Mateu/Layout/Section",
+        "type": "INSTANCE",
+        "componentId": "2:92",
+        "componentProperties": {
+         "propertyList": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "frameless": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "sticky": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "zone#2:29": {
+          "type": "TEXT",
+          "value": "zone"
+         },
+         "columns#2:30": {
+          "type": "TEXT",
+          "value": "columns"
+         },
+         "title#2:31": {
+          "type": "TEXT",
+          "value": "Contact details"
+         },
+         "slot:content#2:32": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 37
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:33;2:36",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:31"
+          },
+          "characters": "Contact details"
+         },
+         {
+          "id": "I2:33;2:37",
+          "name": "slot:content",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:content#2:32"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:33;2:90",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Drop the content here"
+           },
+           {
+            "id": "I2:33;2:43",
+            "name": "Mateu/Field/TextField",
+            "type": "INSTANCE",
+            "componentId": "2:51",
+            "componentProperties": {
+             "fieldId#2:38": {
+              "type": "TEXT",
+              "value": "name"
+             },
+             "required#2:39": {
+              "type": "BOOLEAN",
+              "value": true
+             },
+             "readOnly#2:40": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:41": {
+              "type": "TEXT",
+              "value": "Full name"
+             },
+             "placeholder#2:42": {
+              "type": "TEXT",
+              "value": "Ada Lovelace"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:33;2:43;2:47",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:41"
+              },
+              "characters": "Full name"
+             },
+             {
+              "id": "I2:33;2:43;2:48",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "placeholder#2:42"
+              },
+              "characters": "Ada Lovelace"
+             },
+             {
+              "id": "I2:33;2:43;2:49",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:43;2:44",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:38"
+                },
+                "characters": "name"
+               }
+              ]
+             },
+             {
+              "id": "I2:33;2:43;2:50",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:43;2:45",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:39"
+                },
+                "characters": "required",
+                "visible": true
+               },
+               {
+                "id": "I2:33;2:43;2:46",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:40"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:33;2:52",
+            "name": "Mateu/Field/TextField",
+            "type": "INSTANCE",
+            "componentId": "2:51",
+            "componentProperties": {
+             "fieldId#2:38": {
+              "type": "TEXT",
+              "value": "email"
+             },
+             "required#2:39": {
+              "type": "BOOLEAN",
+              "value": true
+             },
+             "readOnly#2:40": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:41": {
+              "type": "TEXT",
+              "value": "Email"
+             },
+             "placeholder#2:42": {
+              "type": "TEXT",
+              "value": "ada@example.com"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:33;2:52;2:56",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:41"
+              },
+              "characters": "Email"
+             },
+             {
+              "id": "I2:33;2:52;2:57",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "placeholder#2:42"
+              },
+              "characters": "ada@example.com"
+             },
+             {
+              "id": "I2:33;2:52;2:58",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:52;2:53",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:38"
+                },
+                "characters": "email"
+               }
+              ]
+             },
+             {
+              "id": "I2:33;2:52;2:59",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:52;2:54",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:39"
+                },
+                "characters": "required",
+                "visible": true
+               },
+               {
+                "id": "I2:33;2:52;2:55",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:40"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:33;2:67",
+            "name": "Mateu/Field/Select",
+            "type": "INSTANCE",
+            "componentId": "2:76",
+            "componentProperties": {
+             "stereotype": {
+              "value": "select",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "fieldId#2:61": {
+              "type": "TEXT",
+              "value": "country"
+             },
+             "options#2:62": {
+              "type": "TEXT",
+              "value": "Spain, France, Portugal, United Kingdom"
+             },
+             "required#2:63": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:64": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:65": {
+              "type": "TEXT",
+              "value": "Country"
+             },
+             "placeholder#2:66": {
+              "type": "TEXT",
+              "value": "Value"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:33;2:67;2:72",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:65"
+              },
+              "characters": "Country"
+             },
+             {
+              "id": "I2:33;2:67;2:73",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "placeholder#2:66"
+              },
+              "characters": "Value"
+             },
+             {
+              "id": "I2:33;2:67;2:74",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:67;2:68",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:61"
+                },
+                "characters": "country"
+               },
+               {
+                "id": "I2:33;2:67;2:69",
+                "name": "#prop:options",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "options#2:62"
+                },
+                "characters": "Spain, France, Portugal, United Kingdom"
+               }
+              ]
+             },
+             {
+              "id": "I2:33;2:67;2:75",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:67;2:70",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:63"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:33;2:67;2:71",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:64"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:33;2:82",
+            "name": "Mateu/Field/Date",
+            "type": "INSTANCE",
+            "componentId": "2:89",
+            "componentProperties": {
+             "dataType": {
+              "value": "date",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "fieldId#2:78": {
+              "type": "TEXT",
+              "value": "birthDate"
+             },
+             "required#2:79": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:80": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:81": {
+              "type": "TEXT",
+              "value": "Birth date"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:33;2:82;2:86",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:81"
+              },
+              "characters": "Birth date"
+             },
+             {
+              "id": "I2:33;2:82;2:87",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:82;2:83",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:78"
+                },
+                "characters": "birthDate"
+               }
+              ]
+             },
+             {
+              "id": "I2:33;2:82;2:88",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:33;2:82;2:84",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:79"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:33;2:82;2:85",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:80"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:33;2:91",
+          "name": "#props",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "I2:33;2:34",
+            "name": "#prop:zone",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "zone#2:29"
+            },
+            "characters": "zone"
+           },
+           {
+            "id": "I2:33;2:35",
+            "name": "#prop:columns",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "columns#2:30"
+            },
+            "characters": "columns"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "2:93",
+        "name": "Mateu/Layout/Section",
+        "type": "INSTANCE",
+        "componentId": "2:92",
+        "componentProperties": {
+         "propertyList": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "frameless": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "sticky": {
+          "value": "false",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "zone#2:29": {
+          "type": "TEXT",
+          "value": "zone"
+         },
+         "columns#2:30": {
+          "type": "TEXT",
+          "value": "columns"
+         },
+         "title#2:31": {
+          "type": "TEXT",
+          "value": "Membership"
+         },
+         "slot:content#2:32": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 97
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:93;2:96",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:31"
+          },
+          "characters": "Membership"
+         },
+         {
+          "id": "I2:93;2:97",
+          "name": "slot:content",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:content#2:32"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:93;2:126",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Drop the content here"
+           },
+           {
+            "id": "I2:93;2:104",
+            "name": "Mateu/Field/PlainText",
+            "type": "INSTANCE",
+            "componentId": "2:112",
+            "componentProperties": {
+             "dataType": {
+              "value": "money",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "fieldId#2:99": {
+              "type": "TEXT",
+              "value": "balance"
+             },
+             "required#2:100": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:101": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:102": {
+              "type": "TEXT",
+              "value": "Balance"
+             },
+             "value#2:103": {
+              "type": "TEXT",
+              "value": "Value"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:93;2:104;2:108",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:102"
+              },
+              "characters": "Balance"
+             },
+             {
+              "id": "I2:93;2:104;2:109",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:103"
+              },
+              "characters": "Value"
+             },
+             {
+              "id": "I2:93;2:104;2:110",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:93;2:104;2:105",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:99"
+                },
+                "characters": "balance"
+               }
+              ]
+             },
+             {
+              "id": "I2:93;2:104;2:111",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:93;2:104;2:106",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:100"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:93;2:104;2:107",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:101"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:93;2:118",
+            "name": "Mateu/Field/Checkbox",
+            "type": "INSTANCE",
+            "componentId": "2:125",
+            "componentProperties": {
+             "stereotype": {
+              "value": "checkbox",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "fieldId#2:114": {
+              "type": "TEXT",
+              "value": "newsletter"
+             },
+             "required#2:115": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:116": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:117": {
+              "type": "TEXT",
+              "value": "Send me the newsletter"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:93;2:118;2:122",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:117"
+              },
+              "characters": "Send me the newsletter"
+             },
+             {
+              "id": "I2:93;2:118;2:123",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:93;2:118;2:119",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:114"
+                },
+                "characters": "newsletter"
+               }
+              ]
+             },
+             {
+              "id": "I2:93;2:118;2:124",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:93;2:118;2:120",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:115"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:93;2:118;2:121",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:116"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:93;2:127",
+          "name": "#props",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "I2:93;2:94",
+            "name": "#prop:zone",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "zone#2:29"
+            },
+            "characters": "zone"
+           },
+           {
+            "id": "I2:93;2:95",
+            "name": "#prop:columns",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "columns#2:30"
+            },
+            "characters": "columns"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "2:128",
+      "name": "_artwork — about",
+      "type": "TEXT",
+      "characters": "artwork: An Item overview page: photo, key facts in the body, tabs in the main slot"
+     },
+     {
+      "id": "2:129",
+      "name": "artwork",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:140",
+        "name": "Mateu/Page Templates/ItemOverviewPage",
+        "type": "INSTANCE",
+        "componentId": "2:257",
+        "componentProperties": {
+         "avatar.src#2:130": {
+          "type": "TEXT",
+          "value": "avatar.src"
+         },
+         "avatar.initials#2:131": {
+          "type": "TEXT",
+          "value": "avatar.initials"
+         },
+         "photo.src#2:132": {
+          "type": "TEXT",
+          "value": "/images/artwork.svg"
+         },
+         "overline#2:133": {
+          "type": "TEXT",
+          "value": "Artwork"
+         },
+         "title#2:134": {
+          "type": "TEXT",
+          "value": "${state.title}"
+         },
+         "subtitle#2:135": {
+          "type": "TEXT",
+          "value": "${state.artist}"
+         },
+         "slot:toolbar#2:136": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 147
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:body#2:137": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 159
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:footer#2:138": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 191
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:content#2:139": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 193
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:140;2:144",
+          "name": "Overline",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "overline#2:133"
+          },
+          "characters": "Artwork"
+         },
+         {
+          "id": "I2:140;2:145",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:134"
+          },
+          "characters": "${state.title}"
+         },
+         {
+          "id": "I2:140;2:146",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "subtitle#2:135"
+          },
+          "characters": "${state.artist}"
+         },
+         {
+          "id": "I2:140;2:147",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#2:136"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:140;2:158",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Button instances (the primary first)"
+           },
+           {
+            "id": "I2:140;2:148",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:19",
+            "componentProperties": {
+             "style": {
+              "value": "primary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "contact"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Ask about it"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:148;2:151",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Ask about it"
+             },
+             {
+              "id": "I2:140;2:148;2:152",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:148;2:149",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:140;2:148;2:150",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "contact"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:140;2:153",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:25",
+            "componentProperties": {
+             "style": {
+              "value": "secondary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "artworks"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Back to artworks"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:153;2:156",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Back to artworks"
+             },
+             {
+              "id": "I2:140;2:153;2:157",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:153;2:154",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:140;2:153;2:155",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "artworks"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:140;2:159",
+          "name": "slot:body",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:body#2:137"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:140;2:190",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Drop the body here"
+           },
+           {
+            "id": "I2:140;2:165",
+            "name": "Mateu/Field/PropertyRow",
+            "type": "INSTANCE",
+            "componentId": "2:173",
+            "componentProperties": {
+             "fieldId#2:160": {
+              "type": "TEXT",
+              "value": "artist"
+             },
+             "required#2:161": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:162": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:163": {
+              "type": "TEXT",
+              "value": "Artist"
+             },
+             "value#2:164": {
+              "type": "TEXT",
+              "value": "Value"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:165;2:169",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:163"
+              },
+              "characters": "Artist"
+             },
+             {
+              "id": "I2:140;2:165;2:170",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:164"
+              },
+              "characters": "Value"
+             },
+             {
+              "id": "I2:140;2:165;2:171",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:165;2:166",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:160"
+                },
+                "characters": "artist"
+               }
+              ]
+             },
+             {
+              "id": "I2:140;2:165;2:172",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:165;2:167",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:161"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:140;2:165;2:168",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:162"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:140;2:174",
+            "name": "Mateu/Field/PropertyRow",
+            "type": "INSTANCE",
+            "componentId": "2:173",
+            "componentProperties": {
+             "fieldId#2:160": {
+              "type": "TEXT",
+              "value": "year"
+             },
+             "required#2:161": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:162": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:163": {
+              "type": "TEXT",
+              "value": "Year"
+             },
+             "value#2:164": {
+              "type": "TEXT",
+              "value": "Value"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:174;2:178",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:163"
+              },
+              "characters": "Year"
+             },
+             {
+              "id": "I2:140;2:174;2:179",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:164"
+              },
+              "characters": "Value"
+             },
+             {
+              "id": "I2:140;2:174;2:180",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:174;2:175",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:160"
+                },
+                "characters": "year"
+               }
+              ]
+             },
+             {
+              "id": "I2:140;2:174;2:181",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:174;2:176",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:161"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:140;2:174;2:177",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:162"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:140;2:182",
+            "name": "Mateu/Field/PropertyRow",
+            "type": "INSTANCE",
+            "componentId": "2:173",
+            "componentProperties": {
+             "fieldId#2:160": {
+              "type": "TEXT",
+              "value": "location"
+             },
+             "required#2:161": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "readOnly#2:162": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "label#2:163": {
+              "type": "TEXT",
+              "value": "Location"
+             },
+             "value#2:164": {
+              "type": "TEXT",
+              "value": "Value"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:182;2:186",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:163"
+              },
+              "characters": "Location"
+             },
+             {
+              "id": "I2:140;2:182;2:187",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:164"
+              },
+              "characters": "Value"
+             },
+             {
+              "id": "I2:140;2:182;2:188",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:182;2:183",
+                "name": "#prop:fieldId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "fieldId#2:160"
+                },
+                "characters": "location"
+               }
+              ]
+             },
+             {
+              "id": "I2:140;2:182;2:189",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:140;2:182;2:184",
+                "name": "#flag:required",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "required#2:161"
+                },
+                "characters": "required",
+                "visible": false
+               },
+               {
+                "id": "I2:140;2:182;2:185",
+                "name": "#flag:readOnly",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "readOnly#2:162"
+                },
+                "characters": "readOnly",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:140;2:191",
+          "name": "slot:footer",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:footer#2:138"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:140;2:192",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Drop the footer here"
+           }
+          ]
+         },
+         {
+          "id": "I2:140;2:193",
+          "name": "slot:content",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:content#2:139"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:140;2:255",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "main"
+           },
+           {
+            "id": "I2:140;2:197",
+            "name": "Mateu/Layout/Tabs",
+            "type": "INSTANCE",
+            "componentId": "2:254",
+            "componentProperties": {
+             "tab1#2:194": {
+              "type": "TEXT",
+              "value": "Details"
+             },
+             "tab2#2:195": {
+              "type": "TEXT",
+              "value": "Story"
+             },
+             "slot:tabs#2:196": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 200
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:140;2:197;2:198",
+              "name": "Tab1",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "tab1#2:194"
+              },
+              "characters": "Details"
+             },
+             {
+              "id": "I2:140;2:197;2:199",
+              "name": "Tab2",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "tab2#2:195"
+              },
+              "characters": "Story"
+             },
+             {
+              "id": "I2:140;2:197;2:200",
+              "name": "slot:tabs",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:tabs#2:196"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:140;2:197;2:253",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Tab instances"
+               },
+               {
+                "id": "I2:140;2:197;2:206",
+                "name": "Mateu/Layout/Tab",
+                "type": "INSTANCE",
+                "componentId": "2:232",
+                "componentProperties": {
+                 "shortcut#2:201": {
+                  "type": "TEXT",
+                  "value": "shortcut"
+                 },
+                 "badge#2:202": {
+                  "type": "TEXT",
+                  "value": "badge"
+                 },
+                 "active#2:203": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#2:204": {
+                  "type": "TEXT",
+                  "value": "Details"
+                 },
+                 "slot:content#2:205": {
+                  "type": "SLOT",
+                  "value": {
+                   "guid": {
+                    "sessionID": 1,
+                    "localID": 211
+                   }
+                  },
+                  "preferredValues": []
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:140;2:197;2:206;2:210",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "label#2:204"
+                  },
+                  "characters": "Details"
+                 },
+                 {
+                  "id": "I2:140;2:197;2:206;2:211",
+                  "name": "slot:content",
+                  "type": "SLOT",
+                  "componentPropertyReferences": {
+                   "slotContentId": "slot:content#2:205"
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:206;2:229",
+                    "name": "#placeholder",
+                    "type": "TEXT",
+                    "characters": "Drop the content here"
+                   },
+                   {
+                    "id": "I2:140;2:197;2:206;2:212",
+                    "name": "Mateu/Field/PlainText",
+                    "type": "INSTANCE",
+                    "componentId": "2:220",
+                    "componentProperties": {
+                     "dataType": {
+                      "value": "string",
+                      "type": "VARIANT",
+                      "boundVariables": {}
+                     },
+                     "fieldId#2:99": {
+                      "type": "TEXT",
+                      "value": "medium"
+                     },
+                     "required#2:100": {
+                      "type": "BOOLEAN",
+                      "value": false
+                     },
+                     "readOnly#2:101": {
+                      "type": "BOOLEAN",
+                      "value": false
+                     },
+                     "label#2:102": {
+                      "type": "TEXT",
+                      "value": "Medium"
+                     },
+                     "value#2:103": {
+                      "type": "TEXT",
+                      "value": "Value"
+                     }
+                    },
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "I2:140;2:197;2:206;2:212;2:216",
+                      "name": "Label",
+                      "type": "TEXT",
+                      "componentPropertyReferences": {
+                       "characters": "label#2:102"
+                      },
+                      "characters": "Medium"
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:212;2:217",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "componentPropertyReferences": {
+                       "characters": "value#2:103"
+                      },
+                      "characters": "Value"
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:212;2:218",
+                      "name": "#props",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:206;2:212;2:213",
+                        "name": "#prop:fieldId",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "characters": "fieldId#2:99"
+                        },
+                        "characters": "medium"
+                       }
+                      ]
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:212;2:219",
+                      "name": "#flags",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:206;2:212;2:214",
+                        "name": "#flag:required",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "visible": "required#2:100"
+                        },
+                        "characters": "required",
+                        "visible": false
+                       },
+                       {
+                        "id": "I2:140;2:197;2:206;2:212;2:215",
+                        "name": "#flag:readOnly",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "visible": "readOnly#2:101"
+                        },
+                        "characters": "readOnly",
+                        "visible": false
+                       }
+                      ]
+                     }
+                    ]
+                   },
+                   {
+                    "id": "I2:140;2:197;2:206;2:221",
+                    "name": "Mateu/Field/PlainText",
+                    "type": "INSTANCE",
+                    "componentId": "2:220",
+                    "componentProperties": {
+                     "dataType": {
+                      "value": "string",
+                      "type": "VARIANT",
+                      "boundVariables": {}
+                     },
+                     "fieldId#2:99": {
+                      "type": "TEXT",
+                      "value": "dimensions"
+                     },
+                     "required#2:100": {
+                      "type": "BOOLEAN",
+                      "value": false
+                     },
+                     "readOnly#2:101": {
+                      "type": "BOOLEAN",
+                      "value": false
+                     },
+                     "label#2:102": {
+                      "type": "TEXT",
+                      "value": "Dimensions"
+                     },
+                     "value#2:103": {
+                      "type": "TEXT",
+                      "value": "Value"
+                     }
+                    },
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "I2:140;2:197;2:206;2:221;2:225",
+                      "name": "Label",
+                      "type": "TEXT",
+                      "componentPropertyReferences": {
+                       "characters": "label#2:102"
+                      },
+                      "characters": "Dimensions"
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:221;2:226",
+                      "name": "Value",
+                      "type": "TEXT",
+                      "componentPropertyReferences": {
+                       "characters": "value#2:103"
+                      },
+                      "characters": "Value"
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:221;2:227",
+                      "name": "#props",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:206;2:221;2:222",
+                        "name": "#prop:fieldId",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "characters": "fieldId#2:99"
+                        },
+                        "characters": "dimensions"
+                       }
+                      ]
+                     },
+                     {
+                      "id": "I2:140;2:197;2:206;2:221;2:228",
+                      "name": "#flags",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:206;2:221;2:223",
+                        "name": "#flag:required",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "visible": "required#2:100"
+                        },
+                        "characters": "required",
+                        "visible": false
+                       },
+                       {
+                        "id": "I2:140;2:197;2:206;2:221;2:224",
+                        "name": "#flag:readOnly",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "visible": "readOnly#2:101"
+                        },
+                        "characters": "readOnly",
+                        "visible": false
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:140;2:197;2:206;2:230",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:206;2:207",
+                    "name": "#prop:shortcut",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "shortcut#2:201"
+                    },
+                    "characters": "shortcut"
+                   },
+                   {
+                    "id": "I2:140;2:197;2:206;2:208",
+                    "name": "#prop:badge",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "badge#2:202"
+                    },
+                    "characters": "badge"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:140;2:197;2:206;2:231",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:206;2:209",
+                    "name": "#flag:active",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "active#2:203"
+                    },
+                    "characters": "active",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "id": "I2:140;2:197;2:233",
+                "name": "Mateu/Layout/Tab",
+                "type": "INSTANCE",
+                "componentId": "2:232",
+                "componentProperties": {
+                 "shortcut#2:201": {
+                  "type": "TEXT",
+                  "value": "shortcut"
+                 },
+                 "badge#2:202": {
+                  "type": "TEXT",
+                  "value": "badge"
+                 },
+                 "active#2:203": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#2:204": {
+                  "type": "TEXT",
+                  "value": "Story"
+                 },
+                 "slot:content#2:205": {
+                  "type": "SLOT",
+                  "value": {
+                   "guid": {
+                    "sessionID": 1,
+                    "localID": 238
+                   }
+                  },
+                  "preferredValues": []
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:140;2:197;2:233;2:237",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "label#2:204"
+                  },
+                  "characters": "Story"
+                 },
+                 {
+                  "id": "I2:140;2:197;2:233;2:238",
+                  "name": "slot:content",
+                  "type": "SLOT",
+                  "componentPropertyReferences": {
+                   "slotContentId": "slot:content#2:205"
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:233;2:250",
+                    "name": "#placeholder",
+                    "type": "TEXT",
+                    "characters": "Drop the content here"
+                   },
+                   {
+                    "id": "I2:140;2:197;2:233;2:243",
+                    "name": "Mateu/Display/Text",
+                    "type": "INSTANCE",
+                    "componentId": "2:249",
+                    "componentProperties": {
+                     "size": {
+                      "value": "m",
+                      "type": "VARIANT",
+                      "boundVariables": {}
+                     },
+                     "noMargins#2:240": {
+                      "type": "BOOLEAN",
+                      "value": false
+                     },
+                     "container#2:241": {
+                      "type": "TEXT",
+                      "value": "container"
+                     },
+                     "text#2:242": {
+                      "type": "TEXT",
+                      "value": "Every work in the collection has a story; this tab tells it."
+                     }
+                    },
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "I2:140;2:197;2:233;2:243;2:246",
+                      "name": "Text",
+                      "type": "TEXT",
+                      "componentPropertyReferences": {
+                       "characters": "text#2:242"
+                      },
+                      "characters": "Every work in the collection has a story; this tab tells it."
+                     },
+                     {
+                      "id": "I2:140;2:197;2:233;2:243;2:247",
+                      "name": "#props",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:233;2:243;2:245",
+                        "name": "#prop:container",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "characters": "container#2:241"
+                        },
+                        "characters": "container"
+                       }
+                      ]
+                     },
+                     {
+                      "id": "I2:140;2:197;2:233;2:243;2:248",
+                      "name": "#flags",
+                      "type": "FRAME",
+                      "layoutMode": "HORIZONTAL",
+                      "children": [
+                       {
+                        "id": "I2:140;2:197;2:233;2:243;2:244",
+                        "name": "#flag:noMargins",
+                        "type": "TEXT",
+                        "componentPropertyReferences": {
+                         "visible": "noMargins#2:240"
+                        },
+                        "characters": "noMargins",
+                        "visible": false
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:140;2:197;2:233;2:251",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:233;2:234",
+                    "name": "#prop:shortcut",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "shortcut#2:201"
+                    },
+                    "characters": "shortcut"
+                   },
+                   {
+                    "id": "I2:140;2:197;2:233;2:235",
+                    "name": "#prop:badge",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "badge#2:202"
+                    },
+                    "characters": "badge"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:140;2:197;2:233;2:252",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:140;2:197;2:233;2:236",
+                    "name": "#flag:active",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "active#2:203"
+                    },
+                    "characters": "active",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:140;2:256",
+          "name": "#props",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "I2:140;2:141",
+            "name": "#prop:avatar.src",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "avatar.src#2:130"
+            },
+            "characters": "avatar.src"
+           },
+           {
+            "id": "I2:140;2:142",
+            "name": "#prop:avatar.initials",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "avatar.initials#2:131"
+            },
+            "characters": "avatar.initials"
+           },
+           {
+            "id": "I2:140;2:143",
+            "name": "#prop:photo.src",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "photo.src#2:132"
+            },
+            "characters": "/images/artwork.svg"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "2:258",
+      "name": "_artworks — about",
+      "type": "TEXT",
+      "characters": "artworks: A listing: a REST source, searchable, columns, and a row that opens the record"
+     },
+     {
+      "id": "2:259",
+      "name": "artworks",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:268",
+        "name": "Mateu/Crud/Listing",
+        "type": "INSTANCE",
+        "componentId": "2:322",
+        "componentProperties": {
+         "gridLayout": {
+          "value": "table",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "aggregateId#2:261": {
+          "type": "TEXT",
+          "value": "aggregateId"
+         },
+         "rowRoute#2:262": {
+          "type": "TEXT",
+          "value": "artworks/${row.id}"
+         },
+         "rowsSource.ref#2:263": {
+          "type": "TEXT",
+          "value": "artworks"
+         },
+         "searchable#2:264": {
+          "type": "BOOLEAN",
+          "value": true
+         },
+         "pageSize#2:265": {
+          "type": "TEXT",
+          "value": "10"
+         },
+         "title#2:266": {
+          "type": "TEXT",
+          "value": "Artworks"
+         },
+         "slot:columns#2:267": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 275
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:268;2:274",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:266"
+          },
+          "characters": "Artworks"
+         },
+         {
+          "id": "I2:268;2:275",
+          "name": "slot:columns",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:columns#2:267"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:268;2:319",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "GridColumn instances"
+           },
+           {
+            "id": "I2:268;2:282",
+            "name": "Mateu/Crud/GridColumn",
+            "type": "INSTANCE",
+            "componentId": "2:291",
+            "componentProperties": {
+             "columnId#2:276": {
+              "type": "TEXT",
+              "value": "id"
+             },
+             "dataType#2:277": {
+              "type": "TEXT",
+              "value": "dataType"
+             },
+             "stereotype#2:278": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "identifier#2:279": {
+              "type": "BOOLEAN",
+              "value": true
+             },
+             "width#2:280": {
+              "type": "TEXT",
+              "value": "width"
+             },
+             "label#2:281": {
+              "type": "TEXT",
+              "value": "Id"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:268;2:282;2:288",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:281"
+              },
+              "characters": "Id"
+             },
+             {
+              "id": "I2:268;2:282;2:289",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:282;2:283",
+                "name": "#prop:columnId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "columnId#2:276"
+                },
+                "characters": "id"
+               },
+               {
+                "id": "I2:268;2:282;2:284",
+                "name": "#prop:dataType",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "dataType#2:277"
+                },
+                "characters": "dataType"
+               },
+               {
+                "id": "I2:268;2:282;2:285",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:278"
+                },
+                "characters": "stereotype"
+               },
+               {
+                "id": "I2:268;2:282;2:287",
+                "name": "#prop:width",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "width#2:280"
+                },
+                "characters": "width"
+               }
+              ]
+             },
+             {
+              "id": "I2:268;2:282;2:290",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:282;2:286",
+                "name": "#flag:identifier",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "identifier#2:279"
+                },
+                "characters": "identifier",
+                "visible": true
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:268;2:292",
+            "name": "Mateu/Crud/GridColumn",
+            "type": "INSTANCE",
+            "componentId": "2:291",
+            "componentProperties": {
+             "columnId#2:276": {
+              "type": "TEXT",
+              "value": "title"
+             },
+             "dataType#2:277": {
+              "type": "TEXT",
+              "value": "dataType"
+             },
+             "stereotype#2:278": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "identifier#2:279": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "width#2:280": {
+              "type": "TEXT",
+              "value": "width"
+             },
+             "label#2:281": {
+              "type": "TEXT",
+              "value": "Title"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:268;2:292;2:298",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:281"
+              },
+              "characters": "Title"
+             },
+             {
+              "id": "I2:268;2:292;2:299",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:292;2:293",
+                "name": "#prop:columnId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "columnId#2:276"
+                },
+                "characters": "title"
+               },
+               {
+                "id": "I2:268;2:292;2:294",
+                "name": "#prop:dataType",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "dataType#2:277"
+                },
+                "characters": "dataType"
+               },
+               {
+                "id": "I2:268;2:292;2:295",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:278"
+                },
+                "characters": "stereotype"
+               },
+               {
+                "id": "I2:268;2:292;2:297",
+                "name": "#prop:width",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "width#2:280"
+                },
+                "characters": "width"
+               }
+              ]
+             },
+             {
+              "id": "I2:268;2:292;2:300",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:292;2:296",
+                "name": "#flag:identifier",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "identifier#2:279"
+                },
+                "characters": "identifier",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:268;2:301",
+            "name": "Mateu/Crud/GridColumn",
+            "type": "INSTANCE",
+            "componentId": "2:291",
+            "componentProperties": {
+             "columnId#2:276": {
+              "type": "TEXT",
+              "value": "artist"
+             },
+             "dataType#2:277": {
+              "type": "TEXT",
+              "value": "dataType"
+             },
+             "stereotype#2:278": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "identifier#2:279": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "width#2:280": {
+              "type": "TEXT",
+              "value": "width"
+             },
+             "label#2:281": {
+              "type": "TEXT",
+              "value": "Artist"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:268;2:301;2:307",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:281"
+              },
+              "characters": "Artist"
+             },
+             {
+              "id": "I2:268;2:301;2:308",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:301;2:302",
+                "name": "#prop:columnId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "columnId#2:276"
+                },
+                "characters": "artist"
+               },
+               {
+                "id": "I2:268;2:301;2:303",
+                "name": "#prop:dataType",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "dataType#2:277"
+                },
+                "characters": "dataType"
+               },
+               {
+                "id": "I2:268;2:301;2:304",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:278"
+                },
+                "characters": "stereotype"
+               },
+               {
+                "id": "I2:268;2:301;2:306",
+                "name": "#prop:width",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "width#2:280"
+                },
+                "characters": "width"
+               }
+              ]
+             },
+             {
+              "id": "I2:268;2:301;2:309",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:301;2:305",
+                "name": "#flag:identifier",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "identifier#2:279"
+                },
+                "characters": "identifier",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:268;2:310",
+            "name": "Mateu/Crud/GridColumn",
+            "type": "INSTANCE",
+            "componentId": "2:291",
+            "componentProperties": {
+             "columnId#2:276": {
+              "type": "TEXT",
+              "value": "year"
+             },
+             "dataType#2:277": {
+              "type": "TEXT",
+              "value": "integer"
+             },
+             "stereotype#2:278": {
+              "type": "TEXT",
+              "value": "stereotype"
+             },
+             "identifier#2:279": {
+              "type": "BOOLEAN",
+              "value": false
+             },
+             "width#2:280": {
+              "type": "TEXT",
+              "value": "width"
+             },
+             "label#2:281": {
+              "type": "TEXT",
+              "value": "Year"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:268;2:310;2:316",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:281"
+              },
+              "characters": "Year"
+             },
+             {
+              "id": "I2:268;2:310;2:317",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:310;2:311",
+                "name": "#prop:columnId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "columnId#2:276"
+                },
+                "characters": "year"
+               },
+               {
+                "id": "I2:268;2:310;2:312",
+                "name": "#prop:dataType",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "dataType#2:277"
+                },
+                "characters": "integer"
+               },
+               {
+                "id": "I2:268;2:310;2:313",
+                "name": "#prop:stereotype",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "stereotype#2:278"
+                },
+                "characters": "stereotype"
+               },
+               {
+                "id": "I2:268;2:310;2:315",
+                "name": "#prop:width",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "width#2:280"
+                },
+                "characters": "width"
+               }
+              ]
+             },
+             {
+              "id": "I2:268;2:310;2:318",
+              "name": "#flags",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:268;2:310;2:314",
+                "name": "#flag:identifier",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "visible": "identifier#2:279"
+                },
+                "characters": "identifier",
+                "visible": false
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:268;2:320",
+          "name": "#props",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "I2:268;2:269",
+            "name": "#prop:aggregateId",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "aggregateId#2:261"
+            },
+            "characters": "aggregateId"
+           },
+           {
+            "id": "I2:268;2:270",
+            "name": "#prop:rowRoute",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "rowRoute#2:262"
+            },
+            "characters": "artworks/${row.id}"
+           },
+           {
+            "id": "I2:268;2:271",
+            "name": "#prop:rowsSource.ref",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "rowsSource.ref#2:263"
+            },
+            "characters": "artworks"
+           },
+           {
+            "id": "I2:268;2:273",
+            "name": "#prop:pageSize",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "characters": "pageSize#2:265"
+            },
+            "characters": "10"
+           }
+          ]
+         },
+         {
+          "id": "I2:268;2:321",
+          "name": "#flags",
+          "type": "FRAME",
+          "layoutMode": "HORIZONTAL",
+          "children": [
+           {
+            "id": "I2:268;2:272",
+            "name": "#flag:searchable",
+            "type": "TEXT",
+            "componentPropertyReferences": {
+             "visible": "searchable#2:264"
+            },
+            "characters": "searchable",
+            "visible": true
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "2:323",
+      "name": "_dashboard — about",
+      "type": "TEXT",
+      "characters": "dashboard: A Dashboard landing page: KPI metric cards and panels"
+     },
+     {
+      "id": "2:324",
+      "name": "dashboard",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:331",
+        "name": "Mateu/Page Templates/DashboardLandingPage",
+        "type": "INSTANCE",
+        "componentId": "2:398",
+        "componentProperties": {
+         "overline#2:325": {
+          "type": "TEXT",
+          "value": "Overline"
+         },
+         "title#2:326": {
+          "type": "TEXT",
+          "value": "Gallery dashboard"
+         },
+         "subtitle#2:327": {
+          "type": "TEXT",
+          "value": "This month at a glance"
+         },
+         "slot:toolbar#2:328": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 335
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:kpi#2:329": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 337
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:content#2:330": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 362
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:331;2:332",
+          "name": "Overline",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "overline#2:325"
+          },
+          "characters": "Overline"
+         },
+         {
+          "id": "I2:331;2:333",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:326"
+          },
+          "characters": "Gallery dashboard"
+         },
+         {
+          "id": "I2:331;2:334",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "subtitle#2:327"
+          },
+          "characters": "This month at a glance"
+         },
+         {
+          "id": "I2:331;2:335",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#2:328"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:331;2:336",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Button instances (the primary first)"
+           }
+          ]
+         },
+         {
+          "id": "I2:331;2:337",
+          "name": "slot:kpi",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:kpi#2:329"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:331;2:361",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "MetricCard instances"
+           },
+           {
+            "id": "I2:331;2:342",
+            "name": "Mateu/Display/MetricCard",
+            "type": "INSTANCE",
+            "componentId": "2:348",
+            "componentProperties": {
+             "actionId#2:338": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "title#2:339": {
+              "type": "TEXT",
+              "value": "Visitors"
+             },
+             "value#2:340": {
+              "type": "TEXT",
+              "value": "12,480"
+             },
+             "trendLabel#2:341": {
+              "type": "TEXT",
+              "value": "+8% vs last month"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:331;2:342;2:344",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:339"
+              },
+              "characters": "Visitors"
+             },
+             {
+              "id": "I2:331;2:342;2:345",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:340"
+              },
+              "characters": "12,480"
+             },
+             {
+              "id": "I2:331;2:342;2:346",
+              "name": "Trend",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "trendLabel#2:341"
+              },
+              "characters": "+8% vs last month"
+             },
+             {
+              "id": "I2:331;2:342;2:347",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:331;2:342;2:343",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:338"
+                },
+                "characters": "actionId"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:331;2:349",
+            "name": "Mateu/Display/MetricCard",
+            "type": "INSTANCE",
+            "componentId": "2:348",
+            "componentProperties": {
+             "actionId#2:338": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "title#2:339": {
+              "type": "TEXT",
+              "value": "Ticket sales"
+             },
+             "value#2:340": {
+              "type": "TEXT",
+              "value": "84,300 €"
+             },
+             "trendLabel#2:341": {
+              "type": "TEXT",
+              "value": "+3%"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:331;2:349;2:351",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:339"
+              },
+              "characters": "Ticket sales"
+             },
+             {
+              "id": "I2:331;2:349;2:352",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:340"
+              },
+              "characters": "84,300 €"
+             },
+             {
+              "id": "I2:331;2:349;2:353",
+              "name": "Trend",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "trendLabel#2:341"
+              },
+              "characters": "+3%"
+             },
+             {
+              "id": "I2:331;2:349;2:354",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:331;2:349;2:350",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:338"
+                },
+                "characters": "actionId"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:331;2:355",
+            "name": "Mateu/Display/MetricCard",
+            "type": "INSTANCE",
+            "componentId": "2:348",
+            "componentProperties": {
+             "actionId#2:338": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "title#2:339": {
+              "type": "TEXT",
+              "value": "New members"
+             },
+             "value#2:340": {
+              "type": "TEXT",
+              "value": "215"
+             },
+             "trendLabel#2:341": {
+              "type": "TEXT",
+              "value": "-2%"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:331;2:355;2:357",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:339"
+              },
+              "characters": "New members"
+             },
+             {
+              "id": "I2:331;2:355;2:358",
+              "name": "Value",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "value#2:340"
+              },
+              "characters": "215"
+             },
+             {
+              "id": "I2:331;2:355;2:359",
+              "name": "Trend",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "trendLabel#2:341"
+              },
+              "characters": "-2%"
+             },
+             {
+              "id": "I2:331;2:355;2:360",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:331;2:355;2:356",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:338"
+                },
+                "characters": "actionId"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:331;2:362",
+          "name": "slot:content",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:content#2:330"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:331;2:397",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "DashboardPanel instances"
+           },
+           {
+            "id": "I2:331;2:368",
+            "name": "Mateu/Layout/DashboardPanel",
+            "type": "INSTANCE",
+            "componentId": "2:382",
+            "componentProperties": {
+             "colSpan#2:363": {
+              "type": "TEXT",
+              "value": "colSpan"
+             },
+             "rowSpan#2:364": {
+              "type": "TEXT",
+              "value": "rowSpan"
+             },
+             "title#2:365": {
+              "type": "TEXT",
+              "value": "Most viewed"
+             },
+             "subtitle#2:366": {
+              "type": "TEXT",
+              "value": "Top three works"
+             },
+             "slot:content#2:367": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 373
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:331;2:368;2:371",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:365"
+              },
+              "characters": "Most viewed"
+             },
+             {
+              "id": "I2:331;2:368;2:372",
+              "name": "Subtitle",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "subtitle#2:366"
+              },
+              "characters": "Top three works"
+             },
+             {
+              "id": "I2:331;2:368;2:373",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:367"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:331;2:368;2:380",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:331;2:368;2:374",
+                "name": "Mateu/Display/Text",
+                "type": "INSTANCE",
+                "componentId": "2:249",
+                "componentProperties": {
+                 "size": {
+                  "value": "m",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "noMargins#2:240": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "container#2:241": {
+                  "type": "TEXT",
+                  "value": "container"
+                 },
+                 "text#2:242": {
+                  "type": "TEXT",
+                  "value": "The Starry Night, The Kiss, Las Meninas"
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:331;2:368;2:374;2:377",
+                  "name": "Text",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "text#2:242"
+                  },
+                  "characters": "The Starry Night, The Kiss, Las Meninas"
+                 },
+                 {
+                  "id": "I2:331;2:368;2:374;2:378",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:331;2:368;2:374;2:376",
+                    "name": "#prop:container",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "container#2:241"
+                    },
+                    "characters": "container"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:331;2:368;2:374;2:379",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:331;2:368;2:374;2:375",
+                    "name": "#flag:noMargins",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "noMargins#2:240"
+                    },
+                    "characters": "noMargins",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "I2:331;2:368;2:381",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:331;2:368;2:369",
+                "name": "#prop:colSpan",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "colSpan#2:363"
+                },
+                "characters": "colSpan"
+               },
+               {
+                "id": "I2:331;2:368;2:370",
+                "name": "#prop:rowSpan",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "rowSpan#2:364"
+                },
+                "characters": "rowSpan"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:331;2:383",
+            "name": "Mateu/Layout/DashboardPanel",
+            "type": "INSTANCE",
+            "componentId": "2:382",
+            "componentProperties": {
+             "colSpan#2:363": {
+              "type": "TEXT",
+              "value": "colSpan"
+             },
+             "rowSpan#2:364": {
+              "type": "TEXT",
+              "value": "rowSpan"
+             },
+             "title#2:365": {
+              "type": "TEXT",
+              "value": "Notes"
+             },
+             "subtitle#2:366": {
+              "type": "TEXT",
+              "value": "Subtitle"
+             },
+             "slot:content#2:367": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 388
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:331;2:383;2:386",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:365"
+              },
+              "characters": "Notes"
+             },
+             {
+              "id": "I2:331;2:383;2:387",
+              "name": "Subtitle",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "subtitle#2:366"
+              },
+              "characters": "Subtitle"
+             },
+             {
+              "id": "I2:331;2:383;2:388",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:367"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:331;2:383;2:395",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:331;2:383;2:389",
+                "name": "Mateu/Display/Text",
+                "type": "INSTANCE",
+                "componentId": "2:249",
+                "componentProperties": {
+                 "size": {
+                  "value": "m",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "noMargins#2:240": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "container#2:241": {
+                  "type": "TEXT",
+                  "value": "container"
+                 },
+                 "text#2:242": {
+                  "type": "TEXT",
+                  "value": "The east wing reopens on Monday."
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:331;2:383;2:389;2:392",
+                  "name": "Text",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "text#2:242"
+                  },
+                  "characters": "The east wing reopens on Monday."
+                 },
+                 {
+                  "id": "I2:331;2:383;2:389;2:393",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:331;2:383;2:389;2:391",
+                    "name": "#prop:container",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "container#2:241"
+                    },
+                    "characters": "container"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:331;2:383;2:389;2:394",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:331;2:383;2:389;2:390",
+                    "name": "#flag:noMargins",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "noMargins#2:240"
+                    },
+                    "characters": "noMargins",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "I2:331;2:383;2:396",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:331;2:383;2:384",
+                "name": "#prop:colSpan",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "colSpan#2:363"
+                },
+                "characters": "colSpan"
+               },
+               {
+                "id": "I2:331;2:383;2:385",
+                "name": "#prop:rowSpan",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "rowSpan#2:364"
+                },
+                "characters": "rowSpan"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "2:399",
+      "name": "_onboarding — about",
+      "type": "TEXT",
+      "characters": "onboarding: A Guided process page with three steps"
+     },
+     {
+      "id": "2:400",
+      "name": "onboarding",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:406",
+        "name": "Mateu/Page Templates/GuidedProcessPage",
+        "type": "INSTANCE",
+        "componentId": "2:475",
+        "componentProperties": {
+         "overline#2:401": {
+          "type": "TEXT",
+          "value": "Overline"
+         },
+         "title#2:402": {
+          "type": "TEXT",
+          "value": "Join the gallery"
+         },
+         "subtitle#2:403": {
+          "type": "TEXT",
+          "value": "Three short steps"
+         },
+         "slot:toolbar#2:404": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 410
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:steps#2:405": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 417
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:406;2:407",
+          "name": "Overline",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "overline#2:401"
+          },
+          "characters": "Overline"
+         },
+         {
+          "id": "I2:406;2:408",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:402"
+          },
+          "characters": "Join the gallery"
+         },
+         {
+          "id": "I2:406;2:409",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "subtitle#2:403"
+          },
+          "characters": "Three short steps"
+         },
+         {
+          "id": "I2:406;2:410",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#2:404"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:406;2:416",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Button instances (the primary first)"
+           },
+           {
+            "id": "I2:406;2:411",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:19",
+            "componentProperties": {
+             "style": {
+              "value": "primary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "welcome"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Finish"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:406;2:411;2:414",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Finish"
+             },
+             {
+              "id": "I2:406;2:411;2:415",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:406;2:411;2:412",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:406;2:411;2:413",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "welcome"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:406;2:417",
+          "name": "slot:steps",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:steps#2:405"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:406;2:474",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "GuidedProcessStep instances"
+           },
+           {
+            "id": "I2:406;2:422",
+            "name": "Mateu/Page Templates/GuidedProcessStep",
+            "type": "INSTANCE",
+            "componentId": "2:445",
+            "componentProperties": {
+             "id#2:418": {
+              "type": "TEXT",
+              "value": "account"
+             },
+             "title#2:419": {
+              "type": "TEXT",
+              "value": "Account"
+             },
+             "description#2:420": {
+              "type": "TEXT",
+              "value": "Who you are"
+             },
+             "slot:content#2:421": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 426
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:406;2:422;2:424",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:419"
+              },
+              "characters": "Account"
+             },
+             {
+              "id": "I2:406;2:422;2:425",
+              "name": "Description",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "description#2:420"
+              },
+              "characters": "Who you are"
+             },
+             {
+              "id": "I2:406;2:422;2:426",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:421"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:406;2:422;2:443",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:406;2:422;2:427",
+                "name": "Mateu/Field/TextField",
+                "type": "INSTANCE",
+                "componentId": "2:51",
+                "componentProperties": {
+                 "fieldId#2:38": {
+                  "type": "TEXT",
+                  "value": "fullName"
+                 },
+                 "required#2:39": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "readOnly#2:40": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#2:41": {
+                  "type": "TEXT",
+                  "value": "Full name"
+                 },
+                 "placeholder#2:42": {
+                  "type": "TEXT",
+                  "value": "Value"
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:406;2:422;2:427;2:431",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "label#2:41"
+                  },
+                  "characters": "Full name"
+                 },
+                 {
+                  "id": "I2:406;2:422;2:427;2:432",
+                  "name": "Value",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "placeholder#2:42"
+                  },
+                  "characters": "Value"
+                 },
+                 {
+                  "id": "I2:406;2:422;2:427;2:433",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:422;2:427;2:428",
+                    "name": "#prop:fieldId",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "fieldId#2:38"
+                    },
+                    "characters": "fullName"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:406;2:422;2:427;2:434",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:422;2:427;2:429",
+                    "name": "#flag:required",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "required#2:39"
+                    },
+                    "characters": "required",
+                    "visible": false
+                   },
+                   {
+                    "id": "I2:406;2:422;2:427;2:430",
+                    "name": "#flag:readOnly",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "readOnly#2:40"
+                    },
+                    "characters": "readOnly",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "id": "I2:406;2:422;2:435",
+                "name": "Mateu/Field/TextField",
+                "type": "INSTANCE",
+                "componentId": "2:51",
+                "componentProperties": {
+                 "fieldId#2:38": {
+                  "type": "TEXT",
+                  "value": "memberEmail"
+                 },
+                 "required#2:39": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "readOnly#2:40": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#2:41": {
+                  "type": "TEXT",
+                  "value": "Email"
+                 },
+                 "placeholder#2:42": {
+                  "type": "TEXT",
+                  "value": "Value"
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:406;2:422;2:435;2:439",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "label#2:41"
+                  },
+                  "characters": "Email"
+                 },
+                 {
+                  "id": "I2:406;2:422;2:435;2:440",
+                  "name": "Value",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "placeholder#2:42"
+                  },
+                  "characters": "Value"
+                 },
+                 {
+                  "id": "I2:406;2:422;2:435;2:441",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:422;2:435;2:436",
+                    "name": "#prop:fieldId",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "fieldId#2:38"
+                    },
+                    "characters": "memberEmail"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:406;2:422;2:435;2:442",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:422;2:435;2:437",
+                    "name": "#flag:required",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "required#2:39"
+                    },
+                    "characters": "required",
+                    "visible": false
+                   },
+                   {
+                    "id": "I2:406;2:422;2:435;2:438",
+                    "name": "#flag:readOnly",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "readOnly#2:40"
+                    },
+                    "characters": "readOnly",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "I2:406;2:422;2:444",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:406;2:422;2:423",
+                "name": "#prop:id",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "id#2:418"
+                },
+                "characters": "account"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:406;2:446",
+            "name": "Mateu/Page Templates/GuidedProcessStep",
+            "type": "INSTANCE",
+            "componentId": "2:445",
+            "componentProperties": {
+             "id#2:418": {
+              "type": "TEXT",
+              "value": "preferences"
+             },
+             "title#2:419": {
+              "type": "TEXT",
+              "value": "Preferences"
+             },
+             "description#2:420": {
+              "type": "TEXT",
+              "value": "What you like"
+             },
+             "slot:content#2:421": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 450
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:406;2:446;2:448",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:419"
+              },
+              "characters": "Preferences"
+             },
+             {
+              "id": "I2:406;2:446;2:449",
+              "name": "Description",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "description#2:420"
+              },
+              "characters": "What you like"
+             },
+             {
+              "id": "I2:406;2:446;2:450",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:421"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:406;2:446;2:459",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:406;2:446;2:451",
+                "name": "Mateu/Field/Checkbox",
+                "type": "INSTANCE",
+                "componentId": "2:458",
+                "componentProperties": {
+                 "stereotype": {
+                  "value": "toggle",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "fieldId#2:114": {
+                  "type": "TEXT",
+                  "value": "guidedTours"
+                 },
+                 "required#2:115": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "readOnly#2:116": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "label#2:117": {
+                  "type": "TEXT",
+                  "value": "Guided tours"
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:406;2:446;2:451;2:455",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "label#2:117"
+                  },
+                  "characters": "Guided tours"
+                 },
+                 {
+                  "id": "I2:406;2:446;2:451;2:456",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:446;2:451;2:452",
+                    "name": "#prop:fieldId",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "fieldId#2:114"
+                    },
+                    "characters": "guidedTours"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:406;2:446;2:451;2:457",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:446;2:451;2:453",
+                    "name": "#flag:required",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "required#2:115"
+                    },
+                    "characters": "required",
+                    "visible": false
+                   },
+                   {
+                    "id": "I2:406;2:446;2:451;2:454",
+                    "name": "#flag:readOnly",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "readOnly#2:116"
+                    },
+                    "characters": "readOnly",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "I2:406;2:446;2:460",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:406;2:446;2:447",
+                "name": "#prop:id",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "id#2:418"
+                },
+                "characters": "preferences"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:406;2:461",
+            "name": "Mateu/Page Templates/GuidedProcessStep",
+            "type": "INSTANCE",
+            "componentId": "2:445",
+            "componentProperties": {
+             "id#2:418": {
+              "type": "TEXT",
+              "value": "confirm"
+             },
+             "title#2:419": {
+              "type": "TEXT",
+              "value": "Confirm"
+             },
+             "description#2:420": {
+              "type": "TEXT",
+              "value": "All set"
+             },
+             "slot:content#2:421": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 465
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:406;2:461;2:463",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:419"
+              },
+              "characters": "Confirm"
+             },
+             {
+              "id": "I2:406;2:461;2:464",
+              "name": "Description",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "description#2:420"
+              },
+              "characters": "All set"
+             },
+             {
+              "id": "I2:406;2:461;2:465",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:421"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:406;2:461;2:472",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:406;2:461;2:466",
+                "name": "Mateu/Display/Text",
+                "type": "INSTANCE",
+                "componentId": "2:249",
+                "componentProperties": {
+                 "size": {
+                  "value": "m",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "noMargins#2:240": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "container#2:241": {
+                  "type": "TEXT",
+                  "value": "container"
+                 },
+                 "text#2:242": {
+                  "type": "TEXT",
+                  "value": "Press Finish to become a member."
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:406;2:461;2:466;2:469",
+                  "name": "Text",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "text#2:242"
+                  },
+                  "characters": "Press Finish to become a member."
+                 },
+                 {
+                  "id": "I2:406;2:461;2:466;2:470",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:461;2:466;2:468",
+                    "name": "#prop:container",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "container#2:241"
+                    },
+                    "characters": "container"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:406;2:461;2:466;2:471",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:406;2:461;2:466;2:467",
+                    "name": "#flag:noMargins",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "noMargins#2:240"
+                    },
+                    "characters": "noMargins",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "I2:406;2:461;2:473",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:406;2:461;2:462",
+                "name": "#prop:id",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "id#2:418"
+                },
+                "characters": "confirm"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "2:476",
+      "name": "_welcome — about",
+      "type": "TEXT",
+      "characters": "welcome: A Welcome page: a banner with three calls to action over two tiles"
+     },
+     {
+      "id": "2:477",
+      "name": "welcome",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "2:484",
+        "name": "Mateu/Page Templates/WelcomePage",
+        "type": "INSTANCE",
+        "componentId": "2:530",
+        "componentProperties": {
+         "backgroundColor": {
+          "value": "dark-ocean",
+          "type": "VARIANT",
+          "boundVariables": {}
+         },
+         "overline#2:479": {
+          "type": "TEXT",
+          "value": "Mateu gallery"
+         },
+         "title#2:480": {
+          "type": "TEXT",
+          "value": "Welcome to the gallery"
+         },
+         "subtitle#2:481": {
+          "type": "TEXT",
+          "value": "Browse the collection, check the numbers, or become a member."
+         },
+         "slot:toolbar#2:482": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 488
+           }
+          },
+          "preferredValues": []
+         },
+         "slot:content#2:483": {
+          "type": "SLOT",
+          "value": {
+           "guid": {
+            "sessionID": 1,
+            "localID": 505
+           }
+          },
+          "preferredValues": []
+         }
+        },
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "I2:484;2:485",
+          "name": "Overline",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "overline#2:479"
+          },
+          "characters": "Mateu gallery"
+         },
+         {
+          "id": "I2:484;2:486",
+          "name": "Title",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "title#2:480"
+          },
+          "characters": "Welcome to the gallery"
+         },
+         {
+          "id": "I2:484;2:487",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "componentPropertyReferences": {
+           "characters": "subtitle#2:481"
+          },
+          "characters": "Browse the collection, check the numbers, or become a member."
+         },
+         {
+          "id": "I2:484;2:488",
+          "name": "slot:toolbar",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:toolbar#2:482"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:484;2:504",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "Button instances (the primary first)"
+           },
+           {
+            "id": "I2:484;2:489",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:19",
+            "componentProperties": {
+             "style": {
+              "value": "primary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "artworks"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Browse artworks"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:484;2:489;2:492",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Browse artworks"
+             },
+             {
+              "id": "I2:484;2:489;2:493",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:484;2:489;2:490",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:484;2:489;2:491",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "artworks"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:484;2:494",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:25",
+            "componentProperties": {
+             "style": {
+              "value": "secondary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "dashboard"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Dashboard"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:484;2:494;2:497",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Dashboard"
+             },
+             {
+              "id": "I2:484;2:494;2:498",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:484;2:494;2:495",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:484;2:494;2:496",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "dashboard"
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:484;2:499",
+            "name": "Mateu/Actions/Button",
+            "type": "INSTANCE",
+            "componentId": "2:25",
+            "componentProperties": {
+             "style": {
+              "value": "secondary",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "size": {
+              "value": "m",
+              "type": "VARIANT",
+              "boundVariables": {}
+             },
+             "actionId#2:11": {
+              "type": "TEXT",
+              "value": "actionId"
+             },
+             "route#2:12": {
+              "type": "TEXT",
+              "value": "onboarding"
+             },
+             "label#2:13": {
+              "type": "TEXT",
+              "value": "Become a member"
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:484;2:499;2:502",
+              "name": "Label",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "label#2:13"
+              },
+              "characters": "Become a member"
+             },
+             {
+              "id": "I2:484;2:499;2:503",
+              "name": "#props",
+              "type": "FRAME",
+              "layoutMode": "HORIZONTAL",
+              "children": [
+               {
+                "id": "I2:484;2:499;2:500",
+                "name": "#prop:actionId",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "actionId#2:11"
+                },
+                "characters": "actionId"
+               },
+               {
+                "id": "I2:484;2:499;2:501",
+                "name": "#prop:route",
+                "type": "TEXT",
+                "componentPropertyReferences": {
+                 "characters": "route#2:12"
+                },
+                "characters": "onboarding"
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "I2:484;2:505",
+          "name": "slot:content",
+          "type": "SLOT",
+          "componentPropertyReferences": {
+           "slotContentId": "slot:content#2:483"
+          },
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "I2:484;2:529",
+            "name": "#placeholder",
+            "type": "TEXT",
+            "characters": "tiles"
+           },
+           {
+            "id": "I2:484;2:508",
+            "name": "Mateu/Layout/Card",
+            "type": "INSTANCE",
+            "componentId": "2:518",
+            "componentProperties": {
+             "title#2:506": {
+              "type": "TEXT",
+              "value": "Opening hours"
+             },
+             "slot:content#2:507": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 510
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:484;2:508;2:509",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:506"
+              },
+              "characters": "Opening hours"
+             },
+             {
+              "id": "I2:484;2:508;2:510",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:507"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:484;2:508;2:517",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:484;2:508;2:511",
+                "name": "Mateu/Display/Text",
+                "type": "INSTANCE",
+                "componentId": "2:249",
+                "componentProperties": {
+                 "size": {
+                  "value": "m",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "noMargins#2:240": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "container#2:241": {
+                  "type": "TEXT",
+                  "value": "container"
+                 },
+                 "text#2:242": {
+                  "type": "TEXT",
+                  "value": "Tuesday to Sunday, 10:00 to 18:00."
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:484;2:508;2:511;2:514",
+                  "name": "Text",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "text#2:242"
+                  },
+                  "characters": "Tuesday to Sunday, 10:00 to 18:00."
+                 },
+                 {
+                  "id": "I2:484;2:508;2:511;2:515",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:484;2:508;2:511;2:513",
+                    "name": "#prop:container",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "container#2:241"
+                    },
+                    "characters": "container"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:484;2:508;2:511;2:516",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:484;2:508;2:511;2:512",
+                    "name": "#flag:noMargins",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "noMargins#2:240"
+                    },
+                    "characters": "noMargins",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "I2:484;2:519",
+            "name": "Mateu/Layout/Card",
+            "type": "INSTANCE",
+            "componentId": "2:518",
+            "componentProperties": {
+             "title#2:506": {
+              "type": "TEXT",
+              "value": "Find us"
+             },
+             "slot:content#2:507": {
+              "type": "SLOT",
+              "value": {
+               "guid": {
+                "sessionID": 1,
+                "localID": 521
+               }
+              },
+              "preferredValues": []
+             }
+            },
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "I2:484;2:519;2:520",
+              "name": "Title",
+              "type": "TEXT",
+              "componentPropertyReferences": {
+               "characters": "title#2:506"
+              },
+              "characters": "Find us"
+             },
+             {
+              "id": "I2:484;2:519;2:521",
+              "name": "slot:content",
+              "type": "SLOT",
+              "componentPropertyReferences": {
+               "slotContentId": "slot:content#2:507"
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "I2:484;2:519;2:528",
+                "name": "#placeholder",
+                "type": "TEXT",
+                "characters": "Drop the content here"
+               },
+               {
+                "id": "I2:484;2:519;2:522",
+                "name": "Mateu/Display/Text",
+                "type": "INSTANCE",
+                "componentId": "2:249",
+                "componentProperties": {
+                 "size": {
+                  "value": "m",
+                  "type": "VARIANT",
+                  "boundVariables": {}
+                 },
+                 "noMargins#2:240": {
+                  "type": "BOOLEAN",
+                  "value": false
+                 },
+                 "container#2:241": {
+                  "type": "TEXT",
+                  "value": "container"
+                 },
+                 "text#2:242": {
+                  "type": "TEXT",
+                  "value": "Paseo del Prado, Madrid."
+                 }
+                },
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "I2:484;2:519;2:522;2:525",
+                  "name": "Text",
+                  "type": "TEXT",
+                  "componentPropertyReferences": {
+                   "characters": "text#2:242"
+                  },
+                  "characters": "Paseo del Prado, Madrid."
+                 },
+                 {
+                  "id": "I2:484;2:519;2:522;2:526",
+                  "name": "#props",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:484;2:519;2:522;2:524",
+                    "name": "#prop:container",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "characters": "container#2:241"
+                    },
+                    "characters": "container"
+                   }
+                  ]
+                 },
+                 {
+                  "id": "I2:484;2:519;2:522;2:527",
+                  "name": "#flags",
+                  "type": "FRAME",
+                  "layoutMode": "HORIZONTAL",
+                  "children": [
+                   {
+                    "id": "I2:484;2:519;2:522;2:523",
+                    "name": "#flag:noMargins",
+                    "type": "TEXT",
+                    "componentPropertyReferences": {
+                     "visible": "noMargins#2:240"
+                    },
+                    "characters": "noMargins",
+                    "visible": false
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "components": {
+  "2:19": {
+   "key": "01d5518501d5518501d5518501d5518501d55185",
+   "name": "style=primary, size=m",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:10",
+   "documentationLinks": []
+  },
+  "2:25": {
+   "key": "2a9a3b772a9a3b772a9a3b772a9a3b772a9a3b77",
+   "name": "style=secondary, size=m",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:10",
+   "documentationLinks": []
+  },
+  "2:27": {
+   "key": "4c4fd3474c4fd3474c4fd3474c4fd3474c4fd347",
+   "name": "Mateu/Page/Header",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:51": {
+   "key": "0bc94cf20bc94cf20bc94cf20bc94cf20bc94cf2",
+   "name": "Mateu/Field/TextField",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:76": {
+   "key": "56bbc21e56bbc21e56bbc21e56bbc21e56bbc21e",
+   "name": "stereotype=select",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:60",
+   "documentationLinks": []
+  },
+  "2:89": {
+   "key": "9bf905709bf905709bf905709bf905709bf90570",
+   "name": "dataType=date",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:77",
+   "documentationLinks": []
+  },
+  "2:92": {
+   "key": "5754bea85754bea85754bea85754bea85754bea8",
+   "name": "propertyList=false, frameless=false, sticky=false",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:28",
+   "documentationLinks": []
+  },
+  "2:112": {
+   "key": "b5edd70bb5edd70bb5edd70bb5edd70bb5edd70b",
+   "name": "dataType=money",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:98",
+   "documentationLinks": []
+  },
+  "2:125": {
+   "key": "ebda32ecebda32ecebda32ecebda32ecebda32ec",
+   "name": "stereotype=checkbox",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:113",
+   "documentationLinks": []
+  },
+  "2:173": {
+   "key": "f4fb0faaf4fb0faaf4fb0faaf4fb0faaf4fb0faa",
+   "name": "Mateu/Field/PropertyRow",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:220": {
+   "key": "1252732612527326125273261252732612527326",
+   "name": "dataType=string",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:98",
+   "documentationLinks": []
+  },
+  "2:232": {
+   "key": "f1243ab6f1243ab6f1243ab6f1243ab6f1243ab6",
+   "name": "Mateu/Layout/Tab",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:249": {
+   "key": "4b6d57114b6d57114b6d57114b6d57114b6d5711",
+   "name": "size=m",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:239",
+   "documentationLinks": []
+  },
+  "2:254": {
+   "key": "33631c7d33631c7d33631c7d33631c7d33631c7d",
+   "name": "Mateu/Layout/Tabs",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:257": {
+   "key": "16737afc16737afc16737afc16737afc16737afc",
+   "name": "Mateu/Page Templates/ItemOverviewPage",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:291": {
+   "key": "3962f5e73962f5e73962f5e73962f5e73962f5e7",
+   "name": "Mateu/Crud/GridColumn",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:322": {
+   "key": "c990c248c990c248c990c248c990c248c990c248",
+   "name": "gridLayout=table",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:260",
+   "documentationLinks": []
+  },
+  "2:348": {
+   "key": "f846ae13f846ae13f846ae13f846ae13f846ae13",
+   "name": "Mateu/Display/MetricCard",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:382": {
+   "key": "b1d2a20fb1d2a20fb1d2a20fb1d2a20fb1d2a20f",
+   "name": "Mateu/Layout/DashboardPanel",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:398": {
+   "key": "ef465e33ef465e33ef465e33ef465e33ef465e33",
+   "name": "Mateu/Page Templates/DashboardLandingPage",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:445": {
+   "key": "aacb6f52aacb6f52aacb6f52aacb6f52aacb6f52",
+   "name": "Mateu/Page Templates/GuidedProcessStep",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:458": {
+   "key": "787b88bd787b88bd787b88bd787b88bd787b88bd",
+   "name": "stereotype=toggle",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:113",
+   "documentationLinks": []
+  },
+  "2:475": {
+   "key": "aac9cb15aac9cb15aac9cb15aac9cb15aac9cb15",
+   "name": "Mateu/Page Templates/GuidedProcessPage",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:518": {
+   "key": "335b640f335b640f335b640f335b640f335b640f",
+   "name": "Mateu/Layout/Card",
+   "description": "",
+   "remote": false,
+   "documentationLinks": []
+  },
+  "2:530": {
+   "key": "fd0cfc3ffd0cfc3ffd0cfc3ffd0cfc3ffd0cfc3f",
+   "name": "backgroundColor=dark-ocean",
+   "description": "",
+   "remote": false,
+   "componentSetId": "2:478",
+   "documentationLinks": []
+  }
+ },
+ "componentSets": {
+  "2:10": {
+   "key": "51d74ac851d74ac851d74ac851d74ac851d74ac8",
+   "name": "Mateu/Actions/Button",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:28": {
+   "key": "13cccb0413cccb0413cccb0413cccb0413cccb04",
+   "name": "Mateu/Layout/Section",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:60": {
+   "key": "6e92b2f56e92b2f56e92b2f56e92b2f56e92b2f5",
+   "name": "Mateu/Field/Select",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:77": {
+   "key": "794b97e7794b97e7794b97e7794b97e7794b97e7",
+   "name": "Mateu/Field/Date",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:98": {
+   "key": "5d5f317e5d5f317e5d5f317e5d5f317e5d5f317e",
+   "name": "Mateu/Field/PlainText",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:113": {
+   "key": "2946ff7c2946ff7c2946ff7c2946ff7c2946ff7c",
+   "name": "Mateu/Field/Checkbox",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:239": {
+   "key": "de1a999ede1a999ede1a999ede1a999ede1a999e",
+   "name": "Mateu/Display/Text",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:260": {
+   "key": "d8c5abb7d8c5abb7d8c5abb7d8c5abb7d8c5abb7",
+   "name": "Mateu/Crud/Listing",
+   "description": "",
+   "documentationLinks": []
+  },
+  "2:478": {
+   "key": "56cdfc4e56cdfc4e56cdfc4e56cdfc4e56cdfc4e",
+   "name": "Mateu/Page Templates/WelcomePage",
+   "description": "",
+   "documentationLinks": []
+  }
+ }
+}

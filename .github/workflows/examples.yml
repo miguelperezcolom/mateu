@@ -161,11 +161,68 @@ jobs:
           pip install --only-binary :all: -r ../../backend/python/requirements.txt -r "$RUNNER_TEMP/starter-requirements.txt"
           PYTHONPATH=../../backend/python:. pytest -q
 
+  # The Figma design pipeline end to end, as a designer uses it: the six sample screens of the Mateu
+  # UI Kit (design/figma/e2e/*.figma.json — the synthetic fixture and, once committed, a real
+  # download) → specs/ui YAML (design/figma/to-yaml) → a Spring Boot YAML app on the RELEASED Mateu
+  # the yaml starter pins (Maven Central) → Playwright: every screen renders, required fields block
+  # Save, Save posts, a listing row opens its record, the guided process moves. Only when the Figma
+  # side, the schema the converter types by, or the pin changes.
+  figma-changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      relevant: ${{ steps.diff.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          PATTERN: '^design/figma/|^backend/shared/uidl/uidl-schema\.json$|^starters/yaml/pom\.xml$|^\.github/workflows/examples\.yml$'
+        run: scripts/ci-changes.sh
+
+  figma-e2e:
+    needs: figma-changes
+    if: needs.figma-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install Playwright (Chromium only)
+        working-directory: design/figma/e2e
+        run: |
+          npm ci --ignore-scripts
+          npx --no -- playwright install --with-deps chromium
+      - name: Fixtures convert with no warning
+        working-directory: design/figma/e2e
+        run: npm test
+      - name: Figma file → YAML → running app → browser checks
+        working-directory: design/figma/e2e
+        run: npm run e2e
+
   # The check to require on master (design/ci-required-checks.md): always reports, green when every
   # job passed or was skipped because the PR does not touch the examples.
   examples-ok:
     if: always()
-    needs: [changes, java-starters-and-demos, dotnet-starter, python-starter]
+    needs: [changes, java-starters-and-demos, dotnet-starter, python-starter, figma-changes, figma-e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

@@ -213,6 +213,12 @@ cd design/figma/to-yaml && npm run self-test -- library.json
 converts every instance of that page on its own and fails unless each one becomes a valid component
 with no warning (Java archetypes are listed, not failed).
 
+The self-test checks the components one by one. A third command, **Mateu Sample Screens**, checks
+them as a designer uses them: in any file with the kit it composes six realistic screens out of
+library instances (a form, an item overview, a listing, a dashboard, a guided process, a welcome
+page), and the repository converts, serves and clicks through the same six screens in CI. See
+[Check the whole pipeline](/design-systems/figma-guide/#check-the-whole-pipeline-end-to-end).
+
 ### Generating code (modux)
 
 The [modux](https://github.com/miguelperezcolom/modux) repository reads the same designs into code,

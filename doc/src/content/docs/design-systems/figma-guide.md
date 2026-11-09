@@ -116,6 +116,32 @@ In your design file, with the library enabled:
   referenced from every page that contains it.
 - **Notes.** Hidden layers and layers whose name starts with `#` are never read.
 
+### Select and radio options
+
+A `Mateu/Field/Select` (in every variant: select, combobox, searchable, treeSelect, listBox,
+multiSelect) and a `Mateu/Field/RadioGroup` have an **`options`** property in the right panel. Type
+the choices there, separated by commas:
+
+| You type | The field offers (value → label) |
+|---|---|
+| `Spain, France, Portugal` | `spain` → Spain, `france` → France, `portugal` → Portugal |
+| `es=Spain, fr=France` | `es` → Spain, `fr` → France |
+| `pcs=Pieces; box=Boxes of 12, sealed` | `pcs` → Pieces, `box` → Boxes of 12, sealed |
+
+- A plain label gets its value made from it: lower case, accents dropped, spaces and symbols turned
+  into `-` (`Opción A` → `opcion-a`, `United Kingdom` → `united-kingdom`).
+- Write `value=Label` when the value must be a particular code (`es=Spain`). Both kinds can be mixed.
+- When a label has a comma in it, separate the items with `;` instead: as soon as the text has a `;`,
+  only `;` separates.
+- The value is what the form keeps and sends when the user picks the option.
+- Left as it comes (it shows `options`, its own name), the field has no options of its own; a
+  developer can still give it some in the YAML (`options:` or `optionsSource:`).
+- The option texts the component draws (the RadioGroup's "Opción A / Opción B", the Select's "Value")
+  are only a picture: they are never read.
+
+The converter warns about an item it cannot read (`a=` with no label, a label with no letters or
+digits such as `★`, the same value twice) and leaves that item out.
+
 ### Older libraries
 
 A `#config` line inside an instance (`fieldId=email; required=true`) — what the plugin writes for a
@@ -253,6 +279,100 @@ zip** and drop it on a Cloudflare Pages project.
 
 Tokens stay on your device (Figma's client storage), never in the Figma file. Routes, data and
 button settings do travel in the file, so write nothing secret there.
+## Check the whole pipeline (end to end)
+
+Before you design a real app, it is worth checking once that every link of the chain works for you:
+the kit in your Figma, the download, the converter and the running app. There are three ways, from
+the most hands-on to the fully automatic.
+
+### By hand, the first time
+
+1. **Get the kit**: duplicate the [Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)
+   ([step 0](#0-get-the-mateu-ui-kit-the-quick-way)).
+2. **Design one screen**: on a new page of that file, add a frame called `contact`. Into it drag a
+   `Mateu/Page/Header` instance (set its `title` to "New contact" and drop a `Mateu/Actions/Button`
+   into its toolbar slot), then a `Mateu/Layout/Section` with two `Mateu/Field/TextField` instances
+   in its content slot. In the properties panel give each field a `fieldId` (`name`, `email`) and a
+   `label`, and switch `required` on for `email`.
+3. **Import it**: [make a token](#the-token), then run the [two commands](#the-two-commands) with
+   the file's key, writing into the `specs/ui` folder of an app made from the YAML starter.
+4. **Run it**: add the route (`- route: contact` / `layout: contact.yaml`) to `routes.yaml`, start
+   the app and open `http://localhost:8080/contact`.
+5. **What to check**: the converter printed no warning, and the page shows the title, the button,
+   the section and both fields, with "Email" marked as required. The button does nothing yet: what
+   an `actionId` does is the developer's part (an entry in `actions.yaml`, see
+   [below](#what-ci-checks-and-refreshing-it-from-a-real-file)); once it is declared with
+   `validationRequired: true`, pressing it with Email empty shows a validation message.
+
+### With the plugin's Self-test and Sample Screens commands
+
+The plugin ([step 1](#1-build-the-library-once)) has two commands that do this at scale:
+
+- **Mateu Library Self-test** checks the library itself — run it in the library file: every
+  component, slot, property and variant, and whether Figma will publish every component (see
+  [Checking the library](/design-systems/figma/#checking-the-library-self-test)).
+- **Mateu Sample Screens** checks the library the way a designer uses it. Run it in any file that
+  has the kit — a duplicate of the Community file, or a file with the published library enabled. On
+  a page `Screens (sample)` (replaced on each run) it builds six screens out of library instances
+  only, exactly as a designer would: instances dropped into slots, ids and labels set in the
+  properties panel, variants picked:
+
+  | Frame | What it is |
+  |---|---|
+  | `contact` | a free form: a page header with Save and Cancel, two sections with a text field, a required email, a select, a date, a money amount and a checkbox |
+  | `artwork` | an `ItemOverviewPage`: a photo, the key facts as property rows, two tabs |
+  | `artworks` | a `Listing` reading the source `artworks`, searchable, whose rows open `artworks/${row.id}` |
+  | `dashboard` | a `DashboardLandingPage`: three metric cards and two panels |
+  | `onboarding` | a `GuidedProcessPage` with three steps |
+  | `welcome` | a `WelcomePage` with three calls to action over two tiles |
+
+  When it ends it says how many instances it made and whether anything was refused; the plugin
+  console has the details. If it says the kit is not in the file, duplicate the kit (or enable the
+  library) and run it again.
+
+Download that file and convert it like any design: the six pages must come out with no warning.
+
+### What CI checks, and refreshing it from a real file
+
+The repository runs the same six screens on every pull request that touches the Figma side
+(`design/figma/e2e`, job *figma-e2e*): each `design/figma/e2e/*.figma.json` is converted to YAML,
+served by a small YAML app on the Mateu release the YAML starter uses, and checked in a browser —
+every screen renders with no error, Save is refused while a required field is empty and then sends
+the form, the listing shows rows and a row opens its record, the search narrows the rows, the tabs
+and the guided process's steps switch, and the calls to action navigate.
+
+The app around the pages is what a developer adds to any design: `routes.yaml` (one route per frame,
+the record route fetching the row with `data:`), `sources.yaml` (the `artworks` source the listing
+names) and `actions.yaml`, which says what the designer's `actionId: save` does — validate the form
+and post it. A designer names an action; a developer defines it.
+
+To run it yourself (JDK 21, Maven and Node 22 or later):
+
+```bash
+cd design/figma/e2e
+npm ci && npx playwright install chromium
+npm test         # the fixtures convert, with no warning
+npm run e2e      # convert, build, start on a free port, run the browser checks
+npm run e2e:serve   # the same app, left running, to look at the screens yourself
+```
+
+The committed `sample-screens.figma.json` is built from the plugin's own plan of the six screens
+(`npm run fixture` rewrites it). To check a REAL file instead — one where you ran *Mateu Sample
+Screens*, or composed the six frames yourself — download it as the real fixture:
+
+```bash
+npm run e2e:refresh -- https://www.figma.com/design/<FILE_KEY>/...   # or just the file key
+```
+
+It reads the token from `FIGMA_TOKEN`, else `~/.mateu-secrets/figma-token`, and never prints it. It
+writes `real-sample-screens.figma.json` (only the page with the screens and the components they use),
+and `npm test` and `npm run e2e` then check both fixtures. The frames must be named `contact`,
+`artwork`, `artworks`, `dashboard`, `onboarding` and `welcome`.
+
+The sample's `country` select takes its choices from its `options` property
+(`Spain, France, Portugal, United Kingdom`, see [Select and radio options](#select-and-radio-options)).
+The browser check opens it, sees those four options, picks France and checks that Save posts
+`country: france`.
 
 ## If something does not look right
 

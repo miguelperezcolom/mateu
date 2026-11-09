@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FigmaToYaml } from '../src/convert.mjs'
+import { FigmaToYaml, parseOptions } from '../src/convert.mjs'
 import { loadContract, loadSchema } from '../src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -46,7 +46,7 @@ test('slot content: a SLOT named after its frame, one renamed (read by its prope
   const page = converter().convert(fixture).files[0].value
   const titles = page.content.map((c) => c.title.text)
   assert.deepEqual(titles, ['Lines', 'Delivery', 'Notes'])
-  assert.deepEqual(page.content[0].content.content.map((f) => f.id), ['product', 'quantity'])
+  assert.deepEqual(page.content[0].content.content.map((f) => f.id), ['product', 'quantity', 'unit'])
   assert.deepEqual(page.content[1].content.content.map((f) => f.id), ['address'])
   assert.ok(page.content[1].content.content[0].propertyRow)
   // the Notes section's content is a plain `slot:content` frame (the plugin's fallback)
@@ -149,4 +149,55 @@ test('a field says its stereotype and where its options come from', () => {
   assert.ok(!('stereotype' in bad))
   assert.equal(warnings.length, 1)
   assert.match(warnings[0], /stereotype: "nonsense" is not one of/)
+})
+
+test("a Select's options property becomes its options (the native fixture: explicit values, `;` keeps a comma)", () => {
+  const page = converter().convert(fixture).files[0].value
+  const unit = page.content[0].content.content.find((f) => f.id === 'unit')
+  assert.equal(unit.stereotype, 'select')
+  assert.deepEqual(unit.options, [{ value: 'pcs', label: 'Pieces' }, { value: 'box', label: 'Boxes of 12, sealed' }])
+  assert.ok(!('placeholder' in unit), 'the drawn "Value" is decoration')
+})
+
+test('the options syntax: labels (value slugified), value=Label pairs, mixed, and what is refused', () => {
+  assert.deepEqual(parseOptions('Opción A, Opción B').options, [{ value: 'opcion-a', label: 'Opción A' }, { value: 'opcion-b', label: 'Opción B' }])
+  assert.deepEqual(parseOptions('es=Spain, fr=France').options, [{ value: 'es', label: 'Spain' }, { value: 'fr', label: 'France' }])
+  assert.deepEqual(parseOptions(' es = Spain ; Other country ;; ').options, [{ value: 'es', label: 'Spain' }, { value: 'other-country', label: 'Other country' }])
+  const bad = parseOptions('a=, =B, ★, Spain, spain')
+  assert.deepEqual(bad.options, [{ value: 'spain', label: 'Spain' }])
+  assert.deepEqual(bad.problems, [
+    '"a=" needs a value and a label (value=Label)',
+    '"=B" needs a value and a label (value=Label)',
+    '"★" makes no value: write it as value=Label',
+    'the value "spain" is given twice ("spain" left out)',
+  ])
+  assert.deepEqual(parseOptions(' , ').problems, ['" , " lists no option'])
+})
+
+test('options on a RadioGroup and a multiSelect; untouched = unset; malformed = a warning, the rest kept', () => {
+  const field = (id, componentId, fieldId, options) => ({
+    type: 'INSTANCE', id, name: 'f', componentId,
+    componentProperties: {
+      ...(componentId === 'ms' ? { stereotype: { type: 'VARIANT', value: 'multiSelect' } } : {}),
+      'fieldId#1:1': { type: 'TEXT', value: fieldId },
+      'options#1:2': { type: 'TEXT', value: options },
+    },
+    children: [],
+  })
+  const file = screen([
+    field('2:1', 'rg', 'size', 'Small, Medium, Large'),
+    field('2:2', 'ms', 'tags', 'new=New; sale=On sale'),
+    field('2:3', 'rg', 'untouched', 'options'),
+    field('2:4', 'rg', 'broken', 'a=, b=Bee'),
+  ], { rg: { name: 'Mateu/Field/RadioGroup' }, ms: { name: 'stereotype=multiSelect', componentSetId: 'ms-set' } })
+  file.componentSets = { 'ms-set': { name: 'Mateu/Field/Select' } }
+  const { files, warnings } = converter().convert(file)
+  const [size, tags, untouched, broken] = files[0].value.content
+  assert.equal(size.stereotype, 'radio')
+  assert.deepEqual(size.options.map((o) => o.value), ['small', 'medium', 'large'])
+  assert.equal(tags.stereotype, 'multiSelect')
+  assert.deepEqual(tags.options, [{ value: 'new', label: 'New' }, { value: 'sale', label: 'On sale' }])
+  assert.ok(!('options' in untouched), "the property's own name is its default: unset")
+  assert.deepEqual(broken.options, [{ value: 'b', label: 'Bee' }])
+  assert.deepEqual(warnings, ['f (2:4): options: "a=" needs a value and a label (value=Label)'])
 })

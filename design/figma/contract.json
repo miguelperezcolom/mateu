@@ -305,6 +305,7 @@
       "python": "Enum field / Lookup()",
       "props": {
         "fieldId": "TEXT",
+        "options": "TEXT",
         "required": "BOOLEAN",
         "readOnly": "BOOLEAN",
         "optionsSource.ref": "TEXT"
@@ -330,7 +331,11 @@
           "dataType": "string"
         },
         "params": {
-          "fieldId": "id"
+          "fieldId": "id",
+          "options": {
+            "path": "options",
+            "parse": "options"
+          }
         }
       }
     },
@@ -345,6 +350,7 @@
       "python": "Annotated[Enum, UseRadioButtons()]",
       "props": {
         "fieldId": "TEXT",
+        "options": "TEXT",
         "required": "BOOLEAN",
         "readOnly": "BOOLEAN",
         "optionsSource.ref": "TEXT"
@@ -385,7 +391,11 @@
           "stereotype": "radio"
         },
         "params": {
-          "fieldId": "id"
+          "fieldId": "id",
+          "options": {
+            "path": "options",
+            "parse": "options"
+          }
         }
       }
     },
@@ -6410,11 +6420,12 @@
     "properties": "An entry's `props` are component properties (TEXT, or BOOLEAN as the contract types them) named as the param, set in Figma's properties panel; each `texts` layer is a TEXT property bound to the layer's characters, named as its param when unambiguous, else as the layer (`Title1`). An instance's `componentProperties` (keys `<name>#<id>`) are read FIRST: they win over `#config` and the text layers, so a property bound to a layer is one value. Empty values, BOOLEAN false and a text still showing its placeholder are not read; a property that is no param of the entry is a warning.",
     "texts": "An entry's `texts` name the text layers read back (a sketch primitive may name its layer apart from its drawn text with `layer`); a layer whose content is still its placeholder (its own name, or that drawn text) is not read.",
     "config": "FALLBACK (a prop Figma refused as a property): the `#config` text layer holds `key=value; key2=value2` for the entry's `props`; empty values are not read.",
+    "options": "The `options` TEXT property of an option-bearing field (Mateu/Field/Select in every stereotype variant, Mateu/Field/RadioGroup) lists its choices, typed in Figma's properties panel. Items are separated by `;` when the text has one, else by `,` (so a label holds a comma only in the `;` form). An item is a bare LABEL (its value = the label slugified: `Opción A` -> `opcion-a`) or `value=Label` (an explicit value: `es=Spain`); both kinds may be mixed. `Spain, France, Portugal` -> [{value: spain, label: Spain}, ...]; `es=Spain; fr=France` -> [{value: es, label: Spain}, ...]. It becomes the FormField's `options: [{value, label}]`. Empty items are skipped; an item with an empty value or label, a label that slugifies to nothing, or a value given twice is a warning and is left out. Left at its default (the property's own name, `options`) it is unset, like every config prop. The option texts the library DRAWS (a RadioGroup's `Opción A`/`Opción B`, a Select's `Value`) are decoration: only the property is read.",
     "unknown": "A layer of a type with no Mateu reading (not a frame, text, slot, instance or plain shape) is reported as a warning, never dropped silently.",
     "variants": "An instance's VARIANT properties map to the params of the same name; a boolean `false` and a value listed in `yaml.defaults` are omitted.",
     "hidden": "Hidden layers and layers whose name starts with \"#\" are never content.",
     "frames": "A plain frame (not an instance) inside a page or slot is a layout: HorizontalLayout when its auto-layout is horizontal, else VerticalLayout — or the layout its name says (FormLayout, HorizontalLayout, VerticalLayout). A plain text layer is a Text (h2 from 24px, h3 from 18px).",
     "partial": "A frame named `partial:<ref>` is a `{type: Partial, ref}` and its children are written once to partials/<ref>.yaml.",
-    "yaml": "Each entry's `yaml` says what it becomes: `type` (or `record` + `schema`: an object without a type, checked against that schema definition), `set` (constants at dotted paths), `params` (param -> dotted path, or {path, values, set, component+key, list+key, whenTrue}; null = drawn but not read), `items` (where `item.*` params collect, grouped by the layer's trailing number), `defaults` (values omitted), `slots` (slot -> {path, many | wrap, flatten}) and `into` (merged into the page, or appended to one of its lists). `yaml: null` = no YAML counterpart (see `yamlNote`)."
+    "yaml": "Each entry's `yaml` says what it becomes: `type` (or `record` + `schema`: an object without a type, checked against that schema definition), `set` (constants at dotted paths), `params` (param -> dotted path, or {path, values, set, component+key, list+key, whenTrue, parse}; `parse: options` reads the text with the `options` syntax; null = drawn but not read), `items` (where `item.*` params collect, grouped by the layer's trailing number), `defaults` (values omitted), `slots` (slot -> {path, many | wrap, flatten}) and `into` (merged into the page, or appended to one of its lists). `yaml: null` = no YAML counterpart (see `yamlNote`)."
   }
 }

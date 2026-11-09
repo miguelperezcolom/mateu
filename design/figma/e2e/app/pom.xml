@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The app the Figma end-to-end check serves the converted screens with: starters/yaml (Spring
+         Boot, no UI code) plus a tiny sample API. Its pages are NOT in this module: bin/run.mjs
+         converts each design/figma/e2e/*.figma.json into a folder and starts the jar with
+         -Dloader.path=<folder>, so one build serves every fixture. -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.e2e</groupId>
+    <artifactId>figma-e2e-app</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- bin/run.mjs passes -Dmateu.version=<the pin of starters/yaml/pom.xml> -->
+        <mateu.version>3.0-beta.32</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>figma-e2e-app</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- PropertiesLauncher: -Dloader.path adds the converted specs/ui at start -->
+                    <layout>ZIP</layout>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
