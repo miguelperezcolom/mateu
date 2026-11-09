@@ -21,6 +21,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   inbox with the All / Unread / Resolved filters and category groups of the other renderers. The
   tasks still running on a backend are remembered across IDE restarts (per backend, for an hour)
   and followed again in Background Tasks when the app is opened.
+- **The phone app's bell catches up when the app comes back to the foreground**, so its badge counts
+  what arrived while the app was away instead of waiting for the panel to open. The docs now say
+  plainly what OS notifications can and cannot do on a phone: they are local, so a suspended or
+  closed app posts none.
 - **The .NET and Python servers close their documented gaps.** Both ports gain the 24 wire
   component types that were Java-only (`Grid` with column groups, `BoardLayout`, `CarouselLayout`,
   `Chat`, `MessageList`/`MessageInput`, `ContextMenu`, `MenuBar`, `Directory` — `DirectoryMenu` in

@@ -169,7 +169,10 @@ provide them on the submitting machine (`EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_I
 older tag, which would push old JS over the newer release; `npx eas-cli update --channel production`
 does the same by hand. `runtimeVersion` follows the app version, so an update only reaches binaries
 it is compatible with — bump `expo.version` whenever a release changes native dependencies. The camera permission is the only
-runtime permission requested (for `@PhotoCapture`); the microphone is explicitly not.
+runtime permission requested on its own (for `@PhotoCapture`); the microphone is explicitly not. An
+app with `@App(osNotifications = true)` also offers "Notify me on this device", which asks for the
+notification permission only from that tap. Those notifications are local, so a suspended or closed
+app posts none: see [what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
 
 ## 5. Look and theming
 

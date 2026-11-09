@@ -117,6 +117,18 @@ persist them.
 **Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
 a user sees after a restart.
 
+### React Native: no OS notification from a suspended or closed app
+
+With `@App(osNotifications = true)` the phone app posts local notifications only: nothing leaves the
+device, and there is no remote push in 3.0, by design. The OS suspends a backgrounded app soon after
+it leaves the screen, so a task that ends after that, a live inbox push, or anything sent while the
+app is closed produces no OS notification.
+
+**Workaround:** the bell catches up as soon as the app is back in front, so keep what matters in the
+inbox (`NotificationsSupplier`, or `InboxStore` for signed-in users). To alert a closed phone, send a
+push from your own backend. See
+[what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
+
 ### Touch and desktop adaptations
 
 Some interactions have no direct equivalent on a device and are adapted rather than reproduced:
