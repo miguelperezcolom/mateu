@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 //  - the form action reads the inline-edited rows back (state round-trip)
 // ---------------------------------------------------------------------------
 
-const API = '/inline-grid-form/mateu/v3/components/_/action';
+const API = '/inline-grid-form/mateu/v3/sync/_no_route';
 const TYPE = 'io.mateu.sample1.InlineGridForm';
 
 async function callAction(request: any, url: string, body: object) {

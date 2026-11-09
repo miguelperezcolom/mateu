@@ -315,7 +315,7 @@ class MateuRegistry:
 
     def type_by_name(self, full_name: str | None) -> type | None:
         """Resolve any class by full name (``module.QualName``) — used to instantiate a YAML page's
-        declared ``modelView:`` logic class, which need not be a registered @ui view."""
+        declared ``viewModel:`` logic class, which need not be a registered @ui view."""
         if not full_name:
             return None
         if full_name in self._by_name:

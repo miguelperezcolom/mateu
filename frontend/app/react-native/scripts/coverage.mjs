@@ -44,7 +44,6 @@ export const RN_COVERAGE = {
   DashboardPanel: { status: 'full' },
   Scoreboard: { status: 'full' },
   HeroSection: { status: 'full' },
-  Stepper: { status: 'full', note: 'children as numbered steps' },
   // ── fields and input ──
   FormField: { status: 'full', note: 'every stereotype, date picker, lookups, capture fields' },
   CustomField: { status: 'layout', note: 'its component in place' },
@@ -82,7 +81,6 @@ export const RN_COVERAGE = {
   EmptyState: { status: 'full' },
   Skeleton: { status: 'full' },
   NotFound: { status: 'full' },
-  Result: { status: 'full', note: 'icon by result type, links, next step' },
   EntityHeader: { status: 'full', note: 'a fact with an action gets a tappable icon after its value' },
   Meter: { status: 'full' },
   TaskProgress: { status: 'full' },

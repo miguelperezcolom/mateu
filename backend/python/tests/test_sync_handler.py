@@ -1006,7 +1006,7 @@ def test_yaml_page_binds_its_layout_to_the_declared_modelView():
     spec_file = spec_dir / "yaml-bound-demo.yaml"
     spec_file.write_text(
         f"""
-modelView: {_name(YamlBoundView)}
+viewModel: {_name(YamlBoundView)}
 layout:
   type: VerticalLayout
   content:

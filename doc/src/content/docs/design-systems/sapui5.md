@@ -29,4 +29,3 @@ renderer is built against the [renderer contract](/design-systems/renderer-contr
 ## Related
 
 - [Design systems overview](/design-systems/)
-- [Migrating from alpha](/reference/migrating-from-alpha/)

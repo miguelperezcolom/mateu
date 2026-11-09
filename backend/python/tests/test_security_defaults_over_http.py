@@ -265,7 +265,6 @@ def test_a_body_that_is_not_declared_json_is_refused_with_415(content_type):
         ("/mateu/v3/sync/mcp-probe", rq),
         ("/mateu/v3/sync", rq),
         ("/mateu/v3/sse/mcp-probe", rq),
-        ("/mateu/v3/components/_/action", rq),
         ("/mateu/mcp", mcp),
     ]:
         headers = {} if content_type is None else {"content-type": content_type}

@@ -100,7 +100,7 @@ internal static class YamlComponentBuilder
     /// <summary>
     /// Parse a page spec (a file under specs/ui): the declared ModelView class name (or null for a
     /// bare, unbound layout) plus the layout component. Envelope-aware — a `layout:` key holds the
-    /// tree and a `modelView:` key names the logic class the tooling binds it to.
+    /// tree and a `viewModel:` key names the logic class the tooling binds it to.
     /// </summary>
     public static (string? ModelView, IComponent? Layout) ParseSpec(
         string yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
@@ -111,7 +111,7 @@ internal static class YamlComponentBuilder
 
     /// <summary>
     /// Parse a page spec with its <c>layoutDelta:</c>: the ModelView class name (the canonical
-    /// <c>viewModel:</c> or the legacy <c>modelView:</c> key), the explicit layout (a SNAPSHOT —
+    /// <c>viewModel:</c> key), the explicit layout (a SNAPSHOT —
     /// null for a delta-only page) and the delta (empty when none; mirrors Java's
     /// YamlUidlLoader.deltaOf).
     /// </summary>
@@ -149,8 +149,7 @@ internal static class YamlComponentBuilder
         if (root is null) return (null, null, LayoutDelta.Empty);
         var registry = new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None);
         if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []), LayoutDelta.Empty);
-        var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString()
-            : map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
+        var modelView = map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
         var delta = DeltaOf(map);
         // A page that carries a `layoutDelta:` and no `layout:` has NO explicit layout on purpose —
         // that is the whole point of a delta: the view model's INFERRED layout renders and the delta

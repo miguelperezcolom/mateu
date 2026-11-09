@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event}){const card=event&&(event.currentTarget||event.target),call=bridge.orgCardActionOf(card?card.context:null);call&&(await Actions.callChain(context,{chain:"dispatchHostBlockAction",params:{actionId:call.actionId,parameters:call.parameters}}))}};});
+//# sourceMappingURL=orgChartCardAction.js.map

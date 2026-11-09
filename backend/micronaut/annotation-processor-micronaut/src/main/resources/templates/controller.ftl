@@ -72,7 +72,7 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.contentType(asset.contentType());
     }
 
-    @Post("v3/{/ignored:(?!sse/|sse$|client-log$).*}")
+    @Post("v3/sync{/ignored:.*}")
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,

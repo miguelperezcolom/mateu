@@ -4,23 +4,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Parent interface for all component metadata types.
- *
- * <p>{@code Result} and {@code Stepper} are registered but deprecated: nothing produces them (see
- * their DTOs).
- */
-@SuppressWarnings("removal")
+/** Parent interface for all component metadata types. */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = FormDto.class, name = "Form"),
   @JsonSubTypes.Type(value = AppDto.class, name = "App"),
   @JsonSubTypes.Type(value = CrudlDto.class, name = "Crud"),
-  @JsonSubTypes.Type(value = ResultDto.class, name = "Result"),
   @JsonSubTypes.Type(value = MicroFrontendDto.class, name = "MicroFrontend"),
   @JsonSubTypes.Type(value = CardDto.class, name = "Card"),
   @JsonSubTypes.Type(value = DirectoryDto.class, name = "Directory"),
-  @JsonSubTypes.Type(value = StepperDto.class, name = "Stepper"),
   @JsonSubTypes.Type(value = HorizontalLayoutDto.class, name = "HorizontalLayout"),
   @JsonSubTypes.Type(value = VerticalLayoutDto.class, name = "VerticalLayout"),
   @JsonSubTypes.Type(value = SplitLayoutDto.class, name = "SplitLayout"),
@@ -135,11 +127,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
       FormDto.class,
       AppDto.class,
       CrudlDto.class,
-      ResultDto.class,
       MicroFrontendDto.class,
       CardDto.class,
       DirectoryDto.class,
-      StepperDto.class,
       HorizontalLayoutDto.class,
       VerticalLayoutDto.class,
       SplitLayoutDto.class,

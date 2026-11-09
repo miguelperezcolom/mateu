@@ -31,7 +31,6 @@ import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 import { fieldPlaceholder } from '../core/uxRules';
-import { richTextHtml } from '../core/richTextValue';
 import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
 import { flattenColumnGroups } from './columnGroups';
 
@@ -287,8 +286,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Rich content: rendered read-only, textarea when editable
     if (['markdown', 'html', 'richText'].includes(stereotype)) {
-      // a legacy (Quill Delta JSON) richText value opens as its HTML, like on the web
-      const content = stereotype === 'richText' ? richTextHtml(stringValue) : stringValue;
+      const content = stringValue;
       if (!editable) return <RichText value={content} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
       ownLabel = true;
       return (

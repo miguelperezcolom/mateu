@@ -12,7 +12,7 @@ import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, stat
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -1728,7 +1728,6 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
     if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
     if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
-    if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
     if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
@@ -1817,15 +1816,6 @@ export function islandContentOf(ctx, opts = {}) {
           atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
         } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
       }
-      return
-    }
-    if (t === 'Stepper') {
-      // a numbered step per child (the wire record carries no fields of its own)
-      kidsOf(node).forEach((child, i) => {
-        const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
-        atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
-        visit(child, container)
-      })
       return
     }
     if (t === 'FormEditor') {

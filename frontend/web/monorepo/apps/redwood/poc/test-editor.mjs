@@ -88,7 +88,7 @@ test('editor mode: the generic form (fields, sections, buttons) carries the node
 })
 
 test('the app answers its bootstrap with a one-route App whose home is the preview', () => {
-  const app = previewAnswerOf('/mateu/v3/components/_/action', { initiatorComponentId: 'shell' }, null)
+  const app = previewAnswerOf('/mateu/v3/sync/_no_route', { actionId: '__load__', initiatorComponentId: 'shell' }, null)
   const md = app.fragments[0].component.metadata
   assert.equal(app.fragments[0].targetComponentId, 'shell')
   assert.equal(md.type, 'App')

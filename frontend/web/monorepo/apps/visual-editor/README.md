@@ -28,7 +28,7 @@ could not run in VSCode.
   (`canvas/canvasSelection.ts`). `canvas/nodeReachability.test.ts` paints every page template and
   fails if a definition node cannot be reached by a click. Layout edits go through the `PageDoc` model, which
   serializes back to YAML.
-- **Model of truth**: the YAML page file (`modelView` + `layout`). Behaviour/data stay in the Java
+- **Model of truth**: the YAML page file (`viewModel` + `layout`). Behaviour/data stay in the Java
   ModelView. This editor edits *layout only*.
 
 ## Preview source (where the canvas renders + gets its data)

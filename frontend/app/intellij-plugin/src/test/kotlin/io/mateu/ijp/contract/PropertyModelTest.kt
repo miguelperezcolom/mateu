@@ -6,7 +6,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 class PropertyModelTest : LightJavaCodeInsightFixtureTestCase() {
 
   private val page = """
-    modelView: demo.X
+    viewModel: demo.X
     layout:
       type: VerticalLayout
       content:
@@ -34,7 +34,7 @@ class PropertyModelTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testReturnsNullOutsideAnyComponent() {
-    myFixture.configureByText("page.yaml", "modelView: demo.X\n")
+    myFixture.configureByText("page.yaml", "viewModel: demo.X\n")
     assertNull(PropertyModel.at(myFixture.file, 0))
   }
 }

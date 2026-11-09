@@ -287,24 +287,6 @@
      },
      {
       "type": "ClientSide",
-      "id": "c31",
-      "metadata": {
-       "type": "Stepper"
-      },
-      "children": [
-       {
-        "type": "ClientSide",
-        "id": "c30",
-        "metadata": {
-         "type": "Text",
-         "text": "Step content"
-        },
-        "children": []
-       }
-      ]
-     },
-     {
-      "type": "ClientSide",
       "id": "c32",
       "metadata": {
        "type": "Breadcrumbs",
@@ -613,31 +595,6 @@
        "type": "Notification",
        "title": "Heads up",
        "text": "Something happened"
-      },
-      "children": []
-     },
-     {
-      "type": "ClientSide",
-      "id": "c52",
-      "metadata": {
-       "type": "Result",
-       "title": "Order placed",
-       "resultType": "Success",
-       "message": "We emailed you the receipt.",
-       "interestingLinks": [
-        {
-         "id": "l1",
-         "type": "Route",
-         "description": "See your orders",
-         "value": "/orders"
-        }
-       ],
-       "nowTo": {
-        "id": "n1",
-        "type": "Route",
-        "description": "Back home",
-        "value": "/"
-       }
       },
       "children": []
      },

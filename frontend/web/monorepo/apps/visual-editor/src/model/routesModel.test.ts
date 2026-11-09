@@ -23,7 +23,7 @@ describe('parse/serialize routes', () => {
 type: Routes
 routes:
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: orders/:id
     viewModel: com.acme.Order
     fixedParams:
@@ -43,7 +43,7 @@ routes:
         const out = parse(serializeRoutes(parseRoutes(src)))
         expect(out.type).toBe('Routes')
         expect(out.$schema).toContain('routes-schema.json')
-        expect(out.routes[0]).toEqual({ route: 'orders', definition: 'orders.yaml' }) // no empty viewModel
+        expect(out.routes[0]).toEqual({ route: 'orders', layout: 'orders.yaml' }) // no empty viewModel
         expect(out.routes[1].fixedParams).toEqual({ status: 'open' })
     })
 
@@ -58,13 +58,18 @@ routes:
         expect(formatParams({ status: 'open', page: 1 })).toBe('status=open, page=1')
         expect(parseParams('')).toEqual({})
     })
+
+    it('does not read the removed `definition:` key (only `layout:`)', () => {
+        const doc = parseRoutes('type: Routes\nroutes:\n  - route: a\n    definition: a.yaml\n')
+        expect(doc.routes[0].definition).toBeUndefined()
+    })
 })
 
 describe('routes the table used to drop', () => {
     const src = `type: Routes
 routes:
   - route: people/:id
-    definition: person.yaml
+    layout: person.yaml
     data: swapi-person
   - route: customers/:customerId
     layout: master.yaml
@@ -75,9 +80,9 @@ routes:
         layout: orders.yaml
         show: audit
 `
-    it('keeps data, the layout key as authored, defaultChild, children and unknown keys', () => {
+    it('keeps data, the layout, defaultChild, children and unknown keys', () => {
         const out = parse(serializeRoutes(parseRoutes(src)))
-        expect(out.routes[0]).toEqual({ route: 'people/:id', definition: 'person.yaml', data: 'swapi-person' })
+        expect(out.routes[0]).toEqual({ route: 'people/:id', layout: 'person.yaml', data: 'swapi-person' })
         expect(out.routes[1].layout).toBe('master.yaml')
         expect(out.routes[1].definition).toBeUndefined()
         expect(out.routes[1].defaultChild).toBe('orders')

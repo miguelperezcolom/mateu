@@ -3372,7 +3372,7 @@ public class SyncHandlerSpecsFileTests
         Directory.CreateDirectory(dir);
         var file = Path.Combine(dir, "yaml-bound-demo.yaml");
         File.WriteAllText(file, """
-            modelView: Mateu.Tests.YamlBoundView
+            viewModel: Mateu.Tests.YamlBoundView
             layout:
               type: VerticalLayout
               content:

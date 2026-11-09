@@ -49,7 +49,7 @@ products_of() {
 # Loads <route> inside the app shell of starter <s> on port <p> (as the shell's content area does).
 load() {
   curl -s -m 10 -X POST -H 'Content-Type: application/json' \
-    "http://localhost:$2/mateu/v3/components/_/action" \
+    "http://localhost:$2/mateu/v3/sync/_no_route" \
     -d "{\"serverSideType\":\"$(shell_of "$1")\",\"route\":\"$3\",\"consumedRoute\":\"\",\"actionId\":\"\",\"componentState\":{}}" \
     2>/dev/null || true
 }
@@ -77,7 +77,7 @@ for s in "${@:-spring-mvc spring-webflux quarkus micronaut helidon-mp yaml stati
     ok=0
     for _ in $(seq 1 60); do
       body=$(curl -s -m 5 -X POST -H 'Content-Type: application/json' \
-        "http://localhost:$p/mateu/v3/components/_/action" \
+        "http://localhost:$p/mateu/v3/sync/_no_route" \
         -d '{"route":"","actionId":"","componentState":{}}' 2>/dev/null || true)
       if [[ "$body" == *'"homeRoute":"home"'* ]]; then ok=1; break; fi
       sleep 2

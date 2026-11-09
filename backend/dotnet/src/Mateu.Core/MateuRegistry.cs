@@ -154,7 +154,7 @@ internal sealed class MateuRegistry
     }
 
     /// <summary>Resolves any type by full name across the scanned assemblies — used to instantiate a
-    /// YAML page's declared <c>modelView:</c> logic class, which need not carry [UI]/[App].</summary>
+    /// YAML page's declared <c>viewModel:</c> logic class, which need not carry [UI]/[App].</summary>
     public Type? TypeByName(string? fullName)
     {
         if (string.IsNullOrEmpty(fullName)) return null;

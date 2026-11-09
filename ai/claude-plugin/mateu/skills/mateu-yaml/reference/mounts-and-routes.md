@@ -48,7 +48,7 @@ routes:
 | Key | Meaning |
 |---|---|
 | `route` | path relative to the mount; `:name` segments are path params; `""` = mount root |
-| `layout` | definition file, relative to `specs/ui/` (leading `/` = classpath root). `definition:` is a deprecated alias |
+| `layout` | definition file, relative to `specs/ui/` (leading `/` = classpath root) |
 | `viewModel` | server class that supplies state + actions (Java FQCN, .NET full type name, Python `module.Class`). Optional |
 | `fixedParams` | pinned, re-applied server-side over everything the client sends |
 | `defaultParams` | seeded at the lowest precedence |

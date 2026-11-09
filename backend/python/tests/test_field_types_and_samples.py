@@ -132,8 +132,8 @@ def specs(tmp_path: Path) -> Path:
     (tmp_path / "fixtures" / "customers.json").write_text('[{"id": 7, "name": "Acme"}]')
     (tmp_path / "routes.yaml").write_text(
         "routes:\n"
-        "  - route: ft-customer\n    definition: customer.yaml\n"
-        "  - route: ft-unknown\n    definition: unknown.yaml\n"
+        "  - route: ft-customer\n    layout: customer.yaml\n"
+        "  - route: ft-unknown\n    layout: unknown.yaml\n"
     )
     (tmp_path / "customer.yaml").write_text(
         "type: VerticalLayout\ncontent:\n"

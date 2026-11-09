@@ -71,7 +71,7 @@ describe('client-side expander — the app shell', () => {
         const many = [...Array.from({ length: 7 }, (_, i) => leaf('r' + i)), { type: 'Menu', label: 'G', submenu: [leaf('x')] }]
         expect(shell({ variant: 'AUTO' }, many).variant).toBe('HAMBURGER_MENU')
         expect(shell({ variant: 'AUTO' }, [leaf('a'), { type: 'RemoteMenu', label: 'R' }]).variant).toBe('MENU_ON_TOP')
-        expect(shell({ variant: 'HAMBURGUER_MENU' }, [leaf('a')]).variant).toBe('HAMBURGUER_MENU')
+        expect(shell({ variant: 'HAMBURGER_MENU' }, [leaf('a')]).variant).toBe('HAMBURGER_MENU')
     })
 
     it("opens on the shell's own homeRoute, not merely the first menu entry", () => {

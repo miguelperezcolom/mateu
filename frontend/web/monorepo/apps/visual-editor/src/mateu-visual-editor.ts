@@ -964,7 +964,7 @@ export class MateuVisualEditor extends LitElement {
     }
 
     /**
-     * The view model this page binds to: a page-level `modelView:` wins (an explicit declaration),
+     * The view model this page binds to: a page-level `viewModel:` wins (an explicit declaration),
      * else the route graph — the route whose `definition` names this file supplies the `viewModel`.
      * Undefined when neither resolves (the page is unbound and the field pickers stay empty).
      */

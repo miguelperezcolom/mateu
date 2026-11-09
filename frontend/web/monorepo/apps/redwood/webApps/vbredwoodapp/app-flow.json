@@ -506,7 +506,7 @@
     "mateuMenuDrawerMode": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "variante HAMBURGUER_MENU/TILES: hamburguesa que abre el navigator-drawer izquierdo"
+      "description": "variante HAMBURGER_MENU/TILES: hamburguesa que abre el navigator-drawer izquierdo"
     },
     "mateuNavDrawerOpen": {
       "type": "boolean",

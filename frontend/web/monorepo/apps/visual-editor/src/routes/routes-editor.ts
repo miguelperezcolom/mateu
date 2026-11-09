@@ -219,7 +219,7 @@ export class RoutesEditor extends LitElement {
     }
 
     private addRow() {
-        this.doc.routes = [...this.doc.routes, { route: '', layoutKey: 'layout' }]
+        this.doc.routes = [...this.doc.routes, { route: '' }]
         this.commit()
     }
 
@@ -236,7 +236,7 @@ export class RoutesEditor extends LitElement {
     private addChild(at: number[]) {
         const { list, index } = this.holder(at)
         const parent = list[index]
-        list[index] = { ...parent, children: [...(parent.children ?? []), { route: '', layoutKey: 'layout' }] }
+        list[index] = { ...parent, children: [...(parent.children ?? []), { route: '' }] }
         this.commit()
     }
 

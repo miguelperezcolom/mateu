@@ -1,6 +1,6 @@
 type: Routes
 routes:
   - route: dashboard
-    definition: dashboard.yaml
+    layout: dashboard.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml

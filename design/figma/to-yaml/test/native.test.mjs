@@ -42,14 +42,14 @@ test('properties are read: TEXT values, BOOLEAN true, untouched placeholders ski
   assert.equal(page.toolbar[1].buttonStyle, 'primary')
 })
 
-test('slot content: a SLOT named after its frame, one renamed (read by its property), and the old sibling fallback', () => {
+test('slot content: a SLOT named after its frame, one renamed (read by its property), and a plain slot frame', () => {
   const page = converter().convert(fixture).files[0].value
   const titles = page.content.map((c) => c.title.text)
   assert.deepEqual(titles, ['Lines', 'Delivery', 'Notes'])
   assert.deepEqual(page.content[0].content.content.map((f) => f.id), ['product', 'quantity'])
   assert.deepEqual(page.content[1].content.content.map((f) => f.id), ['address'])
   assert.ok(page.content[1].content.content[0].propertyRow)
-  // the Notes section (old library, empty frame slot) takes the field that follows it
+  // the Notes section's content is a plain `slot:content` frame (the plugin's fallback)
   assert.deepEqual(page.content[2].content.content.map((f) => f.id), ['note'])
 })
 

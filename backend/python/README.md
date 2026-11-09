@@ -32,8 +32,7 @@ for the sibling implementation.
   cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
   `@confirm_on_navigation_if_dirty`.
 - **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `EyesOnly` /
-  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods (the alpha-era
-  `@secured` was removed for 3.0: use `@eyes_only(permissions=[...])`).
+  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods.
 - **Layout inference** — `@auto_layout` (opt-in, `@auto_layout(False)` opts out) ports the Java
   `LayoutInference` decision table (same constants/thresholds): heavy unstructured editable forms
   fold optional fields into a collapsed "More options" accordion panel; heavy `@read_only` views
@@ -56,8 +55,7 @@ for the sibling implementation.
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
   Or subclass `ComponentTreeSupplier` and return any fluent component tree from `component()`.
 
-- **Validation** — `Required()`, `Min`/`Max`/`Length`/`Pattern` (`Size` is the
-  deprecated pre-3.0-alpha.412 name of `Length`), `@validation`, `ValidationSupplier`
+- **Validation** — `Required()`, `Min`/`Max`/`Length`/`Pattern`, `@validation`, `ValidationSupplier`
   → the component's client-side `validations` (Java's conditions and messages), re-checked on save.
 - **Grid fields** — a `list[Row]` field is a grid with a row editor (add / edit / save / prev /
   next / remove / move), `InlineEditing()` for in-place cells; wide fields span the row.
@@ -121,10 +119,7 @@ pip install "mateu-ui[all]"             # the FastAPI server extras
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project);
 the wheel installs ONE top-level package, `mateu_ui`: import `mateu_ui.uidl` (authoring API),
-`mateu_ui.dtos` (wire model), `mateu_ui.core` (engine) and `mateu_ui.fastapi` (adapter). Code written
-before 3.0-beta that imports the old top-level names (`mateu_uidl`, `mateu_dtos`, `mateu_core`,
-`mateu_fastapi`) keeps working for the whole 3.x line — each emits one `DeprecationWarning` naming the
-new path — but new code should use `mateu_ui.*` (type checkers only see the new paths). Versions move in
+`mateu_ui.dtos` (wire model), `mateu_ui.core` (engine) and `mateu_ui.fastapi` (adapter). Versions move in
 lockstep with the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`.
 
 ## Run

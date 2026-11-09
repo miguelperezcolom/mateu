@@ -5,7 +5,6 @@ import {
   avatarGroupSplit,
   cellText,
   contentSlots,
-  destinationIntent,
   elementKind,
   flattenTree,
   gridColumnsOf,
@@ -14,7 +13,6 @@ import {
   menuIntent,
   parseFormDefinition,
   responsiveColumns,
-  resultLook,
   textOfHtml,
   trackCount,
 } from './wireWidgets.ts';
@@ -95,16 +93,6 @@ test('content layout slots', () => {
   assert.equal(s.footer.length, 1);
 });
 
-test('result looks and destination intents', () => {
-  assert.equal(resultLook('Success').tone, 'success');
-  assert.equal(resultLook('Error').glyph, '✕');
-  assert.equal(resultLook(undefined).tone, 'info');
-  assert.deepEqual(destinationIntent({ type: 'Url', value: 'https://x.io' }), { kind: 'url', target: 'https://x.io' });
-  assert.deepEqual(destinationIntent({ type: 'Url', value: '/orders' }), { kind: 'route', target: '/orders' });
-  assert.deepEqual(destinationIntent({ type: 'ActionId', value: 'retry' }), { kind: 'action', target: 'retry' });
-  assert.deepEqual(destinationIntent({ type: 'View', id: '/home' }), { kind: 'route', target: '/home' });
-  assert.deepEqual(destinationIntent(null), { kind: 'none', target: '' });
-});
 
 test('menu intents', () => {
   assert.equal(menuIntent({ actionId: 'go' }).kind, 'action');

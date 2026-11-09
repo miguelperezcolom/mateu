@@ -16,8 +16,8 @@ const repo = join(here, '..', '..', '..', '..', '..');
 test('every wire component type has a native case and a coverage entry', () => {
   const { produced: wireTypes, deprecated } = wireTypesOf(readFileSync(join(repo, 'backend/shared/uidl/wire-schema.json'), 'utf8'));
   assert.ok(wireTypes.length >= 114);
-  // registered but produced by no server: not required (RN still draws them)
-  assert.deepEqual([...deprecated].sort(), ['Result', 'Stepper']);
+  // registered but produced by no server: not required (none since 3.0.0)
+  assert.deepEqual([...deprecated].sort(), []);
   const source = readFileSync(join(here, 'ComponentRenderer.tsx'), 'utf8');
   assert.deepEqual(coverageProblems({ wireTypes, deprecated, coverage: RN_COVERAGE, source, parity: null }), []);
 });

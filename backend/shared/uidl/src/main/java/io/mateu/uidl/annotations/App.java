@@ -123,28 +123,6 @@ public @interface App {
   String accentColor() default "";
 
   /**
-   * Ignored. The accent strip was the Vaadin shell's take on Redwood's colour strip, but Redwood
-   * removes that strip as soon as an app brings its own brand (Redwood Cobranding: "visual elements
-   * like the strip and data textures are removed to avoid conflicting branding"), so no renderer
-   * draws one any more; the app's accent goes to the Section dash instead (see {@link
-   * #accentColor()}).
-   *
-   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
-   *     through {@link #accentColor()}.
-   */
-  @Deprecated(since = "3.0-beta.15", forRemoval = true)
-  String accentStrip() default "";
-
-  /**
-   * Ignored, like {@link #accentStrip()}: Mateu no longer draws an accent strip.
-   *
-   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
-   *     through {@link #accentColor()}.
-   */
-  @Deprecated(since = "3.0-beta.15", forRemoval = true)
-  int accentStripSeed() default 7;
-
-  /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the
    * ones derived automatically from the app's metadata. A host embedding the app checks it provides
    * all of them and reports what is missing instead of rendering a broken screen — compatibility by

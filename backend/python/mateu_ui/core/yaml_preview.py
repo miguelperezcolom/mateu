@@ -130,7 +130,7 @@ def parse_spec(
 ) -> tuple[str | None, fluent.Component | None]:
     """Parse a page spec (a file under specs/ui): the declared ModelView class name (or ``None``
     for a bare, unbound layout) plus the layout component. Envelope-aware — a ``layout:`` key holds
-    the tree and a ``viewModel:`` (or the deprecated ``modelView:``) key names the logic class the
+    the tree and a ``viewModel:`` key names the logic class the
     tooling binds it to. A ``layoutDelta:`` page has no layout of its own (see
     :func:`parse_spec_with_delta`)."""
     model_view, layout, _ = parse_spec_with_delta(text, partials, field_types)
@@ -158,7 +158,7 @@ def parse_spec_tree(data: Any, partials: PartialRegistry | None = None, field_ty
     registry = partials or _DEFAULT_PARTIALS
     if not isinstance(data, dict):
         return None, _with_types(field_types, _single, data, registry, []), None
-    model_view = data.get("viewModel") or data.get("modelView")
+    model_view = data.get("viewModel")
     if "layout" not in data and "layoutDelta" in data:
         return model_view, None, LayoutDelta.parse(data.get("layoutDelta"))
     layout_node = data["layout"] if "layout" in data else data

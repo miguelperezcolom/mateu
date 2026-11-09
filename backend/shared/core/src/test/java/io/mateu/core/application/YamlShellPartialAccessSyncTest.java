@@ -44,9 +44,9 @@ class YamlShellPartialAccessSyncTest {
             type: Routes
             routes:
               - route: ""
-                definition: shell.yaml
+                layout: shell.yaml
               - route: home
-                definition: home.yaml
+                layout: home.yaml
             """,
             "shell.yaml",
             """

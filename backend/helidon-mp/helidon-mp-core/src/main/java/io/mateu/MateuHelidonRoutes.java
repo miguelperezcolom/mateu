@@ -369,15 +369,17 @@ public class MateuHelidonRoutes {
               }
             });
       }
-      routing.post(
-          mount.apiPrefix() + "/v3/*",
-          (req, res) -> {
-            if (unauthenticated.test(req)) {
-              res.status(Status.UNAUTHORIZED_401).send();
-              return;
-            }
-            run(req, res, mount, service.get());
-          });
+      for (String operation : java.util.List.of("/v3/sync/*", "/v3/sse/*")) {
+        routing.post(
+            mount.apiPrefix() + operation,
+            (req, res) -> {
+              if (unauthenticated.test(req)) {
+                res.status(Status.UNAUTHORIZED_401).send();
+                return;
+              }
+              run(req, res, mount, service.get());
+            });
+      }
     }
   }
 

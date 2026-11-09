@@ -22,8 +22,8 @@ function fromEnv() {
 	return v ? v.replace(/^v/, '') : null;
 }
 
-// mateu-mvc is the artifact's name from the mateu-* rename on; mvc-core (its relocation pom, still
-// published with every release) answers for the releases before it.
+// mateu-mvc is the artifact's name from the mateu-* rename on; mvc-core answers for the releases
+// before it.
 const METADATA = ['mateu-mvc', 'mvc-core'].map(
 	(id) => `https://repo1.maven.org/maven2/io/mateu/${id}/maven-metadata.xml`
 );

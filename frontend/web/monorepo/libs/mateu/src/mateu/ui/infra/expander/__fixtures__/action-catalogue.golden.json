@@ -148,8 +148,6 @@
           "askLabel" : null,
           "askIcon" : null,
           "accentColor" : null,
-          "accentStrip" : null,
-          "generatedAccentStrip" : null,
           "restSources" : [ ],
           "appDataSource" : null,
           "requiredCapabilities" : [ ],

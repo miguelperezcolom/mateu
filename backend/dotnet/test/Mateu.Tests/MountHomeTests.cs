@@ -19,9 +19,9 @@ public class MountHomeTests
             $"type: UI\nbasePath: /\nhome: {home}\nroutes:\n  - routes.yaml\n");
         File.WriteAllText(Path.Combine(dir, "routes.yaml"),
             "routes:\n"
-            + (authoredRoot ? "  - route: \"\"\n    definition: welcome.yaml\n" : "")
-            + "  - route: dashboard\n    definition: dashboard.yaml\n    fixedParams:\n      tab: kpis\n"
-            + "  - route: orders\n    definition: orders.yaml\n");
+            + (authoredRoot ? "  - route: \"\"\n    layout: welcome.yaml\n" : "")
+            + "  - route: dashboard\n    layout: dashboard.yaml\n    fixedParams:\n      tab: kpis\n"
+            + "  - route: orders\n    layout: orders.yaml\n");
         foreach (var (file, text) in new[]
                  {
                      ("dashboard.yaml", "Mount home dashboard"),

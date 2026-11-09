@@ -70,7 +70,7 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.build();
     }
 
-    @Path("v3/{ignored:.*}")
+    @Path("v3/sync/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(
             @PathParam("ignored") String ignored,

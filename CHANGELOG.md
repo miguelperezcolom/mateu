@@ -4,9 +4,6 @@ All notable changes to Mateu. Versions follow the scheme described in
 [Stability & versioning](https://mateu.io/reference/stability-and-versioning/); every release is a
 git tag `vX.Y-…` and a GitHub release whose artifacts are on Maven Central under `io.mateu`.
 
-Upgrading from an earlier alpha? Read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/)
-first — it collects every rename and removal in one place.
-
 This file starts at `v3.0-alpha.400`. For older releases, see the GitHub releases page.
 
 ## [Unreleased]
@@ -180,12 +177,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Removed
 
-3.0.0 removes the API deprecated during the alphas (`3.0-alpha.*`), as the deprecation policy
-allowed; what was deprecated during the betas stays until 4.0. Each removal is a reviewed exclusion
-of the API check (`backend/api-compat/japicmp-exclusions.properties`). The wire is unchanged: the
-renderers still accept every value a 3.x server ever sent.
+3.0.0 is the first stable release and keeps no compatibility with the 3.0 pre-releases (alphas,
+betas, release candidates): everything they deprecated, and every alias kept for them, is removed.
+Each Java removal is a reviewed exclusion of the API check
+(`backend/api-compat/japicmp-exclusions.properties`) until `3.0.0` itself becomes its baseline.
 
-- **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings) → `HAMBURGER_MENU`.
+- **`AppVariant.HAMBURGUER_MENU`** (Java, YAML `variant:`, .NET/Python strings, and on the wire —
+  renderers no longer accept it) → `HAMBURGER_MENU`.
 - **`@KeycloakSecured`** → your framework's authentication (an OIDC login / resource server), or a
   `PrincipalResolver` bean. The annotation processors no longer read it or index it.
 - **`BadgeSupplier`** → `HeaderBadgesSupplier`.
@@ -209,9 +207,33 @@ renderers still accept every value a 3.x server ever sent.
   `RunActionUseCase.SECRET_ENV_PREFIX` / `secretEnvName` → `SecretResolver`.
 - **.NET `[Secured]`, Python `@secured`** → `EyesOnly(permissions = …)` on the class.
 - **Python `Size`** (the length constraint) → `Length`; **Python `components.Step`** → `ProgressStep`.
+- **`@App(accentStrip)`, `@App(accentStripSeed)`** and core's **`AccentStrip`** generator (no effect
+  since no renderer draws a strip) → nothing: remove them; the accent is `@App(accentColor)`.
+- **`AppShell`'s pre-`ai` constructor** → the canonical constructor or `AppShell.builder()`.
+- **The YAML key `definition:`** on a route entry → `layout:`; **the YAML key `modelView:`** on a page
+  definition → `viewModel:`. The old keys are no longer read (nor in the schemas, the IDEs or the
+  visual editor).
+- **The endpoint `POST …/mateu/v3/components/_/action`** → `POST …/mateu/v3/sync/{route}` (every
+  renderer already used it; Redwood and the visual editor moved too). The Java adapters now answer
+  only `v3/sync/**` and `v3/sse/**` for actions, instead of any `v3/<operation>/**`.
+- **The pre-rename Maven ids** (`uidl`, `core`, `mvc-core`, `vaadin-lit`… — the relocation poms and
+  their entries in `mateu-bom`) → the `mateu-*` artifacts.
+- **Python's pre-rename packages** `mateu_uidl`, `mateu_dtos`, `mateu_core`, `mateu_fastapi` →
+  `mateu_ui.uidl`, `mateu_ui.dtos`, `mateu_ui.core`, `mateu_ui.fastapi`.
+- **.NET type forwards** of `RouteEntry`, `IRouteEntrySupplier`, `IMenuSupplier`, `IAppSupplier`,
+  `AppShell` and `MateuForbiddenException` from `Mateu.Core` (they live in `Mateu.Uidl`; source code
+  is unaffected, only binaries built against a pre-release relied on them).
+- **Rich text stored as a Quill Delta** (the pre-release editor's format) is no longer converted: a
+  rich-text value is HTML.
+- **The wire's never-produced types** `Result` and `Stepper`, the `AppDto` members `accentStrip` /
+  `generatedAccentStrip` (never sent) and the unreachable pre-3.0 DTOs of `mateu-dtos`
+  (`JourneyDto`, `ViewDto`, `PageMainContentDto`, `SearchFormDto`, `BadgeColorDto`… — 28 types).
+  `wireVersion` stays `3.0`: no 3.0.0 renderer or server produces or reads any of them.
+- **Figma → YAML**: a Section whose content slot is empty no longer takes the layers that follow it
+  (the convention of libraries older than native slots) — put the fields in the slot.
 
 Kept on purpose: `DashboardLayout` (still produced by the `DashboardLandingPage` template; deprecated,
-removable in 4.0) and the deprecated wire DTOs.
+removable in 4.0).
 
 ### Experimental
 
@@ -2373,7 +2395,7 @@ The first beta. Everything since the beta candidate (3.0-alpha.426): the last re
 owner decisions, the parity audit and the new-project polish. From here on, API changes follow the
 [stability policy](https://mateu.io/reference/stability-and-versioning/) — add and deprecate, never
 remove silently. Upgrading from an alpha: read
-[Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+Migrating from alpha (a page of the pre-release docs).
 
 ### Behaviour changes
 - **Money follows the UI locale** (3.0-alpha.430). A bare number with the money stereotype is
@@ -2859,7 +2881,7 @@ Security (identity only from the host framework), Mateu ships UI only, documents
 ### Public API
 - **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
   - **Deprecated** (still working; each names its replacement — see
-    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
+    Migrating from alpha (a page of the pre-release docs)):
     `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
     `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
     enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
@@ -2894,7 +2916,7 @@ Security (identity only from the host framework), Mateu ships UI only, documents
   format is registered; a request for a format nobody writes is answered with a message, never a 500.
   CSV keeps its dependency-free built-in writer. Same in the ports: .NET `IListingExporter` (the
   hand-written xlsx / PDF writers are gone), Python `ListingExporter` (the `export` extra with
-  openpyxl / reportlab is gone). See [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+  openpyxl / reportlab is gone). See Migrating from alpha (a page of the pre-release docs).
 - **`agent-cli` and `agent-cli-companion` removed** — the development bridge from the AI chat to a
   local LLM CLI is not UI. The chat panel, its SSE contract and the MCP endpoint stay; the chat no
   longer probes `127.0.0.1:8776` for a local companion (web and Redwood).
@@ -2995,7 +3017,7 @@ Maven artifacts renamed to `mateu-*`; the public API is prepared for the beta.
 
 ## [3.0-alpha.407] — 2026-10-10
 
-GA readiness: nine work streams integrated. Read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/) before upgrading.
+GA readiness: nine work streams integrated. Read Migrating from alpha (a page of the pre-release docs) before upgrading.
 
 ### Breaking
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.

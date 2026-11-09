@@ -53,7 +53,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   fun testKnownFieldsAndActionsAreNotFlagged() {
     val errors = highlight(
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: VerticalLayout
         content:
@@ -71,7 +71,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   fun testUnknownFieldAndActionAreErrors() {
     val errors = highlight(
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: VerticalLayout
         content:
@@ -87,7 +87,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   fun testUnresolvedModelViewIsFlagged() {
     val errors = highlight(
       """
-      modelView: demo.NoSuchView
+      viewModel: demo.NoSuchView
       layout:
         type: FormField
         id: whatever
@@ -125,7 +125,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
     val infos = highlight(
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: VerticalLayout
         content:
@@ -155,7 +155,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText(
       "page.yaml",
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: FormField
         id: emai<caret>l
@@ -173,7 +173,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText(
       "page.yaml",
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: Button
         actionId: refr<caret>esh
@@ -194,7 +194,7 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
     val warnings = highlight(
       """
-      modelView: demo.CustomerView
+      viewModel: demo.CustomerView
       layout:
         type: FormField
         id: name

@@ -52,9 +52,9 @@ class MountRegistryJarTest {
           "specs/ui/console-routes.yaml",
           """
           - route: jobs
-            definition: jobs.yaml
+            layout: jobs.yaml
           - route: workers
-            definition: workers.yaml
+            layout: workers.yaml
           """,
           "specs/ui/extra/admin-routes.yaml",
           """
@@ -62,7 +62,7 @@ class MountRegistryJarTest {
           basePath: /console
           routes:
             - route: admin
-              definition: admin.yaml
+              layout: admin.yaml
           """,
           "specs/ui/project.yaml",
           """
@@ -130,9 +130,9 @@ class MountRegistryJarTest {
             """
             routes:
               - route: real
-                definition: real.yaml
+                layout: real.yaml
               - route: items/:id
-                definition: item.yaml
+                layout: item.yaml
             """);
     var registry = new RouteRegistry();
     var table = registry.authoredFrom(loaderOver(jarWith(module)));
@@ -144,7 +144,7 @@ class MountRegistryJarTest {
             "specs/ui/p.ui.yaml",
             "type: UI\nbasePath: /p\nhome: items/:id\nroutes: [p-routes.yaml]\n",
             "specs/ui/p-routes.yaml",
-            "routes:\n  - route: items/:id\n    definition: item.yaml\n");
+            "routes:\n  - route: items/:id\n    layout: item.yaml\n");
     var other = new RouteRegistry();
     other.authoredFrom(loaderOver(jarWith(parameterised)));
     assertThat(other.mountHomes()).isEmpty();

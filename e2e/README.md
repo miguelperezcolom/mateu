@@ -221,9 +221,8 @@ The web probes CI also runs against mvc-app1: `node slow-network-probe.mjs` and 
 
 All endpoints accept and return JSON.
 
-The canonical endpoint is `POST /{baseUrl}/mateu/v3/sync/{route}` (the route in the path, `_no_route`
-when empty). The body decides, not the path, so the older `…/mateu/v3/components/_/action` is still
-served the same way by every server.
+The endpoint is `POST /{baseUrl}/mateu/v3/sync/{route}` (the route in the path, `_no_route` when
+empty; the route in the body decides).
 
 ### Load initial UI
 

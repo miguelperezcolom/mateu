@@ -35,7 +35,7 @@ describe('<redwood-play>', () => {
 
     it('answers the app\'s calls itself when there is no backend: the bootstrap empty, an action as "needs a backend"', async () => {
         const { el, toFrame, fromFrame } = await play()
-        fromFrame({ mateuPreview: 'call', id: 1, url: '/mateu/v3/components/_/action', body: {} })
+        fromFrame({ mateuPreview: 'call', id: 1, url: '/mateu/v3/sync/_no_route', body: { actionId: '__load__' } })
         fromFrame({ mateuPreview: 'call', id: 2, url: '/mateu/v3/sync/orders', body: { actionId: 'save' } })
         await settle()
         expect(toFrame.map((m) => [m.mateuPreview, m.id, m.status])).toEqual([['answer', 1, 200], ['answer', 2, 200]])
@@ -75,7 +75,7 @@ describe('<redwood-play>', () => {
 
     it('ignores messages from anything but its frame', async () => {
         const { toFrame } = await play()
-        window.dispatchEvent(new MessageEvent('message', { data: { mateuPreview: 'call', id: 1, url: '/mateu/v3/components/x', body: {} } }))
+        window.dispatchEvent(new MessageEvent('message', { data: { mateuPreview: 'call', id: 1, url: '/mateu/v3/sync/_no_route', body: { actionId: '__load__' } } }))
         await settle()
         expect(toFrame).toEqual([])
     })

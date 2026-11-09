@@ -171,7 +171,7 @@ export function shellNavOf(reg) {
     node.home = sectionHomeOf(node)
     menuTree.push(node)
   }
-  // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+  // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGER_MENU/TILES →
   // hamburger that opens a left DRAWER with oj-navigation-list (like the FA
   // navigator); MENU_ON_TOP → SUBHEADER: a light band under the dark header with the
   // console title and the top-level options (oj-menu dropdown for the groups), like band 2
@@ -179,10 +179,8 @@ export function shellNavOf(reg) {
   // inside the dark header (topbar)
   // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
   // level (only the sections) and the subheader carries the second level of the section on screen.
-  // HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU: servers send it since
-  // 3.0-alpha.412; the old one is still accepted (an older server, a static bundle).
   let mode = 'tabs'
-  if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+  if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
   else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
   else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
   else if (hasGroups) mode = 'topbar'

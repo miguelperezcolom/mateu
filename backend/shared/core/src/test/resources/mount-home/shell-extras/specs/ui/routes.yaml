@@ -1,6 +1,6 @@
 type: Routes
 routes:
   - route: ""
-    definition: extras-shell.yaml
+    layout: extras-shell.yaml
   - route: home
-    definition: home.yaml
+    layout: home.yaml

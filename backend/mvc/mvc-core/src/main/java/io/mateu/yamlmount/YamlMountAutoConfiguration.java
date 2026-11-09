@@ -64,7 +64,7 @@ public class YamlMountAutoConfiguration {
                       YamlMounts.pwaAsset(
                           routeRegistry, yamlAppLoader, basePath, request.pathVariable("file"))))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
-          .POST(mount.apiPrefix() + "/v3/**", request -> sync(service, request, basePath));
+          .POST(mount.apiPrefix() + "/v3/sync/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
         // Deep links under a nested mount answer its index (the root mount's are forwarded to "/"
         // by SpaRedirectFilter — a catch-all here would shadow the application's own handlers).

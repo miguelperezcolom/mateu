@@ -220,9 +220,7 @@ class _Run:
 
     def prepare_action_check(self, root: MappingNode, applies: bool) -> None:
         """The page's own declared action ids, unless a view model is named (it owns the actions)."""
-        if not applies or not _blank(_scalar_text(_get(root, "viewModel"))) or not _blank(
-            _scalar_text(_get(root, "modelView"))
-        ):
+        if not applies or not _blank(_scalar_text(_get(root, "viewModel"))):
             return
         self.declared_actions = set()
         actions = _get(root, "actions")

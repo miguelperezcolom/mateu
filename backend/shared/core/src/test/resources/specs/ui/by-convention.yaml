@@ -1,5 +1,5 @@
 # Found by the specs/ui/<route>.yaml convention, with no registry entry involved.
-modelView: com.acme.Conventional
+viewModel: com.acme.Conventional
 layout:
   type: VerticalLayout
   content:

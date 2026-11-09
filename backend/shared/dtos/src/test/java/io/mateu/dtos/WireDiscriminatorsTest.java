@@ -35,7 +35,7 @@ import org.junit.jupiter.api.TestFactory;
  */
 class WireDiscriminatorsTest {
 
-  /** The polymorphic roots in use ({@code PageMainContentDto} is a deprecated leftover). */
+  /** The polymorphic roots of the wire. */
   private static final List<Class<?>> FAMILIES =
       List.of(ComponentMetadataDto.class, ComponentDto.class, TriggerDto.class);
 

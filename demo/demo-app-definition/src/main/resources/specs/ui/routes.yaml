@@ -3,15 +3,15 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Routes
 routes:
   - route: ""          # the mount root → the app shell view
-    definition: app.yaml
+    layout: app.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: users
-    definition: users.yaml
+    layout: users.yaml
   - route: tasks       # a CRUD mediator bound to a route by DATA (no @UI) — wrapped in the shell
     viewModel: io.mateu.demo.appdefinition.TaskCrud
   - route: dashboard   # a Dashboard TEMPLATE bound by data (no @UI)
     viewModel: io.mateu.demo.appdefinition.SalesDashboard
   - route: customer    # a page definition bound to a form view model (data-source binding demo)
-    definition: customer-form.yaml
+    layout: customer-form.yaml
     viewModel: io.mateu.demo.appdefinition.CustomerForm

@@ -87,13 +87,6 @@ public class AppShellServingTests
             using var json = JsonDocument.Parse(await r.Content.ReadAsStringAsync());
             var metadata = json.RootElement.GetProperty("fragments")[0].GetProperty("component").GetProperty("metadata");
             Assert.Equal("App", metadata.GetProperty("type").GetString());
-            // the documented contract, and what the Redwood renderer calls: it answered 404
-            var viaComponents = await http.PostAsync(prefix + "/mateu/v3/components/_/action",
-                new StringContent(body, Encoding.UTF8, "application/json"));
-            Assert.Equal(System.Net.HttpStatusCode.OK, viaComponents.StatusCode);
-            using var json2 = JsonDocument.Parse(await viaComponents.Content.ReadAsStringAsync());
-            Assert.Equal("App", json2.RootElement.GetProperty("fragments")[0].GetProperty("component")
-                .GetProperty("metadata").GetProperty("type").GetString());
             // Java's controllers pass their relative mount; an absolute http://127.0.0.1:<port> is
             // unreachable (mixed content, CORS) behind a TLS-terminating or Host-rewriting proxy
             Assert.Equal(prefix, metadata.GetProperty("homeBaseUrl").GetString());

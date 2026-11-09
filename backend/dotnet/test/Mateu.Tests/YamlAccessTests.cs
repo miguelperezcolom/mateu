@@ -22,13 +22,13 @@ public class YamlAccessTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: sec-admin
-                definition: admin.yaml
+                layout: admin.yaml
                 access: {roles: [admin]}
                 children:
                   - route: users
-                    definition: admin.yaml
+                    layout: admin.yaml
               - route: sec-page
-                definition: page.yaml
+                layout: page.yaml
             """);
         File.WriteAllText(Path.Combine(dir, "admin.yaml"), """
             layout:
@@ -201,9 +201,9 @@ public class YamlAccessTests
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
             routes:
               - route: sec-catalogue
-                definition: page.yaml
+                layout: page.yaml
               - route: sec-owner
-                definition: owner.yaml
+                layout: owner.yaml
             """);
         File.WriteAllText(Path.Combine(dir, "page.yaml"), """
             layout:
@@ -312,7 +312,7 @@ public class YamlAccessTests
     public void A_guarded_section_in_a_partial_is_applied_like_an_inline_one()
     {
         var dir = Directory.CreateTempSubdirectory("yaml-partial-access-").FullName;
-        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: staff\n    definition: staff.yaml\n");
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: staff\n    layout: staff.yaml\n");
         File.WriteAllText(Path.Combine(dir, "staff.yaml"),
             "layout:\n  type: VerticalLayout\n  content:\n    - {type: Text, text: Public text}\n    - {type: Partial, ref: payroll}\n");
         Directory.CreateDirectory(Path.Combine(dir, "partials"));

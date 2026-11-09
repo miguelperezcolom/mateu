@@ -29,7 +29,7 @@ describe('matchRoute', () => {
 describe('buildMountGraph', () => {
     const files = [
         f('app.yaml', 'type: AppShell\ntitle: Shop\nmenu:\n  - {type: RouteLink, label: Orders, route: orders}\n  - type: Menu\n    label: More\n    submenu:\n      - {type: RouteLink, label: Help, route: help}\n'),
-        f('routes.yaml', 'type: Routes\nroutes:\n  - {route: "", definition: app.yaml}\n  - {route: orders, definition: orders.yaml}\n  - {route: "orders/:id", definition: order.yaml}\n  - {route: help, definition: help.yaml}\n  - {route: legacy, viewModel: com.acme.Legacy}\n'),
+        f('routes.yaml', 'type: Routes\nroutes:\n  - {route: "", layout: app.yaml}\n  - {route: orders, layout: orders.yaml}\n  - {route: "orders/:id", layout: order.yaml}\n  - {route: help, layout: help.yaml}\n  - {route: legacy, viewModel: com.acme.Legacy}\n'),
         f('orders.yaml', 'type: Listing\ntitle: Orders\nrowRoute: orders/${row.id}\ntoolbar:\n  - {type: Button, label: Old screen, actionable: {type: RouteLink, route: legacy}}\n'),
         f('order.yaml', 'type: Form\ntitle: Order ${state.id}\ntoolbar:\n  - {type: Button, label: Back, actionable: {type: RouteLink, route: orders}}\n  - {type: Button, label: Docs, actionable: {type: RouteLink, route: nowhere}}\nactions:\n  - id: save\n    restAction: {method: PUT, successRoute: orders}\n  - id: done\n    steps:\n      - {type: Navigate, route: help}\n'),
         f('help.yaml', 'type: Form\ntitle: Help\n'),

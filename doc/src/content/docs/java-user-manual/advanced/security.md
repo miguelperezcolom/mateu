@@ -181,9 +181,6 @@ reads the `Identity` your FastAPI dependency or middleware put in `request.state
 (`identity_from_claims(claims)` maps a verified token's claims), else Starlette's
 `AuthenticationMiddleware`.
 
-Before 3.0 beta, Mateu read the roles from the Bearer token's payload without verifying it; see
-[Migrating from alpha](/reference/migrating-from-alpha/#defaults-that-changed).
-
 A field `@EyesOnly` hides is also left out of the component's state: its value never reaches a
 caller who may not see it.
 
@@ -240,7 +237,7 @@ The browser is untrusted, so the server decides what a request may touch — nev
 
 **Server-side types.** Every request names the view it talks to (`serverSideType`). Mateu only resolves types the application exposes:
 
-- registered ones: `@UI` classes, `viewModel`s of `routes.yaml` / a `RouteEntrySupplier`, the `modelView` of the route's YAML page, types a `ComponentAdapter` is registered for;
+- registered ones: `@UI` classes, `viewModel`s of `routes.yaml` / a `RouteEntrySupplier`, the `viewModel` of the route's YAML page, types a `ComponentAdapter` is registered for;
 - types reachable from those: nested views (fields), rows of cruds and listings, what an annotated method returns, member classes;
 - types this server itself sent to the browser (a view an action returned);
 - classes shaped like a view model: they carry Mateu annotations, implement a view interface (`Listing`, `ComponentTreeSupplier`, …) or extend a Mateu orchestrator.

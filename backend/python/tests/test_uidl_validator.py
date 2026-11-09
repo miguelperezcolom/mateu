@@ -116,7 +116,7 @@ def test_declared_actions_and_the_catalogue_silence_the_action_check():
     assert [w["message"].split('"')[1] for w in report["warnings"]] == ["other"]
     envelope = "layout:\n  type: Button\n  actionId: x\n"
     assert codes(validate(envelope))[1] == ["undeclared_action"]
-    assert codes(validate("modelView: a.B\n" + envelope))[1] == []
+    assert codes(validate("viewModel: a.B\n" + envelope))[1] == []
 
 
 def test_a_mapping_where_a_component_goes():

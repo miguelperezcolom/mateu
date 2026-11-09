@@ -48,7 +48,7 @@ function pageTitle(fragments: any[]): string | undefined {
 // the returned state. This spec runs against all four adapters.
 // ---------------------------------------------------------------------------
 
-const ADAPTER_API = '/adapter-demo/mateu/v3/components/_/action';
+const ADAPTER_API = '/adapter-demo/mateu/v3/sync/_no_route';
 const ADAPTER_TYPE = 'io.mateu.sample1.app.AdapterDemo';
 
 test.describe('AdapterDemo — ComponentAdapter SPI', () => {

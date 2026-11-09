@@ -1801,7 +1801,7 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 .mateu-callout { border-inline-start: 4px solid var(--mateu-tone, var(--oj-core-brand-color, #2b6a9e)); margin-block-end: var(--oj-core-spacing-2x, 8px); }
 .mateu-callout-icon { font-size: 28px; color: var(--mateu-tone, var(--oj-core-brand-color, #2b6a9e)); }
 
-.mateu-comments, .mateu-messages, .mateu-files, .mateu-processes, .mateu-result-links, .mateu-directory-links, .mateu-workflow-steps { list-style: none; margin: 0; padding: 0; }
+.mateu-comments, .mateu-messages, .mateu-files, .mateu-processes, .mateu-directory-links, .mateu-workflow-steps { list-style: none; margin: 0; padding: 0; }
 .mateu-comment, .mateu-message { display: flex; gap: 10px; padding-block: 8px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
 .mateu-comment-reply { border-inline-start: 2px solid var(--oj-core-divider-color, #ddd); padding-inline-start: 10px; }
 .mateu-file { gap: 4px; padding-block: 8px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
@@ -1853,14 +1853,10 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 .mateu-bpmn-label, .mateu-bpmn-flow-label { font-size: 12px; fill: var(--oj-core-text-color-primary, #161513); font-family: var(--oj-typography-font-family, sans-serif); }
 
 .mateu-workflow-step { display: flex; gap: 12px; align-items: flex-start; margin-block: 8px; }
-.mateu-workflow-num, .mateu-step-num { flex: 0 0 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+.mateu-workflow-num { flex: 0 0 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
   background: var(--oj-core-brand-color, #2b6a9e); color: var(--oj-core-text-color-inverse, #fff); font-weight: 600; }
 .mateu-workflow-card { flex: 1 1 auto; }
-.mateu-step-header { gap: 10px; }
 
-.mateu-result { border-inline-start: 4px solid var(--mateu-tone, var(--oj-core-divider-color, #ddd)); }
-.mateu-result-icon { font-size: 40px; color: var(--mateu-tone, var(--oj-core-text-color-secondary, #666)); }
-.mateu-result-image { max-width: 12rem; max-height: 12rem; }
 
 .mateu-cookie-consent { position: fixed; inset-inline: 16px; z-index: 900; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   box-shadow: var(--oj-core-box-shadow-lg, 0 8px 24px rgba(0,0,0,.2)); background: var(--oj-core-bg-color-content, #fff); }

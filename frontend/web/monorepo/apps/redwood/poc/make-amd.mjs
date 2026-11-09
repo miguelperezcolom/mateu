@@ -107,7 +107,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
-  // an editable richText (Spectra's editor, HTML; a legacy Delta opens converted) and a colour field
+  // an editable richText (Spectra's editor, HTML) and a colour field
   defineRichTextField();
   defineMarkupField();
   defineColorField();

@@ -73,8 +73,8 @@ public class ${simpleClassName}MateuController implements MateuController {
                 .map(increment -> ServerSentEvent.builder(increment).build());
     }
 
-    // Every other v3 call. The first segment EXCLUDES "sse", so no URL matches two handler methods.
-    @PostMapping("v3/{operation:(?!sse$).+}/**")
+    // Every other action: POST v3/sync/{route} (disjoint from v3/sse/**).
+    @PostMapping("v3/sync/**")
     public Mono<UIIncrementDto> runStep(
             @RequestBody RunActionRqDto rq,
             ServerWebExchange exchange) throws Throwable {

@@ -90,7 +90,7 @@ def test_a_layout_delta_page_has_no_layout_of_its_own():
     # envelope itself must never be rendered as a component.
     from mateu_ui.core.yaml_preview import parse_spec
 
-    model_view, layout = parse_spec("modelView: com.acme.Contact\nlayoutDelta:\n  order: [b, a]\n")
+    model_view, layout = parse_spec("viewModel: com.acme.Contact\nlayoutDelta:\n  order: [b, a]\n")
 
     assert model_view == "com.acme.Contact"
     assert layout is None

@@ -205,89 +205,11 @@ export function markdownToHtml(md) {
 }
 
 // ── The stored value of a richText field ─────────────────────────────────────────────────────
-// (a port of libs/mateu richTextValue.ts — the bridge cannot import libs/mateu.) The value is HTML.
-// Values written by the old vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or
-// `{"ops":[…]}`): they are recognised and turned into the equivalent HTML, so existing data still
-// opens, and the editor writes HTML from the next edit on.
+// The value is HTML.
 
-const isDeltaOp = (op) => !!op && typeof op === 'object' && 'insert' in op
-
-/** The ops of a Delta value, or null when the value is not Delta JSON. */
-export function deltaOps(value) {
-  const raw = String(value == null ? '' : value).trim()
-  if (!raw.startsWith('[') && !raw.startsWith('{')) return null
-  try {
-    const parsed = JSON.parse(raw)
-    const ops = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.ops) ? parsed.ops : null
-    return ops && ops.length > 0 && ops.every(isDeltaOp) ? ops : null
-  } catch (e) {
-    // not JSON: plain text or HTML that happens to start with a bracket
-    return null
-  }
-}
-
-const deltaEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const deltaHref = (href) => {
   const h = String(href == null ? '' : href).trim()
   return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
-}
-const deltaInline = (text, a = {}) => {
-  let out = deltaEscape(text)
-  if (a.code) out = '<code>' + out + '</code>'
-  if (a.bold) out = '<strong>' + out + '</strong>'
-  if (a.italic) out = '<em>' + out + '</em>'
-  if (a.underline) out = '<u>' + out + '</u>'
-  if (a.strike) out = '<s>' + out + '</s>'
-  if (a.link && deltaHref(a.link)) out = '<a href="' + deltaEscape(deltaHref(a.link)) + '">' + out + '</a>'
-  return out
-}
-
-/** Quill Delta → HTML, for the formats the old editor produced (inline marks, links, headings,
- *  lists, quotes, code blocks). Line formats live on the newline that ends the line. */
-export function deltaToHtml(ops) {
-  const lines = []
-  let current = ''
-  for (const op of ops) {
-    if (typeof op.insert !== 'string') continue // embeds (images…) are not carried over
-    const parts = op.insert.split('\n')
-    parts.forEach((part, i) => {
-      if (part) current += deltaInline(part, op.attributes)
-      if (i < parts.length - 1) {
-        lines.push({ html: current, attrs: op.attributes || {} })
-        current = ''
-      }
-    })
-  }
-  if (current) lines.push({ html: current, attrs: {} })
-  const out = []
-  let list = null
-  const flush = () => {
-    if (list) out.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + i + '</li>').join('') + '</' + list.tag + '>')
-    list = null
-  }
-  for (const line of lines) {
-    const a = line.attrs
-    const listTag = a.list === 'ordered' ? 'ol' : a.list === 'bullet' ? 'ul' : null
-    if (listTag) {
-      if (!list || list.tag !== listTag) { flush(); list = { tag: listTag, items: [] } }
-      list.items.push(line.html)
-      continue
-    }
-    flush()
-    const level = Number(a.header)
-    if (level >= 1 && level <= 6) out.push('<h' + level + '>' + line.html + '</h' + level + '>')
-    else if (a.blockquote) out.push('<blockquote>' + line.html + '</blockquote>')
-    else if (a['code-block']) out.push('<pre><code>' + line.html + '</code></pre>')
-    else out.push('<p>' + line.html + '</p>')
-  }
-  flush()
-  return out.join('')
-}
-
-/** The HTML to open a stored value with: the value itself, or its Delta converted. */
-export function richTextHtml(value) {
-  const ops = deltaOps(value)
-  return ops ? deltaToHtml(ops) : (value == null ? '' : String(value))
 }
 
 /** What the editor stores: '' for an editor left empty (only empty paragraphs/breaks), else the
@@ -397,8 +319,7 @@ export function defineMarkupField(win = typeof window !== 'undefined' ? window :
  * JET element waits for the page's binding provider to apply bindings to it and stays "being
  * upgraded" forever: its wrapper says `data-oj-binding-provider="none"`. Until it loads — and for
  * good when there is no loader or the CDN fails — a small editor of its own: a toolbar of
- * oj-buttons over a contenteditable region. Either way the value is HTML (a legacy Delta opens
- * converted) and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
+ * oj-buttons over a contenteditable region. Either way the value is HTML and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
  * JET component, so the field chains treat it like any other — on blur, sanitised by the same
  * allowlist as the viewer.
  */
@@ -417,7 +338,7 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
     }
     commitHtml(html) {
       const value = richTextValueOf(html)
-      if (value === richTextValueOf(richTextHtml(this.value))) return
+      if (value === richTextValueOf(this.value)) return
       this.editing = true
       this.value = value
       this.editing = false
@@ -427,7 +348,7 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
     render() {
       this.textContent = ''
       this.classList.add('mateu-rich-text-field')
-      const html = sanitizeHtml(richTextHtml(this.value))
+      const html = sanitizeHtml(this.value)
       if (this.readonlyNow) {
         const view = doc.createElement('div')
         view.className = 'mateu-atom-richtext oj-typography-body-md'

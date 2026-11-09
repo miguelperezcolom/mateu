@@ -462,41 +462,6 @@ fun renderNotification(metadata: JsonNode): JComponent = JPanel(FlowLayout(FlowL
     accessibleName(listOf(metadata.text("title"), metadata.text("text")).filter { it.isNotBlank() }.joinToString(": "))
 }
 
-/** Result: an outcome page — icon by type, title, message, interesting links, and "now go to". */
-fun renderResult(ctx: AppContext, metadata: JsonNode): JComponent {
-    val type = metadata.text("resultType", "Info")
-    val icon = when (type) {
-        "Success" -> "✓"
-        "Warning" -> "!"
-        "Error" -> "✕"
-        "Ignored" -> "–"
-        else -> "ℹ"
-    }
-    val color = when (type) {
-        "Success" -> JBUI.CurrentTheme.Banner.SUCCESS_BORDER_COLOR
-        "Warning" -> JBUI.CurrentTheme.Banner.WARNING_BORDER_COLOR
-        "Error" -> JBUI.CurrentTheme.Banner.ERROR_BORDER_COLOR
-        else -> JBUI.CurrentTheme.Banner.INFO_BORDER_COLOR
-    }
-    val panel = verticalPanel()
-    panel.addStacked(JBLabel(plain(icon)).apply { foreground = color; font = font.deriveFont(Font.BOLD, font.size2D * 2.5f) }, 0)
-    panel.addStacked(JBLabel(plain(metadata.text("title", type))).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, JBGap)
-    metadata.text("message").takeIf { it.isNotBlank() }?.let { panel.addStacked(JBLabel("<html>${SafeHtml.sanitize(it)}</html>"), JBGap) }
-    fun destination(d: JsonNode): JComponent {
-        val label = d.text("description", d.text("value"))
-        val value = d.text("value")
-        return ActionLink(plain(label)) {
-            when (d.text("type")) {
-                "ActionId", "Action", "action" -> ctx.runAction(value.ifBlank { d.text("id") }, null)
-                else -> if (value.startsWith("/")) ctx.navigate(value, "", null, "") else SafeHtml.browse(value)
-            }
-        }
-    }
-    metadata.path("interestingLinks").items().forEach { panel.addStacked(destination(it), 4) }
-    metadata.path("nowTo").takeIf { it.isObject }?.let { panel.addStacked(destination(it), JBGap) }
-    return panel.accessibleName("${metadata.text("title", type)} ($type)")
-}
-
 /** NotFound: title, message and a way back. */
 fun renderNotFound(ctx: AppContext, metadata: JsonNode): JComponent {
     val panel = verticalPanel()

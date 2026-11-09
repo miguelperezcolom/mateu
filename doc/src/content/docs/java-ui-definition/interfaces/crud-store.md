@@ -7,10 +7,6 @@ description: "Interface for providing CRUD data access to AutoCrud."
 
 It is a **data-access port** — a thin adapter over persistence. The name "repository" is reserved for domain-aggregate repositories, which is why this port is called `CrudStore`.
 
-## Deprecated alias
-
-The former names `CrudRepository`/`CompositionCrudRepository` (and the `AutoCrud` override method `repository()`) were **removed** after a deprecation period — use `CrudStore`/`CompositionCrudStore` and override `store()`.
-
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
 in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so

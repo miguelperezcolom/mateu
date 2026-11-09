@@ -55,17 +55,10 @@ def test_the_shell_names_its_mount_not_the_origin_the_app_saw(mount):
 
 
 @pytest.mark.parametrize("mount", ["", "/hotel"])
-def test_the_documented_component_action_endpoint_answers_like_sync(mount):
-    # POST <base>/mateu/v3/components/_/action is the documented contract and what the Redwood
-    # renderer calls; it answered 404, so Redwood could not render a Python backend at all
-    response = _client(mount).post(
-        f"{mount}/mateu/v3/components/_/action", json={"route": "", "consumedRoute": "_empty"}
-    )
-    assert response.status_code == 200
-    assert _app_metadata(response.json())["type"] == "App"
-    # ...booting with the documented load action "__load__" (it answered "Action not found")
+def test_the_shell_boots_with_the_documented_load_action(mount):
+    # booting with the documented load action "__load__" (it answered "Action not found")
     booted = _client(mount).post(
-        f"{mount}/mateu/v3/components/_/action",
+        f"{mount}/mateu/v3/sync",
         json={"route": "", "actionId": "__load__", "componentState": {}},
     )
     assert _app_metadata(booted.json())["type"] == "App", booted.json()

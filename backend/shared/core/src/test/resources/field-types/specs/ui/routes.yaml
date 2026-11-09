@@ -3,12 +3,12 @@
 type: Routes
 routes:
   - route: ft-orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: ft-customer
-    definition: customer.yaml
+    layout: customer.yaml
   - route: ft-unknown
-    definition: unknown.yaml
+    layout: unknown.yaml
   - route: ft-sampled
-    definition: sampled.yaml
+    layout: sampled.yaml
   - route: ft-zip
-    definition: zip.yaml
+    layout: zip.yaml

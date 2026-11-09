@@ -118,15 +118,9 @@ In your design file, with the library enabled:
 
 ### Older libraries
 
-Files designed before the library had native slots and properties still convert:
-
-- the `#config` line inside an instance (`fieldId=email; required=true`) is still read — a property,
-  when both exist, wins;
-- a Section whose content slot is empty takes the layers that **follow** it in the same frame, up to
-  the next Section.
-
-Accepting the library update gives old instances the slots and properties; both spellings can live in
-one file.
+A `#config` line inside an instance (`fieldId=email; required=true`) — what the plugin writes for a
+prop Figma refuses as a property — is read too; a property, when both exist, wins. Fields go INTO a
+Section's content slot: a layer next to a Section is not its content.
 
 ## 4. Convert the design
 

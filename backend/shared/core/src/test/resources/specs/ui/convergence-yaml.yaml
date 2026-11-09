@@ -1,7 +1,7 @@
 # The SAME screen as ConvergenceCode, declared through the OTHER door: the layout is drawn here
 # (this is what the visual editor writes), and the behaviour lives in a plain class with no layout
 # annotations. Used by DoorConvergenceTest.
-modelView: io.mateu.core.application.DoorConvergenceTest$ConvergenceLogic
+viewModel: io.mateu.core.application.DoorConvergenceTest$ConvergenceLogic
 layout:
   type: VerticalLayout
   content:

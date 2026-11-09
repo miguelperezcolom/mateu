@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","resources/js/mateu-bridge"],(ActionChain,bridge)=>{"use strict";return class extends ActionChain{async run(context,{key,value}){const{$application}=context;if(key){bridge.setUiValue(key,value);const listing=bridge.listingOf($application.variables.mateuRegistry.contexts[bridge.HOST_ID]);$application.variables.mateuListing=listing,$application.variables.mateuListingRows=listing?listing.rows:[]}}};});
+//# sourceMappingURL=listingTreeToggled.js.map

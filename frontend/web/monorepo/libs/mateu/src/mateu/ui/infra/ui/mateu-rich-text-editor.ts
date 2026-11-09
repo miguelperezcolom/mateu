@@ -1,7 +1,6 @@
 import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from 'lit/decorators.js';
 import type { Editor } from "@tiptap/core";
-import { richTextHtml } from "./richTextValue";
 import { chromeText, type ChromeTextKey } from '@infra/ui/chromeTexts.ts'
 import { icon } from '@infra/ui/renderers/neutralIcon.ts'
 
@@ -28,8 +27,7 @@ const MARKS: Mark[] = [
  * Replaces vaadin-rich-text-editor, which is under Vaadin's commercial licence. ProseMirror is used
  * rather than Quill because it handles a shadow root (this element always lives in one — inside
  * mateu-field): Quill lost the caret there. The VALUE is HTML — what read-only rich text, Redwood
- * and anything downstream can show; a legacy value in Quill's Delta JSON (what the Vaadin editor
- * used to store) is converted when it opens (richTextHtml) and saved as HTML on the next edit. The
+ * and anything downstream can show. The
  * editor is lazy-loaded, so it stays out of the initial bundle.
  *
  * Fires `value-changed` with `detail.value` (HTML, '' when empty), like the Vaadin fields.
@@ -73,7 +71,7 @@ export class MateuRichTextEditor extends LitElement {
             // the default stylesheet goes to document.head, which a shadow root never sees
             injectCSS: false,
             extensions: [StarterKit.configure({ link: { openOnClick: false } })],
-            content: richTextHtml(this.value),
+            content: this.value ?? '',
             editable: !this.readonly,
             autofocus: this.autofocus,
             editorProps: { attributes: { 'aria-label': this.label ?? 'Rich text', role: 'textbox', 'aria-multiline': 'true' } },
@@ -100,7 +98,7 @@ export class MateuRichTextEditor extends LitElement {
         if (changed.has('readonly')) this.editor.setEditable(!this.readonly)
         // an outside change (a reset, a server-sent state), not the echo of our own edit
         if (changed.has('value') && (this.value ?? '') !== (this.lastEmitted ?? '')) {
-            this.editor.commands.setContent(richTextHtml(this.value), { emitUpdate: false })
+            this.editor.commands.setContent(this.value ?? '', { emitUpdate: false })
             this.lastEmitted = this.value ?? ''
         }
     }

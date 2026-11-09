@@ -61,7 +61,7 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.build();
     }
 
-    @Path("v3/{ignored:.*}")
+    @Path("v3/sync/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(
         String ignored,
@@ -74,8 +74,7 @@ public class ${simpleClassName}MateuController implements MateuController {
     }
 
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment,
-    // sent as soon as it is produced. It used to fall into runStep above and answer ONE plain JSON
-    // body, so a LongTask's progress never reached the browser.
+    // sent as soon as it is produced.
     @Path("v3/sse/{ignored:.*}")
     @POST
     @Produces(MediaType.SERVER_SENT_EVENTS)

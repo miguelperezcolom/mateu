@@ -194,7 +194,7 @@ Two references start on a page:
   the partials in the mount. *Today:* type the `ref` (e.g. `address-block`). The backend inlines it,
   so the canvas shows the resolved content.
 - **Data sources.** A page's `FormField`s bind by convention (`id` ↔ property) to the **view model**
-  the route paired the page with (or a page-level `modelView:`, which wins). With that binding
+  the route paired the page with (or a page-level `viewModel:`, which wins). With that binding
   resolved, the properties panel offers the model's fields for a `FormField`'s `id` and its actions
   for a `Button`'s `actionId`, both fetched from the model's `__contract__` — so you pick a member
   instead of matching names by hand.

@@ -84,8 +84,7 @@ the Mateu extension) take
   `multiSelect`, `numberRange`, `richText`, …).
 - **Order matters in routes.yaml**: put `orders/new` *before* `orders/:id`, or `new` is read as an
   id.
-- **A layout shared by several routes must not declare `viewModel:`** (or the deprecated
-  `modelView:`) — naming one means it can only ever serve that class; bind on the route entry.
+- **A layout shared by several routes must not declare `viewModel:`** — naming one means it can only ever serve that class; bind on the route entry.
 - **`actions:` belongs to the page definition, beside the component (or beside `layout:`)**, never on
   the route. A `Button`'s `actionId` must name an action the page declares, an `actions.yaml`
   entry, or a method of the bound view model — otherwise nothing happens (and a static bundle with

@@ -24,10 +24,10 @@ dentro de la app VB** (no server-side, no hosting de Mateu en el runtime de chai
 
 ## Arquitectura (el núcleo, ya validado en el POC **contra wire real**)
 
-- **Transporte (CONFIRMADO 2026-07-24 contra demo/demo-vb :9005)** — DOS endpoints:
-  - **Bootstrap de la shell**: `POST /{base}/mateu/v3/components/_/action` con `{route:'', actionId:'__load__'}`
-    → fragmento App (menú, variant, contextSelectors). Es el ÚNICO uso de ese endpoint; la ruta raíz NO
-    resuelve por sync.
+- **Transporte (CONFIRMADO 2026-07-24 contra demo/demo-vb :9005)** — UN endpoint, dos tipos de petición:
+  - **Bootstrap de la shell**: `POST /{base}/mateu/v3/sync/_no_route` con `{route:'', actionId:'__load__'}`
+    → fragmento App (menú, variant, contextSelectors). Es el ÚNICO `__load__` que manda el bridge (el
+    alias legado `components/_/action` desapareció en 3.0.0).
   - **Todo lo demás**: `POST /{base}/mateu/v3/sync/{route sin barra | _no_route}` con body
     `{serverSideType, appState, componentState, parameters, initiatorComponentId, consumedRoute, route, actionId}`
     (= `AxiosMateuApiClient.runAction`). Las CARGAS usan `actionId: ''` (¡`__load__` da
@@ -304,7 +304,7 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   **`submenus`** (¡no `submenu`!) y rutas COMPUESTAS (`/gestion/person`) que **NO resuelven por
   sync** — el bridge navega por la ruta TERMINAL (recorta el prefijo del padre; `shellNavOf`).
   **La VARIANTE del wire manda** (afinado con DOS rondas de feedback del usuario) — TRES modos
-  en `shellNavOf().mode`: `TABS` → in-app navigation inferior; **`HAMBURGUER_MENU`/`TILES` →
+  en `shellNavOf().mode`: `TABS` → in-app navigation inferior; **`HAMBURGER_MENU`/`TILES` →
   navigator PERSISTENTE**: `oj-drawer-layout` (reflow, NO popup) DEBAJO del header con
   `oj-navigation-list` jerárquico en el slot start — **abierto de inicio**, **no se oculta al
   navegar** (marca el item activo vía `selection`); la hamburguesa solo lo pliega/despliega y
@@ -318,7 +318,7 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   hamburguesa; hojas = `oj-button` borderless con la ruta en data-route, grupos =
   `oj-menu-button` + `oj-menu`). Gotcha: `oj-navigation-list` parsea su `<ul>` en el init y los
   `li` estampados por `oj-bind-for-each` llegan DESPUÉS → hay que llamar a `refresh()` al abrir
-  el drawer o quedan como links crudos. El demo lleva `@App(HAMBURGUER_MENU)` explícito para
+  el drawer o quedan como links crudos. El demo lleva `@App(HAMBURGER_MENU)` explícito para
   exhibir el drawer (quitar la anotación → AUTO → MENU_ON_TOP → topbar); ambos modos
   verificados (`shots/fase6-navdrawer*.png`, `fase6-topbar.png`).
 - **@AppContext**: `contextSelectors` del App → `oj-select-one` compacto (clases utilitarias
@@ -528,7 +528,7 @@ nace exactamente donde acaba el contenido, como en FA); (2) fuera la clase
 `oj-web-applayout-max-width` del wrapper del starter — capaba el área a 1440 y rompía
 cualquier fórmula viewport-relativa. Verificado a 1440/1920/2400; en edgeToEdge el FAB queda
 en el borde derecho de la página. **Regla drawer ⇒ edge-to-edge (2026-07-25)**: con navigator
-persistente a la izquierda (HAMBURGUER_MENU) el formato pasa a edge-to-edge AUTOMÁTICAMENTE
+persistente a la izquierda (HAMBURGER_MENU) el formato pasa a edge-to-edge AUTOMÁTICAMENTE
 (ambos chains ignoran el pageWidth del wire y fuerzan edgeToEdge en pageStyle y en el
 page-layout del shell): centrar un fixed en el área restante quedaba raro — el drawer ya
 consume el lateral. Los gutters del contenido los siguen poniendo las ramas (12x/6x). El

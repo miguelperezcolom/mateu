@@ -35,12 +35,12 @@ public class LiveReloadTests : IDisposable
     [Fact]
     public void An_edited_route_table_is_read_again_after_a_change()
     {
-        Write("routes.yaml", "routes:\n  - route: live\n    definition: live.yaml\n");
+        Write("routes.yaml", "routes:\n  - route: live\n    layout: live.yaml\n");
         var registry = new RouteRegistry(_dir);
         Assert.NotNull(registry.Match("live"));
         Assert.Null(registry.Match("added"));
 
-        var file = Write("routes.yaml", "routes:\n  - route: live\n    definition: live.yaml\n  - route: added\n    definition: added.yaml\n");
+        var file = Write("routes.yaml", "routes:\n  - route: live\n    layout: live.yaml\n  - route: added\n    layout: added.yaml\n");
         DevSpecs.Changed([file]);
 
         Assert.NotNull(registry.Match("added"));
@@ -91,7 +91,7 @@ public class LiveReloadTests : IDisposable
     {
         Directory.CreateDirectory(Path.Combine(_dir, "translations"));
         Write(Path.Combine("translations", "en.yaml"), "messages:\n  live:\n    greeting: Hello from version one\n");
-        Write("routes.yaml", "routes:\n  - route: live-greeting\n    definition: live-greeting.yaml\n");
+        Write("routes.yaml", "routes:\n  - route: live-greeting\n    layout: live-greeting.yaml\n");
         Write("live-greeting.yaml", "layout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: \"${i18n.live.greeting}\"\n");
         var handler = new SyncHandler(new MateuRegistry(typeof(LiveReloadTests).Assembly), locale: () => "en", specsDir: _dir);
         string Page() => System.Text.Json.JsonSerializer.Serialize(handler.Handle(new RunActionRqDto { Route = "/live-greeting" }), WireJson);

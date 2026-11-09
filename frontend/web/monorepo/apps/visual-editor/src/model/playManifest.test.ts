@@ -4,7 +4,7 @@ import { buildPlayManifest, filesDeclareAccess, withEdited } from './playManifes
 describe('buildPlayManifest', () => {
     const files = [
         { path: 'shop.ui.yaml', content: 'type: UI\nbasePath: /\nroutes: [routes.yaml]\n' },
-        { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - {route: "", definition: app.yaml}\n  - route: orders\n    layout: orders.yaml\n    data: orders-src\n    children:\n      - {route: lines, layout: lines.yaml, data: {ref: lines-src}}\n  - {route: legacy, viewModel: com.acme.Legacy}\n' },
+        { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - {route: "", layout: app.yaml}\n  - route: orders\n    layout: orders.yaml\n    data: orders-src\n    children:\n      - {route: lines, layout: lines.yaml, data: {ref: lines-src}}\n  - {route: legacy, viewModel: com.acme.Legacy}\n' },
         { path: 'specs/ui/app.yaml', content: 'type: AppShell\ntitle: Shop\n' },
         { path: 'orders.yaml', content: 'type: Listing\ntitle: Orders\n' },
         { path: 'lines.yaml', content: 'type: Form\n' },
