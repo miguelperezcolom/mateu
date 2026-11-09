@@ -112,7 +112,7 @@ output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGold
 
 ## Publishing with no backend (`publish/`)
 
-A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
+[Mateu Publish on Figma Community](https://www.figma.com/community/plugin/1701394446386459820/mateu-publish). A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
 reads the document in the REST shape the converter takes; `src/site.mjs` writes the `specsOnly`
 manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
 `src/hosts.mjs` talks to Netlify (direct, file by file: its zip endpoint answers CORS twice and a browser cannot read it) and Cloudflare Pages
