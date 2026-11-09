@@ -42,6 +42,31 @@ Same for the museum. The container in these deployments is called `app`
 says «successfully rolled out» about the old image). Their databases live in memory: restarting a
 service re-seeds it, which also clears what a test wrote.
 
+## Memory
+
+The cluster's nodes are small (~2.7 GiB allocatable each), so every JVM here runs with explicit flags
+instead of the images' `-XX:MaxRAMPercentage=75` (which let a JVM grow towards 75 % of its limit and
+never give memory back). Measured on Spring Boot + Mateu (Java 21, Alpine): heap in use is ~40 MB,
+metaspace ~100–115 MB, and the C2 JIT's code cache + arenas cost ~60 MB more than C1 alone.
+
+```
+-XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
+-XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=<192|224>m -Xss512k
+-XX:+ExitOnOutOfMemoryError
+```
+
+- Serial GC (what the JVM picks anyway on 2 CPUs), heap capped at 160 MB and shrunk after GC
+  (`MaxHeapFreeRatio`); single-user demos do not need more.
+- C1 only (`TieredStopAtLevel=1`): lower peak throughput, irrelevant here, and a smaller code cache.
+- `MaxMetaspaceSize` is a guard, not a saving: 192m for the REST services, 224m for the Mateu UIs
+  (the Explorer, the biggest, uses 256m and `-Xmx192m`); `ExitOnOutOfMemoryError` lets Kubernetes
+  restart a JVM that hit it instead of leaving it half alive.
+- Requests follow measured use (+ margin): REST services 288Mi, UI apps 224Mi, Explorer remotes
+  176Mi; limits keep head-room for a heap that fills (416–448Mi, Explorer 512Mi).
+
+Result (2026-11-09): the JVM pods went from 183–333 MiB to ~140–250 MiB each. Re-check after an
+image upgrade with `kubectl top pods`, and the services' `/actuator/prometheus` (`jvm_memory_*`).
+
 ## Deploy
 ```bash
 K="kubectl --context <cluster-context>"
