@@ -8,54 +8,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
-- Windows desktop installer: installs only into its per-user folder (no directory page, `/D=` ignored, a folder of someone else's files is refused), and the uninstaller removes only what it installed and then an empty folder.
-- Windows desktop: `mateu://` is registered on the IDE's executable, not on a batch file, so a crafted link cannot reach `cmd.exe`. A session a link started asks you to reopen the app from its shortcut to apply an update.
-- IntelliJ / desktop: an inline document is opened by the OS only for PDF, PNG, JPEG, GIF and plain text with a matching MIME type; anything else goes to the Save dialog.
-- Desktop hub: islands and remote screens end with what rendered them, and a session's credentials stay with its UI, so a UI left behind can no longer send the next UI's token anywhere.
-- React Native: stored OIDC tokens record their issuer and client, and are discarded with no network when a manifest names another provider.
-- IntelliJ visual editor: the loopback server checks the `Host` header and only the editor's own browser can reach the backend or the project's images through it.
-- Linux desktop `install.sh`: a failed upgrade no longer strands settings in a temp directory.
-- IntelliJ / desktop: tasks of an anonymous session are no longer written to disk, and remembered tasks are scoped by identity.
-- IntelliJ Live Run: the debugger listens on `127.0.0.1` only; a project path with spaces no longer breaks a run (the specs directory travels only in `MATEU_DEV_SPECS_DIR`); Gradle + Micronaut no longer fails to start on a debug-port clash (it runs without the debugger).
-- IntelliJ New Project: picks the highest final release of the bundled pin's major, or that major's newest pre-release before its GA, instead of Maven's `<release>`.
-### Fixed
-
-- **Python: a class-level `@eyes_only` now also covers view models bound only through `routes.yaml`
-  or a page's `viewModel:`.** Render, listing search, wizards and crud writes answer 403.
-- **.NET / Python: a crud save no longer writes `[ReadOnly]` / `ReadOnly()` fields from the client.**
-  They keep the stored value (the fresh instance's on a create), like Java.
-- **.NET / Python: the crud write gate follows what a save will do.** No id on the route needs create
-  permission and an id needs edit permission, whatever the action id says.
-- **.NET / Python: `__preview__` refuses a definition whose aliases expand past 100,000 nodes** instead
-  of building it.
-- **.NET / Python: a route's `fixedParams` win on every proxied leg** — over action parameters (.NET)
-  and each selected row of a bulk call; Python's definition-only pages now apply them.
-- **Python: a definition-only page's proxied `forEachSelectedRow` action runs once per row.** It used
-  to make one call without the rows and report success.
-- **.NET: a YAML app shell's proxied sources answer (`_appsource`).** The bell, palette search and
-  context pickers stayed empty.
-- **.NET / Python: the proxied fetch does not follow redirects, and a 3xx is a failed call.** A host's
-  own .NET `HttpClient` should set `AllowAutoRedirect = false` too.
-- **.NET: a `MateuForbiddenException` thrown inside an action is a 403** instead of a generic error.
-- **.NET: `[GroupAction]` methods honour `[DisabledUnless]` / `[EyesOnly]`.**
-- **.NET: a malformed body on the SSE endpoint streams the error increment** instead of a raw 500.
-
-### Changed
-
-- **VS Code Live Run** opens the debugger on loopback only (it was every interface), starts a Spring
-  Boot or Micronaut app from a path with spaces, and debugs Gradle + Micronaut through the `run` task.
-- **The VS Code editor's loopback proxy answers only the editor's webview** and the Redwood app it
-  frames, so a web page in the developer's browser cannot read the backend through it.
-- **VS Code New Project pins the highest stable release** of the starters' major (before that major's
-  GA, its newest pre-release), not whatever Maven Central published last.
-- **The Maven archetype no longer deletes the target folder** when it rejects an option: it removes
-  only what it wrote.
-- **A pre-release of a later minor or major** (`v3.1-rc.1`) no longer ships over the air to production
-  phones, repins the examples, or fails the plugin and desktop jobs: those jobs skip it. Every
-  `v3.0-beta.N` / `v3.0-rc.N` keeps publishing as before.
-- **Mateu Publish** deploys the current release's renderer, each file checked against a pinned SHA-256
-  (`scripts/bump-example-version.sh` moves the pin), and a site title can hold `$&`.
-- **The .NET starter targets `net10.0`.** The Mateu packages still target `net8.0` and `net10.0`.
 ### Security
 
 - **`__restfetch__` honours `@EyesOnly` / `@DisabledUnless`** on the `@RestAction` method (and
@@ -76,6 +28,35 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- Windows desktop installer: installs only into its per-user folder (no directory page, `/D=` ignored, a folder of someone else's files is refused), and the uninstaller removes only what it installed and then an empty folder.
+- Windows desktop: `mateu://` is registered on the IDE's executable, not on a batch file, so a crafted link cannot reach `cmd.exe`. A session a link started asks you to reopen the app from its shortcut to apply an update.
+- IntelliJ / desktop: an inline document is opened by the OS only for PDF, PNG, JPEG, GIF and plain text with a matching MIME type; anything else goes to the Save dialog.
+- Desktop hub: islands and remote screens end with what rendered them, and a session's credentials stay with its UI, so a UI left behind can no longer send the next UI's token anywhere.
+- React Native: stored OIDC tokens record their issuer and client, and are discarded with no network when a manifest names another provider.
+- IntelliJ visual editor: the loopback server checks the `Host` header and only the editor's own browser can reach the backend or the project's images through it.
+- Linux desktop `install.sh`: a failed upgrade no longer strands settings in a temp directory.
+- IntelliJ / desktop: tasks of an anonymous session are no longer written to disk, and remembered tasks are scoped by identity.
+- IntelliJ Live Run: the debugger listens on `127.0.0.1` only; a project path with spaces no longer breaks a run (the specs directory travels only in `MATEU_DEV_SPECS_DIR`); Gradle + Micronaut no longer fails to start on a debug-port clash (it runs without the debugger).
+- IntelliJ New Project: picks the highest final release of the bundled pin's major, or that major's newest pre-release before its GA, instead of Maven's `<release>`.
+- **Python: a class-level `@eyes_only` now also covers view models bound only through `routes.yaml`
+  or a page's `viewModel:`.** Render, listing search, wizards and crud writes answer 403.
+- **.NET / Python: a crud save no longer writes `[ReadOnly]` / `ReadOnly()` fields from the client.**
+  They keep the stored value (the fresh instance's on a create), like Java.
+- **.NET / Python: the crud write gate follows what a save will do.** No id on the route needs create
+  permission and an id needs edit permission, whatever the action id says.
+- **.NET / Python: `__preview__` refuses a definition whose aliases expand past 100,000 nodes** instead
+  of building it.
+- **.NET / Python: a route's `fixedParams` win on every proxied leg** — over action parameters (.NET)
+  and each selected row of a bulk call; Python's definition-only pages now apply them.
+- **Python: a definition-only page's proxied `forEachSelectedRow` action runs once per row.** It used
+  to make one call without the rows and report success.
+- **.NET: a YAML app shell's proxied sources answer (`_appsource`).** The bell, palette search and
+  context pickers stayed empty.
+- **.NET / Python: the proxied fetch does not follow redirects, and a 3xx is a failed call.** A host's
+  own .NET `HttpClient` should set `AllowAutoRedirect = false` too.
+- **.NET: a `MateuForbiddenException` thrown inside an action is a 403** instead of a generic error.
+- **.NET: `[GroupAction]` methods honour `[DisabledUnless]` / `[EyesOnly]`.**
+- **.NET: a malformed body on the SSE endpoint streams the error increment** instead of a raw 500.
 - **Quarkus / Micronaut: a client that leaves a streamed action cancels the work**, and the stream
   no longer keeps every increment in memory until it ends.
 - **A `LongTask` reached outside the SSE leg no longer runs unobserved and dies at the grace period.**
@@ -85,9 +66,34 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   tab was closed still reaches its user's inbox.
 - **Agent push: a stalled browser no longer blocks every other session**: messages are written
   outside the registry's lock, in order per session.
+- **Web: streamed actions carry the `@AppContext` values**: a LongTask, a header action or an inbox action ran with no selected hotel/company.
+- **Web: a live-pushed inbox entry works like a listed one**: its actions, read, dismiss and detail reach the server.
+- **Web: Retry in the task center works after leaving the screen that started the task**, and says so when it cannot start.
+- **Web and Redwood: a stream broken under a running task looks for it again** (`_progress-tasks` + `_progress-resume`, for ~12 s) instead of showing it failed while the server still runs it.
+- **Web and Redwood: leaving a screen before a LongTask's first event no longer cancels the work**; the first event decides whether the stream is a task.
+- **Web: a streamed action re-authenticates on a 401** like a sync one, once.
+- **Web: a reattached task whose resume stream fails ends failed** instead of running forever.
+- **Web: declining the unsaved-changes prompt keeps a finished task and its result action.**
+- **Web: the request-loop breaker aborts only the looping request**, never a Save next to it.
+- **Web and Redwood: live updates and header values are per app**, and with a per-tab identity (a token in `sessionStorage`, memory or a provider; a Redwood host provider) each tab holds its own stream and shares nothing.
+- **Redwood: a resumed task survives the first navigation after a reload**, and a task's Retry carries the app state.
 
 ### Changed
 
+- **VS Code Live Run** opens the debugger on loopback only (it was every interface), starts a Spring
+  Boot or Micronaut app from a path with spaces, and debugs Gradle + Micronaut through the `run` task.
+- **The VS Code editor's loopback proxy answers only the editor's webview** and the Redwood app it
+  frames, so a web page in the developer's browser cannot read the backend through it.
+- **VS Code New Project pins the highest stable release** of the starters' major (before that major's
+  GA, its newest pre-release), not whatever Maven Central published last.
+- **The Maven archetype no longer deletes the target folder** when it rejects an option: it removes
+  only what it wrote.
+- **A pre-release of a later minor or major** (`v3.1-rc.1`) no longer ships over the air to production
+  phones, repins the examples, or fails the plugin and desktop jobs: those jobs skip it. Every
+  `v3.0-beta.N` / `v3.0-rc.N` keeps publishing as before.
+- **Mateu Publish** deploys the current release's renderer, each file checked against a pinned SHA-256
+  (`scripts/bump-example-version.sh` moves the pin), and a site title can hold `$&`.
+- **The .NET starter targets `net10.0`.** The Mateu packages still target `net8.0` and `net10.0`.
 - **`mateu-bundle:server` defaults to Spring Boot 4.1.1**, the line the adapters are tested with.
 - **IntelliJ / desktop: a long-running task never opens a modal window.** Every `LongTask` now runs
   in the IDE's Background Tasks (status bar, Background Tasks window); a blocking one also covers
@@ -110,20 +116,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   what arrived while the app was away instead of waiting for the panel to open. The docs now say
   plainly what OS notifications can and cannot do on a phone: they are local, so a suspended or
   closed app posts none.
-
-### Fixed
-
-- **Web: streamed actions carry the `@AppContext` values**: a LongTask, a header action or an inbox action ran with no selected hotel/company.
-- **Web: a live-pushed inbox entry works like a listed one**: its actions, read, dismiss and detail reach the server.
-- **Web: Retry in the task center works after leaving the screen that started the task**, and says so when it cannot start.
-- **Web and Redwood: a stream broken under a running task looks for it again** (`_progress-tasks` + `_progress-resume`, for ~12 s) instead of showing it failed while the server still runs it.
-- **Web and Redwood: leaving a screen before a LongTask's first event no longer cancels the work**; the first event decides whether the stream is a task.
-- **Web: a streamed action re-authenticates on a 401** like a sync one, once.
-- **Web: a reattached task whose resume stream fails ends failed** instead of running forever.
-- **Web: declining the unsaved-changes prompt keeps a finished task and its result action.**
-- **Web: the request-loop breaker aborts only the looping request**, never a Save next to it.
-- **Web and Redwood: live updates and header values are per app**, and with a per-tab identity (a token in `sessionStorage`, memory or a provider; a Redwood host provider) each tab holds its own stream and shares nothing.
-- **Redwood: a resumed task survives the first navigation after a reload**, and a task's Retry carries the app state.
 
 ### Removed
 
