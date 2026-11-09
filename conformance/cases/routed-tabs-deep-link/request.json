@@ -1,0 +1,5 @@
+{
+  "route": "/conformance/rt/customers/7/orders",
+  "consumedRoute": "_empty",
+  "serverSideType": null
+}

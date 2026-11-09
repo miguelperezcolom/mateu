@@ -42,6 +42,21 @@ class ListingHandlerMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
     def resolve_crud(self, rq: RunActionRq):
         if rq.server_side_type:
+            # a crud bound in the AUTHORED route table (a record master's tab): mounted at the
+            # shortest prefix of the route bound to it (Java's ActionInstanceCreator.mountOf)
+            from .. import routed_tabs
+
+            mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if mount is not None:
+                bound = self.registry.type_by_name(rq.server_side_type)
+                if bound is not None and crud_element_type(bound) is not None:
+                    return bound, crud_element_type(bound), mount
+            # a sub-resource island (/_subresource/<Host>/<field>): addressed by its type
+            from .. import subresources
+
+            island = subresources.island_crud(self.registry, rq.route, rq.server_side_type)
+            if island is not None and crud_element_type(island[0]) is not None:
+                return island[0], crud_element_type(island[0]), island[1]
             by_name = self.registry.resolve(rq.server_side_type, None)
             if by_name is not None and crud_element_type(by_name) is not None:
                 base = "/" + normalize(getattr(by_name, "__mateu_ui__", ""))

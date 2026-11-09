@@ -238,6 +238,87 @@ def mount_of(routes, route: str | None, wanted: str | None) -> str | None:
     return None
 
 
+def chain_params(routes=None, route: str | None = None) -> dict[str, Any]:
+    """The path parameters of the request route's chain, outermost first (``customerId`` under
+    ``/customers/7/orders/new``)."""
+    if routes is None:
+        routes = _tables.get()[0]
+    route = request_route() if route is None else route
+    out: dict[str, Any] = {}
+    for _entry, path in chain_links(routes, route):
+        try:
+            match = routes.match(path)
+        except Exception:  # noqa: BLE001
+            match = None
+        if match is not None:
+            out.update(match.path_params)
+    return out
+
+
+def route_scope() -> set[str]:
+    """The names a listing's filters cannot change because the route fixes them: the path
+    parameters of the request route's chain (Java's CrudlMapper.routeScope)."""
+    from .subresources import route_scope_names
+
+    names = set(chain_params()) if len(chain_links(_tables.get()[0], request_route())) > 1 else set()
+    # a sub-resource island's parent fixes its scope too (Java's EmbeddedOrchestratorFieldBuilder.scopeOf)
+    return names | route_scope_names(request_route())
+
+
+def hides_listing_title() -> bool:
+    """Whether the request is a sub-resource island whose listing draws no title of its own (the
+    host draws it above the island)."""
+    from .subresources import hides_title
+
+    return hides_title(request_route())
+
+
+def scope_values_for(cls, routes=None, route: str | None = None) -> dict[str, Any]:
+    """The chain's path parameters ``cls`` has a field for (by its wire name, ``customerId`` →
+    ``customer_id``) — what a new child record created under a master starts with (Java's
+    RouteChains.scopeValuesFor). Empty when the route has no chain."""
+    if routes is None:
+        routes = _tables.get()[0]
+    route = request_route() if route is None else route
+    if cls is None or len(chain_links(routes, route)) < 2:
+        return {}
+    from .naming import camel_case
+    from .reflection import view_fields
+
+    params = chain_params(routes, route)
+    out: dict[str, Any] = {}
+    for f in view_fields(cls):
+        wire = camel_case(f.name)
+        if wire in params:
+            out[f.name] = params[wire]
+    return out
+
+
+def pending_app_ancestor(routes, registry, route: str | None, consumed: str | None):
+    """The ancestor of ``route`` that has to render it: the outermost link of its chain beyond
+    ``consumed`` when that link is an ANCESTOR (not the route itself) backed by an app class — an
+    app has a slot to render the rest into. ``(app type, its concrete path)`` or None (Java's
+    RouteChains.pendingAppAncestor)."""
+    chain = chain_links(routes, route)
+    if len(chain) < 2 or registry is None:
+        return None
+    done = "" if consumed in (None, "_empty") else _normalize(consumed)
+    pending = next(
+        (
+            (entry, path)
+            for entry, path in chain
+            if len(_normalize(path)) > len(done) and (not done or _normalize(path).startswith(done))
+        ),
+        None,
+    )
+    if pending is None or pending == chain[-1] or not pending[0].view_model:
+        return None
+    cls = registry.type_by_name(pending[0].view_model)
+    if cls is None or "__mateu_app__" not in cls.__dict__:
+        return None
+    return cls, pending[1]
+
+
 def routed_tab_key(keys: list[str | None]) -> str | None:
     """The tab key the request route ends with, or None: ``/vcn/7/gateways`` opens Gateways."""
     route = request_route()

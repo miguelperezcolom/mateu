@@ -45,6 +45,8 @@ internal sealed partial class ReflectionMapper
         var ns = t.Namespace ?? "";
         if (ns == "System" || ns.StartsWith("System.") || ns == "Microsoft" || ns.StartsWith("Microsoft.")) return false;
         if (t.GetCustomAttribute<UIAttribute>() is not null) return false;
+        // a listing / crud is an island (or a [Subresource]), never a nested form
+        if (IsOrchestratorType(t)) return false;
         return t.GetConstructor(Type.EmptyTypes) is not null;
     }
 

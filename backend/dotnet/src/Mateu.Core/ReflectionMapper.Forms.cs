@@ -126,7 +126,7 @@ internal sealed partial class ReflectionMapper
             .Where(p => readOnly || p.Find<VersionAttribute>() is null).ToList();
         // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
         // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
-        if (props.Any(p => p.Find<TabAttribute>() != null))
+        if (props.Any(p => p.Find<TabAttribute>() != null || p.Find<SubresourceAttribute>() != null))
             return [SectionCardOfBody(TabbedBody(type, props, instance, readOnly))];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
@@ -256,55 +256,83 @@ internal sealed partial class ReflectionMapper
     /// FormLayoutBuilder).</summary>
     private List<ComponentDto> TabbedBody(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
-        var first = props.FindIndex(p => p.Find<TabAttribute>() is not null);
-        if (first < 0) first = props.Count;
+        // every [Subresource] that opens no [Tab] of its own moves into the tab it names (Java's
+        // Subresources.place)
+        var movable = props.Where(p => p.Find<SubresourceAttribute>() is not null && p.Find<TabAttribute>() is null).ToList();
+        var rest = props.Where(p => !movable.Contains(p)).ToList();
+        var first = rest.FindIndex(p => p.Find<TabAttribute>() is not null);
+        if (first < 0) first = rest.Count;
         var body = new List<ComponentDto>();
         if (first > 0)
         {
             var columns = FormColumns(type);
             body.Add(Client(new FormLayoutMetadataDto { MaxColumns = columns }, null,
-                FormRows(MapFields(props.Take(first).ToList(), instance, readOnly), columns)));
+                FormRows(MapFields(rest.Take(first).ToList(), instance, readOnly), columns)));
         }
-        if (first < props.Count) body.Add(TabLayout(type, props.Skip(first).ToList(), instance, readOnly));
+        var groups = TabGroups(rest.Skip(first));
+        PlaceSubresources(groups, movable);
+        if (groups.Count > 0) body.Add(TabLayout(type, groups, instance, readOnly));
         return body;
     }
 
-    private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
+    /// <summary>A tab of a tabbed form: its label, [Tab] flags and properties.</summary>
+    private sealed record TabGroup(string Name, bool Open, string? Key, string? Show, List<PropertyInfo> Props);
+
+    /// <summary>Consecutive properties sharing a [Tab] name.</summary>
+    private static List<TabGroup> TabGroups(IEnumerable<PropertyInfo> props)
     {
-        var tabs = new List<(string name, bool open, string? key, string? show, List<PropertyInfo> props, List<ClientSideComponentDto> fields)>();
+        var groups = new List<TabGroup>();
         var current = "Tab";
         foreach (var p in props)
         {
             var attr = p.Find<TabAttribute>();
             if (attr?.Name is { } n) current = n;
-            if (tabs.Count == 0 || tabs[^1].name != current)
+            if (groups.Count == 0 || groups[^1].Name != current)
                 // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
-                tabs.Add((current, attr?.Open ?? false, attr?.Key, attr?.Show, new List<PropertyInfo>(),
-                    new List<ClientSideComponentDto>()));
-            tabs[^1].props.Add(p);
-            // MapFields: a [SeparatorBefore] inside a tab paints its divider too (it was dropped)
-            tabs[^1].fields.AddRange(MapFields([p], instance, readOnly));
+                groups.Add(new TabGroup(current, attr?.Open ?? false, attr?.Key, attr?.Show, []));
+            groups[^1].Props.Add(p);
         }
+        return groups;
+    }
+
+    private ComponentDto TabLayout(Type type, List<TabGroup> groups, object instance, bool readOnly)
+    {
         // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
         // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
         // a tab whose Show flag is off is not offered at all, its fields with it (Java's
         // FormLayoutBuilder + FeatureFlagGate); the tab the URL names (its Key as the route's last
         // segment) is the open one
-        tabs = tabs.Where(tb => RoutedTabs.Shows(tb.show)).ToList();
-        var routedKey = RoutedTabs.RoutedTabKey(tabs.Select(tb => tb.key));
+        groups = groups.Where(g => RoutedTabs.Shows(g.Show)).ToList();
+        var routedKey = RoutedTabs.RoutedTabKey(groups.Select(g => g.Key));
         var columns = FormColumns(type);
-        var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
-            new TabMetadataDto(T(tb.name))
+        var tabComps = groups.Select(g =>
+        {
+            var label = T(g.Name);
+            var count = g.Props.Count(p => p.Find<SubresourceAttribute>() is not null);
+            var fields = new List<ClientSideComponentDto>();
+            foreach (var p in g.Props)
             {
-                Active = routedKey is not null ? routedKey == tb.key : tb.open,
-                RouteKey = string.IsNullOrWhiteSpace(tb.key) ? null : tb.key,
-            }, null,
-            [Client(new FormLayoutMetadataDto
-            {
-                MaxColumns = columns,
-                LabelsAside = LabelsAsideInference.LabelsAside(tb.props, columns, type, T),
-            }, null, FormRows(tb.fields, columns))])).ToList();
+                if (p.Find<SubresourceAttribute>() is not null || (IsOrchestratorType(p.PropertyType) && !IsEmbeddedView(p.PropertyType)))
+                    fields.Add(MapOrchestratorField(p, instance, columns, (label, count, g.Props.Count)));
+                else
+                    // MapFields: a [SeparatorBefore] inside a tab paints its divider too
+                    fields.AddRange(MapFields([p], instance, readOnly));
+            }
+            return (ComponentDto)Client(
+                new TabMetadataDto(label)
+                {
+                    Active = routedKey is not null ? routedKey == g.Key : g.Open,
+                    RouteKey = string.IsNullOrWhiteSpace(g.Key) ? null : g.Key,
+                    Badge = SubresourceBadge(g.Props, instance),
+                }, null,
+                [Client(new FormLayoutMetadataDto
+                {
+                    MaxColumns = columns,
+                    LabelsAside = LabelsAsideInference.LabelsAside(
+                        g.Props.Where(p => p.Find<SubresourceAttribute>() is null).ToList(), columns, type, T),
+                }, null, FormRows(fields, columns))]);
+        }).ToList();
         var meta = new TabLayoutMetadataDto
         {
             GroupRelationship = "alternative",

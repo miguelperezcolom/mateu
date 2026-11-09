@@ -1,0 +1,22 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "data" : {
+      "crud" : {
+        "page" : {
+          "content" : [ {
+            "customerId" : "7",
+            "status" : "OPEN"
+          }, {
+            "_rowNumber" : 1,
+            "customerId" : "7",
+            "status" : "SHIPPED"
+          } ],
+          "pageSize" : 10,
+          "totalElements" : 2
+        }
+      }
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

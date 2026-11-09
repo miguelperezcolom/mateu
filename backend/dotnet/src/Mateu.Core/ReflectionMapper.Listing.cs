@@ -333,7 +333,9 @@ internal sealed partial class ReflectionMapper
         var (bulkButtons, bulkActions) = BulkToolbar(viewType, "action-on-row-", bubble: true);
         toolbar.InsertRange(0, bulkButtons);
         actions.AddRange(bulkActions);
-        var crudComponent = Client(new CrudMetadataDto(RoutedTabs.DedupeTitle(title), columns, toolbar)
+        // a sub-resource island's listing draws no title: the host draws it above the island
+        var crudComponent = Client(new CrudMetadataDto(RoutedTabs.HidesListingTitle() ? null : RoutedTabs.DedupeTitle(title),
+            columns, toolbar)
         {
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
@@ -574,7 +576,16 @@ internal sealed partial class ReflectionMapper
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to
     /// multi-selects (IN) with their constants as options, temporals to from–to date ranges,
     /// [RangeFilter] numerics to min–max ranges.</summary>
-    private static List<FormFieldMetadataDto> MapCrudFilters(Type element) => WithMainFilters(element,
+    // a filter named like a path parameter of the route's chain (or an island's scope) is fixed by
+    // where the listing is mounted, not chosen by the user (Java's CrudlMapper.routeScope)
+    private static List<FormFieldMetadataDto> MapCrudFilters(Type element)
+    {
+        var scope = RoutedTabs.RouteScope();
+        var filters = MapCrudFiltersUnscoped(element);
+        return scope.Count == 0 ? filters : filters.Select(f => scope.Contains(f.FieldId) ? f with { ReadOnly = true } : f).ToList();
+    }
+
+    private static List<FormFieldMetadataDto> MapCrudFiltersUnscoped(Type element) => WithMainFilters(element,
         EditableProperties(element)
             .Select(p => (Property: p, Type: Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType))
             .Where(x => x.Type.IsEnum || x.Type == typeof(string) || x.Type == typeof(bool)

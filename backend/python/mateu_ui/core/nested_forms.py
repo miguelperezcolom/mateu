@@ -90,6 +90,10 @@ def is_nested_form_type(t: Any) -> bool:
         return False
     if getattr(t, "__mateu_ui__", None) is not None:
         return False  # a routed view: an embedded island, never a nested form
+    from .subresources import is_orchestrator
+
+    if is_orchestrator(t):
+        return False  # a listing / crud: an embedded island (or a Subresource), never a nested form
     from mateu_ui.uidl import ComponentTreeSupplier
 
     if issubclass(t, ComponentTreeSupplier):

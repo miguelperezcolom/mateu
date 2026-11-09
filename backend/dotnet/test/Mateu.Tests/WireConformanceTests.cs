@@ -116,7 +116,10 @@ public class WireConformanceTests
             var req = JsonNode.Parse(File.ReadAllText(requestFile))!.AsObject();
             rq = new RunActionRqDto
             {
-                ServerSideType = yaml ? null : view.FullName,
+                // a request.json naming "serverSideType": null is a FRESH load (no type yet)
+                ServerSideType = yaml ? null
+                    : req.ContainsKey("serverSideType") ? req["serverSideType"]?.GetValue<string>()
+                    : view.FullName,
                 Route = req["route"]?.GetValue<string>() ?? "",
                 ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
                 ActionId = req["actionId"]?.GetValue<string>() ?? "",
@@ -140,7 +143,9 @@ public class WireConformanceTests
         if (@case is not null && MediatedForms.Contains(@case) && normalised["fragments"] is JsonArray forms)
             foreach (var fragment in forms.OfType<JsonObject>())
                 (fragment["component"] as JsonObject)?.Remove("route");
-        return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
+        return @case is not null && Mediated.Contains(@case)
+            ? WithoutMediatorProtocol(normalised, FormStatePinned.Contains(@case))
+            : normalised;
     }
 
     /// <summary>Cases whose Java reference answers the first load with a MEDIATOR shell and the
@@ -156,7 +161,7 @@ public class WireConformanceTests
         ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
          "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new",
-         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form"];
+         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
@@ -164,15 +169,31 @@ public class WireConformanceTests
     private static readonly HashSet<string> MediatedForms =
         ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "editable-view", "editable-view-edit", "view-toolbar-button",
-         "crud-nested-form"];
+         "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
-    private static JsonNode WithoutMediatorProtocol(JsonNode increment)
+    /// <summary>Mediated record forms whose FORM state is pinned all the same (Java's
+    /// FORM_STATE_PINNED): the record's field values are the form's, only the <c>_</c>-prefixed
+    /// routing keys are protocol.</summary>
+    private static readonly HashSet<string> FormStatePinned = ["routed-tabs-crud-new"];
+
+    private static void WithoutPrivateKeys(JsonNode? state)
+    {
+        if (state is not JsonObject o) return;
+        foreach (var key in o.Select(kv => kv.Key).Where(k => k.StartsWith('_')).ToList()) o.Remove(key);
+    }
+
+    private static JsonNode WithoutMediatorProtocol(JsonNode increment, bool keepFormState = false)
     {
         if (increment["fragments"] is JsonArray fragments)
             foreach (var fragment in fragments.OfType<JsonObject>())
             {
-                fragment.Remove("state");
+                if (keepFormState)
+                {
+                    WithoutPrivateKeys(fragment["state"]);
+                    WithoutPrivateKeys((fragment["component"] as JsonObject)?["initialData"]);
+                }
+                else fragment.Remove("state");
                 if (fragment["component"] is JsonObject component)
                 {
                     // the mediator's own actions (create/save, their bubbling) are protocol; a nested
@@ -185,7 +206,7 @@ public class WireConformanceTests
                             actions.Remove(a);
                         if (actions.Count == 0) component.Remove("actions");
                     }
-                    component.Remove("initialData");
+                    if (!keepFormState) component.Remove("initialData");
                     // the mediator's own refresh subscriptions ("mateu-crud:*" events); .NET
                     // re-renders the listing in place
                     if (component["triggers"] is JsonArray triggers)
@@ -305,6 +326,15 @@ public class WireConformanceTests
         { "routed-tabs-segment-tab", typeof(Wire.RtNotesTab) },
         { "routed-tabs-keys", typeof(Wire.RtVcnPage) },
         { "routed-tabs-key-in-url", typeof(Wire.RtVcnPage) },
+        { "routed-tabs-deep-link", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-crud-listing", typeof(Wire.RtAccountOrders) },
+        { "routed-tabs-crud-search", typeof(Wire.RtAccountOrders) },
+        { "routed-tabs-crud-new", typeof(Wire.RtAccountOrders) },
+        { "subresource-page", typeof(Wire.RtVcnDetail) },
+        { "subresource-only", typeof(Wire.RtOnlySubnets) },
+        { "subresource-inline-trap", typeof(Wire.RtInlineTrap) },
+        { "subresource-listing", typeof(Wire.RtSubnets) },
+        { "subresource-search", typeof(Wire.RtSubnets) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

@@ -526,6 +526,13 @@ class FieldMapperMixin(MixinBase):
             )
         if is_routed_view(value) and not isinstance(value, type(instance)):
             return self.map_island(f, value)
+        from .. import subresources
+
+        if subresources.is_subresource(f) or (
+            subresources.is_orchestrator(f.type) and not isinstance(instance, f.type)
+        ):
+            # an orchestrator held by a field (a sub-listing): its own island
+            return self.map_orchestrator_field(f, instance, 1)
         holds_component = isinstance(value, fluent.Component) or (
             isinstance(f.type, type) and issubclass(f.type, fluent.Component)
         )
@@ -542,6 +549,137 @@ class FieldMapperMixin(MixinBase):
             id="fieldId",
             children=[],
             style=getattr(value, "style", None),
+        )
+
+    def map_orchestrator_field(self, f, instance, max_columns: int, current_tab=None) -> ClientSideComponent:
+        """A field whose TYPE is an orchestrator (a listing, a crud): an independent island — a
+        MEDIATOR app shell bound to the type, in a ServerSide wrapper seeded with the context —
+        and, for a ``Subresource()``, its title and help line above it (Java's
+        EmbeddedOrchestratorFieldBuilder.build). ``current_tab`` = (label, sub-resources in it,
+        fields in it) when it sits in a tab."""
+        from .. import routed_tabs, subresources
+
+        cls = f.type
+        marker = subresources.marker_of(f)
+        route = "/" + normalize(getattr(cls, "__mateu_ui__", "") or "") if getattr(cls, "__mateu_ui__", None) is not None else ""
+        if not route:
+            routes, _registry = routed_tabs._tables.get()
+            entry = next(
+                (e for e in (routes.authored().routes if routes is not None else ())
+                 if e.view_model == type_name(cls) and ":" not in e.route),
+                None,
+            )
+            route = "/" + normalize(entry.route) if entry is not None else ""
+        if not route:
+            if marker is None:
+                # The island would load route "" — the app's ROOT — and render the whole page inside
+                # itself, which renders the island again: an endless reload with nothing on screen
+                # to say why. Fail where the cause is.
+                raise RuntimeError(
+                    f"{type(instance).__name__}.{f.name} embeds {cls.__name__}, an orchestrator with no"
+                    " route of its own, so its island would load the app's root route and render the"
+                    f" page inside itself forever. Give {cls.__name__} a route (@ui(\"/…\") or a"
+                    " routes.yaml entry), or declare the field Subresource()."
+                )
+            # a sub-resource needs no route of its own: its island is addressed by its type
+            route = f"/_subresource/{type(instance).__name__}/{camel_case(f.name)}"
+        inline = f.has(Inline)
+        marked = f"{route}?{subresources.EMBEDDED_MARKER}=1"
+        if inline:
+            marked += f"&{subresources.INLINE_MARKER}=1"
+        context = subresources.context(f, instance) if marker is not None else {}
+        if marker is not None:
+            marked += f"&{subresources.HIDE_TITLE_MARKER}=1"
+            if context:
+                # the names the parent fixes: the island's listing shows them as its scope
+                marked += f"&{subresources.SCOPE_MARKER}=" + ",".join(context)
+            if str(marker.load).upper() != "EAGER":
+                marked += f"&{subresources.LAZY_MARKER}=1"
+        island_type = type_name(cls)
+        component_id = f"_{camel_case(f.name)}"
+        app = ClientSideComponent(
+            metadata=AppMetadata(
+                title="",
+                variant="MEDIATOR",
+                route=route,
+                home_route=marked,
+                home_consumed_route=route,
+                home_server_side_type=island_type,
+                server_side_type=island_type,
+                root_route="_empty",
+                style="width: 100%;",
+            ),
+            id=component_id + "_app",
+            children=[],
+            style="width: 100%;",
+        )
+        initial: dict[str, Any] = {subresources.EMBEDDED_MARKER: True}
+        if inline:
+            initial[subresources.INLINE_MARKER] = True
+        if marker is not None:
+            initial[subresources.HIDE_TITLE_MARKER] = True
+            initial.update(context)
+        value = getattr(instance, f.name, None)
+        if value is not None:
+            initial.update(seed_state(value))
+        wrapper = ServerSideComponent(
+            id=component_id,
+            server_side_type=island_type,
+            route=marked,
+            children=[app],
+            initial_data=initial,
+            actions=[],
+            style="width: 100%;",
+        )
+        content: ClientSideComponent | ServerSideComponent = wrapper
+        if marker is not None:
+            content = self._subresource_header(f, marker, instance, wrapper, current_tab)
+        return ClientSideComponent(
+            metadata=CustomFieldMetadata(label="", content=content, colspan=max_columns),
+            id="fieldId",
+            children=[],
+            style="width: 100%;",
+        )
+
+    def _subresource_header(self, f, marker, instance, island, current_tab):
+        """A sub-resource's title and help line above its island; the title is left out when it
+        would only repeat the tab's label, the page's title, or a tab holding it alone."""
+        from mateu_ui.dtos import TextMetadata, VerticalLayoutMetadata
+
+        from .. import subresources
+
+        title = subresources.title(f)
+        page_title = getattr(type(instance), "__mateu_title__", None) or ""
+        show_title = (
+            marker.show_title
+            and not (
+                current_tab is not None
+                and (title.lower() == current_tab[0].lower() or (current_tab[1] == 1 and current_tab[2] == 1))
+            )
+            and title.lower() != str(page_title).lower()
+        )
+        content: list = []
+        if show_title:
+            content.append(ClientSideComponent(
+                metadata=TextMetadata(text=title, container="h3", no_margins=True),
+                children=[],
+                style="",
+                css_classes="mateu-subresource-title",
+            ))
+        if marker.help:
+            content.append(ClientSideComponent(
+                metadata=TextMetadata(text=marker.help, container="p", no_margins=True),
+                children=[],
+                style="color: var(--lumo-secondary-text-color, #666); margin: 0 0 .5rem 0;",
+                css_classes="mateu-subresource-help",
+            ))
+        if not content:
+            return island
+        return ClientSideComponent(
+            metadata=VerticalLayoutMetadata(),
+            children=[*content, island],
+            style="width: 100%; gap: .25rem;",
+            css_classes="mateu-subresource",
         )
 
     def map_island(self, f, value) -> ClientSideComponent:

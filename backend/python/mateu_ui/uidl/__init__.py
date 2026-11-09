@@ -35,6 +35,7 @@ from .messages import (  # noqa: F401
     UserFacingException,
 )
 from .markers import (  # noqa: F401
+    Subresource,
     Aggregate,
     AggregateFunction,
     BulletedList,
@@ -429,7 +430,7 @@ __all__ = [
     "MenuLook",
     "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageBanners", "PageWidth", "PageType",
-    "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
+    "Required", "Label", "Section", "Tab", "Subresource", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "HiddenInList", "HiddenInView", "HiddenInEditor", "HiddenInCreate", "MainFilter", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "read_only_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
     "static_view",

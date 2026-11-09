@@ -900,6 +900,116 @@ public class RtVcnPage
     [Tab("Simulator", Key = "simulator", Show = "simulator")] public string? SimulatorNote { get; set; } = "simulator";
 }
 
+/// <summary>A master whose tab is a CRUD of the customer's orders (routed-tabs-crud-*).</summary>
+[App("Account", Variant = AppVariant.Tabs)]
+public class RtAccountMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+public class RtOrder
+{
+    public string Id { get; set; } = "";
+    public string? CustomerId { get; set; }
+    public string? Status { get; set; }
+
+    public override string ToString() => string.IsNullOrEmpty(Id) ? "New order" : $"Order {Id}";
+}
+
+/// <summary>The orders of ONE customer, the one the route names.</summary>
+[Title("Orders")]
+public class RtAccountOrders : Crud<RtOrder>
+{
+    private static readonly List<RtOrder> Store =
+    [
+        new() { Id = "7-1", CustomerId = "7", Status = "OPEN" },
+        new() { Id = "7-2", CustomerId = "7", Status = "SHIPPED" },
+        new() { Id = "8-1", CustomerId = "8", Status = "OPEN" },
+    ];
+
+    public string? CustomerId { get; set; }
+
+    public override IEnumerable<RtOrder> Fetch(string? search) =>
+        Store.Where(o => CustomerId is null || o.CustomerId == CustomerId);
+    public override RtOrder? Get(string id) => Store.FirstOrDefault(o => o.Id == id);
+    public override void Save(RtOrder order) { }
+    public override void Delete(string id) { }
+}
+
+// ── [Subresource]: a record's sub-listings stacked in its tabs (subresource-*) ─────────────────
+
+public class RtNetItem
+{
+    public string Id { get; set; } = "";
+    public string? VcnId { get; set; }
+
+    public override string ToString() => string.IsNullOrEmpty(Id) ? "New item" : Id;
+}
+
+/// <summary>The listings of one VCN: the one its VcnId names.</summary>
+public abstract class RtItemsOfVcn : Crud<RtNetItem>
+{
+    public string? VcnId { get; set; }
+
+    protected abstract IReadOnlyList<RtNetItem> Items();
+
+    public override IEnumerable<RtNetItem> Fetch(string? search) => Items().Where(i => i.VcnId == VcnId);
+    public override RtNetItem? Get(string id) => Items().FirstOrDefault(i => i.Id == id);
+    public override void Save(RtNetItem item) { }
+    public override void Delete(string id) { }
+}
+
+[Title("Internet gateways")]
+public class RtInternetGateways : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() => [new() { Id = "ig1", VcnId = "7" }];
+}
+
+[Title("NAT gateways")]
+public class RtNatGateways : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() =>
+        [new() { Id = "nat1", VcnId = "7" }, new() { Id = "nat2", VcnId = "8" }];
+}
+
+[Title("Subnets")]
+public class RtSubnets : RtItemsOfVcn
+{
+    protected override IReadOnlyList<RtNetItem> Items() =>
+    [
+        new() { Id = "s1", VcnId = "7" }, new() { Id = "s2", VcnId = "7" },
+        new() { Id = "s3", VcnId = "7" }, new() { Id = "s4", VcnId = "8" },
+    ];
+}
+
+/// <summary>Details, then Gateways (two listings stacked in their order) and Subnets (eager).</summary>
+[Title("VCN")]
+public class RtVcnDetail
+{
+    [ReadOnly] public string? Id { get; set; }
+    [Tab("Details", Key = "details")] public string? Cidr { get; set; } = "10.0.0.0/16";
+    [Subresource(Tab = "gateways", Order = 2, Context = ["vcnId=id"])] public RtNatGateways? Nat { get; set; }
+    [Subresource(Tab = "gateways", Order = 1, Help = "Gateways to the internet", Context = ["vcnId=id"])]
+    public RtInternetGateways? Internet { get; set; }
+    [Subresource(Tab = "subnets", Load = SubresourceLoad.Eager, Context = ["vcnId=id"])] public RtSubnets? Subnets { get; set; }
+}
+
+/// <summary>Nothing editable but a sub-resource: still a form, rendering its island.</summary>
+[Title("Only subnets")]
+public class RtOnlySubnets
+{
+    [ReadOnly] public string? Id { get; set; }
+    [Subresource] public RtSubnets? Subnets { get; set; }
+}
+
+/// <summary>An [Inline] orchestrator with no route of its own fails where the cause is.</summary>
+[Title("Trap")]
+public class RtInlineTrap
+{
+    public string? Name { get; set; }
+    [Inline] public RtNatGateways? Nat { get; set; }
+}
+
 /// <summary>The routed-tabs chains, authored in code (Java's RoutedTabsRoutes).</summary>
 public class RoutedTabsRoutes : IRouteEntrySupplier
 {
@@ -921,6 +1031,11 @@ public class RoutedTabsRoutes : IRouteEntrySupplier
                 RouteEntry.Of("notes", typeof(RtNotesTab).FullName!),
             ]) { DefaultChild = "notes" },
         RouteEntry.Of("conformance/rt/vcn/:id", typeof(RtVcnPage).FullName!),
+        new("conformance/rt/accounts/:customerId", null, typeof(RtAccountMaster).FullName, None, None,
+            Children: [RouteEntry.Of("orders", typeof(RtAccountOrders).FullName!)]),
+        RouteEntry.Of("conformance/rt/net/:id", typeof(RtVcnDetail).FullName!),
+        RouteEntry.Of("conformance/rt/only/:id", typeof(RtOnlySubnets).FullName!),
+        RouteEntry.Of("conformance/rt/trap", typeof(RtInlineTrap).FullName!),
     ];
 }
 

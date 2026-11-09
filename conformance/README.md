@@ -56,7 +56,14 @@ offering its visible children as tabs and opening its default one (`-master`, `-
 link to a tab rendering the master with that tab as its home (`-master-on-tab`), a flagged-off tab left
 out of the bar while its route still answers (`-hidden-tab`), a tab's page not repeating the tab's
 label (`-tab`, `-segment-tab`: `RouteChains.dedupeTitle`), and the URL key opening an in-page tab
-(`-keys`, `-key-in-url`).
+(`-keys`, `-key-in-url`). `-deep-link` pins a fresh load naming no type (a request.json with
+`"serverSideType": null` is sent with none): the master answers. `-crud-listing`, `-crud-search`,
+`-crud-new` pin a CRUD inside a tab: resolved at its mount, its route-fixed filter `readOnly`, scoped to
+the chain's path parameter, a new child pre-filled with it (`crud-new` keeps the form's state: the
+runners' `FORM_STATE_PINNED`). The `subresource-*` cases pin `@Subresource` (Java) / `[Subresource]`
+(.NET) / `Subresource()` (Python): sub-listings placed in the tabs they name, stacked in order, lazy or
+eager (row count on the tab), with the parent as context and scope, the island's own load and search,
+a page holding only one, and an `@Inline` orchestrator with no route failing where the cause is.
 
 ## The contract
 
