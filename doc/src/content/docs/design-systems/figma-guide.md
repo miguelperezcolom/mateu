@@ -221,8 +221,9 @@ A design can **be** the UI: a static site with no server behind it, published fr
 **Mateu Publish** plugin (`design/figma/publish/plugin`) reads the open file, needs no Figma token,
 no Java and no repository, and uploads the site to Netlify or Cloudflare Pages, or gives you a zip.
 
-1. Build it once (`cd design/figma/publish && npm ci && npm run build`) and import
-   `plugin/manifest.json` in Figma Desktop (*Plugins › Development › Import plugin from manifest…*).
+1. Install **[Mateu Publish](https://www.figma.com/community/plugin/1701394446386459820/mateu-publish)** from Figma Community. To run your own build instead:
+   `cd design/figma/publish && npm ci && npm run build`, then import `plugin/manifest.json` in Figma
+   Desktop (*Plugins › Development › Import plugin from manifest…*).
    A file you can edit is enough: a file you can only view has to be duplicated first.
 2. Run it in your design file. The panel starts from a working proposal for what a design cannot say:
    - **Screens and routes**: one per top-level frame. A frame answers the route the screens navigate
