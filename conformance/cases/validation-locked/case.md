@@ -1,10 +1,10 @@
 # validation-locked
 
 **Pins:** constraints on fields the user cannot type into. A field-level `@ReadOnly`
-(`[ReadOnly]` / `ReadOnly()`) field carries `readOnly: true` AND still sends its constraints, and so
-does a `@PlainText` field (stereotype `plainText`): Java's `PageFormBuilder.rendersAsInput` drops
-hidden / hidden-in / non-rendered fields, not locked ones — the locked value travels pre-filled. The
-server re-checks the same fields (`ServerConstraintCheck`).
-
-Open owner question: whether the reference should skip locked fields (a constraint the user cannot
-fix would block the submit). Until it is decided the ports follow Java.
+(`[ReadOnly]` / `ReadOnly()`) field carries `readOnly: true` and sends NO validation, and neither
+does a `@PlainText` field (stereotype `plainText`); the editable field next to them keeps its own.
+A constraint applies only to a field the user can edit (owner decision): one the user cannot fix
+would block the submit. Java's `PageFormBuilder.isEditable` is the rule `ValidationMapper` (client)
+and `ServerConstraintCheck` (server) ask; the ports follow it (.NET `ReflectionMapper.IsEditable`,
+Python `validation.editable`). The locked value still travels pre-filled, and the server never
+writes it.

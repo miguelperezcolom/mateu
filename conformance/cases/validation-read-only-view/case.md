@@ -1,6 +1,5 @@
 # validation-read-only-view
 
 **Pins:** a class-level `@ReadOnly` view (`[ReadOnly]` / `@read_only`) renders every field
-`readOnly: true` and still sends the fields' constraints: Java's `ValidationMapper` maps the
-validations of a page regardless of its read-only flag. Same open owner question as
-`validation-locked`: whether the reference should skip locked fields.
+`readOnly: true` and sends no validation for any of them: none of its fields is one the user can
+edit (`PageFormBuilder.isEditable`, same rule as `validation-locked`).

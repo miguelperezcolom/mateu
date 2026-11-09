@@ -101,6 +101,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Changed
 
+- **A constraint applies only to a field the user can edit.** A `@ReadOnly` or `@PlainText` field,
+  one locked by a `@ReadOnlyUnless`/`@DisabledUnless` the user does not satisfy, and every field of a
+  read-only view no longer carry their constraints to the browser nor have them re-checked on the
+  server: a constraint nobody could fix blocked the submit. The server still never writes those
+  fields. Java, .NET and Python alike (conformance cases `validation-locked`, `validation-unless`,
+  `validation-read-only-view`).
+
 - **Faster requests in apps with many screens.** Route resolution looks the route up in an index
   built once, instead of asking every `@UI` class on each request, and Mateu's settings are
   memoised instead of resolved through the framework's configuration on every read (an app whose
@@ -252,7 +259,7 @@ removable in 4.0).
   `HttpRequest.getRemoteAddress`, `GeneralOverview.recordLabel`/`label` (and `@Internal` on plumbing:
   `forTheClient`, the archetypes' `bindRequest`, `MultiView.wrapView`); .NET: the same features
   through the port's doc-comment convention. The full list per backend is on the
-  [stability page](https://mateu.io/reference/stability-and-versioning/#added-after-the-freeze-experimental-in-300).
+  [stability page](https://mateu.io/reference/stability-and-versioning/#recent-api-experimental-in-300).
 
 ### Fixed
 
