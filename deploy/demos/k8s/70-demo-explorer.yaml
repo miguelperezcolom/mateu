@@ -30,7 +30,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer:3.0-beta.51-explorer-20261108
+          image: miguelperezcolom/demo-explorer:3.0-beta.54-explorer-20261109
           env:
             - { name: SERVER_PORT, value: "8640" }
             - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
@@ -110,7 +110,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-java-remote:3.0-beta.51-explorer-20261108
+          image: miguelperezcolom/demo-explorer-java-remote:3.0-beta.54-explorer-20261109
           env:
             - { name: JAVA_REMOTE_PORT, value: "8641" }
             - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
@@ -187,7 +187,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-yaml-remote:3.0-beta.51-explorer-20261108
+          image: miguelperezcolom/demo-explorer-yaml-remote:3.0-beta.54-explorer-20261109
           env:
             - { name: YAML_REMOTE_PORT, value: "8642" }
             - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
@@ -263,7 +263,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-static-remote:3.0-beta.51-explorer-20261108
+          image: miguelperezcolom/demo-explorer-static-remote:3.0-beta.54-explorer-20261109
           ports:
             - { name: http, containerPort: 8080 }
           readinessProbe:
@@ -335,7 +335,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-python-remote:3.0-beta.51-explorer-20261108
+          image: miguelperezcolom/demo-explorer-python-remote:3.0-beta.54-explorer-20261109
           env:
             - { name: PYTHON_REMOTE_PORT, value: "8644" }
             - { name: PYTHON_REMOTE_HOST, value: "0.0.0.0" }

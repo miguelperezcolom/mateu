@@ -81,7 +81,7 @@ Check certificates: `$K -n mateu-demos get certificate,challenge`.
 
 ## The Mateu Explorer (`explorer.mateu.io`)
 `demo/demo-explorer` + the five remotes of its *Distributed UIs* area, all in `k8s/70-demo-explorer.yaml`.
-Live as a **preview on 3.0-beta.51** since 2026-11-08 (tag `3.0-beta.51-explorer-20261108`); redeploy at rc.1.
+Live on **3.0-beta.54** since 2026-11-09 (tag `3.0-beta.54-explorer-20261109`); redeploy at rc.1.
 
 | deployment | image | host | requests / limits |
 |---|---|---|---|
