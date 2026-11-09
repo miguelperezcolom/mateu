@@ -58,9 +58,11 @@ class EtaEstimator:
             self._updates += 1
             self._prev = (t, p)
         ema = self._ema
+        first = self._first
         if (
             self._updates < MIN_RATE_UPDATES
-            or t - self._first[0] < MIN_ELAPSED_MS
+            or first is None
+            or t - first[0] < MIN_ELAPSED_MS
             or ema is None
             or not ema > 0
             or not 0 < p < 1

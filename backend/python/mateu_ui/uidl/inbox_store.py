@@ -16,6 +16,9 @@ from dataclasses import replace
 
 from .suppliers import AppNotification
 
+#: the builtin, for annotations inside the classes (their ``list`` method shadows it there)
+_List = list
+
 
 class InboxStore(ABC):
     """Where the inbox entries of each principal (an authenticated user's NAME) live."""
@@ -25,15 +28,15 @@ class InboxStore(ABC):
         """Adds ``entry`` to ``principal``'s inbox (an entry with the same id replaces it)."""
 
     @abstractmethod
-    def list(self, principal: str) -> list[AppNotification]:
+    def list(self, principal: str) -> _List[AppNotification]:
         """``principal``'s entries, newest first."""
 
     @abstractmethod
-    def mark_read(self, principal: str, ids: list[str]) -> None:
+    def mark_read(self, principal: str, ids: _List[str]) -> None:
         """Marks ``principal``'s entries ``ids`` read."""
 
     @abstractmethod
-    def dismiss(self, principal: str, ids: list[str]) -> None:
+    def dismiss(self, principal: str, ids: _List[str]) -> None:
         """Removes ``principal``'s entries ``ids``."""
 
 
@@ -62,17 +65,18 @@ class InMemoryInboxStore(InboxStore):
             return
         with self._lock:
             inbox = self._inbox(principal, True)
+            assert inbox is not None  # created on demand
             inbox.pop(entry.id, None)
             inbox[entry.id] = entry
             while len(inbox) > self.max_per_principal:
                 inbox.popitem(last=False)
 
-    def list(self, principal: str) -> list[AppNotification]:
+    def list(self, principal: str) -> _List[AppNotification]:
         with self._lock:
             inbox = self._inbox(principal, False) if principal else None
-            return list(reversed(inbox.values())) if inbox else []
+            return _List(reversed(inbox.values())) if inbox else []
 
-    def mark_read(self, principal: str, ids: list[str]) -> None:
+    def mark_read(self, principal: str, ids: _List[str]) -> None:
         with self._lock:
             inbox = self._inbox(principal, False) if principal else None
             if not inbox:
@@ -82,7 +86,7 @@ class InMemoryInboxStore(InboxStore):
                 if entry is not None and entry.unread:
                     inbox[nid] = replace(entry, unread=False)
 
-    def dismiss(self, principal: str, ids: list[str]) -> None:
+    def dismiss(self, principal: str, ids: _List[str]) -> None:
         with self._lock:
             inbox = self._inbox(principal, False) if principal else None
             if not inbox:

@@ -237,6 +237,8 @@ class AppHandlerMixin(MixinBase):
             entry = inbox.supplier_entry(nid)
             if nid is None or entry is None or not getattr(entry, "has_detail", False):
                 return UIIncrement.of()
+            if supplier is None:
+                return UIIncrement.of()
             detail = supplier.notification_detail(nid, rq)
             return self.map_result(detail, rq) if detail is not None else UIIncrement.of()
         answer: UIIncrement | None = None
@@ -258,7 +260,7 @@ class AppHandlerMixin(MixinBase):
                 from ..action_guard import deny
 
                 deny("_notifications-act: the caller's inbox has no entry offering that action")
-            result = supplier.on_notification_action(nid, action_id, rq)
+            result = supplier.on_notification_action(nid, action_id, rq) if supplier is not None else None
             answer = self.map_result(result, rq) if result is not None else None
         data = {"_notifications": [self._notification_json(n) for n in inbox.entries(refresh=True)]}
         listed = UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
@@ -369,8 +371,8 @@ class _Inbox:
         self.principal = principal
         self.store = store if principal else None
         self.rq = rq
-        self._supplied = None
-        self._stored = None
+        self._supplied: list | None = None
+        self._stored: list | None = None
 
     def supplied(self) -> list:
         if self._supplied is None:

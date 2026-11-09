@@ -104,11 +104,12 @@ class WizardHandlerMixin(MixinBase):
                 and has_next_step(type_, step, total, wizard)
             ):
                 target = next_applicable(type_, wizard, step, total)
-                veto = wizard.before_step_navigate(step, target)
-                if veto is not None:
-                    return self.map_result(veto, rq)
-                wizard.on_next(step, target)
-                step = target
+                if target is not None:
+                    veto = wizard.before_step_navigate(step, target)
+                    if veto is not None:
+                        return self.map_result(veto, rq)
+                    wizard.on_next(step, target)
+                    step = target
         elif rq.action_id in ("saveDraft", "saveAndClose"):
             response = self._save_draft(wizard, rq)
             if response is not None:
@@ -125,6 +126,7 @@ class WizardHandlerMixin(MixinBase):
             return self.map_result(wizard.complete())
         elif rq.action_id == "next":
             target = next_applicable(type_, wizard, step, total)
+            assert target is not None  # the branch above answered the completing "next"
             veto = wizard.before_step_navigate(step, target)
             if veto is not None:
                 # cancelled: the answer is the response, the wizard stays where it was

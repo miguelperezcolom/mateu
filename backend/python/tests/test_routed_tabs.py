@@ -91,3 +91,66 @@ def test_routes_yaml_carries_default_child_and_show(tmp_path):
         assert routed_tabs.default_child_path(routes, "/customers/7") == "/customers/7/notes"
     finally:
         routed_tabs.end(tokens)
+
+
+# ── an EAGER sub-resource's row count (the tab badge) ───────────────────────────────────────────
+
+from enum import Enum  # noqa: E402
+
+from mateu_ui.uidl import Crud, Listing, ListingData  # noqa: E402
+
+
+class _Kind(Enum):
+    A = "a"
+
+
+class _Lines(Crud):
+    order_id: str | None = None
+
+    def fetch(self, search):
+        return ["x", "y"] if self.order_id == "7" else []
+
+
+class _Notes(Listing):
+    order_id: str | None = None
+    kind: _Kind | None = None
+
+    def search(self, request, http=None):
+        return ListingData(rows=[], total_elements=5 if self.kind == "A" else 0)
+
+
+class _Plain(Listing):
+    def search(self, request, http=None):
+        return ["only"]
+
+
+class _Broken(Listing):
+    def __init__(self):
+        raise RuntimeError("needs a database")
+
+
+class _Order:
+    order_id: str | None = "7"
+    kind: _Kind | None = _Kind.A
+    lines: Annotated[_Lines, Subresource(load="EAGER")] = None  # type: ignore[assignment]
+    notes: Annotated[_Notes, Subresource(load="EAGER")] = None  # type: ignore[assignment]
+    plain: Annotated[_Plain, Subresource(load="EAGER")] = None  # type: ignore[assignment]
+    broken: Annotated[_Broken, Subresource(load="EAGER")] = None  # type: ignore[assignment]
+    lazy: Annotated[_Lines, Subresource()] = None  # type: ignore[assignment]
+
+
+def _sub(name):
+    return next(f for f in view_fields(_Order) if f.name == name)
+
+
+def test_an_eager_sub_resource_counts_its_rows_with_the_parent_as_its_context():
+    order = _Order()
+    assert subresources.context(_sub("notes"), order) == {"orderId": "7", "kind": "A"}
+    assert subresources.rows(_sub("lines"), order) == 2
+    assert subresources.rows(_sub("notes"), order) == 5
+    assert subresources.rows(_sub("plain"), order) == 1
+    assert subresources.rows(_sub("broken"), order) is None
+    # the badge sums the EAGER ones it can count; a lazy one is not fetched with the page
+    assert subresources.badge([_sub("lines"), _sub("notes"), _sub("broken"), _sub("lazy")], order) == "7"
+    assert subresources.badge([_sub("lazy")], order) is None
+    assert subresources.title(_sub("lines")) == "Lines"

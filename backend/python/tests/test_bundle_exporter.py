@@ -241,6 +241,53 @@ def test_a_definition_button_without_a_rest_action_needs_a_server():
     assert any("Map runs action 'pick' (markerActionId)" in r for r in reasons)
 
 
+def test_the_authored_table_is_checked_too_access_definitions_and_route_data():
+    from mateu_ui.bundle import BundleEntry, BundleManifest
+
+    manifest = BundleManifest(
+        base_url="", generated_at="", static_only=True,
+        entries=[BundleEntry(route="/broken-json", sync_path="x", json="{not json", ok=True)],
+        routes=[
+            {"route": "locked", "access": {"roles": ["admin"]}},
+            {"route": "keys", "definition": "keys.yaml"},
+            {"route": "data", "definition": "data.yaml", "data": {"url": "https://x?k=${secret.K}"}},
+            {"route": "nothing", "access": {"roles": []}},
+        ],
+        definitions={
+            "keys.yaml": {"layout": {"type": "Text", "text": "x", "eyesOnly": {"roles": ["admin"]}}},
+            "data.yaml": {"layout": {"type": "Text", "text": "x"}},
+        },
+    )
+    reasons = [str(v) for v in static_safety.check(manifest, {})]
+    assert any(r.startswith("/broken-json — its exported JSON could not be read") for r in reasons)
+    assert any(r.startswith("/locked — declares access:") for r in reasons)
+    assert any("definition 'keys.yaml' declares access keys" in r for r in reasons)
+    assert any(r.startswith("/data —") and "secret" in r for r in reasons)
+    assert not any(r.startswith("/nothing") for r in reasons)
+
+
+def test_a_listing_without_a_rest_listing_and_a_crud_need_a_server():
+    from mateu_ui.uidl import Crud, Listing
+
+    class Rows(Listing):
+        def search(self, request):
+            return []
+
+    class Records(Crud):
+        pass
+
+    assert "is a Listing with no @rest_listing" in static_safety.check_class("/r", Rows)[0].reason
+    assert any("through a Crud's Python methods" in v.reason for v in static_safety.check_class("/c", Records))
+    assert static_safety.check_class("/n", None) == []
+
+
+def test_a_source_that_is_only_proxied_needs_a_server():
+    reasons = [v.reason for v in static_safety.check_source("/a", {"proxy": True}, [], "a source")]
+    assert reasons == ["a source is fetched through the server proxy (proxy: true)"]
+    # a reference the catalogue does not hold says nothing on its own
+    assert static_safety.check_source("/a", {"ref": "unknown"}, [], "a source") == []
+
+
 def test_a_trigger_running_a_server_action_needs_a_server():
     wire = {"triggers": [{"type": "OnLoad", "actionId": "load"}], "actions": [{"id": "x"}]}
     assert "OnLoad trigger runs action 'load'" in static_safety.check_wire("/p", wire, [])[0].reason
@@ -300,3 +347,35 @@ def test_a_bundle_under_a_path_points_everything_at_it(tmp_path):
         "<head></head><!-- AQUIUI --><x><!-- HASTAAQUIUI -->AQUIELTITULODELAPAGINA", "/app", "T"
     )
     assert 'bundleUrl="/app/manifest.json"' in html and html.endswith("T")
+
+
+def test_the_cli_refuses_a_renderer_that_is_not_there(no_specs, tmp_path, capsys):
+    assert main(["--ui", str(tmp_path / "nowhere"), "--out", str(tmp_path / "d"), "-q"]) == 2
+    assert "not found" in capsys.readouterr().err
+
+
+def test_the_cli_exports_exactly_the_routes_asked_for(no_specs, tmp_path, monkeypatch):
+    # --specs / --environment are handed to the app as its environment (restored after the test)
+    monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
+    monkeypatch.setenv("MATEU_ENVIRONMENT", "")
+    out = tmp_path / "d"
+    code = main(["json", __name__ + ":BundleHello", "--ui", str(RENDERER), "--out", str(out),
+                 "--route", "/bundle-hello", "--specs", str(tmp_path), "--environment", "test",
+                 "--no-pwa", "-q"])
+    assert code == 0
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert [e["route"] for e in manifest["entries"]] == ["/bundle-hello"]
+
+
+def test_the_cli_fails_on_skipped_routes_when_asked(no_specs, tmp_path, capsys):
+    args = [__name__ + ":BundleBroken", "--ui", str(RENDERER), "--out", str(tmp_path / "d"), "-q"]
+    assert main(args) == 0
+    assert main(args + ["--fail-on-skipped"]) == 1
+    assert "could not be bundled" in capsys.readouterr().err
+
+
+def test_the_cli_fails_on_an_empty_bundle_when_asked(no_specs, tmp_path, capsys):
+    code = main([__name__ + ":BundleBroken", "--ui", str(RENDERER), "--out", str(tmp_path / "d"),
+                 "--route", "/bundle-broken", "--fail-on-empty", "-q"])
+    assert code == 1
+    assert "no routes rendered" in capsys.readouterr().err

@@ -290,7 +290,7 @@ def _stamped(increment: UIIncrement, task_id: str, estimator: EtaEstimator, entr
     commands = []
     for command in increment.commands:
         data = command.data
-        if command.type == "Progress" and getattr(data, "task_id", None) == task_id:
+        if data is not None and command.type == "Progress" and getattr(data, "task_id", None) == task_id:
             eta = estimator.observe_progress(clock_ms(), data)
             if eta != data.eta_seconds:
                 data = data.model_copy(update={"eta_seconds": eta})
@@ -305,8 +305,8 @@ def _stamped(increment: UIIncrement, task_id: str, estimator: EtaEstimator, entr
 def _terminal_of(increment: UIIncrement, task_id: str):
     for command in increment.commands:
         data = command.data
-        if command.type == "Progress" and getattr(data, "task_id", None) == task_id \
-                and data.state != "running":
+        if data is not None and command.type == "Progress" \
+                and getattr(data, "task_id", None) == task_id and data.state != "running":
             return data
     return None
 
@@ -560,6 +560,7 @@ def hot_task_of(task_id: str) -> HotTask | None:
 def task_id_of(increment: UIIncrement | None) -> str | None:
     """The task an increment reports progress for (its first ``Progress`` command)."""
     for command in (increment.commands if increment is not None else []):
-        if command.type == "Progress" and getattr(command.data, "task_id", None):
-            return command.data.task_id
+        data = command.data
+        if data is not None and command.type == "Progress" and getattr(data, "task_id", None):
+            return data.task_id
     return None
