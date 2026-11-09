@@ -58,7 +58,13 @@ for manifest in ai/claude-plugin/mateu/{.claude-plugin,.codex-plugin}/plugin.jso
 done
 # The public-API compatibility check compares against the last release too (backend/pom.xml).
 # Moving it means the reviewed exclusions in backend/api-compat/japicmp-exclusions.properties
-# described the diff against the OLD baseline — review and reset them in the same commit.
+# described the diff against the OLD baseline, which the new one already carries — so the list
+# goes back to the sentinel in the same commit.
 sed -E -i.bak "s#<mateu.japicmp.baseline>[^<]+</mateu.japicmp.baseline>#<mateu.japicmp.baseline>$new</mateu.japicmp.baseline>#" backend/pom.xml
 rm -f backend/pom.xml.bak
 echo "backend/pom.xml (japicmp baseline) → $new"
+exclusions=backend/api-compat/japicmp-exclusions.properties
+sed -E -i.bak '/^japicmp\.reviewedExcludes=/,$d' "$exclusions"
+rm -f "$exclusions.bak"
+printf 'japicmp.reviewedExcludes=\\\n  io.mateu.__none__\n' >> "$exclusions"
+echo "$exclusions → reset to the sentinel"

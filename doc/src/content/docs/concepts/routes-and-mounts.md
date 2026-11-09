@@ -29,8 +29,8 @@ URLs to definitions and view models, whether the mount is a class or a file.
 ## Why a registry and not just annotations
 
 An annotation says "this class lives at this path". That is the one-to-one case, and it is what
-`@UI` still does for a **mount**. The inner-route annotations (`@Route`/`@Routes`/`@HomeRoute`) were
-removed, so every screen *inside* a mount is a registry entry — even a plain one-to-one route.
+`@UI` does for a **mount**. Every screen *inside* a mount is a registry entry — even a plain
+one-to-one route.
 
 A registry entry binds **three independent things**, so each becomes reusable on its own:
 

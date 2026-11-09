@@ -25,7 +25,7 @@ Containers that arrange other components.
 | [`Card`](/java-ui-definition/components/card/) | a framed group with a title; what a `@Section` becomes |
 | [`TabLayout`](/java-ui-definition/components/tab-layout/) / [`AccordionLayout`](/java-ui-definition/components/accordion-layout/) / [`Details`](/java-ui-definition/components/details/) | groups the user switches between, or expands |
 | [`SplitLayout`](/java-ui-definition/components/split-layout/) / [`MasterDetailLayout`](/java-ui-definition/components/master-detail-layout/) | two resizable panes; a list with its detail |
-| `ResponsiveGrid` + `DashboardPanel` | a responsive grid of titled tiles ([dashboard](/ux-patterns/dashboard/)); `DashboardLayout` is deprecated |
+| `ResponsiveGrid` + `DashboardPanel` | a responsive grid of titled tiles ([dashboard](/ux-patterns/dashboard/)); `DashboardLayout` for a uniform column count |
 | `FoldoutLayout` + `FoldoutPanel` | an overview with lateral fold-out panels ([foldout](/ux-patterns/foldout/)) |
 | `HeroSection` | a large title band with optional image and calls to action ([welcome page](/ux-patterns/welcome-page/)) |
 | [`BoardLayout`](/java-ui-definition/components/board-layout/), `ResponsiveGrid` | rows and columns of tiles |

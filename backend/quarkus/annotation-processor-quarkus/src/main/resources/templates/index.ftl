@@ -19,7 +19,6 @@ public class ${simpleClassName}Controller {
             "${pageTitle?j_string}",
             "${favicon?j_string}",
             java.util.List.of(<#list externalScripts as x>"${x?j_string}"<#sep>, </#sep></#list>),
-            null, // the Keycloak bootstrap of the removed @KeycloakSecured
             "${extraHead?j_string}",
             false,
             "${className?j_string}");

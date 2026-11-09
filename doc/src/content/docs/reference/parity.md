@@ -301,7 +301,7 @@ Measured against the generated [wire schema](/reference/wire-specification/#the-
 The renderers handle all of these; it is the PORTS that cannot produce them.
 
 **Wire component types.** None: since 3.0 GA the .NET and Python registries carry all 114 types a
-server produces (`Result` and `Stepper` are deprecated and produced by no server).
+server produces.
 
 #### Envelope members
 
@@ -314,7 +314,7 @@ server sets them from a declaration Java has.)
 
 | DTO | Still Java-only | Why |
 |---|---|---|
-| `AppDto` | `apps`, `home`, `homeUriPrefix`, the deprecated accent-strip members; Python from code also `logo`, `favicon`, `drawerClosed`, `style`, `cssClasses`, `fabs` (it sets them from a YAML shell) | `apps`/`home*` belong to Java's multi-app shells |
+| `AppDto` | `apps`, `home`, `homeUriPrefix`; Python from code also `logo`, `favicon`, `drawerClosed`, `style`, `cssClasses`, `fabs` (it sets them from a YAML shell) | `apps`/`home*` belong to Java's multi-app shells |
 
 Since 3.0 GA the fluent listing (Java `Listing`, .NET/Python `ListingComponent`, YAML
 `type: Listing`) carries every grid option in both ports — listing type, toolbar, size, initial
@@ -359,7 +359,7 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 | Action timeout / idempotency / shortcut | attributes of `@Action(timeoutMillis, idempotent, shortcut)` | `[ActionOptions(...)]`, `[Shortcut("ctrl+s")]` | `@action_options(...)`, `@shortcut("ctrl+s")` | Idiom: the ports have no `@Action` equivalent, so each knob is its own composable attribute / decorator. |
 | Toast variants | `NotificationVariant { success, warning, error, primary, contrast }` | `MessageVariant { Success, Info, Warning, Error, Contrast }` | `MessageVariant` (same as .NET) | Idiom; each maps to the wire's variant string. |
 | Length constraint | Bean Validation `@Size(min, max)` | — (not ported: `[Size]` is the sizing intent) | `Length(min=, max=)` | **Converged (3.0-alpha.412)**: Python's `Size` is now `Length`, because in Java and .NET `Size` is a component's *sizing intent* — the same name meaning two things across ports was a real trap. `Size` still works and warns. |
-| View-level permission | `@EyesOnly(permissions = …)` on the class | `[EyesOnly(Permissions = …)]` | `@eyes_only(permissions=[…])` | **Converged (3.0-alpha.412)**: the port-only `[Secured("x")]` / `@secured("x")` was silently ignored — nothing read it — so a view "secured" with it was open to everyone. It is now **enforced** with exactly the semantics of `EyesOnly(permissions = "x")` (the view and its actions refused with 403, the menu entries leading to it hidden) and deprecated naming `EyesOnly`. |
+| View-level permission | `@EyesOnly(permissions = …)` on the class | `[EyesOnly(Permissions = …)]` | `@eyes_only(permissions=[…])` | **Converged**: the same check in the three backends (the view and its actions refused with 403, the menu entries leading to it hidden). |
 | Code-authored routes and shells | `RouteEntrySupplier`, `AppSupplier`, `MenuSupplier`, `AppShell` in `mateu-uidl` | `IRouteEntrySupplier`, `IAppSupplier`, `IMenuSupplier`, `AppShell`, `RouteEntry` — **in the `Mateu.Uidl` package since 3.0-alpha.412** (they used to live in `Mateu.Core`) | `RouteEntrySupplier`, `AppSupplier`, `MenuSupplier`, `AppShell` in `mateu_ui.uidl` | **Converged** on the package: a UI-only .NET module can author routes and shells referencing just `Mateu.Uidl`. Their full names stay `Mateu.Core.*` and `Mateu.Core` type-forwards them, so existing code and binaries keep working (a same-named copy in the `Mateu.Uidl` namespace would make every file importing both namespaces ambiguous). |
 | Global inference switches | `mateu.layout.inference.enabled` / `mateu.page.inference.enabled` (system property or `MATEU_…` env var) | AppContext switches `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled` | env vars `MATEU_LAYOUT_INFERENCE_ENABLED` / `MATEU_PAGE_INFERENCE_ENABLED` | **Converged (3.0-alpha.412)** on one name and one polarity per switch; the old names keep working with a warning. See [Layout inference](/ux-patterns/layout-inference/#global-switches). |
 | CollectionDetail composition | a reflected form whose detail is an embedded island (its own `ServerSide` component, round-tripping alone) | a `VerticalLayout` + `ResponsiveGrid` tree built by the archetype | same as .NET | Idiom (2026-10-17 decision). Same screen, same actions (`selectCollectionItem`, `filterCollection`); the ports have no island machinery and nothing on screen needs one. Not a conformance case. |
@@ -370,8 +370,7 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 ## Renderers
 
 Every renderer speaks the same wire; the depth of widget support varies. Each one is gated in CI
-against the generated `wire-schema.json` on the 114 produced component types (the two deprecated
-ones are not required): web (the libs/mateu dispatch test, plus a `RENDERERS` map typed
+against the generated `wire-schema.json` on the 114 produced component types: web (the libs/mateu dispatch test, plus a `RENDERERS` map typed
 exhaustively over the wire's types, so a missing renderer does not compile), React Native,
 IntelliJ and Redwood. The gates exercise the real dispatcher or projection with a minimal component
 of each type and fail on a placeholder — not a string match on the source.

@@ -4,9 +4,7 @@ title: "UI vs Route"
 
 `@UI` and the route registry serve different purposes. `@UI` publishes an application (a **mount**) at a base URL. A `routes.yaml` entry defines a screen inside that application.
 
-:::note
-The `@Route`, `@Routes` and `@HomeRoute` annotations were removed. `@UI` is the only routing annotation; inner routes are data in a [`routes.yaml` route registry](/concepts/routes-and-mounts/).
-:::
+`@UI` is the only routing annotation; inner routes are data in a [`routes.yaml` route registry](/concepts/routes-and-mounts/).
 
 ---
 
