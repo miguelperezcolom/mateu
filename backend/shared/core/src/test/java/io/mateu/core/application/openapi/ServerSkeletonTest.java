@@ -200,6 +200,62 @@ class ServerSkeletonTest {
   }
 
   @Test
+  void theDefaultBootVersionIsTheLineTheAdaptersRunOn() {
+    var options = new ServerSkeleton.Options(null, null, null, null, null, null, null);
+    assertThat(options.springBootVersion()).startsWith("4.");
+  }
+
+  @Test
+  void contractTextCannotEscapeFromTheGeneratedJava() throws Exception {
+    var hostile =
+        """
+        {"paths": {"/api/orders/{id}\\"); System.exit(1); //": {"get": {
+          "summary": "Ends the comment */ class Evil {} /* and \\u002a/ with an escape",
+          "operationId": "getOrder",
+          "parameters": [
+            {"name": "id\\"bad", "in": "path", "required": true, "schema": {"type": "string"}}
+          ]
+        }}}}
+        """;
+    var files =
+        ServerSkeleton.generate(
+            new com.fasterxml.jackson.databind.ObjectMapper().readTree(hostile), OPTIONS);
+    var port = content(files, "Api.java");
+    var controller = content(files, "Controller.java");
+
+    assertThat(port).doesNotContain("*/ class Evil").doesNotContain("\\u002a/");
+    assertThat(controller)
+        .contains("\\\"); System.exit(1); //\")")
+        .contains("name = \"id\\\"bad\"");
+
+    // what the literal means is what the contract said, and the port (no framework) compiles
+    var compiler = ToolProvider.getSystemJavaCompiler();
+    var diagnostics = new javax.tools.DiagnosticCollector<JavaFileObject>();
+    var ok =
+        compiler
+            .getTask(
+                null,
+                null,
+                diagnostics,
+                List.of(
+                    "-proc:none",
+                    "-d",
+                    System.getProperty("java.io.tmpdir") + "/mateu-skeleton-test"),
+                null,
+                List.of(new InMemorySource("com/acme/orders/api/OrdersApi.java", port)))
+            .call();
+    assertThat(ok).as("did not compile: %s", diagnostics.getDiagnostics()).isTrue();
+  }
+
+  private static String content(List<ServerSkeleton.GeneratedFile> files, String suffix) {
+    return files.stream()
+        .filter(file -> file.path().endsWith(suffix) && file.path().contains("/api/Orders"))
+        .findFirst()
+        .orElseThrow()
+        .content();
+  }
+
+  @Test
   void theGeneratedModelCompiles() {
     // A generator emitting source that does not compile costs more than writing the code by hand.
     // The

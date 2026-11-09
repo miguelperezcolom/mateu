@@ -13,6 +13,8 @@ implemented once, in Mateu's core, so it is the same on every adapter.
 | `mateu.cors.allowed-origins` | *(empty: no CORS)* | Comma-separated origins allowed to call Mateu's endpoints from another origin. `*` = any origin; `https://*.example.com` patterns are accepted. |
 | `mateu.cors.allow-credentials` | `false` | Adds `Access-Control-Allow-Credentials: true` for the listed origins. Never combined with `*`. |
 | `mateu.mcp.enabled` | `false` | Serves the native [MCP endpoint](/reference/agent-operability/) at `POST /mateu/mcp`. |
+| `mateu.mcp.task-timeout-seconds` | `120` | How long an MCP tool call waits for a `LongTask` it started; past it the task is cancelled and the agent told. |
+| `mateu.bundle.endpoint.enabled` | `false` | Serves the [runtime bundle](/deploy/static-bundle/#serving-the-bundle-at-runtime-no-build-step) at `GET /mateu/v3/bundle`; off, it answers 404. |
 | `mateu.ui.modules` | *(empty)* | Spring MVC / WebFlux: comma-separated packages of [external Mateu UI modules](/java-user-manual/build/using-external-mateu-uis/) to mount in-process (same as `@EnableMateuUiModules`). Quarkus, Micronaut and Helidon discover them per jar. |
 | `mateu.client-log.enabled` | `true` | Accepts the renderers' error reports at `POST <baseUrl>/mateu/v3/client-log` ([client error log](/ux-patterns/client-error-log/)). |
 | `mateu.client-log.max-reports-per-minute` | `60` | Reports one user (else one client address) may write per minute; the rest answer `429`. |

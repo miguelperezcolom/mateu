@@ -194,6 +194,9 @@ mateu.cors.allow-credentials=true
 non-localhost origins unless `micronaut.server.cors.localhost-pass-through=true`. .NET: configure
 ASP.NET Core's CORS middleware for the Mateu endpoints; Python: `add_mateu(app, cors_origins=[...])`.
 
+The runtime bundle (`GET /mateu/v3/bundle`) is **off** unless `mateu.bundle.endpoint.enabled=true`: it
+renders every screen for anonymous callers, so keep it off unless something consumes it.
+
 The MCP endpoint (`POST /mateu/mcp`) is likewise **off** unless `mateu.mcp.enabled=true` — turn it on
 only where an agent should operate the app, behind the same authentication as the UI.
 
@@ -208,4 +211,5 @@ only where an agent should operate the app, behind the same authentication as th
 - [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions
 - [ ] CSP set (report-only first), CORS limited to the origins you need
 - [ ] Static bundle: SPA fallback, cache headers, `staticOnly` on, no secrets in direct sources
+- [ ] Runtime bundle endpoint off (`mateu.bundle.endpoint.enabled` unset) unless something consumes it
 - [ ] Sample mode off (`mateu.sources.mock`, `-Dmateu.bundle.mock`) and development mode off (`mateu.dev`)

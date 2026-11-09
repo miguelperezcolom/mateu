@@ -34,6 +34,9 @@ public class AdapterParityITFoundation {
   public static final String ALLOWED_ORIGIN = "http://localhost:9006";
   public static final String OTHER_ORIGIN = "http://other.example";
 
+  /** The setting that turns {@code GET /mateu/v3/bundle} on (a system property, in these tests). */
+  public static final String BUNDLE_ENDPOINT_ENABLED = "mateu.bundle.endpoint.enabled";
+
   private static final String RQ =
       """
       {
@@ -541,6 +544,25 @@ public class AdapterParityITFoundation {
         .post("/hello/mateu/v3/sync/_no_route")
         .then()
         .header("Access-Control-Allow-Origin", nullValue());
+    // the bundle is a GET, and its own controller: no per-endpoint grant, on or off
+    System.setProperty(BUNDLE_ENDPOINT_ENABLED, "true");
+    try {
+      given()
+          .header("Origin", OTHER_ORIGIN)
+          .header("Access-Control-Request-Method", "GET")
+          .when()
+          .options("/mateu/v3/bundle")
+          .then()
+          .header("Access-Control-Allow-Origin", nullValue());
+      given()
+          .header("Origin", OTHER_ORIGIN)
+          .when()
+          .get("/mateu/v3/bundle")
+          .then()
+          .header("Access-Control-Allow-Origin", nullValue());
+    } finally {
+      System.clearProperty(BUNDLE_ENDPOINT_ENABLED);
+    }
   }
 
   /**
@@ -1039,36 +1061,95 @@ public class AdapterParityITFoundation {
    * bundles at least every route the plain variant does.
    */
   public void servesTheRuntimeBundle() {
-    int plainEntries = -1;
-    for (String params : new String[] {"false", "true"}) {
+    // off unless asked for: it renders every screen for whoever calls it
+    given().when().get("/mateu/v3/bundle").then().statusCode(404);
+    System.setProperty(BUNDLE_ENDPOINT_ENABLED, "true");
+    try {
+      int plainEntries = -1;
+      for (String params : new String[] {"false", "true"}) {
+        var response =
+            given()
+                .queryParam("params", params)
+                .when()
+                .get("/mateu/v3/bundle")
+                .then()
+                .statusCode(200)
+                .header("Content-Type", startsWith("application/json"))
+                .body(containsString("Plain form"))
+                .body("error", nullValue())
+                .body("entries.size()", greaterThan(0))
+                .extract();
+        String first = response.asString();
+        int entries = response.jsonPath().getList("entries").size();
+        if (plainEntries < 0) {
+          plainEntries = entries;
+        } else {
+          assertThat(
+              "entries bundled with ?params=true", entries, greaterThanOrEqualTo(plainEntries));
+        }
+        given()
+            .queryParam("params", params)
+            .when()
+            .get("/mateu/v3/bundle")
+            .then()
+            .statusCode(200)
+            .body(equalTo(first));
+      }
+    } finally {
+      System.clearProperty(BUNDLE_ENDPOINT_ENABLED);
+    }
+  }
+
+  /**
+   * A streamed action is cancelled when its client goes away. Quarkus and Micronaut used to keep it
+   * running to its end, buffering everything it produced. The fixture's {@code liveFeed} ticks
+   * forever and notes its cancellation; {@code feedCancelled} reports it.
+   */
+  public void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
+    var client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+    var request =
+        java.net.http.HttpRequest.newBuilder(
+                URI.create("http://localhost:" + RestAssured.port + "/echo/mateu/v3/sse/_no_route"))
+            .header("Accept", "text/event-stream")
+            .header("Content-Type", "application/json")
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(action("liveFeed")))
+            .build();
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
       var response =
+          executor
+              .submit(() -> client.send(request, HttpResponse.BodyHandlers.ofLines()))
+              .get(20, TimeUnit.SECONDS);
+      if (response.statusCode() != 200) {
+        throw new AssertionError("the stream answered " + response.statusCode());
+      }
+      try (var lines = response.body()) {
+        var first = nextData(executor, lines.iterator());
+        if (!first.contains("tick")) {
+          throw new AssertionError("the first event was not a tick: " + first);
+        }
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+    String answer = "";
+    for (int i = 0; i < 100; i++) {
+      answer =
           given()
-              .queryParam("params", params)
+              .contentType(ContentType.JSON)
+              .body(action("feedCancelled"))
               .when()
-              .get("/mateu/v3/bundle")
+              .post("/echo/mateu/v3/sync/_no_route")
               .then()
               .statusCode(200)
-              .header("Content-Type", startsWith("application/json"))
-              .body(containsString("Plain form"))
-              .body("error", nullValue())
-              .body("entries.size()", greaterThan(0))
-              .extract();
-      String first = response.asString();
-      int entries = response.jsonPath().getList("entries").size();
-      if (plainEntries < 0) {
-        plainEntries = entries;
-      } else {
-        assertThat(
-            "entries bundled with ?params=true", entries, greaterThanOrEqualTo(plainEntries));
+              .extract()
+              .asString();
+      if (answer.contains("feed-cancelled=true")) {
+        return;
       }
-      given()
-          .queryParam("params", params)
-          .when()
-          .get("/mateu/v3/bundle")
-          .then()
-          .statusCode(200)
-          .body(equalTo(first));
+      Thread.sleep(200);
     }
+    throw new AssertionError("the work went on after its client left: " + answer);
   }
 
   /** The base path of the YAML mount fixture ({@code specs/ui/yaml-parity.ui.yaml}). */

@@ -8,8 +8,39 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+
+- **`__restfetch__` honours `@EyesOnly` / `@DisabledUnless`** on the `@RestAction` method (and
+  `@EyesOnly` on the `@RestOptions` field) it proxies, instead of calling the endpoint for anyone
+  who could open the page.
+- **The lookups of a hidden field are refused.** `search-<field>`, `code-<field>`,
+  `codesearch-<field>` and wizard lookups answer 403 when the field's `@EyesOnly` is not satisfied.
+- **`GET /mateu/v3/bundle` is off by default.** Turn it on with `mateu.bundle.endpoint.enabled=true`;
+  off, it answers 404. Its bare `@CrossOrigin` on MVC and WebFlux is gone: cross-origin access is
+  `mateu.cors.allowed-origins`, as everywhere else.
+- **The built-in CSV export neutralises formulas** (`=`, `+`, `-`, `@`, tab, CR at the start of a
+  value, plain numbers excepted) and quotes a lone `\r`.
+- **A CRUD write is gated on what it will do.** A `save` that would insert needs create permission;
+  a `create` naming a stored record needs edit permission.
+- **A 3xx on a proxied REST call is a failed call**, not an empty success (redirects are not followed).
+- **`mateu-bundle:server` escapes contract text** into the generated Java (string literals and
+  Javadoc).
+
+### Fixed
+
+- **Quarkus / Micronaut: a client that leaves a streamed action cancels the work**, and the stream
+  no longer keeps every increment in memory until it ends.
+- **A `LongTask` reached outside the SSE leg no longer runs unobserved and dies at the grace period.**
+  An MCP tool call waits for it (`mateu.mcp.task-timeout-seconds`, default 120) and answers how it
+  ended; a `/sync` call, which nothing can resume, cancels it at once.
+- **Spring MVC: identity and request data survive the request**, so a `notifyWhenDone()` task whose
+  tab was closed still reaches its user's inbox.
+- **Agent push: a stalled browser no longer blocks every other session**: messages are written
+  outside the registry's lock, in order per session.
+
 ### Changed
 
+- **`mateu-bundle:server` defaults to Spring Boot 4.1.1**, the line the adapters are tested with.
 - **IntelliJ / desktop: a long-running task never opens a modal window.** Every `LongTask` now runs
   in the IDE's Background Tasks (status bar, Background Tasks window); a blocking one also covers
   the Mateu view that started it — that view only — with its progress, Cancel and, for

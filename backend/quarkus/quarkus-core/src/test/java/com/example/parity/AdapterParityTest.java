@@ -107,6 +107,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
+    contract.cancelsTheWorkWhenTheStreamsClientLeaves();
+  }
+
+  @Test
   void servesTheRuntimeBundle() {
     contract.servesTheRuntimeBundle();
   }

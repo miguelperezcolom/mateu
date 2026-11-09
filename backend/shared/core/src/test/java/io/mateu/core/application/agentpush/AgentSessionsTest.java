@@ -72,6 +72,58 @@ class AgentSessionsTest {
   }
 
   @Test
+  void aStalledStreamBlocksNeitherTheRegistryNorItsSender() throws Exception {
+    var stalled = new java.util.concurrent.CountDownLatch(1);
+    var release = new java.util.concurrent.CountDownLatch(1);
+    var delivered = new java.util.concurrent.CopyOnWriteArrayList<AgentSessions.Message>();
+    Thread opener =
+        new Thread(
+            () ->
+                sessions.open(
+                    "tab",
+                    "secret-tab",
+                    "alice",
+                    "/r",
+                    "vaadin",
+                    message -> {
+                      stalled.countDown();
+                      try {
+                        release.await();
+                      } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                      }
+                      delivered.add(message);
+                    },
+                    () -> {}));
+    opener.start();
+    try {
+      // the status message is stuck in the sink, on the opener's thread
+      assertThat(stalled.await(5, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+
+      var other = new java.util.concurrent.FutureTask<>(() -> open("other", "bob"));
+      new Thread(other).start();
+      assertThat(other.get(5, java.util.concurrent.TimeUnit.SECONDS)).isNotEmpty();
+
+      // and a push to the stalled session queues instead of waiting for it
+      var push =
+          new java.util.concurrent.FutureTask<Void>(
+              () -> {
+                sessions.deliver(alice, handleOf(alice), message(), "x", 1);
+                return null;
+              });
+      new Thread(push).start();
+      push.get(5, java.util.concurrent.TimeUnit.SECONDS);
+    } finally {
+      release.countDown();
+      opener.join(5000);
+    }
+    // the thread that was stuck delivers what queued up behind it, in order
+    assertThat(delivered)
+        .extracting(AgentSessions.Message::kind)
+        .containsExactly("status", "event");
+  }
+
+  @Test
   void aSessionIsOnlyVisibleToItsOwnPrincipal() {
     open("ui-1", "alice");
     open("ui-2", "bob");

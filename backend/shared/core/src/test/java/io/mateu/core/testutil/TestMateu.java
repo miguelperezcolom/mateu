@@ -141,6 +141,8 @@ public final class TestMateu implements AutoCloseable {
   }
 
   /** Full-control variant: run any action with component state, serverSideType, etc. */
+  private static final String SSE_PATH = "/mateu/v3/sse/x";
+
   public UIIncrementDto run(RunActionRqDto rq) {
     try {
       // Adapters set the "baseUrl" request attribute; internal wraps (e.g. the crud mediator)
@@ -180,7 +182,7 @@ public final class TestMateu implements AutoCloseable {
   /** The increments as they come — for an open-ended stream (e.g. the live-updates events). */
   public Flux<UIIncrementDto> stream(RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
       return service.runAction("", rq, "", httpRequest);
     } catch (RuntimeException | Error e) {
       throw e;
@@ -192,7 +194,7 @@ public final class TestMateu implements AutoCloseable {
   /** Same as {@link #stream(RunActionRqDto)}, sending the given request headers. */
   public Flux<UIIncrementDto> stream(RunActionRqDto rq, java.util.Map<String, String> headers) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
       headers.forEach(httpRequest::withHeader);
       return service.runAction("", rq, "", httpRequest);
     } catch (RuntimeException | Error e) {

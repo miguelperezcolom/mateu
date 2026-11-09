@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.progress.ProgressTasks;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -263,8 +264,12 @@ public class McpService {
       // marks the request as an MCP tool call (a server-side attribute, never client-settable):
       // the reserved __validate__ action is served to MCP callers only (RunActionUseCase)
       httpRequest.setAttribute(MCP_REQUEST, Boolean.TRUE);
+      // a LongTask is waited for: nothing can resume this call, so an agent that took "Starting…"
+      // and left would have cancelled the work it just started
       UIIncrementDto increment =
-          service.runAction(baseUrl, rq, baseUrl, httpRequest).next().block();
+          ProgressTasks.settled(
+                  service.runAction(baseUrl, rq, baseUrl, httpRequest), McpEndpoint.taskTimeout())
+              .block();
       return objectMapper.valueToTree(increment);
     } catch (Throwable t) {
       // The sync endpoint's error boundary, applied here too: a refused request is the tool

@@ -192,6 +192,11 @@ mateu.progress.reattach-grace-seconds=60
 .NET: `MateuOptions.ProgressReattachGraceSeconds`; Python: `add_mateu(progress_reattach_grace_seconds=60)`;
 all three read `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`.
 
+The grace period is for the streamed endpoint (`/v3/sse/`), the only one a client can come back to.
+A task started through `/v3/sync/` is cancelled as soon as that one answer is sent, and an MCP tool
+call waits for the task to end (`mateu.mcp.task-timeout-seconds`, default 120: past it the task is
+cancelled and the agent told).
+
 After a reload the task no longer has the screen that started it, so only what makes sense without
 it is offered: its progress, its messages, its result actions that open a ROUTE. Retry, result
 actions that run an `actionId` and the `withCommand` commands are for the screen that started the

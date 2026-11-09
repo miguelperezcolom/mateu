@@ -1,6 +1,7 @@
 package io.mateu;
 
 import io.mateu.core.application.security.MateuForbiddenException;
+import io.mateu.core.infra.StreamHandover;
 import io.mateu.dtos.UIIncrementDto;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -13,7 +14,8 @@ import reactor.core.publisher.Mono;
  * is answered 403 before the stream is committed: Micronaut does not route an error of a {@code
  * text/event-stream} route to {@link MateuForbiddenExceptionHandler}, so a refused streamed action
  * answered 500. The stream is answered once its FIRST signal is known — a request is guarded
- * lazily, as part of the stream — and replays that first event to the client.
+ * lazily, as part of the stream — and the client gets that same stream ({@link StreamHandover}), so
+ * leaving cancels the work.
  */
 public final class MicronautSse {
 
@@ -32,11 +34,8 @@ public final class MicronautSse {
     } catch (MateuForbiddenException e) {
       return Mono.just(forbidden());
     }
-    var replayed = events.cache();
-    return replayed
-        .next()
-        .<HttpResponse<?>>map(first -> sse(replayed))
-        .switchIfEmpty(Mono.fromSupplier(() -> sse(Flux.empty())))
+    return StreamHandover.afterFirstSignal(events)
+        .<HttpResponse<?>>map(MicronautSse::sse)
         .onErrorResume(MicronautSse::refusal, e -> Mono.just(forbidden()));
   }
 

@@ -339,6 +339,23 @@ public final class ActionMethods {
     }
   }
 
+  /**
+   * Refuses the call when the caller may not see {@code field} ({@code @EyesOnly}): what a lookup
+   * answers about a field — its options, a code's label, its proxied source — is the field's data,
+   * and {@code FormFieldFilter} only keeps the field off the rendered form. Null field: nothing to
+   * check.
+   */
+  public static void checkFieldVisible(
+      Field field, Class<?> instanceClass, HttpRequest httpRequest) {
+    if (field == null) {
+      return;
+    }
+    var eyesOnly = MetaAnnotations.find(field, EyesOnly.class);
+    if (eyesOnly != null && !Authorizer.isAuthorized(eyesOnly, httpRequest)) {
+      throw refused(instanceClass, field.getName(), "@EyesOnly not satisfied");
+    }
+  }
+
   /** {@link #findInvocable} + {@link #checkAccess}: the method to run, or null if none is named. */
   public static Method resolve(Object instance, String name, HttpRequest httpRequest) {
     return resolve(

@@ -115,6 +115,16 @@ class ServerWriteGatesSyncTest {
   @NotDeletable
   public static class AnnotatedCrud extends OpenCrud {}
 
+  @UI("/gates-not-creatable")
+  @Title("Edit only")
+  @NotCreatable
+  public static class EditOnlyCrud extends OpenCrud {}
+
+  @UI("/gates-not-editable")
+  @Title("Create only")
+  @NotEditable
+  public static class CreateOnlyCrud extends OpenCrud {}
+
   @UI("/gates-readonly")
   @Title("Read only")
   @ReadOnly
@@ -260,6 +270,8 @@ class ServerWriteGatesSyncTest {
     mateu =
         TestMateu.withUis(
             OpenCrud.class,
+            EditOnlyCrud.class,
+            CreateOnlyCrud.class,
             AnnotatedCrud.class,
             ReadOnlyCrud.class,
             DisplayCrud.class,
@@ -308,6 +320,38 @@ class ServerWriteGatesSyncTest {
             .componentState(state)
             .parameters(parameters)
             .build());
+  }
+
+  @Test
+  void aSaveThatWouldInsertNeedsCreatePermission() {
+    assertThat(
+            refused(
+                () ->
+                    run(
+                        "/gates-not-creatable",
+                        EditOnlyCrud.class,
+                        "save",
+                        Map.of("id", "9", "name", "nine"))))
+        .isTrue();
+    assertThat(ITEMS).hasSize(2);
+  }
+
+  @Test
+  void aCreateThatWouldOverwriteNeedsEditPermission() {
+    assertThat(
+            refused(
+                () ->
+                    run(
+                        "/gates-not-editable",
+                        CreateOnlyCrud.class,
+                        "create",
+                        Map.of("id", "1", "name", "overwritten"))))
+        .isTrue();
+    assertThat(nameOf("1")).isEqualTo("one");
+
+    // a really new record is what this crud is for
+    run("/gates-not-editable", CreateOnlyCrud.class, "create", Map.of("id", "9", "name", "nine"));
+    assertThat(nameOf("9")).isEqualTo("nine");
   }
 
   private static boolean refused(Runnable call) {
