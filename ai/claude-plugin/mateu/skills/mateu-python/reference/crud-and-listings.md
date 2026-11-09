@@ -63,8 +63,8 @@ class Orders(Crud[Product]):
     def fetch(self, search):
         return []
 
-    def find(self, search_text, filters, pageable):
-        # filters: raw component state (<field>, <field>_from/_to, multi-selects as lists)
+    def find(self, search_text, filters, pageable, criteria=()):
+        # filters: plain equality values; criteria: typed range/multi-select FilterCriterion entries
         rows = [p for p in _STORE.values() if not search_text or search_text in p.name]
         start = pageable.page * pageable.size
         return PageResult(content=rows[start:start + pageable.size], total_elements=len(rows))

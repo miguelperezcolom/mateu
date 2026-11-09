@@ -640,10 +640,10 @@ inside) and the in-memory pipeline is skipped entirely:
 
 ```python
 class Orders(Crud[Order]):
-    def find(self, search_text, filters, pageable):
-        # filters = raw component state: <field> values, <field>_from/_to bounds,
-        # multi-selects as value lists. pageable = Pageable(page, size, sort).
-        query = build_query(search_text, filters)
+    def find(self, search_text, filters, pageable, criteria=()):
+        # filters = the plain equality values; criteria = the range and multi-select
+        # conditions, typed (FilterCriterion: between/gte/lte/in). pageable = Pageable(page, size, sort).
+        query = build_query(search_text, filters, criteria)
         total = query.count()
         rows = query.order_by(*pageable.sort).offset(pageable.page * pageable.size).limit(pageable.size)
         return PageResult(content=list(rows), total_elements=total)
