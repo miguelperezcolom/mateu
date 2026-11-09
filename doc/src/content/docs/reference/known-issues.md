@@ -159,6 +159,11 @@ runtime itself stop then. **3.1 drops `net8.0`.**
 - **The IntelliJ plugin supports IntelliJ IDEA 2025.2 and later** (build `252` on, no upper bound).
   Each build is checked by the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and
   2026.3; a later line installs, and joins that list once it ships.
+- **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** Apps installed from 3.0-beta.53
+  or earlier (on IntelliJ IDEA Community 2025.2) ask to be reinstalled once, and cannot update in
+  place. Settings and the list of UIs are kept. See [Updates](/native/desktop-app/#updates).
+- **On Linux and Windows the desktop app still shows IntelliJ IDEA's splash screen and About box**,
+  and its launcher files carry IntelliJ's names. Only the macOS app is renamed throughout.
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).

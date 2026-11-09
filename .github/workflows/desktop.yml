@@ -1,4 +1,4 @@
-# Builds the Mateu DESKTOP APP (IntelliJ IDEA Community + the Mateu plugin, see `buildInstaller` in
+# Builds the Mateu DESKTOP APP (IntelliJ IDEA Open Source + the Mateu plugin, see `buildInstaller` in
 # frontend/app/intellij-plugin/build.gradle.kts) with the framework's release and attaches it to the
 # GitHub Release `v3.0-beta.N`, at the plugin's version (scripts/plugin-versions.sh):
 #
@@ -9,6 +9,18 @@
 # Installed apps poll `releases/latest/download/mateu-desktop-update.json` (io.mateu.ijp.update): the
 # feed goes up only after every installer is there, so it never points at a missing file.
 # Both macOS architectures are built on an Apple-silicon runner (only the downloaded IDE differs).
+#
+# The base is IntelliJ IDEA Open Source `desktopIdeVersion` (build.gradle.kts), which buildInstaller
+# downloads from the `idea/<version>` GitHub Release of JetBrains/intellij-community and checks against
+# its pinned sha256. Before anything reaches users, a smoke test launches the packaged app (macOS
+# aarch64 natively, Linux under Xvfb, Windows on windows-latest) and requires idea.log to say the Mateu
+# plugin loaded; on Windows it also requires JetBrains' Authenticode on idea64.exe to be intact. The
+# feed (what installed apps read) goes up only after every smoke test passed.
+#
+# `dry_run` (manual runs only): build every installer and run every smoke test, publish NOTHING (no
+# release upload; the feed is only printed). The tag only names the versions.
+# Installers are built on CI ONLY: never run buildInstaller on a developer machine (CLAUDE.md, #1000).
+# Building the base from source (.github/workflows/desktop-base.yml) stays as a manual fallback.
 #
 # Optional secrets — without them the macOS app is signed ad-hoc (first launch: right-click ▸ Open):
 #   MACOS_CERTIFICATE_P12 (base64 of a Developer ID Application .p12), MACOS_CERTIFICATE_PASSWORD,
@@ -25,17 +37,22 @@ on:
       tag:
         description: Existing release tag to (re)build the desktop app for (e.g. v3.0-beta.27)
         required: true
+      dry_run:
+        description: Build and smoke-test every installer, but publish nothing
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: desktop-${{ github.event.release.tag_name || inputs.tag }}
+  group: desktop-${{ github.event.release.tag_name || inputs.tag }}${{ inputs.dry_run && '-dry-run' || '' }}
   cancel-in-progress: false
 
 env:
   TAG: ${{ github.event.release.tag_name || inputs.tag }}
   GH_TOKEN: ${{ github.token }}
+  DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
 
 jobs:
   macos:
@@ -104,7 +121,17 @@ jobs:
           if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=mateu-notary); fi
           # through the helper: a cold IDE layout index loses com.intellij.java now and then (#2192)
           cd ../../.. && scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      - name: How the app is signed
+        run: |
+          app=frontend/app/intellij-plugin/build/installer/Mateu.app
+          codesign -dv --verbose=2 "$app" 2>&1 | grep -E 'Identifier|Authority|TeamIdentifier|Signature|flags' || true
+          codesign --verify --deep --strict "$app" && echo "codesign: valid"
+      # The runner is Apple silicon: only the aarch64 app can run here.
+      - name: Smoke test — launch the app, the Mateu plugin must load
+        if: matrix.arch == 'aarch64'
+        run: scripts/desktop-smoke.sh macos frontend/app/intellij-plugin/build/installer/Mateu.app
       - name: Attach to the release
+        if: env.DRY_RUN != 'true'
         env:
           ARCH: ${{ matrix.arch }}
         run: |
@@ -154,7 +181,23 @@ jobs:
       - name: Disk and memory when it failed
         if: failure()
         run: df -h / /tmp; free -m
+      - name: Smoke test — launch the app under Xvfb, the Mateu plugin must load
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get install -y -q xvfb > /dev/null
+          mkdir -p "$RUNNER_TEMP/smoke"
+          tar -xzf "frontend/app/intellij-plugin/build/installer/mateu-desktop-$INTELLIJ_VERSION-linux.tar.gz" -C "$RUNNER_TEMP/smoke"
+          scripts/desktop-smoke.sh linux "$(ls -d "$RUNNER_TEMP"/smoke/*/)"
+      # The Windows smoke test runs on windows-latest (job smoke-windows), from this zip.
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: matrix.platform == 'windows'
+        with:
+          name: mateu-desktop-windows-zip
+          path: frontend/app/intellij-plugin/build/installer/mateu-desktop-*-windows.zip
+          retention-days: 1
+          compression-level: 0
       - name: Attach to the release
+        if: env.DRY_RUN != 'true'
         env:
           PLATFORM: ${{ matrix.platform }}
         run: |
@@ -166,11 +209,40 @@ jobs:
           fi
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${files[@]}"
 
-  # The plugin the apps download + the feed that points at everything above. Last, on purpose.
+  smoke-windows:
+    needs: [linux-windows]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mateu-desktop-windows-zip
+          path: ${{ runner.temp }}\pkg
+      - name: JetBrains' Authenticode is intact, the app starts and the Mateu plugin loads
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem "$env:RUNNER_TEMP\pkg\*-windows.zip" | Select-Object -First 1
+          Expand-Archive $zip.FullName -DestinationPath "$env:RUNNER_TEMP\app"
+          $root = (Get-ChildItem "$env:RUNNER_TEMP\app" -Directory | Select-Object -First 1).FullName
+          # We never touch JetBrains' binaries: their signature must survive the repack.
+          $sig = Get-AuthenticodeSignature "$root\bin\idea64.exe"
+          "idea64.exe: $($sig.Status) - $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notlike '*JetBrains*') { throw "idea64.exe is not JetBrains-signed any more" }
+          Select-String -Path "$root\product-info.json" -Pattern '"version"|"buildNumber"' | Select-Object -First 2 | ForEach-Object { $_.Line }
+          $p = Start-Process -FilePath "$root\mateu.bat" -PassThru -WindowStyle Hidden
+          $log = "$root\data\log\idea.log"
+          for ($i = 0; $i -lt 36; $i++) { Start-Sleep 5; if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'Loaded custom plugins' -Quiet)) { break } }
+          Start-Sleep 20
+          Get-Process | Where-Object { $_.Path -like "$root*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+          Select-String -Path $log -Pattern 'IDE: |Loaded custom plugins|io\.mateu|ERROR' | Select-Object -First 60 | ForEach-Object { $_.Line }
+          if (Select-String -Path $log -Pattern 'Loaded custom plugins.*Mateu' -Quiet) { "✅ windows: Mateu plugin loaded, idea64.exe JetBrains-signed" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY } else { throw "the Mateu plugin did not load" }
+
+  # The plugin the apps download + the feed that points at everything above. Last, on purpose:
+  # installed apps only hear of the release once every installer passed its smoke test.
   feed:
     permissions:
       contents: write # gh release upload
-    needs: [macos, linux-windows]
+    needs: [macos, linux-windows, smoke-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -197,6 +269,7 @@ jobs:
           cat frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json
       # the plugin first: the feed must never name a file that is not there yet
       - name: Attach the plugin, then the feed
+        if: env.DRY_RUN != 'true'
         run: |
           cd frontend/app/intellij-plugin
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "build/distributions/mateu-intellij-plugin-$INTELLIJ_VERSION.zip"

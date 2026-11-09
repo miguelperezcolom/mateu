@@ -3,10 +3,29 @@ title: "The Mateu desktop app"
 description: "Ship Mateu UIs as an installable desktop app for macOS, Windows and Linux: hub or fixed builds, installers, mateu:// links, automatic updates and white-label builds."
 ---
 
-The **Mateu desktop app** is IntelliJ IDEA Community, rebranded, with the Mateu plugin preinstalled
+The **Mateu desktop app** is IntelliJ IDEA Open Source, renamed, with the Mateu plugin preinstalled
 and the IDE chrome hidden: users see your Mateu UI in a native window, not an IDE. It is built by one
 Gradle task in `frontend/app/intellij-plugin`, and every Mateu release publishes ready-made installers
 on its [GitHub release](https://github.com/miguelperezcolom/mateu/releases/latest).
+
+## What it is built on
+
+Since 3.0-beta.54 the app is built on **IntelliJ IDEA Open Source 2026.3** (Apache-2.0). This is the
+open-source IntelliJ IDEA that replaced IntelliJ IDEA Community Edition from 2025.3 on. The betas up to
+3.0-beta.53 were built on IntelliJ IDEA Community 2025.2.6.4.
+
+- The base is the set of installers JetBrains attaches to the `idea/<version>` release of
+  [JetBrains/intellij-community](https://github.com/JetBrains/intellij-community/releases): the macOS
+  `.dmg` (Intel and Apple silicon), the Linux `.tar.gz` and the Windows `.win.zip`. The build checks
+  each download against a pinned SHA-256, which is the digest the release lists. It refuses to package
+  a file that does not match.
+- The base is not modified. On Windows, JetBrains' own binaries (`idea64.exe`, the runtime, the DLLs)
+  keep their JetBrains Authenticode signature. On macOS the app is signed again after it is renamed:
+  ad hoc, or with a Developer ID and notarization when the release has the certificates.
+- Before a release reaches installed apps, CI starts each packaged app (macOS, Linux and Windows) and
+  checks that the Mateu plugin loaded.
+- The Mateu plugin from the JetBrains Marketplace still supports IntelliJ IDEA 2025.2 and later. Only
+  the base of the desktop app changed.
 
 ## Two variants: hub or fixed
 
@@ -43,6 +62,7 @@ A `fixed` build without a base URL or registry coordinates fails. Passing either
 | `-Pmateu.baseUrl`, `-Pmateu.registryUrl` + `-Pmateu.appId` | The UI a `fixed` app is bound to |
 | `-Pmateu.updateUrl` | The update feed (below); empty or `none` = no updates |
 | `-Pmateu.bundleId` | macOS bundle identifier (default `io.mateu.desktop`, or `io.mateu.desktop.<name>`) |
+| `-Pinstaller.ideVersion` | Another IntelliJ IDEA Open Source release to build on (default `2026.3`); its SHA-256 is read from that release |
 | `-Pinstaller.ideArchive` | A local IntelliJ archive (`.dmg`, `.tar.gz` or `.win.zip`) instead of downloading it |
 
 These become VM options of the app (`-Dmateu.variant`, `-Dmateu.baseUrl`, `-Dmateu.productName`,
@@ -151,7 +171,16 @@ The app keeps its Mateu plugin up to date by itself:
 
 When a release needs a newer IntelliJ build under it, the app does not patch the platform: it shows
 **"A new version of Mateu needs to be reinstalled"** with a link to the installer for the user's
-operating system.
+operating system. 3.0-beta.54 is such a release, because it moves the app from IntelliJ IDEA
+Community 2025.2 to IntelliJ IDEA Open Source 2026.3. Apps installed from an earlier beta show this
+notice once. The settings and the list of UIs are kept:
+
+- **macOS**: drag the new app over the old one. The data in `~/Library/Application Support/<name>`
+  stays.
+- **Windows**: the new setup upgrades the installed app in place.
+- **Linux**: run `install.sh` from the new bundle.
+
+On its first start, IntelliJ IDEA 2026.3 moves the 2025.2 settings over.
 
 A UI can also ask for an update. When one is added or opened, the hub compares its manifest
 (`wireVersion`, `mateuVersion`) with this app — the same rule as the phone app,
@@ -177,7 +206,7 @@ https://github.com/miguelperezcolom/mateu/releases/latest/download/mateu-desktop
   "version": "3.0-beta.27",
   "plugin": { "url": "https://…/mateu-intellij-plugin-3.0-beta.27.zip", "sha256": "…" },
   "platform": {
-    "ideVersion": "2025.2.6.4",
+    "ideVersion": "2026.3",
     "installers": {
       "macos-aarch64": "https://…-macos-aarch64.dmg", "macos-intel": "https://…-macos-intel.dmg",
       "linux": "https://…-linux.tar.gz", "windows": "https://…-windows-setup.exe"
@@ -236,3 +265,6 @@ A product of your own is a `fixed` build with your name, and usually your own fe
 Every Mateu release (`v3.0-beta.N`) builds the hub installers for every operating system
 (`.github/workflows/desktop.yml`) and attaches them to its GitHub release, together with the plugin
 zip and the update feed — the feed last, so it never points at a file that is not there yet.
+Before the feed goes up, each packaged app is started on CI (macOS, Linux under Xvfb, Windows) and
+must load the Mateu plugin. A manual run with `dry_run` builds and checks every installer without
+publishing anything.

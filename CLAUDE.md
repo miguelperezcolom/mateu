@@ -125,7 +125,8 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             machine to "try it": until #1000 its macOS dmg stage (a link dmg/Applications -> /Applications)
                             was cleaned with File.deleteRecursively(), which FOLLOWS links, and it deleted a developer's
                             /Applications (2026-11-01). The build now uses deleteTree() (never follows links; CI fails if
-                            deleteRecursively() returns). It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ Community +
+                            deleteRecursively() returns). It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ IDEA Open Source 2026.3 (JetBrains/intellij-community GitHub Release
+                            assets, pinned sha256 = `desktopIdeVersion`; the plugin still compiles against IC 2025.2) +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml
   vscode-extension/       ← VS Code extension (visual editor host, New Project / New › Mateu wizards, Live Run)
