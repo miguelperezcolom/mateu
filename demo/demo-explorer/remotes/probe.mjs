@@ -7,6 +7,9 @@
 // Playwright is taken from the repo's e2e/ (cd ../../../e2e && npm ci). The version-skew check
 // RESTARTS the Java remote with another MATEU_BUILD_ID (and the content-slot check runs while it is
 // down) — it needs remotes/java-remote/target/explorer-java-remote-1.0-SNAPSHOT.jar.
+//
+// Against a deployment: EXPLORER_URL=https://explorer.mateu.io EXPLORER_JAVA_REMOTE_URL=…
+// EXPLORER_STATIC_REMOTE_URL=… SKIP_REMOTE_RESTART=true node probe.mjs (no restart there).
 import { createRequire } from 'node:module'
 import { spawn } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
@@ -18,7 +21,7 @@ const require = createRequire(resolve(process.env.PLAYWRIGHT_FROM || resolve(her
 const { chromium } = require('playwright')
 
 const port = (name, def) => process.env[name] || def
-const EXPLORER = `http://localhost:${port('EXPLORER_PORT', 8640)}`
+const EXPLORER = process.env.EXPLORER_URL || `http://localhost:${port('EXPLORER_PORT', 8640)}`
 const JAVA = process.env.EXPLORER_JAVA_REMOTE_URL || `http://localhost:${port('JAVA_REMOTE_PORT', 8641)}`
 const STATIC = process.env.EXPLORER_STATIC_REMOTE_URL || `http://localhost:${port('STATIC_REMOTE_PORT', 8643)}`
 const strict = process.env.KNOWN_BUGS === 'strict'
@@ -287,7 +290,8 @@ await check('credential scope: ...and sends it to a remote a RemoteMenu names', 
 })
 
 // version skew + content slots with the remote down: restart the Java remote with another build id
-await check('version skew: a remote restarted with another build → "This app has been updated"', async () => {
+// (a local process only: SKIP_REMOTE_RESTART=true against a deployment, e.g. explorer.mateu.io)
+if (process.env.SKIP_REMOTE_RESTART !== 'true') await check('version skew: a remote restarted with another build → "This app has been updated"', async () => {
   const page = await newPage()
   await page.goto(`${EXPLORER}/fed`)
   await page.waitForLoadState('networkidle')

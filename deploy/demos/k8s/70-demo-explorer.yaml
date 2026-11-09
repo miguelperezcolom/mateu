@@ -1,12 +1,13 @@
 # demo-explorer — the Mateu Explorer (demo/demo-explorer): every component, page template, archetype,
-# behaviour and distributed-UI pattern, live, with its code. Vaadin renderer. PREPARED, NOT APPLIED:
-# the image tag is a placeholder until the first image is pushed (deploy/demos/demo-explorer.Dockerfile).
+# behaviour and distributed-UI pattern, live, with its code. Vaadin renderer. DEPLOYED as a preview
+# on 3.0-beta.51 (2026-11-08); redeploy at rc.1 (deploy/demos/README.md, "The Mateu Explorer").
 #
 # The remote apps the "Distributed UIs" area federates (demo/demo-explorer/remotes; images from
 # deploy/demos/demo-explorer-remotes.Dockerfile) follow the Explorer below, each on its own host:
 # the BROWSER calls them directly (remote menus, micro frontends after the first paint), so they are
 # public, and the Explorer's server calls the same urls (descriptors, resolve = SERVER, content slots).
-# DNS to add: explorer-inventory / explorer-orders / explorer-help / explorer-reports .mateu.io.
+# DNS: explorer.mateu.io (A + AAAA → the LB); the remotes ride the existing *.ec1.mateu.io wildcard:
+# explorer-java / explorer-yaml / explorer-static / explorer-python .ec1.mateu.io.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,15 +30,15 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer:3.0-beta.51-TBD
+          image: miguelperezcolom/demo-explorer:3.0-beta.51-explorer-20261108
           env:
             - { name: SERVER_PORT, value: "8640" }
             - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
             # where the Distributed UIs area's remotes are (public: the browser calls them too)
-            - { name: EXPLORER_JAVA_REMOTE_URL, value: "https://explorer-inventory.mateu.io" }
-            - { name: EXPLORER_YAML_REMOTE_URL, value: "https://explorer-orders.mateu.io" }
-            - { name: EXPLORER_STATIC_REMOTE_URL, value: "https://explorer-help.mateu.io" }
-            - { name: EXPLORER_PYTHON_REMOTE_URL, value: "https://explorer-reports.mateu.io" }
+            - { name: EXPLORER_JAVA_REMOTE_URL, value: "https://explorer-java.ec1.mateu.io" }
+            - { name: EXPLORER_YAML_REMOTE_URL, value: "https://explorer-yaml.ec1.mateu.io" }
+            - { name: EXPLORER_STATIC_REMOTE_URL, value: "https://explorer-static.ec1.mateu.io" }
+            - { name: EXPLORER_PYTHON_REMOTE_URL, value: "https://explorer-python.ec1.mateu.io" }
           ports:
             - { name: http, containerPort: 8640 }
           readinessProbe:
@@ -109,7 +110,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-java-remote:3.0-beta.51-TBD
+          image: miguelperezcolom/demo-explorer-java-remote:3.0-beta.51-explorer-20261108
           env:
             - { name: JAVA_REMOTE_PORT, value: "8641" }
             - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
@@ -154,10 +155,10 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-    - hosts: [explorer-inventory.mateu.io]
+    - hosts: [explorer-java.ec1.mateu.io]
       secretName: demo-explorer-java-remote-tls
   rules:
-    - host: explorer-inventory.mateu.io
+    - host: explorer-java.ec1.mateu.io
       http:
         paths:
           - path: /
@@ -186,7 +187,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-yaml-remote:3.0-beta.51-TBD
+          image: miguelperezcolom/demo-explorer-yaml-remote:3.0-beta.51-explorer-20261108
           env:
             - { name: YAML_REMOTE_PORT, value: "8642" }
             - { name: EXPLORER_ORIGIN, value: "https://explorer.mateu.io" }
@@ -230,10 +231,10 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-    - hosts: [explorer-orders.mateu.io]
+    - hosts: [explorer-yaml.ec1.mateu.io]
       secretName: demo-explorer-yaml-remote-tls
   rules:
-    - host: explorer-orders.mateu.io
+    - host: explorer-yaml.ec1.mateu.io
       http:
         paths:
           - path: /
@@ -262,7 +263,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-static-remote:3.0-beta.51-TBD
+          image: miguelperezcolom/demo-explorer-static-remote:3.0-beta.51-explorer-20261108
           ports:
             - { name: http, containerPort: 8080 }
           readinessProbe:
@@ -302,10 +303,10 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-    - hosts: [explorer-help.mateu.io]
+    - hosts: [explorer-static.ec1.mateu.io]
       secretName: demo-explorer-static-remote-tls
   rules:
-    - host: explorer-help.mateu.io
+    - host: explorer-static.ec1.mateu.io
       http:
         paths:
           - path: /
@@ -334,7 +335,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-explorer-python-remote:3.0-beta.51-TBD
+          image: miguelperezcolom/demo-explorer-python-remote:3.0-beta.51-explorer-20261108
           env:
             - { name: PYTHON_REMOTE_PORT, value: "8644" }
             - { name: PYTHON_REMOTE_HOST, value: "0.0.0.0" }
@@ -378,10 +379,10 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-    - hosts: [explorer-reports.mateu.io]
+    - hosts: [explorer-python.ec1.mateu.io]
       secretName: demo-explorer-python-remote-tls
   rules:
-    - host: explorer-reports.mateu.io
+    - host: explorer-python.ec1.mateu.io
       http:
         paths:
           - path: /
