@@ -71,7 +71,9 @@ private fun renderOne(jsonFile: File, pngPath: String) {
     val increment = session.mapper.readTree(jsonFile)
     SwingUtilities.invokeAndWait { ctx.applyIncrement(increment) }
     // loadServerSideComponent defers its putChildren via invokeLater; drain a few EDT hops.
-    repeat(4) { Thread.sleep(250); SwingUtilities.invokeAndWait {} }
+    // -Dprobe.settleMs: how long nested loads (islands, micro frontends) get to answer (default 1 s)
+    val settleMs = (System.getProperty("probe.settleMs") ?: options.getProperty("settleMs"))?.toLongOrNull() ?: 1000L
+    repeat((settleMs / 250).toInt().coerceAtLeast(1)) { Thread.sleep(250); SwingUtilities.invokeAndWait {} }
 
     // -Dprobe.followUp=<json>: a second increment applied on top (e.g. an action's response),
     // to exercise in-place updates (state-only merges, toolbar republish…).
