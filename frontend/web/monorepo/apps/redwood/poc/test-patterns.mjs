@@ -537,7 +537,9 @@ test('header extras (Java page): overline, timestamp, first badge in oj-sp\'s ba
   assert.equal(h.overline, 'Customers')
   assert.equal(h.timestamp, '') // text, not a date: oj-sp's element never gets it…
   assert.deepEqual(h.badge, { text: 'VIP', status: 'success' })
-  assert.equal(h.subtitle, 'Since 2019 · Blocked · Last updated 12 Oct') // …it ends the subtitle line
+  assert.equal(h.subtitle, 'Since 2019 · Last updated 12 Oct') // …it ends the subtitle line
+  // the second badge is a chip of its own under the header, not subtitle text
+  assert.deepEqual(h.moreBadges.map((b) => b.label), ['Blocked'])
   assert.equal(h.titleIsPlaceholder, false)
   assert.equal(h.headerClass, '')
   // nothing declared: no badge, no overline, no arrows

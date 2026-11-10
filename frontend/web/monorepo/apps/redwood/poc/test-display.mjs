@@ -1205,7 +1205,9 @@ test('a field\'s help (@Help → the wire\'s description) reaches every field wi
   for (const extra of kinds) {
     const f = layoutFieldOf(md(extra), {})
     assert.ok(f, JSON.stringify(extra))
-    assert.deepEqual([f.help, f.hasHelp], ['Shown under the field.', true], JSON.stringify(extra))
+    // JET's own widgets carry it as an always-visible info message (help.instruction only shows on focus)
+    const shown = f.help || ((f.messagesCustom || [])[0] || {}).summary
+    assert.deepEqual([shown, f.hasHelp], ['Shown under the field.', true], JSON.stringify(extra))
   }
   // none: an empty instruction (JET draws nothing), never "undefined"
   const plain = layoutFieldOf(md({ description: undefined }), {})

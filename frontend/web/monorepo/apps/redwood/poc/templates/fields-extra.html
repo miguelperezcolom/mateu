@@ -19,6 +19,7 @@
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       class="oj-choice-direction-row"
+      :class="[[ $current.data.fieldClass ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
       on-value-changed="[[ $listeners.{{change}} ]]">
     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -49,6 +50,7 @@
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       class="oj-choice-direction-row"
+      :class="[[ $current.data.fieldClass ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
       on-value-changed="[[ $listeners.{{change}} ]]">
     <oj-bind-for-each data="[[ $current.data.options ]]">

@@ -350,7 +350,8 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
   // the subtitle line instead — on the header's own row, scrolling and sticking with it
   const stamp = headerTimestampOf(extras.timestamp)
-  const subtitle = [baseSubtitle].concat(moreBadges.map((b) => b.label), [stamp.text]).filter((t) => t).join(' · ')
+  // the other badges are chips of their own under the header (moreBadges), not subtitle text
+  const subtitle = [baseSubtitle].concat([stamp.text]).filter((t) => t).join(' · ')
   const header = {
     // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
     bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
@@ -369,6 +370,7 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     timestamp: stamp.iso,
     // oj-sp's status badge (null = none)
     badge: firstBadge ? { text: firstBadge.label, status: firstBadge.status } : null,
+    moreBadges: moreBadges.map((b, i) => ({ key: String(i), label: b.label, badgeClass: 'oj-badge oj-badge-subtle oj-badge-' + (b.status === 'danger' ? 'danger' : b.status || 'neutral') })),
     // PEER navigation: oj-sp's lateral previous/next item actions. A side without a route is
     // disabled; without a peerNav both stay 'disabled' and the header draws no arrows
     previousItem: peer

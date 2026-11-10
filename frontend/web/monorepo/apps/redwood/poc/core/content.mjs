@@ -565,6 +565,9 @@ export function islandContentOf(ctx, opts = {}) {
   let plain = null
   let elementOrdinal = 0
   let accordionOrdinal = 0
+  // @Compact on this surface's own tree (its root's style carries the StyleConstants.COMPACT marker)
+  const islandCompact = ctx.kind === 'island' && [ctx.tree && ctx.tree.style, ...((ctx.tree && ctx.tree.children) || []).map((c) => c && c.style)]
+    .some((st) => typeof st === 'string' && st.replace(/\s+/g, '').indexOf('--mateu-compact:1') >= 0)
   // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
   let embeddedPageSeen = false
   // the wire node being projected (editor mode only): what an atom or a block made now came from
@@ -1119,6 +1122,12 @@ export function islandContentOf(ctx, opts = {}) {
       // all read-only (the detail view): the form layout itself goes readonly and JET
       // paints each field as a value, without an input box
       for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
+      // labelsAside (a declared single column of short labels, LabelsAsideInference): the labels go
+      // to the START of each field, in a 10rem column — Redwood's own label-edge="start"
+      for (const l of layouts) { l.labelEdge = m.labelsAside ? 'start' : 'inside'; l.labelWidth = m.labelsAside ? '10rem' : '33%' }
+      // @Compact on an ISLAND (the page's own density class is the host container's: an embedded
+      // compact form never got it): its form layouts carry the density class themselves
+      if (islandCompact) for (const l of layouts) l.densityClass = 'mateu-density-compact'
       return
     }
     if (t === 'FormField') {

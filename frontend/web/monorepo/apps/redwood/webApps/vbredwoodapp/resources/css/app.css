@@ -1431,7 +1431,7 @@ mateu-capture-field { display: block; }
 .mateu-capture-url-box .mateu-capture-preview[hidden] { display: none; }
 .mateu-capture-pad {
   width: 100%; max-width: 35rem; height: 11.25rem; touch-action: none; cursor: crosshair;
-  background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);
+  background: #fff; border: 1px dashed var(--oj-text-field-border-color, #8b8580); /* --oj-core-neutral-contrast is WHITE in this theme */
   border-radius: var(--oj-core-border-radius-md, 6px);
 }
 
@@ -2364,3 +2364,12 @@ oj-collapsible.mateu-collapsible-bordered { border: 1px solid var(--oj-core-divi
 .oj-flex-item:has(> [data-mateu-span="2of4"]) { flex-basis: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; width: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; max-width: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; }
 .oj-flex-item:has(> [data-mateu-span="3of4"]) { flex-basis: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; width: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; max-width: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; }
 .oj-flex-item:has(> [data-mateu-span="4of4"]) { flex-basis: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; width: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; max-width: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; }
+/* @PlainText (rowEditor.layoutFieldOf): one line cut with an ellipsis; @Multiline wraps */
+.mateu-plain-ellipsis .oj-text-field-readonly, .mateu-plain-ellipsis .oj-text-field-input { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+.mateu-plain-multiline .oj-text-field-readonly { white-space: pre-wrap; }
+/* listBox stereotype (a single value): its options as a bordered vertical list */
+oj-radioset.mateu-listbox .oj-radioset-wrapper, oj-radioset.mateu-listbox .oj-choice-row { display: block !important; }
+oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox .oj-form-control-container { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); padding: .25rem .5rem; max-height: 12rem; overflow: auto; }
+/* Spectra rich text editor: our oj-label-value already labels the field — its own (empty) label row was a gap */
+.mateu-rte-spectra oj-label-value.oj-sp-input-rich-text-2-body > .oj-flex > .oj-flex-item:first-child { display: none; }
+.mateu-header-more-badges { display: flex; flex-wrap: wrap; gap: .375rem; padding-inline: var(--oj-sp-header-padding-horizontal, 1.5rem); margin-top: -.5rem; }

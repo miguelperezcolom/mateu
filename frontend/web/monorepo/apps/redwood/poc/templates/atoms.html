@@ -1085,12 +1085,13 @@
                          field is NOT applied: with labels inside, oj-form-layout distributes by CSS columns and an
                          oj-label-value with colspan misaligns its siblings — it needs oj-c-form-layout (core pack). -->
                     <oj-bind-if test="[[ $current.data.isFormLayout ]]">
-                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                      <oj-form-layout class="oj-formlayout-full-width" :class="[[ $current.data.densityClass ]]" max-columns="[[ $current.data.columns ]]" direction="row"
+                        label-edge="[[ $current.data.labelEdge || 'inside' ]]" label-width="[[ $current.data.labelWidth || '33%' ]]"
                         readonly="[[ $current.data.readonly ]]">
                         <oj-bind-for-each data="[[ $current.data.fields ]]">
                           <template>
                             <oj-bind-if test="[[ $current.data.isText ]]">
-                              <oj-input-text
+                              <oj-input-text :class="[[ $current.data.fieldClass ]]"
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   label-hint="[[ $current.data.label ]]"
@@ -1157,7 +1158,7 @@
                             <oj-bind-if test="[[ $current.data.isTextArea ]]">
                               <oj-text-area
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  rows="3"
+                                  rows="3" max-rows="-1"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"

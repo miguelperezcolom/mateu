@@ -6268,6 +6268,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let plain = null
     let elementOrdinal = 0
     let accordionOrdinal = 0
+    // @Compact on this surface's own tree (its root's style carries the StyleConstants.COMPACT marker)
+    const islandCompact = ctx.kind === 'island' && [ctx.tree && ctx.tree.style, ...((ctx.tree && ctx.tree.children) || []).map((c) => c && c.style)]
+      .some((st) => typeof st === 'string' && st.replace(/\s+/g, '').indexOf('--mateu-compact:1') >= 0)
     // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
     let embeddedPageSeen = false
     // the wire node being projected (editor mode only): what an atom or a block made now came from
@@ -6822,6 +6825,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // all read-only (the detail view): the form layout itself goes readonly and JET
         // paints each field as a value, without an input box
         for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
+        // labelsAside (a declared single column of short labels, LabelsAsideInference): the labels go
+        // to the START of each field, in a 10rem column — Redwood's own label-edge="start"
+        for (const l of layouts) { l.labelEdge = m.labelsAside ? 'start' : 'inside'; l.labelWidth = m.labelsAside ? '10rem' : '33%' }
+        // @Compact on an ISLAND (the page's own density class is the host container's: an embedded
+        // compact form never got it): its form layouts carry the density class themselves
+        if (islandCompact) for (const l of layouts) l.densityClass = 'mateu-density-compact'
         return
       }
       if (t === 'FormField') {
@@ -11944,6 +11953,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-select-one, JET answered with the first option and the form saved it unasked.
     const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
     const raw = s[fieldId] != null ? s[fieldId] : fromData
+    // @PlainText: dense read-only TEXT, whatever its type — an amount formatted («€ 1,180.00», it was a
+    // read-only currency box), an option by its label; one line cut with an ellipsis unless @Multiline
+    if (md.stereotype === 'plainText') {
+      const text = fieldWidgetOf({ ...md, stereotype: '', dataType: 'string', options: [], readOnly: true }, data, { lookups: false, value: raw, textWhenEmpty: true })
+      const colspan = Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns))
+      return { ...text, isText: true, readonly: true, value: readOnlyDisplayOf(md, raw, data).text,
+        fieldClass: md.multiline ? 'mateu-plain-multiline' : 'mateu-plain-ellipsis',
+        colspan, colspanAttr: colspan > 1 ? colspan + 'of' + columns : null, placeholder: '', messagesCustom: [] }
+    }
     const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
@@ -11968,8 +11986,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       colspanAttr,
       // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
       placeholder: md.placeholder ? String(md.placeholder) : '',
-      messagesCustom: [],
+      ...helpAsMessageOf(widget),
     }
+  }
+
+  /** @Help, ALWAYS visible under the field (as the web renderer's helper text): JET's help.instruction
+   *  only shows while the field has focus, so the widgets that bind messages-custom carry it as an
+   *  `info` message (and drop the focus-only instruction, or it would be read twice). */
+  function helpAsMessageOf(widget) {
+    const BOUND = widget.isText || widget.isNumber || widget.isTextArea || widget.isDate || widget.isDateTime || widget.isSelect
+    if (!widget.help || !BOUND || widget.readonly) return { messagesCustom: [] }
+    return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: '' }] }
   }
 
   // ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────
@@ -12239,6 +12266,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
     if (st === 'password' && !f.readOnly) return { isPassword: true }
     if (st === 'radio' && options.length) return { isRadio: true }
+    // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
+    if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
     if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
     if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
       return { isCheckboxSet: true }
@@ -27892,7 +27921,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
     // the subtitle line instead — on the header's own row, scrolling and sticking with it
     const stamp = headerTimestampOf(extras.timestamp)
-    const subtitle = [baseSubtitle].concat(moreBadges.map((b) => b.label), [stamp.text]).filter((t) => t).join(' · ')
+    // the other badges are chips of their own under the header (moreBadges), not subtitle text
+    const subtitle = [baseSubtitle].concat([stamp.text]).filter((t) => t).join(' · ')
     const header = {
       // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
       bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
@@ -27911,6 +27941,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       timestamp: stamp.iso,
       // oj-sp's status badge (null = none)
       badge: firstBadge ? { text: firstBadge.label, status: firstBadge.status } : null,
+      moreBadges: moreBadges.map((b, i) => ({ key: String(i), label: b.label, badgeClass: 'oj-badge oj-badge-subtle oj-badge-' + (b.status === 'danger' ? 'danger' : b.status || 'neutral') })),
       // PEER navigation: oj-sp's lateral previous/next item actions. A side without a route is
       // disabled; without a peerNav both stay 'disabled' and the header draws no arrows
       previousItem: peer
