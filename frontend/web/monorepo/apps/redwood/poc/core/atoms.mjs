@@ -465,6 +465,8 @@ export const RICH_ATOM_FLAGS = [
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
   // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
   'isNestedListing',
+  // a long VirtualList (JET's virtualised oj-list-view)
+  'isVirtualList',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

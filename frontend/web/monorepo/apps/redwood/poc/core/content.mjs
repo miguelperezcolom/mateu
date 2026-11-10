@@ -30,6 +30,44 @@ function advertisedIdsOf(tree) {
   return ids
 }
 
+/** Up to this many rows (and no style of its own) a VirtualList is painted inline, item by item. */
+export const VIRTUAL_LIST_INLINE_MAX = 50
+let virtualListSeq = 0
+/** A VirtualList as JET's virtualised oj-list-view: each row its texts and its badges. */
+export function virtualListAtomOf(items, node, interp = (x) => x) {
+  const rowOf = (item, i) => {
+    const texts = []
+    const badges = []
+    const walk = (n) => {
+      if (n == null) return
+      if (typeof n !== 'object') { texts.push(String(n)); return }
+      const md = n.metadata || n
+      if (md.type === 'Badge') { badges.push({ text: interp(String(md.text || md.label || '')), cls: (BADGE_CLASSES[md.color] || 'oj-badge oj-badge-neutral oj-badge-subtle') + ' oj-sm-margin-1x-start' }); return }
+      if (md.type === 'Text' || md.type === 'Element') { if (md.text != null && md.text !== '') texts.push(interp(String(md.text))) }
+      else if (!md.type) {
+        // plain data: its title-ish value, then the rest
+        for (const [k, v] of Object.entries(md)) if (v != null && typeof v !== 'object') texts.push(String(v))
+        return
+      }
+      for (const k of n.children || []) walk(k)
+      for (const k of md.content || []) walk(k)
+    }
+    walk(item)
+    return { id: i, _rowNumber: i, primary: texts[0] || '', rest: texts.slice(1).join(' · '), badges }
+  }
+  const rows = items.map(rowOf)
+  const style = styleObjectOf(node.style || (node.metadata && node.metadata.style)) || {}
+  return {
+    isVirtualList: true,
+    ariaLabel: chromeText('calendarList'),
+    vlId: 'mateuVirtualList' + (++virtualListSeq),
+    rows,
+    provider: dataProviderFactory ? dataProviderFactory(rows) : null,
+    // its own height (it was ignored); without one, a box of a sensible height so it scrolls
+    listStyle: { height: '18rem', ...style, width: '100%' },
+  }
+}
+
 /** A fluent Grid column with an actionId: its cell reads <id>__actionCell = {text, actionId, parameters}. */
 export const GRID_ACTION_CELL_SUFFIX = '__actionCell'
 
@@ -1859,8 +1897,17 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'VirtualList') {
-      // every item through the same visitor (a component), or as a line of text (plain data)
       const items = (m.page && m.page.content) || []
+      // VIRTUALISED, as the component promises: JET's oj-list-view paints only the rows in view
+      // (loadMoreOnScroll) in a box of the list's own height — all 2,000 rows were drawn and the
+      // page grew 57,000px tall. A row is its texts and badges, in a line (an oj-list-view item
+      // template cannot hold arbitrary components: VB templates do not recurse).
+      if (items.length > VIRTUAL_LIST_INLINE_MAX || (node.style || m.style)) {
+        atom(virtualListAtomOf(items, node, interp), container)
+        return
+      }
+      // a short list, unstyled: every item through the same visitor (a component), or as a line
+      // of text (plain data)
       for (const item of items) {
         if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
         else if (item && typeof item === 'object') {

@@ -861,6 +861,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -3599,6 +3618,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -5696,6 +5734,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -7828,6 +7885,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -9925,6 +10001,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -12085,6 +12180,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -14237,6 +14351,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -16340,6 +16473,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -18455,6 +18607,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -20593,6 +20764,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -22701,6 +22891,25 @@
                             </template>
                           </oj-chart>
                         </div>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                        <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                        <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                          data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                          scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                          selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                          <template slot="itemTemplate" data-oj-as="row">
+                            <li>
+                              <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                <oj-bind-for-each data="[[ row.data.badges ]]">
+                                  <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                </oj-bind-for-each>
+                              </div>
+                            </li>
+                          </template>
+                        </oj-list-view>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isMap ]]">
                         <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -24829,6 +25038,25 @@
                           </oj-chart>
                         </div>
                       </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                        <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                        <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                          data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                          scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                          selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                          <template slot="itemTemplate" data-oj-as="row">
+                            <li>
+                              <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                <oj-bind-for-each data="[[ row.data.badges ]]">
+                                  <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                </oj-bind-for-each>
+                              </div>
+                            </li>
+                          </template>
+                        </oj-list-view>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isMap ]]">
                         <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                              OpenStreetMap tiles on this container and fires markerActionId when
@@ -26942,6 +27170,25 @@
                                 </template>
                               </oj-chart>
                             </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                            <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                            <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                              data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                              scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                              selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                              <template slot="itemTemplate" data-oj-as="row">
+                                <li>
+                                  <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                    <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                    <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                    <oj-bind-for-each data="[[ row.data.badges ]]">
+                                      <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </li>
+                              </template>
+                            </oj-list-view>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isMap ]]">
                             <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -29312,6 +29559,25 @@
                                 </oj-chart>
                               </div>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                              <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                              <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                                data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                                scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                                selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                                <template slot="itemTemplate" data-oj-as="row">
+                                  <li>
+                                    <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                      <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                      <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                      <oj-bind-for-each data="[[ row.data.badges ]]">
+                                        <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </li>
+                                </template>
+                              </oj-list-view>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isMap ]]">
                               <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                                    OpenStreetMap tiles on this container and fires markerActionId when
@@ -31425,6 +31691,25 @@
                                   </template>
                                 </oj-chart>
                               </div>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                              <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                              <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                                data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                                scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                                selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                                <template slot="itemTemplate" data-oj-as="row">
+                                  <li>
+                                    <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                      <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                      <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                      <oj-bind-for-each data="[[ row.data.badges ]]">
+                                        <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </li>
+                                </template>
+                              </oj-list-view>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isMap ]]">
                               <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -33564,6 +33849,25 @@
                                   </template>
                                 </oj-chart>
                               </div>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                              <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                              <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                                data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                                scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                                selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                                <template slot="itemTemplate" data-oj-as="row">
+                                  <li>
+                                    <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                      <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                      <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                      <oj-bind-for-each data="[[ row.data.badges ]]">
+                                        <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </li>
+                                </template>
+                              </oj-list-view>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isMap ]]">
                               <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -35926,6 +36230,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -38029,6 +38352,25 @@
                           </oj-chart>
                         </div>
                       </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                        <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                        <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                          data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                          scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                          selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                          <template slot="itemTemplate" data-oj-as="row">
+                            <li>
+                              <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                <oj-bind-for-each data="[[ row.data.badges ]]">
+                                  <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                </oj-bind-for-each>
+                              </div>
+                            </li>
+                          </template>
+                        </oj-list-view>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isMap ]]">
                         <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                              OpenStreetMap tiles on this container and fires markerActionId when
@@ -40131,6 +40473,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -42260,6 +42621,25 @@
                   </oj-chart>
                 </div>
               </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                  data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                  scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                  selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                  <template slot="itemTemplate" data-oj-as="row">
+                    <li>
+                      <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                        <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                        <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ row.data.badges ]]">
+                          <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                        </oj-bind-for-each>
+                      </div>
+                    </li>
+                  </template>
+                </oj-list-view>
+              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isMap ]]">
                 <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                      OpenStreetMap tiles on this container and fires markerActionId when
@@ -44373,6 +44753,25 @@
                     </template>
                   </oj-chart>
                 </div>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                  data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                  scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                  selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                  <template slot="itemTemplate" data-oj-as="row">
+                    <li>
+                      <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                        <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                        <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ row.data.badges ]]">
+                          <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                        </oj-bind-for-each>
+                      </div>
+                    </li>
+                  </template>
+                </oj-list-view>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isMap ]]">
                 <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -46501,6 +46900,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -48961,6 +49379,25 @@
                               </template>
                             </oj-chart>
                           </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                          <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                          <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                            data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                            scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                            selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                            <template slot="itemTemplate" data-oj-as="row">
+                              <li>
+                                <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                  <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                  <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                  <oj-bind-for-each data="[[ row.data.badges ]]">
+                                    <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </li>
+                            </template>
+                          </oj-list-view>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isMap ]]">
                           <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -51479,6 +51916,25 @@
                             </oj-chart>
                           </div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                          <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                          <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                            data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                            scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                            selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                            <template slot="itemTemplate" data-oj-as="row">
+                              <li>
+                                <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                  <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                  <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                  <oj-bind-for-each data="[[ row.data.badges ]]">
+                                    <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </li>
+                            </template>
+                          </oj-list-view>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isMap ]]">
                           <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                                OpenStreetMap tiles on this container and fires markerActionId when
@@ -53982,6 +54438,25 @@
                             </oj-chart>
                           </div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                          <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                          <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                            data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                            scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                            selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                            <template slot="itemTemplate" data-oj-as="row">
+                              <li>
+                                <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                  <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                  <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                  <oj-bind-for-each data="[[ row.data.badges ]]">
+                                    <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </li>
+                            </template>
+                          </oj-list-view>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isMap ]]">
                           <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                                OpenStreetMap tiles on this container and fires markerActionId when
@@ -56464,6 +56939,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -58559,6 +59053,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -61488,6 +62001,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -63583,6 +64115,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -65759,6 +66310,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -67856,6 +68426,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -69969,6 +70558,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -72066,6 +72674,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -74230,6 +74857,25 @@
                                 </template>
                               </oj-chart>
                             </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                            <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                            <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                              data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                              scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                              selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                              <template slot="itemTemplate" data-oj-as="row">
+                                <li>
+                                  <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                                    <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                                    <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                                    <oj-bind-for-each data="[[ row.data.badges ]]">
+                                      <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </li>
+                              </template>
+                            </oj-list-view>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isMap ]]">
                             <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
@@ -76609,6 +77255,25 @@
                       </oj-chart>
                     </div>
                   </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                    <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                    <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                      data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                      scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                      selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                      <template slot="itemTemplate" data-oj-as="row">
+                        <li>
+                          <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                            <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                            <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                            <oj-bind-for-each data="[[ row.data.badges ]]">
+                              <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                            </oj-bind-for-each>
+                          </div>
+                        </li>
+                      </template>
+                    </oj-list-view>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isMap ]]">
                     <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                          OpenStreetMap tiles on this container and fires markerActionId when
@@ -78725,6 +79390,25 @@
                       </oj-chart>
                     </div>
                   </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                    <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                    <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                      data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                      scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                      selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                      <template slot="itemTemplate" data-oj-as="row">
+                        <li>
+                          <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                            <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                            <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                            <oj-bind-for-each data="[[ row.data.badges ]]">
+                              <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                            </oj-bind-for-each>
+                          </div>
+                        </li>
+                      </template>
+                    </oj-list-view>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isMap ]]">
                     <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                          OpenStreetMap tiles on this container and fires markerActionId when
@@ -80823,6 +81507,25 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
                            OpenStreetMap tiles on this container and fires markerActionId when
@@ -82920,6 +83623,25 @@
                           </template>
                         </oj-chart>
                       </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isVirtualList ]]">
+                      <!-- VirtualList: JET's oj-list-view paints only the rows in view, in a box of the list's height -->
+                      <oj-list-view class="mateu-virtual-list oj-sm-margin-2x-bottom" :id="[[ $current.data.vlId ]]"
+                        data="[[ $current.data.provider ]]" :style="[[ $current.data.listStyle ]]"
+                        scroll-policy="loadMoreOnScroll" scroll-policy-options.fetch-size="40"
+                        selection-mode="none" gridlines.item="visible" :aria-label="[[ $current.data.ariaLabel ]]">
+                        <template slot="itemTemplate" data-oj-as="row">
+                          <li>
+                            <div class="oj-flex oj-sm-align-items-center mateu-virtual-row">
+                              <span class="oj-typography-body-md oj-sm-margin-4x-end"><oj-bind-text value="[[ row.data.primary ]]"></oj-bind-text></span>
+                              <span class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ row.data.rest ]]"></oj-bind-text></span>
+                              <oj-bind-for-each data="[[ row.data.badges ]]">
+                                <template><span :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></template>
+                              </oj-bind-for-each>
+                            </div>
+                          </li>
+                        </template>
+                      </oj-list-view>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
                       <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
