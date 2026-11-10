@@ -66,6 +66,16 @@ public record PageMetadataDto(
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];
     public IReadOnlyList<FabDto> Fabs { get; init; } = [];
+    /// <summary>The page's avatar ([Avatar] property / IAvatarSupplier); null — and omitted — when
+    /// it declares none. (Mirrors io.mateu.dtos.PageDto.avatar.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ComponentDto? Avatar { get; init; }
+    /// <summary>The page's header block ([Header] properties / IHeaderSupplier). (Mirrors
+    /// io.mateu.dtos.PageDto.header.)</summary>
+    public IReadOnlyList<ComponentDto> Header { get; init; } = [];
+    /// <summary>The page's footer block ([Footer] properties / IFooterSupplier). (Mirrors
+    /// io.mateu.dtos.PageDto.footer.)</summary>
+    public IReadOnlyList<ComponentDto> Footer { get; init; } = [];
     /// <summary>Previous/next peer-object arrows in the page header; null when the page supplies
     /// none. (Mirrors io.mateu.dtos.PageDto.peerNav.)</summary>
     public PeerNavDto? PeerNav { get; init; }

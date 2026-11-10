@@ -125,7 +125,7 @@ internal sealed partial class SyncHandler
         || (raw is JsonElement { ValueKind: JsonValueKind.String } el && target != typeof(string)
             && string.IsNullOrWhiteSpace(el.GetString()));
 
-    private static object? ConvertValue(object raw, Type target)
+    internal static object? ConvertValue(object raw, Type target)
     {
         target = Nullable.GetUnderlyingType(target) ?? target;
         if (raw is not JsonElement el) return raw;

@@ -1,0 +1,98 @@
+{
+  "commands" : [ {
+    "data" : "Order",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "colspan" : 1,
+          "dataType" : "status",
+          "fieldId" : "status",
+          "label" : "Status",
+          "options" : [ {
+            "label" : "Open",
+            "value" : "OPEN"
+          }, {
+            "label" : "Shipped",
+            "value" : "SHIPPED"
+          } ],
+          "stereotype" : "regular",
+          "type" : "FormField"
+        },
+        "type" : "ClientSide"
+      }, {
+        "metadata" : {
+          "colspan" : 1,
+          "dataType" : "money",
+          "fieldId" : "total",
+          "label" : "Total",
+          "stereotype" : "regular",
+          "type" : "FormField"
+        },
+        "type" : "ClientSide"
+      }, {
+        "metadata" : {
+          "colspan" : 1,
+          "dataType" : "string",
+          "fieldId" : "contact",
+          "label" : "Contact e-mail",
+          "placeholder" : "name@example.com",
+          "required" : true,
+          "stereotype" : "email",
+          "type" : "FormField"
+        },
+        "type" : "ClientSide"
+      }, {
+        "metadata" : {
+          "autoFocusOnSearchText" : true,
+          "columns" : [ {
+            "metadata" : {
+              "autoWidth" : true,
+              "dataType" : "status",
+              "label" : "Status",
+              "stereotype" : "regular",
+              "tones" : {
+                "OPEN" : "warning",
+                "SHIPPED" : "success"
+              },
+              "type" : "GridColumn"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "align" : "end",
+              "autoWidth" : true,
+              "dataType" : "money",
+              "label" : "Amount",
+              "stereotype" : "regular",
+              "type" : "GridColumn"
+            },
+            "type" : "ClientSide"
+          } ],
+          "crudlType" : "table",
+          "filtersLayout" : "auto",
+          "gridLayout" : "auto",
+          "pageSize" : 10,
+          "rowsSource" : {
+            "itemsPath" : "items",
+            "url" : "https://api.example/lines"
+          },
+          "searchOnEnter" : true,
+          "searchable" : false,
+          "title" : "Lines",
+          "type" : "Crud"
+        },
+        "sizing" : "fill",
+        "type" : "ClientSide"
+      } ],
+      "metadata" : {
+        "type" : "VerticalLayout"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

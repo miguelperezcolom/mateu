@@ -15,6 +15,8 @@ from .messages import BannerTheme
 class _Banner:
     theme: BannerTheme
     title: str | None
+    closeable: bool = False
+    timeout_seconds: int = 0
 
 
 @dataclass(frozen=True)
@@ -50,6 +52,7 @@ class _Fab:
     icon: str
     label: str | None
     order: int
+    button_style: str = "primary"
 
 
 @dataclass(frozen=True)
@@ -842,6 +845,66 @@ def mobile_app(
             "oidc_client_id": oidc_client_id,
             "scopes": list(scopes) if scopes else [],
         })
+        return cls
+
+    return deco
+
+
+def wizard_labels(back: str = "", next: str = "") -> Callable[[type], type]:  # noqa: A002
+    """Class-level, on a Wizard: the words of its built-in Back and Next buttons (blank keeps
+    "Back" / "Next") — Java's ``@WizardLabels``."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_wizard_labels__ = (back or "", next or "")  # type: ignore[attr-defined]
+        return cls
+
+    return deco
+
+
+def style(value: str) -> Callable[[type], type]:
+    """Class-level: inline CSS of the page's component (Java's class ``@Style``). The field-level
+    twin is the ``Style(...)`` marker."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_style__ = value  # type: ignore[attr-defined]
+        return cls
+
+    return deco
+
+
+def css_classes(value: str) -> Callable[[type], type]:
+    """Class-level: CSS classes of the page's component (Java's class ``@CssClasses``)."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_css_classes__ = value  # type: ignore[attr-defined]
+        return cls
+
+    return deco
+
+
+def rule(
+    filter: str,  # noqa: A002
+    action: str,
+    field_name: str | None = None,
+    field_attribute: str | None = None,
+    value: object | None = None,
+    expression: str | None = None,
+    result: str = "Continue",
+    action_id: str | None = None,
+) -> Callable[[type], type]:
+    """Class-level, repeatable: a client-side rule declared once for the whole form (Java's class
+    ``@Rule``) — the same members as the :class:`~mateu_ui.uidl.Rule` marker, e.g.
+    ``@rule("state.total > 100", "SetDataValue", field_name="discount", field_attribute="hidden",
+    expression="false")``."""
+    from .markers import Rule
+
+    def deco(cls: type) -> type:
+        existing = list(cls.__dict__.get("__mateu_rules__", ()))
+        # decorators apply bottom-up: prepend so the declaration order is kept
+        cls.__mateu_rules__ = [  # type: ignore[attr-defined]
+            Rule(filter, action, field_name, field_attribute, value, expression, result, action_id),
+            *existing,
+        ]
         return cls
 
     return deco

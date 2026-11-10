@@ -1,0 +1,9 @@
+# The case's own route table: one definition-only page whose components carry access keys.
+# (No seed for the eyesOnly field: whether an authored seed of a hidden field travels is not what
+# the case pins.)
+routes:
+  - route: staff
+    layout: staff.yaml
+    state:
+      name: Ada
+      salary: 1000

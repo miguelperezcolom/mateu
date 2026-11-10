@@ -244,8 +244,15 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             **_box(node),
         )
     if kind == "FormLayout":
-        # Python has no standalone FormLayout fluent — a stacked VerticalLayout is a faithful preview.
-        return fluent.VerticalLayout(content=_children(node, partials, chain))
+        return fluent.FormLayout(
+            content=_children(node, partials, chain),
+            max_columns=_int(node.get("maxColumns")),
+            auto_responsive=bool(node.get("autoResponsive", False)),
+            labels_aside=bool(node.get("labelsAside", False)),
+            column_width=_str(node.get("columnWidth")),
+            expand_columns=bool(node.get("expandColumns", False)),
+            **_box(node),
+        )
     if kind == "FormField":
         return fluent.FormField(
             field_id=node.get("id", ""),  # YAML id → wire binding key field_id
@@ -255,6 +262,8 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             required=bool(node.get("required", False)),
             read_only=bool(node.get("readOnly", False)),
             options=_options(node.get("options")),
+            placeholder=_str(node.get("placeholder")),
+            property_row=bool(node.get("propertyRow", False)),
             style=node.get("style"),
             css_classes=node.get("cssClasses"),
             # Java's FormField record read from YAML: an absent number is 0 (the code builder's
@@ -516,14 +525,17 @@ def _rest_source_of(node: dict, key: str):
     return RestDataSource(
         ref=str(raw.get("ref") or "").strip(),
         url=str(raw.get("url") or ""),
-        method=str(raw.get("method") or "GET"),
+        # what the node declares and nothing else, like Java's record read from YAML: an absent
+        # method / mapping path travels as absent (the readers default it), and a ref keeps the
+        # catalogue entry's own value instead of a default overriding it
+        method=str(raw.get("method") or ""),
         # the server's copy keeps them (a proxied call injects ${secret.X} into them); a proxied
         # source's headers never reach the client (the wire serializer drops them)
         headers={str(k): str(v) for k, v in headers.items()} if isinstance(headers, dict) else {},
         body=str(raw.get("body") or ""),
         items_path=str(raw.get("itemsPath") or raw.get("items_path") or ""),
-        value_path=str(raw.get("valuePath") or raw.get("value_path") or "value"),
-        label_path=str(raw.get("labelPath") or raw.get("label_path") or "label"),
+        value_path=str(raw.get("valuePath") or raw.get("value_path") or ""),
+        label_path=str(raw.get("labelPath") or raw.get("label_path") or ""),
         proxy=bool(raw.get("proxy", False)),
     )
 

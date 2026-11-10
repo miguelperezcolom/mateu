@@ -143,6 +143,7 @@ from mateu_ui.dtos import (
     TimelineMetadata,
     TrendChartMetadata,
     VerticalLayoutMetadata,
+    FormLayoutMetadata,
 )
 from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl import RecordSwitcherSupplier
@@ -444,6 +445,19 @@ class ComponentMapperMixin(MixinBase):
             )
             out.children = [self.map_component(child) for child in c.content]
             return out
+        if isinstance(c, fluent.FormLayout):
+            out = self._fluent_client(
+                FormLayoutMetadata(
+                    max_columns=c.max_columns if c.max_columns > 0 else 100,
+                    auto_responsive=c.auto_responsive,
+                    expand_columns=c.expand_columns,
+                    column_width=c.column_width,
+                    labels_aside=c.labels_aside,
+                ),
+                c,
+            )
+            out.children = [self.map_component(child) for child in c.content]
+            return out
         if isinstance(c, fluent.HorizontalLayout):
             out = self._fluent_client(
                 HorizontalLayoutMetadata(spacing=c.spacing, wrap=c.wrap, full_width=c.full_width), c
@@ -482,6 +496,7 @@ class ComponentMapperMixin(MixinBase):
                     options_columns=c.options_columns,
                     css_classes=c.css_classes,
                     options_source=self._fluent_rest_source(c.options_source),
+                    property_row=c.property_row,
                 ),
                 c,
             )
@@ -1285,7 +1300,12 @@ class ComponentMapperMixin(MixinBase):
         if isinstance(view, fluent.Component):
             return self.map_component(view)
         cls = type(view)
-        route = "/" + normalize(getattr(cls, "__mateu_ui__", ""))
+        from .view import HOST_ROUTE
+
+        own = getattr(cls, "__mateu_ui__", None)
+        host = HOST_ROUTE.get()
+        # a view with no route of its own answers on the host's (Java's consumed route)
+        route = "/" + normalize(own) if own is not None or host is None else host
         # an object a ComponentAdapter renders is drawn BY ITS ADAPTER, as it is as a route or a
         # form field (it used to be reflected field by field — no adapter components or actions)
         adapter = self.adapter_of(view)
@@ -1304,6 +1324,12 @@ class ComponentMapperMixin(MixinBase):
 
         if not isinstance(view, ComponentTreeSupplier):
             breadcrumbs_off(mapped, deep=False)
+        # what a page of its own carries in its fragment's data (a lookup's label…) travels WITH
+        # the island, which has no fragment of its own (Java's islandData)
+        island_data = getattr(self, "island_data", None)
+        data = island_data(view) if callable(island_data) else None
+        if data:
+            mapped = mapped.model_copy(update={"data": data})
         return mapped
 
     def _comment(self, cm) -> CommentRecord:

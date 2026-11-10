@@ -1,0 +1,2 @@
+content:
+  - {type: FormField, id: phone, label: Phone, dataType: string}

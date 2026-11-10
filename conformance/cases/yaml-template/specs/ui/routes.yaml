@@ -1,0 +1,8 @@
+# The case's own route table: one definition-only page that fills a page template.
+routes:
+  - route: people/1
+    layout: person.yaml
+    state:
+      name: Luke
+      gender: male
+      height: 172

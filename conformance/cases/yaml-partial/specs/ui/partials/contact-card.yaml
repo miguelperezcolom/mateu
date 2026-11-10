@@ -1,0 +1,5 @@
+# Fragments compose: this one declares itself with `type: Partial` and uses another.
+type: Partial
+content:
+  - {type: Text, text: Contact}
+  - {type: Partial, ref: phone-line}
