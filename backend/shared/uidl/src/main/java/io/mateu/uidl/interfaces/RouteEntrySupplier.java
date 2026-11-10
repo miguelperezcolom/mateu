@@ -23,10 +23,10 @@ import java.util.List;
  * supplied entry replaces an annotation-derived one for the same route outright, never field by
  * field.
  *
- * <p><strong>Routes are absolute.</strong> A bean is not tied to a mount, so an entry for a screen of
- * a non-root {@code @UI("/chain")} app names the mount in front: {@code chain/hotels/:code} is what
- * the app's mount-relative link {@code /hotels/palma} opens. Without it ({@code hotels/:code}) the
- * entry belongs to the ROOT mount and the {@code /chain} app answers "Page not found".
+ * <p><strong>Routes are absolute.</strong> A bean is not tied to a mount, so an entry for a screen
+ * of a non-root {@code @UI("/chain")} app names the mount in front: {@code chain/hotels/:code} is
+ * what the app's mount-relative link {@code /hotels/palma} opens. Without it ({@code hotels/:code})
+ * the entry belongs to the ROOT mount and the {@code /chain} app answers "Page not found".
  *
  * <p>Like every server-side supplier, an implementation builds its entries from what the SERVER
  * holds and never from the request or the component state.

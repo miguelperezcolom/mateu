@@ -90,6 +90,12 @@ test('a field-less page draws its own @Button row (no generic form would)', () =
   assert.deepEqual(itemsOf(blocks).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((b) => b.label)), ['Update 5 rate plans'])
 })
 
+test('a @Button label follows the state, like a title (Charge ${state.nights} nights)', () => {
+  const tree = ss('p', 'demo.Rate', [cs({ type: 'Page', title: 'Rate', buttons: [{ actionId: 'charge', label: 'Charge ${state.nights} nights' }] })])
+  const blocks = hostContentOf({ tree, state: { nights: 3 }, data: {} }, null, { title: 'Rate' })
+  assert.deepEqual(itemsOf(blocks).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((b) => b.label)), ['Charge 3 nights'])
+})
+
 test('a page\'s FABs are FABs, not also buttons of the content', () => {
   const tree = ss('p', 'demo.Board', [cs({ type: 'Page', title: 'Rooms', fabs: [{ actionId: 'markClean', label: 'Mark clean' }],
     buttons: [{ actionId: 'go', label: 'Go' }] }, [cs({ type: 'Badge', text: 'x' })])])

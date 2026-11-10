@@ -204,4 +204,5 @@ test('Ctrl+K / ⌘K is the palette key', async () => {
   assert.ok(!isPaletteKey({ key: 'k' }))
 })
 
+
 console.log(`test-explorer-w4: ${passed} passed`)

@@ -562,14 +562,14 @@ renderers, and its children still render.
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
 | `Notification` | ✅ | an info band (title — text); action messages show as toasts |
 | `OfferCard` | ✅ |  |
-| `OrgChart` | ✅ | the tree as an indented outline (VB templates cannot recurse) with oj-avatar; nodes with an action are oj-action-cards (_clickedNode) |
+| `OrgChart` | ✅ | display tree: every level as an indented outline (VB templates cannot recurse) with oj-avatar and node accents; display focus: Spectra's hierarchy viewer; nodes with an action are oj-action-cards (_clickedNode) |
 | `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners, status badge, peer arrows, timestamp; overline + title placeholder drawn over it) |
 | `PaymentPicker` | ✅ |  |
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
 | `Popover` | ✅ | trigger + the content WITH its structure (headings, lists, links, badges, markdown) as sanitised HTML in a shared oj-popup (hover/focus or click) |
 | `PricingTable` | ✅ | oj-panel plans (the featured one highlighted), CTA oj-button |
 | `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
-| `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
+| `ProgressBar` | ✅ | oj-c-progress-bar coloured by tone (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
 | `RecordMerge` | ✅ | compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button |
 | `ResourceGrid` | ✅ |  |
@@ -588,7 +588,7 @@ renderers, and its children still render.
 | `Timeline` | ✅ | oj-timeline is deprecated: a Redwood list with markers whose events are Spectra's oj-sp-timeline-event-template; an item's action is its template action menu (_clickedItem) |
 | `Tooltip` | ✅ | the wrapped component keeps its view; the text opens in the shared oj-popup on hover/focus (on the button itself, or an info marker) |
 | `TrendChart` | ✅ | oj-chart line/area |
-| `VirtualList` | ✅ | every item through the same projection (no windowing — neither has the neutral web renderer) |
+| `VirtualList` | ✅ | a long or sized list is JET's virtualised oj-list-view in its declared height (each row as its texts and badges); a short one goes through the same projection as any content |
 | `BoardLayout` | ✅ layout | rows of column-blocks by boardCols |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |

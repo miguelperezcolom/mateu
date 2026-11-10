@@ -6529,7 +6529,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = m.route ? buttonRouteOf(m.route, state) : null
       return {
         actionId: m.actionId,
-        label: m.label || m.actionId,
+        // `Charge ${state.nights} nights`: a label follows the state like a title does
+        label: (m.label ? interp(m.label) : '') || m.actionId,
         disabled: !!m.disabled || (!!m.route && route == null),
         ...buttonLookOf(m),
         parameters: m.parameters || {},
