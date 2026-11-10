@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event,actionId,parameters,surfaceId}){await Actions.callChain(context,{chain:"dispatchHostBlockAction",params:{actionId,parameters:bridge.paymentParametersOf(event&&event.target,parameters),surfaceId:surfaceId||""}})}};});
+//# sourceMappingURL=paymentConfirmed.js.map
