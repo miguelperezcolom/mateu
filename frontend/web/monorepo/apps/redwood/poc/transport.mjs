@@ -12,11 +12,12 @@ import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { chromeText } from './i18n.mjs'
-import { noteDocumentBase } from './files.mjs'
+import { noteDocumentBase, noteRegistry } from './files.mjs'
 import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
 import { noteProgress, progressCommandsOf, withoutProgressCommands, isEmptyIncrement, setTaskTransport, recoverUnfinishedTasks } from './tasks.mjs'
 import { noteDetachedMessages } from './inbox.mjs'
+import { pageFlowOf } from './shellFlows.mjs'
 
 /** An absolute base url on another origin than the page's (false outside a browser). */
 export function isForeignBase(base) {
@@ -692,20 +693,29 @@ export async function runSurfaceAction(reg, surfaceId, actionId, parameters, ext
   const ctx = reg && reg.contexts && reg.contexts[surfaceId]
   if (!ctx || !actionId) return reg
   const outbound = ctx.outbound || {}
-  const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
-    { ...extra, parameters: parameters || {} })
+  // OWNER FIRST, then the app's action catalogue: a flow (`steps`) the surface declares — or the
+  // catalogue's, when it does not declare the id — runs HERE, with no round trip (like the host's,
+  // runMateuAction's pageFlowOf): a catalogue «Go to the home» inside an embedded page navigated
+  // nowhere, the server got it instead
+  const flow = pageFlowOf(reg, actionId, { state: { ...(ctx.state || {}), ...(parameters || {}) }, appState: extra.appState || {} }, surfaceId)
+  const increment = flow
+    ? { commands: flow, fragments: [], messages: [] }
+    : await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+      { ...extra, parameters: parameters || {} })
   if (!increment) return reg
   // the increment is reduced AS the surface's (initiator): its MarkAsClean/Dirty land on it and the
   // bus events it emits carry it as their source
   let next = reduceContexts(reg, increment, { initiator: surfaceId })
   const toasts = [...(next.effects.toasts || [])]
+  // where the surface's answer (or flow) sends the page: the reductions below must not lose it
+  const navigate = next.effects.navigate || null
   // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
   // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
   next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
   toasts.push(...(next.effects.toasts || []))
   // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
   next = await ensureInlineIslands(outbound.baseUrl, next, extra)
-  return { ...next, effects: { ...next.effects, toasts } }
+  return { ...next, effects: { ...next.effects, toasts, navigate: navigate || next.effects.navigate || null } }
 }
 
 /**
@@ -777,6 +787,8 @@ export async function ensureInlineIslands(base, reg, extra = {}) {
   for (const inline of inlineIslandsOf(host && host.tree)) {
     if (!next.contexts[inline.id]) next = await registerInlineIsland(base, next, inline, extra)
   }
+  // new surfaces on the page: their shortcuts and rules count from now on (keys.mjs, rules.mjs)
+  if (next !== reg) noteRegistry(next)
   return next
 }
 
@@ -860,6 +872,7 @@ export async function loadSubresources(base, reg, blocks, extra = {}) {
       next = await loadSubresource(base, next, sub, extra)
     } catch (ignored) { /* the error band already reports it (onSettle) */ }
   }
+  if (next !== reg) noteRegistry(next)
   return next
 }
 

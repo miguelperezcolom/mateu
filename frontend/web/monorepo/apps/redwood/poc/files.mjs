@@ -197,6 +197,12 @@ export function installPrintSupport(win = globalThis.window) {
 let afterReduce = null
 export function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
 
+/** A registry that changed WITHOUT a reduction of the page (inline islands registered, surfaces
+ *  loaded): what reads the registry after every reduction (the rules, the shortcuts…) sees it too. */
+export function noteRegistry(reg) {
+  if (reg && reg.contexts && afterReduce) afterReduce(reg)
+}
+
 /** Applies a reduction's DOM effects. Returns how many downloads it launched. */
 export function applyDomEffects(effects, reg, env = globalThis) {
   if (reg && reg.contexts && afterReduce) afterReduce(reg)

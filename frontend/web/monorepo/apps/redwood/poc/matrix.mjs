@@ -7,6 +7,7 @@
 //     (ojBeforeEditEnd) the new value, if it changed, goes out through editActionId;
 //   - a linking cell: click → cellActionId. Both with { _rowId, _columnId, _value }.
 import { panelExpanded, setPanelExpanded, matrixSectionKey } from './reduceContexts.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 let matrixSink = null
 /** Who runs the action (the shell reuses the Elements' sink). */
@@ -44,13 +45,13 @@ export function installMatrixGrids(doc = typeof document !== 'undefined' ? docum
     const before = input.getAttribute('data-mx-value')
     const after = input.value
     if (!matrixEditChanged(before, after)) return
-    matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), {})
+    matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), surfaceAtomOf(grid))
   }, true)
   doc.addEventListener('click', (e) => {
     const link = e.target && e.target.closest ? e.target.closest('[data-mx-link="true"]') : null
     const grid = gridOf(link)
     if (!link || !grid || !matrixSink || !grid.dataset.cellAction) return
-    matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), {})
+    matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), surfaceAtomOf(grid))
   }, true)
 }
 

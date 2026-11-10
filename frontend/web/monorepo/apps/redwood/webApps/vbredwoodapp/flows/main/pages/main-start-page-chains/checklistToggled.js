@@ -4,9 +4,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -19,12 +21,14 @@ define([
      * @param {Object} params.parameters   {_item, _done} precomputed by checklistAtomOf
      * @param {string} params.updatedFrom
      * @param {string} params.variant      'host' | 'island'
+     * @param {string} params.surfaceId    the surface the checklist belongs to (an inline island…)
+     * @param {Object} params.event        the oj-checkboxset's valueChanged (its surface, from the DOM)
      */
-    async run(context, { actionId, parameters, updatedFrom, variant }) {
+    async run(context, { actionId, parameters, updatedFrom, variant, surfaceId, event }) {
       if (!actionId || (updatedFrom && updatedFrom !== 'internal')) return;
       await Actions.callChain(context, {
         chain: variant === 'island' ? 'dispatchIslandAction' : 'dispatchHostBlockAction',
-        params: { actionId, parameters },
+        params: { actionId, parameters, surfaceId: surfaceId || bridge.surfaceOfEvent(event) },
       });
     }
   }

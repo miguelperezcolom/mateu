@@ -47,6 +47,13 @@ define([
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
       }
+      // a NavigateTo of the surface (its server answer, or a client flow it ran): the page's router
+      const navigate = reg.effects && reg.effects.navigate;
+      if (navigate && navigate.url) {
+        window.open(navigate.url, '_blank', 'noopener');
+      } else if (navigate && navigate.route && !bridge.leftMountFor(navigate, $application.variables.mateuRegistry)) {
+        await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: navigate.route, force: true } });
+      }
     }
   }
 

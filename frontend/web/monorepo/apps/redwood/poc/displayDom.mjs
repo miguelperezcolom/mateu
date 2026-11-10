@@ -3,6 +3,7 @@ import { streamChat, buildChatBody, chatMarkdownToHtml, chatStatusText, chatTurn
 import { sanitizeHtml } from './richtext.mjs'
 import { authHeadersOf, askForReauthentication } from './resilience.mjs'
 import { hasConsentCookie, customComponentMountOf } from './reduceContexts.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
 // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
@@ -451,7 +452,7 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
     if (!button || !factActionSink) return
     let parameters = {}
     try { parameters = JSON.parse(button.getAttribute('data-mateu-fact-parameters') || '{}') || {} } catch (err) { parameters = {} }
-    factActionSink(button.getAttribute('data-action-id'), parameters, {})
+    factActionSink(button.getAttribute('data-action-id'), parameters, surfaceAtomOf(button))
   })
   const root = doc.body || doc.documentElement
   for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
@@ -534,7 +535,7 @@ export function installScoreboards(doc = typeof document !== 'undefined' ? docum
     if (!host || !scoreboardSink) return
     const key = e.detail && e.detail.context ? e.detail.context.key : null
     const run = scoreboardDrillInOf(atomOf(host), key)
-    if (run) scoreboardSink(run[0], run[1], run[2])
+    if (run) scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2]))
   }, true)
   if (typeof MutationObserver === 'undefined') return
   const root = doc.body || doc.documentElement

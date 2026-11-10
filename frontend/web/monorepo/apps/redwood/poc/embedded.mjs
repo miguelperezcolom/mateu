@@ -517,7 +517,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
   'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-  'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
+  'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter', 'installRowSelection',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -525,6 +525,7 @@ export const CONTENT_ACTION_SINKS = Object.freeze([
   'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
   'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
   'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
+  'setRowSelectSink',
 ])
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -587,7 +588,7 @@ export function installEmbeddedContentRuntime(b, runtime) {
     b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
   }
   if (typeof b.setKanbanMoveSink === 'function') {
-    b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
+    b.setKanbanMoveSink(({ key, move, surfaceId }) => runtime.fireEvent('application:mateuKanbanMove', { key, move, surfaceId: surfaceId || '' }))
   }
   // the document-level listeners once per page; the sinks and hooks above/below follow the
   // CURRENT component (a new <mateu-ui> takes them over)

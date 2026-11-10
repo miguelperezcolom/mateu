@@ -1018,7 +1018,8 @@
       "description": "a card of a movable kanban board was dropped elsewhere or moved from its select (installKanbans): the content page paints it and runs the board's moveActionId",
       "payloadType": {
         "key": "string",
-        "move": "object"
+        "move": "object",
+        "surfaceId": "string"
       }
     },
     "mateuTilesReordered": {
