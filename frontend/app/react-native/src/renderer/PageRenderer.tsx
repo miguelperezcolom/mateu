@@ -1,3 +1,5 @@
+import { buttonGroupMembers } from '../core/buttonGroup';
+import { GroupMenuButton } from './GroupMenuButton';
 import { badgeLook } from '../ui/looks';
 import { materialIconOf } from '../ui/wireIcons';
 import { bodyRepeatsBar } from '../core/barTitle';
@@ -208,6 +210,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           {toolbar.length > 0 && (
             <View style={styles.toolbar}>
               {toolbar.map((btn, i) => {
+                // a ButtonGroup ("More actions"): a menu of its buttons
+                const members = buttonGroupMembers(btn as Record<string, unknown>);
+                if (members) return <GroupMenuButton key={i} group={btn as Record<string, unknown>} members={members} ctx={ctx} run={(a, p) => void controller.runAction(a, p)} />;
                 const id = btn.actionId ?? btn.id ?? '';
                 const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
                 const disabled = !!btn.disabled || press.disabled;

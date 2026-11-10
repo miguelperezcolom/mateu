@@ -1,3 +1,5 @@
+import { buttonGroupMembers } from '../core/buttonGroup';
+import { GroupMenuButton } from './GroupMenuButton';
 import { bodyRepeatsBar } from '../core/barTitle';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -92,6 +94,8 @@ export function FormRenderer({ component, metadata, state }: Props) {
           {(toolbar.length > 0 || (!readOnly && declared.length > 0)) && (
             <View style={styles.actionBar}>
               {(readOnly ? toolbar : actions).map((a, i) => {
+                const members = buttonGroupMembers(a as Record<string, unknown>);
+                if (members) return <GroupMenuButton key={i} group={a as Record<string, unknown>} members={members} ctx={{ state }} run={(x, p) => void controller.runAction(x, p)} />;
                 const id = a.actionId ?? a.id ?? '';
                 // Only a button the server marks primary looks primary: a row of equally loud
                 // buttons has no hierarchy (Refactoring UI, "not every button is primary").
