@@ -301,7 +301,8 @@ class LayoutMapperMixin(MixinBase):
 
     @staticmethod
     def tab_groups(fields) -> list[dict]:
-        """Consecutive fields sharing a Tab name, as ``{name, open, key, show, fields}`` groups."""
+        """Consecutive fields sharing a Tab name, as ``{name, open, key, show, shortcut, fields}``
+        groups."""
         groups: list[dict] = []
         current = "Tab"
         for f in fields:
@@ -316,6 +317,7 @@ class LayoutMapperMixin(MixinBase):
                     "open": tb.open if tb is not None else False,
                     "key": tb.key if tb is not None else None,
                     "show": tb.show if tb is not None else None,
+                    "shortcut": tb.shortcut if tb is not None else "",
                     "fields": [],
                 })
             groups[-1]["fields"].append(f)
@@ -357,6 +359,7 @@ class LayoutMapperMixin(MixinBase):
                     TabMetadata(
                         label=label, active=active, route_key=g["key"] or None,
                         badge=subresources.badge(g["fields"], instance),
+                        shortcut=g.get("shortcut") or None,
                     ),
                     None,
                     [form_layout],
@@ -756,8 +759,13 @@ class LayoutMapperMixin(MixinBase):
     def map_fields(self, fields, instance, read_only: bool) -> list:
         """Maps declared fields to DTOs, inserting a full-width separator above any
         ``SeparatorBefore()`` field (mirrors Java's FormLayoutBuilder)."""
+        from mateu_ui.uidl.suppliers import VisibilitySupplier
+
         out = []
         for f in fields:
+            # a field the form hides for this request (Java's VisibilitySupplier.isHidden)
+            if isinstance(instance, VisibilitySupplier) and instance.is_hidden(f.name):
+                continue
             if f.has(SeparatorBefore):
                 out.append(ClientSideComponent(
                     metadata=SeparatorMetadata(attributes={"data-colspan": "2"})))

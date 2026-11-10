@@ -1,0 +1,15 @@
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: category
+      label: Category
+      dataType: string
+      stereotype: select
+      optionsSource: {ref: categories}
+    - type: Listing
+      id: products
+      title: Products
+      rowsSource: {ref: products}
+      columns:
+        - {type: GridColumn, id: name, label: Name}

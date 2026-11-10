@@ -54,9 +54,11 @@ define([
       }
       const call = bridge.planningActionOf(atom, kind, detail);
       if (!call) return;
+      // the board's surface (an inline island's gantt / tape chart goes back to the island)
+      const surfaceId = atom.surfaceId || bridge.surfaceOfEvent(event);
       await Actions.callChain(context, {
         chain: 'dispatchHostBlockAction',
-        params: { actionId: call.actionId, parameters: call.parameters, fromNested: !!atom.fromNested },
+        params: { actionId: call.actionId, parameters: call.parameters, fromNested: !!atom.fromNested, ...(surfaceId ? { surfaceId } : {}) },
       });
     }
   }

@@ -2,7 +2,11 @@
      by the component). The starter's content (banner, toast, router) goes in the
      stretchingContents slot. Zero HTML/CSS of our own: only composition of oj-sp components. -->
 
+<!-- chat.display: Spectra's Ask FAB (the Search-or-go palette), off in a framed app that has no
+     command center (shellChromeOf); mateu-chromeless: @App(chromeless) hides the global header -->
 <oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]"
+  chat="[[ { display: $application.variables.mateuAskFab } ]]"
+  :class="[[ $application.variables.mateuChromeless ? 'mateu-chromeless' : '' ]]"
   on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader"
@@ -13,7 +17,9 @@
            Cloud), and its glyph says what it does: ☰ with the menu closed, ✕ with it open.
            HAMBURGER_SECTIONS: the menu is a FLOATING panel over the subheader and the content
            (mateuSectionsOverlay, below); HAMBURGER_MENU: the usual persistent navigator. -->
-      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections || ($application.variables.mateuNarrow && ($application.variables.mateuMenuSubheader || $application.variables.mateuMenuTopbar)) ]]">
+      <!-- MENU_ON_LEFT / RAIL: the navigator is docked, no hamburger to fold it (on a phone JET turns
+           it into an overlay, which the hamburger opens) -->
+      <oj-bind-if test="[[ ($application.variables.mateuMenuDrawerMode && (!$application.variables.mateuMenuDocked || $application.variables.mateuNarrow)) || $application.variables.mateuMenuSections || ($application.variables.mateuNarrow && ($application.variables.mateuMenuSubheader || $application.variables.mateuMenuTopbar)) ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
           :aria-controls="[[ $application.variables.mateuMenuSections ? 'mateuSectionsOverlay' : 'mateuNavDrawer' ]]"
@@ -703,7 +709,10 @@
 
       <!-- 280px = standard width of the navigation drawer (JET/RDS cookbook pattern);
            oj-drawer-layout sizes the panel by its content, it exposes no variable -->
-      <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px">
+      <!-- RAIL: the same navigator, narrow (mateu-nav-rail in app.css) -->
+      <div slot="start" class="oj-sm-padding-4x-vertical"
+        :class="[[ $application.variables.mateuMenuRail ? 'mateu-nav-rail' : '' ]]"
+        :style.width="[[ $application.variables.mateuMenuRail ? '176px' : '280px' ]]">
         <oj-bind-if test="[[ !$application.variables.mateuMenuSections ]]">
                 <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
           selection="[[ $application.variables.mateuSelectedNavId ]]"

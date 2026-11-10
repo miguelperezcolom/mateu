@@ -24,7 +24,7 @@ data class NoticeAction(
      * What the button says: its label, or the platform's own word for an unlabelled undo. Data on a
      * Swing link/button: never live HTML ([io.mateu.ijp.ui.plain]).
      */
-    fun labelFor(locale: Locale = Locale.getDefault()): String = io.mateu.ijp.ui.plain(
+    fun labelFor(locale: Locale = io.mateu.ijp.ui.MoneyValues.uiLocale()): String = io.mateu.ijp.ui.plain(
         label?.takeIf { it.isNotBlank() }
             ?: if (style == "undo") NoticeTexts.undo(locale) else (actionId ?: route ?: ""),
     )
@@ -209,7 +209,7 @@ object ProgressTasks {
     fun indicatorText(task: ProgressTask): String = io.mateu.ijp.ui.plain(task.title.ifBlank { task.text })
 
     /** The indicator's second line: the count ("12 of 300"), what it is doing now and the ETA. */
-    fun indicatorText2(task: ProgressTask, locale: Locale = Locale.getDefault()): String {
+    fun indicatorText2(task: ProgressTask, locale: Locale = io.mateu.ijp.ui.MoneyValues.uiLocale()): String {
         val count = if (task.done != null && task.total != null && task.total > 0) {
             NoticeTexts.count(task.done, task.total, locale)
         } else {
@@ -225,7 +225,7 @@ object ProgressTasks {
     fun resumeParameters(taskId: String): Map<String, Any?> = mapOf("taskId" to taskId)
 
     /** The result notification's text: what was done, or what went wrong. */
-    fun resultText(task: ProgressTask, locale: Locale = Locale.getDefault()): String = when (task.state) {
+    fun resultText(task: ProgressTask, locale: Locale = io.mateu.ijp.ui.MoneyValues.uiLocale()): String = when (task.state) {
         TaskState.FAILED -> task.error ?: task.text.ifBlank { NoticeTexts.failed(locale) }
         else -> task.text
     }

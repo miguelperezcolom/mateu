@@ -155,6 +155,25 @@ export function cardsOf(option, children, raw) {
   }
 }
 
+/**
+ * What the shell draws around the content, from its nav mode: the navigator (HAMBURGER_MENU folds
+ * it with the hamburger; MENU_ON_LEFT and RAIL keep it docked, RAIL narrow), no chrome at all
+ * (@App(chromeless)), and Spectra's Ask FAB (the Search-or-go palette) — off in a FRAMED app (an
+ * iframe preview) that enables no command center or global search: there the FAB only covered the
+ * small frame's content. Pure.
+ */
+export function shellChromeOf(nav, shell, framed = false) {
+  const mode = (nav && nav.mode) || ''
+  const palette = !!(shell && (shell.commandCenterEnabled || shell.globalSearchEnabled || shell.chromeless))
+  return {
+    drawer: mode === 'drawer' || mode === 'left' || mode === 'rail',
+    docked: mode === 'left' || mode === 'rail',
+    rail: mode === 'rail',
+    chromeless: mode === 'none',
+    askFab: framed && !palette ? 'off' : 'on',
+  }
+}
+
 export function shellNavOf(reg) {
   const shell = reg.shell || {}
   const items = []
@@ -164,7 +183,11 @@ export function shellNavOf(reg) {
     // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
     // menu that does not go through there must not draw it either
     if (option.visible === false) continue
-    const node = navNodeOf(option, '')
+    // TILES: every group opens as a panel of CARDS (the card menu, @Menu(display = cards)) —
+    // Redwood's springboard of tiles, in the subheader band
+    const tiled = shell.variant === 'TILES' && (option.submenus || option.submenu || []).length && !option.display
+      ? { ...option, display: 'cards' } : option
+    const node = navNodeOf(tiled, '')
     items.push(node.disabled
       ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
       : { id: node.id, label: node.label, icon: node.icon })
@@ -183,8 +206,16 @@ export function shellNavOf(reg) {
   // inside the dark header (topbar)
   // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
   // level (only the sections) and the subheader carries the second level of the section on screen.
+  // MENU_ON_LEFT → LEFT: the same navigator, docked and always there (no hamburger to fold it);
+  // RAIL → RAIL: that navigator as a narrow rail of the first level; TILES → the subheader band
+  // with each group as a panel of cards; @App(chromeless) → NONE: no navigation chrome at all —
+  // the Ask palette (the command center) is the way around
   let mode = 'tabs'
-  if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+  if (shell.chromeless) mode = 'none'
+  else if (shell.variant === 'HAMBURGER_MENU') mode = 'drawer'
+  else if (shell.variant === 'MENU_ON_LEFT') mode = 'left'
+  else if (shell.variant === 'RAIL') mode = 'rail'
+  else if (shell.variant === 'TILES') mode = 'tiles'
   else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
   else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
   else if (hasGroups) mode = 'topbar'

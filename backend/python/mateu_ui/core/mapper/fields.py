@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from mateu_ui.uidl.suppliers import ColspanSupplier, ReadOnlySupplier, RequiredSupplier
+from mateu_ui.uidl.markers import DivStyle as DivStyleMarker, Notice as NoticeMarker, OptionsLayout as OptionsLayoutMarker, Style as StyleMarker
+
 from datetime import (
     date,
     datetime,
@@ -298,7 +301,7 @@ class FieldMapperMixin(MixinBase):
             columns=columns,
             item_id_path="_rowNumber",
             inline_editing=inline,
-            colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
+            colspan=self._colspan_of(f, instance),
             style=style,
             slider_max=0,
             # Grid rows ride in the component initialData / fragment state, not as an initialValue.
@@ -325,6 +328,14 @@ class FieldMapperMixin(MixinBase):
             use_button_for_detail=detail_path is not None,
         )
         return ClientSideComponent(metadata=meta, id=field_id, children=[], style=style)
+
+    @staticmethod
+    def _colspan_of(f, instance) -> int:
+        """A ColspanSupplier's answer (> 0, Java's ColspanSupplier), else Colspan(), else 1."""
+        supplied = instance.colspan(f.name) if isinstance(instance, ColspanSupplier) else 0
+        if supplied and supplied > 0:
+            return supplied
+        return f.marker(Colspan).value if f.has(Colspan) else 1
 
     def map_field(self, f, instance, read_only: bool = False) -> ClientSideComponent:
         # inside a nested form every id carries the prefix of the fields holding it
@@ -366,8 +377,25 @@ class FieldMapperMixin(MixinBase):
                 field_id,
                 [],
             )
+        notice = f.marker(NoticeMarker)
+        if notice is not None:
+            # Notice(): the field's VALUE shown as an inline notice, interpolated from the state
+            # client-side — a blank value hides it (Java's ReflectionFormFieldMapper @Notice)
+            from mateu_ui.uidl import components as _fluent
+
+            return self.map_component(_fluent.Notice(
+                text=nested_forms.state_expression(field_id),
+                theme=notice.theme or "info",
+                icon=notice.icon or None,
+                slim=notice.slim,
+                full_width=notice.full_width,
+                action_label=self.T(notice.action_label) if notice.action_label else None,
+                action_id=notice.action_id or None,
+            ))
         label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
-        required = f.has(Required)
+        required = f.has(Required) or (
+            isinstance(instance, RequiredSupplier) and bool(instance.is_required(f.name))
+        )
         t = f.type
         # the view's options(field_name) method wins (its options may carry children → tree
         # selects); enums keep contributing their constants
@@ -384,9 +412,15 @@ class FieldMapperMixin(MixinBase):
         # ...also when the VIEW CLASS carries it (read_only_unless(...) on the class, .NET's
         # class-level [ReadOnlyUnless])
         # A field-level ReadOnly() locks the field too (Java's field-level @ReadOnly → readOnly).
+        from .crud_modes import current_mode, server_owned
+
         read_only = (
             read_only
             or f.has(ReadOnly)
+            # GeneratedValue(): always; EditableOnlyWhenCreating(): but on a creation form
+            or server_owned(f, current_mode() == "new")
+            # locked for this request (Java's ReadOnlySupplier)
+            or (isinstance(instance, ReadOnlySupplier) and bool(instance.is_read_only(f.name)))
             or not self.authorized(f.marker(ReadOnlyUnless))
             or not self.authorized(getattr(instance.__class__, "__mateu_read_only_unless__", None))
         )
@@ -410,8 +444,9 @@ class FieldMapperMixin(MixinBase):
             # parity). initialValue is NOT emitted per field — the values ride in initialData/state.
             step_buttons_visible=(t is int),
             # an explicit Colspan() wins; intrinsically wide fields are widened to the full row
-            # when the rows are laid out (LayoutMapperMixin.form_rows)
-            colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
+            # when the rows are laid out (LayoutMapperMixin.form_rows); a ColspanSupplier's answer
+            # (> 0) wins over both
+            colspan=self._colspan_of(f, instance),
             # Help(): the field's help text (Java's @Help → FormFieldDto.description)
             description=self.T(f.marker(Help).value) if f.has(Help) else None,
             slider_min=f.marker(SliderMin).value if f.has(SliderMin) else 0,
@@ -426,13 +461,27 @@ class FieldMapperMixin(MixinBase):
             options_source=self._rest_options(f),
             # FileUpload(accept=".csv"): the file input's accept filter travels in the field's
             # generic attributes list — no dedicated wire field (Java parity).
+            # DivStyle(): the style of the div around the field, then FileUpload(accept=".csv"):
+            # the file input's accept filter — both in the field's generic attributes list, no
+            # dedicated wire field (Java's FieldMetadataExtractor.getAttributes, same order)
             attributes=(
-                [PairRecord(key="accept", value=f.marker(FileUpload).accept)]
-                if f.has(FileUpload) and f.marker(FileUpload).accept
-                else []
+                ([PairRecord(key="divStyle", value=f.marker(DivStyleMarker).value)] if f.has(DivStyleMarker) else [])
+                + (
+                    [PairRecord(key="accept", value=f.marker(FileUpload).accept)]
+                    if f.has(FileUpload) and f.marker(FileUpload).accept
+                    else []
+                )
             ),
+            # OptionsLayout(columns): how many columns the options spread over (Java's
+            # @OptionsLayout → optionsColumns)
+            options_columns=f.marker(OptionsLayoutMarker).columns if f.has(OptionsLayoutMarker) else 1,
+            # Style(): the field's own CSS — on the field AND its component (Java's @Style)
+            style=f.marker(StyleMarker).value if f.has(StyleMarker) else None,
         )
-        return self.client(meta, field_id, [])
+        out = self.client(meta, field_id, [])
+        if meta.style:
+            out = out.model_copy(update={"style": meta.style})
+        return out
 
     def map_nested_form(self, f, instance, read_only: bool) -> ClientSideComponent:
         """A field holding a nested data object (Java's NestedFormFieldBuilder). ``Inline()``: its

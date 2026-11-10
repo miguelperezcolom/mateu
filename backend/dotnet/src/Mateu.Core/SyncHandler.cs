@@ -402,6 +402,19 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
             {
                 if (yamlSpec.Layout is not { } bare) return Error($"Route not found: {rq.Route}");
+                // a field hidden from the caller (eyesOnly:/access:) never gets a value from the
+                // route either: a state:/defaultParams:/fixedParams: seed of it would otherwise travel
+                // to that caller (a read-only field keeps its seed: it is drawn, with its value). So
+                // does one a business component the layout names hides: compositions are resolved
+                // while the page is mapped, after this seeding
+                var hiddenFields = new HashSet<string>(yamlSpec.HiddenFields);
+                hiddenFields.UnionWith(MateuCatalogs.HiddenBy(AuthoredSources.RefsInTree(bare)));
+                if (hiddenFields.Count > 0)
+                {
+                    rq = WithoutLocked(rq, hiddenFields);
+                    clientState = clientState.Where(kv => !hiddenFields.Contains(kv.Key))
+                        .ToDictionary(kv => kv.Key, kv => kv.Value);
+                }
                 // the route's seeds (state:, fixed/default params, a query string, already folded
                 // into the component state) are the page's state: a seeded bare page is wrapped so
                 // it carries them, as Java's SeededYamlPage does (they were dropped: ${state.x}
@@ -1172,7 +1185,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// ILookupLabelSupplier (falling back to a match among its IOptionsSupplier options). They
     /// ride as &lt;fieldId&gt;-label entries in the fragment data — where the renderer's combo
     /// looks before showing the raw id (mirrors Java's LookupLabelSupplier).</summary>
-    private static Dictionary<string, object?>? LookupLabels(Type type, object instance, object supplierHost)
+    internal static Dictionary<string, object?>? LookupLabels(Type type, object instance, object supplierHost)
     {
         Dictionary<string, object?>? data = null;
         foreach (var p in ReflectionMapper.EditableProperties(type))

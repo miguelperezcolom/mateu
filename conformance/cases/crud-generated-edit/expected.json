@@ -1,0 +1,152 @@
+{
+  "commands" : [ {
+    "data" : "Printer jam",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "id",
+                        "label" : "Id",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "reference",
+                        "label" : "Reference",
+                        "optionsColumns" : 1,
+                        "readOnly" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "code",
+                        "label" : "Code",
+                        "optionsColumns" : 1,
+                        "readOnly" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "title",
+                        "label" : "Title",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "title" : "Printer jam",
+          "titleIsText" : true,
+          "toolbar" : [ {
+            "actionId" : "cancel-edit",
+            "buttonStyle" : "tertiary",
+            "label" : "Cancel",
+            "type" : "Button"
+          }, {
+            "actionId" : "save",
+            "buttonStyle" : "primary",
+            "label" : "Save",
+            "type" : "Button"
+          } ],
+          "type" : "Page"
+        },
+        "style" : "max-width:900px;margin: auto;",
+        "type" : "ClientSide"
+      } ],
+      "confirmOnNavigationIfDirty" : true,
+      "initialData" : {
+        "code" : "INC",
+        "reference" : "T-001",
+        "title" : "Printer jam"
+      },
+      "pageType" : "form",
+      "style" : "width: 100%;",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "code" : "INC",
+      "reference" : "T-001",
+      "title" : "Printer jam"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

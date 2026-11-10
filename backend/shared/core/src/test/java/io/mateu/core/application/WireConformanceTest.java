@@ -2523,7 +2523,12 @@ class WireConformanceTest {
           java.util.Map.entry("subresource-only", RtOnlySubnets.class),
           java.util.Map.entry("subresource-inline-trap", RtInlineTrap.class),
           java.util.Map.entry("subresource-listing", RtSubnets.class),
-          java.util.Map.entry("subresource-search", RtSubnets.class));
+          java.util.Map.entry("subresource-search", RtSubnets.class),
+          java.util.Map.entry("crud-generated-new", ParityConformanceFixtures.CasesCrud.class),
+          java.util.Map.entry("crud-generated-edit", ParityConformanceFixtures.CasesCrud.class),
+          java.util.Map.entry("wizard-labels", ParityConformanceFixtures.LabelledWizard.class),
+          java.util.Map.entry(
+              "listing-mapped-values", ParityConformanceFixtures.TicketsListing.class));
 
   private static final List<String> CASES =
       List.of(
@@ -2640,7 +2645,28 @@ class WireConformanceTest {
           "subresource-only",
           "subresource-inline-trap",
           "subresource-listing",
-          "subresource-search");
+          "subresource-search",
+          // the parity cases of 3.0 GA (ParityConformanceFixtures)
+          "page-decorations",
+          "page-decorations-supplied",
+          "tab-shortcuts",
+          "listing-column-options",
+          "listing-mapped-values",
+          "crud-generated-new",
+          "crud-generated-edit",
+          "wizard-labels",
+          "island-data",
+          "app-fabs",
+          "fab-style",
+          "field-decorations",
+          "class-rules",
+          "banner-options",
+          "yaml-partial",
+          "yaml-component-ref",
+          "yaml-field-types",
+          "yaml-template",
+          "yaml-eyes-only",
+          "yaml-environment");
 
   static TestMateu mateu;
 
@@ -2656,7 +2682,11 @@ class WireConformanceTest {
     }
     mateu =
         TestMateu.withUisAndBeans(
-            List.of(new ConformanceRoutes(), new RoutedTabsRoutes(), new ConformanceFlags()),
+            List.of(
+                new ConformanceRoutes(),
+                new RoutedTabsRoutes(),
+                new ConformanceFlags(),
+                new ParityConformanceFixtures.TicketNumbers()),
             SimpleForm.class,
             PageHeader.class,
             Tabs.class,
@@ -2732,7 +2762,20 @@ class WireConformanceTest {
             UnlabeledBulkBooks.class,
             RefusedSignUpWizard.class,
             InlineFormRules.class,
-            PurchaseOrdersCrud.class);
+            PurchaseOrdersCrud.class,
+            ParityConformanceFixtures.PageDecorationsPage.class,
+            ParityConformanceFixtures.SuppliedDecorationsPage.class,
+            ParityConformanceFixtures.TabShortcuts.class,
+            ParityConformanceFixtures.ShipmentsListing.class,
+            ParityConformanceFixtures.TicketsListing.class,
+            ParityConformanceFixtures.CasesCrud.class,
+            ParityConformanceFixtures.LabelledWizard.class,
+            ParityConformanceFixtures.IslandDataPage.class,
+            ParityConformanceFixtures.FabApp.class,
+            ParityConformanceFixtures.StyledFabPage.class,
+            ParityConformanceFixtures.FieldDecorations.class,
+            ParityConformanceFixtures.ClassRulesForm.class,
+            ParityConformanceFixtures.BannerOptionsPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -2900,6 +2943,9 @@ class WireConformanceTest {
       Set.of(
           "wizard",
           "wizard-step-2",
+          "wizard-labels",
+          "crud-generated-new",
+          "crud-generated-edit",
           "crud-new",
           "subresource-listing",
           "routed-tabs-crud-new",
@@ -2929,6 +2975,10 @@ class WireConformanceTest {
       var previous = thread.getContextClassLoader();
       var overlay = new SpecsOverlay(root, WireConformanceTest.class.getClassLoader());
       thread.setContextClassLoader(overlay);
+      // a case may name the deployment's environment (specs/ui/environments/<name>.yaml): set for
+      // the Mateu booted for it alone, as the deployment would (-Dmateu.environment)
+      var environment = request.path("environment").asText(null);
+      if (environment != null) System.setProperty("mateu.environment", environment);
       try (var yaml = TestMateu.withUis()) {
         return roundTrip(
             yaml.run(
@@ -2942,6 +2992,7 @@ class WireConformanceTest {
                     .build()));
       } finally {
         thread.setContextClassLoader(previous);
+        if (environment != null) System.clearProperty("mateu.environment");
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -3055,6 +3106,8 @@ class WireConformanceTest {
    */
   static final Set<String> MEDIATED_FORMS =
       Set.of(
+          "crud-generated-new",
+          "crud-generated-edit",
           "crud-new",
           "subresource-listing",
           "routed-tabs-crud-new",
@@ -3086,7 +3139,8 @@ class WireConformanceTest {
    * the mediator's private {@code _}-prefixed routing keys are protocol. Identical in the three
    * runners.
    */
-  static final Set<String> FORM_STATE_PINNED = Set.of("routed-tabs-crud-new");
+  static final Set<String> FORM_STATE_PINNED =
+      Set.of("routed-tabs-crud-new", "crud-generated-new", "crud-generated-edit");
 
   static JsonNode withoutMediatorProtocol(JsonNode increment) {
     return withoutMediatorProtocol(increment, false);

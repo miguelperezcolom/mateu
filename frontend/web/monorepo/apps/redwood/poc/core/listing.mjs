@@ -1,5 +1,5 @@
 import { applyColumnPrefs } from '../prefs.mjs'
-import { walkWithinSurface } from './tree.mjs'
+import { walkWithinSurface, findPageLevel } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
 import { buttonRouteOf, clearUiValues, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory, uiValueOf } from './content.mjs'
 import { safeHref, treeDisclosureOf } from './display.mjs'
@@ -10,18 +10,22 @@ import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage, dateConverterOptions, moneyText, temporalText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-/** RENDER helper: first node of the tree with the given metadata.type. */
+/** RENDER helper: first node of the SURFACE with the given metadata.type. It never crosses into
+ *  an island (a ServerSide below the root): an island is another surface, with its own context —
+ *  crossing made the Explorer's example islands claim the host page (their Page taken for the
+ *  host's header and toolbar, their NotFound / Foldout / TaskQueue for the whole page). */
 export function findByType(tree, type) {
   let found = null
-  const walk = (node) => {
+  const walk = (node, isRoot) => {
     if (found || !node || typeof node !== 'object') return
+    if (Array.isArray(node)) { node.forEach((x) => walk(x, false)); return }
+    if (!isRoot && node.type === 'ServerSide') return
     if (node.metadata && node.metadata.type === type) { found = node; return }
     for (const v of Object.values(node)) {
-      if (Array.isArray(v)) v.forEach(walk)
-      else if (v && typeof v === 'object') walk(v)
+      if (v && typeof v === 'object') walk(v, false)
     }
   }
-  walk(tree)
+  walk(tree, true)
   return found
 }
 
@@ -72,7 +76,9 @@ export function pageListingNodeOf(tree) {
   const all = cruds(tree)
   if (!all.length) return null
   const type = declaredTemplateTypeOf(tree)
-  if (!type) return all[0]
+  // without a template, the page's listing is one the PAGE owns: one inside a card or a tab is that
+  // part's content (an Explorer example's listing took the whole entry page over)
+  if (!type) return all.find((n) => findPageLevel(tree, (x) => x === n)) || null
   if (!PAGE_LISTING_TEMPLATES[type]) return null
   if (type === 'CollectionDetailPage') {
     const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
@@ -1039,6 +1045,8 @@ export const LABEL_CELL_SUFFIX = '__labelCell'
 export function valueLabelOf(c, value) {
   // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
   if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
+  // a TOTALLED number column (@Aggregate) reads like its total and subtotals (1,122 beside 5,432)
+  if (isTotalledNumberColumn(c) && typeof value === 'number') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
   // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
   if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
   // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
@@ -1065,8 +1073,10 @@ export function alignOf(c) {
   return c && LISTING_NUMERIC_TYPES.indexOf(c.dataType) >= 0 ? 'end' : null
 }
 
+const isTotalledNumberColumn = (c) => !!c && !!c.aggregate && ['integer', 'number', 'double', 'decimal', 'long', 'float'].indexOf(c.dataType) >= 0
+
 export function labelColumn(c) {
-  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
+  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c) || isTotalledNumberColumn(c))) && !c.editable
     && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
 }
 
@@ -1653,6 +1663,14 @@ export function multiValuesOf(value) {
 //     fieldId): the editor of each filter's value.
 
 export const KEYWORD_FILTER = 'keyword'
+/**
+ * The chip id (`filter`) of a field. A field named like a property Spectra probes in the editors'
+ * metadata — `items`: the component asks getMetadata({propertyPath: 'items'}) to choose the edit
+ * path — answered that probe, and EVERY filter's popup opened the `items` editor (an Orders listing
+ * with an Items column: Status showed a number box, Date an empty popup). Those names get a suffix.
+ */
+const SMART_FILTER_RESERVED = ['items']
+export const smartFilterIdOf = (fieldId) => (SMART_FILTER_RESERVED.includes(fieldId) ? fieldId + '__mateuFilter' : fieldId)
 /** A boolean filter's two choices, in the interface's language. */
 export const boolChoices = () => [{ value: 'true', label: chromeText('yes') }, { value: 'false', label: chromeText('no') }]
 
@@ -1697,7 +1715,7 @@ export function smartFilterValueMetadataOf(f) {
 export function smartFiltersMetadataOf(filters) {
   const polymorphicTypes = {}
   for (const f of filters || []) {
-    polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
+    polymorphicTypes[smartFilterIdOf(f.fieldId)] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
   }
   // the selection-by-ids chip can also open its editor: a text (comma-separated ids)
   if (!declaresIds(filters)) {
@@ -1720,7 +1738,7 @@ export const usesFilterLabel = (f) => f.isOptions || f.isMulti || f.isBool
 /** The `suggestionFilters` chips: one per declared filter, without a value. */
 export function smartFilterSuggestionsOf(filters) {
   return (filters || []).map((f) => {
-    const chip = { filter: f.fieldId, label: f.label }
+    const chip = { filter: smartFilterIdOf(f.fieldId), label: f.label }
     if (usesFilterLabel(f)) chip.filterLabel = f.label
     // the popup form takes its fields from the value's keys: without them, a range
     // opens an empty popup
@@ -1746,7 +1764,7 @@ export function smartFilterValueOf(filters, values, searchText) {
       const from = v[f.fromKey]
       const to = v[f.toKey]
       if (isBlank(from) && isBlank(to)) continue
-      out.push({ filter: f.fieldId, label: f.label,
+      out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label,
         value: { gte: isBlank(from) ? null : from, lte: isBlank(to) ? null : to } })
       continue
     }
@@ -1755,14 +1773,14 @@ export function smartFilterValueOf(filters, values, searchText) {
     if (f.isMulti) {
       const selected = multiValuesOf(value)
       if (!selected.length) continue
-      out.push({ filter: f.fieldId, label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
+      out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
     } else if (f.isBool) {
       const bool = value === true || value === 'true' ? 'true' : 'false'
-      out.push({ filter: f.fieldId, label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
+      out.push({ filter: smartFilterIdOf(f.fieldId), label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
     } else if (f.isOptions) {
-      out.push({ filter: f.fieldId, label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
+      out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
     } else {
-      out.push({ filter: f.fieldId, label: f.label, value })
+      out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label, value })
     }
   }
   return out
@@ -1775,7 +1793,7 @@ export function smartFilterValueOf(filters, values, searchText) {
  */
 export function filterStateOfSmartFilters(filters, chips) {
   const byId = {}
-  for (const f of filters || []) byId[f.fieldId] = f
+  for (const f of filters || []) byId[smartFilterIdOf(f.fieldId)] = f
   const values = {}
   const keywords = []
   for (const chip of chips || []) {

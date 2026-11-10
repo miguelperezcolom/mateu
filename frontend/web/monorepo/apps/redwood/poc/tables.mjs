@@ -1,3 +1,5 @@
+import { surfaceAtomOf } from './surfaces.mjs'
+import { shortcutMatches } from './actionPanels.mjs'
 // Listing ROW TONES (@RowStatus) and GROUP rows (@GroupBy) on JET's oj-table.
 // oj-table has no per-row class (only cell templates or a whole-row template that
 // would force repainting every column by hand), so a minimal pass over the DOM: each `tr`
@@ -80,4 +82,57 @@ export function installStickyHeader(win = typeof window !== 'undefined' ? window
     const now = win.scrollY > 48
     if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
   }, { passive: true })
+}
+
+// ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the
+// declared base combination plus a number key (ctrl+shift+2 = the second row, top row or keypad) —
+// runs the field's onItemSelectionActionId with the row in `_clickedRow`, as the web grid does.
+// Read-only grids too: this is the master/detail idiom. The grid's root carries the action, the
+// shortcut and its rows (data-row-select-*, the isGrid atom); the action goes back to the grid's
+// SURFACE (an inline island's).
+let rowSelectSink = null
+export function setRowSelectSink(fn) { rowSelectSink = typeof fn === 'function' ? fn : null }
+
+const rowsOfSelectHost = (host) => {
+  try { const rows = JSON.parse(host.getAttribute('data-row-select-rows') || '[]'); return Array.isArray(rows) ? rows : [] } catch (e) { return [] }
+}
+
+/** The row (0-based) a base combination + number key selects, or null: the shortcut is the BASE
+ *  combination («ctrl+shift»), the number (top row or keypad) is the row's position. */
+export function rowShortcutIndexOf(shortcut, e) {
+  const m = /^(?:Digit|Numpad)([1-9])$/.exec(String((e && e.code) || '')) || /^([1-9])$/.exec(String((e && e.key) || ''))
+  if (!shortcut || !m) return null
+  const combo = String(shortcut).toLowerCase().replace(/\s+/g, '')
+  return shortcutMatches(combo + '+' + m[1], e) ? Number(m[1]) - 1 : null
+}
+
+export function installRowSelection(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuRowSelection) return
+  doc.__mateuRowSelection = true
+  const select = (host, index) => {
+    const rows = rowsOfSelectHost(host)
+    if (!rowSelectSink || index == null || index < 0 || index >= rows.length) return false
+    rowSelectSink(host.getAttribute('data-row-select-action'), { _clickedRow: rows[index] }, surfaceAtomOf(host))
+    return true
+  }
+  doc.addEventListener('click', (e) => {
+    const target = e.target && e.target.closest ? e.target : null
+    const host = target && target.closest('[data-row-select-action]')
+    if (!host || !host.getAttribute('data-row-select-action')) return
+    // a control inside a cell does its own thing
+    if (target.closest('oj-button, button, a, input, oj-input-text, oj-select-single, oj-switch')) return
+    const table = target.closest('oj-table')
+    const ctx = table && typeof table.getContextByNode === 'function' ? table.getContextByNode(target) : null
+    if (!ctx || ctx.rowIndex == null || (ctx.subId && ctx.subId !== 'oj-table-cell')) return
+    select(host, ctx.rowIndex)
+  })
+  doc.addEventListener('keydown', (e) => {
+    if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+    for (const host of doc.querySelectorAll('[data-row-select-shortcut]')) {
+      const sc = host.getAttribute('data-row-select-shortcut')
+      if (!sc || !(host.getClientRects && host.getClientRects().length)) continue
+      const index = rowShortcutIndexOf(sc, e)
+      if (index != null && select(host, index)) { e.preventDefault(); e.stopPropagation(); return }
+    }
+  }, true)
 }

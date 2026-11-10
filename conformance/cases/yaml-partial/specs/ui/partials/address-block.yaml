@@ -1,0 +1,4 @@
+# A reusable fragment: by convention its file name is its ref.
+content:
+  - {type: FormField, id: street, label: Street, dataType: string}
+  - {type: FormField, id: city, label: City, dataType: string}

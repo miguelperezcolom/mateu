@@ -222,6 +222,10 @@ export function pageHeaderExtrasOf(ctx) {
   const prevRoute = pn ? text(pn.prevRoute) : ''
   const nextRoute = pn ? text(pn.nextRoute) : ''
   return {
+    // the trail a page DECLARES (BreadcrumbsSupplier → Page.breadcrumbs): it replaces the automatic one
+    breadcrumbs: (md.breadcrumbs || [])
+      .map((b) => ({ text: text(b && b.text), route: String((b && b.link) || '').trim() }))
+      .filter((b) => b.text),
     overline: text(md.overline),
     titlePlaceholder: text(md.titlePlaceholder),
     timestamp: text(md.timestamp),
@@ -557,6 +561,31 @@ export function parentCrumbOf(reg, route) {
   return parentCrumb(summarizeHost(reg, route).trail) || null
 }
 
+/** A view model class read as a title — `…smartsearchpage.LoanFinder` → «Loan finder», like the
+ *  server's Humanizer; '' for a framework class (a YAML page's SeededYamlPage names nothing). */
+export function typeTitleOf(serverSideType) {
+  const type = String(serverSideType || '')
+  if (!type || type.startsWith('io.mateu.core') || type.startsWith('io.mateu.uidl')) return ''
+  const simple = type.split('.').pop().split('$').pop()
+  const words = simple.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase()
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : ''
+}
+
+/** Does the tree carry a heading Text (h1–h6) of its own (not crossing an island)? */
+function hasHeadingText(tree) {
+  let found = false
+  const walk = (n, isRoot) => {
+    if (found || !n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && n.type === 'ServerSide') return
+    const md = n.metadata
+    if (md && md.type === 'Text' && /^h[1-6]$/.test(md.container || '') && String(md.text || '').trim()) { found = true; return }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+  }
+  walk(tree, true)
+  return found
+}
+
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
   // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
@@ -580,7 +609,9 @@ export function summarizeHost(reg, route) {
   // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
   // borrowing the crud's or the menu's label (pageHeaderOf)
   const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
-  const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
+  const hostExtras = pageHeaderExtrasOf(host)
+  const placeholder = !declaredTitle && hostExtras.titlePlaceholder
+  const declaredCrumbs = hostExtras.breadcrumbs.map((c) => (c.route ? { text: c.text, route: c.route } : { text: c.text }))
   return {
     // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
     // there either, in the menu label
@@ -590,12 +621,18 @@ export function summarizeHost(reg, route) {
     // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
     title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
       || (option && (option.caption || option.label))
-      || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
+      || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '')
+      // …and a composed page with NO title at all (no @Title, no window title, no menu entry —
+      // a SmartSearchPage opened on its own): Spectra's header draws «...» for an empty title, so
+      // the page is named by its class, as the server names an untitled one (the Humanizer)
+      // (not when its content brings a heading of its own: a wizard's h2 names it)
+      || (hasHeadingText(host.tree) ? '' : typeTitleOf(host.tree && host.tree.serverSideType)) || ''),
     // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
     // @NoBreadcrumbs on the page or on the shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
       ? []
-      : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
+      // a page that declares its trail (BreadcrumbsSupplier) is where IT says it is
+      : (declaredCrumbs.length ? declaredCrumbs : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) })),
     text: formMetadata ? '' : String(state.message == null ? '' : state.message),
     formMetadata,
     fields,

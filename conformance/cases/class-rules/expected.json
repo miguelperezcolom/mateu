@@ -1,0 +1,112 @@
+{
+  "commands" : [ {
+    "data" : "Order",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "integer",
+                        "fieldId" : "total",
+                        "label" : "Total",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "discount",
+                        "label" : "Discount",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Class rules form",
+          "pageType" : "form",
+          "title" : "Order",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "total" : 10
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "rules" : [ {
+        "action" : "SetDataValue",
+        "expression" : "false",
+        "fieldAttribute" : "hidden",
+        "fieldName" : "discount",
+        "filter" : "state.total > 100",
+        "result" : "Continue"
+      } ],
+      "type" : "ServerSide",
+      "validations" : [ {
+        "condition" : "state.total >= 0",
+        "fieldId" : "total",
+        "message" : "Cannot be negative"
+      } ]
+    },
+    "state" : {
+      "total" : 10
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -295,6 +295,10 @@ class ServerSideComponent(Wire):
     style: str | None = None
     css_classes: str | None = None
     slot: str | None = None
+    #: The data an ISLAND renders with — what a routed page carries in its fragment's data (a
+    #: lookup's ``<field>-label``, its options page…). Only an island delivered inside another
+    #: page's answer (an EmbeddedView) has it; None elsewhere (mirrors ServerSideComponentDto.data).
+    data: Any | None = None
     emits_name: str | None = None
     confirm_on_navigation_if_dirty: bool = False
     #: Client-side rules (Hidden()/Disabled() fields, RuleSupplier): the renderer's no-eval

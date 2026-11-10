@@ -1454,6 +1454,7 @@ mateu-capture-field { display: block; }
    the viewport to 1x1 to measure it, a squeezed flex row, a very narrow window. The floor keeps
    it drawable (it overflows a narrower container instead); display:none is harmless. */
 oj-gantt.mateu-planning { width: 100%; min-width: 12rem; height: 34rem; }
+/* the atom sets the height from its rows (ganttStyle); this is the fallback */
 .mateu-planning-range {
   position: absolute; display: none; pointer-events: none; z-index: 10; box-sizing: border-box;
   background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;
@@ -1984,6 +1985,10 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
    OVERLINE: the quiet line above the title. Drawn right before the header and pulled into its top
    padding, at the header's own title indent (24px inside the header box), so it reads as part of it. */
 .mateu-header-overline { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
+/* a page's DECLARED trail (BreadcrumbsSupplier) above its header, aligned with the title */
+.mateu-header-crumbs { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-12x, 48px) 0; line-height: 1rem; }
+oj-bind-if:has(> .mateu-header-crumbs) + oj-bind-if:has(> .mateu-header-overline) .mateu-header-overline { padding-top: var(--oj-core-spacing-2x, 8px); }
+oj-bind-if:has(> .mateu-header-crumbs) ~ oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 /* an EntityHeader fact's action in oj-sp's contextualInfo (displayDom.installFactActions): a small
    borderless icon button right after the value, on its line */
@@ -2137,8 +2142,9 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-meter-error { background: var(--oj-core-danger-3, rgb(199, 70, 52)); }
 /* ProgressBar `theme` (success / error / warning): the bar's fill takes the tone (progressBarAtomOf
    stamps mateu-tone-*; nothing painted with it, so every bar was the brand colour) */
-oj-progress-bar[class*="mateu-tone-"] { --oj-progress-bar-value-bg-color: var(--mateu-tone); }
-oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color: var(--mateu-tone) !important; }
+/* oj-c-progress-bar (the legacy oj-progress-bar never upgraded in this page and drew 0px): its value
+   is the inner div of the role=progressbar track */
+oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-color: var(--mateu-tone) !important; }
 /* a StatusItem / status text in the info tone: JET has no oj-text-color-info */
 .mateu-text-info { color: var(--oj-core-info-3, rgb(0, 104, 140)); }
 /* HeroSection in the content (heroAtomOf): `centered` centres its texts, and over an `image` (darkened
@@ -2374,16 +2380,72 @@ oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox
 .mateu-rte-spectra oj-label-value.oj-sp-input-rich-text-2-body > .oj-flex > .oj-flex-item:first-child { display: none; }
 .mateu-header-more-badges { display: flex; flex-wrap: wrap; gap: .375rem; padding-inline: var(--oj-sp-header-padding-horizontal, 1.5rem); margin-top: -.5rem; }
 
-/* ProgressSteps(vertical): the guided-process rail's step list */
-.mateu-vsteps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
-.mateu-vstep { display: flex; gap: .75rem; align-items: flex-start; }
-.mateu-vstep-marker { flex: 0 0 1.75rem; height: 1.75rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-  font-size: .8125rem; font-weight: 600; border: 2px solid var(--oj-core-divider-color, #cbc6c0); color: var(--oj-core-text-color-secondary, #6f6b66); }
-.mateu-vstep-text { display: flex; flex-direction: column; padding-top: .2rem; }
-.mateu-vstep-current .mateu-vstep-marker { border-color: var(--oj-core-brand-color, #227e9e); background: var(--oj-core-brand-color, #227e9e); color: #fff; }
-.mateu-vstep-current .mateu-vstep-text > :first-child { font-weight: 600; }
-.mateu-vstep-done .mateu-vstep-marker { border-color: #508223; background: #508223; color: #fff; }
 /* full-width / edge-to-edge pages (pageLayoutOf): the inner containers lose their own 48px gutters */
 .mateu-page-edge .oj-sm-padding-12x-horizontal, .mateu-page-full .oj-sm-padding-12x-horizontal { padding-left: 0 !important; padding-right: 0 !important; }
 /* @PlainText inside an EDITABLE form: text, not a read-only box */
 oj-input-text.mateu-plain-ellipsis .oj-text-field-container, oj-input-text.mateu-plain-multiline .oj-text-field-container { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }
+
+/* ── Display atoms the Explorer review found short (W3b) ─────────────────────────────────── */
+/* read-only Checklist items: drawn by us (a read-only oj-checkboxset shows only its checked values) */
+.mateu-checklist-item { display: flex; align-items: center; gap: .5rem; padding: .25rem 0; }
+.mateu-checklist-item.mateu-checklist-done > span:last-child { text-decoration: line-through; color: var(--oj-core-text-color-secondary, #666); }
+.mateu-checklist-box { width: 1rem; height: 1rem; border: 1px solid var(--oj-core-border-color, #8a8582); border-radius: 3px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; flex: none; box-sizing: border-box; }
+.mateu-checklist-box-done { background: var(--oj-core-success-3, #508223); border-color: transparent; color: #fff; }
+.mateu-checklist-box-done::after { content: '✓'; }
+/* ProgressSteps with descriptions or vertical (oj-train draws neither) */
+.mateu-steps { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; gap: .5rem; }
+.mateu-steps .mateu-step { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: .35rem; position: relative; }
+.mateu-steps:not(.mateu-steps-vertical) .mateu-step:not(:first-child)::before { content: ''; position: absolute; top: .75rem;
+  right: calc(50% + 1rem); left: calc(-50% + 1rem); border-top: 2px solid var(--oj-core-divider-color, #ddd); }
+.mateu-steps:not(.mateu-steps-vertical) .mateu-step-done + .mateu-step::before { border-top-color: var(--oj-core-brand-color, #227e9e); }
+.mateu-step-dot { width: 1.5rem; height: 1.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: .75rem; border: 2px solid var(--oj-core-divider-color, #c8c4c0); background: var(--oj-core-bg-color-content, #fff); flex: none; box-sizing: border-box; }
+.mateu-step-done .mateu-step-dot { background: var(--oj-core-brand-color, #227e9e); border-color: transparent; color: #fff; }
+.mateu-step-current .mateu-step-dot { border-color: var(--oj-core-brand-color, #227e9e); color: var(--oj-core-brand-color, #227e9e); font-weight: 700; }
+.mateu-step-current .mateu-step-title { font-weight: 700; }
+.mateu-step-texts { display: flex; flex-direction: column; gap: .1rem; }
+.mateu-step-upcoming .mateu-step-title { color: var(--oj-core-text-color-secondary, #666); }
+.mateu-steps-vertical { flex-direction: column; gap: 0; }
+.mateu-steps-vertical .mateu-step { flex-direction: row; align-items: flex-start; text-align: start; gap: .75rem; padding-bottom: 1rem; }
+.mateu-steps-vertical .mateu-step:not(:last-child)::after { content: ''; position: absolute; left: .7rem; top: 1.6rem; bottom: .1rem;
+  border-left: 2px solid var(--oj-core-divider-color, #ddd); }
+.mateu-steps-vertical .mateu-step-done:not(:last-child)::after { border-left-color: var(--oj-core-brand-color, #227e9e); }
+/* Stat: delta (coloured by trend) and the sparkline under the value */
+.mateu-stat-foot { gap: .5rem; min-height: 1.5rem; }
+.mateu-stat-spark { width: 6rem; height: 1.5rem; flex: none; margin-inline-start: auto; }
+/* OfferCard: its image header with the floating tag, features as outline chips */
+.mateu-offer { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .25rem; box-sizing: border-box; }
+.mateu-offer-media { position: relative; margin: calc(-1 * var(--oj-panel-padding, 16px)) calc(-1 * var(--oj-panel-padding, 16px)) .5rem; }
+.mateu-offer-image { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.mateu-offer-tag { position: absolute; top: .75rem; inset-inline-start: .75rem; }
+.mateu-offer-features { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mateu-offer-feature { border: 1px solid var(--oj-core-border-color, #c8c4c0); border-radius: 999px; padding: .1rem .6rem;
+  font-size: .8125rem; color: var(--oj-core-text-color-secondary, #555); }
+/* ResourceGrid: every card fills its column (they were as wide as their texts), the flag on top */
+.mateu-resource-card { display: block; width: calc(100% - 8px); height: calc(100% - 8px); box-sizing: border-box; }
+.mateu-resource-flag { display: inline-block; margin-bottom: .25rem; }
+.mateu-offer > .oj-badge { align-self: flex-start; }
+/* fluent Grid: rowStripes / columnBorders (oj-table draws neither) and its action-column links */
+.mateu-grid-stripes .oj-table-body-row:nth-child(even) > .oj-table-data-cell { background-color: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .04)); }
+.mateu-grid-column-borders .oj-table-data-cell + .oj-table-data-cell,
+.mateu-grid-column-borders .oj-table-column-header-cell + .oj-table-column-header-cell { border-inline-start: 1px solid var(--oj-core-divider-color, #ddd); }
+.mateu-grid-action-link { --oj-button-text-color: var(--oj-core-link-text-color, #2b6a9e); margin-inline-start: -.5rem; }
+/* a surface listing in masterDetail: the list beside the picked row's fields */
+.mateu-nested-md { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.mateu-nested-md > .mateu-nested-cards { flex: 0 1 20rem; min-width: 14rem; }
+.mateu-nested-md > .mateu-nested-detail { flex: 1 1 20rem; }
+.mateu-nested-card-picked { outline: 2px solid var(--oj-core-brand-color, #227e9e); outline-offset: -2px; }
+/* @App(chromeless): no global header (and no navigation: shellNavOf mode none) — the content is
+   full-bleed and the Ask FAB (the command center) is the way around */
+oj-sp-simple-ui-shell.mateu-chromeless .oj-sp-simple-ui-shell-globalheader { display: none; }
+/* RAIL: the docked navigator, narrow — compact rows */
+.mateu-nav-rail oj-navigation-list { font-size: var(--oj-typography-body-sm-font-size, 0.875rem); }
+/* a MicroFrontend embedding a whole app (content.mjs withSubresources → isAppFrame): the app on its
+   own page, in a frame the width of its box */
+.mateu-app-frame { display: block; width: 100%; min-height: 20rem; border: 1px solid var(--oj-core-divider-color, #ddd); border-radius: var(--oj-core-border-radius-md, 6px); background: var(--oj-core-bg-color-content, #fff); }
+.mateu-island-banner { display: flex; align-items: center; gap: 0.5rem; }
+.mateu-island-banner > span { flex: 1 1 auto; }
+.mateu-banner-close { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0.25rem; color: inherit; }
+/* @OnRowSelected grid field (tables.mjs installRowSelection): a row click selects it */
+.mateu-grid-selectable oj-table tbody tr { cursor: pointer; }

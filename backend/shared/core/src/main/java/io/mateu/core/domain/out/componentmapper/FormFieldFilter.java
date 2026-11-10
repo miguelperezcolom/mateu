@@ -53,6 +53,11 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
       return false;
     }
+    // @Header / @Footer / @Avatar fields are the PAGE's blocks (PageDto header/footer/avatar),
+    // never form fields: drawn in the body too, a page with a data field showed them twice
+    if (isPageDecoration(field)) {
+      return false;
+    }
     // @Aside fields render in the ContentLayout aside slot, not the form body
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aside.class)) {
       return false;
@@ -97,11 +102,19 @@ final class FormFieldFilter {
         && !MetaAnnotations.isPresent(field, BadgeInHeader.class)
         && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Timestamp.class)
         && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)
+        && !isPageDecoration(field)
         && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aside.class)
         && !MetaAnnotations.isPresent(field, Menu.class)
         && !MetaAnnotations.isPresent(field, Composition.class)
         && !MetaAnnotations.isPresent(field, Version.class)
         && !io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.isStoreManaged(field);
+  }
+
+  /** A {@code @Header}, {@code @Footer} or {@code @Avatar} field: one of the page's blocks. */
+  static boolean isPageDecoration(Field field) {
+    return MetaAnnotations.isPresent(field, Header.class)
+        || MetaAnnotations.isPresent(field, Footer.class)
+        || MetaAnnotations.isPresent(field, Avatar.class);
   }
 
   private static final java.util.Set<String> WARNED_COMPOSITIONS =

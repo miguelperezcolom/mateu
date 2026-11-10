@@ -219,7 +219,7 @@ private class PlanningBoardCanvas(
             }
             g2.font = smallFont
             g2.color = mutedColor
-            val dow = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            val dow = day.dayOfWeek.getDisplayName(TextStyle.SHORT, MoneyValues.uiLocale())
             g2.drawString(dow, x + JBUI.scale(4), JBUI.scale(13))
             g2.font = if (day == today) baseFont.deriveFont(Font.BOLD) else baseFont
             g2.color = textColor

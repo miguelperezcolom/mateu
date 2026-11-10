@@ -29,8 +29,16 @@ internal static class YamlAccess
 
     private static readonly string[] Keys = [AccessKey, EyesOnlyKey, ReadOnlyUnlessKey, DisabledUnlessKey];
 
-    /// <summary>The tree for one request, plus the refused action ids and the locked field ids.</summary>
-    public sealed record Applied(object? Tree, IReadOnlySet<string> RefusedActions, IReadOnlySet<string> LockedFields);
+    /// <summary>The tree for one request, plus the refused action ids, the locked field ids (hidden
+    /// or read-only) and the hidden ones alone — the fields REMOVED for the caller, whose value must
+    /// not travel at all (a read-only field's does: it is drawn, with its value).</summary>
+    public sealed record Applied(object? Tree, IReadOnlySet<string> RefusedActions, IReadOnlySet<string> LockedFields,
+        IReadOnlySet<string> HiddenFields)
+    {
+        /// <summary>As the full record, with no field hidden from the caller.</summary>
+        public Applied(object? tree, IReadOnlySet<string> refusedActions, IReadOnlySet<string> lockedFields)
+            : this(tree, refusedActions, lockedFields, new HashSet<string>()) { }
+    }
 
     /// <summary>An <c>access:</c>-shaped node as a restriction, or null when absent/empty. A bare
     /// string or list is the roles shorthand.</summary>
@@ -89,10 +97,10 @@ internal static class YamlAccess
         var walker = new Walker(granted, routeReachable);
         if (alsoRefused is not null) walker.Refused.UnionWith(alsoRefused);
         var copy = DeepCopy(root);
-        if (walker.Removes(copy, null)) return new Applied(null, walker.Refused, walker.Locked);
+        if (walker.Removes(copy, null)) return new Applied(null, walker.Refused, walker.Locked, walker.Hidden);
         walker.Walk(copy, null, false);
         if (walker.Refused.Count > 0) DisableButtonsFor(copy, walker.Refused);
-        return new Applied(copy, walker.Refused, walker.Locked);
+        return new Applied(copy, walker.Refused, walker.Locked, walker.Hidden);
     }
 
     private sealed class Walker(Func<Access?, bool> isGranted, Func<string, bool>? routeReachable)
@@ -102,6 +110,8 @@ internal static class YamlAccess
 
         public HashSet<string> Refused { get; } = [];
         public HashSet<string> Locked { get; } = [];
+        /// <summary>The fields REMOVED for the caller — a subset of <see cref="Locked"/>.</summary>
+        public HashSet<string> Hidden { get; } = [];
 
         private static string? Str(IDictionary<object, object> map, string key) =>
             map.TryGetValue(key, out var v) ? v?.ToString() : null;
@@ -120,7 +130,7 @@ internal static class YamlAccess
             var eyesOnly = AccessOf(Get(map, EyesOnlyKey));
             if (!linkRefused && Granted(access) && Granted(eyesOnly)) return false;
             if (containerKey == "actions" && Str(map, "id") is { } id) Refused.Add(id);
-            LockFieldsUnder(map);
+            LockFieldsUnder(map, hide: true);
             return true;
         }
 
@@ -182,16 +192,20 @@ internal static class YamlAccess
             if (Str(field, "id") is { } id) Locked.Add(id);
         }
 
-        private void LockFieldsUnder(object? node)
+        private void LockFieldsUnder(object? node, bool hide)
         {
             switch (node)
             {
                 case IDictionary<object, object> map:
-                    if (Str(map, "type") == "FormField") Lock(map);
-                    foreach (var v in map.Values) LockFieldsUnder(v);
+                    if (Str(map, "type") == "FormField")
+                    {
+                        Lock(map);
+                        if (hide && Str(map, "id") is { } id) Hidden.Add(id);
+                    }
+                    foreach (var v in map.Values) LockFieldsUnder(v, hide);
                     break;
                 case List<object?> list:
-                    foreach (var v in list) LockFieldsUnder(v);
+                    foreach (var v in list) LockFieldsUnder(v, hide);
                     break;
             }
         }

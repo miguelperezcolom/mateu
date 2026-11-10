@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   islandContentOf, hostContentOf, flatAtoms, buttonLookOf, ojIconOf, ojIconOrGenericOf, styledColumnPercentsOf,
-  layoutFieldOf, CELL_ATOM_FLAGS, HEADING_CLASSES, badgeChipClassOf, noticeIconOf, withFormActions,
+  layoutFieldOf, CELL_ATOM_FLAGS, HEADING_CLASSES, badgeChipClassOf, noticeIconOf, withFormActions, withSubresources,
 } from './reduceContexts.mjs'
 import { pageLayoutOf } from './pageProjection.mjs'
 import { withCellAtoms } from './make-html.mjs'
@@ -97,7 +97,7 @@ test('a Card in a row is a CARD CELL with its slots: media, title, subtitle, hea
 })
 
 test('a horizontal Card outside a row puts its media beside the rest', () => {
-  const blocks = island(card(node({ type: 'Card', variants: ['horizontal'], media: node({ type: 'Image', src: '/g.svg' }), title: node({ type: 'Text', text: 'H' }), content: node({ type: 'Text', text: 'body' }) })))
+  const blocks = island(node({ type: 'VerticalLayout' }, [node({ type: 'Card', variants: ['horizontal'], media: node({ type: 'Image', src: '/g.svg' }), title: node({ type: 'Text', text: 'H' }), content: node({ type: 'Text', text: 'body' }) })]))
   const box = blocks.flatMap((b) => b.items).find((a) => a.isCells)
   assert.ok(box.cells[0].items[0].isImage)
   assert.deepEqual(box.cells[1].items.map((a) => a.text), ['H', 'body'])
@@ -180,7 +180,8 @@ test('chips: Badge primary / small / pill; a Notice\'s severity icon; a Tab\'s b
 
 test('two id-less accordions on two surfaces do not share their open panels', () => {
   const acc = (id) => ({ type: 'ServerSide', id, children: [node({ type: 'AccordionLayout' }, [node({ type: 'AccordionPanel', label: 'Parking' }, [])])] })
-  const keyOf = (id) => islandContentOf({ tree: acc(id), state: {}, data: {} }).flatMap((b) => b.items).find((a) => a.isCollapsible).collapsibleKey
+  // each surface projects with its own key scope (W2: opts.keyScope, the surface's id)
+  const keyOf = (id) => islandContentOf({ tree: acc(id), state: {}, data: {} }, { keyScope: id }).flatMap((b) => b.items).find((a) => a.isCollapsible).collapsibleKey
   assert.notEqual(keyOf('yaml'), keyOf('java'))
 })
 
@@ -210,12 +211,11 @@ test('@Compact on an island gives its form layouts the density class', () => {
 
 test('wizard: ProgressSteps(vertical) is a vertical list with done marks; a form beside a 15rem rail is two columns', () => {
   const steps = itemsOf(card(node({ type: 'ProgressSteps', vertical: true, steps: [{ id: 'a', title: 'Where', status: 'done' }, { id: 'b', title: 'When', status: 'current' }] }))).find((a) => a.isProgress)
-  assert.equal(steps.vertical, true)
-  assert.deepEqual(steps.steps.map((s) => [s.marker, s.stepClass]), [['✓', 'mateu-vstep mateu-vstep-done'], ['2', 'mateu-vstep mateu-vstep-current']])
-  assert.equal(steps.steps[0].messageType, 'confirmation')
+  // (W3b's own step list: vertical, done marks)
+  assert.equal(steps.stepsClass, 'mateu-steps mateu-steps-vertical')
+  assert.deepEqual(steps.stepItems.map((s) => [s.number, s.cls]), [['✓', 'mateu-step mateu-step-done'], ['2', 'mateu-step mateu-step-current']])
   assert.deepEqual(styledColumnPercentsOf([{ style: 'flex: 1; min-width: 0;' }, { style: 'flex: 0 0 15rem;' }]), [80, 20])
   assert.equal(styledColumnPercentsOf([{ style: 'width: 100%' }, { style: 'flex: 1' }]), null)
-  assert.match(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'), /"path": "ojs\/ojprogress-bar"/)
 })
 
 test('page width: full / edge pages drop the inner gutters; header badges after the first are chips', () => {
@@ -240,6 +240,24 @@ test('the cell template is the SAME atoms.html, cut to CELL_ATOM_FLAGS (one sour
   assert.ok(!inner.slice(60).includes('$current.data.isCells ]]'), 'a cell never holds another box')
   assert.ok(!inner.includes('$current.data.isFormLayout'), 'nor a form')
   assert.ok(CELL_ATOM_FLAGS.every((f) => cells.includes('$current.data.' + f)))
+})
+
+test('an island laid out in COLUMNS is not flattened into the host card: the card becomes a row of blocks', () => {
+  const field = (id) => node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: id, label: id, dataType: 'string' })])
+  const tree = { type: 'ServerSide', id: 'rail', serverSideType: 'x.RailTrip', children: [node({ type: 'HorizontalLayout' }, [
+    node({ type: 'VerticalLayout' }, [field('destination')], 'flex: 1; min-width: 0;'),
+    node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: '1 | 3' })], 'flex: 0 0 15rem; padding-left: 1.5rem;'),
+  ])] }
+  const host = [{ isCard: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isText: true, text: 'RAIL' },
+    { isSubresource: true, islandId: 'rail', subresource: { id: 'rail', surface: true } }] }]
+  const [row] = withSubresources(host, { rail: { tree, state: {}, data: {} } })
+  assert.equal(row.isBlockRow, true)
+  assert.match(row.frameClass, /oj-panel/, 'the card frame is kept')
+  assert.deepEqual(row.subBlocks.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '12'), ['12', '10', '2'])
+  assert.equal(row.subBlocks[0].items[0].text, 'RAIL')
+  assert.ok(row.subBlocks[1].items.some((a) => a.isFormLayout && a.surfaceId === 'rail'), 'the form, tagged with its surface')
+  assert.ok(row.items.some((a) => a.isFormLayout), 'the flat items stay for the content readers')
+  assert.match(page(), /\$current\.data\.isBlockRow/)
 })
 
 // the host page does it too (not only islands)

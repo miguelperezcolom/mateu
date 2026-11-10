@@ -265,8 +265,12 @@ internal static class YamlComponentBuilder
         {
             "VerticalLayout" => new VerticalLayout { Spacing = Bool(map, "spacing"), Content = Children(map, partials, chain) },
             "HorizontalLayout" => new HorizontalLayout { Spacing = Bool(map, "spacing", true), Content = Children(map, partials, chain) },
-            // .NET has no standalone FormLayout fluent — a stacked VerticalLayout is a faithful preview.
-            "FormLayout" => new VerticalLayout { Content = Children(map, partials, chain) },
+            // Java's FormLayout: up to maxColumns (absent = auto, 100 on the wire)
+            "FormLayout" => new FormLayout
+            {
+                MaxColumns = int.TryParse(Str(map, "maxColumns"), out var maxColumns) ? maxColumns : 0,
+                Content = Children(map, partials, chain),
+            },
             "FormField" => new FormField
             {
                 FieldId = Str(map, "id") ?? "",
@@ -275,6 +279,9 @@ internal static class YamlComponentBuilder
                 Stereotype = Str(map, "stereotype") ?? "regular",
                 Required = Bool(map, "required"),
                 ReadOnly = Bool(map, "readOnly"),
+                PropertyRow = Bool(map, "propertyRow"),
+                Placeholder = Str(map, "placeholder"),
+                Description = Str(map, "description"),
                 // Java's YAML FormField: no slider bounds unless declared
                 SliderMin = int.TryParse(Str(map, "sliderMin"), out var sliderMin) ? sliderMin : 0,
                 SliderMax = int.TryParse(Str(map, "sliderMax"), out var sliderMax) ? sliderMax : 0,

@@ -1,3 +1,4 @@
+import { surfaceAtomOf } from './surfaces.mjs'
 // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
 // a row launches rangeSelectActionId with { _resourceId, _start, _end } (the «click on the start
 // cell and on the end cell» of OPERA's Room Diary → I Want To: booking, walk-in, out of service).
@@ -113,6 +114,6 @@ export function installPlanningRange(doc = typeof document !== 'undefined' ? doc
     if (!rowId) return
     const [a, b] = [Math.min(d.anchor, d.current), Math.max(d.anchor, d.current)]
     const base = Date.parse(d.start + 'Z')
-    rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, {})
+    rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, surfaceAtomOf(d.gantt))
   }, true)
 }

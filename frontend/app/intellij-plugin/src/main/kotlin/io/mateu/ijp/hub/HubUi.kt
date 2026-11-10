@@ -73,7 +73,7 @@ class HubPanel(
         cellRenderer = EntryRenderer()
         emptyText.text = "No UIs yet"
         emptyText.appendSecondaryText("Add a UI", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES) { addUi() }
-        accessibleContext.accessibleName = "My UIs"
+        getAccessibleContext().accessibleName = "My UIs"
     }
     private val search = SearchTextField(false).apply {
         textEditor.emptyText.text = "Search my UIs"
@@ -131,12 +131,12 @@ class HubPanel(
             addActionListener { selected()?.let { ShareDialog(project, "Share ${it.name}", HubLinks.addLink(it.baseUrl), "Scan it with a phone: it opens ${HubLinks.domainOf(it.baseUrl)} in the Mateu app.").show() } }
         })
         add(JButton("↑").apply {
-            accessibleContext.accessibleName = "Move up"
+            getAccessibleContext().accessibleName = "Move up"
             toolTipText = "Move up"
             addActionListener { selected()?.let { e -> store.edit { it.move(e.id, -1) } } }
         })
         add(JButton("↓").apply {
-            accessibleContext.accessibleName = "Move down"
+            getAccessibleContext().accessibleName = "Move down"
             toolTipText = "Move down"
             addActionListener { selected()?.let { e -> store.edit { it.move(e.id, 1) } } }
         })
@@ -168,7 +168,7 @@ class HubPanel(
             icon = InitialIcon(value.shortName ?: value.name, value.themeColor)
             append(value.name)
             append("  " + HubLinks.domainOf(value.baseUrl), SimpleTextAttributes.GRAYED_ATTRIBUTES)
-            accessibleContext?.accessibleName = "${value.name}, ${HubLinks.domainOf(value.baseUrl)}"
+            getAccessibleContext()?.accessibleName = "${value.name}, ${HubLinks.domainOf(value.baseUrl)}"
         }
     }
 }
@@ -202,7 +202,7 @@ class InitialIcon(name: String, colour: String?) : Icon {
 class AddUiDialog(private val project: Project, initial: String = "") : DialogWrapper(project, false) {
     private val field = JBTextField(initial, 40).apply {
         emptyText.text = "crm.acme.com, or a Mateu link"
-        accessibleContext.accessibleName = "Address or Mateu link"
+        getAccessibleContext().accessibleName = "Address or Mateu link"
     }
     private val status = JBLabel(" ")
 

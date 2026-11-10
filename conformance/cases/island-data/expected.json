@@ -1,0 +1,101 @@
+{
+  "commands" : [ {
+    "data" : "Island",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "actions" : [ {
+          "id" : "search-supplier"
+        } ],
+        "children" : [ {
+          "children" : [ {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "supplier",
+                          "label" : "Supplier",
+                          "optionsColumns" : 1,
+                          "remoteCoordinates" : {
+                            "action" : "search-supplier"
+                          },
+                          "sliderMax" : 100,
+                          "stereotype" : "combobox",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 1,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "Div"
+                },
+                "style" : "flex: 1; min-width: 0; width:100%;",
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "noBreadcrumbs" : true,
+            "pageTitle" : "Supplier island",
+            "pageType" : "form",
+            "title" : "Supplier island",
+            "type" : "Page"
+          },
+          "type" : "ClientSide"
+        } ],
+        "data" : {
+          "supplier" : {
+            "content" : [ {
+              "label" : "Acme",
+              "value" : "a2"
+            } ],
+            "pageSize" : 1,
+            "searchSignature" : "Acme",
+            "totalElements" : 1
+          },
+          "supplier-label" : "Acme"
+        },
+        "initialData" : {
+          "supplier" : "a2"
+        },
+        "pageType" : "form",
+        "route" : "_empty",
+        "type" : "ServerSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

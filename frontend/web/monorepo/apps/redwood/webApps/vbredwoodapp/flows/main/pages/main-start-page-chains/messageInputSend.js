@@ -23,7 +23,7 @@ define([
      * @param {string} params.key       the key pressed (keydown) — absent for the Send button
      * @param {string} params.variant   'host' | 'island'
      */
-    async run(context, { inputId, actionId, key, variant }) {
+    async run(context, { inputId, actionId, key, variant, surfaceId }) {
       if (key !== undefined && key !== 'Enter') return;
       const input = inputId ? document.getElementById(inputId) : null;
       if (!input) return;
@@ -32,7 +32,8 @@ define([
       input.value = '';
       await Actions.callChain(context, {
         chain: variant === 'island' ? 'dispatchIslandAction' : 'dispatchHostBlockAction',
-        params: send,
+        // the input's surface (an inline island's MessageInput goes back to the island)
+        params: { ...send, surfaceId: surfaceId || bridge.surfaceOfNode(input) },
       });
     }
   }
