@@ -421,6 +421,12 @@ export interface StatusItem {
   statusColor?: string;
   actionLabel?: string;
   actionId?: string;
+  actionLabel2?: string;
+  actionId2?: string;
+  actionLabel3?: string;
+  actionId3?: string;
+  /** extra lines under the description (a timeline's times, a room…) */
+  lines?: string[];
 }
 
 export interface StatusList {

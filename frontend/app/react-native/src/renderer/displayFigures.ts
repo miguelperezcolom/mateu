@@ -74,13 +74,34 @@ export function ledgerTotal(lines: { amount?: number; included?: boolean }[], de
   return declared ?? lines.filter((l) => !l.included).reduce((sum, l) => sum + (l.amount ?? 0), 0);
 }
 
+// file type → a Material icon (the web's FILE_ICONS, in the phone's icon set)
 const FILE_ICONS: Record<string, string> = {
-  pdf: '📕', image: '🖼️', img: '🖼️', doc: '📘', docx: '📘', word: '📘',
-  xls: '📗', xlsx: '📗', excel: '📗', zip: '🗜️', archive: '🗜️', video: '🎬', audio: '🎵', csv: '📄', txt: '📄',
+  pdf: 'file-pdf-box', image: 'file-image-outline', img: 'file-image-outline', svg: 'file-image-outline', png: 'file-image-outline',
+  jpg: 'file-image-outline', jpeg: 'file-image-outline', gif: 'file-image-outline', webp: 'file-image-outline',
+  doc: 'file-word-outline', docx: 'file-word-outline', word: 'file-word-outline', msword: 'file-word-outline',
+  xls: 'file-excel-outline', xlsx: 'file-excel-outline', excel: 'file-excel-outline', sheet: 'file-excel-outline', spreadsheet: 'file-excel-outline',
+  csv: 'file-delimited-outline', zip: 'folder-zip-outline', archive: 'folder-zip-outline', video: 'file-video-outline',
+  audio: 'file-music-outline', code: 'file-code-outline', txt: 'file-document-outline', text: 'file-document-outline',
 };
 
-/** A FileList row's icon by its type (case-insensitive); anything unknown is a page. */
-export const fileIcon = (type?: string): string => (type && FILE_ICONS[type.toLowerCase()]) || '📄';
+/**
+ * A FileList row's Material icon by its type, case-insensitive: a short name (`pdf`, `xlsx`,
+ * `spreadsheet`) or a MIME type (`application/pdf`, `image/svg+xml`, `…spreadsheetml.sheet`) —
+ * every file used to get the same page glyph because the wire sends MIME types. Unknown → a file.
+ */
+export function fileIcon(type?: string): string {
+  const t = (type ?? '').toLowerCase().trim();
+  if (!t) return 'file-outline';
+  if (FILE_ICONS[t]) return FILE_ICONS[t];
+  const [main, sub = ''] = t.split('/');
+  const subtype = sub.split(/[+;]/)[0];
+  if (FILE_ICONS[subtype]) return FILE_ICONS[subtype];
+  if (/spreadsheet|excel|sheet/.test(sub)) return FILE_ICONS.xlsx;
+  if (/word|document/.test(sub)) return FILE_ICONS.docx;
+  if (/zip|compressed|tar|rar|7z/.test(sub)) return FILE_ICONS.zip;
+  if (main === 'image' || main === 'video' || main === 'audio' || main === 'text') return FILE_ICONS[main];
+  return 'file-outline';
+}
 
 /** Whether an avatar is a picture (http/data URI) rather than a glyph. */
 export const isImageAvatar = (avatar?: string): boolean =>

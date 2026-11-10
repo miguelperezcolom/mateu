@@ -8,7 +8,8 @@ import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import { Button, Checkbox, HelperText, Icon, Text, TextInput } from 'react-native-paper';
 import { decimalDraft } from '../core/uxRules';
 import { stateLayerOn, theme, themed } from '../theme';
-import { buttonLook, toneColors, toneOf, type BadgeLook } from './looks';
+import { buttonColor, buttonLook, buttonSize, toneColors, toneOf, type BadgeLook } from './looks';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export interface MateuButtonProps {
   label: string;
@@ -25,34 +26,42 @@ export interface MateuButtonProps {
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
   loading?: boolean;
+  /** a Material icon after the label (the wire's iconOnRight) */
+  iconRight?: string;
+  /** the wire's `size`: small | large */
+  size?: string | null;
 }
 
 /** A wire button as a Material button: primary → filled, secondary → tonal, tertiary → text,
- *  anything else → outlined; destructive ones in the theme's error colour. */
-export function MateuButton({ label, onPress, buttonStyle, color, disabled, accessibilityLabel, accessibilityHint, icon, compact, style, loading }: MateuButtonProps) {
+ *  anything else → outlined; `color` (error, success, warning, contrast) paints it, `size`
+ *  small/large, icons before (`icon`) and after (`iconRight`) the label. */
+export function MateuButton({ label, onPress, buttonStyle, color, disabled, accessibilityLabel, accessibilityHint, icon, compact, style, loading, iconRight, size }: MateuButtonProps) {
   const { mode, danger } = buttonLook(buttonStyle, color);
-  const dangerColors = danger
+  const paint = buttonColor(color) ?? (danger ? buttonColor('error') : null);
+  const colors = paint
     ? mode === 'contained'
-      ? { buttonColor: theme.danger, textColor: theme.onFill }
-      : { textColor: theme.danger }
+      ? { buttonColor: paint.fill, textColor: paint.onFill }
+      : { textColor: paint.fill }
     : {};
+  const dims = buttonSize(size);
+  const ink = disabled ? undefined : (colors as { textColor?: string }).textColor ?? (mode === 'contained' ? theme.onPrimary : theme.primary);
   return (
     <Button
       mode={mode}
       onPress={onPress}
       disabled={disabled}
       icon={icon}
-      compact={compact}
+      compact={compact || dims === 'small'}
       loading={loading}
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabel ?? (iconRight ? label : undefined)}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!disabled }}
-      style={[mode === 'outlined' && danger ? { borderColor: theme.danger } : null, styles.button, style]}
-      contentStyle={styles.buttonContent}
-      labelStyle={styles.buttonLabel}
-      {...dangerColors}
+      style={[mode === 'outlined' && paint ? { borderColor: paint.fill } : null, styles.button, style]}
+      contentStyle={[styles.buttonContent, dims === 'small' ? styles.buttonContentSmall : dims === 'large' ? styles.buttonContentLarge : null]}
+      labelStyle={[styles.buttonLabel, dims === 'small' ? styles.buttonLabelSmall : dims === 'large' ? styles.buttonLabelLarge : null]}
+      {...colors}
     >
-      {label}
+      {iconRight ? <>{label}{' '}<MaterialCommunityIcons name={iconRight as never} size={dims === 'small' ? 14 : 16} color={ink ?? theme.disabled} /></> : label}
     </Button>
   );
 }
@@ -219,6 +228,10 @@ const styles = themed(() =>
   StyleSheet.create({
     button: { borderRadius: theme.radiusPill },
     buttonContent: { minHeight: 40 },
+    buttonContentSmall: { minHeight: 32 },
+    buttonContentLarge: { minHeight: 52 },
+    buttonLabelSmall: { fontSize: 12, marginHorizontal: 12, marginVertical: 6 },
+    buttonLabelLarge: { fontSize: 16, marginHorizontal: 24 },
     buttonLabel: { marginHorizontal: 18, letterSpacing: 0.1 },
     chip: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
     chipText: { fontWeight: '600' },

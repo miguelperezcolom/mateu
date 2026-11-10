@@ -21,6 +21,27 @@ export function buttonLook(buttonStyle?: string | null, color?: string | null): 
   return { mode, danger };
 }
 
+/**
+ * The colour a wire button's `color` paints it with (Lumo's button themes): error = danger,
+ * success, warning, contrast (the ink) — null for normal/absent (the accent). success used to come
+ * out as the accent and warning/contrast as a plain outlined button.
+ */
+export function buttonColor(color?: string | null): { fill: string; onFill: string } | null {
+  switch ((color ?? '').toLowerCase()) {
+    case 'error': case 'danger': return { fill: theme.danger, onFill: theme.onFill };
+    case 'success': return { fill: theme.success, onFill: theme.onFill };
+    case 'warning': return { fill: theme.warning, onFill: theme.onFill };
+    case 'contrast': return { fill: theme.ink, onFill: theme.surface };
+    default: return null;
+  }
+}
+
+/** A wire button's `size`: small (dense), large, or the normal one. */
+export function buttonSize(size?: string | null): 'small' | 'normal' | 'large' {
+  const s = (size ?? '').toLowerCase();
+  return s === 'small' ? 'small' : s === 'large' ? 'large' : 'normal';
+}
+
 export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 /** A tone name off the wire (GridColumn.tones values, StatusType, badge colours) → a Tone. */

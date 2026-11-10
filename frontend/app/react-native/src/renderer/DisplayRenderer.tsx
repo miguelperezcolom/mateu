@@ -1,5 +1,8 @@
+import { materialIconOf } from '../ui/wireIcons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View, type DimensionValue } from 'react-native';
+import { cssToRn } from '../core/cssStyle';
+import { TrendLine } from './ChartRenderer';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
@@ -24,7 +27,7 @@ import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggl
 import { factAction } from './factAction';
 import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
 import { foldoutOpenStates } from '../core/foldoutFit';
-import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
+import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel } from './displayFigures';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -606,14 +609,13 @@ export function TrendChartRenderer({ component }: { component: unknown }) {
   const labels = (m['labels'] as string[]) ?? [];
   const color = (m['color'] as string) ?? theme.primary;
   const title = m['title'] as string | undefined;
+  // a line (area-filled when `area`), as the web draws it — it used to be a bar chart; its
+  // declared width is kept, bounded by the screen
+  const width = cssToRn(((component as Record<string, unknown>)['style'] as string) ?? '', new Set(['width']))['width'];
   return (
-    <View style={styles.trend}>
+    <View style={[styles.trend, { width: (width as DimensionValue | undefined) ?? 320, maxWidth: '100%' }]}>
       {!!title && <Text style={styles.trendTitle}>{title}</Text>}
-      <View style={styles.trendBars}>
-        {trendBarHeights(values).map((height, i) => (
-          <View key={i} style={[styles.trendBar, { height, backgroundColor: color }]} />
-        ))}
-      </View>
+      <TrendLine values={values} color={color} area={m['area'] === true} />
       {labels.length > 0 && (
         <View style={styles.trendLabels}>
           <Text style={styles.trendLabel}>{labels[0]}</Text>
@@ -749,7 +751,7 @@ export function FileListRenderer({ component }: { component: unknown }) {
         const icon = fileIcon(f.type);
         const row = (
           <View style={styles.fileRow}>
-            <Text style={styles.fileIcon}>{icon}</Text>
+            <MIcon name={icon} size={24} />
             <Text style={styles.fileName} numberOfLines={1}>{f.name ?? ''}</Text>
             {!!f.size && <Text style={styles.fileSize}>{f.size}</Text>}
           </View>
@@ -914,17 +916,23 @@ export function StatusListRenderer({ component }: { component: unknown }) {
           {...(rowActionId ? { onPress: () => void controller.runAction(rowActionId, { _item: it.id }) } : {})}>
           {it.avatar
             ? <View style={[styles.statusAvatar, compact && styles.statusAvatarCompact]}><Text style={styles.statusAvatarText}>{it.avatar}</Text></View>
-            : !!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
+            : !!it.icon && (materialIconOf(it.icon) ? <MIcon name={materialIconOf(it.icon)!} size={22} /> : <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>)}
           <View style={styles.statusBody}>
             <Text style={styles.statusTitle}>{it.title ?? ''}</Text>
             {!!it.description && <Text style={styles.statusDesc}>{it.description}</Text>}
+            {/* the item's own extra lines (a timeline: "Arrives 14:00", "Room 204") */}
+            {(it.lines ?? []).map((line, li) => (
+              <Text key={li} style={styles.statusDesc}>{line}</Text>
+            ))}
           </View>
           {!!it.status && <ChipView chip={{ label: it.status, color: it.statusColor }} />}
-          {!!it.actionLabel && !!it.actionId && (
-            <TouchableOpacity {...buttonA11y()} style={styles.statusBtn} onPress={() => void controller.runAction(it.actionId!, { _item: it.id })}>
-              <Text style={styles.statusBtnText}>{it.actionLabel}</Text>
-            </TouchableOpacity>
-          )}
+          {([[it.actionLabel, it.actionId], [it.actionLabel2, it.actionId2], [it.actionLabel3, it.actionId3]] as const).map(([label, id], ai) => (
+            !!label && !!id ? (
+              <TouchableOpacity {...buttonA11y()} key={ai} style={styles.statusBtn} onPress={() => void controller.runAction(id, { _item: it.id })}>
+                <Text style={styles.statusBtnText}>{label}</Text>
+              </TouchableOpacity>
+            ) : null
+          ))}
         </Row>
       ))}
     </View>
@@ -953,7 +961,8 @@ export function NoticeRenderer({ component, state, renderComponent }: {
   if (!shows) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
-      {!noIcon && (
+      {!noIcon && look.custom && <Text style={styles.noticeCustomIcon}>{look.icon}</Text>}
+      {!noIcon && !look.custom && (
         <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
           <Text style={styles.noticeIconText}>{look.icon}</Text>
         </View>
@@ -1215,7 +1224,8 @@ export function LedgerRenderer({ component }: { component: unknown }) {
     <View style={styles.ledger}>
       {lines.map((l, i) => (
         <View key={i} style={styles.ledgerRow}>
-          <Text style={styles.ledgerConcept}>● {l.concept ?? ''}</Text>
+          <View style={styles.ledgerDot} />
+          <Text style={styles.ledgerConcept}>{l.concept ?? ''}</Text>
           {l.included ? (
             <Text style={styles.ledgerIncluded}>{l.includedLabel ?? 'Included'}</Text>
           ) : (
@@ -1556,6 +1566,7 @@ const styles = themed(() => StyleSheet.create({
   // Notice
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
+  noticeCustomIcon: { fontSize: 16, lineHeight: 20 },
   noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   noticeIconText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
   noticeText: { fontWeight: '600', fontSize: 14 },
@@ -1636,7 +1647,8 @@ const styles = themed(() => StyleSheet.create({
   addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 14 },
   // Ledger
   ledger: { gap: 6 },
-  ledgerRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
+  ledgerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  ledgerDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.border },
   ledgerConcept: { flex: 1, color: theme.ink },
   ledgerAmount: { color: theme.ink, fontWeight: '600', fontVariant: ['tabular-nums'] },
   ledgerAmountNegative: { color: theme.danger },

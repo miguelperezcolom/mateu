@@ -68,10 +68,14 @@ test('ledger total: the declared one wins, else the non-included lines', () => {
 });
 
 test('file icons by type, avatars, card widths, skeleton count and offer label', () => {
-  assert.equal(fileIcon('PDF'), '📕');
-  assert.equal(fileIcon('xlsx'), '📗');
-  assert.equal(fileIcon('exe'), '📄');
-  assert.equal(fileIcon(undefined), '📄');
+  assert.equal(fileIcon('PDF'), 'file-pdf-box');
+  assert.equal(fileIcon('application/pdf'), 'file-pdf-box');
+  assert.equal(fileIcon('image/svg+xml'), 'file-image-outline');
+  assert.equal(fileIcon('spreadsheet'), 'file-excel-outline');
+  assert.equal(fileIcon('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'file-excel-outline');
+  assert.equal(fileIcon('xlsx'), 'file-excel-outline');
+  assert.equal(fileIcon('exe'), 'file-outline');
+  assert.equal(fileIcon(undefined), 'file-outline');
   assert.equal(isImageAvatar('https://x/a.png'), true);
   assert.equal(isImageAvatar('data:image/png;base64,AA'), true);
   assert.equal(isImageAvatar('👩'), false);

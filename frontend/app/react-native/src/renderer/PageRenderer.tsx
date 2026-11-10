@@ -1,3 +1,4 @@
+import { materialIconOf } from '../ui/wireIcons';
 import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -224,9 +225,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <View style={[styles.fabStack, { bottom: fabBottom(buttons.length > 0) }]} pointerEvents="box-none">
           {fabs.map((fab, i) => (
             fab.label ? (
-              <FAB key={i} label={interpolate(fab.label, ctx)} accessibilityLabel={interpolate(fab.label, ctx)} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+              <FAB key={i} icon={materialIconOf(fab.icon)} label={interpolate(fab.label, ctx)} accessibilityLabel={interpolate(fab.label, ctx)} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
             ) : (
-              <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+              <FAB key={i} icon={materialIconOf(fab.icon) ?? "plus"} accessibilityLabel={fab.actionId || fab.id || "Action"} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
             )
           ))}
         </View>

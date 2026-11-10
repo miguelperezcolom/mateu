@@ -273,10 +273,10 @@ export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={text || undefined}
-      accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100) }}
+      accessibilityValue={metadata['indeterminate'] === true ? undefined : { min: 0, max: 100, now: Math.round(frac * 100) }}
     >
       {!!text && <Text style={styles.progressText}>{text}</Text>}
-      <ProgressBar progress={frac} color={progressBarColor(metadata['theme'] as string | undefined)} style={styles.progressTrack} />
+      <ProgressBar progress={frac} indeterminate={metadata['indeterminate'] === true} color={progressBarColor(metadata['theme'] as string | undefined)} style={styles.progressTrack} />
     </View>
   );
 }

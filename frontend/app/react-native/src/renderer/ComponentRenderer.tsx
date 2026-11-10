@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
+import { materialIconOf } from '../ui/wireIcons';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
@@ -209,6 +210,9 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           label={label}
           buttonStyle={metadata['buttonStyle'] as string | undefined}
           color={metadata['color'] as string | undefined}
+          size={metadata['size'] as string | undefined}
+          icon={materialIconOf(metadata['iconOnLeft'] as string | undefined)}
+          iconRight={materialIconOf(metadata['iconOnRight'] as string | undefined)}
           disabled={disabled}
           onPress={onPress}
           style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
@@ -313,7 +317,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Skeleton':
       return <SkeletonRenderer metadata={metadata as unknown as Skeleton} />;
     case 'Chart':
-      return <ChartRenderer metadata={metadata} />;
+      return <ChartRenderer metadata={metadata} style={(component['style'] as string) ?? ''} />;
     case 'Gantt':
       return <GanttRenderer component={component} />;
     case 'Kanban':
