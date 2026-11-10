@@ -1431,7 +1431,7 @@ mateu-capture-field { display: block; }
 .mateu-capture-url-box .mateu-capture-preview[hidden] { display: none; }
 .mateu-capture-pad {
   width: 100%; max-width: 35rem; height: 11.25rem; touch-action: none; cursor: crosshair;
-  background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);
+  background: #fff; border: 1px dashed var(--oj-text-field-border-color, #8b8580); /* --oj-core-neutral-contrast is WHITE in this theme */
   border-radius: var(--oj-core-border-radius-md, 6px);
 }
 
@@ -1863,6 +1863,9 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
   box-shadow: var(--oj-core-box-shadow-lg, 0 8px 24px rgba(0,0,0,.2)); background: var(--oj-core-bg-color-content, #fff); }
 .mateu-cookie-bottom { bottom: 16px; }
 .mateu-cookie-top { top: 16px; }
+.mateu-cookie-left, .mateu-cookie-right { max-width: min(24rem, calc(100vw - 32px)); }
+.mateu-cookie-left { inset-inline-end: auto; }
+.mateu-cookie-right { inset-inline-start: auto; }
 
 .mateu-breadcrumbs { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; gap: 4px; }
 .mateu-breadcrumbs li + li::before { content: '/'; margin-inline-end: 4px; color: var(--oj-core-text-color-secondary, #666); }
@@ -2264,6 +2267,123 @@ oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-
 .mateu-buttons-full > oj-button + oj-button {
   margin-inline-start: var(--oj-core-spacing-1x, 4px);
 }
+
+/* LAYOUT BOX (isCells, core/content.mjs cellsAtomOf): a HorizontalLayout of block pieces, a styled
+   Container / Scroller, an aligned VerticalLayout. The box is a flex container (direction, gap,
+   alignment and wrap come from the wire as an inline style); each cell is a column of atoms. */
+.mateu-cells {
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+}
+.mateu-cells.mateu-cells-column {
+  flex-direction: column;
+}
+.mateu-cell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mateu-cell > * {
+  max-width: 100%;
+}
+/* a cell drawn as a card (a Card inside the row) */
+.mateu-cell.mateu-cell-card {
+  padding: var(--oj-core-spacing-4x, 1rem);
+}
+
+/* A Button's COLOUR (core/content.mjs buttonLookOf): success / error / warning / contrast tint the
+   outlined and borderless chromings (text + border) and fill the call-to-action one. */
+oj-button.mateu-btn-success { --mateu-btn-tone: #508223; }
+oj-button.mateu-btn-error { --mateu-btn-tone: #c74634; }
+oj-button.mateu-btn-warning { --mateu-btn-tone: #ac630c; }
+oj-button.mateu-btn-contrast { --mateu-btn-tone: #161513; }
+oj-button.mateu-btn-success, oj-button.mateu-btn-error, oj-button.mateu-btn-warning, oj-button.mateu-btn-contrast {
+  --oj-button-outlined-chrome-text-color: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-text-color-hover: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-border-color: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-border-color-hover: var(--mateu-btn-tone);
+  --oj-button-borderless-chrome-text-color: var(--mateu-btn-tone);
+  --oj-button-borderless-chrome-text-color-hover: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-bg-color: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-bg-color-hover: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-border-color: var(--mateu-btn-tone);
+}
+
+/* EntityHeader: title / badges / facts on the left, its METRIC (label, value, caption) on the right */
+.mateu-entity-header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.mateu-entity-header-main { flex: 1 1 20rem; min-width: 0; }
+.mateu-entity-header-metric { flex: 0 0 auto; text-align: end; }
+
+/* HeroSection: its CTAs inside the band (centred with a centred hero) and its TONE — a dark tinted
+   band with light ink (core/display.mjs heroAtomOf). */
+.mateu-hero-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.mateu-hero-centered .mateu-hero-actions { justify-content: center; }
+.mateu-hero-tone { color: #fff; }
+.mateu-hero-tone h2, .mateu-hero-tone p, .mateu-hero-tone .mateu-hero-overline { color: #fff; }
+.mateu-hero-tone-ocean { background-color: #1f4e6b; }
+.mateu-hero-tone-pine { background-color: #2f5d50; }
+.mateu-hero-tone-lilac { background-color: #5b4a7a; }
+.mateu-hero-tone-teal { background-color: #1e5e63; }
+.mateu-hero-tone-rose { background-color: #7a3b4b; }
+.mateu-hero-tone-pebble { background-color: #4f4a45; }
+.mateu-hero-tone-slate { background-color: #3d4a57; }
+.mateu-hero-tone-plum { background-color: #5a2f4f; }
+.mateu-hero-tone-sienna { background-color: #7a4126; }
+.mateu-hero-tone oj-button { --oj-button-outlined-chrome-text-color: #fff; --oj-button-outlined-chrome-border-color: rgb(255 255 255 / .7); }
+
+/* Badge: `small` and `pill` (core/content.mjs badgeClassOf; `primary` drops the subtle tint) */
+.mateu-badge-small { font-size: .6875rem; line-height: 1rem; padding-block: 0; }
+.mateu-badge-pill { border-radius: 999px; }
+/* AvatarGroup: the avatars OVERLAP, each ringed in the surface colour (a lone Avatar keeps its gap) */
+.mateu-avatar-group oj-avatar { margin-inline-end: -0.5rem !important; box-shadow: 0 0 0 2px var(--oj-core-bg-color-content, #fff); border-radius: 50%; }
+.mateu-avatar-group .mateu-avatar-overflow { margin-inline-start: 0.75rem; }
+
+/* Notice: its severity icon before the text */
+.mateu-notice-icon { font-size: 1.25rem; vertical-align: middle; }
+/* a chip in a cell keeps its natural width (the cell column stretches its block children) */
+.mateu-cell > span { align-self: flex-start; }
+.mateu-card-outlined { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-lg, 6px); }
+/* a DashboardLayout as a grid box (dashboardGridOf): columns + colSpan / rowSpan */
+.mateu-cells.mateu-cells-grid { display: grid; gap: 0.75rem; }
+.mateu-cells-grid > .mateu-cell { min-width: 0; }
+/* a ResponsiveGrid box stacks to one column on a narrow screen (its stackBelow, 40rem by default) */
+@media (max-width: 40rem) { .mateu-cells-grid-stack { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: none !important; } .mateu-cells-grid-stack > .mateu-cell { grid-area: auto !important; grid-column: auto !important; } }
+/* SplitLayout box: two panes with a divider (the second pane starts after it) */
+.mateu-cells.mateu-split { gap: 0; border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); }
+.mateu-split > .mateu-split-pane { padding: .75rem; }
+.mateu-split > .mateu-split-pane + .mateu-split-pane { border-inline-start: 4px solid var(--oj-core-divider-color, #e0ddd9); }
+.mateu-split.mateu-split-vertical > .mateu-split-pane + .mateu-split-pane { border-inline-start: 0; border-top: 4px solid var(--oj-core-divider-color, #e0ddd9); }
+/* Tab badge (a count chip) and the tab / accordion VARIANTS */
+.mateu-tab-badge { margin-inline-start: .375rem; }
+oj-tab-bar.mateu-tabs-bordered { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px) var(--oj-core-border-radius-md, 4px) 0 0; padding-inline: .5rem; }
+oj-tab-bar.mateu-tabs-filled { background: var(--oj-core-bg-color-hover, #f1efed); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; }
+oj-collapsible.mateu-collapsible-filled { background: var(--oj-core-bg-color-hover, #f1efed); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; margin-bottom: .25rem; }
+oj-collapsible.mateu-collapsible-bordered { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; margin-bottom: .25rem; }
+/* the splitter: the first pane is resizable (drag its edge handle), the second takes the rest */
+.mateu-split:not(.mateu-split-vertical) > .mateu-split-pane:first-child { flex: 0 0 auto !important; width: 50%; min-width: 4rem; max-width: calc(100% - 4rem); resize: horizontal; }
+.mateu-split.mateu-split-vertical > .mateu-split-pane:first-child { flex: 0 0 auto !important; height: 50%; min-height: 2rem; resize: vertical; }
+/* a form field spanning columns (rowEditor.layoutFieldOf colspanAttr): its oj-form-layout wrapper widened */
+.oj-flex-item:has(> [data-mateu-span="2of2"]) { flex-basis: calc((2 * 100% / 2) - (var(--oj-form-layout-column-gutter) * 0 / 2)) !important; width: calc((2 * 100% / 2) - (var(--oj-form-layout-column-gutter) * 0 / 2)) !important; max-width: calc((2 * 100% / 2) - (var(--oj-form-layout-column-gutter) * 0 / 2)) !important; }
+.oj-flex-item:has(> [data-mateu-span="2of3"]) { flex-basis: calc((2 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 1 / 3)) !important; width: calc((2 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 1 / 3)) !important; max-width: calc((2 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 1 / 3)) !important; }
+.oj-flex-item:has(> [data-mateu-span="3of3"]) { flex-basis: calc((3 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 0 / 3)) !important; width: calc((3 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 0 / 3)) !important; max-width: calc((3 * 100% / 3) - (var(--oj-form-layout-column-gutter) * 0 / 3)) !important; }
+.oj-flex-item:has(> [data-mateu-span="2of4"]) { flex-basis: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; width: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; max-width: calc((2 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 2 / 4)) !important; }
+.oj-flex-item:has(> [data-mateu-span="3of4"]) { flex-basis: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; width: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; max-width: calc((3 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 1 / 4)) !important; }
+.oj-flex-item:has(> [data-mateu-span="4of4"]) { flex-basis: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; width: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; max-width: calc((4 * 100% / 4) - (var(--oj-form-layout-column-gutter) * 0 / 4)) !important; }
+/* @PlainText (rowEditor.layoutFieldOf): one line cut with an ellipsis; @Multiline wraps */
+.mateu-plain-ellipsis .oj-text-field-readonly, .mateu-plain-ellipsis .oj-text-field-input { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+.mateu-plain-multiline .oj-text-field-readonly { white-space: pre-wrap; }
+/* listBox stereotype (a single value): its options as a bordered vertical list */
+oj-radioset.mateu-listbox .oj-radioset-wrapper, oj-radioset.mateu-listbox .oj-choice-row { display: block !important; }
+oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox .oj-form-control-container { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); padding: .25rem .5rem; max-height: 12rem; overflow: auto; }
+/* Spectra rich text editor: our oj-label-value already labels the field — its own (empty) label row was a gap */
+.mateu-rte-spectra oj-label-value.oj-sp-input-rich-text-2-body > .oj-flex > .oj-flex-item:first-child { display: none; }
+.mateu-header-more-badges { display: flex; flex-wrap: wrap; gap: .375rem; padding-inline: var(--oj-sp-header-padding-horizontal, 1.5rem); margin-top: -.5rem; }
+
+/* full-width / edge-to-edge pages (pageLayoutOf): the inner containers lose their own 48px gutters */
+.mateu-page-edge .oj-sm-padding-12x-horizontal, .mateu-page-full .oj-sm-padding-12x-horizontal { padding-left: 0 !important; padding-right: 0 !important; }
+/* @PlainText inside an EDITABLE form: text, not a read-only box */
+oj-input-text.mateu-plain-ellipsis .oj-text-field-container, oj-input-text.mateu-plain-multiline .oj-text-field-container { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }
 
 /* ── Display atoms the Explorer review found short (W3b) ─────────────────────────────────── */
 /* read-only Checklist items: drawn by us (a read-only oj-checkboxset shows only its checked values) */

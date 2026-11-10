@@ -18,11 +18,11 @@
                               <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.rowButton ]]">
-                              <oj-button chroming="[[ $current.data.chroming ]]"
+                              <oj-button :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
                                 disabled="[[ !!$current.data.disabled ]]"
                                 :data-mateu-hover="[[ $current.data.tooltip ]]"
                                 :data-action-id="[[ $current.data.actionId ]]"
-                                on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-if test="[[ !!$current.data.iconLeftClass ]]"><span slot="startIcon" :class="[[ $current.data.iconLeftClass ]]"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconRightClass ]]"><span slot="endIcon" :class="[[ $current.data.iconRightClass ]]"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.rowBadge ]]">
                               <span :class="[[ $current.data.badgeClass ]]"><oj-bind-if test="[[ $current.data.iconLeftClass ]]"><span :class="[[ $current.data.iconLeftClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ $current.data.iconRightClass ]]"><span :class="[[ $current.data.iconRightClass ]]" aria-hidden="true"></span></oj-bind-if></span>
@@ -33,6 +33,25 @@
                             <oj-bind-if test="[[ $current.data.rowIcon ]]">
                               <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
                             </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isCells ]]">
+                      <!-- a LAYOUT BOX (core/content.mjs cellsAtomOf): a HorizontalLayout whose children are not
+                           inline pieces (stacks, KPIs, offers, charts, cards…), a styled Container / Div / Scroller,
+                           an aligned VerticalLayout. One flex box (direction, gap, alignment, wrap, the wire style)
+                           of CELLS, each a column of atoms painted by the cell subset of this template -->
+                      <div class="mateu-cells oj-sm-margin-2x-bottom" :class="[[ $current.data.boxClass ]]" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.cells ]]">
+                          <template>
+                            <div class="mateu-cell" :class="[[ $current.data.cellClass ]]" :style="[[ $current.data.style || {} ]]">
+                              <oj-bind-for-each data="[[ $current.data.items ]]">
+                                <template>
+                                  <!-- @cell-atoms -->
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
                           </template>
                         </oj-bind-for-each>
                       </div>
@@ -484,7 +503,7 @@
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- header of a collapsible panel (AccordionPanel / Details): its content follows,
                            as atoms, when it is open; collapsing re-projects (panelToggled) -->
-                      <oj-collapsible class="mateu-collapsible" expanded="[[ $current.data.expanded ]]"
+                      <oj-collapsible class="mateu-collapsible" :class="[[ $current.data.variantClass ]]" expanded="[[ $current.data.expanded ]]"
                         disabled="[[ $current.data.disabled ]]"
                         :data-collapsible-key="[[ $current.data.collapsibleKey ]]"
                         on-expanded-changed="[[ $listeners.panelToggled ]]">
@@ -516,7 +535,8 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
-                      <div class="oj-sm-margin-3x-bottom">
+                      <div class="oj-sm-margin-3x-bottom mateu-entity-header">
+                      <div class="mateu-entity-header-main">
                         <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
                         <oj-bind-for-each data="[[ $current.data.badges ]]">
                           <template>
@@ -548,9 +568,27 @@
                           </oj-bind-for-each>
                         </div>
                       </div>
+                      <oj-bind-if test="[[ !!$current.data.metricValue ]]">
+                        <!-- its METRIC (a balance, a total): label, big value, caption — right of the header -->
+                        <div class="mateu-entity-header-metric">
+                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.metricLabel ]]"></oj-bind-text></div>
+                          <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.metricValue ]]"></oj-bind-text></div>
+                          <oj-bind-if test="[[ !!$current.data.metricCaption ]]">
+                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.metricCaption ]]"></oj-bind-text></div>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isNotice ]]">
                       <div :class="[[ $current.data.noticeClass ]]">
+                        <!-- its severity icon (by theme, or the notice's own icon: a name or an emoji) -->
+                        <oj-bind-if test="[[ !!$current.data.noticeIconClass ]]">
+                          <span class="mateu-notice-icon oj-sm-margin-2x-end" :class="[[ $current.data.noticeIconClass ]]" aria-hidden="true"></span>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ !!$current.data.noticeGlyph ]]">
+                          <span class="mateu-notice-icon oj-sm-margin-2x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.noticeGlyph ]]"></oj-bind-text></span>
+                        </oj-bind-if>
                         <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
@@ -591,14 +629,14 @@
                       <img class="mateu-atom-image" :class="[[ $current.data.cls || '' ]]" :style="[[ $current.data.style || {} ]]" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAvatar ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom" :class="[[ $current.data.group ? 'mateu-avatar-group' : '' ]]">
                         <oj-bind-for-each data="[[ $current.data.avatars ]]">
                           <template>
                             <oj-avatar class="oj-sm-margin-1x-end" size="[[ $current.data.size || 'xs' ]]" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
                           </template>
                         </oj-bind-for-each>
                         <oj-bind-if test="[[ !!$current.data.overflow ]]">
-                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                          <span class="oj-typography-body-sm oj-text-color-secondary mateu-avatar-overflow"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
                         </oj-bind-if>
                       </div>
                     </oj-bind-if>
@@ -730,14 +768,14 @@
                       <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : ($current.data.barClass || 'oj-sm-justify-content-flex-end') ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
-                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                            <oj-button class="oj-sm-margin-1x-start" :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
                               disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
-                              on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-if test="[[ !!$current.data.iconLeftClass ]]"><span slot="startIcon" :class="[[ $current.data.iconLeftClass ]]"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconRightClass ]]"><span slot="endIcon" :class="[[ $current.data.iconRightClass ]]"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
                       </div>
@@ -1047,13 +1085,13 @@
                            Redwood's tab strip: the tabs at their own width from the start (layout
                            condense — JET's default, stretch, spreads them over the whole width) over
                            a full-width divider line (JET's oj-divider-bottom utility) -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" :class="[[ $current.data.variantClass ]]" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
                           <oj-bind-for-each data="[[ $current.data.tabs ]]">
                             <template>
-                              <li :id="[[ $current.data.id ]]" :data-shortcut="[[ $current.data.shortcut ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                              <li :id="[[ $current.data.id ]]" :data-shortcut="[[ $current.data.shortcut ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ !!$current.data.badge ]]"><span class="oj-badge oj-badge-neutral oj-badge-subtle mateu-tab-badge"><oj-bind-text value="[[ $current.data.badge ]]"></oj-bind-text></span></oj-bind-if></a></li>
                             </template>
                           </oj-bind-for-each>
                         </ul>
@@ -1189,12 +1227,14 @@
                          field is NOT applied: with labels inside, oj-form-layout distributes by CSS columns and an
                          oj-label-value with colspan misaligns its siblings — it needs oj-c-form-layout (core pack). -->
                     <oj-bind-if test="[[ $current.data.isFormLayout ]]">
-                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                      <oj-form-layout class="oj-formlayout-full-width" :class="[[ $current.data.densityClass ]]" max-columns="[[ $current.data.columns ]]" direction="row"
+                        label-edge="[[ $current.data.labelEdge || 'inside' ]]" label-width="[[ $current.data.labelWidth || '33%' ]]"
                         readonly="[[ $current.data.readonly ]]">
                         <oj-bind-for-each data="[[ $current.data.fields ]]">
                           <template>
                             <oj-bind-if test="[[ $current.data.isText ]]">
-                              <oj-input-text
+                              <oj-input-text :class="[[ $current.data.fieldClass ]]"
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
@@ -1208,6 +1248,8 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -1223,7 +1265,8 @@
                                  (codesearch-<field>, via hostBlockAction); bridge.searchableWidgetOf -->
 
                             <oj-bind-if test="[[ $current.data.isSearchable ]]">
-                              <oj-label-value label-edge="top">
+                              <oj-label-value
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
                                 <div slot="value">
                                   <div class="mateu-searchable" :data-field-id="[[ $current.data.fieldId ]]">
@@ -1258,7 +1301,8 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isTextArea ]]">
                               <oj-text-area
-                                  rows="3"
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
+                                  rows="3" max-rows="-1"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -1272,6 +1316,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDate ]]">
                               <oj-input-date
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
@@ -1283,7 +1328,8 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDateTime ]]">
-                              <oj-input-date-time
+                              <oj-input-date
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"-time
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
@@ -1296,6 +1342,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSelect ]]">
                               <oj-select-one
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   options="[[ $current.data.options ]]"
                                   placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                                   label-hint="[[ $current.data.label ]]"
@@ -1702,7 +1749,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
                       <!-- ContextMenu: its content is above; its menu, an oj-menu-button (installContextMenus also opens it on right click) -->
-                      <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]" :data-mateu-context-left="[[ $current.data.leftClick ? 'true' : null ]]">
                         <oj-menu-button chroming="borderless" display="icons">
                           <span slot="startIcon" class="oj-ux-ico-overflow-h"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
                           <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.{{menuAction}} ]]">
@@ -1710,6 +1757,10 @@
                               <template>
                                 <oj-bind-if test="[[ $current.data.isItem ]]">
                                   <oj-option :value="[[ $current.data.value ]]" disabled="[[ $current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                                  <!-- MenuSeparator: JET's divider is an oj-option with no content -->
+                                  <oj-option></oj-option>
                                 </oj-bind-if>
                               </template>
                             </oj-bind-for-each>
@@ -1738,6 +1789,9 @@
                                     <template>
                                       <oj-bind-if test="[[ $current.data.isItem ]]">
                                         <oj-option :value="[[ $current.data.value ]]" disabled="[[ $current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                                        <oj-option></oj-option>
                                       </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
@@ -1872,6 +1926,18 @@
                         </oj-bind-if>
                         <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
                         <p class="oj-typography-body-lg"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></p>
+                        <oj-bind-if test="[[ ($current.data.buttons || []).length > 0 ]]">
+                          <div class="mateu-hero-actions">
+                            <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                              <template>
+                                <oj-button :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEmptyStateAtom ]]">

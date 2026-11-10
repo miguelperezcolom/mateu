@@ -873,7 +873,7 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.equal(bloques.length, 1)
   assert.equal(bloques[0].isCard, false)
   assert.equal(bloques[0].isPlain, true)
-  const items = bloques.flatMap((b) => b.items)
+  const items = bloques.flatMap((b) => flatAtoms(b.items))
   // the fields OUTSIDE the tabs: in the JET form layout of their FormLayout
   const campos = items.filter((a) => a.isFormLayout).flatMap((a) => a.fields)
   assert.ok(campos.some((f) => f.fieldId === 'id'))
@@ -895,7 +895,7 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
 
   // another tab: its embedded grid, with columns and rows from the state
   const steps = (hostContentOf(host, null, { title: titulo, activeTab: 'tab-1' }) || [])
-    .flatMap((b) => b.items).find((a) => a.isGrid)
+    .flatMap((b) => flatAtoms(b.items)).find((a) => a.isGrid)
   assert.ok(steps, 'no se proyectó la tabla de la pestaña Steps')
   assert.deepEqual(steps.columns.map((c) => c.headerText), ['Name', 'Status'])
   assert.ok(steps.rows.length > 0)
@@ -912,7 +912,7 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   const inner = tabLayout('_tabs', [tab('General', [text('interior general')]), tab('Notas', [text('interior notas')])])
   const outer = tabLayout('_tabs', [tab('General', [text('exterior general')]), tab('Detalle', [inner])])
   const ctx = { tree: outer, state: {} }
-  const atomsOf = (opts) => (islandContentOf(ctx, opts) || []).flatMap((b) => b.items)
+  const atomsOf = (opts) => (islandContentOf(ctx, opts) || []).flatMap((b) => flatAtoms(b.items))
   const barsOf = (opts) => atomsOf(opts).filter((a) => a.isTabs)
   const textsOf = (opts) => atomsOf(opts).filter((a) => a.isText).map((a) => a.text)
 
@@ -963,7 +963,7 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
     tabLayout('b', [tab('X', [text('b-x')]), tab('Y', [text('b-y')])]),
   ] }, state: {} }
   const twinBars = (islandContentOf(twins, { activeTabs: withActiveTab({}, 'tabs-1/tab-1') }) || [])
-    .flatMap((b) => b.items).filter((a) => a.isTabs)
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isTabs)
   assert.deepEqual(twinBars.map((b) => b.selectedId), ['tab-0', 'tabs-1/tab-1'])
 })
 
@@ -987,11 +987,11 @@ test('una vista @FoldoutDetail proyecta overview en propiedades y paneles solo c
   const { contexts } = reduceContexts(empty(), fx('crud-view-foldout'))
   const foldout = foldoutOf(contexts['fv_app'])
   assert.ok(foldout)
-  const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
+  const rows = foldout.overview.blocks.flatMap((b) => flatAtoms(b.items)).filter((i) => i.isPropertyRow)
   // a lookup is read by its label (data['hotel-label']), not by the code
   assert.deepEqual(rows.map((r) => [r.label, r.value]), [['Locator', 'QN29HB'], ['Hotel', 'MRU01 — Riu Demo Mauricio'], ['Total', '306.00 EUR']])
   assert.deepEqual(foldout.panels.map((p) => [p.title, p.open]), [['Titular', true], ['Seguimiento', false]])
-  const fields = foldout.panels[0].blocks.flatMap((b) => b.items || []).flatMap((i) => i.fields || [])
+  const fields = foldout.panels[0].blocks.flatMap((b) => flatAtoms(b.items)).flatMap((i) => i.fields || [])
   assert.deepEqual(fields.map((f) => [f.fieldId, f.value, f.readonly]), [['holder', 'Giulia Keller', true]])
 })
 
@@ -1000,7 +1000,7 @@ test('una vista @FoldoutDetail proyecta overview en propiedades y paneles solo c
 test('el overview @FoldoutDetail de una reserva real pinta hotel y canal por su etiqueta', () => {
   const { contexts } = reduceContexts(empty(), fx('crud-view-foldout-booking'))
   const foldout = foldoutOf(contexts[HOST_ID])
-  const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
+  const rows = foldout.overview.blocks.flatMap((b) => flatAtoms(b.items)).filter((i) => i.isPropertyRow)
   const byLabel = Object.fromEntries(rows.map((r) => [r.label, r.value]))
   assert.equal(byLabel['Hotel code'], 'MRU01 — Riu Demo Mauricio')
   assert.equal(byLabel['Channel code'], 'CALLCENTER — Central de reservas (call center)')
@@ -1226,7 +1226,7 @@ test('not found: sin textos del server, los genéricos en el idioma de la págin
 test('front-office: isla-App detectada e islandContentOf proyecta el wizard embebido', () => {
   const island = fx('fo-island-wizard')
   const blocks = islandContentOf(island)
-  const atoms = blocks.flatMap((b) => b.items)
+  const atoms = blocks.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isProgress && a.steps.length === 4))
   const header = atoms.find((a) => a.isEntityHeader)
   assert.equal(header.title, 'María Fernández')
@@ -1253,7 +1253,7 @@ test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
     { label: 'Gold', color: 'warning' },
     { label: 'Silver', color: 'contrast' },
   ]
-  const header = islandContentOf(island).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  const header = islandContentOf(island).flatMap((b) => flatAtoms(b.items)).find((a) => a.isEntityHeader)
   assert.deepEqual(header.badges.map((b) => b.badgeClass), [
     'oj-badge oj-badge-info oj-badge-subtle',
     'oj-badge oj-badge-warning oj-badge-subtle',
@@ -1268,7 +1268,7 @@ test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan d
   // money is written in the UI's locale (i18n.moneyText): this front office is a German-grouped one
   setChromeLanguage('de-DE')
   try {
-  const atomsOf = (name) => islandContentOf(fx(name)).flatMap((b) => b.items)
+  const atomsOf = (name) => islandContentOf(fx(name)).flatMap((b) => flatAtoms(b.items))
   const conf = atomsOf('fo-island-step-last')
   const statusList = conf.find((a) => a.isStatusList)
   assert.equal(statusList.items[0].title, 'María Fernández')
@@ -1302,7 +1302,7 @@ test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre
   assert.equal(nestedInfo.initialData.stayId, 'st-maria')
   assert.equal(nestedInfo.initialData.paxIndex, 1)
   const nestedBlocks = islandContentOf(fx('fo-nested-doc'))
-  const atoms = nestedBlocks.flatMap((b) => b.items)
+  const atoms = nestedBlocks.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isNotice))
   const merged = mergeNestedContent(islandContentOf(wizard), nestedBlocks)
   const nestedCard = merged.find((b) => b.isCard && b.items.some((a) => a.fromNested))
@@ -1315,7 +1315,7 @@ test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre
 // TaskProgress banner projects a precomputed N-of-M (VB's CSP does not compare) and the StatusList
 // carries the quick actions per operation (Create wifi / Write key → {_item}).
 test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por operación', () => {
-  const atoms = islandContentOf(fx('fo-reserva-arriving')).flatMap((b) => b.items)
+  const atoms = islandContentOf(fx('fo-reserva-arriving')).flatMap((b) => flatAtoms(b.items))
   const tp = atoms.find((a) => a.isTaskProgress)
   assert.equal(tp.label, 'Operaciones de check-in')
   assert.equal(tp.max, 7)
@@ -1357,7 +1357,7 @@ test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () =
   assert.match(zoned[0].blockClass, /oj-md-4/) // 36% → 4/12 (guests, card)
   assert.ok(zoned[0].isCard)
   assert.match(zoned[1].blockClass, /oj-md-8/) // 64% → 8/12 (operativa)
-  assert.ok(zoned[1].items.some((a) => a.isTaskProgress))
+  assert.ok(flatAtoms(zoned[1].items).some((a) => a.isTaskProgress))
   assert.ok(blocks.every((b) => b.blockClass))
 })
 
@@ -3354,7 +3354,7 @@ test('notice: a null el aviso no se pinta; con valor, sí', () => {
       }],
     }
     const reg = reduceContexts(empty(), inc)
-    return (hostContentOf(reg.contexts[HOST_ID], null, { title: '' }) || []).flatMap((b) => b.items).filter((a) => a.isNotice)
+    return (hostContentOf(reg.contexts[HOST_ID], null, { title: '' }) || []).flatMap((b) => flatAtoms(b.items)).filter((a) => a.isNotice)
   }
   assert.equal(noticesWith({ quejas: null }).length, 0)
   assert.equal(noticesWith({ quejas: '  ' }).length, 0)
@@ -3383,7 +3383,7 @@ test('custom component: placeholder visible + hijos slotted (escape hatch #14)',
   }
   const reg = reduceContexts(empty(), inc)
   const host = reg.contexts[HOST_ID]
-  const atoms = (hostContentOf(host, null, { title: '' }) || []).flatMap((b) => b.items)
+  const atoms = (hostContentOf(host, null, { title: '' }) || []).flatMap((b) => flatAtoms(b.items))
   // placeholder with the name of the custom type
   const placeholder = atoms.find((a) => a.isNotice && /org-chart/.test(a.text || ''))
   assert.ok(placeholder, 'el custom component muestra un placeholder con su nombre')
@@ -3575,7 +3575,7 @@ test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila
   const rooms = collectFields(host.tree).find((f) => f.fieldId === 'rooms')
   assert.equal(rooms.formPosition, 'modal')
   assert.ok(isModalRowEditor(rooms))
-  const atoms = (islandContentOf(host) || []).flatMap((b) => b.items)
+  const atoms = (islandContentOf(host) || []).flatMap((b) => flatAtoms(b.items))
   const grid = atoms.find((a) => a.isGrid && a.fieldId === 'rooms')
   assert.ok(grid.rowEditable)
   assert.equal(grid.addActionId, 'rooms_add')
@@ -3586,7 +3586,7 @@ test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila
   // a just-added room (no line or total: the server sets them) says «—» in those
   // cells, not a gap
   const withNew = { ...host, state: { ...host.state, rooms: [{ line: null, roomTypeCode: 'DBL', adults: 2, total: null }] } }
-  const fresh = (islandContentOf(withNew) || []).flatMap((b) => b.items).find((a) => a.isGrid && a.fieldId === 'rooms')
+  const fresh = (islandContentOf(withNew) || []).flatMap((b) => flatAtoms(b.items)).find((a) => a.isGrid && a.fieldId === 'rooms')
   assert.equal(fresh.rows[0].line, '—')
   assert.equal(fresh.rows[0].total, '—')
   assert.equal(fresh.rows[0].roomTypeCode, 'DBL')
@@ -4139,7 +4139,7 @@ test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arri
   assert.match(view.wizard.listSteps[0].cls, /mateu-wizard-step-current/)
   // the wizard title (its h2) moves up to the header and is not repeated in the content
   assert.equal(view.title, 'Walk-in')
-  const atoms = view.content.flatMap((b) => b.items)
+  const atoms = view.content.flatMap((b) => flatAtoms(b.items))
   assert.ok(!atoms.some((a) => a.isText && a.text === 'Walk-in'))
   // no form field is also left as a text input in the content
   assert.ok(!atoms.some((a) => a.isInput), 'sin inputs duplicados en el contenido')
@@ -4164,7 +4164,7 @@ test('wizard: el check-in (contenido rico) conserva su contenido y sus acciones 
   assert.equal(view.wizard.horizontal, true)
   assert.equal(view.wizard.currentStep, 'identidad')
   assert.equal(view.title, 'Check-In')
-  const atoms = view.content.flatMap((b) => b.items)
+  const atoms = view.content.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isNotice))
   assert.ok(atoms.some(isRichAtom))
   assert.deepEqual(view.sections, []) // rich → no generic form (same rule as the host)
@@ -4189,7 +4189,7 @@ test('wizard: con RAIL (ProgressSteps vertical) sigue el guided process — sin 
   const view = wizardStepViewOf(reg.contexts[HOST_ID], null, { title: summary.title, sections: summary.sections })
   assert.equal(view.wizard.horizontal, false)
   assert.deepEqual(view.nav, [])
-  const atoms = view.content.flatMap((b) => b.items)
+  const atoms = view.content.flatMap((b) => flatAtoms(b.items))
   // the back/next footer is provided by the guided process: outside the content, as always
   assert.ok(!atoms.some((a) => a.isButtons && a.buttons.every((b) => b.actionId === 'back' || b.actionId === 'next')))
   // and here too each field once
@@ -4309,7 +4309,7 @@ test('wizard: el guided process lleva título, subtítulo y el estado de cada pa
   const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
   // the title and the subtitle belong to the process: they are not repeated inside the step
   assert.equal(view.title, 'Walk-in')
-  const atoms = view.content.flatMap((b) => b.items)
+  const atoms = view.content.flatMap((b) => flatAtoms(b.items))
   assert.ok(!atoms.some((a) => a.isText && (a.text === 'Walk-in' || a.text === wizard.subtitle)))
   // on the first step there is nothing to resume yet
   const fresh = reduceContexts(empty(), fx('fo-walkin-wizard'))
@@ -4663,10 +4663,11 @@ test('P1: barra de contenido — claves de ruta y contador; con una sola pestañ
     { md: { label: 'Subnets', routeKey: 'subnets', badge: '12' }, text: 'a' },
     { md: { label: 'Gateways', routeKey: 'gateways' }, text: 'b' },
   ]))
-  const bar = blocks.flatMap((b) => b.items).find((a) => a.isTabs)
-  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Subnets (12)', 'subnets'], ['Gateways', 'gateways']])
+  const bar = blocks.flatMap((b) => flatAtoms(b.items)).find((a) => a.isTabs)
+  // the count is a chip after the label (it was glued to it: «Subnets (12)»)
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.badge, t.routeKey]), [['Subnets', '12', 'subnets'], ['Gateways', '', 'gateways']])
   const single = p1IslandContentOf(p1Tabs([{ md: { label: 'Policies', routeKey: 'all-policies' }, text: 'only' }]))
-  assert.ok(!single.flatMap((b) => b.items).some((a) => a.isTabs), 'una sola pestaña: sin barra')
+  assert.ok(!single.flatMap((b) => flatAtoms(b.items)).some((a) => a.isTabs), 'una sola pestaña: sin barra')
 })
 
 const p1Master = (extra = {}) => ({ targetComponentId: '', component: { type: 'ClientSide', metadata: {
@@ -4752,7 +4753,7 @@ import {
 import { loadSubresources as p1LoadSubresources } from './transport.mjs'
 
 const p1Overview = () => reduceContexts(empty(), fx('p1-overview-billing'))
-const p1Atoms = (blocks) => (blocks || []).flatMap((b) => b.items)
+const p1Atoms = (blocks) => (blocks || []).flatMap((b) => flatAtoms(b.items))
 
 test('P1: un @Subresource es su propia superficie, no la isla de la pantalla', () => {
   const host = p1Overview().contexts[HOST_ID]
@@ -4779,7 +4780,7 @@ test('P1: una página-formulario con la pestaña de los @Subresource activa cons
   const atoms = p1Atoms(blocks)
   const bar = atoms.find((a) => a.isTabs)
   assert.ok(bar, 'la barra de pestañas sigue ahí')
-  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
+  assert.deepEqual(bar.tabs.map((t) => [t.label + (t.badge ? ' (' + t.badge + ')' : ''), t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
   assert.equal(bar.selectedId, 'tab-2')
   // only those of the tab in view, stacked with their title and their help
   assert.deepEqual(atoms.filter((a) => a.isSubresource).map((a) => a.islandId), ['_invoices', '_payments'])
@@ -5640,7 +5641,7 @@ console.log(`\n${pass} tests OK (contrato de wire real)`)
 const layoutsOf = (name) => {
   const reg = reduceContexts(empty(), fx(name))
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, {}) || []
-  return blocks.flatMap((b) => b.items).filter((a) => a.isFormLayout)
+  return blocks.flatMap((b) => flatAtoms(b.items)).filter((a) => a.isFormLayout)
 }
 
 test('crud: la vista de detalle pinta cada sección con el form layout de JET, de sólo lectura', () => {
@@ -5659,7 +5660,7 @@ test('crud: la vista de detalle pinta cada sección con el form layout de JET, d
   assert.ok(layouts.every((l) => l.fields.every((f) => f.colspan >= 1 && f.colspan <= l.columns)))
   // the section grids are still tables, outside the layout
   const atoms = (hostContentOf(reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID], null, {}) || [])
-    .flatMap((b) => b.items)
+    .flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isGrid && a.fieldId === 'rooms'))
   assert.ok(!layouts.some((l) => l.fields.some((f) => f.fieldId === 'rooms')))
 })
@@ -6490,7 +6491,7 @@ import {
   busSubscribersOf as iiBusSubscribersOf, registerInlineIsland as iiRegisterInlineIsland,
 } from './transport.mjs'
 
-const iiAtoms = (blocks) => (blocks || []).flatMap((b) => b.items || [])
+const iiAtoms = (blocks) => (blocks || []).flatMap((b) => flatAtoms(b.items))
 const iiHostOf = () => {
   const reg = reduceContexts(empty(), fx('sut-events-lab'))
   // what loadRouteInto stamps on the host when the page is loaded
@@ -6744,7 +6745,7 @@ test("a @Section's affordances are oj-sp-section's own: ONE primary action (edit
 test("an @Aside form (its sections merged into the main column) keeps each section's Spectra header", () => {
   // captured from demo-redwood-showcase /advanced-create-edit-aside-demo (Advanced create and edit, variant B)
   const host = reduceContexts(empty(), fx('aside-form')).contexts[HOST_ID]
-  const atoms = iiHostContentOf(host, null, { title: 'Edit order' }).flatMap((b) => b.items || [])
+  const atoms = iiHostContentOf(host, null, { title: 'Edit order' }).flatMap((b) => flatAtoms(b.items))
   const headers = atoms.filter((a) => a.isSpSectionHeader)
   assert.deepEqual(headers.map((h) => h.sectionTitle), ['Order', 'Shipping'])
   assert.equal(headers[0].sectionActions.primary.display, 'off')
@@ -6827,7 +6828,7 @@ test('@Zones in a crud detail: the columns are the body (4/12 + 8/12), the gener
   }
   // read-only in the view, editable in the editor
   const layouts = (name) => hostContentOf(reduceContexts(empty(), fx(name)).contexts[HOST_ID], null, {})
-    .flatMap((b) => b.items).filter((a) => a.isFormLayout)
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isFormLayout)
   assert.ok(layouts('crud-view-zones').every((l) => l.readonly))
   assert.ok(layouts('crud-edit-zones').some((l) => !l.readonly))
 })
@@ -6853,10 +6854,15 @@ test('a column grid nested in a card is hoisted to the page level, in order', ()
     ] },
     { type: 'ClientSide', metadata: { type: 'Text', text: 'after' } },
   ] }
+  // …but a grid a cell can paint (texts, badges, notices…) stays IN PLACE as a CSS grid box (isCells):
+  // the card is not cut (the Explorer's examples came out split, a card per heading)
   const out = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
-  assert.deepEqual(out.map((b) => b.items.map((a) => a.text).join(',')), ['Card,before', 'left', 'right', 'after'])
-  assert.deepEqual(out.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '12'), ['12', '6', '6', '12'])
-  assert.ok(out[3].isCard, 'the continuation is still the card')
+  assert.equal(out.length, 1)
+  assert.ok(out[0].isCard)
+  const box = out[0].items.find((a) => a.isCells)
+  assert.deepEqual(out[0].items.map((a) => a.text || (a.isCells ? 'grid' : '')), ['Card', 'before', 'grid', 'after'])
+  assert.equal(box.style.gridTemplateColumns, '1fr 1fr')
+  assert.deepEqual(box.cells.map((c) => c.items[0].text), ['left', 'right'])
   // a grid with ONE track stays where it was
   card.children[1].metadata.gridTemplateColumns = '1fr'
   const single = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
@@ -6904,7 +6910,7 @@ test('the real Welcome (con-micronaut demo): its five panels in order, the atten
 test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible panel with its title; the overlay root is not', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
   const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-gantt-page')).contexts[HOST_ID], null, {})
-  const atoms = blocks.flatMap((b) => b.items)
+  const atoms = blocks.flatMap((b) => flatAtoms(b.items))
   const at = atoms.findIndex((a) => a.isCollapsible)
   assert.ok(at >= 0, 'the drawer has a header')
   assert.equal(atoms[at].title, 'Leyenda y próximos hitos')
@@ -6913,10 +6919,10 @@ test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible pane
   // not collapsible: its title as a heading, then its content
   const inline = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
     node({ type: 'Drawer', headerTitle: 'Side', content: [node({ type: 'Text', text: 'inside' })] })])] } }, null, {})
-  assert.deepEqual(inline.flatMap((b) => b.items).map((a) => [!!a.isHeading, a.text]), [[true, 'Side'], [false, 'inside']])
+  assert.deepEqual(inline.flatMap((b) => flatAtoms(b.items)).map((a) => [!!a.isHeading, a.text]), [[true, 'Side'], [false, 'inside']])
   // a Drawer that IS the overlay (the root of its context) is painted by the drawer panel, as before
   const reg = reduceContexts(empty(), { fragments: [{ action: 'Add', targetComponentId: '', component: node({ type: 'Drawer', headerTitle: 'Panel', content: [node({ type: 'Text', text: 'body' })] }) }] })
-  assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => b.items).some((a) => a.isCollapsible))
+  assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => flatAtoms(b.items)).some((a) => a.isCollapsible))
 })
 test('Hero Search (con-micronaut demo, gridLayout = cards): the listing is a grid of cards — title, badge, @Line, pairs', () => {
   let reg = reduceContexts(empty(), fx('tpl-hero-search'))
@@ -7109,7 +7115,7 @@ test('Foldout page: the layout binds the header, the overview can take the overv
 })
 test('Data Management (con-micronaut demo): the docked panel\'s «Resumen ✕» HorizontalLayout is ONE row; its Text keeps its style', () => {
   const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-data-management')).contexts[HOST_ID], null, {})
-  const atoms = blocks.flatMap((b) => b.items || [])
+  const atoms = blocks.flatMap((b) => flatAtoms(b.items))
   const row = atoms.find((a) => a.isRow)
   assert.ok(row, 'the HorizontalLayout is a row')
   assert.deepEqual(row.style, { alignItems: 'center', width: '100%' })
@@ -7130,7 +7136,7 @@ test('Text.style: filtered like an Element\'s HTML style; a weight / size beats 
   const node = (metadata, children = [], style) => ({ type: 'ClientSide', metadata, children, ...(style ? { style } : {}) })
   const items = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
     node({ type: 'Text', text: 'Big', size: 'xl' }, [], 'color: #c00; font-weight: 700'),
-  ])] } }, null, {}).flatMap((b) => b.items)
+  ])] } }, null, {}).flatMap((b) => flatAtoms(b.items))
   const t = items.find((a) => a.text === 'Big')
   assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
   assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
@@ -7148,7 +7154,7 @@ test('a listing in a slot of a page template is not the page listing: one header
 
 test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
-  const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)
+  const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => flatAtoms(b.items))
   const row = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Text', text: 'Total' }), node({ type: 'Badge', text: 'Paid', color: 'success' }),
     node({ type: 'Anchor', text: 'Invoice', url: '/invoices/1' }), node({ type: 'Icon', icon: 'vaadin:check' })]))
   assert.equal(row.length, 1)
@@ -7240,6 +7246,7 @@ atest('widgets: un MicroFrontend de cabecera resuelto en el host no se pide; sus
 // ── MicroFrontend EMBEDDED (MicroFrontend.chrome): a block of the page, not a page ──────────────
 import { withSubresources as mfeWithSubresources } from './core/content.mjs'
 import { withoutWindowCommands as mfeWithoutWindowCommands, embeddedChromeOf as mfeChromeOf } from './core/display.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const mfeWindowCommands = (id) => [
   { targetComponentId: id, type: 'SetWindowTitle', data: 'Remote title' },
@@ -7364,7 +7371,7 @@ test('embedded MicroFrontend: NONE draws no title nor toolbar, COMPACT only the 
     const sub = mfeOf({ baseUrl: '/r', route: '/tools', ...(chrome ? { chrome } : {}) })
     const reg = reduceContexts(empty(), mfePageAnswer(sub.id))
     const blocks = mfeWithSubresources([{ items: [{ isSubresource: true, islandId: sub.id, subresource: sub }] }], reg.contexts)
-    const items = blocks.flatMap((b) => b.items)
+    const items = blocks.flatMap((b) => flatAtoms(b.items))
     return {
       // the remote page's header is drawn inside its box (the island header atom)
       title: items.some((a) => (a.isText || a.isIslandHeader) && (a.text === 'Remote page' || a.title === 'Remote page')),

@@ -469,6 +469,19 @@ export const RICH_ATOM_FLAGS = [
   'isNestedListing',
   // a long VirtualList (JET's virtualised oj-list-view)
   'isVirtualList',
+  // a layout box (isCells) holding any of the above: core/content.mjs cellsAtomOf
+  'isCellsRich',
+]
+
+/** The atoms a CELL of a layout box (isCells) can paint — the branches of atoms.html that make-html
+ *  copies into the cell template. A box whose children project to anything else is not built (the
+ *  children keep the stacked projection), so adding a flag here means "safe to nest one level". */
+export const CELL_ATOM_FLAGS = [
+  'isText', 'isHeading', 'isRow', 'isAnchor', 'isBadge', 'isButtons', 'isIcon', 'isImage', 'isAvatar',
+  'isNotice', 'isBullets', 'isSeparator', 'isStat', 'isMeter', 'isProgressBar', 'isProgress', 'isOffer',
+  'isChart', 'isCallout', 'isPropertyRow', 'isEmptyStateAtom', 'isSkeleton', 'isRichText', 'isChecklist', 'isContextMenu',
+  // LEFT OUT (each copy costs the page ~1 MB over its 38 surfaces): StatusList, Scoreboard, EntityHeader,
+  // Ledger, TaskProgress, CommentThread — a box holding one keeps the stacked projection / column blocks
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

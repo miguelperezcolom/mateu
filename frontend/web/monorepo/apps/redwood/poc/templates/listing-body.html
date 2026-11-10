@@ -1618,7 +1618,7 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isContextMenu ]]">
                     <!-- ContextMenu: its content is above; its menu, an oj-menu-button (installContextMenus also opens it on right click) -->
-                    <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]">
+                    <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]" :data-mateu-context-left="[[ $current.data.leftClick ? 'true' : null ]]">
                       <oj-menu-button chroming="borderless" display="icons">
                         <span slot="startIcon" class="oj-ux-ico-overflow-h"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
                         <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.hostMenuAction ]]">

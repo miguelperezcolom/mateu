@@ -428,6 +428,17 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   // oj-select-one, JET answered with the first option and the form saved it unasked.
   const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
   const raw = s[fieldId] != null ? s[fieldId] : fromData
+  // @PlainText: dense read-only TEXT, whatever its type — an amount formatted («€ 1,180.00», it was a
+  // read-only currency box), an option by its label; one line cut with an ellipsis unless @Multiline
+  if (md.stereotype === 'plainText') {
+    const plainBuilt = fieldWidgetOf({ ...md, stereotype: '', dataType: 'string', options: [], readOnly: true }, data, { lookups: false, value: raw, textWhenEmpty: true })
+    const text = typeof plainBuilt.label === 'string' && plainBuilt.label.includes('${')
+      ? { ...plainBuilt, label: interpolate(plainBuilt.label, s, { data: d }) } : plainBuilt
+    const colspan = Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns))
+    return { ...text, isText: true, readonly: true, value: readOnlyDisplayOf(md, raw, data).text,
+      fieldClass: md.multiline ? 'mateu-plain-multiline' : 'mateu-plain-ellipsis',
+      colspan, colspanAttr: colspan > 1 ? colspan + 'of' + columns : null, placeholder: '', messagesCustom: [] }
+  }
   const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
   // a label is a template like a section title (`Price per night (${state.currency})`)
   const widget = typeof built.label === 'string' && built.label.includes('${')
@@ -435,7 +446,12 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
   if (widget.isMoney && value != null && typeof value === 'object') value = value.value
-  if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
+  const colspan = Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns))
+  // classic oj-form-layout sizes every child to one column (it wraps each in an oj-flex-item with an
+  // inline width): the child says how many it spans of how many, `2of3`, and app.css widens the
+  // wrapper (.oj-flex-item:has(> [data-mateu-span="2of3"])) — null = one column
+  const colspanAttr = colspan > 1 ? colspan + 'of' + columns : null
+  if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan, colspanAttr, messagesCustom: [] }
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -445,13 +461,24 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   return {
     ...widget,
     value,
-    // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
-    // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
-    colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+    // stepButtonsVisible: JET's oj-input-number draws its − / + buttons when it has a step
+    numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : 0,
+    // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
+    colspan,
+    colspanAttr,
     // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
     placeholder: md.placeholder ? String(md.placeholder) : '',
-    messagesCustom: [],
+    ...helpAsMessageOf(widget),
   }
+}
+
+/** @Help, ALWAYS visible under the field (as the web renderer's helper text): JET's help.instruction
+ *  only shows while the field has focus, so the widgets that bind messages-custom carry it as an
+ *  `info` message (and drop the focus-only instruction, or it would be read twice). */
+export function helpAsMessageOf(widget) {
+  const BOUND = widget.isText || widget.isNumber || widget.isTextArea || widget.isDate || widget.isDateTime || widget.isSelect
+  if (!widget.help || !BOUND || widget.readonly) return { messagesCustom: [] }
+  return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: widget.help }] }
 }
 
 // ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────
@@ -721,6 +748,8 @@ export function extraWidgetOf(f, options, value) {
   // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
   if (st === 'password' && !f.readOnly) return { isPassword: true }
   if (st === 'radio' && options.length) return { isRadio: true }
+  // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
+  if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
   if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
   if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
     return { isCheckboxSet: true }

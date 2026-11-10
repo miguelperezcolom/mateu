@@ -16,6 +16,30 @@ import { dirname, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const page = join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html')
+import { CELL_ATOM_FLAGS } from './core/atoms.mjs'
+// A CELL of a layout box (isCells: a HorizontalLayout of cards/stats/charts, a styled Container, an
+// aligned VerticalLayout…) holds atoms of its own, painted by a SUBSET of the same template: the
+// top-level branches of atoms.html whose flag is in CELL_ATOM_FLAGS, copied in at `@cell-atoms`. VB
+// cannot recurse into a template, so a cell never holds another box (the visitor flattens it).
+export const withCellAtoms = (atoms, flags = CELL_ATOM_FLAGS) => {
+  const lines = atoms.split('\n')
+  const branches = []
+  let top = null
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*)<oj-bind-if test="\[\[ \$current\.data\.(is\w+)/)
+    if (top == null && m) top = m[1]
+    if (!m || m[1] !== top || !flags.includes(m[2])) continue
+    let j = i
+    while (j < lines.length && lines[j] !== top + '</oj-bind-if>') j++
+    branches.push(...lines.slice(i, j + 1).map((l) => l.slice(top.length)))
+    i = j
+  }
+  // the copy is COMPACT — no comments, no indentation: it is repeated in every atoms surface of the
+  // page (38), and its deep indentation alone weighed more than its markup
+  const compact = branches.join('\n').replace(/<!--[\s\S]*?-->/g, '').split('\n')
+    .map((l) => l.trim()).filter(Boolean).join('\n')
+  return lines.map((l) => (/^\s*<!-- @cell-atoms -->$/.test(l) ? compact : l)).join('\n')
+}
 const partialSource = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/\n$/, '')
 
 /** Every atom's ROOT element (a direct child of a top-level `oj-bind-if` of the template) carries
@@ -49,7 +73,8 @@ export const stampSurfaces = (text) => {
   }
   return lines.join('\n')
 }
-const partial = stampSurfaces(partialSource)
+// stamped FIRST: the cell copies (withCellAtoms) carry the atom roots' surface id too
+const partial = withCellAtoms(stampSurfaces(partialSource))
 // The field widgets added later (radio, multiple selection, amount, capture) go in a
 // SECOND partial, inserted after the oj-select-one of EACH copy of the fields —those of the
 // atoms and the 7 outside (drawer, row editor, generic form, wizard, island)—. The only thing

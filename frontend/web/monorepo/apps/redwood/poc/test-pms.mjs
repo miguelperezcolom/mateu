@@ -71,7 +71,7 @@ const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp',
 const empty = () => ({ contexts: {}, stack: [], shell: null })
 /** Atoms the template paints for a tree (every surface uses the same projection). */
 export const atomsOf = (tree, state = {}, data = {}, opts = {}) =>
-  (islandContentOf({ tree, state, data }, opts) || []).flatMap((b) => b.items || [])
+  (islandContentOf({ tree, state, data }, opts) || []).flatMap((b) => flatAtoms(b.items))
 const node = (metadata, children = []) => ({ type: 'ClientSide', id: metadata.id || '', metadata, children })
 
 // ── P0 #2: downloads and links ─────────────────────────────────────────────────────────────────────
@@ -227,7 +227,7 @@ test('Anchor: enlace real; _blank abre otra pestaña con noopener; la url se int
 test('Anchor en un formulario real (/billing): se pinta el contenido rico, no el formulario genérico', () => {
   const reg = reduceContexts(empty(), fixture('billing'))
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, {})
-  const items = blocks.flatMap((b) => b.items || [])
+  const items = blocks.flatMap((b) => flatAtoms(b.items))
   assert.ok(items.some((a) => a.isAnchor), 'el Anchor no se proyectó')
   assert.ok(items.some((a) => a.isFormLayout), 'los campos tienen que seguir en el oj-form-layout')
   assert.equal(hostContentShown(blocks, summarizeHost(reg)), true)
@@ -236,14 +236,15 @@ test('Anchor en un formulario real (/billing): se pinta el contenido rico, no el
 test('plantilla: el átomo isAnchor está en la plantilla única y expandido en todas las superficies', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
-  assert.equal((page.match(/\$current\.data\.isAnchor \]\]/g) || []).length, surfaces)
+  // twice per surface: the top-level branch and its copy in the layout-box cells (CELL_ATOM_FLAGS)
+  assert.equal((page.match(/\$current\.data\.isAnchor \]\]/g) || []).length, surfaces * 2)
 })
 
 // ── P0 #3: Element, the escape hatch, in full ────────────────────────────────────────────────
 
 test('Element (/floor-plan real): el átomo lleva `on`, un id propio y su módulo; dentro de pestañas', () => {
   const reg = reduceContexts(empty(), fixture('floor-plan'))
-  const items = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => b.items || [])
+  const items = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => flatAtoms(b.items))
   assert.ok(items.some((a) => a.isTabs), 'la barra de plantas')
   const el = items.find((a) => a.isElement)
   assert.ok(el, 'el plano de la planta activa no se proyectó')
@@ -325,7 +326,7 @@ test('Element atom carries the backend its OWNING context was loaded from (also 
   const graph = node({ type: 'Element', name: 'wf-graph', attributes: { import: '/wf/graph.js' }, on: {} })
   const outbound = { route: '/_workflow/p/1', baseUrl: 'http://localhost:8620/_workflow' } // NOSONAR
   const atom = (islandContentOf({ tree: node({ type: 'Page' }, [graph]), state: {}, data: {}, outbound }) || [])
-    .flatMap((b) => b.items || []).find((a) => a.isElement)
+    .flatMap((b) => flatAtoms(b.items)).find((a) => a.isElement)
   assert.equal(atom.screenBase, 'http://localhost:8620/_workflow') // NOSONAR
   // a context without an outbound (fixtures) has none
   assert.equal(atomsOf(node({ type: 'Page' }, [graph])).find((a) => a.isElement).screenBase, '')
@@ -333,7 +334,7 @@ test('Element atom carries the backend its OWNING context was loaded from (also 
   const foldout = node({ type: 'FoldoutLayout', panels: [{ title: 'Graph' }] },
     [{ ...node({ type: 'VerticalLayout' }), slot: 'overview' }, { ...node({ type: 'VerticalLayout' }, [graph]), slot: 'panel-0' }])
   const f = foldoutOf({ tree: node({ type: 'Page' }, [foldout]), state: {}, data: {}, outbound })
-  const inPanel = f.panels[0].blocks.flatMap((b) => b.items || []).find((a) => a.isElement)
+  const inPanel = f.panels[0].blocks.flatMap((b) => flatAtoms(b.items)).find((a) => a.isElement)
   assert.equal(inPanel.screenBase, 'http://localhost:8620/_workflow') // NOSONAR
 })
 
@@ -662,7 +663,7 @@ test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las en
 
 test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, resumen y fin pintado al día siguiente', () => {
   const reg = reduceContexts(empty(), fixture('room-diary'))
-  const atom = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => b.items || []).find((a) => a.isPlanning)
+  const atom = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => flatAtoms(b.items)).find((a) => a.isPlanning)
   assert.ok(atom, 'el tape chart no se proyectó')
   // the resources, and a header row before each resource group (the floors)
   const resourceRows = atom.rows.filter((r) => !r.isGroup)
@@ -1623,7 +1624,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   const l = listingOf(ctx)
   assert.equal(l.dragType, 'charge')
   assert.deepEqual(l.dragTypes, ['application/x-mateu-charge'])
-  const zone = listingHeaderBlocksOf(ctx).flatMap((b) => b.items).find((a) => a.isDropZone)
+  const zone = listingHeaderBlocksOf(ctx).flatMap((b) => flatAtoms(b.items)).find((a) => a.isDropZone)
   assert.ok(zone, 'los componentes de cabecera de la página del listado se pintan (HeaderSupplier)')
   assert.equal(zone.accept, 'application/x-mateu-charge')
   assert.equal(zone.actionId, 'moveCharges')
@@ -1847,7 +1848,7 @@ test('proceso guiado: ni el contador del RAIL ni el pie Back + completar se dupl
     node({ type: 'Text', text: 'Close the cashiers' }),
     node({ type: 'HorizontalLayout' }, [node({ type: 'Button', label: 'Back', actionId: 'back' }), node({ type: 'Button', label: 'Run end of day', actionId: 'run' })]),
   ])
-  const items = (hostContentOf({ tree, state: {}, data: {} }, [], { forWizard: true }) || []).flatMap((b) => b.items)
+  const items = (hostContentOf({ tree, state: {}, data: {} }, [], { forWizard: true }) || []).flatMap((b) => flatAtoms(b.items))
   assert.deepEqual(items.filter((a) => a.isText).map((a) => a.text), ['Close the cashiers'])
   assert.equal(items.filter((a) => a.isButtons).length, 0)
 })
@@ -2289,6 +2290,7 @@ for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pa
 void HOST_ID
 
 import { meterAtomOf } from './reduceContexts.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 test('Meter: its unit, its thresholds and its fill percent (mateu-meter); a MetricCard icon; the info status tone', () => {
   // the unit after the value (it was «98 / 100»), the fill percent as the caption when none is given
@@ -2344,7 +2346,8 @@ test('Scoreboard: the band carries its items as consecutive MetricCards join it;
   assert.equal(kpis.sbActionable, true, 'In house drills in')
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
-  // one per atoms surface, plus the dashboard landing page's `kpi` slot
+  // one per atoms surface (a KPI band is not painted inside layout-box cells), plus the dashboard
+  // landing page's `kpi` slot
   assert.equal(page.split('<oj-sp-scoreboard :id="[[ $current.data.sbId ]]" class="mateu-sp-scoreboard').length - 1, surfaces + 1)
   assert.match(kpis.sbId, /^mateuKpis\d+$/)
   const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
@@ -2499,7 +2502,7 @@ test('TodoList archetype → oj-sp-task-organizer-page: its header + the queue a
     node({ type: 'Card', content: node({ type: 'CustomField', content: queue }) })])] }
   const todo = todoListOf({ id: HOST_ID, kind: 'host', tree, state: {}, data: {} })
   assert.equal(todo.title, 'Front desk tasks')
-  assert.ok(todo.blocks.flatMap((b) => b.items).some((a) => a.isQueue), 'the queue atom rides in its slot')
+  assert.ok(todo.blocks.flatMap((b) => flatAtoms(b.items)).some((a) => a.isQueue), 'the queue atom rides in its slot')
   // the page claims it (no generic content twice) — and a TaskQueue of another archetype is not one
   assert.equal(hostContentPlanOf({ id: HOST_ID, kind: 'host', tree, state: {}, data: {} }, {}).hostBlocks, null)
   // …and the queue + detail page steps aside (it painted the list a second time below)
@@ -2521,12 +2524,12 @@ test('DataManagement → oj-sp-data-management-page: the view in its default slo
   const dm = dataManagementPageOf(realHost('tpl-data-management-docked'))
   assert.equal(dm.kind, 'dataManagement')
   assert.equal(dm.title, 'Plan del proyecto')
-  const atoms = dm.main.flatMap((b) => b.items)
+  const atoms = dm.main.flatMap((b) => flatAtoms(b.items))
   assert.deepEqual(atoms.find((a) => a.isButtons).buttons.map((b) => b.actionId), ['switchToGrid', 'switchToGantt', 'toggleEndPanel', 'toggleBottomPanel'], 'the view switcher + panel toggles stay in the content')
   assert.ok(atoms.some((a) => a.isGrid), 'the grid view')
   assert.ok(!atoms.some((a) => a.isText && a.text === 'Resumen'), 'the end panel is not painted in the content')
   assert.deepEqual([dm.end.title, dm.end.closeActionId, dm.endOpened], ['Resumen', 'toggleEndPanel', 'inner'], 'the end panel: its header row becomes the template header')
-  assert.ok(!dm.end.blocks.flatMap((b) => b.items).some((a) => a.isButtons), 'its ✕ is the template\'s close, not a button of the body')
+  assert.ok(!dm.end.blocks.flatMap((b) => flatAtoms(b.items)).some((a) => a.isButtons), 'its ✕ is the template\'s close, not a button of the body')
   assert.deepEqual([dm.bottom.title, dm.bottom.closeActionId, dm.bottomOpened, dm.bottomOptions.drawerMode], ['Registro', 'toggleBottomPanel', 'inner', 'closable'])
   // a closed panel (only its toggle in the toolbar) leaves its drawer closed
   const other = dataManagementPageOf(realHost('tpl-data-management'))
@@ -2539,7 +2542,7 @@ test('DataManagement → oj-sp-data-management-page: the view in its default slo
 test('GanttPage → oj-sp-data-management-page: the canvas + detail in the default slot, the persistent drawer docked at the bottom in fixed mode', () => {
   const g = dataManagementPageOf(realHost('tpl-gantt-page'))
   assert.equal(g.kind, 'gantt')
-  assert.ok(g.main.flatMap((b) => b.items).some((a) => a.isPlanning), 'the oj-gantt canvas')
+  assert.ok(g.main.flatMap((b) => flatAtoms(b.items)).some((a) => a.isPlanning), 'the oj-gantt canvas')
   assert.ok(g.bottom.on && g.bottom.blocks.length > 0, 'the bottom drawer\'s content')
   assert.equal(g.bottom.closeActionId, '', 'a persistent drawer has no toggle to run')
   assert.equal(g.bottomOptions.drawerMode, 'fixed', 'collapsible = Spectra\'s fixed mode (the handle)')
@@ -2586,7 +2589,7 @@ test('CollectionDetail → oj-sp-collection-detail-page: the collection in its d
   assert.ok(cd.collection.some((b) => b.items.some((a) => a.isQueue)), 'the cards')
   assert.ok(cd.collection.some((b) => b.items.some((a) => a.isFormLayout)), 'the search form (its debounced auto-save keeps working)')
   assert.deepEqual(cd.selectedItems, [], 'nothing selected')
-  assert.ok(cd.noSelection.flatMap((b) => b.items).some((a) => a.isEmptyStateAtom), 'emptyDetail() in the noSelection slot')
+  assert.ok(cd.noSelection.flatMap((b) => flatAtoms(b.items)).some((a) => a.isEmptyStateAtom), 'emptyDetail() in the noSelection slot')
   // selecting: the selected card carries the server's detail; the template gets only { id }
   const state = JSON.parse(JSON.stringify(host))
   const queue = findAllByType(state.tree, 'TaskQueue')[0]
@@ -2760,7 +2763,7 @@ test('a vertical MasterDetailLayout puts the detail below the master (no side-by
     node({ type: 'MasterDetailLayout', orientation: 'vertical' }, [node({ type: 'Text', text: 'master' }), node({ type: 'Text', text: 'detail' })]),
   ]), state: {}, data: {} })
   assert.ok(blocks.every((b) => !/mateu-split-pane/.test(b.colClass || '')))
-  assert.deepEqual(blocks.flatMap((b) => b.items).filter((a) => a.isText).map((a) => a.text), ['master', 'detail'])
+  assert.deepEqual(blocks.flatMap((b) => flatAtoms(b.items)).filter((a) => a.isText).map((a) => a.text), ['master', 'detail'])
 })
 
 test('a BoardLayout keeps its rows: each row\'s items share the row by boardCols, a row starts a line', () => {
@@ -2858,7 +2861,7 @@ test('a page that DECLARES the General overview page template → oj-sp-general-
   const host = { state: { name: 'Tatooine', climate: 'arid' }, data: {}, tree: golden.fragments[0].component }
   const gop = templatedGeneralOverviewOf(host)
   assert.equal(gop.on, true)
-  const fieldsOf = (slot) => slot.blocks.flatMap((b) => b.items || []).map((a) => a.fieldId).filter(Boolean)
+  const fieldsOf = (slot) => slot.blocks.flatMap((b) => flatAtoms(b.items)).map((a) => a.fieldId).filter(Boolean)
   assert.deepEqual(fieldsOf(gop.main), ['diameter'])
   assert.deepEqual(fieldsOf(gop.info), ['population'])
   // any other page: not claimed (the entity-page shape rule serves it)
@@ -2870,11 +2873,11 @@ test('a page that DECLARES the Collection detail page template → mateuCd: the 
     '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/' + name + '.golden.json'), 'utf-8')).fragments[0].component
   const selected = templatedCollectionDetailOf({ state: { id: '7' }, data: {}, tree: read('collection-detail-page') })
   assert.deepEqual(selected.selectedItems, [{ id: '7' }])
-  assert.deepEqual(selected.detail.flatMap((b) => b.items).map((a) => a.fieldId), ['classification'])
+  assert.deepEqual(selected.detail.flatMap((b) => flatAtoms(b.items)).map((a) => a.fieldId), ['classification'])
   assert.deepEqual(selected.noSelection, [])
   const none = templatedCollectionDetailOf({ state: {}, data: {}, tree: read('collection-detail-empty') })
   assert.deepEqual(none.selectedItems, [])
-  assert.deepEqual(none.noSelection.flatMap((b) => b.items).map((a) => a.text), ['Pick one'])
+  assert.deepEqual(none.noSelection.flatMap((b) => flatAtoms(b.items)).map((a) => a.text), ['Pick one'])
   // a full-page empty state never steals a collection detail's noSelection, and the listing page stands
   // aside while a collection detail paints the listing in its collection slot
   const html = webApp('flows/main/pages/main-start-page.html')

@@ -159,6 +159,21 @@ export function installContextMenus(doc = typeof document !== 'undefined' ? docu
       return
     }
   })
+  // activateOnLeftClick: a plain click on what the menu wraps opens it too (not a click on a
+  // control of its own, nor on the menu's button)
+  doc.addEventListener('click', (e) => {
+    const t = e.target
+    if (!t || !t.closest || t.closest('a, button, oj-button, oj-menu-button, oj-menu, input, select, textarea, .mateu-context-menu')) return
+    let node = t
+    for (let depth = 0; node && depth < 5; depth++, node = node.parentElement) {
+      const holder = node.querySelector && node.querySelector('.mateu-context-menu[data-mateu-context-left="true"]')
+      if (!holder) continue
+      const menu = holder.querySelector('oj-menu')
+      if (!menu || typeof menu.open !== 'function') return
+      try { menu.open(e) } catch (err) { /* not upgraded yet */ }
+      return
+    }
+  })
 }
 
 // ── CustomComponent slots: the view the app registered paints itself into its slot ──────────────

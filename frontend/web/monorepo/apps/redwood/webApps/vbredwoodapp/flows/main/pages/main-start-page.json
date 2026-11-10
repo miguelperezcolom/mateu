@@ -1760,7 +1760,7 @@
         "path": "ojs/ojfilmstrip"
       },
       "oj-progress-bar": {
-        "path": "ojs/ojprogress"
+        "path": "ojs/ojprogress-bar"
       },
       "oj-list-view": {
         "path": "ojs/ojlistview"

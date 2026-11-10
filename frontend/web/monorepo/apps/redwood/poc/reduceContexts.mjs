@@ -23,6 +23,7 @@
 //     ('_guestNote') and initialData with the markers (_embeddedMediator/_inline).
 
 
+export * from './core/iconMap.mjs'
 export * from './core/tree.mjs'
 export * from './core/archetypes.mjs'
 export * from './core/atoms.mjs'
