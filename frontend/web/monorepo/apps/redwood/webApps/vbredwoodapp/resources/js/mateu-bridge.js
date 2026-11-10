@@ -5043,6 +5043,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * What the shell draws around the content, from its nav mode: the navigator (HAMBURGER_MENU folds
+   * it with the hamburger; MENU_ON_LEFT and RAIL keep it docked, RAIL narrow), no chrome at all
+   * (@App(chromeless)), and Spectra's Ask FAB (the Search-or-go palette) — off in a FRAMED app (an
+   * iframe preview) that enables no command center or global search: there the FAB only covered the
+   * small frame's content. Pure.
+   */
+  function shellChromeOf(nav, shell, framed = false) {
+    const mode = (nav && nav.mode) || ''
+    const palette = !!(shell && (shell.commandCenterEnabled || shell.globalSearchEnabled || shell.chromeless))
+    return {
+      drawer: mode === 'drawer' || mode === 'left' || mode === 'rail',
+      docked: mode === 'left' || mode === 'rail',
+      rail: mode === 'rail',
+      chromeless: mode === 'none',
+      askFab: framed && !palette ? 'off' : 'on',
+    }
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
@@ -5052,7 +5071,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
       // menu that does not go through there must not draw it either
       if (option.visible === false) continue
-      const node = navNodeOf(option, '')
+      // TILES: every group opens as a panel of CARDS (the card menu, @Menu(display = cards)) —
+      // Redwood's springboard of tiles, in the subheader band
+      const tiled = shell.variant === 'TILES' && (option.submenus || option.submenu || []).length && !option.display
+        ? { ...option, display: 'cards' } : option
+      const node = navNodeOf(tiled, '')
       items.push(node.disabled
         ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
         : { id: node.id, label: node.label, icon: node.icon })
@@ -5071,8 +5094,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside the dark header (topbar)
     // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
     // level (only the sections) and the subheader carries the second level of the section on screen.
+    // MENU_ON_LEFT → LEFT: the same navigator, docked and always there (no hamburger to fold it);
+    // RAIL → RAIL: that navigator as a narrow rail of the first level; TILES → the subheader band
+    // with each group as a panel of cards; @App(chromeless) → NONE: no navigation chrome at all —
+    // the Ask palette (the command center) is the way around
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.chromeless) mode = 'none'
+    else if (shell.variant === 'HAMBURGER_MENU') mode = 'drawer'
+    else if (shell.variant === 'MENU_ON_LEFT') mode = 'left'
+    else if (shell.variant === 'RAIL') mode = 'rail'
+    else if (shell.variant === 'TILES') mode = 'tiles'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
@@ -7630,6 +7661,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const prevRoute = pn ? text(pn.prevRoute) : ''
     const nextRoute = pn ? text(pn.nextRoute) : ''
     return {
+      // the trail a page DECLARES (BreadcrumbsSupplier → Page.breadcrumbs): it replaces the automatic one
+      breadcrumbs: (md.breadcrumbs || [])
+        .map((b) => ({ text: text(b && b.text), route: String((b && b.link) || '').trim() }))
+        .filter((b) => b.text),
       overline: text(md.overline),
       titlePlaceholder: text(md.titlePlaceholder),
       timestamp: text(md.timestamp),
@@ -8013,7 +8048,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
     const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
-    const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
+    const hostExtras = pageHeaderExtrasOf(host)
+    const placeholder = !declaredTitle && hostExtras.titlePlaceholder
+    const declaredCrumbs = hostExtras.breadcrumbs.map((c) => (c.route ? { text: c.text, route: c.route } : { text: c.text }))
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
       // there either, in the menu label
@@ -8033,7 +8070,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // @NoBreadcrumbs on the page or on the shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
         ? []
-        : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
+        // a page that declares its trail (BreadcrumbsSupplier) is where IT says it is
+        : (declaredCrumbs.length ? declaredCrumbs : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) })),
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -10310,6 +10348,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           osNotifications: !!md.osNotifications,
           // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
+          // @App(commandCenter) / @App(chromeless): the Ask palette is the way around (no nav chrome)
+          commandCenterEnabled: !!md.commandCenterEnabled || !!md.chromeless,
+          chromeless: !!md.chromeless,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
           // notifications.source/markRead, globalSearch.source) instead of the app-level actions
           notificationsSource: md.notificationsSource || null,
@@ -20254,6 +20295,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let keysSink = null
   function setKeysActionSink(fn) { keysSink = typeof fn === 'function' ? fn : null }
 
+  // Ctrl+K / ⌘K opens the Search-or-go palette (the Ask FAB's: menu, recent, global search), like
+  // the web's ⌘K palette and command center — a screen action bound to the same keys wins
+  let paletteSink = null
+  function setPaletteSink(fn) { paletteSink = typeof fn === 'function' ? fn : null }
+  const isPaletteKey = (e) => !!e && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
+    && (String(e.key || '').toLowerCase() === 'k' || e.code === 'KeyK')
+
   let accessKeysOn = false
   function setAccessKeysEnabled(on) { accessKeysOn = !!on }
 
@@ -20371,6 +20419,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (action && keysSink) {
         e.preventDefault(); e.stopPropagation()
         keysSink(action.id, {}, {})
+        return
+      }
+      if (paletteSink && isPaletteKey(e)) {
+        e.preventDefault(); e.stopPropagation()
+        paletteSink()
         return
       }
       // 2. a tab
@@ -26771,6 +26824,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
   // content runMateuAction: an action's answer) assign to the VB variables once the registry is
   // reduced. Both chains used to carry their own inline copy of it (~300 lines each, already
@@ -27088,6 +27142,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
    * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
    */
+  /** A declared trail as the header draws it: links (in-app urls) but the last one. Pure. */
+  function headerCrumbsOf(breadcrumbs) {
+    const list = breadcrumbs || []
+    return list.map((c, i) => {
+      const last = i === list.length - 1
+      const route = !last && c.route ? (c.route.charAt(0) === '/' || /^[a-z]+:/i.test(c.route) ? c.route : '/' + c.route) : ''
+      const href = route && !/^[a-z][a-z0-9+.-]*:/i.test(route) ? urlOfRoute(route) : ''
+      return { key: String(i), text: c.text, href, hasHref: !!href, noHref: !href, last }
+    })
+  }
+
   function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
     const showBand = showHeader && pageWidth !== 'edgeToEdge'
     const showListBand = !!listing && pageWidth !== 'edgeToEdge'
@@ -27125,6 +27190,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       subtitle,
       // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
       overline: extras.overline,
+      // the trail a page DECLARES (BreadcrumbsSupplier), above the header: Spectra has no breadcrumbs
+      // component (its go-to-parent stays the parent crumb); the last crumb is where we are
+      crumbs: headerCrumbsOf(extras.breadcrumbs),
       // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
       // text went to the subtitle)
       timestamp: stamp.iso,
@@ -29664,6 +29732,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
   const NOT_IN_EMBEDDED = Object.freeze({
+    // Ctrl+K opens the SHELL's Search-or-go palette: an embedded component has no shell palette, and
+    // the host page owns its own keyboard shortcuts
+    setPaletteSink: 'the palette is the standalone shell\'s; the host page owns Ctrl+K',
     // a skip link is the first child of the BODY: the host page owns its own landmarks
     mountSkipLink: 'the host page owns the document landmarks',
     // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
@@ -30174,6 +30245,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     mapViewPlanOf,
     installCalendars,
     installKeys,
+    setPaletteSink,
     installHover,
     installDragAndDrop,
     setDropSink,
@@ -30392,6 +30464,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withContextState,
     withSearchableIds,
     shellNavOf,
+    shellChromeOf,
     // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
     headerActionRouteOf,
     // YAML app-context selectors backed by an optionsSource (direct sources)

@@ -46,6 +46,13 @@ export const currentShortcutActions = () => shortcutActions
 let keysSink = null
 export function setKeysActionSink(fn) { keysSink = typeof fn === 'function' ? fn : null }
 
+// Ctrl+K / ⌘K opens the Search-or-go palette (the Ask FAB's: menu, recent, global search), like
+// the web's ⌘K palette and command center — a screen action bound to the same keys wins
+let paletteSink = null
+export function setPaletteSink(fn) { paletteSink = typeof fn === 'function' ? fn : null }
+export const isPaletteKey = (e) => !!e && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
+  && (String(e.key || '').toLowerCase() === 'k' || e.code === 'KeyK')
+
 let accessKeysOn = false
 export function setAccessKeysEnabled(on) { accessKeysOn = !!on }
 
@@ -163,6 +170,11 @@ export function installKeys(doc = typeof document !== 'undefined' ? document : n
     if (action && keysSink) {
       e.preventDefault(); e.stopPropagation()
       keysSink(action.id, {}, {})
+      return
+    }
+    if (paletteSink && isPaletteKey(e)) {
+      e.preventDefault(); e.stopPropagation()
+      paletteSink()
       return
     }
     // 2. a tab

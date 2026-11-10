@@ -163,4 +163,45 @@ await atest('route params: a screen\'s ?query rides the request URL (the server 
   }
 })
 
+test('a page\'s declared breadcrumbs (BreadcrumbsSupplier) are its trail and the header draws them', async () => {
+  const { summarizeHost } = await import('./core/pageHeader.mjs')
+  const { headerCrumbsOf } = await import('./pageProjection.mjs')
+  const host = { id: '__root__', kind: 'host', state: {}, data: {}, tree: { type: 'ServerSide', id: 'inv', serverSideType: 'x.InvoicePage', children: [
+    { type: 'ClientSide', metadata: { type: 'Page', title: 'Invoice 2026-42', breadcrumbs: [
+      { text: 'Behaviour', link: '/behaviour/overview' }, { text: 'Breadcrumbs', link: '/behaviour/navigation/breadcrumb-trail' }, { text: 'Invoice 2026-42 · Ada Lovelace', link: '' },
+    ] }, children: [] }] } }
+  const summary = summarizeHost({ contexts: { __root__: host }, stack: [], shell: { menu: [] } }, '/x/invoices/2026-42')
+  assert.deepEqual(summary.trail.map((c) => c.text), ['Behaviour', 'Breadcrumbs', 'Invoice 2026-42 · Ada Lovelace'])
+  assert.equal(summary.trail[1].route, '/behaviour/navigation/breadcrumb-trail')
+  const crumbs = headerCrumbsOf([{ text: 'Behaviour', route: '/behaviour/overview' }, { text: 'Now', route: '' }])
+  assert.deepEqual(crumbs.map((c) => [c.text, c.hasHref, c.last]), [['Behaviour', true, false], ['Now', false, true]])
+})
+
+test('shell variants: seven shells, not two; chromeless draws none; the Ask FAB stays out of a framed app', async () => {
+  const { shellNavOf, shellChromeOf } = await import('./core/shellNav.mjs')
+  const menu = [{ label: 'Rooms', route: '/rooms' }, { label: 'Guests', route: '/guests' },
+    { label: 'Reports', route: '/reports', submenus: [{ label: 'Arrivals', route: '/reports/arrivals' }] }]
+  const modeOf = (variant, extra = {}) => shellNavOf({ shell: { variant, menu, ...extra } }).mode
+  assert.deepEqual(['MENU_ON_TOP', 'MENU_ON_LEFT', 'HAMBURGER_MENU', 'HAMBURGER_SECTIONS', 'TILES', 'TABS', 'RAIL'].map((v) => modeOf(v)),
+    ['subheader', 'left', 'drawer', 'sections', 'tiles', 'topbar', 'rail'])
+  assert.equal(modeOf('TABS', { chromeless: true }), 'none')
+  // TILES: every group opens as a panel of cards
+  const tiles = shellNavOf({ shell: { variant: 'TILES', menu } })
+  assert.equal(tiles.menuTree[2].isCards, true)
+  assert.deepEqual(shellChromeOf({ mode: 'left' }, {}), { drawer: true, docked: true, rail: false, chromeless: false, askFab: 'on' })
+  assert.deepEqual(shellChromeOf({ mode: 'rail' }, {}).rail, true)
+  assert.equal(shellChromeOf({ mode: 'drawer' }, {}).docked, false)
+  assert.equal(shellChromeOf({ mode: 'none' }, { chromeless: true }).chromeless, true)
+  assert.equal(shellChromeOf({ mode: 'tabs' }, {}, true).askFab, 'off')
+  assert.equal(shellChromeOf({ mode: 'tabs' }, { commandCenterEnabled: true }, true).askFab, 'on')
+})
+
+test('Ctrl+K / ⌘K is the palette key', async () => {
+  const { isPaletteKey } = await import('./keys.mjs')
+  assert.ok(isPaletteKey({ ctrlKey: true, key: 'k' }))
+  assert.ok(isPaletteKey({ metaKey: true, code: 'KeyK', key: 'κ' }))
+  assert.ok(!isPaletteKey({ ctrlKey: true, shiftKey: true, key: 'K' }))
+  assert.ok(!isPaletteKey({ key: 'k' }))
+})
+
 console.log(`test-explorer-w4: ${passed} passed`)

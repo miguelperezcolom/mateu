@@ -529,6 +529,9 @@ export const CONTENT_ACTION_SINKS = Object.freeze([
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */
 export const NOT_IN_EMBEDDED = Object.freeze({
+  // Ctrl+K opens the SHELL's Search-or-go palette: an embedded component has no shell palette, and
+  // the host page owns its own keyboard shortcuts
+  setPaletteSink: 'the palette is the standalone shell\'s; the host page owns Ctrl+K',
   // a skip link is the first child of the BODY: the host page owns its own landmarks
   mountSkipLink: 'the host page owns the document landmarks',
   // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
