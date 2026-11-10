@@ -37,7 +37,7 @@ import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns,
   kanbanDropIndexOf, setPendingKanbanMove, addPendingKanbanMove, dropPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
 import { onLoadTriggers } from './core/reducer.mjs'
 import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf, readOnlyDisplayOf } from './core/rowEditor.mjs'
-import { flatAtoms } from './reduceContexts.mjs'
+import { flatAtoms, CELL_ATOM_FLAGS } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -681,7 +681,8 @@ test('the new atoms are in every atoms surface of the page, with each variant it
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
   for (const flag of ['isKanban', 'isBpmn', 'isChecklist', 'isMenuBar', 'isCarouselPager', 'isCustomSlot', 'isHero'])
-    assert.equal(page.split('$current.data.' + flag + ' ]]').length - 1, surfaces, flag)
+    // a flag a layout-box cell paints is there twice per surface (its cell-subset copy)
+    assert.equal(page.split('$current.data.' + flag + ' ]]').length - 1, surfaces * (CELL_ATOM_FLAGS.includes(flag) ? 2 : 1), flag)
   assert.ok(page.includes('$listeners.hostMenuAction') && page.includes('$listeners.islandMenuAction'))
   assert.ok(page.includes('$listeners.hostChecklistToggled') && page.includes('$listeners.islandMessageSend'))
   const json = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
