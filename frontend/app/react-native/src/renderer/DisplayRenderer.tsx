@@ -1,5 +1,8 @@
+import { materialIconOf } from '../ui/wireIcons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View, type DimensionValue } from 'react-native';
+import { cssToRn } from '../core/cssStyle';
+import { TrendLine } from './ChartRenderer';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
@@ -24,7 +27,7 @@ import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggl
 import { factAction } from './factAction';
 import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
 import { foldoutOpenStates } from '../core/foldoutFit';
-import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
+import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerFooterOf, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel } from './displayFigures';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -47,6 +50,10 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
   const setOpen = (next: Record<number, boolean>) => setToggled({ ...toggled, ...next });
   return (
     <View style={styles.foldout}>
+      {/* its headerTitle (the layout's own heading) — it was not drawn */}
+      {!!meta(component)['headerTitle'] && (
+        <Text style={styles.foldoutHeaderTitle} {...headingA11y(2)}>{interpolate(String(meta(component)['headerTitle']), { state })}</Text>
+      )}
       {!!overview && (
         <View style={styles.foldoutOverview}>
           <ComponentRenderer component={overview} state={state} />
@@ -366,7 +373,7 @@ export function StatRenderer({ component }: { component: unknown }) {
         {m.value}
         {!!m.unit && <Text style={styles.statUnit}> {m.unit}</Text>}
       </Text>
-      <View style={styles.statFoot}>
+      {(!!m.delta || spark.length > 0) && <View style={styles.statFoot}>
         {!!m.delta && (
           <Text style={[styles.statDelta, { color: trendColor }]}>
             {trendGlyph} {m.delta}
@@ -377,7 +384,7 @@ export function StatRenderer({ component }: { component: unknown }) {
             <View key={i} style={[styles.statBar, { height, backgroundColor: trendColor }]} />
           ))}
         </View>
-      </View>
+      </View>}
     </View>
   );
   return m.actionId ? (
@@ -606,14 +613,13 @@ export function TrendChartRenderer({ component }: { component: unknown }) {
   const labels = (m['labels'] as string[]) ?? [];
   const color = (m['color'] as string) ?? theme.primary;
   const title = m['title'] as string | undefined;
+  // a line (area-filled when `area`), as the web draws it — it used to be a bar chart; its
+  // declared width is kept, bounded by the screen
+  const width = cssToRn(((component as Record<string, unknown>)['style'] as string) ?? '', new Set(['width']))['width'];
   return (
-    <View style={styles.trend}>
+    <View style={[styles.trend, { width: (width as DimensionValue | undefined) ?? 320, maxWidth: '100%' }]}>
       {!!title && <Text style={styles.trendTitle}>{title}</Text>}
-      <View style={styles.trendBars}>
-        {trendBarHeights(values).map((height, i) => (
-          <View key={i} style={[styles.trendBar, { height, backgroundColor: color }]} />
-        ))}
-      </View>
+      <TrendLine values={values} color={color} area={m['area'] === true} />
       {labels.length > 0 && (
         <View style={styles.trendLabels}>
           <Text style={styles.trendLabel}>{labels[0]}</Text>
@@ -749,7 +755,7 @@ export function FileListRenderer({ component }: { component: unknown }) {
         const icon = fileIcon(f.type);
         const row = (
           <View style={styles.fileRow}>
-            <Text style={styles.fileIcon}>{icon}</Text>
+            <MIcon name={icon} size={24} />
             <Text style={styles.fileName} numberOfLines={1}>{f.name ?? ''}</Text>
             {!!f.size && <Text style={styles.fileSize}>{f.size}</Text>}
           </View>
@@ -914,17 +920,23 @@ export function StatusListRenderer({ component }: { component: unknown }) {
           {...(rowActionId ? { onPress: () => void controller.runAction(rowActionId, { _item: it.id }) } : {})}>
           {it.avatar
             ? <View style={[styles.statusAvatar, compact && styles.statusAvatarCompact]}><Text style={styles.statusAvatarText}>{it.avatar}</Text></View>
-            : !!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
+            : !!it.icon && (materialIconOf(it.icon) ? <MIcon name={materialIconOf(it.icon)!} size={22} /> : <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>)}
           <View style={styles.statusBody}>
             <Text style={styles.statusTitle}>{it.title ?? ''}</Text>
             {!!it.description && <Text style={styles.statusDesc}>{it.description}</Text>}
+            {/* the item's own extra lines (a timeline: "Arrives 14:00", "Room 204") */}
+            {(it.lines ?? []).map((line, li) => (
+              <Text key={li} style={styles.statusDesc}>{line}</Text>
+            ))}
           </View>
           {!!it.status && <ChipView chip={{ label: it.status, color: it.statusColor }} />}
-          {!!it.actionLabel && !!it.actionId && (
-            <TouchableOpacity {...buttonA11y()} style={styles.statusBtn} onPress={() => void controller.runAction(it.actionId!, { _item: it.id })}>
-              <Text style={styles.statusBtnText}>{it.actionLabel}</Text>
-            </TouchableOpacity>
-          )}
+          {([[it.actionLabel, it.actionId], [it.actionLabel2, it.actionId2], [it.actionLabel3, it.actionId3]] as const).map(([label, id], ai) => (
+            !!label && !!id ? (
+              <TouchableOpacity {...buttonA11y()} key={ai} style={styles.statusBtn} onPress={() => void controller.runAction(id, { _item: it.id })}>
+                <Text style={styles.statusBtnText}>{label}</Text>
+              </TouchableOpacity>
+            ) : null
+          ))}
         </Row>
       ))}
     </View>
@@ -953,7 +965,8 @@ export function NoticeRenderer({ component, state, renderComponent }: {
   if (!shows) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
-      {!noIcon && (
+      {!noIcon && look.custom && <Text style={styles.noticeCustomIcon}>{look.icon}</Text>}
+      {!noIcon && !look.custom && (
         <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
           <Text style={styles.noticeIconText}>{look.icon}</Text>
         </View>
@@ -1069,13 +1082,14 @@ export function ResourceGridRenderer({ component }: { component: unknown }) {
   const recommendedLabel = (m['recommendedLabel'] as string) ?? 'Recommended';
   const items = (m['items'] as ResourceItem[]) ?? [];
   const [selected, setSelected] = useState<string | undefined>(() => items.find((it) => it.selected)?.id);
-  const cardWidth = resourceCardWidth(columns);
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = resourceCardWidth(columns, windowWidth - 48);
   return (
     <View style={styles.resourceGrid}>
       {items.map((it, i) => {
         const sel = it.id === selected;
         const card = (
-          <View style={[styles.resourceCard, (sel || it.recommended) && styles.resourceCardAccent, sel && styles.resourceCardSelected, it.disabled && styles.resourceCardDisabled]}>
+          <View style={[styles.resourceCard, it.recommended && !sel && styles.resourceCardRecommended, sel && styles.resourceCardAccent, sel && styles.resourceCardSelected, it.disabled && styles.resourceCardDisabled]}>
             {it.recommended && <Text style={styles.resourceTag}>{recommendedLabel}</Text>}
             <Text style={styles.resourceTitle}>{it.title ?? ''}</Text>
             {!!it.subtitle && <Text style={styles.resourceSubtitle}>{it.subtitle}</Text>}
@@ -1215,7 +1229,8 @@ export function LedgerRenderer({ component }: { component: unknown }) {
     <View style={styles.ledger}>
       {lines.map((l, i) => (
         <View key={i} style={styles.ledgerRow}>
-          <Text style={styles.ledgerConcept}>● {l.concept ?? ''}</Text>
+          <View style={styles.ledgerDot} />
+          <Text style={styles.ledgerConcept}>{l.concept ?? ''}</Text>
           {l.included ? (
             <Text style={styles.ledgerIncluded}>{l.includedLabel ?? 'Included'}</Text>
           ) : (
@@ -1318,6 +1333,7 @@ export function ProcessMonitorRenderer({ component }: { component: unknown }) {
 const styles = themed(() => StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
+  foldoutHeaderTitle: { fontSize: 22, fontWeight: '700', color: theme.ink },
   foldoutOverview: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16 },
   foldoutPanel: { borderWidth: 1, borderColor: theme.border, borderRadius: 8, overflow: 'hidden' },
   foldoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: theme.background },
@@ -1556,6 +1572,7 @@ const styles = themed(() => StyleSheet.create({
   // Notice
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
+  noticeCustomIcon: { fontSize: 16, lineHeight: 20 },
   noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   noticeIconText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
   noticeText: { fontWeight: '600', fontSize: 14 },
@@ -1594,6 +1611,7 @@ const styles = themed(() => StyleSheet.create({
   // ResourceGrid
   resourceGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: -4 },
   resourceCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white, minHeight: 88 },
+  resourceCardRecommended: { borderColor: theme.primary, borderStyle: 'dashed' },
   resourceCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   resourceCardSelected: { backgroundColor: theme.primaryContainer },
   resourceCardDisabled: { opacity: 0.45 },
@@ -1614,9 +1632,9 @@ const styles = themed(() => StyleSheet.create({
   offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: theme.border, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
   offerPriceOnly: { fontWeight: '700', textAlign: 'right', marginTop: 4, fontVariant: ['tabular-nums'] },
-  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
+  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
-  offerCtaText: { color: theme.onFill, fontWeight: '600' },
+  offerCtaText: { color: theme.onFill, fontWeight: '600', flexShrink: 1 },
   offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
   // AddOnPicker
   addOnPicker: { gap: 8 },
@@ -1636,7 +1654,8 @@ const styles = themed(() => StyleSheet.create({
   addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 14 },
   // Ledger
   ledger: { gap: 6 },
-  ledgerRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
+  ledgerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  ledgerDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.border },
   ledgerConcept: { flex: 1, color: theme.ink },
   ledgerAmount: { color: theme.ink, fontWeight: '600', fontVariant: ['tabular-nums'] },
   ledgerAmountNegative: { color: theme.danger },

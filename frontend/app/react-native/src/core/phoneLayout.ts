@@ -69,29 +69,44 @@ export function collectionDetailPane(row: unknown, windowWidth: number): number 
 }
 
 /**
- * The step rail of a `@WizardProgress(RAIL)` wizard: the row child holding a VERTICAL
- * ProgressSteps (the server composes `[form, rail]` in a HorizontalLayout). -1 when the row is not
- * a wizard rail row.
+ * The step rail of a `@WizardProgress(RAIL)` wizard: the row child the server composes as the rail
+ * — a sticky fixed-width column (`flex: 0 0 15rem; … position: sticky`, the same in the Java, .NET
+ * and Python wizards) whose own children are the `N | M` counter and a VERTICAL ProgressSteps.
+ * -1 when the row is not a wizard rail row. A vertical ProgressSteps somewhere else in a row (a page
+ * showing a step list beside other content) is content, not a rail: it used to be collapsed to the
+ * one-line phone rail too.
  */
 export function wizardRailIndex(children: unknown[] | null | undefined): number {
-  return (children ?? []).findIndex((child) => verticalStepsOf(child) !== null);
+  return (children ?? []).findIndex((child) => railStepsOf(child) !== null);
 }
 
-function verticalStepsOf(node: unknown): Json | null {
+function railStepsOf(node: unknown): Json | null {
   const n = (node ?? {}) as Json;
-  const m = (n['metadata'] ?? {}) as Json;
-  if (m['type'] === 'ProgressSteps' && m['vertical'] === true) return m;
+  const style = String(n['style'] ?? '');
+  if (!/position:\s*sticky/.test(style) || !/flex:\s*0\s+0\s/.test(style)) return null;
   for (const c of (n['children'] as unknown[] | undefined) ?? []) {
-    const found = verticalStepsOf(c);
-    if (found) return found;
+    const m = (((c ?? {}) as Json)['metadata'] ?? {}) as Json;
+    if (m['type'] === 'ProgressSteps' && m['vertical'] === true) return m;
+  }
+  return null;
+}
+
+/** The rail's `N | M` counter text, when it carries one. */
+function railCounterOf(node: unknown): string | null {
+  for (const c of (((node ?? {}) as Json)['children'] as unknown[] | undefined) ?? []) {
+    const m = (((c ?? {}) as Json)['metadata'] ?? {}) as Json;
+    if (m['type'] === 'Text' && /^\s*\d+\s*\|\s*\d+\s*$/.test(String(m['text'] ?? ''))) return String(m['text']).trim();
   }
   return null;
 }
 
 export interface CompactRail {
+  /** the rail's own `N | M` counter (the server's: non-result steps only) */
+  counter: string;
   /** "Step 2 of 4 · Account type", or the result title once every step is done */
   text: string;
-  /** 0..1, for the linear progress under the summary */
+  /** 0..1, for the linear progress under the summary — steps DONE over all the steps the wizard
+   *  has (the result step included), the same fraction the BAR style shows */
   progress: number;
 }
 
@@ -100,20 +115,23 @@ export interface CompactRail {
  * a third of the width and clipped the field labels): the current step's position and title.
  */
 export function compactRail(rail: unknown): CompactRail | null {
-  const steps = verticalStepsOf(rail);
+  const steps = railStepsOf(rail);
   if (!steps) return null;
   const list = ((steps['steps'] as Json[] | undefined) ?? []).filter(Boolean);
   if (list.length === 0) return null;
+  const done = list.filter((s) => s['status'] === 'done' || s['status'] === 'completed').length;
   const current = list.findIndex((s) => s['status'] === 'current');
   if (current < 0) {
-    const allDone = list.every((s) => s['status'] === 'done' || s['status'] === 'completed');
-    if (allDone) return { text: String(steps['resultTitle'] ?? '') || 'Completed', progress: 1 };
-    return { text: `Step 1 of ${list.length}`, progress: 0 };
+    const allDone = done === list.length;
+    const counter = railCounterOf(rail) ?? (allDone ? `${list.length} | ${list.length}` : `1 | ${list.length}`);
+    if (allDone) return { counter, text: String(steps['resultTitle'] ?? '') || 'Completed', progress: 1 };
+    return { counter, text: `Step 1 of ${list.length}`, progress: 0 };
   }
   const title = String(list[current]['title'] ?? '');
   return {
+    counter: railCounterOf(rail) ?? `${current + 1} | ${list.length}`,
     text: `Step ${current + 1} of ${list.length}${title ? ` · ${title}` : ''}`,
-    progress: (current + 1) / list.length,
+    progress: done / (list.length + 1),
   };
 }
 

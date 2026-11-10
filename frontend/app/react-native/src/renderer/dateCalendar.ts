@@ -62,3 +62,18 @@ export function monthWeeks(y: number, m: number): (number | null)[][] {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
   return weeks;
 }
+
+/** A LocalTime value as the field shows and commits it: "HH:MM" (the wire's "09:30:00" loses its
+ *  seconds — they are 0 for anything typed on a phone); '' when it is not a time. */
+export function timeText(value: unknown): string {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(value ?? '').trim());
+  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : '';
+}
+
+/** The minutes a time picker offers: every 5, plus the value's own minute when it is not one. */
+export function minuteChoices(current: string): string[] {
+  const out = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+  const own = timeText(current).slice(3);
+  if (own && !out.includes(own)) { out.push(own); out.sort(); }
+  return out;
+}

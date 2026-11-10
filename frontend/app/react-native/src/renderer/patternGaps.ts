@@ -201,7 +201,9 @@ export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | un
   const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
   const nav = metadata?.['peerNav'] as Record<string, unknown> | null | undefined;
   const side = (label: unknown, route: unknown) =>
-    text(label) || text(route) ? { label: text(label) || (text(route) ? 'Open' : ''), route: text(route) || null } : undefined;
+    // a side with no route is still DRAWN, disabled (the first/last record): the arrows keep their
+    // place, as on the web, instead of one of them vanishing
+    ({ label: text(label) || (text(route) ? 'Open' : ''), route: text(route) || null });
   const prev = nav ? side(nav['prevLabel'], nav['prevRoute']) : undefined;
   const next = nav ? side(nav['nextLabel'], nav['nextRoute']) : undefined;
   return {
@@ -218,10 +220,41 @@ export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | un
  * padding). Otherwise the labels would be cut ("The w…", "The e…") and the scrollable tab bar is the
  * right control.
  */
-export function segmentsFit(labels: string[], windowWidth: number): boolean {
-  if (labels.length === 0 || labels.length > 4) return false;
-  const share = (windowWidth - 32) / labels.length;
-  return labels.every((l) => l.length * 8 + 24 <= share);
+export function segmentsFit(labels: string[], width: number): boolean {
+  // a LONE tab is not a choice: as a segment it was a full-width pill button
+  if (labels.length < 2 || labels.length > 4) return false;
+  // `width` is the strip's MEASURED width (a TabLayout in a card has less than the window); each
+  // segment pads its label and draws a border, so ~9px a character + 40
+  const share = width / labels.length;
+  return labels.every((l) => l.length * 9 + 40 <= share);
+}
+
+/** A TabLayout's `variant` (Vaadin tabsheet themes, space- or comma-separated). */
+export function tabLayoutLook(variant: unknown): { bordered: boolean; small: boolean; minimal: boolean; centered: boolean } {
+  const v = new Set(String(variant ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean));
+  return { bordered: v.has('bordered'), small: v.has('small'), minimal: v.has('minimal'), centered: v.has('centered') };
+}
+
+/** An AccordionLayout's `variant` (Vaadin details themes): filled, small. */
+/** How a Drawer's wire options shape the phone's bottom sheet (DrawerSheet). `size` s/m/l/xl → the
+ *  sheet's starting height (its width would be the whole screen anyway). */
+export function drawerSheetLook(meta: Record<string, unknown>): {
+  minHeight: `${number}%`; maximizable: boolean; collapsible: boolean; modeless: boolean;
+} {
+  const size = String(meta['size'] ?? '').toLowerCase();
+  // a modeless sheet leaves the screen behind it room to be used
+  const minHeight = size === 's' ? '35%' : size === 'l' ? '70%' : size === 'xl' ? '88%' : size === 'm' ? '50%' : meta['modeless'] === true ? '35%' : '50%';
+  return {
+    minHeight,
+    maximizable: meta['maximizable'] === true,
+    collapsible: meta['collapsible'] === true,
+    modeless: meta['modeless'] === true,
+  };
+}
+
+export function accordionLook(variant: unknown): { filled: boolean; small: boolean } {
+  const v = new Set(String(variant ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean));
+  return { filled: v.has('filled'), small: v.has('small') };
 }
 
 /** A toolbar without repeats: the same action with the same label is one button. */
@@ -246,7 +279,8 @@ export function drawsNothing(node: unknown): boolean {
   const m = n?.metadata ?? {};
   const children = Array.isArray(n?.children) ? n!.children! : [];
   if (m['type'] === 'CustomField') return !m['content'] && children.every(drawsNothing);
-  if (!CONTAINERS.has(String(m['type']))) return false;
+  // a node with no type is drawn as a plain column of its children: a container too
+  if (m['type'] != null && !CONTAINERS.has(String(m['type']))) return false;
   if (m['title'] || m['label']) return false;
   // a card's content, header and footer are nodes too: what they hold decides
   for (const slot of ['content', 'header', 'footer']) {

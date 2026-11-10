@@ -971,9 +971,9 @@ function AppOverlays({ appMeta, connectAiFab = false }: { appMeta: AppMeta; conn
       <View style={styles.appFabStack} pointerEvents="box-none">
         {fabs.map((fab, i) => (
           fab.label ? (
-            <FAB key={i} label={fab.label} accessibilityLabel={fab.label} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+            <FAB key={i} icon={materialIconOf(fab.icon)} label={fab.label} accessibilityLabel={fab.label} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
           ) : (
-            <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+            <FAB key={i} icon={materialIconOf(fab.icon) ?? "plus"} accessibilityLabel={fab.actionId || fab.id || "Action"} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
           )
         ))}
         {connectAi && <ConnectAiEntry meta={appMeta} asFab />}

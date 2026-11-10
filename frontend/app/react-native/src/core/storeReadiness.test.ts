@@ -56,6 +56,10 @@ test('tabs are segmented buttons only while every label fits', () => {
   assert.equal(segmentsFit(['The work', 'The exhibition', 'Dates', 'Insurance and transport'], 400), false);
   assert.equal(segmentsFit(['a', 'b', 'c', 'd', 'e'], 2000), false);
   assert.equal(segmentsFit([], 400), false);
+  // a lone tab is no choice: never a full-width segment
+  assert.equal(segmentsFit(['Java · FluentText.java'], 2000), false);
+  // the MEASURED width decides: 3 labels fit a 420 window but not a 330 card
+  assert.equal(segmentsFit(['Identity', 'Contact', 'Preferences'], 330), false);
 });
 
 test('an app whose version is unknown is never told it is too old', () => {
