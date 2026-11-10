@@ -17,6 +17,8 @@ interface Props {
   label?: string;
   value: string;
   editable: boolean;
+  /** The current value's label, as the server sent it (data["<fieldId>-label"]). */
+  valueLabel?: string;
   /** Remote search action; defaults to the `search-<fieldId>` convention. */
   action?: string | null;
   onChange: (value: string) => void;
@@ -29,7 +31,7 @@ interface Props {
  * controller's field data handler. The picked label is kept locally so the button can display
  * selections beyond the loaded page (the wire only stores the value).
  */
-export function LookupField({ fieldId, label, value, editable, action, onChange }: Props) {
+export function LookupField({ fieldId, label, value, editable, action, onChange, valueLabel }: Props) {
   const controller = useViewController();
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -73,7 +75,8 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
     setOpen(false);
   };
 
-  const display = pickedLabel ?? (value || '');
+  // the label the server sent beside the value (data["<field>-label"]) — the raw id ("g2") used to show
+  const display = pickedLabel ?? (value ? valueLabel || value : '');
 
   return (
     <View>

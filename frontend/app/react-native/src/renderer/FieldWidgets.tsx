@@ -1,13 +1,14 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { theme, themed } from '../theme';
-import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { Image, PanResponder, Platform, StyleSheet, View } from 'react-native';
+import { acceptsMedia, fileValueSummary } from './fileUpload';
 import { RadioButton } from 'react-native-paper';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';
-import { stripHtml } from './htmlText';
+import { htmlToMarkdown } from './htmlText';
 import { MarkdownView } from './MarkdownView';
 import { openExternal } from './openExternal';
 
@@ -67,6 +68,63 @@ export function MultiSelectField({ options, value, editable, onChange }: {
             onPress={() => onChange(on ? value.filter((v) => v !== opt.value) : [...value, opt.value])}
           >
             <Text style={on ? styles.chipOnText : styles.chipText}>{opt.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+/** `@Stereotype(checkbox)` on a collection: one checkbox per option (the web's checkbox group) —
+ *  it was drawn as a single-select dropdown. */
+export function CheckboxGroupField({ options, value, editable, onChange }: {
+  options: WidgetOption[];
+  value: string[];
+  editable: boolean;
+  onChange: (v: string[]) => void;
+}) {
+  return (
+    <View style={styles.checkGroup}>
+      {options.map((opt) => {
+        const on = value.includes(opt.value);
+        return (
+          <TouchableOpacity {...buttonA11y({ role: 'checkbox', selected: on, disabled: !editable, label: opt.label })}
+            key={opt.value}
+            style={styles.checkGroupRow}
+            disabled={!editable}
+            onPress={() => onChange(on ? value.filter((v) => v !== opt.value) : [...value, opt.value])}
+          >
+            <View style={[styles.checkGroupBox, on && styles.checkGroupBoxOn, !editable && styles.checkGroupBoxOff]}>
+              {on && <Text style={styles.checkGroupTick}>✓</Text>}
+            </View>
+            <Text style={styles.radioLabel}>{opt.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+/** `@Stereotype(listBox)`: the options as an always-open list, the chosen one marked (vaadin-list-box). */
+export function ListBoxField({ options, value, editable, onChange }: {
+  options: WidgetOption[];
+  value: string;
+  editable: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <View style={styles.listBox} accessibilityRole="list">
+      {options.map((opt, i) => {
+        const on = opt.value === value;
+        return (
+          <TouchableOpacity {...buttonA11y({ role: 'radio', selected: on, disabled: !editable, label: opt.label })}
+            key={opt.value}
+            style={[styles.listBoxItem, i > 0 && styles.listBoxDivider, on && styles.listBoxItemOn]}
+            disabled={!editable}
+            onPress={() => onChange(opt.value)}
+          >
+            <Text style={styles.listBoxCheck}>{on ? '✓' : ' '}</Text>
+            <Text style={[styles.radioLabel, on && styles.listBoxLabelOn]}>{opt.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -235,6 +293,70 @@ export function UploadableImageField({ value, editable, onChange }: {
   );
 }
 
+/**
+ * `@FileUpload`: picks a file and commits it as a DATA URI (the field's wire contract — no upload
+ * endpoint). On the web build the browser's own file picker, honouring `accept`; on a device the
+ * photo library (pictures and videos) — this build carries no document picker, so an `accept`
+ * that takes no media says so instead of offering a picker that could not satisfy it.
+ */
+export function FileUploadField({ value, accept, editable, onChange }: {
+  value: string;
+  accept?: string;
+  editable: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [name, setName] = useState<string | undefined>(undefined);
+  const web = Platform.OS === 'web';
+  const media = acceptsMedia(accept);
+  const pick = async () => {
+    if (web) {
+      const doc = (globalThis as { document?: { createElement: (t: string) => any } }).document;
+      if (!doc) return;
+      const input = doc.createElement('input');
+      input.type = 'file';
+      if (accept) input.accept = accept;
+      input.onchange = () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const reader = new (globalThis as unknown as { FileReader: new () => any }).FileReader();
+        reader.onload = () => { setName(file.name); onChange(String(reader.result)); };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], base64: true, quality: 0.8 });
+    const asset = result.assets?.[0];
+    if (!asset) return;
+    setName(asset.fileName ?? undefined);
+    if (asset.base64) onChange(`data:${asset.mimeType ?? 'application/octet-stream'};base64,${asset.base64}`);
+    else if (asset.uri) onChange(asset.uri);
+  };
+  const canPick = editable && (web || media);
+  return (
+    <View style={styles.fileField}>
+      <Text style={value ? styles.fileName : styles.emptyText} numberOfLines={2}>{value ? fileValueSummary(value, name) : 'No file chosen'}</Text>
+      {editable && (
+        <View style={styles.imageButtons}>
+          {canPick && (
+            <TouchableOpacity {...buttonA11y({ label: value ? 'Replace file' : 'Choose a file' })} style={styles.imageButton} onPress={() => void pick()}>
+              <Text style={styles.imageButtonText}>{value ? 'Replace…' : 'Choose a file…'}</Text>
+            </TouchableOpacity>
+          )}
+          {!!value && (
+            <TouchableOpacity {...buttonA11y({ label: 'Remove the file' })} style={styles.imageButton} onPress={() => { setName(undefined); onChange(''); }}>
+              <Text style={styles.imageDeleteText}>Remove</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+      {editable && !canPick && (
+        <Text style={styles.emptyText}>{`This app can attach photos and videos only; ${accept} files can be attached from the web version.`}</Text>
+      )}
+    </View>
+  );
+}
+
 export function ImagePreview({ value }: { value: string }) {
   if (!value) return <Text style={styles.emptyText}>—</Text>;
   return <Image source={{ uri: value }} style={styles.imagePreview} resizeMode="contain" />;
@@ -274,15 +396,8 @@ export function LinkText({ value }: { value: string }) {
 /** Markdown (MarkdownView: paragraphs, lists, tables, code…) or HTML/rich text (its tags dropped,
  *  its block structure kept as lines) for @Help texts and read-only content fields. */
 export function RichText({ value, kind, onRouteLink }: { value: string; kind: 'markdown' | 'html' | 'richText'; onRouteLink?: (route: string) => void }) {
-  if (kind === 'markdown') return <MarkdownView value={value} onRouteLink={onRouteLink} />;
-  const lines = stripHtml(value).split('\n');
-  return (
-    <View>
-      {lines.map((line, i) => (
-        <Text key={i} style={styles.mdText}>{line}</Text>
-      ))}
-    </View>
-  );
+  // HTML keeps its structure (headings, bold, lists, links) through the same Markdown drawing
+  return <MarkdownView value={kind === 'markdown' ? value : htmlToMarkdown(value)} onRouteLink={onRouteLink} />;
 }
 
 export function BadgeChip({ label, on }: { label: string; on: boolean }) {
@@ -297,6 +412,18 @@ const styles = themed(() => StyleSheet.create({
   radioGroup: { gap: 8 },
   radioRow: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48 },
   radioLabel: { fontSize: 14, color: theme.ink },
+  checkGroup: { gap: 4 },
+  checkGroupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 },
+  checkGroupBox: { width: 20, height: 20, borderRadius: 3, borderWidth: 2, borderColor: theme.muted, alignItems: 'center', justifyContent: 'center' },
+  checkGroupBoxOn: { backgroundColor: theme.primary, borderColor: theme.primary },
+  checkGroupBoxOff: { opacity: 0.5 },
+  checkGroupTick: { color: theme.onPrimary, fontSize: 14, fontWeight: '700', lineHeight: 16 },
+  listBox: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
+  listBoxItem: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12, backgroundColor: theme.white },
+  listBoxDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.divider },
+  listBoxItemOn: { backgroundColor: theme.primaryContainer },
+  listBoxCheck: { width: 16, color: theme.primary, fontWeight: '700' },
+  listBoxLabelOn: { fontWeight: '600' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, minHeight: 32, justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
   chipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
@@ -325,6 +452,8 @@ const styles = themed(() => StyleSheet.create({
   imageButtonText: { fontSize: 14, color: theme.ink },
   imageDeleteText: { fontSize: 14, color: theme.danger },
   emptyText: { color: theme.faint },
+  fileField: { gap: 4 },
+  fileName: { fontSize: 14, color: theme.ink },
   link: { color: theme.primary, textDecorationLine: 'underline', fontSize: 14 },
   mdText: { fontSize: 14, color: theme.ink, lineHeight: 21 },
   badgeChip: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: theme.divider },

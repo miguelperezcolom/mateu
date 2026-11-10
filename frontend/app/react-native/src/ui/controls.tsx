@@ -125,6 +125,9 @@ export function SelectBox({ checked, label, onToggle, style, disabled }: { check
 
 type PaperInputProps = React.ComponentProps<typeof TextInput>;
 
+/** The outline of every outlined field (text inputs and picker triggers alike). */
+const fieldOutline = () => (theme.scheme === 'dark' ? '#8D9199' : '#73777F');
+
 /**
  * A Material outlined text field: the label floats inside the outline, the error turns it red and
  * is spelled out underneath (HelperText). `a11y` is the field's composed accessible name/hint
@@ -142,7 +145,9 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
         mode="outlined"
         label={label ? `${label}${required ? ' *' : ''}` : undefined}
         error={!!error}
-        outlineColor={theme.border}
+        // the SAME outline as the pickers' triggers (Material's outline token, ≥ 3:1 — WCAG 1.4.11): a
+        // form's dates and selects used to look darker than its text fields
+        outlineColor={fieldOutline()}
         activeOutlineColor={theme.primary}
         outlineStyle={styles.outline}
         style={[styles.input, style]}
@@ -159,12 +164,20 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
 }
 
 /** The decimal variant: keeps the text being typed ("1." stays "1." — see decimalDraft). */
-export function OutlinedDecimalInput({ text, onChangeText, ...rest }: Omit<React.ComponentProps<typeof OutlinedInput>, 'value' | 'onChangeText'> & { text: string; onChangeText: (t: string) => void }) {
+export function OutlinedDecimalInput({ text, onChangeText, blurredText, ...rest }: Omit<React.ComponentProps<typeof OutlinedInput>, 'value' | 'onChangeText'> & {
+  text: string; onChangeText: (t: string) => void;
+  /** what the field shows while NOT being edited (a money amount formatted: "12,450.50"); while
+   *  focused it shows the plain number being typed */
+  blurredText?: string;
+}) {
   const [draft, setDraft] = useState(text);
+  const [focused, setFocused] = useState(false);
   return (
     <OutlinedInput
       {...rest}
-      value={decimalDraft(draft, text)}
+      value={!focused && blurredText !== undefined ? blurredText : decimalDraft(draft, text)}
+      onFocus={(e) => { setDraft(text); setFocused(true); rest.onFocus?.(e); }}
+      onBlur={(e) => { setFocused(false); rest.onBlur?.(e); }}
       onChangeText={(t) => {
         setDraft(t);
         onChangeText(t);
@@ -241,7 +254,7 @@ const styles = themed(() =>
     input: { backgroundColor: theme.surface, fontSize: 16 },
     outline: { borderRadius: 8 },
     helper: { paddingHorizontal: 4 },
-    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: theme.scheme === 'dark' ? '#8D9199' : '#73777F', borderRadius: theme.radiusSm, backgroundColor: theme.surface, gap: 8 },
+    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: fieldOutline(), borderRadius: 8, backgroundColor: theme.surface, gap: 8 },
     triggerDisabled: { opacity: 0.6 },
     triggerValue: { flex: 1, color: theme.ink },
     triggerLabel: { position: 'absolute', top: -9, left: 10, paddingHorizontal: 4, backgroundColor: theme.surface, color: theme.muted, maxWidth: '85%' },

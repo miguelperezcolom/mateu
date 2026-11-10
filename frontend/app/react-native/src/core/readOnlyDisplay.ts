@@ -85,3 +85,11 @@ export function readOnlyFieldText(f: ReadOnlyFieldLike, value: unknown): string 
   // a date / date-time / time reads in the UI's locale, like the listing column next to it
   return String(temporalText(value, f.dataType));
 }
+
+/** A lookup's label for its current value: what the server sent beside it — `data["<field>-label"]`
+ *  (or the state's) — so the field shows "Alan Turing", not the raw id "g2". */
+export function lookupLabelOf(data: unknown, state: Record<string, unknown> | undefined, fieldId: string): string | undefined {
+  const key = `${fieldId}-label`;
+  const v = ((data ?? {}) as Record<string, unknown>)[key] ?? (state ?? {})[key];
+  return typeof v === 'string' && v.trim() ? v : undefined;
+}

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
-import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
+import { HelperText, SegmentedButtons, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
 import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger, StatusChip } from '../ui/controls';
 import { optionLabelOf, readOnlyFieldText, readOnlyStatus } from '../core/readOnlyDisplay';
 import { Text, TextInput } from '../ui/Text';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
-import { DateField } from './DateField';
+import { DateField, TimeField } from './DateField';
 import {
   BadgeChip,
   ColorField,
@@ -15,6 +15,9 @@ import {
   ImagePreview,
   LinkText,
   MultiSelectField,
+  CheckboxGroupField,
+  FileUploadField,
+  ListBoxField,
   RadioField,
   RichText,
   SliderField,
@@ -25,6 +28,7 @@ import {
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
 import { showsAsReadOnlyText } from './readOnlyText';
+import { lookupLabelOf } from '../core/readOnlyDisplay';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
@@ -123,6 +127,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
   // RN-10: only a declared placeholder — the label echoed inside the box made empty fields look filled.
   const placeholder = fieldPlaceholder(metadata);
+  const help = (metadata.description ?? '').trim();
 
   // A TextInput cannot be associated with the <Text> label above it — React Native has no
   // labelFor and no aria-labelledby — so the name has to be handed to the control itself, or the
@@ -168,7 +173,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           editable={editable}
           onChange={(rows) => commit(fieldId, rows)}
           onRowSelected={
-            metadata.onItemSelectionActionId
+            metadata.onItemSelectionActionId && !(editable && metadata.onItemSelectionActionId === `${fieldId}_selected`)
               ? (row) => void controller.runAction(metadata.onItemSelectionActionId!, { _clickedRow: row })
               : undefined
           }
@@ -246,6 +251,23 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       return <MultiSelectField options={options} value={selected} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
 
+    // @Stereotype(checkbox) on a collection: a checkbox group (a list of values, like multiSelect)
+    if (stereotype === 'checkbox' && (dataType === 'array' || Array.isArray(rawValue)) && options.length > 0) {
+      const selected = Array.isArray(rawValue) ? (rawValue as unknown[]).map(String) : [];
+      return <CheckboxGroupField options={options} value={selected} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // @Stereotype(listBox): the options always visible, one chosen
+    if (stereotype === 'listBox' && options.length > 0) {
+      return <ListBoxField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // @FileUpload: a file picker committing the file as a data URI (the wire contract)
+    if (stereotype === 'fileUpload') {
+      const accept = ((metadata as { attributes?: { key?: string; value?: string }[] }).attributes ?? []).find((a) => a.key === 'accept')?.value;
+      return <FileUploadField value={stringValue} accept={accept} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
     // Stars rating
     if (stereotype === 'stars') {
       return <StarsField value={Number(rawValue) || 0} editable={editable} onChange={(v) => commit(fieldId, v)} />;
@@ -289,21 +311,31 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       const content = stringValue;
       if (!editable) return <RichText value={content} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
       ownLabel = true;
+      // the web's source + Preview editor (mateu-markup-editor): the source in an outlined box,
+      // and a Preview that draws it — the markdown rendered, the HTML/rich text as its text
       return (
-        <OutlinedInput
-          {...outlined}
-          style={styles.textarea}
+        <MarkupEditor
+          kind={stereotype as 'markdown' | 'html' | 'richText'}
           value={content}
-          onChangeText={(v) => commit(fieldId, v)}
-          multiline
-          numberOfLines={6}
-          placeholder={placeholder}
+          onChange={(v) => commit(fieldId, v)}
+          input={(
+            <OutlinedInput
+              {...outlined}
+              style={styles.textarea}
+              value={content}
+              onChangeText={(v) => commit(fieldId, v)}
+              multiline
+              numberOfLines={6}
+              placeholder={placeholder}
+            />
+          )}
         />
       );
     }
 
     // Date / datetime: calendar picker committing the ISO wire format
-    if (dataType === 'date' || dataType === 'datetime') {
+    // (dateTime: LocalDateTime as the Java server spells it — it used to fall through to a text box)
+    if (dataType === 'date' || dataType === 'datetime' || dataType === 'dateTime') {
       if (!editable) return <ReadOnlyValue label={label || fieldId} text={stringValue.replace('T', ' ')} />;
       ownLabel = true;
       return (
@@ -314,7 +346,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           error={error}
           value={stringValue}
           editable={editable}
-          withTime={dataType === 'datetime'}
+          withTime={dataType === 'datetime' || dataType === 'dateTime'}
           placeholder={placeholder}
           onChange={(v) => commit(fieldId, v)}
         />
@@ -331,6 +363,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           value={stringValue}
           editable={editable}
           action={metadata.remoteCoordinates?.action}
+          valueLabel={lookupLabelOf(controller.rendered.data, state, fieldId)}
           onChange={(v) => commit(fieldId, v)}
         />
       );
@@ -426,17 +459,18 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       );
     }
 
-    // Time (LocalTime): HH:MM input
+    // Time (LocalTime): an hour / minute picker committing HH:MM
     if (dataType === 'time') {
       ownLabel = true;
       return (
-        <OutlinedInput
-          {...outlined}
+        <TimeField
+          label={label || fieldId}
+          required={required}
+          error={error}
           value={stringValue}
-          onChangeText={(v) => commit(fieldId, v)}
-          placeholder="HH:MM"
           editable={editable}
-          autoCapitalize="none"
+          placeholder={placeholder}
+          onChange={(v) => commit(fieldId, v)}
         />
       );
     }
@@ -477,6 +511,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         <OutlinedDecimalInput
           {...outlined}
           text={money ? moneyInputText(rawValue) : stringValue}
+          blurredText={money && stringValue !== "" ? formatMoney(rawValue) : undefined}
           onChangeText={(v) => commit(fieldId, money ? moneyInputCommit(rawValue, v) : v === '' ? null : parseFloat(v.replace(',', '.')))}
           keyboardType="decimal-pad"
           editable={editable}
@@ -509,6 +544,11 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
             {!ownLabel && <PaperText variant="labelLarge" style={styles.label}>{label ?? fieldId}{required ? ' *' : ''}</PaperText>}
             {input}
             {!!error && !ownLabel && <HelperText type="error" visible style={styles.fieldError}>{error}</HelperText>}
+            {/* @Help / description: the guidance under the field, visible (it lived only in the
+                accessibility hint); an error under the field takes its place */}
+            {!!help && !error && (
+              <HelperText type="info" visible style={styles.fieldHelp} importantForAccessibility="no" accessibilityElementsHidden>{help}</HelperText>
+            )}
           </>
         );
       })()}
@@ -517,6 +557,30 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 }
 
 /** A read-only field value: text (selectable, wraps), "—" when empty, named for screen readers. */
+/** A markdown / HTML / rich-text editor: Write (the source) | Preview (it drawn). */
+function MarkupEditor({ kind, value, input }: { kind: 'markdown' | 'html' | 'richText'; value: string; onChange: (v: string) => void; input: React.ReactNode }) {
+  const [preview, setPreview] = useState(false);
+  return (
+    <View>
+      <SegmentedButtons
+        density="small"
+        style={styles.markupTabs}
+        value={preview ? 'preview' : 'write'}
+        onValueChange={(v) => setPreview(v === 'preview')}
+        buttons={[
+          { value: 'write', label: kind === 'markdown' ? 'Markdown' : 'HTML', showSelectedCheck: false },
+          { value: 'preview', label: 'Preview', showSelectedCheck: false },
+        ]}
+      />
+      {preview ? (
+        <View style={styles.markupPreview}>
+          {value.trim() ? <RichText value={value} kind={kind} /> : <Text style={styles.readOnlyEmpty}>Nothing to preview</Text>}
+        </View>
+      ) : input}
+    </View>
+  );
+}
+
 function ReadOnlyValue({ label, text, multiline }: { label: string; text: string; multiline?: boolean }) {
   const empty = !text;
   return (
@@ -586,7 +650,10 @@ function GridField({ columns, rows, editable, onChange, onRowSelected }: {
           key={i}
           style={[styles.gridRow, i % 2 === 1 && styles.gridRowAlt]}
           disabled={!editable && !onRowSelected}
-          onPress={() => (onRowSelected ? onRowSelected(row) : setEditingIndex(i))}
+          // an EDITABLE grid (@InlineEditing) edits the tapped row; the default "<field>_selected"
+          // selection action the server sends with it answers nothing on a phone — it used to take
+          // the tap, so the row form never opened
+          onPress={() => { if (editable) setEditingIndex(i); if (onRowSelected) onRowSelected(row); }}
         >
           {cols.map((c) => (
             <Text key={c.id} style={styles.gridCell} numberOfLines={1}>
@@ -872,6 +939,9 @@ function TreeSelectField({ label, options, leavesOnly, value, editable, onChange
 
 const styles = themed(() => StyleSheet.create({
   fieldError: { paddingHorizontal: 0 },
+  fieldHelp: { paddingHorizontal: 0, color: theme.muted },
+  markupTabs: { marginBottom: 6, alignSelf: 'flex-start' },
+  markupPreview: { borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 12, minHeight: 120 },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 50, marginTop: 6, gap: 12 },
   switchLabel: { flex: 1, color: theme.ink },
   dropdownItemSelected: { backgroundColor: theme.primaryContainer },
@@ -888,7 +958,8 @@ const styles = themed(() => StyleSheet.create({
   bulletedFieldRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
   bulletedFieldDot: { color: theme.faint, lineHeight: 20 },
   bulletedFieldText: { flex: 1, color: theme.ink, fontSize: 14, lineHeight: 20 },
-  container: { marginBottom: 14 },
+  // the top margin keeps an outlined field's floating label clear of a tight caption above it
+  container: { marginTop: 6, marginBottom: 14 },
   label: { color: theme.muted, marginBottom: 4 },
   input: {
     borderWidth: 1,

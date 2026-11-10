@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setAppLocale } from './money.ts';
-import { humanizeConstant, optionLabelOf, readOnlyFieldText, readOnlyStatus, toneOfStatusWord } from './readOnlyDisplay.ts';
+import { humanizeConstant, lookupLabelOf, optionLabelOf, readOnlyFieldText, readOnlyStatus, toneOfStatusWord } from './readOnlyDisplay.ts';
 
 const statusOptions = [
   { value: 'AVAILABLE', label: 'Available' },
@@ -47,4 +47,10 @@ test('status words and constants', () => {
   assert.equal(toneOfStatusWord('InProgress'), 'warning');
   assert.equal(humanizeConstant('OutOfStock'), 'Out of stock');
   assert.equal(humanizeConstant('ROOM1'), 'Room 1');
+});
+
+test('a lookup shows the label the server sent beside its value', () => {
+  assert.equal(lookupLabelOf({ 'guestId-label': 'Alan Turing' }, {}, 'guestId'), 'Alan Turing');
+  assert.equal(lookupLabelOf(null, { 'guestId-label': 'Ada' }, 'guestId'), 'Ada');
+  assert.equal(lookupLabelOf({}, {}, 'guestId'), undefined);
 });
