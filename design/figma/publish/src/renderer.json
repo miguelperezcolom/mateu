@@ -71,7 +71,6 @@
   "assets/vendor-ol.js": "55bbd002c4a32047901e824c0c3ba36cce6c2992857ddf0563a73cd4c46220ad",
   "assets/vendor-vaadin.js": "45bf2f080dc9dd6b66260f730291464b610b09dd1f6d730625df770f68365481",
   "assets/vendor.js": "bb89d85f32af2df4ff9e17c8af19a268b38805b972f79c8b60e3a5989e0eb91d",
-  "js/keycloak.min.js": "d9e0fe623ab7897479d4fb4f74bae894bb31dc0145e5dc3cac4fcbe1b55c4d1f",
   "myassets/background.svg": "07efb6ee40e2cab361cfa980a7d1403c83a46dbfdfe192f55200e337b1f68b41"
  }
 }

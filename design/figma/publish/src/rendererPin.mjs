@@ -5,6 +5,8 @@
 export const RENDERER_DIR = 'backend/shared/frontend/vaadin-lit/src/main/resources/static/'
 const INDEX = '_index.html'
 
+const byPath = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+
 /** The contents of renderer.json for a release. `files` = every renderer path at that tag; `digestOf(path)` = its hex SHA-256. */
 export function rendererPin(version, files, digestOf) {
   if (!files.includes(INDEX)) throw new Error(`v${version} has no ${INDEX} under ${RENDERER_DIR}`)
@@ -12,8 +14,8 @@ export function rendererPin(version, files, digestOf) {
     tag: `v${version}`,
     base: `https://cdn.jsdelivr.net/gh/miguelperezcolom/mateu@v${version}/${RENDERER_DIR}`,
     index: INDEX,
-    files: files.filter((p) => p !== INDEX).sort(),
-    digests: Object.fromEntries([...files].sort().map((p) => [p, digestOf(p)])),
+    files: files.filter((p) => p !== INDEX).sort(byPath),
+    digests: Object.fromEntries([...files].sort(byPath).map((p) => [p, digestOf(p)])),
   }
 }
 

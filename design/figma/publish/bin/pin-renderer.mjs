@@ -8,7 +8,7 @@ import { writeFileSync } from 'node:fs'
 import { RENDERER_DIR, rendererPin } from '../src/rendererPin.mjs'
 
 const version = process.argv[2]
-if (!version) throw new Error('usage: pin-renderer.mjs <version, e.g. 3.0-beta.55>')
+if (!/^\d+\.\d+(\.\d+)?(-[a-z]+\.\d+)?$/.test(version ?? '')) throw new Error('usage: pin-renderer.mjs <version, e.g. 3.0-beta.55>')
 
 const tag = `v${version}`
 const git = (args) => execFileSync('git', args, { maxBuffer: 256 * 1024 * 1024 })
