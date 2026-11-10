@@ -2373,3 +2373,15 @@ oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox
 /* Spectra rich text editor: our oj-label-value already labels the field — its own (empty) label row was a gap */
 .mateu-rte-spectra oj-label-value.oj-sp-input-rich-text-2-body > .oj-flex > .oj-flex-item:first-child { display: none; }
 .mateu-header-more-badges { display: flex; flex-wrap: wrap; gap: .375rem; padding-inline: var(--oj-sp-header-padding-horizontal, 1.5rem); margin-top: -.5rem; }
+
+/* ProgressSteps(vertical): the guided-process rail's step list */
+.mateu-vsteps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
+.mateu-vstep { display: flex; gap: .75rem; align-items: flex-start; }
+.mateu-vstep-marker { flex: 0 0 1.75rem; height: 1.75rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8125rem; font-weight: 600; border: 2px solid var(--oj-core-divider-color, #cbc6c0); color: var(--oj-core-text-color-secondary, #6f6b66); }
+.mateu-vstep-text { display: flex; flex-direction: column; padding-top: .2rem; }
+.mateu-vstep-current .mateu-vstep-marker { border-color: var(--oj-core-brand-color, #227e9e); background: var(--oj-core-brand-color, #227e9e); color: #fff; }
+.mateu-vstep-current .mateu-vstep-text > :first-child { font-weight: 600; }
+.mateu-vstep-done .mateu-vstep-marker { border-color: #508223; background: #508223; color: #fff; }
+/* full-width / edge-to-edge pages (pageLayoutOf): the inner containers lose their own 48px gutters */
+.mateu-page-edge .oj-sm-padding-12x-horizontal, .mateu-page-full .oj-sm-padding-12x-horizontal { padding-left: 0 !important; padding-right: 0 !important; }

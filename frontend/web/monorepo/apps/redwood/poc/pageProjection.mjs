@@ -514,7 +514,9 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
     mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
     // the item overview template OWNS the page: its header band and zones sit on the page itself, as
     // in Redwood's examples — the content container's card surface would frame it (app.css)
-    mateuPageHostClass: iopOn ? 'mateu-iop-host' : '',
+    // …and a full-width / edge-to-edge page drops the inner sections' own 48px gutters (the page's
+    // padding — 24px / none — is the whole margin, as the Redwood guide measures it)
+    mateuPageHostClass: [iopOn ? 'mateu-iop-host' : '', pw === 'edgeToEdge' ? 'mateu-page-edge' : pw === 'fullWidth' ? 'mateu-page-full' : ''].filter(Boolean).join(' '),
   }
   if (band) {
     out.mateuBandBoxMargin = pageStyle.margin

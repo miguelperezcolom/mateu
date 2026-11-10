@@ -485,8 +485,22 @@
                         <h3 slot="header" class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                       </oj-collapsible>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isProgress ]]">
+                    <oj-bind-if test="[[ $current.data.isProgress && !$current.data.vertical ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isProgress && $current.data.vertical ]]">
+                      <!-- ProgressSteps(vertical): one row per step — its marker (number, ✓ when done), title and description -->
+                      <ol class="mateu-vsteps oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.steps ]]">
+                          <template>
+                            <li :class="[[ $current.data.stepClass ]]">
+                              <span class="mateu-vstep-marker" aria-hidden="true"><oj-bind-text value="[[ $current.data.marker ]]"></oj-bind-text></span>
+                              <span class="mateu-vstep-text"><span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ !!$current.data.description ]]"><span class="oj-typography-body-sm oj-text-color-secondary mateu-vstep-desc"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></span></oj-bind-if></span>
+                            </li>
+                          </template>
+                        </oj-bind-for-each>
+                      </ol>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
                       <div class="oj-sm-margin-3x-bottom mateu-entity-header">
@@ -1107,6 +1121,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
+                                  step="[[ $current.data.numberStep || null ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"

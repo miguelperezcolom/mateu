@@ -6047,6 +6047,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (items || []).flatMap((a) => (a && a.isCells ? a.cells.flatMap((c) => c.items) : [a]))
   }
 
+  /** The shares (percent) of a row's SIZED columns — each child declaring `flex: g s basis` or a
+   *  `width` — out of the reference page width (a fixed rem / px basis is its length, the rest is
+   *  shared by flex-grow); null unless there are 2+ children and every one is sized. */
+  function styledColumnPercentsOf(kids) {
+    if (!kids || kids.length < 2) return null
+    const W = 1200
+    const lengthPx = (v) => {
+      const m = /^(\d+(?:\.\d+)?)(rem|px|%)$/.exec(String(v || '').trim())
+      if (!m) return null
+      return m[2] === 'rem' ? Number(m[1]) * 16 : m[2] === 'px' ? Number(m[1]) : (Number(m[1]) * W) / 100
+    }
+    const specs = kids.map((k) => {
+      const st = String(k.style || (k.metadata && k.metadata.style) || '')
+      const flex = /(?:^|;)\s*flex\s*:\s*([^;]+)/.exec(st)
+      const width = /(?:^|;)\s*width\s*:\s*([^;]+)/.exec(st)
+      if (flex) {
+        const parts = flex[1].trim().split(/\s+/)
+        const grow = Number(parts[0])
+        const basis = parts.length >= 3 ? lengthPx(parts[2]) : null
+        if (!Number.isFinite(grow)) return null
+        return basis != null && grow === 0 ? { fixed: basis } : { grow: grow || 0, basis: basis || 0 }
+      }
+      // a 100% width is no column size (it only fills its cell)
+      if (width) { const px = lengthPx(width[1]); return px != null && px < W ? { fixed: px } : null }
+      return null
+    })
+    if (specs.some((x) => !x) || !specs.some((x) => x.fixed != null)) return null
+    const fixed = specs.reduce((a, x) => a + (x.fixed || 0) + (x.basis || 0), 0)
+    const grows = specs.reduce((a, x) => a + (x.grow || 0), 0)
+    const free = Math.max(W / 4, W - fixed)
+    return specs.map((x) => ((x.fixed != null ? x.fixed : (x.basis || 0) + (grows ? (x.grow / grows) * free : 0)) * 100) / W)
+  }
+
   /** Does a box node need painting as a box of its own (not just its children stacked)? A
    *  Scroller always (its height / scrolling), a Container / Div / VerticalLayout with a style that
    *  survives the filter, a VerticalLayout aligned anywhere but STRETCH or with padding. */
@@ -6701,6 +6734,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // any other row (stacks, KPIs, offers, charts, cards…): a layout box, its children side by side
         const box = cellsAtomOf(node, 'row')
         if (box) { atom(box, container); return }
+        // a row of SIZED columns holding blocks (a form beside a rail: the wizard's RAIL, a main
+        // column and a 15rem aside) at the surface's level: column blocks of the oj-flex grid, each
+        // its share of the row (a fixed width out of the reference page, the rest by flex-grow)
+        if (!container) {
+          const percents = styledColumnPercentsOf(kidsOf(node).filter(Boolean))
+          if (percents) {
+            const before = blocks.length
+            projectColumns(kidsOf(node).filter(Boolean), percents)
+            for (const block of blocks.slice(before)) block.fromColumns = true
+            return
+          }
+        }
       }
       // a styled Container / Div, a Scroller, an aligned VerticalLayout: a box of one cell
       if (BOX_TYPES.has(t) && t !== 'HorizontalLayout' && !isRoot && boxWanted(node)) {
@@ -7419,9 +7464,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'ProgressSteps') {
-        const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-        const current = (m.steps || []).find((step) => step.status === 'current')
-        atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+        const wire = m.steps || []
+        const currentAt = wire.findIndex((step) => step.status === 'current')
+        const statusOf = (step, i) => step.status || (currentAt < 0 ? 'upcoming' : i < currentAt ? 'done' : i === currentAt ? 'current' : 'upcoming')
+        // a DONE step is marked as such (oj-train's confirmation check; it read «Not visited»)
+        const steps = wire.map((step, i) => ({ id: step.id, label: step.title || step.label || step.id,
+          ...(statusOf(step, i) === 'done' ? { messageType: 'confirmation', visited: true } : {}),
+          description: interp(step.description || ''),
+          stepClass: 'mateu-vstep mateu-vstep-' + statusOf(step, i), marker: statusOf(step, i) === 'done' ? '✓' : String(i + 1) }))
+        const current = wire.find((step) => step.status === 'current')
+        // vertical (the guided-process RAIL): a vertical step list of our own — oj-train is horizontal only
+        atom({ isProgress: true, vertical: !!m.vertical, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
         return
       }
       if (t === 'EntityHeader') {
@@ -11981,6 +12034,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       ...widget,
       value,
+      // stepButtonsVisible: JET's oj-input-number draws its − / + buttons when it has a step
+      numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : null,
       // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
       colspan,
       colspanAttr,
@@ -28085,7 +28140,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
       // the item overview template OWNS the page: its header band and zones sit on the page itself, as
       // in Redwood's examples — the content container's card surface would frame it (app.css)
-      mateuPageHostClass: iopOn ? 'mateu-iop-host' : '',
+      // …and a full-width / edge-to-edge page drops the inner sections' own 48px gutters (the page's
+      // padding — 24px / none — is the whole margin, as the Redwood guide measures it)
+      mateuPageHostClass: [iopOn ? 'mateu-iop-host' : '', pw === 'edgeToEdge' ? 'mateu-page-edge' : pw === 'fullWidth' ? 'mateu-page-full' : ''].filter(Boolean).join(' '),
     }
     if (band) {
       out.mateuBandBoxMargin = pageStyle.margin

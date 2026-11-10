@@ -456,6 +456,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   return {
     ...widget,
     value,
+    // stepButtonsVisible: JET's oj-input-number draws its − / + buttons when it has a step
+    numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : null,
     // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
     colspan,
     colspanAttr,
