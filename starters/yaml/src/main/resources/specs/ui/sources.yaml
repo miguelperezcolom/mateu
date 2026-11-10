@@ -3,7 +3,7 @@
 # -Dmateu.sources.mock=true, a bundle built with -Dmateu.bundle.mock=true, and always in the visual
 # editor). Point `url` at your API and drop sample mode to go live.
 # See https://mateu.io/concepts/data-sources/
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.56/backend/shared/uidl/sources-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.57/backend/shared/uidl/sources-schema.json
 sources:
   - name: products
     description: The product catalogue
