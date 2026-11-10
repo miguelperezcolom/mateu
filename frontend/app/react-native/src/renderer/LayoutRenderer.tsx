@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ProgressBar, Text as PaperText } from 'react-native-paper';
-import { rowJustification } from '../core/uxRules';
-import { collectionDetailPane, compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
+import { collectionDetailPane, compactRail, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
+import { stackLayout } from '../core/stackLayout';
+import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
 import { theme, themed } from '../theme';
 
 interface Props {
@@ -46,8 +47,11 @@ export function LayoutRenderer({ component, state, onStateChange, renderComponen
   if (rail) {
     return (
       <View style={styles.column}>
-        <View style={styles.compactRail} accessibilityRole="progressbar" accessibilityLabel={rail.text} accessibilityValue={{ min: 0, max: 100, now: Math.round(rail.progress * 100) }}>
-          <PaperText variant="titleSmall" style={styles.compactRailText} numberOfLines={1}>{rail.text}</PaperText>
+        <View style={styles.compactRail} accessibilityRole="progressbar" accessibilityLabel={`${rail.counter}, ${rail.text}`} accessibilityValue={{ min: 0, max: 100, now: Math.round(rail.progress * 100) }}>
+          <View style={styles.compactRailHead}>
+            <PaperText variant="headlineSmall" style={styles.compactRailCounter}>{rail.counter}</PaperText>
+            <PaperText variant="titleSmall" style={styles.compactRailText} numberOfLines={2}>{rail.text}</PaperText>
+          </View>
           <ProgressBar progress={rail.progress} color={theme.primary} style={styles.compactRailBar} />
         </View>
         {children.map((child, i) => (i === railIndex ? null : (
@@ -57,28 +61,25 @@ export function LayoutRenderer({ component, state, onStateChange, renderComponen
     );
   }
 
-  // A row that DECLARES its justification (e.g. a wizard's Back/Next bar, justification END) keeps
-  // its items at their natural size and places them as declared. Stretching every item to an equal
-  // share (the default for undeclared rows) put the wizard's primary "Next" in the middle of the
-  // screen (RN-16).
-  const justify = direction === 'row' ? rowJustification(metadata['justification'] as string | null | undefined) : null;
+  // A form row on a tablet: its fields share the row equally (they are the section's columns).
+  if (formRow) {
+    return (
+      <View style={styles.row}>
+        {children.map((child, i) => (
+          <View key={i} style={styles.rowItem}>{renderComponent(child, state, onStateChange)}</View>
+        ))}
+      </View>
+    );
+  }
 
-  // Zone columns arrive with the backend's responsive wrap point in their style
-  // (min-width: min(20rem, …)); honoring it makes zoned sections stack on phone widths
-  // exactly like the web renderers. Same for any column that declares a wrap point or a fixed
-  // width (`flex: 0 0 22rem`) — the item overview template's panel beside its main area: on a phone
-  // the panel stacks above, on a tablet they stay side by side.
-  const itemStyle = (child: unknown) => {
-    if (direction !== 'row') return undefined;
-    if (justify) return undefined;
-    const style = ((child as Record<string, unknown>)['style'] as string) ?? '';
-    return declaresWrapPoint(style) ? [styles.rowItem, styles.zoneColumn] : styles.rowItem;
-  };
-
+  // Any other row/column: its own attributes (spacing, padding, alignment, justification, wrap,
+  // flexGrows — stackLayout) and its own box looks/sizes from its style.
+  const layout = stackLayout(direction, metadata, children);
+  const own = cssToRn((component['style'] as string) ?? '', OWN_BOX);
   return (
-    <View style={direction === 'row' ? [styles.row, justify ? { justifyContent: justify } : null] : styles.column}>
+    <View style={[layout.container, own]}>
       {children.map((child, i) => (
-        <View key={i} style={itemStyle(child)}>
+        <View key={i} style={layout.items[i]}>
           {renderComponent(child, state, onStateChange)}
         </View>
       ))}
@@ -86,12 +87,16 @@ export function LayoutRenderer({ component, state, onStateChange, renderComponen
   );
 }
 
+/** What a layout takes from its own style: its looks and sizes (its flex-grow is its parent's). */
+const OWN_BOX = new Set([...BOX_LOOKS, ...BOX_SIZES, 'gap', 'row-gap', 'column-gap']);
+
 const styles = themed(() => StyleSheet.create({
   column: { flexDirection: 'column' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   rowItem: { flex: 1, minWidth: 120 },
-  zoneColumn: { minWidth: 300 },
   compactRail: { marginBottom: 12 },
-  compactRailText: { color: theme.ink, marginBottom: 6 },
+  compactRailHead: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginBottom: 6 },
+  compactRailCounter: { color: theme.ink, fontWeight: '300', letterSpacing: 1 },
+  compactRailText: { color: theme.ink, flexShrink: 1 },
   compactRailBar: { height: 4, borderRadius: 2, backgroundColor: theme.divider },
 }));

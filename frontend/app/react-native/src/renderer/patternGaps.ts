@@ -218,10 +218,25 @@ export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | un
  * padding). Otherwise the labels would be cut ("The w…", "The e…") and the scrollable tab bar is the
  * right control.
  */
-export function segmentsFit(labels: string[], windowWidth: number): boolean {
-  if (labels.length === 0 || labels.length > 4) return false;
-  const share = (windowWidth - 32) / labels.length;
-  return labels.every((l) => l.length * 8 + 24 <= share);
+export function segmentsFit(labels: string[], width: number): boolean {
+  // a LONE tab is not a choice: as a segment it was a full-width pill button
+  if (labels.length < 2 || labels.length > 4) return false;
+  // `width` is the strip's MEASURED width (a TabLayout in a card has less than the window); each
+  // segment pads its label and draws a border, so ~9px a character + 40
+  const share = width / labels.length;
+  return labels.every((l) => l.length * 9 + 40 <= share);
+}
+
+/** A TabLayout's `variant` (Vaadin tabsheet themes, space- or comma-separated). */
+export function tabLayoutLook(variant: unknown): { bordered: boolean; small: boolean; minimal: boolean; centered: boolean } {
+  const v = new Set(String(variant ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean));
+  return { bordered: v.has('bordered'), small: v.has('small'), minimal: v.has('minimal'), centered: v.has('centered') };
+}
+
+/** An AccordionLayout's `variant` (Vaadin details themes): filled, small. */
+export function accordionLook(variant: unknown): { filled: boolean; small: boolean } {
+  const v = new Set(String(variant ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean));
+  return { filled: v.has('filled'), small: v.has('small') };
 }
 
 /** A toolbar without repeats: the same action with the same label is one button. */

@@ -43,3 +43,31 @@ export function toneColors(tone: Tone): { background: string; ink: string } {
     default: return { background: theme.divider, ink: theme.muted };
   }
 }
+
+export interface BadgeLook {
+  background: string;
+  ink: string;
+  /** a pill is fully rounded; the default badge has the chip's small radius */
+  pill: boolean;
+  small: boolean;
+}
+
+/**
+ * A wire Badge's look, as Lumo's badge themes: `color` normal (the default — the PRIMARY tint, so
+ * it reads apart from a contrast badge), success, error, warning, contrast (the ink tint);
+ * `primary` = FILLED with the tone's colour; `pill` fully rounded; `small` a smaller chip. Every
+ * one of them used to come out as the same grey chip.
+ */
+export function badgeLook(m: { color?: unknown; primary?: unknown; pill?: unknown; small?: unknown }): BadgeLook {
+  const color = String(m.color ?? '').toLowerCase();
+  const tinted = color === 'contrast'
+    ? { background: theme.divider, ink: theme.ink }
+    : toneColors(color === '' || color === 'normal' || color === 'primary' ? 'info' : toneOf(color));
+  const filled = m.primary === true;
+  return {
+    background: filled ? tinted.ink : tinted.background,
+    ink: filled ? theme.onFill : tinted.ink,
+    pill: m.pill === true,
+    small: m.small === true,
+  };
+}

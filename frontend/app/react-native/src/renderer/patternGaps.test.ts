@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
+  accordionLook, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
   showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, withOverlayState, type RecordSwitcher,
 } from './patternGaps.ts';
 import { cssLengthPx, gridTrackSizes, orderByAreas, responsiveColumns } from './wireWidgets.ts';
@@ -162,4 +162,11 @@ test('a LongTask step updates the open progress dialog it targets, and nothing e
   assert.equal(next[0], other);
   assert.equal(withOverlayState([other, dialog], 'nope', { x: 1 }), null);
   assert.equal(withOverlayState([dialog], '', { x: 1 }), null);
+});
+
+test('TabLayout and Accordion variants', () => {
+  assert.deepEqual(tabLayoutLook('bordered'), { bordered: true, small: false, minimal: false, centered: false });
+  assert.deepEqual(tabLayoutLook('small minimal'), { bordered: false, small: true, minimal: true, centered: false });
+  assert.deepEqual(tabLayoutLook(null), { bordered: false, small: false, minimal: false, centered: false });
+  assert.deepEqual(accordionLook('filled'), { filled: true, small: false });
 });

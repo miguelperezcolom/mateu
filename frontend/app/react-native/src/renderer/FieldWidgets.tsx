@@ -8,7 +8,7 @@ import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';
 import { stripHtml } from './htmlText';
-import { inlineSpans } from './markdownInline';
+import { MarkdownView } from './MarkdownView';
 import { openExternal } from './openExternal';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
@@ -271,59 +271,17 @@ export function LinkText({ value }: { value: string }) {
   );
 }
 
-/** Light markdown/HTML rendering: headings, bold-only lines, bullets — enough for @Help texts
- *  and read-only content fields without pulling a rendering dependency. */
+/** Markdown (MarkdownView: paragraphs, lists, tables, code…) or HTML/rich text (its tags dropped,
+ *  its block structure kept as lines) for @Help texts and read-only content fields. */
 export function RichText({ value, kind, onRouteLink }: { value: string; kind: 'markdown' | 'html' | 'richText'; onRouteLink?: (route: string) => void }) {
-  const text = kind === 'markdown' ? value : stripHtml(value);
-  const lines = text.split('\n');
+  if (kind === 'markdown') return <MarkdownView value={value} onRouteLink={onRouteLink} />;
+  const lines = stripHtml(value).split('\n');
   return (
     <View>
-      {lines.map((line, i) => {
-        const heading = /^(#{1,6})\s+(.*)$/.exec(line);
-        if (kind === 'markdown' && heading) {
-          const level = heading[1].length;
-          return (
-            <Text key={i} style={[styles.mdHeading, { fontSize: 22 - level * 2 }]}>
-              {heading[2]}
-            </Text>
-          );
-        }
-        const bullet = /^\s*[-*•]\s+(.*)$/.exec(line);
-        if (bullet) {
-          return (
-            <Text key={i} style={styles.mdText}>
-              {'  • '}
-              {renderInline(bullet[1], kind, onRouteLink)}
-            </Text>
-          );
-        }
-        return (
-          <Text key={i} style={styles.mdText}>
-            {renderInline(line, kind, onRouteLink)}
-          </Text>
-        );
-      })}
+      {lines.map((line, i) => (
+        <Text key={i} style={styles.mdText}>{line}</Text>
+      ))}
     </View>
-  );
-}
-
-function renderInline(line: string, kind: string, onRouteLink?: (route: string) => void): React.ReactNode {
-  if (kind !== 'markdown') return line;
-  // **bold** and [links](url) — the pragmatic subset; [text](/route) only where app routes open
-  return inlineSpans(line, !!onRouteLink).map((span, i) =>
-    span.kind === 'route' ? (
-      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => onRouteLink?.(span.route)}>
-        {span.text}
-      </Text>
-    ) : span.kind === 'bold' ? (
-      <Text key={i} style={styles.mdBold}>{span.text}</Text>
-    ) : span.kind === 'link' ? (
-      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => void openExternal(span.url)}>
-        {span.text}
-      </Text>
-    ) : (
-      span.text
-    ),
   );
 }
 
@@ -368,9 +326,7 @@ const styles = themed(() => StyleSheet.create({
   imageDeleteText: { fontSize: 14, color: theme.danger },
   emptyText: { color: theme.faint },
   link: { color: theme.primary, textDecorationLine: 'underline', fontSize: 14 },
-  mdHeading: { fontWeight: '700', color: theme.ink, marginTop: 8, marginBottom: 4 },
   mdText: { fontSize: 14, color: theme.ink, lineHeight: 21 },
-  mdBold: { fontWeight: '700' },
   badgeChip: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: theme.divider },
   badgeChipOn: { backgroundColor: theme.successBg },
   badgeChipText: { fontSize: 12, color: theme.faint },

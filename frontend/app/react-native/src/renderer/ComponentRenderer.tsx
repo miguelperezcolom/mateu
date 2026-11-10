@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
@@ -259,9 +260,25 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
         </FullWidthContext.Provider>
       );
+    // A Scroller with a height scrolls by itself (its items no longer run down the page)
     case 'Scroller':
+      return <ScrollerRenderer component={component} state={state} renderComponent={renderComponent} />;
+    case 'Div': {
+      // a Div's `content` is its text (a styled block of plain text) — it used to be dropped
+      const content = metadata['content'];
+      if (typeof content === 'string' && content.trim()) {
+        return (
+          <View style={cssToRn((component['style'] as string) ?? '', DIV_BOX)}>
+            <Text style={styles.text}>{interpolate(content, { state })}</Text>
+            <LayoutRenderer component={{ ...component, style: null }} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+          </View>
+        );
+      }
+      return (
+        <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+      );
+    }
     case 'Container':
-    case 'Div':
       return (
         <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
       );
@@ -383,10 +400,12 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // the two shapes a page template asks for: a round avatar, a 4:3 photo
       const css = String(component['style'] ?? '');
       const shape = /border-radius:\s*50%/.test(css) ? styles.imageRound : /aspect-ratio:\s*4\s*\/\s*3/.test(css) ? styles.imagePhoto : styles.image;
+      // its own declared width / max-width / radius (`max-width: 24rem`, `width: 6rem` in a card's media)
+      const declared = cssToRn(css, IMAGE_BOX);
       return src && !src.includes('${') ? (
         <Image
           source={{ uri: src }}
-          style={shape}
+          style={[shape, declared, typeof declared['width'] === 'number' && shape === styles.image ? { height: (declared['width'] as number) * 0.75 } : null]}
           resizeMode={shape === styles.image ? 'contain' : 'cover'}
           {...imageA11y(alt)}
         />
@@ -503,6 +522,35 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       );
     }
   }
+}
+
+const DIV_BOX = new Set([...BOX_LOOKS, ...BOX_SIZES]);
+const IMAGE_BOX = new Set(['width', 'max-width', 'height', 'max-height', 'border-radius']);
+
+/**
+ * A Scroller: with a height (or max-height) in its style it is a box of that height that scrolls
+ * its own content — nested in the screen's scroll (nestedScrollEnabled, for Android); without one
+ * it is a plain column, as on the web (a Scroller with no height never scrolls there either).
+ */
+function ScrollerRenderer({ component, state, renderComponent }: {
+  component: Record<string, unknown>; state: Record<string, unknown>;
+  renderComponent: (comp: unknown, st: Record<string, unknown>, onStateChange: (id: string, v: unknown) => void) => React.ReactNode;
+}) {
+  const box = cssToRn((component['style'] as string) ?? '', DIV_BOX);
+  const bounded = typeof box['height'] === 'number' || typeof box['maxHeight'] === 'number';
+  const inner = { ...component, style: null };
+  if (!bounded) {
+    return (
+      <View style={box}>
+        <LayoutRenderer component={inner} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+      </View>
+    );
+  }
+  return (
+    <ScrollView style={box} nestedScrollEnabled showsVerticalScrollIndicator>
+      <LayoutRenderer component={inner} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+    </ScrollView>
+  );
 }
 
 const styles = themed(() => StyleSheet.create({
