@@ -188,6 +188,40 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * A request naming a renderer of another wire major ({@code X-Mateu-Renderer}) reaches {@code
+   * io.mateu.core.infra.versioning.RendererCompatibility}, which WARNs the operator once per
+   * distinct value — and the request is still answered. Pinned through the checker's memory of the
+   * values it warned about (it lives in the server's JVM, which the adapters' tests embed): a fresh
+   * value is remembered after one sync call, and a renderer of THIS major is not.
+   */
+  public void warnsAboutARendererOfAnotherWireMajor() {
+    String other = "parity/" + System.nanoTime() + " wire/2.0";
+    String same = "parity/" + System.nanoTime() + " wire/3.0";
+    for (String renderer : new String[] {other, same}) {
+      given()
+          .contentType(ContentType.JSON)
+          .header("X-Mateu-Renderer", renderer)
+          .body(RQ)
+          .when()
+          .post("/hello/mateu/v3/sync/_no_route")
+          .then()
+          .statusCode(200);
+    }
+    java.util.Set<?> warned;
+    try {
+      var field =
+          Class.forName("io.mateu.core.infra.versioning.RendererCompatibility")
+              .getDeclaredField("WARNED");
+      field.setAccessible(true);
+      warned = (java.util.Set<?>) field.get(null);
+    } catch (ReflectiveOperationException e) {
+      throw new AssertionError("cannot read the renderer checker's memory", e);
+    }
+    assertThat("a renderer of another wire major is warned about", warned.contains(other));
+    assertThat("a renderer of this wire major is not", !warned.contains(same));
+  }
+
+  /**
    * The same refusal on the STREAMED leg ({@code /v3/sse/}, the one a LongTask / {@code Action.sse}
    * uses): 403 too. A streamed route produces {@code text/event-stream}, and an adapter whose
    * forbidden handler only answers other media types (or that commits the stream before the request
@@ -917,6 +951,31 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * A deep link whose record id carries a DOT ({@code /people/ana.perez}, {@code /versions/1.2}) is
+   * a route, not a file ({@code io.mateu.core.infra.SpaFallback#NOT_AN_ASSET}): it answers the
+   * index like any other. Each adapter wires the fallback with its own regex (a Spring filter,
+   * Micronaut URI templates, JAX-RS {@code @Path}, Vert.x routes), so the rule is pinned on each. A
+   * path ending in an asset's extension is still a file, never the index.
+   */
+  public void answersADottedIdDeepLinkWithTheIndex() {
+    for (String path : new String[] {"/hello/people/ana.perez", "/hello/versions/1.2"}) {
+      given()
+          .accept("text/html")
+          .when()
+          .get(path)
+          .then()
+          .statusCode(200)
+          .body(containsString("<mateu-ui baseUrl=\"/hello\""));
+    }
+    var asset = given().accept("text/html").when().get("/hello/people/missing.js");
+    if (asset.getStatusCode() == 200
+        && String.valueOf(asset.getContentType()).startsWith("text/html")
+        && asset.getBody().asString().contains("<mateu-ui")) {
+      throw new AssertionError("a missing script was answered with the index page");
+    }
+  }
+
+  /**
    * A DATA fetch of a path nobody serves (a REST source pointing at an endpoint that does not exist
    * yet) is NOT answered with the index page: a 200 of HTML made the missing endpoint look like an
    * empty one, with nothing in any log. Only a navigation (Accept: text/html) gets the index.
@@ -1241,6 +1300,52 @@ public class AdapterParityITFoundation {
         .post("/hello/mateu/v3/client-log")
         .then()
         .statusCode(204);
+  }
+
+  /**
+   * The client-log endpoint is open to anonymous callers, so it is rate-limited per client ({@code
+   * io.mateu.core.infra.ClientErrorLog}, {@value
+   * io.mateu.core.infra.ClientErrorLog#DEFAULT_MAX_REPORTS_PER_MINUTE} reports a minute by
+   * default): past the cap the adapter answers 429 instead of writing the server log at the
+   * caller's will. Three full batches (25 reports each) overflow the minute. The limiter's window
+   * lives in the server's JVM (the adapters' tests embed it), and it is forgotten before and after
+   * so no other contract sees a spent window.
+   */
+  public void rateLimitsClientLogs() {
+    var batch = new StringBuilder("[");
+    for (int i = 0; i < 25; i++) {
+      batch.append(i == 0 ? "" : ",").append("{\"kind\":\"timeout\",\"message\":\"flood\"}");
+    }
+    String body = batch.append("]").toString();
+    resetClientLogRateLimit();
+    try {
+      int last = 0;
+      for (int i = 0; i < 3; i++) {
+        last =
+            given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/hello/mateu/v3/client-log")
+                .then()
+                .extract()
+                .statusCode();
+      }
+      assertThat("the third batch of 25 reports overflows the minute", last, equalTo(429));
+    } finally {
+      resetClientLogRateLimit();
+    }
+  }
+
+  private static void resetClientLogRateLimit() {
+    try {
+      var reset =
+          Class.forName("io.mateu.core.infra.ClientErrorLog").getDeclaredMethod("resetRateLimit");
+      reset.setAccessible(true);
+      reset.invoke(null);
+    } catch (ReflectiveOperationException e) {
+      throw new AssertionError("cannot reset the client-log rate limit", e);
+    }
   }
 
   /**
