@@ -23,7 +23,12 @@ public class PartialTests
     private static PartialRegistry Partials() => new(SpecsDir);
 
     private static IReadOnlyList<IComponent> ContentOf(IComponent? component) =>
-        ((VerticalLayout)component!).Content;
+        component switch
+        {
+            VerticalLayout v => v.Content,
+            FormLayout f => f.Content,
+            _ => throw new InvalidOperationException(component?.GetType().Name),
+        };
 
     private static string Describe(IComponent component) => component switch
     {

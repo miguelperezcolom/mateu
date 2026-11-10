@@ -104,12 +104,23 @@ public class WireConformanceTests
         // A YAML case (a specs/ui/ directory of its own): the handler reads ITS definitions
         var specs = @case is null ? null : Path.Combine(Corpus, @case, "specs", "ui");
         var yaml = specs is not null && Directory.Exists(specs);
-        var handler = yaml
-            ? new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly), specsDir: specs)
-            : new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
         // A case with a request.json is pinned on that (second) request to its fixture type, not on
         // the first load — identical in the three runners.
         var requestFile = @case is null ? null : Path.Combine(Corpus, @case, "request.json");
+        // a YAML case may name the deployment's environment (specs/ui/environments/<name>.yaml):
+        // set for that case's handler alone, as a deployment would (MateuOptions.Environment)
+        var environment = yaml && requestFile is not null && File.Exists(requestFile)
+            ? JsonNode.Parse(File.ReadAllText(requestFile))!["environment"]?.GetValue<string>()
+            : null;
+        // a YAML case is served from its own specs alone, as Java boots a Mateu for it: none of
+        // this assembly's fixture routes may answer for it (the test classes declare "order"…)
+        var registry = yaml
+            ? new MateuRegistry(typeof(Mateu.Uidl.Wizard).Assembly)
+            : new MateuRegistry(typeof(Wire.SimpleForm).Assembly);
+        var handler = yaml
+            ? new SyncHandler(registry, specsDir: specs,
+                restSources: environment is null ? null : new RestSourceRegistry(registry, specs, environment))
+            : new SyncHandler(registry);
         RunActionRqDto rq = new() { ServerSideType = view.FullName };
         if (requestFile is not null && File.Exists(requestFile))
         {
@@ -164,7 +175,8 @@ public class WireConformanceTests
         ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view",
          "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new",
-         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
+         "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing",
+         "wizard-labels", "crud-generated-new", "crud-generated-edit"];
 
     /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
     /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
@@ -172,13 +184,15 @@ public class WireConformanceTests
     private static readonly HashSet<string> MediatedForms =
         ["crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new",
          "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "editable-view", "editable-view-edit", "view-toolbar-button",
-         "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"];
+         "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing",
+         "crud-generated-new", "crud-generated-edit"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     /// <summary>Mediated record forms whose FORM state is pinned all the same (Java's
     /// FORM_STATE_PINNED): the record's field values are the form's, only the <c>_</c>-prefixed
     /// routing keys are protocol.</summary>
-    private static readonly HashSet<string> FormStatePinned = ["routed-tabs-crud-new"];
+    private static readonly HashSet<string> FormStatePinned =
+        ["routed-tabs-crud-new", "crud-generated-new", "crud-generated-edit"];
 
     private static void WithoutPrivateKeys(JsonNode? state)
     {
@@ -341,6 +355,27 @@ public class WireConformanceTests
         { "subresource-inline-trap", typeof(Wire.RtInlineTrap) },
         { "subresource-listing", typeof(Wire.RtSubnets) },
         { "subresource-search", typeof(Wire.RtSubnets) },
+        // the parity cases of 3.0 GA (ParityFixtures.cs, Java's ParityConformanceFixtures)
+        { "page-decorations", typeof(Wire.PageDecorationsPage) },
+        { "page-decorations-supplied", typeof(Wire.SuppliedDecorationsPage) },
+        { "tab-shortcuts", typeof(Wire.TabShortcuts) },
+        { "listing-column-options", typeof(Wire.ShipmentsListing) },
+        { "listing-mapped-values", typeof(Wire.TicketsListing) },
+        { "crud-generated-new", typeof(Wire.CasesCrud) },
+        { "crud-generated-edit", typeof(Wire.CasesCrud) },
+        { "wizard-labels", typeof(Wire.LabelledWizard) },
+        { "island-data", typeof(Wire.IslandDataPage) },
+        { "app-fabs", typeof(Wire.FabApp) },
+        { "fab-style", typeof(Wire.StyledFabPage) },
+        { "field-decorations", typeof(Wire.FieldDecorations) },
+        { "class-rules", typeof(Wire.ClassRulesForm) },
+        { "banner-options", typeof(Wire.BannerOptionsPage) },
+        { "yaml-partial", typeof(YamlCase) },
+        { "yaml-component-ref", typeof(YamlCase) },
+        { "yaml-field-types", typeof(YamlCase) },
+        { "yaml-template", typeof(YamlCase) },
+        { "yaml-eyes-only", typeof(YamlCase) },
+        { "yaml-environment", typeof(YamlCase) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

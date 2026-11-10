@@ -1172,7 +1172,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// ILookupLabelSupplier (falling back to a match among its IOptionsSupplier options). They
     /// ride as &lt;fieldId&gt;-label entries in the fragment data — where the renderer's combo
     /// looks before showing the raw id (mirrors Java's LookupLabelSupplier).</summary>
-    private static Dictionary<string, object?>? LookupLabels(Type type, object instance, object supplierHost)
+    internal static Dictionary<string, object?>? LookupLabels(Type type, object instance, object supplierHost)
     {
         Dictionary<string, object?>? data = null;
         foreach (var p in ReflectionMapper.EditableProperties(type))

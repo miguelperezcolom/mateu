@@ -118,7 +118,7 @@ internal sealed partial class SyncHandler
             .Cast<object>().ToList();
         var summaries = ListingSummaries(found, content, rowType, listing);
         if (found.GetType().GetProperty("TotalElements")!.GetValue(found) is not long total)
-            return PageRows(content, props, rq, summaries);
+            return PageRows(content, props, rq, summaries, wholeResult: true);
         var page = ToInt(GetState(rq.ComponentState, "page"), 0);
         var size = ToInt(GetState(rq.ComponentState, "size"), 10);
         if (size <= 0) size = content.Count == 0 ? 1 : content.Count;
@@ -158,7 +158,7 @@ internal sealed partial class SyncHandler
     {
         var crud = new Dictionary<string, object?>
         {
-            ["page"] = new { content = Numbered(rows, page, size), pageSize = size, pageNumber = page, totalElements = total },
+            ["page"] = new { content = Numbered(rows, page, Math.Max(size, 1)), pageSize = size, pageNumber = page, totalElements = total },
         };
         if (extras is not null)
             foreach (var (key, value) in extras) crud[key] = value;
@@ -208,7 +208,7 @@ internal sealed partial class SyncHandler
     /// <summary>Sorts (Pageable.sort), paginates and serializes rows into the standard listing
     /// data fragment — shared by crud and declarative-listing searches.</summary>
     private static UIIncrementDto PageRows(List<object> items, List<PropertyInfo> props, RunActionRqDto rq,
-        Dictionary<string, object?>? extras = null)
+        Dictionary<string, object?>? extras = null, bool wholeResult = false)
     {
         var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
         foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
@@ -223,7 +223,10 @@ internal sealed partial class SyncHandler
         var size = ToInt(GetState(rq.ComponentState, "size"), 10);
         if (size <= 0) size = total == 0 ? 1 : total;
         var rows = items.Skip(page * size).Take(size).Select(item => RowDict(item, props)).ToList();
-        return CrudData(rows, size, page, total, extras, rq);
+        // a listing's whole, unpaged result that fits the first page IS that page: its size is the
+        // rows it holds, as Java's ListingData.from(rows) says (Page(pageSize = rows.size()))
+        var pageSize = wholeResult && page == 0 && total <= size ? total : size;
+        return CrudData(rows, pageSize, page, total, extras, rq);
     }
 
     /// <summary>Stamps each row of a listing page with <c>_rowNumber</c>, its position in the WHOLE
@@ -247,8 +250,35 @@ internal sealed partial class SyncHandler
                 var childProps = ReflectionMapper.EditableProperties(childType).ToList();
                 return (object?)children.Cast<object>().Select(child => RowDict(child, childProps)).ToList();
             }
-            return CellValue(p.GetValue(item));
+            return MappedCell(p, p.GetValue(item));
         });
+
+    /// <summary>A row cell as it travels: a [Status] property becomes a status chip (its value,
+    /// the mapped tone — else the default — and the value humanised as its message), a
+    /// [MappedValue] property its mapped text (else the default); anything else as is. (Java's
+    /// DataMapper.mapPojo: StatusFieldMapper / MappedValueFieldMapper.)</summary>
+    private static object? MappedCell(PropertyInfo p, object? value)
+    {
+        if (p.Find<StatusAttribute>() is { } status)
+        {
+            if (value is null) return null;
+            var text = value.ToString() ?? "";
+            var tone = p.FindAll<StatusMappingAttribute>().FirstOrDefault(m => m.From == text)?.To
+                       ?? status.DefaultStatus;
+            return new Dictionary<string, object?>
+            {
+                ["type"] = tone.ToString().ToUpperInvariant(),
+                ["message"] = Naming.HumanizeConstant(text),
+                ["value"] = text,
+            };
+        }
+        if (p.Find<MappedValueAttribute>() is { } mapped)
+        {
+            var text = "" + (value?.ToString() ?? "null");
+            return p.FindAll<ValueMappingAttribute>().FirstOrDefault(m => m.From == text)?.To ?? mapped.DefaultValue;
+        }
+        return CellValue(value);
+    }
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
@@ -314,7 +344,7 @@ internal sealed partial class SyncHandler
         foreach (var item in window)
         {
             var row = new Dictionary<string, object?>();
-            foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
+            foreach (var p in props) row[Naming.CamelCase(p.Name)] = MappedCell(p, p.GetValue(item));
             rows.Add(row);
         }
         var crudData = new Dictionary<string, object?>

@@ -20,6 +20,10 @@ internal sealed partial class ReflectionMapper
     {
         var validations = new List<ValidationDto>();
         AddValidations(type, only, "", validations, 0);
+        // the class's cross-field [FormValidation]s after the field constraints (Java's
+        // ValidationMapper: field-level, then the class @Validation annotations)
+        validations.AddRange(type.GetCustomAttributes<FormValidationAttribute>(inherit: true)
+            .Select(v => new ValidationDto(v.Condition, v.FieldId, T(v.Message))));
         return validations;
     }
 
@@ -91,6 +95,8 @@ internal sealed partial class ReflectionMapper
     /// (<see cref="ActionGuard.MayWrite"/>).</summary>
     internal static bool IsEditable(Type type, PropertyInfo p) =>
         p.Find<ReadOnlyAttribute>() is null
+        && p.Find<GeneratedValueAttribute>() is null
+        && !LockedOutsideCreation(p)
         && p.Find<PlainTextAttribute>() is null
         && type.Find<ReadOnlyAttribute>() is null
         && type.Find<PlainTextAttribute>() is null
@@ -188,7 +194,7 @@ internal sealed partial class ReflectionMapper
     /// server-side leg of a crud save and of an inline-edited row (Java's FilteredAutoCrud.save /
     /// updateRow → ServerConstraintCheck). [Required] is reported separately by the caller.</summary>
     internal List<string> CrudConstraintViolations(Type element, object entity, string mode) =>
-        BrokenConstraints(element, entity, p => !HiddenInForm(p, mode), includeRequired: false)
+        InCrudForm(mode, () => BrokenConstraints(element, entity, p => !HiddenInForm(p, mode), includeRequired: false))
             .Select(b => $"{T(b.Property.Find<LabelAttribute>()?.Value ?? Naming.Humanize(b.Property.Name))}: {T(b.Message)}")
             .ToList();
 
@@ -290,7 +296,10 @@ internal sealed partial class ReflectionMapper
     /// and an IRuleSupplier contributes programmatic rules.</summary>
     internal List<RuleDto> MapRules(Type type, object? instance)
     {
-        var rules = new List<RuleDto>();
+        // the class's own [Rule]s first, in declaration order (Java: getAnnotationsByType(Rule))
+        var rules = type.GetCustomAttributes<RuleAttribute>(inherit: true).Select(r => new RuleDto(
+            r.Filter, r.Action, r.FieldName, r.FieldAttribute, string.IsNullOrEmpty(r.Value) ? null : r.Value,
+            r.Expression, r.Result, string.IsNullOrEmpty(r.ActionId) ? null : r.ActionId)).ToList();
         foreach (var p in EditableProperties(type))
         {
             var fieldId = Naming.CamelCase(p.Name);
@@ -314,7 +323,10 @@ internal sealed partial class ReflectionMapper
             {
                 var a = m.Find<BannerAttribute>()!;
                 var desc = m.ReturnType == typeof(string) ? m.Invoke(instance, [])?.ToString() : null;
-                return new BannerDto(a.Theme.ToString().ToUpperInvariant(), a.Title, desc);
+                return new BannerDto(a.Theme.ToString().ToUpperInvariant(), a.Title, desc)
+                {
+                    HasCloseButton = a.Closeable, TimeoutSeconds = a.TimeoutSeconds,
+                };
             })
             .ToList();
 
@@ -364,15 +376,17 @@ internal sealed partial class ReflectionMapper
     private List<FabDto> Fabs(Type type) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Find<FabAttribute>() != null && Authorized(m.Find<EyesOnlyAttribute>()))
+            // sorted by order, which does not travel (Java's FabDto has no order member)
+            .OrderBy(m => m.Find<FabAttribute>()!.Order)
             .Select(m =>
             {
                 var a = m.Find<FabAttribute>()!;
                 return new FabDto(a.Icon, Naming.CamelCase(m.Name))
                 {
-                    Label = a.Label, Order = a.Order, ButtonStyle = "primary",
+                    Label = a.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name),
+                    ButtonStyle = a.ButtonStyle,
                 };
             })
-            .OrderBy(f => f.Order)
             .ToList();
 
     /// <summary>The view's [WelcomeBanner], when declared. Inherited from a base class (the Java
