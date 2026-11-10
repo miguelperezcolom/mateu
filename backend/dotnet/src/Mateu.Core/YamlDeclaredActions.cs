@@ -93,7 +93,7 @@ internal static class YamlDeclaredActions
     /// <summary>A <c>source:</c> as DECLARED — only the keys written (a bare string is the ref
     /// shorthand): what travels is the surface as authored, as Java's record deserialisation keeps
     /// it; the catalogue entry it names is resolved by the server only for its own proxy leg.</summary>
-    private static RestDataSourceDto? SourceOf(object? node) => node switch
+    internal static RestDataSourceDto? SourceOf(object? node) => node switch
     {
         string name when !string.IsNullOrWhiteSpace(name) => RestDataSourceDto.FromRef(name.Trim()),
         IDictionary<object, object> m => new RestDataSourceDto(Str(m, "url") ?? "")

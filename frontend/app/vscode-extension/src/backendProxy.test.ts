@@ -8,6 +8,8 @@ import { imageUrlPath } from './projectImages'
 
 // The loopback proxy the webview talks to: a real backend on an ephemeral port, real requests.
 
+const WEBVIEW = 'vscode-webview://1a2b3c'
+
 let backend: http.Server
 let backendUrl: string
 let seen: { method?: string; url?: string; headers: http.IncomingHttpHeaders; body: string }[]
@@ -48,9 +50,9 @@ describe('BackendProxy', () => {
     it('forwards a sync POST with its whole body and an accurate Content-Length, adding CORS', async () => {
         const port = await proxy.ensureStarted(backendUrl)
         const body = JSON.stringify({ route: '/x', actionId: '', componentState: { a: 'é'.repeat(100) } })
-        const res = await call(port, '/mateu/v3/sync/x?a=1', { method: 'POST', body, headers: { 'Content-Type': 'application/json' } })
+        const res = await call(port, '/mateu/v3/sync/x?a=1', { method: 'POST', body, headers: { 'Content-Type': 'application/json', Origin: WEBVIEW } })
         expect(res.status).toBe(200)
-        expect(res.headers.get('access-control-allow-origin')).toBe('*')
+        expect(res.headers.get('access-control-allow-origin')).toBe(WEBVIEW)
         expect(JSON.parse(res.text)).toEqual({ ok: '/mateu/v3/sync/x?a=1' })
         expect(seen[0]).toMatchObject({ method: 'POST', url: '/mateu/v3/sync/x?a=1', body })
         expect(seen[0].headers['content-length']).toBe(String(Buffer.byteLength(body)))
@@ -58,9 +60,37 @@ describe('BackendProxy', () => {
 
     it('answers the preflight itself, allowing what the web client sends', async () => {
         const port = await proxy.ensureStarted(backendUrl)
-        const res = await call(port, '/mateu/v3/sync/x', { method: 'OPTIONS' })
+        const res = await call(port, '/mateu/v3/sync/x', { method: 'OPTIONS', headers: { Origin: WEBVIEW } })
         expect(res.status).toBe(204)
         expect(res.headers.get('access-control-allow-headers')).toMatch(/Content-Type/)
+        expect(seen).toHaveLength(0)
+    })
+
+    it('refuses a web page, and grants it no CORS', async () => {
+        const port = await proxy.ensureStarted(backendUrl)
+        for (const Origin of ['https://evil.example', 'null', 'http://127.0.0.1:1', 'vscode-webview://x/y']) {
+            for (const [path, method] of [['/mateu/v3/sync/x', 'POST'], ['/redwood/actuator/env', 'GET'], ['/mateu/v3/sync/x', 'OPTIONS']]) {
+                const res = await call(port, path, { method, headers: { Origin } })
+                expect(res.status, `${Origin} ${method} ${path}`).toBe(403)
+                expect(res.headers.get('access-control-allow-origin')).toBeNull()
+            }
+        }
+        expect(seen).toHaveLength(0)
+    })
+
+    it('lets the framed Redwood app, served from here, call it', async () => {
+        const port = await proxy.ensureStarted(backendUrl)
+        const res = await call(port, '/mateu/v3/sync/x', { method: 'POST', body: '{}', headers: { Origin: `http://127.0.0.1:${port}` } })
+        expect(res.status).toBe(200)
+    })
+
+    it('refuses a request addressed by another name (DNS rebinding)', async () => {
+        const port = await proxy.ensureStarted(backendUrl)
+        const status = await new Promise<number | undefined>((resolve, reject) => {
+            http.get({ host: '127.0.0.1', port, path: '/redwood/actuator/env', headers: { Host: `evil.example:${port}` } },
+                (res) => { res.resume(); resolve(res.statusCode) }).on('error', reject)
+        })
+        expect(status).toBe(403)
         expect(seen).toHaveLength(0)
     })
 

@@ -1,10 +1,6 @@
 using Mateu.Dtos;
 using Mateu.Uidl;
 
-// The mapper keeps rendering the deprecated DashboardLayout for code that still authors it
-// (it is [Obsolete], not removed).
-#pragma warning disable CS0618, MATEU002
-
 namespace Mateu.Core;
 
 /// <summary>Maps fluent components (Mateu.Uidl.IComponent trees) to wire ClientSideComponentDtos —

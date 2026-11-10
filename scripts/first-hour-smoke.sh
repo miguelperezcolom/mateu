@@ -25,7 +25,7 @@
 #   --only-wait        only wait for the registries; exit 0 when some target is servable, else 3
 #   --available-out F  write the servable targets (space-separated) to F
 #
-# Needs: JDK 21 + Maven (Java targets), .NET SDK 8 (dotnet), Python >= 3.11 (python; or $PYTHON),
+# Needs: JDK 21 + Maven (Java targets), .NET SDK 10 (dotnet), Python >= 3.11 (python; or $PYTHON),
 # Node >= 20 and the Playwright Chromium (`cd e2e && npx playwright install chromium`).
 #
 # Exit codes: 0 every target passed · 1 a target failed · 2 usage · 3 no failure, but some target

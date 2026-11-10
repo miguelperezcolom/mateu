@@ -3,6 +3,9 @@
 import contract from '../../contract.json'
 import schema from '../../../../backend/shared/uidl/uidl-schema.json'
 import renderer from '../src/renderer.json'
+import { checkRendererFile } from '../src/rendererPin.mjs'
+import { sha256 } from '@noble/hashes/sha2'
+import { bytesToHex } from '@noble/hashes/utils'
 import { FigmaToYaml } from '../../to-yaml/src/convert.mjs'
 import { buildManifest, defaultConfig, siteFiles } from '../src/site.mjs'
 import { zip } from '../src/zip.mjs'
@@ -86,8 +89,9 @@ async function build(log) {
     if (!r.ok) throw new Error(`Could not fetch ${p}: ${r.status}`)
     return r
   }
-  const assets = new Map(await Promise.all(renderer.files.map(async (p) => [p, new Uint8Array(await (await get(p)).arrayBuffer())])))
-  const template = await (await get(renderer.index)).text()
+  const bytesOf = async (p) => checkRendererFile(renderer, p, new Uint8Array(await (await get(p)).arrayBuffer()), (b) => bytesToHex(sha256(b)))
+  const assets = new Map(await Promise.all(renderer.files.map(async (p) => [p, await bytesOf(p)])))
+  const template = new TextDecoder().decode(await bytesOf(renderer.index))
   return siteFiles(buildManifest(files, config), config, template, assets)
 }
 

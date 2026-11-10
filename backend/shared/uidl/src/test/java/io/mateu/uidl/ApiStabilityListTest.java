@@ -131,7 +131,10 @@ class ApiStabilityListTest {
     var core = "io.mateu.core.infra.declarative.orchestrators.";
     assertThat(internal)
         .contains(
+            core + "DetailContent",
             core + "crud.CrudActionResult",
+            core + "crud.CrudWriteGate",
+            core + "crud.InlineEditingGate",
             core + "crud.CrudFormState",
             core + "crud.DataLayer",
             core + "importwizard.CsvParser",

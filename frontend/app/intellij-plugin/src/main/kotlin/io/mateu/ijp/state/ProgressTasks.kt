@@ -57,6 +57,18 @@ object NoticeTexts {
     fun open(locale: Locale) = if (es(locale)) "Abrir" else "Open"
     fun details(locale: Locale) = if (es(locale)) "Detalles" else "Details"
     fun dismiss(locale: Locale) = if (es(locale)) "Descartar" else "Dismiss"
+    fun cancel(locale: Locale) = if (es(locale)) "Cancelar" else "Cancel"
+    fun moveToBackground(locale: Locale) = if (es(locale)) "Pasar a segundo plano" else "Move to background"
+    fun filterAll(locale: Locale) = if (es(locale)) "Todas" else "All"
+    fun filterUnread(locale: Locale) = if (es(locale)) "Sin leer" else "Unread"
+    fun filterResolved(locale: Locale) = if (es(locale)) "Resueltas" else "Resolved"
+    fun filters(locale: Locale) = if (es(locale)) "Mostrar" else "Show"
+    fun notifications(locale: Locale) = if (es(locale)) "Notificaciones" else "Notifications"
+    fun noNotifications(locale: Locale) = if (es(locale)) "Sin notificaciones" else "No notifications"
+    fun markAllRead(locale: Locale) = if (es(locale)) "Marcar todo como leído" else "Mark all read"
+    fun resolved(locale: Locale) = if (es(locale)) "Resuelta" else "Resolved"
+    fun openNotificationsWindow(locale: Locale) =
+        if (es(locale)) "Abrir la ventana Notifications" else "Open the Notifications tool window"
     fun failed(locale: Locale) = if (es(locale)) "Ha fallado" else "Failed"
     fun count(done: Int, total: Int, locale: Locale) = if (es(locale)) "$done de $total" else "$done of $total"
 
@@ -93,8 +105,25 @@ enum class TaskState {
     }
 }
 
-/** How the platform should run a task: modal, modal with "Background", or in the background. */
-enum class TaskPresentation { MODAL, BACKGROUNDABLE, BACKGROUND }
+/**
+ * What a task does to the screen that started it. EVERY task runs in the IDE's Background Tasks
+ * (status bar + Background Tasks window) and never in a modal window, so the IDE stays usable; a
+ * blocking one also covers the Mateu view that started it — that view only — until it ends
+ * ([ViewBlock]), the desktop's equivalent of the web's blocking overlay.
+ */
+enum class TaskPresentation {
+    /** Covers the view that started it until it ends. */
+    BLOCKS_VIEW,
+
+    /** Covers that view until the user moves it to the background (it keeps running there). */
+    BLOCKS_VIEW_MOVABLE,
+
+    /** Only in Background Tasks. */
+    BACKGROUND;
+
+    val blocksView: Boolean get() = this != BACKGROUND
+    val movable: Boolean get() = this == BLOCKS_VIEW_MOVABLE
+}
 
 /**
  * The whole current state of one long-running task — the data of a `Progress` command
@@ -124,8 +153,8 @@ data class ProgressTask(
     val presentation: TaskPresentation
         get() = when {
             !blocking -> TaskPresentation.BACKGROUND
-            backgroundable -> TaskPresentation.BACKGROUNDABLE
-            else -> TaskPresentation.MODAL
+            backgroundable -> TaskPresentation.BLOCKS_VIEW_MOVABLE
+            else -> TaskPresentation.BLOCKS_VIEW
         }
 }
 
@@ -174,8 +203,8 @@ object ProgressTasks {
     }
 
     /**
-     * The indicator's main line: what the task is. Shown by Swing labels (status bar, progress
-     * dialog title), so data is never live HTML ([io.mateu.ijp.ui.plain]).
+     * The indicator's main line: what the task is. Shown by Swing labels (status bar, Background
+     * Tasks window, the view's overlay), so data is never live HTML ([io.mateu.ijp.ui.plain]).
      */
     fun indicatorText(task: ProgressTask): String = io.mateu.ijp.ui.plain(task.title.ifBlank { task.text })
 

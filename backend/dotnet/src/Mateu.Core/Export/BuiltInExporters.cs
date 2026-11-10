@@ -37,12 +37,23 @@ public sealed class BuiltInCsvExporter : IListingExporter
 
     public ExportedFile Export(ListingExport export) => new(Bytes(export.Rows, export.Columns));
 
+    /// <summary>A value a spreadsheet would run as a formula, prefixed with ' so it stays text (the
+    /// cells come from what users typed). A plain number (-12.5, +34) is data and is left alone.</summary>
+    private static string Neutralized(string value) =>
+        value.Length == 0 || "=+-@\t\r".IndexOf(value[0]) < 0
+            || System.Text.RegularExpressions.Regex.IsMatch(value, @"\A[+-]?[0-9]+([.,][0-9]+)?\z")
+            ? value
+            : "'" + value;
+
     private static byte[] Bytes(IReadOnlyList<object> rows, IReadOnlyList<ExportColumn> columns)
     {
-        static string Escape(string value) =>
-            value.Contains(',') || value.Contains('"') || value.Contains('\n')
+        static string Escape(string raw)
+        {
+            var value = Neutralized(raw);
+            return value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r')
                 ? "\"" + value.Replace("\"", "\"\"") + "\""
                 : value;
+        }
         var sb = new StringBuilder();
         sb.Append(string.Join(",", columns.Select(c => Escape(c.Label)))).Append('\n');
         foreach (var row in rows)

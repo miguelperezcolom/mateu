@@ -174,6 +174,21 @@ public class ExportTests
         Assert.IsType<BuiltInCsvExporter>(MateuExporters.BuiltIn.For(ExportFormat.Csv));
     }
 
+    private sealed record CsvRow(string Name);
+
+    [Theory]
+    [InlineData("=HYPERLINK(1)", "'=HYPERLINK(1)")]
+    [InlineData("@cmd", "'@cmd")]
+    [InlineData("-12.5", "-12.5")]
+    [InlineData("+34", "+34")]
+    [InlineData("a\rb", "\"a\rb\"")]
+    public void The_built_in_csv_keeps_formulas_as_text_and_numbers_as_numbers(string cell, string written)
+    {
+        var file = new BuiltInCsvExporter().Export(new ListingExport(
+            ExportFormat.Csv, null, [new ExportColumn("Name", "Name")], [new CsvRow(cell)], null));
+        Assert.Equal("Name\n" + written + "\n", Encoding.UTF8.GetString(file.Content));
+    }
+
     [Fact]
     public void Any_listing_that_opts_in_exports_its_whole_filtered_result_set()
     {

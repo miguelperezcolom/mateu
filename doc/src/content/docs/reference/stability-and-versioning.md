@@ -20,7 +20,9 @@ upgraded to 3.0.0 once, with the compiler as its guide.
   May deprecate.
 - **Patch** (`3.0.0` → `3.0.1`): fixes only.
 - **Pre-releases** (`-rc.N` of a coming minor or major): previews of that release, outside the
-  promise — they may change anything until the release itself.
+  promise — they may change anything until the release itself. They are published to the package
+  registries only: the IDE plugins, the desktop app, the phone app's over-the-air channel and the
+  examples stay on the last release.
 
 The promise covers the public surface listed under [What is public API](#what-is-public-api):
 
@@ -217,7 +219,7 @@ same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 257 | 257 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 330 | 263 | 66 | 1 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 330 | 264 | 66 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 91 | 11 | 0 | 7 |
@@ -225,7 +227,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **998** | **837** | **100** | **1** | **60** |
+| **Total** | | **998** | **838** | **100** | **0** | **60** |
 
 **Experimental types** (the whole type and its members):
 
@@ -335,8 +337,7 @@ compatibility check skips them, and they may change in any release. The extensio
   switch to keep the old behaviour for at least that minor. Security fixes are the exception: an
   insecure default can change in a patch, and the release notes say how to opt back in.
 
-`DashboardLayout` is the one deprecated element 3.0.0 ships: the `DashboardLandingPage` template
-still lays its panels out with it, so it stays (removable in 4.0); author `ResponsiveGrid` instead.
+3.0.0 ships with no deprecated API.
 
 ## Enforcement
 
@@ -387,8 +388,8 @@ summary.
   is how an intentional break (the end of a deprecation period, a major release) gets through; the
   comment block above the list names the release or PR that accepted each group, and the list is
   reset to its sentinel whenever the baseline moves. Until `3.0.0` is on Maven Central the baseline
-  is the last pre-release and the list records the pre-GA clean-up; once it is, `3.0.0` becomes the
-  baseline and the list starts empty — the promise is measured from `3.0.0`. The [Internal](#stable-and-experimental-api-by-package)
+  is the last pre-release; once it is, `3.0.0` becomes the baseline — the promise is measured from
+  `3.0.0`. The [Internal](#stable-and-experimental-api-by-package)
   types are excluded from the check.
 - Marking an existing stable API `@Experimental` or `@Internal` is itself reported as a removal —
   japicmp drops the annotated element on the new side only — so an API cannot leave the promise

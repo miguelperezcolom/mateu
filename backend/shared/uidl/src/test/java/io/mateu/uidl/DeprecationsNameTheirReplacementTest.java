@@ -42,15 +42,15 @@ class DeprecationsNameTheirReplacementTest {
   @Test
   void everyDeprecationSaysSinceWhenAndNamesItsReplacement() throws IOException {
     var offenders = new ArrayList<String>();
-    int seen = 0;
+    int scanned = 0;
     for (Path root : PUBLIC_SOURCES) {
       try (Stream<Path> files = Files.walk(root)) {
         for (Path file : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+          scanned++;
           var source = Files.readString(file);
           Matcher m = DEPRECATED.matcher(source);
           while (m.find()) {
             if (inAComment(source, m.start())) continue;
-            seen++;
             var where = file + ":" + lineOf(source, m.start());
             var args = m.group(1) == null ? "" : m.group(1);
             if (!args.contains("since")) {
@@ -66,7 +66,8 @@ class DeprecationsNameTheirReplacementTest {
         }
       }
     }
-    assertThat(seen).as("the scan found the deprecations at all").isPositive();
+    // 3.0 GA ships with no deprecated API at all; the scan must still have read the sources.
+    assertThat(scanned).as("the scan read the public sources at all").isPositive();
     assertThat(offenders).as("deprecations breaking the policy").isEmpty();
   }
 

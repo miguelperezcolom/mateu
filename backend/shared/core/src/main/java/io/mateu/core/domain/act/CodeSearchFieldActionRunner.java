@@ -12,6 +12,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.infra.declarative.orchestrators.crud.SearchableValues;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.Dialog;
@@ -56,17 +57,18 @@ public class CodeSearchFieldActionRunner implements ActionRunner {
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
         var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+        var viewModelClass = getViewModelClass(instance, httpRequest);
+        var parentField = getFieldByName(viewModelClass, parentFieldName);
+        ActionMethods.checkFieldVisible(parentField, viewModelClass, httpRequest);
         var rowClass =
-            getGenericClass(
-                (ParameterizedType)
-                    getFieldByName(getViewModelClass(instance, httpRequest), parentFieldName)
-                        .getGenericType(),
-                List.class,
-                "E");
+            getGenericClass((ParameterizedType) parentField.getGenericType(), List.class, "E");
         field = getFieldByName(rowClass, childFieldName);
+        ActionMethods.checkFieldVisible(field, rowClass, httpRequest);
         optionsSupplier = getSelector(instance, field);
       } else {
-        field = getFieldByName(getViewModelClass(instance, httpRequest), fieldName);
+        var viewModelClass = getViewModelClass(instance, httpRequest);
+        field = getFieldByName(viewModelClass, fieldName);
+        ActionMethods.checkFieldVisible(field, viewModelClass, httpRequest);
         optionsSupplier = getSelector(instance, field);
       }
 

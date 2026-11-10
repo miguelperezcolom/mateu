@@ -218,6 +218,7 @@ const en = {
     taskFailedAnnounce: '{title}: failed',
     taskCancelledAnnounce: '{title}: cancelled',
     taskCancelFailed: 'Could not cancel the task.',
+    taskRetryFailed: 'Could not run the task again.',
     // a running task's ETA (ProgressDto.etaSeconds — conformance/client/eta-format.json)
     taskEtaUnderMinute: 'less than a minute left',
     taskEtaMinutes: 'about {n} min left',
@@ -549,6 +550,7 @@ const es: Catalogue = {
     taskFailedAnnounce: '{title}: ha fallado',
     taskCancelledAnnounce: '{title}: cancelada',
     taskCancelFailed: 'No se pudo cancelar la tarea.',
+    taskRetryFailed: 'No se pudo volver a ejecutar la tarea.',
     taskEtaUnderMinute: 'menos de un minuto',
     taskEtaMinutes: 'unos {n} min restantes',
     taskEtaHours: 'unas {n} h restantes',

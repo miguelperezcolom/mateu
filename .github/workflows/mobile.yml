@@ -157,7 +157,9 @@ jobs:
     # Only a PUBLISHED release ships an over-the-air update: a manual re-run of an older tag
     # (workflow_dispatch, to rebuild its APK) would republish OLD JS over the newer release, and
     # expo-updates serves the latest published update — every phone on that runtime would downgrade.
-    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
+    # And no pre-release of a later minor or major (v3.1-rc.1) reaches the production channel;
+    # the v3.0 pre-releases do, until the GA. Same rule as bump-examples and the plugin jobs.
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

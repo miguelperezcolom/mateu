@@ -33,13 +33,31 @@ class LiveRunPlanTest {
         assertEquals("spring-boot:run", plan.command[1])
         val jvm = plan.command[2]
         assertTrue(jvm, jvm.startsWith("-Dspring-boot.run.jvmArguments="))
-        assertTrue(jvm, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" in jvm)
+        assertTrue(jvm, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005" in jvm)
         assertTrue(jvm, "-Dmateu.dev=true" in jvm)
-        assertTrue(jvm, "-Dmateu.dev.specs-dir=${specs.absolutePath}" in jvm)
+        // a path in `jvmArguments` is split on its spaces: it travels in the environment
+        assertFalse(jvm, "specs-dir" in jvm)
         assertEquals("true", plan.environment["MATEU_DEV"])
         assertEquals(specs.absolutePath, plan.environment["MATEU_DEV_SPECS_DIR"])
         assertEquals("http://localhost:8093", plan.appUrl)
         assertEquals(5005, plan.debugPort)
+    }
+
+    @Test
+    fun `gradle plus micronaut does not put the agent in every jvm`() {
+        val plan = liveRunPlan(File("."), BuildTool.GRADLE, "id(\"io.micronaut.application\")", "", emptyList(), isWindows = false)
+        assertFalse(plan.environment.containsKey("JAVA_TOOL_OPTIONS"))
+        assertEquals(null, plan.debugPort)
+    }
+
+    @Test
+    fun `the debugger never listens beyond this machine, whatever the launch`() {
+        for (lan in listOf(false, true)) {
+            for (framework in listOf("spring-boot", "helidon")) {
+                val plan = liveRunPlan(File("."), BuildTool.MAVEN, framework, "", emptyList(), isWindows = false, lan = lan)
+                assertFalse(plan.command.joinToString(" "), plan.command.any { "address=*" in it })
+            }
+        }
     }
 
     @Test
@@ -57,7 +75,8 @@ class LiveRunPlanTest {
 
         val gradle = liveRunPlan(File("."), BuildTool.GRADLE, "id(\"org.springframework.boot\")", "", emptyList(),
             isWindows = false)
-        assertEquals(listOf("./gradlew", "bootRun", "--debug-jvm"), gradle.command)
+        assertEquals(listOf("./gradlew", "bootRun"), gradle.command)
+        assertEquals(null, gradle.debugPort) // --debug-jvm would suspend it until a debugger attaches, and the IDE attaches once it answers
         assertEquals("true", gradle.environment["MATEU_DEV"])
     }
 

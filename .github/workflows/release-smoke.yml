@@ -118,7 +118,7 @@ jobs:
       - if: matrix.target == 'dotnet'
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
       - if: matrix.target == 'python'
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:

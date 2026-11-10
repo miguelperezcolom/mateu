@@ -2,7 +2,7 @@ import * as AuthSession from 'expo-auth-session';
 import { appScheme } from './appScheme.ts';
 import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
-import { endSessionUrl, isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
+import { endSessionUrl, isExpiring, parseStoredTokens, tokensBelongTo, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
@@ -58,12 +58,16 @@ export class OidcTokenProvider implements TokenProvider {
     } catch {
       this.tokens = null;
     }
+    // A manifest can name another issuer or client over the same key: what the previous provider
+    // minted is dropped here, with no network, and never reaches the new one's token, revocation or
+    // end-session endpoints.
+    if (this.tokens && !tokensBelongTo(this.tokens, this.config)) await this.save(null);
   }
 
   private async save(tokens: StoredTokens | null): Promise<void> {
     this.tokens = tokens;
     try {
-      if (tokens) await this.store.set(this.tokensKey, JSON.stringify(tokens));
+      if (tokens) await this.store.set(this.tokensKey, JSON.stringify({ ...tokens, issuer: this.config.issuer, clientId: this.config.clientId }));
       else await this.store.remove(this.tokensKey);
     } catch {
       // kept in memory for this launch

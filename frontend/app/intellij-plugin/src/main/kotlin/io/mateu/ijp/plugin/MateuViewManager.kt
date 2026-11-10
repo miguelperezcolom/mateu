@@ -90,7 +90,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         closePreview()
         val scroll = com.intellij.ui.components.JBScrollPane(FillOrScrollPanel(panel))
         scroll.border = null
-        val file = MateuVirtualFile(title, scroll, ctx)
+        val file = MateuVirtualFile(title, io.mateu.ijp.ui.blockable(ctx, scroll), ctx)
         previewFile = file
         FileEditorManager.getInstance(project).openFile(file, true)
     }
@@ -113,6 +113,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
 
         val title = label.ifBlank { route ?: "View" }
         val ctx = AppContext(io.mateu.ijp.ui.remoteSession(session, baseUrl))
+        ctx.ownsSession = ctx.session !== session
         val panel = ctx.newSlot()
         ctx.contentPane = panel
         // Both hosts (editor header / tool window title) show the view's toolbar natively.
@@ -166,7 +167,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // One delegating group for the whole tool window: it surfaces the SELECTED tab's actions
         // (plain tool windows don't render per-Content action groups). Idempotent as views open.
         tw.setTitleActions(listOf(toolWindowTitleGroup(tw)))
-        val content = ContentFactory.getInstance().createContent(panel, title, false)
+        val content = ContentFactory.getInstance().createContent(io.mateu.ijp.ui.blockable(ctx, panel), title, false)
         content.putUserData(MATEU_VIEW_CTX, ctx)
         // This view's SetWindowTitle names its own tab (e.g. "All products").
         ctx.titleConsumer = { t -> content.displayName = t }
@@ -208,7 +209,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         wrapper.add(toolbar.component, BorderLayout.NORTH)
         wrapper.add(scroll, BorderLayout.CENTER)
 
-        val file = MateuVirtualFile(title, wrapper, ctx)
+        val file = MateuVirtualFile(title, io.mateu.ijp.ui.blockable(ctx, wrapper), ctx)
         val fem = FileEditorManager.getInstance(project)
         // This view's SetWindowTitle names its editor tab (e.g. "Product Producto 1").
         ctx.titleConsumer = { t ->

@@ -77,7 +77,7 @@ function memoryStore(initial: Json = {}) {
     remove: async (k: string) => { data.delete(k); },
   };
 }
-const stored = (t: Json) => JSON.stringify(t);
+const stored = (t: Json) => JSON.stringify({ issuer: config.issuer, clientId: config.clientId, ...t });
 
 beforeEach(() => {
   idp.discoveries = 0;
@@ -145,6 +145,36 @@ test('a refresh that fails for any other reason (no network, a server error) kee
   const p = new OidcTokenProvider(config, store);
   assert.equal(await p.refresh(), false);
   assert.equal(store.data.has('mateu.oidc.tokens'), true);
+});
+
+for (const [what, moved] of [
+  ['another issuer', { issuer: 'https://idp.evil' }],
+  ['another client', { clientId: 'someone-else' }],
+  ['nothing saying who minted them', { issuer: undefined, clientId: undefined }],
+] as const) {
+  test(`tokens with ${what} are dropped with no network: refresh, revocation and end-session never see them`, async () => {
+    const tokens = { accessToken: 'old', refreshToken: 'rt1', idToken: 'idt', expiresAt: Date.now() - 1, ...moved };
+    const onGetToken = memoryStore({ 'mateu.oidc.tokens': stored(tokens) });
+    assert.equal(await new OidcTokenProvider(config, onGetToken).getToken(), null);
+    assert.equal(onGetToken.data.has('mateu.oidc.tokens'), false);
+
+    const onLogout = memoryStore({ 'mateu.oidc.tokens': stored(tokens) });
+    await new OidcTokenProvider(config, onLogout).logout();
+    assert.equal(onLogout.data.has('mateu.oidc.tokens'), false);
+
+    assert.equal(idp.discoveries, 0);
+    assert.equal(idp.refreshCalls.length, 0);
+    assert.equal(idp.revoked.length, 0);
+  });
+}
+
+test('a stored token names who minted it, and a trailing slash is the same issuer', async () => {
+  const store = memoryStore();
+  await new OidcTokenProvider(config, store, 'k').login();
+  const saved = JSON.parse(store.data.get('k')!);
+  assert.equal(saved.issuer, config.issuer);
+  assert.equal(saved.clientId, config.clientId);
+  assert.equal(await new OidcTokenProvider({ ...config, issuer: `${config.issuer}/` }, store, 'k').getToken(), 'fresh-at');
 });
 
 test('refresh without a refresh token is refused without calling the IdP', async () => {

@@ -40,39 +40,65 @@ class MateuAuthService(private val project: Project) : TokenProvider {
     private val settings get() = MateuSettings.getInstance(project).state
     private val backend get() = loadMateuConfig(project).baseUrl
 
-    override fun accessToken(): String? {
+    override fun accessToken(): String? = tokenOf(backend)
+
+    override fun onUnauthorized(rejected: String?): Boolean = reauthenticate(backend, rejected)
+
+    override fun sessionScope(): String? {
+        if (!System.getProperty("mateu.token").isNullOrBlank()) return MANUAL_TOKEN_SCOPE
+        return when (settings.authMode) {
+            AuthMode.NONE -> null
+            AuthMode.TOKEN -> MANUAL_TOKEN_SCOPE
+            AuthMode.OIDC -> sessionKey().let { "${it.issuer}|${it.clientId}" }
+        }
+    }
+
+    /**
+     * The credentials for an [io.mateu.ijp.state.AppSession] of the UI the project points at NOW. The
+     * project's own provider follows the settings, and the hub rewrites those on every switch: anything
+     * of the previous UI still running (an island's timer, a 401 retry, the chat) would pick up the next
+     * UI's token. This one stays with its UI and answers nothing once the project has moved on.
+     */
+    fun forCurrentUi(): TokenProvider =
+        SessionBoundTokens(backend, { backend }, sessionScope(), ::tokenOf, ::reauthenticate)
+
+    private fun tokenOf(backend: String): String? {
         System.getProperty("mateu.token")?.ifBlank { null }?.let { return it }
         return when (settings.authMode) {
             AuthMode.NONE -> null
             AuthMode.TOKEN -> MateuCredentials.get(MateuCredentials.Kind.TOKEN, backend)
-            AuthMode.OIDC -> sessions.accessToken(sessionKey()) ?: refreshSilently()
+            AuthMode.OIDC -> keyOf(backend).let { key -> sessions.accessToken(key) ?: refreshSilently(key) }
         }
     }
 
-    override fun onUnauthorized(rejected: String?): Boolean {
+    private fun reauthenticate(backend: String, rejected: String?): Boolean {
         if (settings.authMode == AuthMode.OIDC) {
-            sessions.evict(sessionKey(), rejected)
-            if (refreshSilently() != null) return true
+            val key = keyOf(backend)
+            sessions.evict(key, rejected)
+            if (refreshSilently(key) != null) return true
         }
         promptForCredentials()
         return false
     }
 
-    /** The OIDC session of the UI the project points at now. */
-    fun sessionKey(): OidcSessions.SessionKey =
+    private fun keyOf(backend: String): OidcSessions.SessionKey =
         OidcSessions.SessionKey.of(backend, settings.oidcIssuer, settings.oidcClientId)
 
+    /** The OIDC session of the UI the project points at now. */
+    fun sessionKey(): OidcSessions.SessionKey = keyOf(backend)
+
     /** OIDC: exchange the stored refresh token for a new access token (null when there is none / refused). */
-    private fun refreshSilently(): String? {
-        val key = sessionKey()
-        return sessions.refreshing(key) { refreshLocked(key) }
-    }
+    private fun refreshSilently(key: OidcSessions.SessionKey): String? =
+        sessions.refreshing(key) { refreshLocked(key) }
 
     private fun refreshLocked(key: OidcSessions.SessionKey): String? {
         sessions.accessToken(key)?.let { return it }
         val refresh = sessions.refreshToken(key) ?: return null
+        val config = oidcConfig()
+        // the settings moved between reading the key and the config: this token is not for that provider
+        if (OidcSessions.SessionKey.of(key.backend, config.issuer.orEmpty(), config.clientId) != key) return null
         val tokens = try {
-            OidcDeviceFlow(oidcConfig()).refresh(refresh)
+            OidcDeviceFlow(config).refresh(refresh)
         } catch (revoked: OidcDeviceFlow.RefreshTokenRevoked) {
             sessions.storeRefreshToken(key, null)
             null
@@ -185,6 +211,30 @@ class MateuAuthService(private val project: Project) : TokenProvider {
         }, project.disposed)
 
     companion object {
+        private const val MANUAL_TOKEN_SCOPE = "manual-token"
+
         fun getInstance(project: Project): MateuAuthService = project.getService(MateuAuthService::class.java)
     }
+}
+
+/**
+ * Credentials tied to one backend: always asked for THAT backend, and nothing at all once the project
+ * points at another one (finding: an island or a pending retry of a UI the hub left, sending the next
+ * UI's token to wherever the old UI pointed). Pure, so it is unit-tested without the IDE.
+ */
+internal class SessionBoundTokens(
+    private val boundBackend: String,
+    private val currentBackend: () -> String,
+    private val scope: String?,
+    private val tokenFor: (String) -> String?,
+    private val reauthenticateFor: (String, String?) -> Boolean,
+) : TokenProvider {
+    private fun stillCurrent() = currentBackend() == boundBackend
+
+    override fun accessToken(): String? = if (stillCurrent()) tokenFor(boundBackend) else null
+
+    override fun onUnauthorized(rejected: String?): Boolean =
+        stillCurrent() && reauthenticateFor(boundBackend, rejected)
+
+    override fun sessionScope(): String? = scope
 }

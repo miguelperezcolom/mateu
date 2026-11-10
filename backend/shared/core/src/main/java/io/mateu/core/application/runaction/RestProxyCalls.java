@@ -54,7 +54,7 @@ final class RestProxyCalls {
     this.secrets = secrets;
   }
 
-  /** A proxied REST call that failed: a >=400 upstream status, or a transport error (status 0). */
+  /** A proxied REST call that failed: a >=300 upstream status, or a transport error (status 0). */
   static final class RestProxyException extends RuntimeException {
     final int status;
 
@@ -77,6 +77,7 @@ final class RestProxyCalls {
     var params = parametersOf(command);
     var kind = String.valueOf(params.getOrDefault("_sourceKind", ""));
     var id = String.valueOf(params.getOrDefault("_sourceId", ""));
+    RestSourceResolver.checkAccess(instance, kind, id, command.httpRequest());
     var source = RestSourceResolver.resolve(instance, kind, id, restSourceRegistry.catalog());
     if (source == null) {
       return body(Map.of());
@@ -354,7 +355,7 @@ final class RestProxyCalls {
   /**
    * One proxied REST call: interpolate the resolved source's url/headers/body against {@code state}
    * (with {@code ${secret.X}} resolved server-side) and send it, returning the parsed JSON
-   * response. Throws {@link RestProxyException} on a >=400 status or a transport failure — the
+   * response. Throws {@link RestProxyException} on a >=300 status or a transport failure — the
    * caller decides how to surface it, rather than an empty body being mistaken for success. The
    * single unit both the single-fetch and bulk paths reuse.
    */
@@ -404,7 +405,9 @@ final class RestProxyCalls {
       }
       var response =
           REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() >= 400) {
+      // redirects are not followed, so a 3xx is a call that did not do what it was asked: an empty
+      // 302 read as a success would tell the user a write went through
+      if (response.statusCode() >= 300) {
         throw new RestProxyException(
             response.statusCode(),
             "HTTP " + response.statusCode(),

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import csv
 import io
+import re
 from collections.abc import Iterable
 
 from mateu_ui.uidl.export import ExportedFile, ExportFormat, ListingExport, ListingExporter
@@ -22,6 +23,17 @@ FORMATS: dict[str, tuple[str, ExportFormat]] = {
 }
 
 
+_PLAIN_NUMBER = re.compile(r"[+-]?[0-9]+([.,][0-9]+)?")
+
+
+def _neutralized(value: str) -> str:
+    """A value a spreadsheet would run as a formula, prefixed with ``'`` so it stays text (the cells
+    come from what users typed). A plain number (-12.5, +34) is data and is left alone."""
+    if not value or value[0] not in "=+-@\t\r" or _PLAIN_NUMBER.fullmatch(value):
+        return value
+    return "'" + value
+
+
 class BuiltInCsvExporter(ListingExporter):
     """RFC 4180 CSV, UTF-8, ``\\n`` line ends (mirrors Java's DefaultCsvExporter)."""
 
@@ -30,9 +42,9 @@ class BuiltInCsvExporter(ListingExporter):
     def export(self, export: ListingExport) -> ExportedFile:
         out = io.StringIO()
         writer = csv.writer(out, lineterminator="\n")
-        writer.writerow([c.label for c in export.columns])
+        writer.writerow([_neutralized(c.label) for c in export.columns])
         for row in export.rows:
-            writer.writerow([c.text_of(row) for c in export.columns])
+            writer.writerow([_neutralized(c.text_of(row)) for c in export.columns])
         return ExportedFile(out.getvalue().encode("utf-8"))
 
 

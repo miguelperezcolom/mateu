@@ -228,6 +228,15 @@ export function noteProgress(increment, origin) {
 // how the center talks to the server: set by transport.mjs (no import cycle), replaced in tests
 let taskTransport = null
 export function setTaskTransport(fn) { taskTransport = typeof fn === 'function' ? fn : null }
+// what to do with tasks a stream left running: set by reattach.mjs (no import cycle)
+let taskRecovery = null
+export function setTaskRecovery(fn) { taskRecovery = typeof fn === 'function' ? fn : null }
+/** A stream ended or broke: the tasks it reported that have not ended are looked for on the server. */
+export function recoverUnfinishedTasks(origin, ids, error, center = taskCenter) {
+  const running = [...ids].filter((id) => { const t = center.get(id); return t && t.state === 'running' })
+  if (running.length && taskRecovery) taskRecovery(origin, running, error)
+  return running
+}
 // how a task's action runs again ON THE SCREEN (the content page's chain), when still on it
 let taskActionSink = null
 export function setTaskActionSink(fn) { taskActionSink = typeof fn === 'function' ? fn : null }
@@ -269,7 +278,7 @@ export function runTaskAction(task, actionId, parameters) {
   }
   if (!taskTransport) return false
   taskTransport('stream', o, {
-    route: o.route || '', actionId, parameters: parameters || {}, componentState: o.componentState || {},
+    route: o.route || '', actionId, parameters: parameters || {}, componentState: o.componentState || {}, appState: o.appState,
     serverSideType: o.serverSideType, consumedRoute: o.consumedRoute || '', initiatorComponentId: o.initiatorComponentId || '',
   }).catch(() => undefined)
   return true

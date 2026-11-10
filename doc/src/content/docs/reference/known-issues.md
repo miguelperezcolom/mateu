@@ -1,6 +1,6 @@
 ---
 title: "Known issues"
-description: "Current limitations of the 3.0 beta that an application can run into, each with its workaround."
+description: "Current limitations of Mateu 3.0 that an application can run into, each with its workaround."
 ---
 
 This page lists the limitations of the current release that you can hit when building or running an
@@ -117,6 +117,18 @@ persist them.
 **Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
 a user sees after a restart.
 
+### React Native: no OS notification from a suspended or closed app
+
+With `@App(osNotifications = true)` the phone app posts local notifications only: nothing leaves the
+device, and there is no remote push in 3.0, by design. The OS suspends a backgrounded app soon after
+it leaves the screen, so a task that ends after that, a live inbox push, or anything sent while the
+app is closed produces no OS notification.
+
+**Workaround:** the bell catches up as soon as the app is back in front, so keep what matters in the
+inbox (`NotificationsSupplier`, or `InboxStore` for signed-in users). To alert a closed phone, send a
+push from your own backend. See
+[what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
+
 ### Touch and desktop adaptations
 
 Some interactions have no direct equivalent on a device and are adapted rather than reproduced:
@@ -148,7 +160,7 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 
 The .NET packages target `net8.0` and `net10.0`. Microsoft ends support for .NET 8 on
 10 November 2026; Mateu keeps the `net8.0` target for the 3.0 line, but security updates of the
-runtime itself stop then. **3.1 drops `net8.0`.**
+runtime itself stop then. **3.1 drops `net8.0`.** New projects already target `net10.0`.
 
 **Workaround:** move the app to .NET 10 (LTS).
 

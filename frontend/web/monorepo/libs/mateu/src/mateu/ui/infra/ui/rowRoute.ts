@@ -58,9 +58,10 @@ export function navigateToRoute(from: HTMLElement, route: string): void {
  * A button that navigates inside the app leaves the screen, so it asks about unsaved changes like a
  * menu click or a breadcrumb. A whole URL opens in another tab and loses nothing.
  */
-export function leaveToRoute(from: HTMLElement, route: string): void {
-    if (!isExternalRoute(route) && !dirtyGuard.confirmLeave()) return
+export function leaveToRoute(from: HTMLElement, route: string): boolean {
+    if (!isExternalRoute(route) && !dirtyGuard.confirmLeave()) return false
     navigateToRoute(from, route)
+    return true
 }
 
 /**

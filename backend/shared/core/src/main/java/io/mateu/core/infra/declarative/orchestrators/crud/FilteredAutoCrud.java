@@ -243,9 +243,15 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     // the browser checked the entity's constraints; the server does not take its word for it
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, false);
+    // what the store is about to do decides the permission, not the action's name: a save naming
+    // no stored record inserts one
+    var stored = storedWith(entity.id());
+    if (stored.isEmpty()) {
+      CrudWriteGate.checkCreate(this);
+    }
     // optimistic locking (@Version field): reject the save when someone else saved in between,
     // bump the version otherwise — both no-ops for entities without a version field
-    OptimisticLock.check(entity, store().findById(entity.id()), httpRequest);
+    OptimisticLock.check(entity, stored, httpRequest);
     OptimisticLock.bump(entity);
     store().save(entity);
     return entity.id();
@@ -283,7 +289,16 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var entity = toCreatedEntity(httpRequest);
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, true);
+    // the id is the user's to choose on a creation form: one that names a stored record overwrites
+    // it, which is an edit
+    if (storedWith(entity.id()).isPresent()) {
+      CrudWriteGate.checkEdit(this);
+    }
     return store().save(entity);
+  }
+
+  private java.util.Optional<T> storedWith(String id) {
+    return id == null || id.isBlank() ? java.util.Optional.empty() : store().findById(id);
   }
 
   @Override

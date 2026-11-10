@@ -183,7 +183,7 @@ export class MateuTaskCenter extends LitElement {
             <div class="buttons">
                 ${(p.resultActions ?? []).map((action, i) => html`
                     <button class="btn ${i === 0 || action.style === 'primary' ? 'btn--primary' : ''}"
-                            @click="${() => { runResultAction(id, action); taskStore.dismiss(id) }}">${actionLabelOf(action)}</button>`)}
+                            @click="${() => { if (runResultAction(id, action)) taskStore.dismiss(id) }}">${actionLabelOf(action)}</button>`)}
                 ${p.state === 'failed' && p.retryable && entry.origin?.retry ? html`
                     <button class="btn btn--primary" @click="${() => retryTask(id)}">${chromeText('retry')}</button>` : nothing}
                 <button class="btn" @click="${() => taskStore.dismiss(id)}">${inModal ? chromeText('close') : chromeText('dismiss')}</button>

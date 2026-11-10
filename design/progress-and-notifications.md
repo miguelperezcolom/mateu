@@ -152,16 +152,21 @@ where the port can stream an action (see the ports section of the PR).
 |---|---|---|
 | Web (libs/mateu, Vaadin) | `mateu-task-center`: blocking → modal-looking overlay with a progressbar (+ Background / Cancel); background → header/FAB indicator with a count opening the task list; finished → result + actions/Retry | toast with N actions, sticky/inbox, dedup by key; bell with categories, filters, item actions, dismiss, detail; live push |
 | Redwood | `oj-progress-bar` in an `oj-dialog` (blocking) or a docked task panel | `oj-c-message-toast` with actions; inbox panel actions/filters |
-| React Native | modal with Paper ProgressBar (blocking); collapsible strip "3 tasks running" + bottom sheet | Snackbar with actions; inbox screen with filters/actions; no OS notification (no expo-notifications dependency → 3.1) |
-| IntelliJ | `Task.Backgroundable` / `Task.Modal` (platform indicator, cancel, multiple tasks natively) | platform `NotificationGroup "Mateu"`: balloons with actions (toast/sticky), the Notifications tool window for inbox items |
+| React Native | modal with Paper ProgressBar (blocking); collapsible strip "3 tasks running" + bottom sheet | Snackbar with actions; inbox screen with filters/actions; local OS notifications (`expo-notifications`, since store build 1.0.1) |
+| IntelliJ | every task a `Task.Backgroundable` with `ALWAYS_BACKGROUND` (status bar + Background Tasks window, cancel, multiple tasks natively), NEVER a modal window; a blocking one also covers the Mateu view that started it (an overlay with title, progress, Cancel / Move to background on that view only) | platform `NotificationGroup "Mateu"`: balloons with actions (toast/sticky), the Notifications tool window for inbox items, plus the bell's inbox panel (All / Unread / Resolved, grouped by category) |
 
 As shipped: the web task center sits bottom-start (the FAB rail is bottom-end), the Redwood dock
-too; IntelliJ uses `Task.Modal` / `Task.Backgroundable` (`PerformInBackgroundOption.DEAF` for a
-backgroundable one) and five notification groups (messages / sticky / inbox new / inbox / errors),
-keeping a minimal "Notifications (n)" button that opens the tool window (the platform badge counts
-every IDE notification, not the app's unread entries); clearing an entry in the tool window marks
-it read, never dismisses it. The IntelliJ inbox has no filter/grouping UI (the tool window is the
-list; the category prefixes the title).
+too; IntelliJ runs every task as a `Task.Backgroundable` (`PerformInBackgroundOption.ALWAYS_BACKGROUND`:
+a `Task.Modal` froze the whole IDE and `DEAF` started in a dialog) — a blocking one covers only the
+Mateu view that started it (`ViewBlock` + the JLayer of `ui/ViewBlockLayer.kt`: input to that view
+stopped, its overlay with title, progress, Cancel and, when `backgroundable`, Move to background;
+the status bar's process popup opens so it is not missed; the end of the task, of its stream or the
+user moving it releases the view) — and five notification groups (messages / sticky / inbox new /
+inbox / errors), keeping a "Notifications (n)" button (the platform badge counts every IDE
+notification, not the app's unread entries) that opens the app's inbox panel: All / Unread /
+Resolved with the web's meaning, grouped by category (uncategorised first), entries pushed live on
+top, plus Mark all read and a link to the Notifications tool window, whose timeline the platform
+does not let us filter. Clearing an entry in the tool window marks it read, never dismisses it.
 
 ## Completed in 3.0 (first planned for 3.1)
 
@@ -184,6 +189,11 @@ multicast to every subscriber of the task (the stream that started it, and any r
   `mateu.progress.reattach-grace-seconds` (env `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`), .NET
   `MateuOptions.ProgressReattachGraceSeconds`, Python `add_mateu(progress_reattach_grace_seconds=…)`
   (same env var); default **60**, `0` = the old behaviour (closing the stream cancels the task).
+- **A stream that breaks** (web, Redwood): before calling a running task failed the renderer asks
+  `_progress-tasks` for it (after 1 s, 3 s and 8 s, for the blip to pass) and follows the ones still
+  running with `_progress-resume`, keeping Cancel and Retry; a resume stream is the last try.
+- **Leaving before the first event**: a stream is not cancelled before its first event says whether
+  it reports a task (web, Redwood), or the work would be disposed with no trace.
   In-process, like the registry: in a cluster the resume must reach the node running the task
   (sticky sessions).
 - `_progress-tasks {taskIds: [...]}` (reserved, app-level, any route, sync or SSE): answers ONE
@@ -212,8 +222,10 @@ Client — each renderer remembers the tasks its streams report, for the SESSION
   key and flow in `poc/`.
 - React Native: in memory per `MateuSession` (survives navigation and screen remounts); the tasks
   whose stream broke are resumed when the app returns to the foreground (`AppState` → active).
-- IntelliJ: in memory per app (IDE session); a view/app reload resumes them into the platform's
-  background indicator.
+- IntelliJ: per app (base url, at most 50 each) and persisted (`MateuTaskStore`, `mateu-tasks.xml`,
+  never roamed), so a view/app reload AND reopening the IDE resume them into the platform's
+  background indicator. Entries older than an hour are dropped on load: the grace period is a
+  minute by default, and for an anonymous caller a task id is a capability that should not linger.
 
 A reattached task's result actions with a `route` still navigate; its `actionId` result actions,
 Retry and the `withCommand` commands need the screen that started it, so they are not offered after

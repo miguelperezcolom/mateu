@@ -4,14 +4,12 @@ import io.mateu.core.application.MateuService;
 import io.mateu.core.infra.BundleEndpoint;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** {@code GET /mateu/v3/bundle} on Spring MVC: the HTTP shell of {@link BundleEndpoint}. */
 @RestController
-@CrossOrigin
 public class MateuBundleController {
 
   private final BundleEndpoint endpoint;

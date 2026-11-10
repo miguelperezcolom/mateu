@@ -40,6 +40,10 @@ test('the old dedicated plugin releases still work', () => {
     assert.deepEqual(versions('plugins-v0.2.17'), { INTELLIJ_VERSION: '0.2.17', VSCODE_VERSION: '0.2.17' })
 })
 
+test('a pre-release of a later minor or major publishes no plugin, without failing', () => {
+    for (const tag of ['v3.1-rc.1', 'v3.1-beta.1', 'v3.2-alpha.1', 'v4.0-beta.1', 'v4.0-rc.1']) assert.deepEqual(versions(tag), { PLUGIN_RELEASE: 'skip' }, tag)
+})
+
 test('a tag VS Code cannot take, or no release of ours, fails', () => {
-    for (const tag of ['v3.0-alpha.426', 'v3.1-rc.1', 'v3.1-beta.1', 'mateu-desktop-1.0']) assert.equal(versions(tag), null, tag)
+    for (const tag of ['v3.0-alpha.426', 'mateu-desktop-1.0']) assert.equal(versions(tag), null, tag)
 })

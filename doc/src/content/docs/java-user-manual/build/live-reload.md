@@ -122,11 +122,11 @@ on display re-renders with it too. Without the plugin, run *Reload Mateu Screen*
 The Mateu plugin's action finds the module that declares a runnable app (Spring Boot, Quarkus,
 Micronaut or Helidon; Maven or Gradle) and
 
-1. starts it in development mode with the debug agent listening on 5005
-   (`mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=… -Dmateu.dev=true
-   -Dmateu.dev.specs-dir=…"`, `mvn quarkus:dev -Dmateu.dev=true`, `mvn mn:run -Dmn.debug=true …`,
-   `./gradlew bootRun --debug-jvm`), with `MATEU_DEV`/`MATEU_DEV_SPECS_DIR` in its environment and every
-   `src/main/resources/specs/ui` of the project as specs directories;
+1. starts it in development mode with the debug agent listening on 5005, on this machine only
+   (`mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=… -Dmateu.dev=true"`,
+   `mvn quarkus:dev -Dmateu.dev=true`, `mvn mn:run -Dmn.debug=true …`, `./gradlew bootRun`; in IntelliJ a
+   Gradle project other than Quarkus runs without the debugger), with `MATEU_DEV`/`MATEU_DEV_SPECS_DIR`
+   in its environment and every `src/main/resources/specs/ui` of the project as specs directories;
 2. once it answers, attaches a *Remote JVM Debug* session (*Mateu (live) debugger*) so HotSwap works;
 3. points *Settings › Tools › Mateu* at it when the project has no backend configured yet — the Mateu
    tool window and the **visual editor's Play** then use the running app — and opens it in the browser;

@@ -75,6 +75,7 @@ class EditableViewHandlerMixin(MixinBase):
 
     # ── EditableView ───────────────────────────────────────────────────────────
     def handle_orchestrated_view(self, cls, base_route: str, rq: RunActionRq) -> UIIncrement:
+        action_guard.ensure_class_access(self.mapper, cls)
         if issubclass(cls, MasterDetailView):
             return self._handle_master_detail(cls, base_route, rq)
         return self._handle_editable_view(cls, base_route, rq)

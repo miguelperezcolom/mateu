@@ -1,27 +1,14 @@
 ---
-title: "Route Annotations"
-description: "@Route, @Routes and @HomeRoute were removed — how routes are declared now, and how to migrate."
+title: "Routes"
+description: "How the screens of a Mateu UI are declared: @UI for the mount, routes.yaml for the routes inside it."
 ---
 
-:::caution[Removed]
-There is no `@Route`, `@Routes` or `@HomeRoute` annotation. `@UI` is the
-only routing annotation left: it declares a **mount** (an app at a base path). The screens inside a
-mount are data, declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/)
+`@UI` is the only routing annotation: it declares a **mount** (an app at a base path). The screens
+inside a mount are data, declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/)
 (or supplied in code by a `RouteEntrySupplier` bean), and the home is the app's first menu item
 unless the app class implements `HomeRouteSupplier`.
-:::
 
-## Migrating
-
-| Removed annotation | Current equivalent |
-|---|---|
-| `@Route("/orders/list")` on a class | a `routes.yaml` entry `route: orders/list` + `viewModel: <the class FQCN>` |
-| `@Route(value = "/orders/list", uis = {"/orders"})` | an entry in a route file tagged `basePath: /orders` (or, for a CRUD sub-route of the root mount, the full relative path, e.g. `users/:id/edit`) |
-| `@Route(value = "/x", parentRoute = "/home")` | a `children:` entry under the `home` route — the child renders in its parent's slot |
-| `@Route("/a")` + `@Route("/b")` (`@Routes`) | two entries with the same `viewModel` (optionally told apart by `fixedParams`) |
-| `@HomeRoute("/orders/list")` | the app's first menu item, or `implements HomeRouteSupplier` returning `"/orders/list"` |
-
-### Before / after
+## Declaring a mount and its routes
 
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
@@ -30,18 +17,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-```java nocheck
-// Before (no longer compiles)
-@UI("/orders")
-@HomeRoute("/orders/list")
-public class OrdersApp { ... }
-
-@Route("/orders/list")
-public class OrderList { ... }
-```
-
 ```java
-// After
 @UI("/orders")
 public class OrdersApp implements HomeRouteSupplier {
   @Override public String homeRoute() { return "/orders/list"; }   // optional: the first menu item is the default
@@ -62,7 +38,7 @@ routes:
 Routes in a route file are **relative to the mount** (`list` under `basePath: /orders` answers
 `/orders/list`). A `specs/ui/routes.yaml` with no `basePath` serves the root mount.
 
-### Several URLs over one class
+## Several URLs over one class
 
 ```yaml
 routes:
@@ -72,7 +48,7 @@ routes:
     viewModel: com.acme.InvoicePage
 ```
 
-### Nested routes
+## Nested routes
 
 A route nests under another through `children` (each flattened child carries its parent as
 `RouteEntry.parent`):

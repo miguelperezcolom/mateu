@@ -5,10 +5,25 @@ import { staticAnswerOf } from './staticFiles'
 import { IMAGES_PREFIX, imageFileOf, imageToken } from './projectImages'
 
 /**
+ * Whether a request comes from the editor: addressed to this server by its loopback address and sent
+ * by the webview or by a document this server served (the framed Redwood app). A request with no
+ * `Origin` is a same-origin GET or a load whose answer a foreign page cannot read.
+ */
+export function isEditorRequest(host: string | undefined, origin: string | undefined, port: number): boolean {
+    const self = `127.0.0.1:${port}`
+    return host === self && (origin === undefined || origin === `http://${self}` || /^vscode-webview:\/\/[^/]+$/.test(origin))
+}
+
+/**
  * A loopback HTTP proxy that forwards the Mateu sync endpoints (`/mateu`, `/sse`) to the configured
- * backend and adds permissive CORS. The VSCode webview fetches this proxy (allowed by the webview
- * CSP `connect-src`), so the web app runs unchanged with `baseUrl = http://127.0.0.1:<port>` and no
- * cross-origin problem — the same "backend is same-ish-origin" trick the JCEF host uses.
+ * backend and adds CORS for the editor's webview. The VSCode webview fetches this proxy (allowed by
+ * the webview CSP `connect-src`), so the web app runs unchanged with `baseUrl = http://127.0.0.1:<port>`
+ * and no cross-origin problem — the same "backend is same-ish-origin" trick the JCEF host uses.
+ *
+ * Only the editor may use it: a web page open in the developer's browser can reach a loopback port,
+ * and the proxy would hand it what the backend's own CORS refuses. The browser sets `Origin` and
+ * `Host` and a page cannot forge them, so {@link isEditorRequest} checks both (the Host check stops DNS
+ * rebinding). A per-session path token would not fit: the framed Redwood app resolves absolute paths.
  *
  * It also serves the Redwood canvas (the editor frames the real Redwood/VB app from here — see
  * staticFiles.ts), from `mediaDir`, the bundle the webview loads.
@@ -50,7 +65,11 @@ export class BackendProxy {
     }
 
     private handle(req: http.IncomingMessage, res: http.ServerResponse, backend: string) {
-        res.setHeader('Access-Control-Allow-Origin', '*')
+        if (!isEditorRequest(req.headers.host, req.headers.origin, this._port)) { res.writeHead(403); res.end('forbidden'); return }
+        if (req.headers.origin) {
+            res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+            res.setHeader('Vary', 'Origin')
+        }
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, X-Session-Id')
         if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }

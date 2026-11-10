@@ -58,7 +58,7 @@ jobs:
   macos:
     permissions:
       contents: write # gh release upload
-    if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -142,7 +142,7 @@ jobs:
   linux-windows:
     permissions:
       contents: write # gh release upload
-    if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

@@ -6,6 +6,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.State;
@@ -46,19 +47,19 @@ public class CodeFieldActionRunner implements ActionRunner {
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
         var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+        var viewModelClass = getViewModelClass(instance, httpRequest);
+        var parentField = getFieldByName(viewModelClass, parentFieldName);
+        ActionMethods.checkFieldVisible(parentField, viewModelClass, httpRequest);
         var rowClass =
-            getGenericClass(
-                (ParameterizedType)
-                    getFieldByName(getViewModelClass(instance, httpRequest), parentFieldName)
-                        .getGenericType(),
-                List.class,
-                "E");
-        optionsSupplier =
-            getLookupLabelSupplier(instance, getFieldByName(rowClass, childFieldName));
+            getGenericClass((ParameterizedType) parentField.getGenericType(), List.class, "E");
+        var childField = getFieldByName(rowClass, childFieldName);
+        ActionMethods.checkFieldVisible(childField, rowClass, httpRequest);
+        optionsSupplier = getLookupLabelSupplier(instance, childField);
       } else {
-        optionsSupplier =
-            getLookupLabelSupplier(
-                instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
+        var viewModelClass = getViewModelClass(instance, httpRequest);
+        var field = getFieldByName(viewModelClass, fieldName);
+        ActionMethods.checkFieldVisible(field, viewModelClass, httpRequest);
+        optionsSupplier = getLookupLabelSupplier(instance, field);
       }
 
       if (optionsSupplier == null) {

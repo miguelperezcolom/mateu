@@ -40,10 +40,12 @@ import reactor.core.publisher.Sinks;
  * subscriber goes away while a task runs (a reload, a closed tab, a dropped connection), the task
  * runs on for the REATTACH GRACE PERIOD ({@value #GRACE_PROPERTY}, default {@value
  * #DEFAULT_GRACE_SECONDS} s; 0 = cancel at once, the behaviour before 3.0-rc): a resume in time
- * keeps it going, else it is cancelled ({@code onCancel} runs). A stream that reports no task keeps
- * the old behaviour: closing it disposes the work at once. A finished task is remembered for the
- * same period (its terminal {@code Progress} and the messages of its terminal increment), so a tab
- * that reloads just as it ends still learns how it ended.
+ * keeps it going, else it is cancelled ({@code onCancel} runs). The grace is for the SSE leg: a
+ * caller that takes one increment and leaves ({@code /sync}, which nothing can resume) cancels the
+ * task at once, and an MCP tool call waits for it ({@link #settled}). A stream that reports no task
+ * keeps the old behaviour: closing it disposes the work at once. A finished task is remembered for
+ * the same period (its terminal {@code Progress} and the messages of its terminal increment), so a
+ * tab that reloads just as it ends still learns how it ended.
  *
  * <p>{@link #cancel}, {@link #tasks} and {@link #resume} reach tasks of THE SAME CALLER only;
  * anything else answers nothing, so a foreign task cannot even be told apart from an unknown one.
@@ -73,6 +75,8 @@ public final class ProgressTasks {
 
   static final int DEFAULT_GRACE_SECONDS = 60;
 
+  private static final String SSE_PATH = "mateu/v3/sse/";
+
   static final int MAX_TASKS = 10_000;
 
   /** How many ids one {@value #TASKS_ACTION} looks at. */
@@ -90,6 +94,10 @@ public final class ProgressTasks {
     final Map<String, EtaEstimator> etas = new LinkedHashMap<>();
     volatile String owner;
     volatile String lastError;
+
+    /** Whether the stream that started it can be resumed: only the SSE leg's can. */
+    boolean resumable;
+
     int subscribers = 1;
     boolean finished;
     Disposable work;
@@ -140,11 +148,60 @@ public final class ProgressTasks {
     }
   }
 
+  /** Whether this request came in on the streamed leg ({@code .../mateu/v3/sse/...}). */
+  private static boolean arrivedOnTheStream(HttpRequest httpRequest) {
+    var path = httpRequest == null ? null : httpRequest.path();
+    return path != null && path.contains(SSE_PATH);
+  }
+
+  /**
+   * The one increment a caller that cannot follow a stream gets: the first, except that a stream
+   * reporting a running task is followed until the task ends and answers its terminal increment.
+   * After {@code timeout} the task is cancelled and the caller told so.
+   */
+  public static Mono<UIIncrementDto> settled(Flux<UIIncrementDto> stream, Duration timeout) {
+    return stream
+        .switchOnFirst(
+            (first, rest) ->
+                first.hasValue() && reportsARunningTask(first.get())
+                    ? rest.takeUntil(ProgressTasks::reportsAnEndedTask)
+                        .takeLast(1)
+                        .timeout(
+                            timeout,
+                            Flux.error(
+                                () ->
+                                    new io.mateu.uidl.UserFacingException(
+                                        "The task did not finish within "
+                                            + timeout.toSeconds()
+                                            + " s and was cancelled.")))
+                    : rest.take(1))
+        .next();
+  }
+
+  private static boolean reportsARunningTask(UIIncrementDto increment) {
+    return increment.commands().stream()
+        .anyMatch(
+            command ->
+                command.type() == UICommandTypeDto.Progress
+                    && command.data() instanceof ProgressDto p
+                    && p.state() == ProgressStateDto.running);
+  }
+
+  private static boolean reportsAnEndedTask(UIIncrementDto increment) {
+    return increment.commands().stream()
+        .anyMatch(
+            command ->
+                command.type() == UICommandTypeDto.Progress
+                    && command.data() instanceof ProgressDto p
+                    && p.state() != ProgressStateDto.running);
+  }
+
   /** The answer stream {@code source}, its tasks registered while they run and always closed. */
   public static Flux<UIIncrementDto> track(Flux<UIIncrementDto> source, HttpRequest httpRequest) {
     return Flux.deferContextual(
         context -> {
           var run = new Run();
+          run.resumable = arrivedOnTheStream(httpRequest);
           var primary = Sinks.many().unicast().<UIIncrementDto>onBackpressureBuffer();
           var observed =
               source
@@ -302,7 +359,7 @@ public final class ProgressTasks {
         }
         return;
       }
-      var grace = graceMillis();
+      var grace = run.resumable ? graceMillis() : 0;
       if (grace <= 0) {
         stop(run);
         return;

@@ -36,7 +36,9 @@ String version = nioFiles.readString(gen.resolve('mateu.version')).trim()
 def java = manifest.languages.java
 
 def fail = { String why ->
-    root.toFile().deleteDir()
+    // Only what this archetype wrote: the target folder may already hold the user's own files (the
+    // archetype plugin refuses a folder only when it has a pom.xml, so that pom.xml is ours too).
+    ['variants', 'generator', 'pom.xml'].each { root.resolve(it).toFile().with { isDirectory() ? deleteDir() : delete() } }
     throw jdk('java.lang.IllegalArgumentException').newInstance(why)
 }
 if (!(authoring in ['code', 'yaml', 'static'])) fail("authoring must be code, yaml or static (was '${authoring}')")

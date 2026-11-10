@@ -285,7 +285,7 @@ model was an action, so a view model that grew a public method never meant to be
 helper, a `recalculatePrices()`, a `deleteDraftsOlderThan(...)` called by another action — exposed
 it to every user who could open that view, whether or not a button for it was drawn.
 
-**The mode.** Since 3.0-alpha.426 strict mode is **on by default**: an action is what is
+**The mode.** Strict mode is **on by default**: an action is what is
 *declared* as one — marked, or advertised by the view (the list above). A public method nobody
 marked and nothing on the view names answers HTTP 403. An id a previous *response* to the view
 handed out — the confirm of a dialog it returned, an undo toast's action
@@ -397,7 +397,7 @@ Every Java adapter therefore serves Mateu's assets with a policy (Spring Securit
 | Path | `Cache-Control` | Why |
 |---|---|---|
 | `/version_<n>/**` (Redwood) | `max-age=31536000, public, immutable` | the build stamps a new number into the path whenever the bundle changes |
-| `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle, keycloak.min.js…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
+| `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
 
 On Spring they resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
 

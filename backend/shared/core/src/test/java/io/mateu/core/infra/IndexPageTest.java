@@ -1,7 +1,6 @@
 package io.mateu.core.infra;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -56,9 +55,9 @@ class IndexPageTest {
             "T",
             "<link rel=icon>",
             List.of("/x.js"),
-            null,
             "<meta name=\"a\" content=\"b\">",
-            true);
+            true,
+            null);
     var html = IndexPage.render(VITE_PAGE, spec);
     assertThat(html).contains("debug=\"true\"");
     // the app's own head comes before the installable-app head (Pwa), which is added last
@@ -68,57 +67,10 @@ class IndexPageTest {
   }
 
   @Test
-  void keycloakDefersTheBootOfAViteBuiltPage() {
-    var spec =
-        new IndexPage.Spec(
-            "/app",
-            "T",
-            "",
-            List.of(),
-            new IndexPage.Keycloak("https://kc", "realm", "client", "https://esm.sh/keycloak-js"),
-            "",
-            false);
-    var html = IndexPage.render(VITE_PAGE, spec);
-    assertThat(html).contains("import Keycloak from 'https://esm.sh/keycloak-js'");
-    assertThat(html).contains("realm: 'realm'");
-    assertThat(html).contains("<link rel=\"modulepreload\" href=\"/assets/mateu-vaadin.js\" />");
-    assertThat(html)
-        .doesNotContain("<script type=\"module\" crossorigin src=\"/assets/mateu-vaadin.js\">");
-    assertThat(html).doesNotContain("<mateu-ui></mateu-ui>");
-    assertThat(html).contains("u.setAttribute('baseUrl', '/app')");
-  }
-
-  @Test
-  void keycloakPromotesTheDeferredScriptsOfAVisualBuilderPage() {
-    var spec =
-        new IndexPage.Spec(
-            "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false);
-    var html = IndexPage.render(VB_PAGE, spec);
-    assertThat(html).contains("bootDeferred(deferred)");
-    assertThat(html).contains("text/mateu-deferred");
-  }
-
-  @Test
-  void keycloakRefusesAPageWithNowhereToPutTheScript() {
-    var spec =
-        new IndexPage.Spec(
-            "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false);
-    assertThatThrownBy(() -> IndexPage.render("<html><body></body></html>", spec))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("AQUIKEYCLOAK");
-  }
-
-  @Test
   void aServedPageCarriesNoTemplateMarkerAndMateusFaviconByDefault() {
-    for (var spec :
-        List.of(
-            IndexPage.Spec.of("/admin", "T"),
-            new IndexPage.Spec(
-                "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false))) {
-      for (var page : List.of(VITE_PAGE, VB_PAGE)) {
-        var html = IndexPage.render(page, spec);
-        assertThat(html).doesNotContain("AQUI").doesNotContain("vite.svg");
-      }
+    for (var page : List.of(VITE_PAGE, VB_PAGE)) {
+      var html = IndexPage.render(page, IndexPage.Spec.of("/admin", "T"));
+      assertThat(html).doesNotContain("AQUI").doesNotContain("vite.svg");
     }
     assertThat(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T")))
         .contains(IndexPage.DEFAULT_FAVICON)
@@ -155,7 +107,7 @@ class IndexPageTest {
   }
 
   @Test
-  void theInlineScriptsOfASecuredOrVisualBuilderPageAreGivenAsCspHashes() throws Exception {
+  void theInlineScriptsOfAVisualBuilderPageAreGivenAsCspHashes() throws Exception {
     var vb = IndexPage.render(VB_PAGE, IndexPage.Spec.of("", "PMS"));
     var expected =
         "'sha256-"
@@ -170,14 +122,6 @@ class IndexPageTest {
                                 .getBytes(java.nio.charset.StandardCharsets.UTF_8)))
             + "'";
     assertThat(IndexPage.inlineScriptHashes(vb)).containsExactly(expected);
-    var secured =
-        IndexPage.render(
-            VITE_PAGE,
-            new IndexPage.Spec(
-                "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false));
-    assertThat(IndexPage.inlineScriptHashes(secured))
-        .hasSize(1)
-        .allMatch(h -> h.startsWith("'sha256-"));
     // a script with a src is no inline script; a deferred one with data-src becomes one with a src
     assertThat(
             IndexPage.inlineScriptHashes(

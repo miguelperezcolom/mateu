@@ -10,6 +10,10 @@ import { loadContract, loadSchema } from '../../to-yaml/src/load.mjs'
 import { buildManifest, defaultConfig, proposedRows, routePattern, siteFiles, stampIndex } from '../src/site.mjs'
 import { crc32, zip } from '../src/zip.mjs'
 import { pagesHash, publishCloudflare, publishNetlify } from '../src/hosts.mjs'
+import { checkRendererFile, rendererPin } from '../src/rendererPin.mjs'
+import { createHash } from 'node:crypto'
+import { sha256 } from '@noble/hashes/sha2'
+import { bytesToHex } from '@noble/hashes/utils'
 import { serialize } from '../plugin/serialize.js'
 import relay from '../cloudflare-relay/worker.js'
 
@@ -208,4 +212,29 @@ test('what the plugin reads off the document converts like the REST payload', as
   assert.deepEqual(warnings, [])
   assert.equal(out[0].value.content[0].label, 'Go')
   assert.equal(out[0].value.content[0].actionId, 'go')
+})
+
+test('a title with replacement patterns stays literal in the page', () => {
+  const page = stampIndex('<title>AQUIELTITULODELAPAGINA</title><!-- AQUIUI --><!-- HASTAAQUIUI -->', "Mine $& and $' ok")
+  assert.ok(page.includes("<title>Mine $&amp; and $' ok</title>"), page)
+})
+
+test('the renderer pin carries a digest for every file, and a file that differs is refused', () => {
+  const read = (p) => new TextEncoder().encode(`content of ${p}`)
+  const nodeHex = (b) => createHash('sha256').update(b).digest('hex')
+  const browserHex = (b) => bytesToHex(sha256(b)) // what the plugin computes: must agree with the pin's
+  const pin = rendererPin('3.0.0', ['_index.html', 'assets/b.js', 'assets/a.css'], (p) => nodeHex(read(p)))
+  assert.equal(pin.tag, 'v3.0.0')
+  assert.ok(pin.base.includes('@v3.0.0/'))
+  assert.deepEqual(pin.files, ['assets/a.css', 'assets/b.js'])
+  assert.deepEqual(Object.keys(pin.digests).sort(), ['_index.html', 'assets/a.css', 'assets/b.js'])
+  assert.deepEqual(checkRendererFile(pin, 'assets/a.css', read('assets/a.css'), browserHex), read('assets/a.css'))
+  assert.throws(() => checkRendererFile(pin, 'assets/a.css', read('tampered'), browserHex), /does not match/)
+  assert.throws(() => checkRendererFile(pin, 'assets/new.js', read('x'), browserHex), /not pinned/)
+})
+
+test('the pinned renderer lists a digest for its index and every file, and nothing else', () => {
+  const renderer = JSON.parse(readFileSync(new URL('../src/renderer.json', import.meta.url), 'utf8'))
+  assert.deepEqual(Object.keys(renderer.digests).sort(), [renderer.index, ...renderer.files].sort())
+  for (const d of Object.values(renderer.digests)) assert.match(d, /^[0-9a-f]{64}$/)
 })

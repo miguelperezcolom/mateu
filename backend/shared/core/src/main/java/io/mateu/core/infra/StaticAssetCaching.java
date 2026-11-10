@@ -17,7 +17,7 @@ import java.util.List;
  *       build stamped a new number into the path whenever the bundle changed, so the bytes behind a
  *       given path never change. Cached for a year and never revalidated.
  *   <li><b>Revalidate</b> — the assets whose names are fixed across releases (the Vaadin renderer's
- *       {@code /assets/mateu-vaadin.js} and its chunks, keycloak.min.js, the Redwood app under its
+ *       {@code /assets/mateu-vaadin.js} and its chunks, the Redwood app under its
  *       stable {@code /_redwood/…}, whose loads also carry a {@code ?v=<source hash>}): {@code
  *       no-cache}, so the browser keeps them and asks, and an unchanged file costs a 304 with no
  *       body (ETag and Last-Modified are both sent).

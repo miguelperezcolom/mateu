@@ -492,7 +492,7 @@ renders the Python backend unchanged:
 | `MetricCard` (+ `MetricTrend`) | KPI tile: title, value, unit, trend (`up`/`down`/`neutral`), drill-in `action_id` |
 | `Scoreboard` | horizontal band of metric cards |
 | `DashboardPanel` | titled tile wrapping any component; `col_span`/`row_span` |
-| `ResponsiveGrid` (+ `GridTrack`) | responsive grid: column tracks (`GridTrack.fill()`/`hug()`/`fixed(...)`), per-child `col_spans`, `stack_below` breakpoint (`DashboardLayout` is deprecated — use this) |
+| `ResponsiveGrid` (+ `GridTrack`) | responsive grid: column tracks (`GridTrack.fill()`/`hug()`/`fixed(...)`), per-child `col_spans`, `stack_below` breakpoint (`DashboardLayout` is the simpler grid, for a uniform column count) |
 | `FoldoutPanel` / `FoldoutLayout` | Foldout: a fixed overview with lateral fold-out panels |
 | `HeroSection` | big page hero: title, subtitle, background image, slotted content |
 | `EmptyState` | friendly "nothing here yet" placeholder with an optional call-to-action |
@@ -901,8 +901,7 @@ travel as the component's `validations` (the same conditions and messages Java e
 renderer refuses to submit an invalid form — and the same constraints are checked again on the
 server when a crud form is saved and in the import wizard's report.
 
-`Length` was called `Size` before 3.0-alpha.412; `Size` still works but warns — in Java and C#
-`Size` is a component's sizing intent, so the length constraint got its own name here.
+The length constraint is `Length` because in Java and C# `Size` is a component's sizing intent.
 
 ## Grid fields
 

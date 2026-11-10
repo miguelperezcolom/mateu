@@ -25,7 +25,10 @@ import java.util.concurrent.Executors
  * what a backend that depends on io.mateu:mateu-redwood serves at its root). JET and the VB runtime always
  * load from Oracle's CDN.
  *
- * One server per backend URL, started lazily and shared by every open editor tab.
+ * One server per backend URL, started lazily and shared by every open editor tab. It speaks with the
+ * signed-in developer's credentials, so loopback is not enough: a request must name this server as its
+ * `Host` (no DNS rebinding) and, to reach the backend or the project's files, carry the cookie that
+ * only the editor's own browser gets ([editorUrl] is the one place the per-run secret is handed out).
  */
 object MateuVisualEditorServer {
     private var server: HttpServer? = null
@@ -36,6 +39,16 @@ object MateuVisualEditorServer {
     @Volatile private var tokens: io.mateu.ijp.api.TokenProvider = io.mateu.ijp.api.TokenProvider.NONE
     private val http: HttpClient = HttpClient.newBuilder().build()
 
+    /** Random per IDE run; survives a restart for another backend, so open tabs keep working. */
+    private val secret: String = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+        .joinToString("") { "%02x".format(it) }
+
+    /** The query parameter (of the editor's own URL only) and the cookie that carry [secret]. */
+    private const val KEY_NAME = "mateu-editor-key"
+
+    /** What JCEF loads: the only way to get the cookie, handed straight to the browser by the IDE. */
+    fun editorUrl(port: Int): String = "http://127.0.0.1:$port/index.html?$KEY_NAME=$secret"
+
     @Synchronized
     fun ensureStarted(
         backendBaseUrl: String,
@@ -45,17 +58,39 @@ object MateuVisualEditorServer {
         if (server != null && startedFor == backendBaseUrl) return port
         server?.stop(0)
         val s = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        s.createContext("/mateu") { proxy(it, backendBaseUrl) }
-        s.createContext("/sse") { proxy(it, backendBaseUrl) }
-        s.createContext(IMAGES_PREFIX) { serveImage(it) }
-        s.createContext("/") { serveStatic(it, backendBaseUrl) }
+        port = s.address.port
+        s.createContext("/mateu", hostChecked { proxy(it, backendBaseUrl) })
+        s.createContext("/sse", hostChecked { proxy(it, backendBaseUrl) })
+        s.createContext(IMAGES_PREFIX, hostChecked { serveImage(it) })
+        s.createContext("/", hostChecked { serveStatic(it, backendBaseUrl) })
         s.executor = Executors.newCachedThreadPool()
         s.start()
         server = s
         startedFor = backendBaseUrl
-        port = s.address.port
         return port
     }
+
+    /** Whether a `Host` header names this server (anything else is a rebound DNS name). */
+    internal fun isOwnHost(host: String?, port: Int): Boolean =
+        host == "127.0.0.1:$port" || host == "localhost:$port"
+
+    private fun hostChecked(handler: (HttpExchange) -> Unit) = com.sun.net.httpserver.HttpHandler { ex ->
+        if (isOwnHost(ex.requestHeaders.getFirst("Host"), port)) {
+            handler(ex)
+        } else {
+            ex.use { it.sendResponseHeaders(403, -1) }
+        }
+    }
+
+    private fun matchesSecret(value: String?): Boolean =
+        value != null && java.security.MessageDigest.isEqual(value.toByteArray(), secret.toByteArray())
+
+    /** The secret of a `name=value; …` query string or Cookie header, or null. */
+    private fun keyIn(pairs: String?, separator: String): String? = pairs?.split(separator)
+        ?.map { it.trim() }?.firstOrNull { it.startsWith("$KEY_NAME=") }?.substringAfter('=')
+
+    private fun fromTheEditor(ex: HttpExchange): Boolean =
+        ex.requestHeaders["Cookie"].orEmpty().any { matchesSecret(keyIn(it, ";")) }
 
     /** Where the project images are served: `/__mateu-images/<token>/<module-relative path>`. */
     const val IMAGES_PREFIX = "/__mateu-images/"
@@ -92,7 +127,7 @@ object MateuVisualEditorServer {
     }
 
     private fun serveImage(ex: HttpExchange) = ex.use {
-        val file = imageFileOf(ex.requestURI.rawPath)
+        val file = if (fromTheEditor(ex)) imageFileOf(ex.requestURI.rawPath) else null
         if (file == null) {
             ex.sendResponseHeaders(404, -1)
             return@use
@@ -119,6 +154,9 @@ object MateuVisualEditorServer {
             return@use
         }
         val body = if (path == "/index.html") injectHostBootstrap(bytes) else bytes
+        if (path == "/index.html" && matchesSecret(keyIn(ex.requestURI.rawQuery, "&"))) {
+            ex.responseHeaders.add("Set-Cookie", "$KEY_NAME=$secret; Path=/; HttpOnly; SameSite=Strict")
+        }
         ex.responseHeaders.add("Content-Type", contentType(path))
         ex.sendResponseHeaders(200, body.size.toLong())
         ex.responseBody.write(body)
@@ -151,6 +189,10 @@ object MateuVisualEditorServer {
         if (path.startsWith("/redwood/") && path.length > "/redwood/".length) path.removePrefix("/redwood") else null
 
     private fun proxy(ex: HttpExchange, backendBaseUrl: String, rawPath: String = ex.requestURI.rawPath) = ex.use {
+        if (!fromTheEditor(ex)) {
+            ex.sendResponseHeaders(403, -1)
+            return@use
+        }
         try {
             val target = backendBaseUrl.trimEnd('/') + rawPath +
                 (ex.requestURI.rawQuery?.let { "?$it" } ?: "")

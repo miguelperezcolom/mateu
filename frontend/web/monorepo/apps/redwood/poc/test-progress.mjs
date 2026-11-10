@@ -13,10 +13,10 @@ import { makeDom, FakeEvent } from './test-harness-dom.mjs'
 import {
   progressCommandsOf, withoutProgressCommands, isEmptyIncrement, createTaskCenter, taskViewOf, taskCenterViewOf,
   autoCloseDelayOf, taskAnnouncementOf, formatElapsed, cancelTask, retryTask, runResultAction, setTaskTransport,
-  setTaskActionSink, setTaskNavigateSink, setTaskViewClock, installTaskCenter, taskCenter, noteProgress, taskMetaOf,
+  setTaskActionSink, setTaskNavigateSink, setTaskViewClock, installTaskCenter, taskCenter, noteProgress, taskMetaOf, recoverUnfinishedTasks,
 } from './tasks.mjs'
 import { chromeText, etaTextOf } from './i18n.mjs'
-import { TASK_MEMORY_KEY, rememberedTasks, installTaskMemory, reattachTasks, resumeTask, resetTaskMemoryForTests } from './reattach.mjs'
+import { TASK_MEMORY_KEY, rememberedTasks, installTaskMemory, reattachTasks, resumeTask, recoverBrokenTasks, resetTaskMemoryForTests } from './reattach.mjs'
 import {
   osNotify, osNotifyControl, offersOsNotifications, osNotificationPermission, setOsNotificationsEnabled,
   setOsNotificationNavigateSink, taskOsNotificationOf, inboxOsNotificationOf,
@@ -670,6 +670,98 @@ test('reattach: a backend that cannot be reached keeps its ids for the next boot
     await resumeTask({ taskId: 'x', baseUrl: '' }, { center: taskCenter, stream: async () => { throw new Error('reset') } })
     assert.equal(taskCenter.get('x').state, 'failed')
   } finally { taskCenter.clear(); resetTaskMemoryForTests() }
+})
+
+test('a resume stream belongs to no screen: a navigation before its first event does not cut it', async () => {
+  taskCenter.clear()
+  const original = globalThis.fetch
+  globalThis.fetch = async () => { beginView(); return sseResponse([{ commands: [{ type: 'Progress', data: progress({ taskId: 'r1', state: 'done' }) }] }]) }
+  try {
+    taskCenter.upsert(progress({ taskId: 'r1' }), {})
+    await resumeTask({ taskId: 'r1', baseUrl: '' }, { center: taskCenter })
+    assert.equal(taskCenter.get('r1').state, 'done', 'followed to its end, not marked failed')
+  } finally { globalThis.fetch = original; taskCenter.clear() }
+})
+
+test('leaving the screen before a task reports does not cut its stream: the first event decides', async () => {
+  taskCenter.clear()
+  const original = globalThis.fetch
+  let cancelled = 0
+  globalThis.fetch = async () => {
+    beginView() // the user navigates while the request is in flight
+    const res = sseResponse([{ commands: [{ type: 'Progress', data: progress({ taskId: 'k1', state: 'running' }) }] },
+      { commands: [{ type: 'Progress', data: progress({ taskId: 'k1', state: 'done' }) }] }])
+    return { ...res, body: { getReader: () => {
+      const chunks = [res.text()]
+      return {
+        read: async () => (chunks.length ? { done: false, value: new TextEncoder().encode(await chunks.shift()) } : { done: true }),
+        cancel: async () => { cancelled++ },
+      }
+    } } }
+  }
+  try {
+    await assert.rejects(() => runMateuActionSse('', null, '/x', 'recalculate', {}), (e) => isStaleResponse(e))
+    assert.equal(taskCenter.get('k1').state, 'done')
+    assert.equal(cancelled, 0)
+  } finally { globalThis.fetch = original; taskCenter.clear() }
+})
+
+test('a Retry carries the app state (the @AppContext values) of the action it re-runs', async () => {
+  taskCenter.clear()
+  const original = globalThis.fetch
+  globalThis.fetch = async () => sseResponse([{ commands: [{ type: 'Progress', data: progress({ taskId: 'a1', state: 'failed', retryable: true }) }] }])
+  const sent = []
+  setTaskActionSink(null)
+  setTaskTransport((kind, o, body) => { sent.push(body); return Promise.resolve([]) })
+  try {
+    await runMateuActionSse('', null, '/x', 'importAll', {}, { appState: { hotel: 'B' } })
+    retryTask('a1')
+    assert.deepEqual(sent.map((b) => b.appState), [{ hotel: 'B' }])
+  } finally { globalThis.fetch = original; setTaskTransport(null); taskCenter.clear() }
+})
+
+const recoveryOrigin = { base: '/app', route: '/import', serverSideType: 'x.Import', actionId: 'importAll' }
+test('a broken stream goes looking for its tasks: one still running is followed and keeps its origin', async () => {
+  taskCenter.clear()
+  taskCenter.upsert(progress({ taskId: 'b1' }), recoveryOrigin)
+  const resumed = []
+  const stream = async (base, ctx, route, actionId, state, extra) => { resumed.push({ actionId, parameters: extra.parameters }); return [] }
+  await recoverBrokenTasks(recoveryOrigin, ['b1'], 'reset', {
+    center: taskCenter, stream, waits: [0],
+    call: async (base, body) => { assert.equal(body.actionId, '_progress-tasks'); return { commands: [{ type: 'Progress', data: progress({ taskId: 'b1', text: 'half way' }) }] } },
+  })
+  await new Promise((r) => setTimeout(r, 5))
+  assert.deepEqual(resumed, [{ actionId: '_progress-resume', parameters: { taskId: 'b1' } }])
+  assert.equal(taskCenter.get('b1').origin.actionId, 'importAll', 'Retry and Cancel still know where it came from')
+  taskCenter.clear()
+})
+
+test('a broken stream: the server no longer knows the task, or cannot be reached in time → failed, with what broke', async () => {
+  taskCenter.clear()
+  taskCenter.upsert(progress({ taskId: 'g1' }), recoveryOrigin)
+  await recoverBrokenTasks(recoveryOrigin, ['g1'], 'reset', { center: taskCenter, waits: [0], call: async () => ({ commands: [] }) })
+  assert.equal(taskCenter.get('g1').state, 'failed')
+  assert.equal(taskCenter.get('g1').error, 'reset')
+  taskCenter.upsert(progress({ taskId: 'g2' }), recoveryOrigin)
+  let calls = 0
+  await recoverBrokenTasks(recoveryOrigin, ['g2'], 'reset', { center: taskCenter, waits: [0, 0], call: async () => { calls++; throw new Error('offline') } })
+  assert.equal(calls, 2)
+  assert.equal(taskCenter.get('g2').state, 'failed')
+  taskCenter.clear()
+})
+
+test('a blip shorter than the waits costs nothing; a stream only looks for tasks that have not ended', async () => {
+  taskCenter.clear()
+  taskCenter.upsert(progress({ taskId: 'h1' }), recoveryOrigin)
+  let calls = 0
+  await recoverBrokenTasks(recoveryOrigin, ['h1'], 'reset', {
+    center: taskCenter, stream: () => new Promise(() => {}), waits: [0, 0],
+    call: async () => { if (++calls === 1) throw new Error('offline'); return { commands: [{ type: 'Progress', data: progress({ taskId: 'h1' }) }] } },
+  })
+  assert.equal(taskCenter.get('h1').state, 'running')
+  taskCenter.upsert(progress({ taskId: 'h2', state: 'done' }), recoveryOrigin)
+  assert.deepEqual(recoverUnfinishedTasks(recoveryOrigin, new Set(['h1', 'h2', 'unknown'])), ['h1'])
+  taskCenter.clear()
 })
 
 // ── OS-level notifications (osNotify.mjs) ────────────────────────────────────────────────────

@@ -136,8 +136,8 @@ class AppSession(
     /** The session's long-running tasks (`Progress` commands), shown by the host as platform tasks. */
     val tasks = TaskRelay()
 
-    /** The tasks this app's streams reported, kept for the IDE session (reattach, see [TaskReattach]). */
-    val taskLedger: TaskLedger = TaskLedgers.of(baseUrl)
+    /** The tasks this app's streams reported, kept across sessions and IDE restarts (see [TaskReattach]). */
+    val taskLedger: TaskLedger = TaskLedgers.of(baseUrl, tokenProvider.sessionScope())
 
     /** `@App(osNotifications = true)` (App metadata `osNotifications`): see [OsNotices]. */
     @Volatile var osNotifications: Boolean = false
@@ -567,8 +567,16 @@ class AppSession(
     /** The development-mode live reload follower (io.mateu.ijp.live.LiveReload), stopped with the session. */
     var liveReload: io.mateu.ijp.live.LiveReload.Follower? = null
 
-    /** The session ends (project closed): the stream and the idle watcher stop, the pool too. */
+    /** The islands (MicroFrontends, embedded orchestrators) this session's views have rendered. */
+    private val islands = LinkedHashSet<AppContext>()
+
+    @Synchronized fun rememberIsland(island: AppContext) { islands.add(island) }
+
+    @Synchronized fun forgetIsland(island: AppContext) { islands.remove(island) }
+
+    /** The session ends (project closed): the stream, the idle watcher, its islands and the pool stop. */
     fun dispose() {
+        synchronized(this) { islands.toList() }.forEach { it.dispose() }
         liveReload?.stop()
         liveReload = null
         syncLiveUpdates(false)

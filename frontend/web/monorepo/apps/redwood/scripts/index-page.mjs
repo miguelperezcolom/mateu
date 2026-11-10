@@ -15,7 +15,6 @@
 //  - <base href="/">: served at a deep route (/checkin/3) the relative assets still resolve from
 //    the root. The visual-runtime derives its MODULE base from location.pathname and ignores
 //    <base>, hence the absolute vbInitConfig.BASE_URL as well.
-//  - <!-- AQUIKEYCLOAK -->: where a @KeycloakSecured UI's token script goes (refused without it).
 //  - AQUIELTITULODELAPAGINA: the app title, stamped by the controller.
 //  - <!-- AQUIJS --> … <!-- HASTAAQUIJS -->: the boot, parked as type="text/mateu-deferred" (src in
 //    data-src, so nothing is even fetched) and replayed IN ORDER by the controller's replayer once
@@ -149,7 +148,6 @@ export const indexPage = ({ stylesheets, libraries, runtime, settings, requireCo
 <html class="oj-html" lang="en">
   <head>
     <base href="/">
-    <!-- AQUIKEYCLOAK -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AQUIELTITULODELAPAGINA</title>

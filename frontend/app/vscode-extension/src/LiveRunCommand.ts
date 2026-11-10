@@ -61,7 +61,7 @@ export class LiveRunCommand {
         }
         vscode.window.showInformationMessage(
             `Mateu: starting the ${run.framework} app in development mode — attach a "Java: Attach" debugger ` +
-            `on port ${run.debugPort} for hot code replace.`)
+            `on port ${run.debugPort} ${run.waitsForDebugger ? 'to let it start (Gradle waits for one)' : 'for hot code replace'}.`)
         const deadline = Date.now() + 5 * 60_000
         const poll = async () => {
             if (await answers(run.appUrl)) {

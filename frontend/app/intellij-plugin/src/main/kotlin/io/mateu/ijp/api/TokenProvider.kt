@@ -17,6 +17,12 @@ interface TokenProvider {
      */
     fun onUnauthorized(rejected: String?): Boolean = false
 
+    /**
+     * Whose session this is, for what is remembered per identity (the task ledger): the identity
+     * provider and client, or a marker for a manual token. Null = anonymous.
+     */
+    fun sessionScope(): String? = null
+
     companion object {
         val NONE: TokenProvider = object : TokenProvider {
             override fun accessToken(): String? = null

@@ -17,17 +17,22 @@ import io.restassured.http.ContentType;
 public class BundleEndpointITFoundation {
 
   public void servesBundleManifest() {
-    given()
-        .accept(ContentType.JSON)
-        .when()
-        .get("/mateu/v3/bundle")
-        .then()
-        .statusCode(200)
-        .body("entries", notNullValue())
-        .body("entries.size()", greaterThan(0))
-        // the /hello screen is a plain form → it renders and is bundled ok
-        .body("entries.find { it.syncPath == 'hello' }", notNullValue())
-        .body("entries.find { it.syncPath == 'hello' }.ok", equalTo(true))
-        .body("entries.find { it.syncPath == 'hello' }.json", notNullValue());
+    System.setProperty(AdapterParityITFoundation.BUNDLE_ENDPOINT_ENABLED, "true");
+    try {
+      given()
+          .accept(ContentType.JSON)
+          .when()
+          .get("/mateu/v3/bundle")
+          .then()
+          .statusCode(200)
+          .body("entries", notNullValue())
+          .body("entries.size()", greaterThan(0))
+          // the /hello screen is a plain form → it renders and is bundled ok
+          .body("entries.find { it.syncPath == 'hello' }", notNullValue())
+          .body("entries.find { it.syncPath == 'hello' }.ok", equalTo(true))
+          .body("entries.find { it.syncPath == 'hello' }.json", notNullValue());
+    } finally {
+      System.clearProperty(AdapterParityITFoundation.BUNDLE_ENDPOINT_ENABLED);
+    }
   }
 }

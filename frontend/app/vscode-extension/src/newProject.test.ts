@@ -152,10 +152,30 @@ describe('New Mateu project — helpers', () => {
         expect(pypiVersion('3.1')).toBe('3.1.0')
     })
 
-    it('resolves the latest release, falling back to the pinned one', async () => {
-        const xml = '<metadata><versioning><latest>3.0-alpha.410</latest><release>3.0-alpha.409</release></versioning></metadata>'
-        expect(versionFromMetadata(xml)).toBe('3.0-alpha.409')
-        expect(await latestMateuVersion(manifest, 'x', async () => xml)).toBe('3.0-alpha.409')
+    const metadata = (...versions: string[]) =>
+        `<metadata><versioning><release>${versions[versions.length - 1]}</release><versions>${versions.map((v) => `<version>${v}</version>`).join('')}</versions></versioning></metadata>`
+
+    it('pins the highest stable release of the starters\' major, never the last one deployed', () => {
+        expect(versionFromMetadata(metadata('3.0.0', '3.0.2', '3.1.0', '3.1-rc.1', '4.0.0'), '3.0-beta.55')).toBe('3.1.0')
+        expect(versionFromMetadata(metadata('3.0.10', '3.0.9'), '3.0.0')).toBe('3.0.10')
+        expect(versionFromMetadata(metadata('3.0.0', '3.1-rc.2'), '3.0.0')).toBe('3.0.0')
+    })
+
+    it('before the GA, keeps the newest pre-release of that major', () => {
+        expect(versionFromMetadata(metadata('3.0-beta.9', '3.0-beta.55', '3.0-alpha.400', '4.0-beta.1'), '3.0-beta.1')).toBe('3.0-beta.55')
+        expect(versionFromMetadata(metadata('3.0-beta.55', '3.0-rc.1'), '3.0-beta.1')).toBe('3.0-rc.1')
+    })
+
+    it('answers nothing it cannot stand behind', () => {
+        expect(versionFromMetadata(metadata('4.0.0', '4.1-rc.1'), '3.0.0')).toBeNull()
+        expect(versionFromMetadata(metadata('3.0-SNAPSHOT'), '3.0.0')).toBeNull()
+        expect(versionFromMetadata(metadata('3.0.0'), 'not-a-version')).toBeNull()
+    })
+
+    it('resolves the release to pin, falling back to the pinned one', async () => {
+        const xml = metadata('3.0-alpha.409', '3.0-alpha.410')
+        expect(await latestMateuVersion(manifest, '3.0-alpha.1', async () => xml)).toBe('3.0-alpha.410')
+        expect(await latestMateuVersion(manifest, '4.0.0', async () => xml)).toBe('4.0.0')
         expect(await latestMateuVersion(manifest, 'fallback', async () => { throw new Error('offline') })).toBe('fallback')
         expect(pinnedVersion(sources.starters, 'python')).toMatch(/^\d+\.\d+/)
         expect(pinnedVersion(sources.starters, 'static')).toBe(pinnedVersion(sources.starters))

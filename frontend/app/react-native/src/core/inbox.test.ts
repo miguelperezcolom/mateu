@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { filtered, grouped, inboxChangeOf, inboxItemOf, InboxStore, unreadCount } from './inbox.ts';
+import { catchUpOnResume, filtered, grouped, inboxChangeOf, inboxItemOf, InboxStore, unreadCount } from './inbox.ts';
 
 const item = (id: string, over: Record<string, unknown> = {}) => inboxItemOf({ id, title: `T ${id}`, unread: true, ...over })!;
 
@@ -63,4 +63,48 @@ test('read and dismissed entries', () => {
   // a session entry added again with the same key comes back (a new message of that key)
   inbox.addSession({ ...item('m'), local: true });
   assert.deepEqual(inbox.items().map((i) => i.id), ['m', 'a']);
+});
+
+const fakeAppState = (currentState: string | null = 'active') => {
+  const listeners = new Set<(next: string) => void>();
+  return {
+    currentState,
+    addEventListener: (_: 'change', l: (next: string) => void) => {
+      listeners.add(l);
+      return { remove: () => listeners.delete(l) };
+    },
+    emit: (next: string) => listeners.forEach((l) => l(next)),
+    listening: () => listeners.size,
+  };
+};
+
+test('coming back to the foreground fetches the inbox again, once per return', () => {
+  const app = fakeAppState();
+  let fetched = 0;
+  catchUpOnResume(app, () => fetched++);
+
+  app.emit('inactive');
+  app.emit('background');
+  assert.equal(fetched, 0, 'nothing while it is away');
+  app.emit('active');
+  assert.equal(fetched, 1);
+  app.emit('active');
+  assert.equal(fetched, 1, 'a repeated active is not a return');
+  app.emit('inactive');
+  app.emit('active');
+  assert.equal(fetched, 2, 'iOS: the stream closes on inactive too');
+});
+
+test('an app that starts away catches up on its first activation, and stops when unsubscribed', () => {
+  const app = fakeAppState('background');
+  let fetched = 0;
+  const off = catchUpOnResume(app, () => fetched++);
+  app.emit('active');
+  assert.equal(fetched, 1);
+
+  off();
+  assert.equal(app.listening(), 0);
+  app.emit('background');
+  app.emit('active');
+  assert.equal(fetched, 1);
 });

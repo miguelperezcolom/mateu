@@ -711,10 +711,12 @@ internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<Str
  */
 fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
     val island = AppContext(microFrontendSession(ctx.session, metadata))
+    island.ownsSession = island.session !== ctx.session
     island.titleConsumer = {}
     island.silentErrors = true
     val slot = island.newSlot()
     island.contentPane = slot
+    ctx.adoptIsland(island, slot)
     val resolved = metadata.path("resolved")
     if (resolved.isObject) {
         // the host resolved it (resolve = SERVER): painted without asking the remote

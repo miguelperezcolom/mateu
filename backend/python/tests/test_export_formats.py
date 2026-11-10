@@ -145,6 +145,20 @@ def test_csv_is_built_in():
     assert base64.b64decode(data["base64Content"]).decode() == "Id,Name,Nights\n1,Ana,3\n2,Luis <Jr>,1\n"
 
 
+@pytest.mark.parametrize(
+    ("cell", "written"),
+    [("=HYPERLINK(1)", "'=HYPERLINK(1)"), ("@cmd", "'@cmd"), ("-12.5", "-12.5"), ("+34", "+34"), ("a\rb", '"a\rb"')],
+)
+def test_the_built_in_csv_keeps_formulas_as_text_and_numbers_as_numbers(cell, written):
+    from mateu_ui.core.export import BuiltInCsvExporter
+    from mateu_ui.uidl.export import ExportColumn, ListingExport
+
+    file = BuiltInCsvExporter().export(
+        ListingExport(ExportFormat.CSV, None, [ExportColumn("name", "Name")], [{"name": cell}])
+    )
+    assert file.content.decode() == "Name\n" + written + "\n"
+
+
 def test_without_an_exporter_excel_and_pdf_are_neither_offered_nor_crash():
     ids = toolbar_ids(AllFormats, with_exporters=False)
     assert "export-csv" in ids

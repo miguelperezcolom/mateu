@@ -10,8 +10,6 @@ the same way; the three are pinned by the Java goldens (``tests/test_yaml_page_t
 
 from __future__ import annotations
 
-import warnings
-
 from mateu_ui.dtos import PageTemplateRecord, TemplateImageRecord
 from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl.page_templates import (
@@ -212,11 +210,8 @@ def _dashboard(t: DashboardLandingPage, main: tuple) -> tuple:
     if metrics:
         page.append(fluent.Scoreboard(id="dashboard-kpi", metrics=metrics))
     page.extend(others)
-    # the wire shape Java's template emits (and Redwood reads by id) is a DashboardLayout: the
-    # deprecation is addressed to authors, not to this layout
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        page.append(fluent.DashboardLayout(id="dashboard-panels", items=main))
+    # the wire shape Java's template emits (and Redwood reads by id)
+    page.append(fluent.DashboardLayout(id="dashboard-panels", items=main))
     return tuple(page)
 
 

@@ -28,6 +28,7 @@ placed on a page) and :func:`app_component` maps it to the "App" wire metadata:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -44,6 +45,8 @@ from mateu_ui.uidl import components as fluent
 
 from .mapper.app import remote_route_prefix
 from .naming import camelcasize, humanize, humanize_constant
+
+_log = logging.getLogger("mateu.yaml")
 
 
 @dataclass(frozen=True)
@@ -305,7 +308,9 @@ def app_source_response(handler, rq):
         else None
     )
     if declared is None:
-        return _restfetch_error(404, "The app shell declares no such source")
+        return UIIncrement(
+            app_data={"_restfetchError": {"status": 404, "message": "The app shell declares no such source"}}
+        )
     source = source_dto(declared)  # the samples kept: this is the server's own call
     if handler.rest_sources is not None:
         source = handler.rest_sources.resolve(source)
@@ -365,20 +370,26 @@ def _opt(mapper, value: Any) -> str | None:
 
 
 def _variant(mapper, raw: Any, items: list[MenuItem]) -> str:
-    """The declared variant (HAMBURGUER_MENU travels as HAMBURGER_MENU); none → MENU_ON_TOP for a
-    shell federating remote sections, else TABS (Java's AppShell defaults); AUTO → the heuristic."""
+    """The declared variant; none → MENU_ON_TOP for a shell federating remote sections, else TABS
+    (Java's AppShell defaults); AUTO → the heuristic. A value that names no variant warns and
+    counts as AUTO, like Java's YamlAppLoader."""
     value = str(raw).strip().upper() if raw is not None else ""
     if not value:
         return "MENU_ON_TOP" if any(i.remote for i in items) else "TABS"
+    if value != "AUTO" and value not in _DECLARABLE_VARIANTS:
+        _log.warning("Unknown AppVariant '%s'; using AUTO", raw)
+        value = "AUTO"
     if value == "AUTO":
         return mapper.variant_of(_NoDecorators, items)
-    if value == "HAMBURGUER_MENU":
-        return "HAMBURGER_MENU"
     return AppVariant.to_wire(value)
 
 
 class _NoDecorators:
     pass
+
+
+# Java's AppVariant constants; MEDIATOR is declarable in YAML but has no member on the @app enum
+_DECLARABLE_VARIANTS = frozenset({v.value for v in AppVariant if v.value} | {"MEDIATOR"})
 
 
 def _first_route(menu: Any) -> str | None:

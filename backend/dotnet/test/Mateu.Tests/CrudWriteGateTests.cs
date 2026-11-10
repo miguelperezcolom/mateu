@@ -69,6 +69,21 @@ public class CrudWriteGateTests
     }
 
     [Fact]
+    public void A_save_is_gated_by_what_the_route_makes_it_do()
+    {
+        Seed();
+        // no id on the route inserts, whatever the action is called
+        Assert.ThrowsAny<MateuForbiddenException>(() => Run<GateNoCreateParts>("gate-no-create-parts/new", "save"));
+        Assert.DoesNotContain("X", Nm11PartsBase.Store.Values.Select(p => p.Name));
+        // an id on the route updates, whatever the action is called
+        Assert.ThrowsAny<MateuForbiddenException>(() => Run<GateNoEditParts>("gate-no-edit-parts/p1", "create"));
+        Assert.Equal("Bolt", Nm11PartsBase.Store["p1"].Name);
+        // each still works where it is allowed
+        Run<GateNoCreateParts>("gate-no-create-parts/p1/edit", "save");
+        Assert.Equal("X", Nm11PartsBase.Store["p1"].Name);
+    }
+
+    [Fact]
     public void A_disabled_save_and_next_is_refused_if_forced()
     {
         Seed();

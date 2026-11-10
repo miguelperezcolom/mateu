@@ -65,6 +65,15 @@ export interface StoredTokens {
   refreshToken?: string;
   idToken?: string;
   expiresAt: number | null;
+  /** Who minted them: a token is only ever sent back to that issuer and client (see `oidc.ts`). */
+  issuer?: string;
+  clientId?: string;
+}
+
+/** Whether `tokens` were minted by this configuration's identity provider and client. */
+export function tokensBelongTo(tokens: StoredTokens, config: Pick<OidcConfig, 'issuer' | 'clientId'>): boolean {
+  const issuerOf = (url: string | undefined) => (url ?? '').trim().replace(/\/+$/, '');
+  return !!tokens.issuer && issuerOf(tokens.issuer) === issuerOf(config.issuer) && tokens.clientId === config.clientId;
 }
 
 /** From a token-endpoint answer (`expires_in` in seconds; expo-auth-session's `expiresIn`). */

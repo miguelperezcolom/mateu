@@ -12,6 +12,8 @@ export interface LiveRunPlan {
     command: string
     env: Record<string, string>
     debugPort: number
+    /** Gradle's --debug-jvm starts the app suspended: it waits until a debugger attaches. */
+    waitsForDebugger: boolean
     appUrl: string
 }
 
@@ -46,28 +48,33 @@ export const liveRunPlan = (
     const framework = frameworkOf(buildFile)
     const specs = specsDirs.join(',')
     const devProps = ['-Dmateu.dev=true', ...(specs ? [`-Dmateu.dev.specs-dir=${specs}`] : [])]
-    const agent = `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${DEBUG_PORT}`
+    // JDWP has no authentication: loopback only, the IDE attaches locally
+    const agent = `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:${DEBUG_PORT}`
     const mvn = isWindows ? 'mvn.cmd' : 'mvn'
     const gradle = isWindows ? 'gradlew.bat' : './gradlew'
     let args: string[]
     if (buildTool === 'maven') {
         if (framework === 'quarkus') args = [mvn, 'quarkus:dev', ...devProps]
+        // Both plugins split these values on spaces, so the specs path (which may have one) stays
+        // out of them: it reaches the app in MATEU_DEV_SPECS_DIR.
         else if (framework === 'micronaut') args = [mvn, 'mn:run', '-Dmn.debug=true', `-Dmn.debug.port=${DEBUG_PORT}`,
-            '-Dmn.watch=true', `-Dmn.appArgs=${devProps.join(' ')}`]
-        else args = [mvn, 'spring-boot:run', `-Dspring-boot.run.jvmArguments=${agent} ${devProps.join(' ')}`]
+            '-Dmn.watch=true', '-Dmn.appArgs=-Dmateu.dev=true']
+        else args = [mvn, 'spring-boot:run', `-Dspring-boot.run.jvmArguments=${agent} -Dmateu.dev=true`]
     } else {
         if (framework === 'quarkus') args = [gradle, 'quarkusDev', ...devProps]
-        else if (framework === 'micronaut') args = [gradle, 'run', '--continuous']
+        // not JAVA_TOOL_OPTIONS: the wrapper and the daemon would inherit the agent too, and the
+        // second JVM to bind the port dies with "Address already in use"
+        else if (framework === 'micronaut') args = [gradle, 'run', '--continuous', '--debug-jvm']
         else args = [gradle, 'bootRun', '--debug-jvm']
     }
     const env: Record<string, string> = { MATEU_DEV: 'true' }
     if (specs) env.MATEU_DEV_SPECS_DIR = specs
-    if (buildTool === 'gradle' && framework === 'micronaut') env.JAVA_TOOL_OPTIONS = agent
     return {
         framework,
         command: args.map(quote).join(' '),
         env,
         debugPort: DEBUG_PORT,
+        waitsForDebugger: buildTool === 'gradle' && framework !== 'quarkus',
         appUrl: `http://localhost:${portOf(framework, properties)}`,
     }
 }

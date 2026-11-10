@@ -64,7 +64,8 @@ that only reproduces there is not treated as a bug.
 The supported range of a runtime follows its vendor: when Microsoft ends support for a .NET
 version, or Python for a Python version, Mateu drops it in the next minor and says so in the
 CHANGELOG. .NET 8 reaches its end of support on 10 November 2026: **3.0 keeps `net8.0`** (a GA does
-not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 before upgrading.
+not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 before upgrading. New
+projects (the .NET starter and the wizards) already target `net10.0`.
 
 ### Renderers and tools
 

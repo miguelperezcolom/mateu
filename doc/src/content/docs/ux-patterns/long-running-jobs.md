@@ -62,7 +62,7 @@ renderer presents it the way its platform does:
 | Web (Vaadin) | a modal progress with Cancel / Background | the task center: an indicator with the number of running tasks, opening the list |
 | Redwood | an `oj-dialog` with `oj-progress-bar` | a docked task panel |
 | Phone app | a modal with a progress bar | a strip ("3 tasks running") opening a sheet |
-| IntelliJ / desktop | the platform's modal progress (with Background) | the platform's background tasks in the status bar |
+| IntelliJ / desktop | the IDE's background tasks, and an overlay with progress and Cancel (and *Move to background*) over the Mateu view that started it — that view only; never a modal window | the IDE's background tasks (status bar, Background Tasks window) |
 
 Several tasks can run at once, and a task keeps running — and stays in the task center — when the
 user leaves the screen. Return the result of `LongTask.run(...)` from a `@Button` method:
@@ -175,7 +175,8 @@ The commands run after the task is reported done, on the screen that started it.
 
 Reloading the page, navigating away or losing the connection does not stop a task. Each renderer
 remembers, for the session, the tasks its streams reported (a browser tab keeps them in its session
-storage); when it comes back it asks the server which are still there (`_progress-tasks`) and
+storage; the desktop app keeps them on disk for an hour, per backend, so they also survive
+closing and reopening the IDE); when it comes back it asks the server which are still there (`_progress-tasks`) and
 follows each one again (`_progress-resume`): the task center fills up again and the task ends there
 as usual. A task that finished in the meantime still says how it ended.
 
@@ -191,6 +192,11 @@ mateu.progress.reattach-grace-seconds=60
 .NET: `MateuOptions.ProgressReattachGraceSeconds`; Python: `add_mateu(progress_reattach_grace_seconds=60)`;
 all three read `MATEU_PROGRESS_REATTACH_GRACE_SECONDS`.
 
+The grace period is for the streamed endpoint (`/v3/sse/`), the only one a client can come back to.
+A task started through `/v3/sync/` is cancelled as soon as that one answer is sent, and an MCP tool
+call waits for the task to end (`mateu.mcp.task-timeout-seconds`, default 120: past it the task is
+cancelled and the agent told).
+
 After a reload the task no longer has the screen that started it, so only what makes sense without
 it is offered: its progress, its messages, its result actions that open a ROUTE. Retry, result
 actions that run an `actionId` and the `withCommand` commands are for the screen that started the
@@ -203,6 +209,18 @@ reach the node running the task (sticky sessions).
 With `@App(osNotifications = true)` a background task that finishes while the app is not in front
 also shows as a notification of the operating system — see
 [Notification inbox](/ux-patterns/notification-inbox/#operating-system-notifications).
+
+On a **phone** that is narrower than it sounds. The notification is local: the app itself has to be
+running to post it, and the OS suspends a backgrounded app soon after you leave it (within seconds on
+iOS). So you get one if the task ends during that short window, and not if it ends later or the app
+was closed. There is no remote push in 3.0, by design.
+
+Two things soften it when the user comes back: the task center reattaches to a task that is still
+running, and the bell fetches its list again at once, so a `notifyWhenDone()` entry stored for a
+signed-in user is there. Mind the server's reattach grace period above: a task whose stream was cut
+by the suspension is **cancelled** when the grace period runs out with nobody back. For work that
+outlasts it, raise `mateu.progress.reattach-grace-seconds` or run the job independently of the stream
+and publish its result to the inbox yourself.
 
 ### Validation
 

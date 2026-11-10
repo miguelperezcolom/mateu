@@ -296,7 +296,7 @@ def test_with_the_opt_in_a_write_succeeds_without_persisting(specs, monkeypatch)
     called = []
     import urllib.request
 
-    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: called.append(a))
+    monkeypatch.setattr("mateu_ui.core.sync_handler.proxy._open", lambda *a, **k: called.append(a))
     assert restfetch(handler(specs), "create") == {"_restfetch": {}}
     assert called == [], "the endpoint is never called in sample mode"
 

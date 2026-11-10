@@ -110,4 +110,5 @@ Server view-model actions, proxied sources/secrets, identity-dependent screens, 
 - `mateu-bundle:server` — generates a Spring Boot module (controllers + ports, never adapters) from
   that OpenAPI file for the `provenance: generate` sources (`-Dmateu.server.outputDirectory`,
   `-Dmateu.server.basePackage`).
-- A running Mateu app also serves its bundle live at `GET /mateu/v3/bundle`.
+- A running Mateu app also serves its bundle live at `GET /mateu/v3/bundle` when
+  `mateu.bundle.endpoint.enabled=true` (off by default: 404).

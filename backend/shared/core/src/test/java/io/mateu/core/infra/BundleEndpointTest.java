@@ -11,6 +11,28 @@ class BundleEndpointTest {
 
   private final List<Boolean> exports = new ArrayList<>();
 
+  @org.junit.jupiter.api.BeforeEach
+  void on() {
+    System.setProperty(BundleEndpoint.ENABLED_PROPERTY, "true");
+  }
+
+  @org.junit.jupiter.api.AfterEach
+  void off() {
+    System.clearProperty(BundleEndpoint.ENABLED_PROPERTY);
+  }
+
+  @Test
+  void isOffUnlessTurnedOn() {
+    System.clearProperty(BundleEndpoint.ENABLED_PROPERTY);
+    var endpoint = endpoint(manifest -> "{\"secret\":true}");
+
+    var answer = endpoint.render(false);
+
+    assertThat(answer.status()).isEqualTo(404);
+    assertThat(answer.body()).doesNotContain("secret");
+    assertThat(exports).isEmpty();
+  }
+
   private BundleEndpoint endpoint(BundleEndpoint.ManifestWriter writer) {
     return new BundleEndpoint(
         includeParamRoutes -> {

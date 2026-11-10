@@ -107,8 +107,16 @@ internal sealed partial class SyncHandler
         // Create or Delete — a crafted request used to create, save and delete anyway
         // — and so are the ways INTO a write: New / Edit and the /new, /{id}/edit routes (a create
         // the crud does not allow used to open its form and only refuse the save)
-        if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete" or "new" or "edit")
+        // Create or update is decided by the ROUTE (CrudSave: no id = insert), so that is what is
+        // gated, whatever the action calls itself.
+        if (rq.ActionId is "create" or "save")
+            EnsureWriteAllowed(crud, crudType, id is null ? "create" : "save");
+        else if (rq.ActionId is "save-and-next" or "update-row" or "delete" or "new" or "edit")
+        {
             EnsureWriteAllowed(crud, crudType, rq.ActionId);
+            if (rq.ActionId == "save-and-next" && (id ?? RowId(rq, element)) is null)
+                EnsureWriteAllowed(crud, crudType, "create");
+        }
         // the Undo of a delete is gated like the delete it reverses
         else if (rq.ActionId == IRestorable<string>.RestoreAction)
             EnsureWriteAllowed(crud, crudType, "delete");
@@ -548,7 +556,7 @@ internal sealed partial class SyncHandler
     private static void SetVersion(object entity, PropertyInfo version, long value)
     {
         var t = Nullable.GetUnderlyingType(version.PropertyType) ?? version.PropertyType;
-        version.SetValue(entity, t == typeof(int) ? (int)value : value);
+        version.SetValue(entity, Convert.ChangeType(value, t, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>A detached property-by-property copy of the stored entity, so the editor's binding

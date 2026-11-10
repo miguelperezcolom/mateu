@@ -70,8 +70,8 @@ release older than that record is not reported.
 
 That is not caution for its own sake — it follows from where the coupling actually is. A domain jar
 carries `@UI` classes compiled against `io.mateu:mateu-uidl` and an index written by that version's
-annotation processor; the shell's core reads both and runs the module's classes. Since `3.0-beta.1`
-the public API only changes through deprecation, but a minor may add API a module then depends on,
+annotation processor; the shell's core reads both and runs the module's classes. The public API
+only changes through deprecation, but a minor may add API a module then depends on,
 so a module built against a newer minor than the shell can fail at runtime.
 
 In practice: **bump Mateu across all your domain modules in one go.** If you cannot, keep the

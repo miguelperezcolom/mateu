@@ -1,5 +1,6 @@
 package io.mateu.core.application.runaction;
 
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.RestAction;
 import io.mateu.uidl.annotations.RestData;
@@ -8,6 +9,7 @@ import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.RestDataSource;
 import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RestSourceKind;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RestSourceSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -51,6 +53,26 @@ final class RestSourceResolver {
             ? java.util.Optional.<io.mateu.uidl.data.RestSourceEntry>empty()
             : catalog.get(declared.ref());
     return entry.map(declared::resolvedAgainst).orElse(declared);
+  }
+
+  /**
+   * Refuses a proxy fetch whose declaring member the caller may not use: the {@code @EyesOnly} /
+   * {@code @DisabledUnless} of an {@code action} method, the {@code @EyesOnly} of an {@code
+   * options} field. The same answer the method or the field would give if it were asked directly;
+   * without it a caller who gets no button could still send {@code __restfetch__} and have the
+   * server make the call, secrets included. {@code rows} and {@code data} are declared on the
+   * class, whose {@code @EyesOnly} was enforced when the instance was created.
+   */
+  static void checkAccess(Object instance, String kind, String id, HttpRequest httpRequest) {
+    var cls = instance.getClass();
+    if ("action".equals(kind)) {
+      var method = methodByName(cls, id);
+      if (method != null) {
+        ActionMethods.checkAccess(method, cls, httpRequest);
+      }
+    } else if ("options".equals(kind)) {
+      ActionMethods.checkFieldVisible(fieldByName(cls, id), cls, httpRequest);
+    }
   }
 
   private static RestDataSource declaredBy(Object instance, String kind, String id) {

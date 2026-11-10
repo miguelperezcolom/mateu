@@ -1,0 +1,9 @@
+{
+  "appData" : {
+    "_restfetchError" : {
+      "message" : "The app shell declares no such source",
+      "status" : 404
+    }
+  },
+  "wireVersion" : "3.0"
+}

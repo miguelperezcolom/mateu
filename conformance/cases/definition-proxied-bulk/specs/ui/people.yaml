@@ -1,0 +1,6 @@
+actions:
+  - id: removeAll
+    restAction:
+      forEachSelectedRow: true
+      source: {url: "/api/people/${state.id}", method: DELETE, proxy: true}
+layout: {type: Text, text: People}

@@ -269,7 +269,7 @@ The server and the browser expander (static bundles, the visual editor's Play) r
 
 ### `homeRoute` matters
 
-A YAML mount has no class to carry `@HomeRoute`, so the home defaults to the **mount's `home:`**
+A YAML mount has no class to name its home, so the home defaults to the **mount's `home:`**
 (see [below](#the-mount-that-ties-it-together)) and, when the mount declares none, to the **first
 navigable menu item**. Declare `homeRoute:` on the shell to point somewhere else — the shell's own
 value always wins. Do not leave a mount with none of them: the shell would load its own root route,

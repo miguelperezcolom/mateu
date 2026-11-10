@@ -56,9 +56,9 @@ The full statement is [Support policy › How mature each part is](https://mateu
   type, is generated from the code:
   [Stable and experimental API, by package](https://mateu.io/reference/stability-and-versioning/#stable-and-experimental-api-by-package).
 - **Supported with documented gaps** — the **.NET** and **Python** servers. They get the same fixes
-  and API rules, emit the same wire (the shared conformance corpus — 53 cases — matches exactly in the
-  three servers), but do not cover the whole Java surface yet; every gap is a row of the
-  [feature parity matrix](https://mateu.io/reference/parity/). The native renderers (React Native,
+  and API rules and emit the same wire (the shared conformance corpus matches exactly in the three
+  servers). The few things they cannot produce yet are listed in the
+  [feature parity matrix](https://mateu.io/reference/parity/#what-is-still-java-only). The native renderers (React Native,
   IntelliJ / desktop app) are listed there too.
 - **Preview** — not part of the 3.0 promise; behaviour, files and commands may change in any release:
   - the **Figma → YAML** pipeline (contract, library plugin, converter);
@@ -68,7 +68,8 @@ The full statement is [Support policy › How mature each part is](https://mateu
   What they write is ordinary `specs/ui/**` YAML, which is stable.
 
 **.NET 8.** Microsoft ends support for .NET 8 on 10 November 2026. Mateu **3.0 keeps the `net8.0`
-target**; **3.1 drops it**. Move your app to .NET 10 before upgrading to 3.1.
+target**; **3.1 drops it**. New projects from the .NET starter and the wizards target `net10.0`.
+Move your app to .NET 10 before upgrading to 3.1.
 
 ## Highlights of the 3.0 line
 
@@ -101,8 +102,10 @@ target**; **3.1 drops it**. Move your app to .NET 10 before upgrading to 3.1.
 ## New since the last beta
 
 - **Progress and notifications as patterns.** A `LongTask` reports a task (title, text, fraction or
-  "12 of 300", state) and each renderer shows it its own way: a modal progress when it blocks, a
-  task center for background work, IntelliJ's own background tasks. Tasks can be cancelled (only by
+  "12 of 300", state) and each renderer shows it its own way: a modal progress when it blocks and
+  a task center for background work on the web; on IntelliJ and the desktop app every task runs in
+  the IDE's Background Tasks, never in a modal window, and a blocking one also covers the Mateu view
+  that started it. Tasks can be cancelled (only by
   the caller who started them), retried, and offer a result action or land in the inbox when done
   (`@Experimental`). `Message` gains persistence (`toast`, `sticky`, `inbox`), actions and a dedup
   key; the inbox groups, filters, resolves and acts on entries, and `LiveNotifications.publish`
@@ -137,6 +140,8 @@ target**; **3.1 drops it**. Move your app to .NET 10 before upgrading to 3.1.
   are marked `@Experimental` instead.
 - **From an alpha**: read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/)
   first — every rename and removal of the alpha series in one place — then follow the beta steps.
+- **`DashboardLayout` stays.** Its deprecation during the betas is withdrawn (Java, .NET `MATEU002`
+  and Python): the `DashboardLandingPage` template produces it, so keep using it.
 - **YAML `$schema`**: generated projects now point `$schema` at the schemas of the release they target
   (`https://raw.githubusercontent.com/miguelperezcolom/mateu/v<version>/backend/shared/uidl/…`), not
   master. Update yours the same way when you upgrade, so your editor validates against your version.
@@ -156,9 +161,11 @@ The maintained list, each item with its workaround, is
   host root.
 - **Redwood renders in light theme only.**
 - **Multi-value fields do not read `optionsSource`** (single-select fields do).
-- **The .NET and Python servers** lack the Java features listed in the
-  [parity matrix](https://mateu.io/reference/parity/#what-is-still-java-only) — among them the
-  editable-view orchestrators, YAML app shells and the static-bundle exporter.
+- **The .NET and Python servers** emit every wire component type and read YAML app shells, and both
+  have bundle exporters. The rest of the short list is in
+  [What is still Java-only](https://mateu.io/reference/parity/#what-is-still-java-only): Java's
+  multi-app shell members, a few shell properties Python sets only from YAML, and the
+  `mateu-bundle:openapi` / `server` build goals (a port's bundle can be fed to them).
 
 ## Thanks
 

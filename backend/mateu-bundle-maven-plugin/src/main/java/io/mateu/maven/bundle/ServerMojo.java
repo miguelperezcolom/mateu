@@ -63,7 +63,9 @@ public class ServerMojo extends AbstractMojo {
   @Parameter(property = "mateu.server.basePackage")
   private String basePackage;
 
-  @Parameter(property = "mateu.server.springBootVersion", defaultValue = "3.3.4")
+  @Parameter(
+      property = "mateu.server.springBootVersion",
+      defaultValue = ServerSkeleton.DEFAULT_SPRING_BOOT_VERSION)
   private String springBootVersion;
 
   @Parameter(property = "mateu.server.javaVersion", defaultValue = "21")

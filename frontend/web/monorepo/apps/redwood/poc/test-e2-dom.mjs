@@ -6,11 +6,12 @@
 // Run: node test-e2-dom.mjs (npm test runs it with the other suites).
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
+import { setHostHeaderProvider } from './hostHeaders.mjs'
 import { makeDom, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { setShortcutContext } from './keys.mjs'
 import {
   installAppExtras, syncAppExtras, updateHeaderValue, headerValuesList, runAppShortcut,
-  HEADER_VALUES_KEY, LIVE_LEADER_KEY, IDLE_SIGN_OUT_KEY, IDLE_ACTIVITY_KEY,
+  HEADER_VALUES_KEY, LIVE_LEADER_KEY, scopedLiveKey, IDLE_SIGN_OUT_KEY, IDLE_ACTIVITY_KEY,
 } from './appExtras.mjs'
 import { installRecordMerges, setRecordMergeSink, readMergeDom, MERGE_CUSTOM } from './recordMerge.mjs'
 
@@ -59,6 +60,9 @@ for (const n of [values, help, ask, idle, field]) doc.body.appendChild(n)
 const navigate = sinkLog()
 const runAppAction = sinkLog()
 const keepAlive = sinkLog()
+const headerKey = scopedLiveKey(HEADER_VALUES_KEY, '', 'app.Shell')
+const leaderKey = (serverSideType) => scopedLiveKey(LIVE_LEADER_KEY, '/app', serverSideType)
+
 const shell = {
   serverSideType: 'app.Shell',
   shortcuts: [
@@ -83,21 +87,21 @@ test('header values: painted in the header, labelled, the host shown', () => {
 })
 
 test('header values: a change repaints, flags the changed one and tells the other tabs', () => {
-  memory.delete(HEADER_VALUES_KEY)
+  memory.delete(headerKey)
   assert.equal(updateHeaderValue('businessDate', '13 Oct 2026'), true)
   const item = values.querySelector('[data-header-value="businessDate"]')
   assert.equal(item.querySelector('strong').textContent, '13 Oct 2026')
   assert.ok(item.classList.contains('mateu-header-value-changed'))
-  assert.equal(JSON.parse(memory.get(HEADER_VALUES_KEY)).value, '13 Oct 2026')
+  assert.equal(JSON.parse(memory.get(headerKey)).value, '13 Oct 2026')
   assert.equal(updateHeaderValue('businessDate', '13 Oct 2026'), false, 'the same value changes nothing')
 })
 
 test('header values: another tab\'s change arrives through storage and is not echoed back', () => {
-  memory.delete(HEADER_VALUES_KEY)
-  win.dispatchEvent(new FakeEvent('storage', { key: HEADER_VALUES_KEY, newValue: JSON.stringify({ id: 'shift', value: 'Morning' }) }))
+  memory.delete(headerKey)
+  win.dispatchEvent(new FakeEvent('storage', { key: headerKey, newValue: JSON.stringify({ id: 'shift', value: 'Morning' }) }))
   assert.equal(headerValuesList().find((v) => v.id === 'shift').value, 'Morning')
-  assert.equal(memory.has(HEADER_VALUES_KEY), false)
-  win.dispatchEvent(new FakeEvent('storage', { key: HEADER_VALUES_KEY, newValue: '{not json' }))
+  assert.equal(memory.has(headerKey), false)
+  win.dispatchEvent(new FakeEvent('storage', { key: headerKey, newValue: '{not json' }))
   assert.equal(headerValuesList().length, 2)
 })
 
@@ -198,28 +202,61 @@ test('live: the leader tab holds the stream and applies the header changes it ca
   assert.equal(requests[0].url, '/app/mateu/v3/sse/_no_route')
   assert.equal(requests[0].body.actionId, '_live-updates')
   assert.equal(requests[0].body.serverSideType, 'app.Shell')
-  assert.ok(JSON.parse(memory.get(LIVE_LEADER_KEY)).tab, 'this tab is the leader')
+  assert.ok(JSON.parse(memory.get(leaderKey('app.Shell'))).tab, 'this tab is the leader')
   assert.equal(headerValuesList().find((v) => v.id === 'businessDate').value, '14 Oct 2026')
+})
+
+test('live: two apps on one origin elect their own leader', async () => {
+  syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
+  memory.set(leaderKey('app.Admin'), JSON.stringify({ tab: 'other', at: Date.now() }))
+  let calls = 0
+  globalThis.fetch = () => { calls++; return new Promise(() => {}) }
+  syncAppExtras({ ...shell, liveUpdates: true }, { base: '/app', navigate, runAppAction, keepAlive })
+  await sleep(10)
+  assert.equal(calls, 1, 'the other app\'s leader does not keep this one off its stream')
+  memory.delete(leaderKey('app.Admin'))
+  syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
+})
+
+test('live: embedded under a host that supplies the identity, each tab holds its own stream and shares nothing', async () => {
+  syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
+  setHostHeaderProvider(() => ({ Authorization: 'Bearer of-this-host' }))
+  try {
+    memory.set(leaderKey('app.Shell'), JSON.stringify({ tab: 'other', at: Date.now() }))
+    let calls = 0
+    globalThis.fetch = () => { calls++; return new Promise(() => {}) }
+    syncAppExtras({ ...shell, liveUpdates: true }, { base: '/app', navigate, runAppAction, keepAlive })
+    await sleep(10)
+    assert.equal(calls, 1, 'a fresh lead held by another tab does not keep this one off its stream')
+    const before = new Map(memory)
+    updateHeaderValue('businessDate', 'host only ' + Date.now(), { quiet: true })
+    assert.deepEqual([...memory.keys()].sort(), [...before.keys()].sort(), 'nothing broadcast')
+    syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
+  } finally {
+    setHostHeaderProvider(null)
+    memory.delete(leaderKey('app.Shell'))
+  }
 })
 
 test('live: another tab leading → this one holds no stream; leaving releases the lead', async () => {
   // turn it off: the lead is released
   syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
-  assert.equal(memory.has(LIVE_LEADER_KEY), false)
+  assert.equal(memory.has(leaderKey('app.Shell')), false)
   // a fresh leader elsewhere: this tab does not connect
-  memory.set(LIVE_LEADER_KEY, JSON.stringify({ tab: 'other', at: Date.now() }))
+  memory.set(leaderKey('app.Shell'), JSON.stringify({ tab: 'other', at: Date.now() }))
   let calls = 0
   globalThis.fetch = () => { calls++; return new Promise(() => {}) }
   syncAppExtras({ ...shell, liveUpdates: true }, { base: '/app', navigate, runAppAction, keepAlive })
   await sleep(10)
   assert.equal(calls, 0)
   // the other tab went silent: this one takes over on its next tick (forced here by a re-sync)
-  memory.set(LIVE_LEADER_KEY, JSON.stringify({ tab: 'other', at: 0 }))
+  memory.set(leaderKey('app.Other'), JSON.stringify({ tab: 'other', at: 0 }))
   syncAppExtras({ ...shell, liveUpdates: true, serverSideType: 'app.Other' }, { base: '/app', navigate, runAppAction, keepAlive })
   await sleep(10)
   assert.equal(calls, 1)
   win.dispatchEvent(new FakeEvent('pagehide'))
-  assert.equal(memory.has(LIVE_LEADER_KEY), false)
+  assert.equal(memory.has(leaderKey('app.Other')), false)
+  memory.delete(leaderKey('app.Shell'))
   syncAppExtras(shell, { base: '/app', navigate, runAppAction, keepAlive })
 })
 

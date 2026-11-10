@@ -47,7 +47,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
 
     private bool SampleMode => MockSources ?? SampleSources.EnabledByEnvironment();
 
-    private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+    // AllowAutoRedirect off: the origin rules cover only the first hop of a proxied call
+    private static readonly HttpClient DefaultHttp =
+        new(new SocketsHttpHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(60) };
 
     /// <summary>The client proxied REST fetches go through (injectable: a host-configured client,
     /// or a fake in tests).</summary>
@@ -64,6 +66,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// the instance is not worth a constructor just for it.</summary>
     private readonly YamlSpecLoader _yaml = new(specsDir, translations: translations, fieldTypes: fieldTypes);
 
+    private const string AppSourceAction = "_appsource";
+
     /// <summary>Handles a sync call asynchronously — the entry point of the HTTP endpoint. The only
     /// step that does I/O of its own, the proxied REST fetch (<c>__restfetch__</c>), is awaited end
     /// to end instead of blocking a request thread on the remote API.</summary>
@@ -71,11 +75,13 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
     {
         rq = LoadActionNormalised(rq);
-        if (rq.ActionId == "__restfetch__")
+        if (rq.ActionId is "__restfetch__" or AppSourceAction)
         {
             EstablishRequestContext(rq);
             rq = GuardYamlAccess(rq);
-            return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
+            return rq.ActionId == AppSourceAction
+                ? await AppSourceResponseAsync(rq, cancellationToken).ConfigureAwait(false)
+                : await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
         }
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
@@ -185,6 +191,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // (mirrors Java's __restfetch__ reserved action).
         if (rq.ActionId == "__restfetch__")
             return RestFetchResponseAsync(rq, CancellationToken.None).GetAwaiter().GetResult();
+        // 0d+. A data-authored shell's PROXIED sources (its pickers, inbox, palette search): the
+        // browser names the ROLE, never a url (Java's RestProxyCalls.appSourceCall).
+        if (rq.ActionId == AppSourceAction)
+            return AppSourceResponseAsync(rq, CancellationToken.None).GetAwaiter().GetResult();
 
         // 0e. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
         // routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that

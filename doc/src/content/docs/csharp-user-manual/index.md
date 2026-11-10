@@ -530,7 +530,7 @@ public class CheckIn { /* … */ }
 
 The nine dashboard/UX component types are available as **fluent records** (in `Mateu.Uidl`):
 `MetricCard` (with `MetricTrend` up/down/neutral), `Scoreboard`, `DashboardPanel`,
-`ResponsiveGrid` (`DashboardLayout` is `[Obsolete]` — use `ResponsiveGrid`), `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`, `Skeleton`
+`ResponsiveGrid` (`DashboardLayout` for a uniform column count), `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`, `Skeleton`
 (text/card/grid/form variants) and `Gantt`/`GanttTask` — plus the generic `Text`, `Button`, `Card`,
 `HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel` building blocks. They serialize to
 the exact wire shape of the Java DTOs, so the renderers draw the C# output unchanged.
@@ -576,8 +576,7 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
 - **Security** — `[EyesOnly(Permissions = new[] { "x" })]` on a view class restricts it (403, and its
   menu entries hidden). Logging in is your ASP.NET Core authentication's job — `[App]` carries no
-login/logout URLs. (`[Secured("x")]` is
-  deprecated; it is enforced exactly like `[EyesOnly(Permissions = new[] { "x" })]`.) Field and action access is covered in
+login/logout URLs. Field and action access is covered in
   [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp

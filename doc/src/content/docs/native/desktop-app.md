@@ -96,7 +96,9 @@ The notary profile is created once with `xcrun notarytool store-credentials mate
 `mateu-desktop-<version>-windows-setup.exe` installs **for the current user, without admin rights**,
 into `%LOCALAPPDATA%\Programs\<name>`: Start-menu and desktop shortcuts, an entry in **Apps &
 features** (with its uninstaller) and, in the hub variant, the `mateu://` protocol under
-`HKCU\Software\Classes\mateu`. Installing a newer setup over it keeps the user's settings.
+`HKCU\Software\Classes\mateu`. Installing a newer setup over it keeps the user's settings. The folder
+is fixed: the setup does not ask where to install, and refuses a folder there that holds anything else.
+The uninstaller removes what it installed, by name, and only then the folder if it is empty.
 
 The setup published on the GitHub release is **not code-signed** yet, so Windows **SmartScreen**
 stops it the first time with *"Windows protected your PC"*. To install it, check that the file came
@@ -223,6 +225,14 @@ must be `https`. Generate a feed for your own release with
 
 Point an app at another feed with `-Pmateu.updateUrl=https://…` at build time (or `-Dmateu.updateUrl`
 in its VM options); `-Pmateu.updateUrl=none` builds an app that never updates itself.
+
+## Long tasks and notifications
+
+A `LongTask` runs in the app's Background Tasks (status bar and Background Tasks window), never in a
+modal window, so the rest of the app stays usable. A blocking task also covers the screen that
+started it, with its progress and Cancel. Tasks still running when the app is closed are followed
+again when it is reopened, if the server still has them. The bell opens the app's inbox, with the
+same filters and category groups as the web ([Notification inbox](/ux-patterns/notification-inbox/)).
 
 ## Trying the UI you are developing
 

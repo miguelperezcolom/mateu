@@ -7,17 +7,18 @@ import java.io.File
  * without an IDE: which framework the build declares, the command that starts it with the JVM
  * debug agent listening (so the IDE can attach and HotSwap), and the dev-mode switches.
  *
- * Dev mode is passed BOTH as a system property and as environment variables (`MATEU_DEV`,
- * `MATEU_DEV_SPECS_DIR`): every adapter reads the environment through its own configuration
- * (Spring relaxed binding, MicroProfile Config, Micronaut), so it reaches the app whatever forks the
- * JVM in between (Maven's spring-boot:run, quarkus:dev, mn:run, a Gradle daemon).
+ * Dev mode is passed as environment variables (`MATEU_DEV`, `MATEU_DEV_SPECS_DIR`, read by
+ * `DevMode`), so it reaches the app whatever forks the JVM in between (Maven's spring-boot:run,
+ * quarkus:dev, mn:run, a Gradle daemon); `mateu.dev` also goes as a system property. The specs
+ * directory does NOT: it is a path, and the launchers split `jvmArguments` / `exec.args` on spaces.
  */
 data class LiveRunPlan(
     val framework: Framework,
     val command: List<String>,
     val environment: Map<String, String>,
     /** The JDWP port the IDE attaches its debugger to; null when there is no JVM app to debug (a
-     *  static bundle is served by Maven itself, its UI is debugged in the browser). */
+     *  static bundle is served by Maven itself, its UI is debugged in the browser) or no way to reach
+     *  only its JVM with the agent (Gradle + Micronaut, see [liveRunPlan]). */
     val debugPort: Int?,
     /** Where the app answers once it is up. */
     val appUrl: String,
@@ -128,10 +129,10 @@ fun liveRunPlan(
     val specs = specsDirs.joinToString(",") { it.absolutePath }
     val devProps = buildList {
         add("-Dmateu.dev=true")
-        if (specs.isNotEmpty()) add("-Dmateu.dev.specs-dir=$specs")
         if (lan) addAll(lanBindingOf(framework))
     }
-    val agent = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$DEBUG_PORT"
+    // loopback only: a debug port is remote code execution, and a phone (lan) never debugs
+    val agent = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:$DEBUG_PORT"
     val mvn = if (isWindows) "mvn.cmd" else "mvn"
     val gradle = if (isWindows) "gradlew.bat" else "./gradlew"
     val command = when (buildTool) {
@@ -148,20 +149,22 @@ fun liveRunPlan(
         BuildTool.GRADLE -> when (framework) {
             Framework.QUARKUS -> listOf(gradle, "quarkusDev") + devProps
             Framework.MICRONAUT -> listOf(gradle, "run", "--continuous")
-            else -> listOf(gradle, "bootRun", "--debug-jvm")
+            else -> listOf(gradle, "bootRun")
         }
     }
     val environment = buildMap {
         put("MATEU_DEV", "true")
         if (specs.isNotEmpty()) put("MATEU_DEV_SPECS_DIR", specs)
-        // Gradle's bootRun/run fork without the Maven-side switches: the agent goes through the env
-        if (buildTool == BuildTool.GRADLE && framework == Framework.MICRONAUT) put("JAVA_TOOL_OPTIONS", agent)
     }
+    // Gradle has no way to add a non-suspending agent to the app alone: JAVA_TOOL_OPTIONS reaches the
+    // wrapper and the daemon too (the second JVM to bind the port dies), and --debug-jvm suspends the
+    // app until a debugger attaches, while the IDE attaches only once the app answers.
+    val debuggable = !(buildTool == BuildTool.GRADLE && framework != Framework.QUARKUS)
     return LiveRunPlan(
         framework = framework,
         command = command,
         environment = environment,
-        debugPort = DEBUG_PORT,
+        debugPort = if (debuggable) DEBUG_PORT else null,
         appUrl = "http://localhost:${portOf(framework, properties)}",
         workDir = moduleDir,
     )

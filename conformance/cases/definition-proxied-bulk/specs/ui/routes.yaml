@@ -1,0 +1,3 @@
+routes:
+  - route: people
+    layout: people.yaml

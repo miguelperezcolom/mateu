@@ -964,7 +964,7 @@
     } ]
   }, {
     "type" : "EmbeddedView",
-    "description" : "Embeds a routed view (a @UI/@Route model view — e.g. a Wizard) as an INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions back to itself (its step navigation, saves, etc.), unlike ModelViewComponent, which renders the view inline and lets its actions bubble to the host.",
+    "description" : "Embeds a routed view (a @UI class or a routes.yaml view model — e.g. a Wizard) as an INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions back to itself (its step navigation, saves, etc.), unlike ModelViewComponent, which renders the view inline and lets its actions bubble to the host.",
     "attributes" : [ {
       "name" : "view",
       "type" : "any"

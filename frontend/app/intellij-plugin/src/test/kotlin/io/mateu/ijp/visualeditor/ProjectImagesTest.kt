@@ -109,11 +109,18 @@ class ProjectImagesTest {
 
         val port = MateuVisualEditorServer.ensureStarted("http://localhost:1")
         val http = HttpClient.newHttpClient()
-        val ok = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$url")).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
+        val cookie = http.send(HttpRequest.newBuilder(URI.create(MateuVisualEditorServer.editorUrl(port))).GET().build(), HttpResponse.BodyHandlers.discarding())
+            .headers().firstValue("set-cookie").orElseThrow().substringBefore(';')
+        assertEquals(
+            "without the editor's cookie, nothing",
+            404,
+            http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$url")).GET().build(), HttpResponse.BodyHandlers.ofByteArray()).statusCode(),
+        )
+        val ok = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$url")).header("Cookie", cookie).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
         assertEquals(200, ok.statusCode())
         assertEquals("image/png", ok.headers().firstValue("content-type").orElse(""))
         assertEquals(listOf<Byte>(7, 7, 7), ok.body().toList())
-        val missing = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port/__mateu-images/$token/secret.yaml")).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
+        val missing = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port/__mateu-images/$token/secret.yaml")).header("Cookie", cookie).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
         assertEquals(404, missing.statusCode())
     }
 
