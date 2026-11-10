@@ -36,7 +36,10 @@ export const withCellAtoms = (atoms, flags = CELL_ATOM_FLAGS) => {
   }
   // the copy is COMPACT — no comments, no indentation: it is repeated in every atoms surface of the
   // page (38), and its deep indentation alone weighed more than its markup
-  const compact = branches.join('\n').replace(/<!--[\s\S]*?-->/g, '').split('\n')
+  // comments stripped until none is left (a comment cut out may join two halves into a new one)
+  let joined = branches.join('\n')
+  for (let prev = null; prev !== joined;) { prev = joined; joined = joined.replace(/<!--[\s\S]*?-->/g, '') }
+  const compact = joined.split('\n')
     .map((l) => l.trim()).filter(Boolean).join('\n')
   return lines.map((l) => (/^\s*<!-- @cell-atoms -->$/.test(l) ? compact : l)).join('\n')
 }

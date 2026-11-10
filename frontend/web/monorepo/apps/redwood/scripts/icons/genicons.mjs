@@ -94,5 +94,5 @@ console.error('mapped', Object.keys(out).length, 'missing', missing.length, miss
 console.log(`// GENERATED: vaadin:<name> → the Redwood gallery icon font (oj-ux-ico-<value>), only names the font has
 // (gallery 2604.0.2). Exact names, a few common suffixes stripped (-o, -small…) and hand synonyms.
 // Regenerate with the script described in DESIGN-NOTES («Icons»); a name not here falls back to GENERIC_ICON.
-export const VAADIN_TO_OJ = ${JSON.stringify(out).replace(/","/g, '",\n  "').replace('{', '{\n  ').replace(/}$/, '\n}')}
+export const VAADIN_TO_OJ = ${JSON.stringify(out).replace(/","/g, '",\n  "').replace(/^\{/, '{\n  ').replace(/}$/, '\n}')}
 `)

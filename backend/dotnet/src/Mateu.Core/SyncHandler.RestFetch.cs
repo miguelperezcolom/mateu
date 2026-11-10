@@ -222,7 +222,7 @@ internal sealed partial class SyncHandler
             if ((int)resp.StatusCode >= 300)
             {
                 MateuLogging.For("Mateu.RestProxy").LogWarning(
-                    "Proxied {Method} {Url} answered {Status}", method, StripQuery(url), (int)resp.StatusCode);
+                    "Proxied {Method} {Url} answered {Status}", ForLog(method), ForLog(StripQuery(url)), (int)resp.StatusCode);
                 string? detail = null;
                 try { detail = ServiceMessageOf(await resp.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)); }
                 catch (Exception) when (!cancellationToken.IsCancellationRequested) { detail = null; }
@@ -236,7 +236,7 @@ internal sealed partial class SyncHandler
         {
             // The url may carry an interpolated secret in its query: log it without the query.
             MateuLogging.For("Mateu.RestProxy").LogWarning(
-                "Proxied fetch of {Url} failed: {Error}", StripQuery(url), e.GetType().Name);
+                "Proxied fetch of {Url} failed: {Error}", ForLog(StripQuery(url)), e.GetType().Name);
             return (null, 0, null);
         }
     }
@@ -300,6 +300,10 @@ internal sealed partial class SyncHandler
         });
         return quoted[1..^1];
     }
+
+    /// <summary>A value fit for one log line: an interpolated url (or a method) cannot forge a new entry.</summary>
+    private static string ForLog(string? value) =>
+        value is null ? "" : value.Replace("\r", "").Replace("\n", "");
 
     private static string StripQuery(string url)
     {
