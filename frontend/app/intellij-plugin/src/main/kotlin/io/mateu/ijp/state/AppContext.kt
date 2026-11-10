@@ -1115,6 +1115,7 @@ class AppContext(val session: AppSession) {
             // no window can exist (a headless render probe or test): the overlay's body is drawn
             // into the content pane instead, so what it shows is still rendered and inspectable
             contentPane?.let { pane ->
+                io.mateu.ijp.ui.DrawerChrome.header(meta, {}, {})?.let { pane.add(it) }
                 pane.add(overlayBody(component, overlayState, data))
                 pane.revalidate()
             }
@@ -1123,6 +1124,27 @@ class AppContext(val session: AppSession) {
         val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
         var shown: JsonNode = component
         val dialog = javax.swing.JDialog(owner, OverlayState.title(meta, overlayState), java.awt.Dialog.ModalityType.MODELESS)
+        // the drawer's size (s/m/l/xl, or its width), stepped up by ⤢ (local, no round trip)
+        var size = meta.text("size")
+        fun drawerWidth(m: JsonNode): Int = com.intellij.util.ui.JBUI.scale(io.mateu.ijp.ui.DrawerChrome.widthPx(m.text("width"), size, owner?.width ?: 1200))
+        fun place(m: JsonNode) {
+            val w = drawerWidth(m)
+            if (owner == null) { dialog.setSize(w, 600); return }
+            if (m.text("position") == "bottom") {
+                // a bottom drawer docks full width along the window's bottom edge
+                val h = (owner.height / 2).coerceAtLeast(240)
+                dialog.setBounds(owner.x + 10, owner.y + owner.height - h - 10, owner.width - 20, h)
+                return
+            }
+            val h = (owner.height - 80).coerceAtLeast(300)
+            dialog.setSize(minOf(w, owner.width - 20), h)
+            val x = if (m.text("position") == "start") owner.x + 10 else owner.x + owner.width - dialog.width - 10
+            dialog.setLocation(x, owner.y + 60)
+        }
+        fun chromeOf(m: JsonNode): JComponent? = io.mateu.ijp.ui.DrawerChrome.header(m,
+            onMaximize = { size = io.mateu.ijp.ui.DrawerChrome.nextSize(size); place(shown.path("metadata")) },
+            onPeer = { route -> dialog.dispose(); openRoute(route) })
+        chromeOf(meta)?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
         dialog.contentPane.add(overlayBody(component, overlayState, data))
         val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
             if (!dialog.isDisplayable) {
@@ -1132,6 +1154,7 @@ class AppContext(val session: AppSession) {
                 overlayState = OverlayState.seed(st, c.path("metadata"))
                 dialog.title = OverlayState.title(c.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
+                chromeOf(c.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(c, overlayState, d))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
@@ -1143,6 +1166,7 @@ class AppContext(val session: AppSession) {
                 overlayState = OverlayState.merge(overlayState, st)
                 dialog.title = OverlayState.title(shown.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
+                chromeOf(shown.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(shown, overlayState, data))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
@@ -1150,15 +1174,7 @@ class AppContext(val session: AppSession) {
         }
         if (key != null) session.openOverlays[key] = refresh
         if (key != null) session.overlayStateUpdaters[key] = updateState
-        val width = ScreenShapes.remToPx(meta.text("width"), 448)
-        if (owner != null) {
-            val h = (owner.height - 80).coerceAtLeast(300)
-            dialog.setSize(width, h)
-            val x = if (meta.text("position") == "start") owner.x + 10 else owner.x + owner.width - width - 10
-            dialog.setLocation(x, owner.y + 60)
-        } else {
-            dialog.setSize(width, 600)
-        }
+        place(meta)
         val close: () -> Unit = { dialog.dispose() }
         session.pushOverlay(close)
         dialog.addWindowListener(object : java.awt.event.WindowAdapter() {

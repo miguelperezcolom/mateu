@@ -64,6 +64,12 @@ const val LABEL_TEMPLATE = "mateu.labelTemplate"
  * that tone, a primary one filled with it) — every button was the same blue default.
  */
 internal fun styleButton(button: JButton, metadata: JsonNode) {
+    // a glyph-only button (✕, ‹, +) is a square icon button, not a 72px text button (the L&F minimum
+    // made a docked panel's ✕ 122px wide)
+    if (isGlyphLabel(metadata.text("label"))) {
+        button.putClientProperty("JButton.buttonType", "square")
+        button.toolTipText = button.toolTipText ?: plainTip(metadata.text("actionId").ifBlank { null })
+    }
     val (icon, text) = buttonFace(button.text, metadata.text("iconOnLeft"), metadata.text("iconOnRight"))
     if (icon != null) {
         button.icon = icon.first
@@ -174,4 +180,10 @@ private fun renderButtonGroup(ctx: AppContext, metadata: JsonNode): JComponent {
     trigger.isEnabled = !metadata.bool("disabled")
     trigger.addActionListener { menu.show(trigger, 0, trigger.height) }
     return trigger
+}
+
+/** A label of one or two symbols and no letters or digits (✕, ‹, ›, +, ⋯). */
+internal fun isGlyphLabel(label: String): Boolean {
+    val t = label.trim()
+    return t.isNotEmpty() && t.codePointCount(0, t.length) <= 2 && t.none { it.isLetterOrDigit() }
 }

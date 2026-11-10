@@ -91,7 +91,10 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
             anchor = GridBagConstraints.NORTHWEST
             insets = JBUI.insets(0, 0, JBGap, JBGap)
         }
-        panel.add(if (isRow) oneLineRow(r, field, state, data) else r.render(field, state, data), gbc)
+        val rendered = if (isRow) oneLineRow(r, field, state, data) else r.render(field, state, data)
+        // labelsAside: the caption beside the control (the wire's dense-form inference) — ignored before
+        val aside = metadata.bool("labelsAside") && field.path("metadata").text("type") == "FormField"
+        panel.add(if (aside) PageLevel.labelAside(rendered) else rendered, gbc)
         col += span
     }
     // Bottom filler so fields stay top-aligned when the grid is placed in a filling container.

@@ -173,6 +173,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     val caption = JBLabel(plain(if (required && readOnlyText == null) "$label *" else label))
     if (readOnlyText != null) caption.foreground = ToneColors.secondaryText()
     caption.alignmentX = Component.LEFT_ALIGNMENT
+    caption.putClientProperty(FIELD_CAPTION_MARK, true)
     container.add(caption)
 
     val options = metadata.arr("options")
