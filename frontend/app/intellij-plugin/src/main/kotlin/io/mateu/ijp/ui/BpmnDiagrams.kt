@@ -133,7 +133,7 @@ internal class BpmnCanvas(private val model: BpmnDiagrams.Model) : JPanel() {
     override fun paintComponent(g: Graphics) {
         val g2 = g.create() as Graphics2D
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.scale(JBUI.scale(1f).toDouble(), JBUI.scale(1f).toDouble())
+        g2.scale(com.intellij.ui.scale.JBUIScale.scale(1f).toDouble(), com.intellij.ui.scale.JBUIScale.scale(1f).toDouble())
         g2.translate(margin - minX, margin - minY)
         g2.font = JBUI.Fonts.smallFont()
         val fm = g2.fontMetrics

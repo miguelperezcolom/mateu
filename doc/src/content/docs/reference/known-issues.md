@@ -216,6 +216,9 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
+- **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
+  media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
+  public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).

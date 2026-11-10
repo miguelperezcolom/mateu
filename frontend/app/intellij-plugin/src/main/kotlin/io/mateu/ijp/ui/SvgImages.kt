@@ -4,8 +4,8 @@ import java.awt.image.BufferedImage
 
 /**
  * SVG images on the desktop: ImageIO decodes no SVG, so an `Image` whose src is an `.svg` (the
- * Explorer's media, most icon sets) showed a "🖼 alt" placeholder. The platform ships JSVG (it draws
- * the IDE's own icons); it rasterises the document at its declared size, capped at [maxWidth].
+ * Explorer's media, most icon sets) showed a "🖼 alt" placeholder. No public platform API rasterises
+ * one (see [read]), so an SVG is recognised here and shown as its named placeholder.
  */
 object SvgImages {
     /** Whether [src] names an SVG: a `.svg` path/url (query ignored) or an `image/svg+xml` data URI. */
@@ -14,15 +14,13 @@ object SvgImages {
         return s.startsWith("data:image/svg+xml") || s.substringBefore('?').substringBefore('#').endsWith(".svg")
     }
 
-    /** The SVG [bytes] as an image at its declared size (capped at [maxWidth]), or null when undrawable. */
-    fun read(bytes: ByteArray, maxWidth: Int = 1200): BufferedImage? = runCatching {
-        // the platform's own SVG document (JSVG underneath) — the library itself ships shrunk
-        val doc = com.intellij.ui.svg.JSvgDocument.create(bytes)
-        var w = doc.width.toDouble().takeIf { it >= 1 } ?: 300.0
-        var h = doc.height.toDouble().takeIf { it >= 1 } ?: 150.0
-        if (w > maxWidth) { h *= maxWidth / w; w = maxWidth.toDouble() }
-        doc.createImage(w.toInt().coerceAtLeast(1), h.toInt().coerceAtLeast(1))
-    }.getOrNull()
+    /**
+     * The SVG [bytes] as an image — always null today: the platform's SVG rasteriser (JSvgDocument,
+     * SVGLoader) is INTERNAL API, which the plugin verifier refuses, and its bundled JSVG ships
+     * without its parser. An SVG therefore shows the named placeholder (known-issues, desktop).
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun read(bytes: ByteArray, maxWidth: Int = 1200): BufferedImage? = null
 
     /** A data URI's SVG bytes (base64 or percent-encoded), or null. */
     fun dataUriBytes(src: String): ByteArray? {
