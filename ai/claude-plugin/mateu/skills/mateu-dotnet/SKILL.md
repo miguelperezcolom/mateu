@@ -18,7 +18,7 @@ dotnet new web -n MyApp && cd MyApp
 dotnet add package Mateu.AspNetCore --prerelease     # brings Mateu.Uidl, Mateu.Core, Mateu.Dtos
 ```
 
-NuGet versions follow the Java release: `3.0-beta.N` → `3.0.0-beta.N`. Targets net8.0 and net10.0.
+NuGet versions follow the Java release: `3.0-beta.N` → `3.0.0-beta.N`. Targets net10.0.
 A class library holding only views references `Mateu.Uidl` alone.
 
 ```csharp

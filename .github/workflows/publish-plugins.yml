@@ -1,8 +1,10 @@
 # Publishes the two IDE plugins with the FRAMEWORK's release: the GitHub Release `v3.0-beta.N` that
 # publishes Mateu to Maven Central publishes the plugins at the same version (IntelliJ `3.0-beta.N`,
 # VS Code `2.99.N` until the GA, identical from then on — see scripts/plugin-versions.sh for the mapping and why). The versions are injected
-# from the tag, so neither plugin file has to be bumped by hand. A `plugins-v*` tag (the old dedicated
-# plugin releases) still publishes them alone.
+# from the tag, so neither plugin file has to be bumped by hand.
+#
+# Called by buid-and-publish.yml AFTER its e2e job (workflow_call): a release whose tests fail
+# publishes no plugin. It has no release trigger of its own.
 #
 # It does NOT run on the `mateu-desktop-*` installer releases, nor on a pre-release of a later minor
 # or major (v3.1-rc.1: it would reach every installed plugin as an ordinary update) — the `if:` guard
@@ -21,8 +23,20 @@
 name: Publish plugins
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    secrets:
+      PUBLISH_TOKEN:
+        required: false
+      VSCE_PAT:
+        required: false
+      OVSX_PAT:
+        required: false
+      CERTIFICATE_CHAIN:
+        required: false
+      PRIVATE_KEY:
+        required: false
+      PRIVATE_KEY_PASSWORD:
+        required: false
 
 # Publishing uses the marketplace tokens; the GitHub token only needs to check the repo out.
 permissions:
@@ -30,7 +44,7 @@ permissions:
 
 jobs:
   intellij:
-    if: startsWith(github.event.release.tag_name, 'plugins-v') || (startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')))
+    if: startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
     runs-on: ubuntu-latest
     steps:
       # verifyPlugin unpacks five IDEs (~25 GB, see pluginVerification in build.gradle.kts)
@@ -95,7 +109,7 @@ jobs:
           echo "publishPlugin failed after 3 attempts."; exit 1
 
   vscode:
-    if: startsWith(github.event.release.tag_name, 'plugins-v') || (startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')))
+    if: startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
     runs-on: ubuntu-latest
     # No marketplace token at job level: `npm ci`, the tests and `vsce package` run third-party code,
     # so each token is in the env of its publish step only. Whether Open VSX is configured travels as

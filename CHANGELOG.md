@@ -8,6 +8,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so
+  `net8.0` is gone from `Mateu.Uidl`, `Mateu.Dtos`, `Mateu.Core` and `Mateu.AspNetCore`; building
+  from source needs the .NET 10 SDK.
+- **The IDE plugins, the desktop app, the Android APK and the over-the-air phone update wait for the
+  release's tests**, like Maven Central: `buid-and-publish.yml` calls their workflows after `e2e`, so
+  a release whose tests fail ships none of them. Their build jobs run with a read-only token; only
+  small upload jobs, which check nothing out and build nothing, can write to the release.
+
+### Removed
+
+- `plugins-v*` releases no longer publish the plugins on their own.
+
+## [3.0-beta.56] — 2026-11-10
+
 ### Security
 
 - **`__restfetch__` honours `@EyesOnly` / `@DisabledUnless`** on the `@RestAction` method (and

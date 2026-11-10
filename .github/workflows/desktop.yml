@@ -17,6 +17,11 @@
 # plugin loaded; on Windows it also requires JetBrains' Authenticode on idea64.exe to be intact. The
 # feed (what installed apps read) goes up only after every smoke test passed.
 #
+# Released versions: called by buid-and-publish.yml AFTER its e2e job (workflow_call), so a release
+# whose tests fail ships no desktop app. The build jobs hold a READ-ONLY token (npm, Gradle and the
+# IDE build run third-party code) and hand the files over as artifacts; only `attach`, which checks
+# nothing out and runs nothing but `gh release upload`, holds contents: write.
+#
 # `dry_run` (manual runs only): build every installer and run every smoke test, publish NOTHING (no
 # release upload; the feed is only printed). The tag only names the versions.
 # Installers are built on CI ONLY: never run buildInstaller on a developer machine (CLAUDE.md, #1000).
@@ -30,8 +35,20 @@
 name: Desktop app
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    secrets:
+      MACOS_CERTIFICATE_P12:
+        required: false
+      MACOS_CERTIFICATE_PASSWORD:
+        required: false
+      MACOS_SIGN_IDENTITY:
+        required: false
+      MACOS_NOTARY_APPLE_ID:
+        required: false
+      MACOS_NOTARY_TEAM_ID:
+        required: false
+      MACOS_NOTARY_PASSWORD:
+        required: false
   workflow_dispatch:
     inputs:
       tag:
@@ -56,8 +73,6 @@ env:
 
 jobs:
   macos:
-    permissions:
-      contents: write # gh release upload
     if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
     runs-on: macos-latest
     strategy:
@@ -130,18 +145,17 @@ jobs:
       - name: Smoke test — launch the app, the Mateu plugin must load
         if: matrix.arch == 'aarch64'
         run: scripts/desktop-smoke.sh macos frontend/app/intellij-plugin/build/installer/Mateu.app
-      - name: Attach to the release
-        if: env.DRY_RUN != 'true'
-        env:
-          ARCH: ${{ matrix.arch }}
-        run: |
-          cd frontend/app/intellij-plugin/build/installer
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
-            "mateu-desktop-$INTELLIJ_VERSION-macos-$ARCH.dmg" "mateu-desktop-$INTELLIJ_VERSION-macos-$ARCH.zip"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: mateu-desktop-macos-${{ matrix.arch }}
+          path: |
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-*-macos-${{ matrix.arch }}.dmg
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-*-macos-${{ matrix.arch }}.zip
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
 
   linux-windows:
-    permissions:
-      contents: write # gh release upload
     if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
     runs-on: ubuntu-latest
     strategy:
@@ -188,26 +202,17 @@ jobs:
           mkdir -p "$RUNNER_TEMP/smoke"
           tar -xzf "frontend/app/intellij-plugin/build/installer/mateu-desktop-$INTELLIJ_VERSION-linux.tar.gz" -C "$RUNNER_TEMP/smoke"
           scripts/desktop-smoke.sh linux "$(ls -d "$RUNNER_TEMP"/smoke/*/)"
-      # The Windows smoke test runs on windows-latest (job smoke-windows), from this zip.
+      # The Windows smoke test runs on windows-latest (job smoke-windows), from this artifact's zip.
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: matrix.platform == 'windows'
         with:
-          name: mateu-desktop-windows-zip
-          path: frontend/app/intellij-plugin/build/installer/mateu-desktop-*-windows.zip
+          name: mateu-desktop-${{ matrix.platform }}
+          path: |
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-*-linux.tar.gz
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-*-windows-setup.exe
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-*-windows.zip
+          if-no-files-found: error
           retention-days: 1
           compression-level: 0
-      - name: Attach to the release
-        if: env.DRY_RUN != 'true'
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          cd frontend/app/intellij-plugin/build/installer
-          if [ "$PLATFORM" = "linux" ]; then
-            files=("mateu-desktop-$INTELLIJ_VERSION-linux.tar.gz")
-          else
-            files=("mateu-desktop-$INTELLIJ_VERSION-windows-setup.exe" "mateu-desktop-$INTELLIJ_VERSION-windows.zip")
-          fi
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${files[@]}"
 
   smoke-windows:
     needs: [linux-windows]
@@ -216,7 +221,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: mateu-desktop-windows-zip
+          name: mateu-desktop-windows
           path: ${{ runner.temp }}\pkg
       - name: JetBrains' Authenticode is intact, the app starts and the Mateu plugin loads
         shell: pwsh
@@ -237,11 +242,10 @@ jobs:
           Select-String -Path $log -Pattern 'IDE: |Loaded custom plugins|io\.mateu|ERROR' | Select-Object -First 60 | ForEach-Object { $_.Line }
           if (Select-String -Path $log -Pattern 'Loaded custom plugins.*Mateu' -Quiet) { "✅ windows: Mateu plugin loaded, idea64.exe JetBrains-signed" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY } else { throw "the Mateu plugin did not load" }
 
-  # The plugin the apps download + the feed that points at everything above. Last, on purpose:
-  # installed apps only hear of the release once every installer passed its smoke test.
+  # The plugin the apps download + the feed that points at everything above. Built read-only; it
+  # goes up last (job attach): installed apps only hear of the release once every installer passed
+  # its smoke test.
   feed:
-    permissions:
-      contents: write # gh release upload
     needs: [macos, linux-windows, smoke-windows]
     runs-on: ubuntu-latest
     steps:
@@ -267,10 +271,40 @@ jobs:
             "-Pfeed.downloadBase=https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" \
             "-Pfeed.notes=Mateu $INTELLIJ_VERSION — https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
           cat frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json
-      # the plugin first: the feed must never name a file that is not there yet
-      - name: Attach the plugin, then the feed
-        if: env.DRY_RUN != 'true'
+      # one flat folder: attach merges every mateu-desktop-* artifact into one directory
+      - name: Stage the plugin and the feed
         run: |
-          cd frontend/app/intellij-plugin
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "build/distributions/mateu-intellij-plugin-$INTELLIJ_VERSION.zip"
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber build/installer/mateu-desktop-update.json
+          mkdir -p "$RUNNER_TEMP/feed"
+          cp "frontend/app/intellij-plugin/build/distributions/mateu-intellij-plugin-$INTELLIJ_VERSION.zip" \
+            frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json "$RUNNER_TEMP/feed/"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: mateu-desktop-feed
+          path: ${{ runner.temp }}/feed/
+          if-no-files-found: error
+          retention-days: 1
+
+  # The write half: no checkout, no build, no third-party code — only the uploads. Installers first,
+  # then the plugin, then the feed: the feed must never name a file that is not there yet.
+  attach:
+    needs: [macos, linux-windows, smoke-windows, feed]
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: write # gh release upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: mateu-desktop-*
+          path: ${{ runner.temp }}/out
+          merge-multiple: true
+      - name: Attach the installers, then the plugin, then the feed
+        working-directory: ${{ runner.temp }}/out
+        run: |
+          set -euo pipefail
+          ls -l
+          installers=(mateu-desktop-*-macos-*.dmg mateu-desktop-*-macos-*.zip mateu-desktop-*-linux.tar.gz \
+            mateu-desktop-*-windows-setup.exe mateu-desktop-*-windows.zip)
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${installers[@]}"
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber mateu-intellij-plugin-*.zip
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber mateu-desktop-update.json

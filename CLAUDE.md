@@ -888,7 +888,7 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   older pydantic); per-request state lives in `ContextVar`s; published to PyPI as **`mateu-ui`** (the
   name `mateu` is taken) from the same release tag (`3.0.0aN`), only when `PYPI_API_TOKEN` or
   `PYPI_TRUSTED_PUBLISHING=true` is set. .NET is split into partial files (`ReflectionMapper.*.cs`,
-  `SyncHandler.*.cs`), targets net8.0+net10.0 and has a NuGet release job.
+  `SyncHandler.*.cs`), targets net10.0 only (net8.0 dropped 2026-11-10) and has a NuGet release job.
 - **Conformance.** `conformance/cases` (52 since the beta integration — first loads AND second requests: action effects, drawer, rejected save, error boundary, wizard step 2, crud new/edit/view) match EXACTLY in Java, .NET and Python, with empty
   allow-lists; `homeServerSideType` is volatile in all three normalisers; Java renders the corpus with
   an empty REST source catalogue (the core test classpath carries one). `ActionMapper` does not treat a
@@ -1098,7 +1098,7 @@ The same release also publishes the IDE plugins (`publish-plugins.yml`) at the f
 IntelliJ `3.0-beta.N`, VS Code `2.99.N` (the VS Code Marketplace takes only numeric, ever-growing
 versions, so betas stay below `3.0.0` and an rc `v3.0-rc.N` goes out as `2.999.N`; from the GA `v3.0.0` on, every version is identical — mapping
 in `scripts/plugin-versions.sh`, published as an ordinary version, not pre-release). No separate
-`plugins-v*` release is needed any more (2026-10-23). A pre-release of a LATER line (`v3.1-rc.1`, `v4.0-beta.1`) publishes
+`plugins-v*` release exists any more (2026-10-23; the tag is no longer honoured). **Plugins, desktop app, APK and OTA wait for the tests (2026-11-10)**: `publish-plugins.yml`, `desktop.yml` and `mobile.yml` have NO release trigger — `buid-and-publish.yml` calls them (`workflow_call`) after `e2e`, and their build jobs are read-only; only the upload jobs (`attach`, `android-attach`) hold `contents: write` (pinned by `scripts/release-gates.test.mjs`). A pre-release of a LATER line (`v3.1-rc.1`, `v4.0-beta.1`) publishes
 no plugin, no desktop app and no over-the-air update and does not repin the examples (the jobs' `if:`, pinned by
 `scripts/release-gates.test.mjs`); an alpha of the current line still fails the plugin publish rather than guessing.
 

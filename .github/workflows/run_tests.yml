@@ -716,21 +716,17 @@ jobs:
           path: backend/shared/*/target/japicmp/
           if-no-files-found: ignore
 
-      # The .NET port multi-targets both supported LTS runtimes (net8.0 until its 2026-11-10 end of
-      # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
-      # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
+      # The .NET port targets net10.0 (the current LTS).
       - name: Set up .NET
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       # coverlet (coverage.cobertura.xml per target framework) and a LINE and a BRANCH floor per
       # package — a ratchet at the measured values (2026-10-17, net8.0: lines Uidl 98.9 / Core 96.2 /
       # Dtos 99.9 / AspNetCore 98.3; branches Uidl 90.7 / Core 84.8 / Dtos 100 / AspNetCore 84.9),
       # rounded down. Raise them as suites grow; never lower one to make a PR pass.
-      - name: .NET tests (net8.0 + net10.0) with coverage
+      - name: .NET tests (net10.0) with coverage
         run: cd backend/dotnet && dotnet test --collect:"XPlat Code Coverage" --results-directory /tmp/dotnet-coverage
 
       - name: .NET coverage floor

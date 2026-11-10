@@ -129,14 +129,10 @@ jobs:
           persist-credentials: false
       # The starter names the NuGet packages; inside the repository starters/Directory.Build.targets
       # swaps them for Mateu.NET's sources, so this checks it against this commit.
-      # The starter targets net10.0 and builds Mateu.NET from source (ProjectReference), which
-      # targets net8.0 AND net10.0: both runtimes' SDKs are needed.
-      # Same SDK pair as the release/NuGet job.
+      # The starter and Mateu.NET (built from source, ProjectReference) target net10.0.
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
       - name: Build the .NET starter
         run: dotnet build starters/dotnet/MateuStarter.csproj
 

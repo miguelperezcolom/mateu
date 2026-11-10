@@ -31,7 +31,7 @@ server and diffing its JSON against the Java reference for the same `@UI` class.
 
 ## 2. Stack (decided)
 
-- **.NET 8 and .NET 10** (multi-targeted; net8.0 support ends 2026-11-10), **ASP.NET Core minimal API** for the `sync` endpoint (lightweight, no controller
+- **.NET 10** (net10.0; .NET 8 left support on 2026-11-10), **ASP.NET Core minimal API** for the `sync` endpoint (lightweight, no controller
   ceremony for the single route family). Controllers can be added later for app integration.
 - **System.Text.Json** for serialization, using **polymorphic serialization** for the `type`
   discriminators (`ComponentDto`: `ClientSide`/`ServerSide`; `ComponentMetadata`: `App`/`Page`/

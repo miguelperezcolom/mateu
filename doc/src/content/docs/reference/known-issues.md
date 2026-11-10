@@ -156,14 +156,6 @@ the port idioms (the same screen reached another way) are in
 Listing filters (ranges, multi-select) are applied in memory in both ports by default; override
 `find` (it receives the typed criteria) to push them to your database.
 
-### .NET 8 leaves Microsoft support on 2026-11-10
-
-The .NET packages target `net8.0` and `net10.0`. Microsoft ends support for .NET 8 on
-10 November 2026; Mateu keeps the `net8.0` target for the 3.0 line, but security updates of the
-runtime itself stop then. **3.1 drops `net8.0`.** New projects already target `net10.0`.
-
-**Workaround:** move the app to .NET 10 (LTS).
-
 ## Tooling
 
 - **Spring Boot 3 is not supported.** The Spring adapters are built and tested against Spring

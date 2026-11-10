@@ -43,10 +43,39 @@ for (const [workflow, job] of GATED) {
     })
 }
 
-test('the old dedicated plugin releases still publish the plugins', () => {
-    assert.equal(runs(jobIf('publish-plugins.yml', 'intellij'), 'plugins-v0.2.17'), true)
-    assert.equal(runs(jobIf('publish-plugins.yml', 'vscode'), 'plugins-v0.2.17'), true)
-})
+const workflowText = (workflow) => readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8')
+const jobBlock = (workflow, job) => {
+    const text = workflowText(workflow)
+    const start = text.indexOf(`\n  ${job}:\n`)
+    assert.ok(start >= 0, `${workflow} has job ${job}`)
+    const rest = text.slice(start + 1)
+    const next = rest.slice(1).search(/\n  [a-z][a-z0-9-]*:\n/)
+    return next < 0 ? rest : rest.slice(0, next + 1)
+}
+
+// What ships outside the registries waits for the tests, like Maven Central (deep review 2026-11).
+for (const [job, workflow] of [['plugins', 'publish-plugins.yml'], ['desktop', 'desktop.yml'], ['mobile', 'mobile.yml']]) {
+    test(`${workflow} runs only after e2e passed`, () => {
+        const caller = jobBlock('buid-and-publish.yml', job)
+        assert.match(caller, /\n {4}needs: e2e\n/)
+        assert.match(caller, new RegExp(`uses: \\./\\.github/workflows/${workflow.replace('.', '\\.')}`))
+        const on = workflowText(workflow).match(/\non:\n([\s\S]*?)\n\S/)[1]
+        assert.doesNotMatch(on, /^ {2}release:/m, `${workflow} must not start on the release event by itself`)
+        assert.match(on, /^ {2}workflow_call:/m)
+    })
+}
+
+// The jobs that build (npm, Gradle, Expo: third-party code) never hold a write token.
+for (const [workflow, writers] of [['desktop.yml', ['attach']], ['mobile.yml', ['android-attach']], ['publish-plugins.yml', []]]) {
+    test(`${workflow}: only ${writers.join(', ') || 'no job'} holds contents: write`, () => {
+        const jobs = [...workflowText(workflow).matchAll(/\n {2}([a-z][a-z0-9-]*):\n/g)].map((m) => m[1])
+        for (const job of jobs) {
+            const writes = /contents: write/.test(jobBlock(workflow, job))
+            assert.equal(writes, writers.includes(job), `${workflow} ${job}`)
+            if (writes) assert.doesNotMatch(jobBlock(workflow, job), /actions\/checkout|npm |gradlew|intellij-gradle/, `${job} only uploads`)
+        }
+    })
+}
 
 test('the desktop installer releases are not framework releases', () => {
     for (const [workflow, job] of GATED) assert.equal(runs(jobIf(workflow, job), 'mateu-desktop-1.0'), false, `${workflow} ${job}`)

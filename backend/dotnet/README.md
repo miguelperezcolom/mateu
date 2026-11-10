@@ -40,7 +40,7 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   declarative page archetypes (`Dashboard`, `Foldout`, `Welcome`, `ItemOverview`) that compose them
 >   from component-holding properties (`[Panel]` carries title/subtitle/colSpan/rowSpan/icon/open).
 >
-> The Mateu server surface is covered (520+ tests on net8.0 and net10.0), and the shared wire-conformance corpus is a HARD gate (`WireConformanceTests`). Component adapters, embedded islands, the REST source/component catalogues, `layoutDelta:`, listing exports (the `IListingExporter` port; CSV built in), group actions and the grid-field row editor are in. The web renderer renders all of it; the Compose
+> The Mateu server surface is covered (520+ tests on net10.0), and the shared wire-conformance corpus is a HARD gate (`WireConformanceTests`). Component adapters, embedded islands, the REST source/component catalogues, `layoutDelta:`, listing exports (the `IListingExporter` port; CSV built in), group actions and the grid-field row editor are in. The web renderer renders all of it; the Compose
 > renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects
@@ -93,8 +93,8 @@ app.MapMateu();
 ```
 
 Packages: `Mateu.Uidl`, `Mateu.Dtos`, `Mateu.Core`, `Mateu.AspNetCore` — one version for all four,
-in lockstep with the Maven artifacts (`v3.0-alpha.N` → `3.0.0-alpha.N`), multi-targeting
-**net8.0 and net10.0**. Released by the `nuget` job of `.github/workflows/buid-and-publish.yml`
+in lockstep with the Maven artifacts (`v3.0-alpha.N` → `3.0.0-alpha.N`), targeting
+**net10.0**. Released by the `nuget` job of `.github/workflows/buid-and-publish.yml`
 (needs the `NUGET_API_KEY` secret). Local packages: `dotnet pack src/Mateu.AspNetCore -c Release
 -p:MateuVersion=3.0.0-local`.
 
@@ -104,7 +104,7 @@ anything else a generic message + correlation id (details in the log; on screen 
 ## Run
 
 ```bash
-# .NET 10 SDK required (builds net8.0 + net10.0; running the net8.0 tests needs the 8.0 runtime)
+# .NET 10 SDK required
 dotnet build
 dotnet run --project samples/Mateu.Demo        # serves on http://0.0.0.0:8593
 dotnet test                                     # golden tests
