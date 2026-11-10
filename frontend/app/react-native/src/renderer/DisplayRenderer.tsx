@@ -369,7 +369,7 @@ export function StatRenderer({ component }: { component: unknown }) {
         {m.value}
         {!!m.unit && <Text style={styles.statUnit}> {m.unit}</Text>}
       </Text>
-      <View style={styles.statFoot}>
+      {(!!m.delta || spark.length > 0) && <View style={styles.statFoot}>
         {!!m.delta && (
           <Text style={[styles.statDelta, { color: trendColor }]}>
             {trendGlyph} {m.delta}
@@ -380,7 +380,7 @@ export function StatRenderer({ component }: { component: unknown }) {
             <View key={i} style={[styles.statBar, { height, backgroundColor: trendColor }]} />
           ))}
         </View>
-      </View>
+      </View>}
     </View>
   );
   return m.actionId ? (
@@ -1078,13 +1078,14 @@ export function ResourceGridRenderer({ component }: { component: unknown }) {
   const recommendedLabel = (m['recommendedLabel'] as string) ?? 'Recommended';
   const items = (m['items'] as ResourceItem[]) ?? [];
   const [selected, setSelected] = useState<string | undefined>(() => items.find((it) => it.selected)?.id);
-  const cardWidth = resourceCardWidth(columns);
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = resourceCardWidth(columns, windowWidth - 48);
   return (
     <View style={styles.resourceGrid}>
       {items.map((it, i) => {
         const sel = it.id === selected;
         const card = (
-          <View style={[styles.resourceCard, (sel || it.recommended) && styles.resourceCardAccent, sel && styles.resourceCardSelected, it.disabled && styles.resourceCardDisabled]}>
+          <View style={[styles.resourceCard, it.recommended && !sel && styles.resourceCardRecommended, sel && styles.resourceCardAccent, sel && styles.resourceCardSelected, it.disabled && styles.resourceCardDisabled]}>
             {it.recommended && <Text style={styles.resourceTag}>{recommendedLabel}</Text>}
             <Text style={styles.resourceTitle}>{it.title ?? ''}</Text>
             {!!it.subtitle && <Text style={styles.resourceSubtitle}>{it.subtitle}</Text>}
@@ -1605,6 +1606,7 @@ const styles = themed(() => StyleSheet.create({
   // ResourceGrid
   resourceGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: -4 },
   resourceCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white, minHeight: 88 },
+  resourceCardRecommended: { borderColor: theme.primary, borderStyle: 'dashed' },
   resourceCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   resourceCardSelected: { backgroundColor: theme.primaryContainer },
   resourceCardDisabled: { opacity: 0.45 },
@@ -1625,9 +1627,9 @@ const styles = themed(() => StyleSheet.create({
   offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: theme.border, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
   offerPriceOnly: { fontWeight: '700', textAlign: 'right', marginTop: 4, fontVariant: ['tabular-nums'] },
-  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
+  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
-  offerCtaText: { color: theme.onFill, fontWeight: '600' },
+  offerCtaText: { color: theme.onFill, fontWeight: '600', flexShrink: 1 },
   offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
   // AddOnPicker
   addOnPicker: { gap: 8 },

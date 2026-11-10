@@ -85,6 +85,9 @@ test('file icons by type, avatars, card widths, skeleton count and offer label',
   assert.equal(commentAvatar({}), '?');
   assert.equal(resourceCardWidth(4), '25%');
   assert.equal(resourceCardWidth(0), '33.333%');
+  // a phone (388dp) fits two ~150dp cards, whatever the grid declares
+  assert.equal(resourceCardWidth(4, 388), '50%');
+  assert.equal(resourceCardWidth(4, 1024), '25%');
   assert.equal(skeletonCount(undefined), 3);
   assert.equal(skeletonCount(0), 3);
   assert.equal(skeletonCount(5), 5);

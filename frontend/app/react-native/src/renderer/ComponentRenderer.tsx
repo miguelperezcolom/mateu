@@ -431,7 +431,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'GridColumn':
       return <GridColumnRenderer metadata={metadata} />;
     case 'VirtualList':
-      return <VirtualListRenderer metadata={metadata} state={state} data={data} />;
+      return <VirtualListRenderer component={component} metadata={metadata} state={state} data={data} />;
     case 'Details':
       return <DetailsRenderer metadata={metadata} state={state} data={data} />;
     case 'Breadcrumbs':

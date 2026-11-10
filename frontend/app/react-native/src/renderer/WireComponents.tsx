@@ -11,7 +11,8 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { cssToRn } from '../core/cssStyle';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
@@ -402,19 +403,33 @@ export function GridRenderer({ component, state, data }: { component: unknown; s
   );
 }
 
-/** Every item through the component renderer, in a plain column (the host view scrolls). */
-export function VirtualListRenderer({ metadata, state, data }: { metadata: Dict; state: Dict; data?: unknown }) {
+/**
+ * A VirtualList: a box of its declared height (`height: 18rem`, else 400) that scrolls by itself and
+ * only draws the rows near the viewport (FlatList windowing) — it used to draw all its 2,000 rows
+ * down the page. Nested in the screen's scroll (nestedScrollEnabled, for Android).
+ */
+export function VirtualListRenderer({ component, metadata, state, data }: { component?: unknown; metadata: Dict; state: Dict; data?: unknown }) {
   const items = (((metadata['page'] as Dict)?.['content'] as unknown[]) ?? []);
+  const declared = cssToRn(((component as Dict)?.['style'] as string) ?? '', new Set(['height', 'max-height']));
+  const height = typeof declared['height'] === 'number' ? declared['height'] : typeof declared['maxHeight'] === 'number' ? declared['maxHeight'] : 400;
   return (
-    <View style={styles.stack}>
-      {items.map((item, i) =>
+    <FlatList
+      style={[styles.virtualList, { height: height as number }]}
+      data={items}
+      nestedScrollEnabled
+      initialNumToRender={20}
+      maxToRenderPerBatch={20}
+      windowSize={7}
+      removeClippedSubviews
+      keyExtractor={(_, i) => String(i)}
+      renderItem={({ item }) =>
         item && typeof item === 'object' && ('type' in (item as Dict) || 'metadata' in (item as Dict)) ? (
-          <ComponentRenderer key={i} component={item} state={state} data={data} />
+          <View style={styles.virtualRow}><ComponentRenderer component={item} state={state} data={data} /></View>
         ) : (
-          <Text key={i} style={styles.text}>{str(item)}</Text>
-        ),
-      )}
-    </View>
+          <Text style={[styles.text, styles.virtualRow]}>{str(item)}</Text>
+        )
+      }
+    />
   );
 }
 
@@ -716,7 +731,12 @@ export function CookieConsentRenderer({ metadata }: { metadata: Dict }) {
   }, [key]);
   if (dismissed !== false) return null;
   const learnMoreLink = str(metadata['learnMoreLink']);
+  // it FLOATS over the screen at its declared edge (Top*/Bottom*, default bottom), like the web's
+  // fixed banner — drawn inline it sat in the middle of the content
+  const top = /^top/i.test(str(metadata['position']));
   return (
+    <Modal transparent animationType="fade" visible onRequestClose={() => setDismissed(true)}>
+      <View style={[styles.consentHost, top ? styles.consentHostTop : styles.consentHostBottom]} pointerEvents="box-none">
     <View style={styles.consent} accessibilityRole="alert">
       <Text style={styles.consentText}>{str(metadata['message']) || 'This app uses cookies to ensure you get the best experience.'}</Text>
       <View style={[styles.row, { gap: 12, marginTop: 8 }]}>
@@ -737,6 +757,8 @@ export function CookieConsentRenderer({ metadata }: { metadata: Dict }) {
         </TouchableOpacity>
       </View>
     </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -922,6 +944,8 @@ export function FormEditorRenderer({ metadata }: { metadata: Dict }) {
 
 const styles = themed(() => StyleSheet.create({
   stack: { gap: 8 },
+  virtualList: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusSm, flexGrow: 0 },
+  virtualRow: { paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   row: { flexDirection: 'row', alignItems: 'center' },
   wrap: { flexWrap: 'wrap' },
   flex1: { flex: 1, minWidth: 0 },
@@ -991,7 +1015,10 @@ const styles = themed(() => StyleSheet.create({
   outcomeMessage: { fontSize: 14, color: theme.muted, textAlign: 'center', maxWidth: 420 },
   // overlays in place
   notification: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: theme.background, borderRadius: theme.radiusMd, padding: 12 },
-  consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14 },
+  consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14, maxWidth: 560, width: '100%', elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
+  consentHost: { flex: 1, padding: 16, alignItems: 'center' },
+  consentHostTop: { justifyContent: 'flex-start', paddingTop: 48 },
+  consentHostBottom: { justifyContent: 'flex-end', paddingBottom: 32 },
   consentText: { color: theme.onFill, fontSize: 14 },
   consentLink: { color: theme.onFill, textDecorationLine: 'underline', fontSize: 14 },
   consentBtn: { backgroundColor: theme.white, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 6 },

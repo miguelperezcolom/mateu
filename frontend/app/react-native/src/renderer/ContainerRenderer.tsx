@@ -231,16 +231,42 @@ export function AccordionRenderer({ component, state }: { component: unknown; st
 }
 
 // ── Split ────────────────────────────────────────────────────────────────────
+/**
+ * A SplitLayout: its two panes with the divider between them. With a declared height (`height:
+ * 12rem`) the box keeps it and each pane scrolls its own content, as on the web. On a phone a
+ * horizontal split stacks (two panes side by side in 360dp are each too narrow to read): the
+ * panes share the height then. No drag handle — resizing by dragging a 1dp line is no touch target.
+ */
 export function SplitRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const vertical = (meta(component)['orientation'] as string) === 'vertical';
+  const { width } = useWindowDimensions();
+  const declaredVertical = (meta(component)['orientation'] as string) === 'vertical';
+  const vertical = declaredVertical || width < 600;
+  const box = cssToRn(((component as Dict)?.['style'] as string) ?? '', SPLIT_BOX);
+  const bounded = typeof box['height'] === 'number';
+  const panes = childrenOf(component);
   return (
-    <View style={{ flexDirection: vertical ? 'column' : 'row', gap: 12 }}>
-      {childrenOf(component).map((c, i) => (
-        <View key={i} style={{ flex: 1 }}><ComponentRenderer component={c} state={state} /></View>
+    <View style={[styles.split, { flexDirection: vertical ? 'column' : 'row' }, box, vertical && bounded && !declaredVertical ? { height: undefined } : null]}>
+      {panes.map((c, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <View style={vertical ? styles.splitDividerH : styles.splitDividerV} />}
+          {bounded ? (
+            <ScrollView
+              style={vertical && !declaredVertical ? { maxHeight: box['height'] as number } : styles.flex1}
+              contentContainerStyle={styles.splitPane}
+              nestedScrollEnabled
+            >
+              <ComponentRenderer component={c} state={state} />
+            </ScrollView>
+          ) : (
+            <View style={[styles.flex1, styles.splitPane]}><ComponentRenderer component={c} state={state} /></View>
+          )}
+        </React.Fragment>
       ))}
     </View>
   );
 }
+
+const SPLIT_BOX = new Set(['height', 'max-height', 'background', 'background-color', 'border', 'border-radius']);
 
 // ── Badge / Anchor / ProgressBar ────────────────────────────────────────────────
 export function BadgeRenderer({ metadata }: { metadata: Dict }) {
@@ -348,6 +374,11 @@ const styles = themed(() => StyleSheet.create({
   cardContent: { gap: 10, paddingTop: 16, paddingBottom: 16 },
   cardTitle: { color: theme.ink, fontWeight: '600', marginBottom: 2 },
   cardElevated: { borderWidth: 0 },
+  split: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
+  splitPane: { padding: 10 },
+  splitDividerV: { width: 1, backgroundColor: theme.border },
+  splitDividerH: { height: 1, backgroundColor: theme.border },
+  flex1: { flex: 1 },
   cardBody: { gap: 10, padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardHeaderSide: { flexShrink: 0 },

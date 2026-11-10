@@ -38,6 +38,12 @@ function growOf(metadata: Dict, child: unknown, i: number): number | null {
   return typeof own.flexGrow === 'number' ? own.flexGrow : null;
 }
 
+const CHILD_BOUNDS = new Set(['min-width']);
+
+const INLINE_TYPES =new Set(['Text', 'Badge', 'Icon', 'Avatar', 'Anchor']);
+const isInlinePiece = (child: unknown): boolean =>
+  INLINE_TYPES.has(String((((child as Dict)?.['metadata'] as Dict | undefined) ?? {})['type'] ?? ''));
+
 export function stackLayout(direction: 'row' | 'column', metadata: Dict, children: unknown[]): StackLayout {
   const spacing = metadata['spacing'] === true;
   const container: RnStyle = { flexDirection: direction };
@@ -62,7 +68,11 @@ export function stackLayout(direction: 'row' | 'column', metadata: Dict, childre
 
   const grows = children.map((c, i) => growOf(metadata, c, i));
   const shares = grows.some((g) => g !== null && g > 0) && metadata['wrap'] !== true;
-  container.flexWrap = shares ? 'nowrap' : 'wrap';
+  // a row of inline pieces (a text beside its badge) that does not ask to wrap keeps them on one
+  // line, the text shrinking and wrapping inside its own box — rather than the badge dropping
+  // onto a line of its own
+  const inline = metadata['wrap'] !== true && children.length > 0 && children.every(isInlinePiece);
+  container.flexWrap = shares || inline ? 'nowrap' : 'wrap';
 
   const items = children.map((child, i) => {
     const style = ((child as Dict)?.['style'] as string) ?? '';
@@ -70,8 +80,10 @@ export function stackLayout(direction: 'row' | 'column', metadata: Dict, childre
     // stacks below its neighbour once squeezed under 300dp
     if (declaresWrapPoint(style)) return { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 300 } as RnStyle;
     const grow = grows[i];
-    if (shares) return grow && grow > 0 ? { flexGrow: grow, flexShrink: 1, flexBasis: 0, minWidth: 0 } : { flexShrink: 1 };
-    return grow && grow > 0 ? { flexGrow: grow, flexShrink: 1 } : { flexShrink: 1, maxWidth: '100%' };
+    // the child's own declared bounds (a Meter's `min-width: 16rem`) size its cell too
+    const bounds = cssToRn(style, CHILD_BOUNDS);
+    if (shares) return { ...(grow && grow > 0 ? { flexGrow: grow, flexShrink: 1, flexBasis: 0, minWidth: 0 } : { flexShrink: 1 }), ...bounds };
+    return { ...(grow && grow > 0 ? { flexGrow: grow, flexShrink: 1 } : { flexShrink: 1 }), maxWidth: '100%', ...bounds };
   });
   return { container, items };
 }

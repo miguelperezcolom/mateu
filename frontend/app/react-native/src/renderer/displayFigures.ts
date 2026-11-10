@@ -112,8 +112,12 @@ export const commentAvatar = (c: { avatar?: string; author?: string }): string =
   c.avatar && !c.avatar.includes(':') ? c.avatar : (c.author?.[0] ?? '?');
 
 /** A ResourceGrid card's width: one column's share, three columns when undeclared. */
-export const resourceCardWidth = (columns: number): `${number}%` =>
-  columns > 0 ? `${100 / columns}%` as `${number}%` : '33.333%';
+export const resourceCardWidth = (columns: number, width = Infinity): `${number}%` => {
+  // capped by the width the grid has: a card is never narrower than ~150dp (4 declared columns on
+  // a phone broke the titles mid-word)
+  const n = Math.min(columns > 0 ? columns : 3, Math.max(1, Math.floor(width / 150)));
+  return n === 3 ? '33.333%' : `${100 / n}%` as `${number}%`;
+};
 
 /** The skeleton's repeat count: a positive declared count, else 3. */
 export const skeletonCount = (count?: number): number => (count && count > 0 ? count : 3);

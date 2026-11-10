@@ -37,6 +37,14 @@ test('spacing off still leaves a small gap between controls; padding/margin are 
   assert.equal(stackLayout('column', { spacing: false }, []).container.gap, undefined);
 });
 
+test('a text beside its badge stays on one line unless the row asks to wrap; other rows wrap on a phone', () => {
+  const badge = { metadata: { type: 'Badge' } };
+  assert.equal(stackLayout('row', { wrap: false }, [kid(), badge]).container.flexWrap, 'nowrap');
+  assert.equal(stackLayout('row', { wrap: true }, [kid(), badge]).container.flexWrap, 'wrap');
+  const button = { metadata: { type: 'Button' } };
+  assert.equal(stackLayout('row', { wrap: false }, [button, button, button]).container.flexWrap, 'wrap');
+});
+
 test('a zone column keeps its phone wrap point', () => {
   const l = stackLayout('row', {}, [kid('flex: 1 1 calc(64% - 1rem); min-width: min(20rem, 100%);')]);
   assert.equal(l.items[0].minWidth, 300);

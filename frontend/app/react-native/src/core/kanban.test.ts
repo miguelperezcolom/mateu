@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cardRouteOf, cardsFromRows, dropTargetOf, edgeScrollStep, itemsOf, moveCard, moveOfDrop, moveParameters, movesOf, rowText, type ColumnGeometry } from './kanban.ts';
+import { boardHeight, MIN_BOARD_HEIGHT, cardRouteOf, cardsFromRows, dropTargetOf, edgeScrollStep, itemsOf, moveCard, moveOfDrop, moveParameters, movesOf, rowText, type ColumnGeometry } from './kanban.ts';
 
 const board = {
   columns: [{ id: 'backlog', title: 'Backlog' }, { id: 'done', title: 'Done' }],
@@ -83,4 +83,11 @@ test('the board scrolls only near its edges, faster the closer', () => {
   assert.ok(edgeScrollStep(10, 0, 1000) < 0);
   assert.ok(edgeScrollStep(990, 0, 1000) > 0);
   assert.ok(edgeScrollStep(990, 0, 1000) > edgeScrollStep(950, 0, 1000));
+});
+
+test('the board fills the screen below it, but no taller than its tallest column', () => {
+  assert.equal(boardHeight(700, 0), 700);
+  assert.equal(boardHeight(700, 180), 252);
+  assert.equal(boardHeight(700, 2000), 700);
+  assert.equal(boardHeight(100, 50), MIN_BOARD_HEIGHT);
 });
