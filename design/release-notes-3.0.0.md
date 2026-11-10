@@ -38,7 +38,7 @@ app.
 | | |
 |---|---|
 | **Java** | `io.mateu:mateu-bom:3.0.0` on Maven Central — Java 21+, Spring Boot 4, Quarkus 3, Micronaut 4, Helidon MP 4 |
-| **.NET** | `Mateu.AspNetCore` `3.0.0` on NuGet — `net8.0` and `net10.0` |
+| **.NET** | `Mateu.AspNetCore` `3.0.0` on NuGet — `net10.0` |
 | **Python** | `pip install "mateu-ui[server]==3.0.0"` — Python 3.11+, FastAPI |
 | **New project** | IntelliJ **File › New › Project › Mateu**, VS Code **Mateu: New Project…**, or the `io.mateu:mateu-archetype` Maven archetype — all three generate from the same starters |
 | **Apps** | the desktop installers and the Android app are attached to this release; the IntelliJ plugin and the VS Code extension are published with it |
@@ -67,9 +67,8 @@ The full statement is [Support policy › How mature each part is](https://mateu
 
   What they write is ordinary `specs/ui/**` YAML, which is stable.
 
-**.NET 8.** Microsoft ends support for .NET 8 on 10 November 2026. Mateu **3.0 keeps the `net8.0`
-target**; **3.1 drops it**. New projects from the .NET starter and the wizards target `net10.0`.
-Move your app to .NET 10 before upgrading to 3.1.
+**.NET 10 only.** Microsoft ended support for .NET 8 on 10 November 2026, so the 3.0 packages target
+`net10.0` alone; the .NET starter and the wizards generate `net10.0` projects.
 
 ## Highlights of the 3.0 line
 

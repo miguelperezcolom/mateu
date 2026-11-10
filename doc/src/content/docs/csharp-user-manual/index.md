@@ -25,8 +25,7 @@ The implementation lives at [`backend/dotnet`](https://github.com/miguelperezcol
 ## Install
 
 Mateu.NET ships as four NuGet packages, versioned in lockstep with the Java artifacts (the release
-`v3.0-beta.N` is `3.0.0-beta.N` on NuGet). They target **net8.0 and net10.0** (a net9.0 app uses
-the net8.0 build). An ASP.NET Core app needs only the adapter — it brings the other three:
+`v3.0-beta.N` is `3.0.0-beta.N` on NuGet). They target **net10.0**, the current LTS. An ASP.NET Core app needs only the adapter — it brings the other three:
 
 ```bash
 dotnet add package Mateu.AspNetCore --prerelease
@@ -134,8 +133,7 @@ panel with the app state and data. It is not there in `Production`.
 ## Run it from the repository
 
 ```bash
-# a .NET 8 SDK builds the net8.0 target; the .NET 10 SDK builds both (net8.0 + net10.0 —
-# the net8.0 tests then also need the 8.0 runtime)
+# needs the .NET 10 SDK
 cd backend/dotnet
 dotnet run --project samples/Mateu.Demo   # serves on http://0.0.0.0:8593
 dotnet test                               # golden-JSON tests
@@ -1018,7 +1016,7 @@ unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Score
 DashboardPanel, ResponsiveGrid, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
 declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). Federated microfrontends
 (`[RemoteMenu]` + the `MicroFrontend` component) and the SSE/AI chat entry point (`[AI]` → the
-app's `SseUrl`) are wired through the mapper as well. Over 750 tests (run on net8.0 and net10.0) cover this port, including a
+app's `SseUrl`) are wired through the mapper as well. Over 750 tests cover this port, including a
 golden-JSON wire-conformance corpus (`WireConformanceTests`) that checks the emitted JSON against
 shared `expected.json` snapshots derived from the Java reference.
 

@@ -58,14 +58,13 @@ that only reproduces there is not treated as a bug.
 | Micronaut | 4.x | 4.10 |
 | Helidon MP | 4.x | 4.5 |
 | Build tool | Maven 3.9+ or Gradle 8+ | Maven 3.9 |
-| **.NET** (`Mateu.*` packages, ASP.NET Core) | `net8.0` and `net10.0` | both |
+| **.NET** (`Mateu.*` packages, ASP.NET Core) | `net10.0` | net10.0 |
 | **Python** (`mateu-ui` on PyPI, FastAPI) | 3.11 or later; FastAPI ≥ 0.110, Pydantic 2 (≥ 2.6), PyYAML ≥ 6 | 3.11, 3.12, 3.13, and the lowest declared dependency versions |
 
 The supported range of a runtime follows its vendor: when Microsoft ends support for a .NET
 version, or Python for a Python version, Mateu drops it in the next minor and says so in the
-CHANGELOG. .NET 8 reaches its end of support on 10 November 2026: **3.0 keeps `net8.0`** (a GA does
-not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 before upgrading. New
-projects (the .NET starter and the wizards) already target `net10.0`.
+CHANGELOG. .NET 8 reached its end of support on 10 November 2026, before the GA, so 3.0 targets
+`net10.0` only.
 
 ### Renderers and tools
 

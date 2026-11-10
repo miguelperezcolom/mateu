@@ -24,6 +24,52 @@ jobs:
     if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/run_tests.yml
 
+  # What reaches users outside the package registries — the IDE plugins, the desktop app and its
+  # update feed, the Android APK and the over-the-air phone update — waits for e2e like Maven
+  # Central does: a release whose tests fail ships none of it. Each called workflow keeps its own
+  # per-job `if:` (no pre-release of a later minor or major) and its own read-only build jobs; the
+  # `contents: write` granted here only reaches their small upload jobs.
+  plugins:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    uses: ./.github/workflows/publish-plugins.yml
+    permissions:
+      contents: read
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+
+  desktop:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    uses: ./.github/workflows/desktop.yml
+    permissions:
+      contents: write # only desktop.yml's attach job asks for it
+    secrets:
+      MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+      MACOS_NOTARY_APPLE_ID: ${{ secrets.MACOS_NOTARY_APPLE_ID }}
+      MACOS_NOTARY_TEAM_ID: ${{ secrets.MACOS_NOTARY_TEAM_ID }}
+      MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+
+  mobile:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    uses: ./.github/workflows/mobile.yml
+    permissions:
+      contents: write # only mobile.yml's android-attach job asks for it
+    secrets:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
   all:
     needs: e2e
     if: startsWith(github.event.release.tag_name, 'v')
@@ -268,9 +314,7 @@ jobs:
           python-version: '3.12'
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
       - name: Generate the SBOMs
         env:
           TAG: ${{ github.event.release.tag_name }}
@@ -418,9 +462,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
       - name: Package version from the release tag
         env:
           TAG: ${{ github.event.release.tag_name }}

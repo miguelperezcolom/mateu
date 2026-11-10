@@ -156,7 +156,7 @@ intellijPlatform {
             create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdea, "2026.3")
         }
     }
-    // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI, on a `plugins-v*` release).
+    // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI: publish-plugins.yml, called by the release after e2e).
     // The token comes from the environment so it is never committed; get one at
     // https://plugins.jetbrains.com/author/me/tokens. Optional signing is configured only when the
     // certificate env vars are present, so a normal (unsigned) local build never needs them.
