@@ -84,8 +84,8 @@ def manifest(app_type: type | None, mateu_version: str | None = None) -> dict[st
         or (humanize(app_type.__name__) if app_type else "Mateu")
     )
     out: dict[str, Any] = {"name": name, "shortName": pick("MATEU_MOBILE_SHORT_NAME", "short_name") or name}
-    # The Python port has no app logo / favicon / accent colour: icon and theme colour come only
-    # from the settings or @mobile_app (Java falls back to @Logo/@FavIcon and @App(accentColor)).
+    # Icon and theme colour come only from the settings or @mobile_app: unlike Java (which falls
+    # back to @Logo/@FavIcon and @App(accentColor)), the app's accent colour is not used here.
     icon = pick("MATEU_MOBILE_ICON", "icon")
     if icon:
         out["icon"] = icon
