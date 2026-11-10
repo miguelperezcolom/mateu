@@ -388,6 +388,11 @@ public static class MateuExtensions
         var oracleCdn = UiPage.ResolveOracleCdn(app.Services.GetService<MateuOptions>()?.OracleCdnUrl, out var rejected);
         if (rejected is not null) app.Logger.LogWarning("{Message}", rejected);
         app.Logger.LogInformation("Mateu UI: serving {Renderer} at {Mount}", renderer.Location, prefix.Length == 0 ? "/" : prefix);
+        // warn (once per mount, at startup) when the served renderer is not the project's declared one
+        // (Java's ProjectRendererCheck, run where IndexPage resolves the renderer)
+        var specsDir = Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
+        if (ProjectRendererCheck.Mismatch(ProjectRendererCheck.Declared(specsDir), ProjectRendererCheck.Served(renderer)) is { } mismatch)
+            app.Logger.LogWarning("{Message}", mismatch);
         if (oracleCdn is not null) app.Logger.LogInformation("Mateu UI: Oracle's CDN content is loaded from {Mirror}", oracleCdn);
         // The PWA's head goes on LAST, as on Java (after the Oracle CDN rewrite and the markers): its
         // worker version hashes the page exactly as served.

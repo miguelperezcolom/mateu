@@ -78,11 +78,8 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
 }
 
 /** A hero's image url: a root-relative path resolves against the app's own origin. */
-internal fun heroImageUrl(baseUrl: String, src: String): String = when {
-    src.startsWith("data:") || Regex("^https?://", RegexOption.IGNORE_CASE).containsMatchIn(src) -> src
-    src.startsWith("/") -> runCatching { java.net.URI(baseUrl).resolve(src).toString() }.getOrDefault(src)
-    else -> src
-}
+internal fun heroImageUrl(baseUrl: String, src: String): String =
+    if (src.startsWith("data:")) src else io.mateu.ijp.api.Urls.resolve(baseUrl, src)
 
 /** The hero band: at least [minHeight] tall, painting an optional background image (cover + veil). */
 internal class HeroPanel(private val minHeight: Int) : JPanel() {
@@ -419,8 +416,9 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
 }
 
 /** A standalone Image component (metadata.src — data URI or URL). */
-fun renderStandaloneImage(metadata: JsonNode, style: String = ""): JComponent {
-    val src = metadata.text("src")
+fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null, style: String = ""): JComponent {
+    // a root-relative src (`/assets/logo.png`) is the app backend's, as the browser reads it
+    val src = metadata.text("src").let { if (it.startsWith("data:")) it else io.mateu.ijp.api.Urls.resolve(baseUrl, it) }
     val svg = SvgImages.isSvg(src)
     // the image's CSS width / max-width (`max-width: 24rem`) caps it, as on the web; else 360px
     val capPx = JBUI.scale(cssPx(style, "width") ?: cssPx(style, "max-width") ?: 360)

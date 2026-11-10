@@ -51,6 +51,14 @@ proxied bulk action, `app-source-proxied` / `app-source-no-such-role` the `_apps
 `type: AppShell`: all three over a relative url with no self base url, so they exercise the proxy
 with no network.
 
+The YAML authoring kinds that need no code are pinned the same way: `yaml-partial` (`type:
+Partial`), `yaml-component-ref` (`components.yaml` + `ComponentRef`), `yaml-field-types` (`type:
+Types` + `fieldType:`), `yaml-template` (`template:` on a Form), `yaml-eyes-only` (component access
+keys) and `yaml-environment` — whose `request.json` names an `"environment"`, which each runner sets
+for that case alone exactly as a deployment would (Java `-Dmateu.environment`, the ports their
+environment setting). `layoutDelta` is not a YAML case: a delta refines a VIEW MODEL's inferred
+layout, and a view model's name differs per backend, so it stays pinned by each server's own tests.
+
 The `routed-tabs-*` cases pin ROUTED TABS — a record master whose route-registry `children` are its
 tabs, and in-page `@Tab(key)` tabs that are URLs — over route chains authored in code
 (`RoutedTabsRoutes`, the routes.yaml `children:` twin) and a deployment's feature flags

@@ -1,0 +1,4 @@
+# The case's own route table: one definition-only page over two catalogue sources.
+routes:
+  - route: products
+    layout: products.yaml

@@ -219,6 +219,12 @@ public record ServerSideComponentDto(
     /// RunActionRqDto.KnownStructureHash; when it still matches, the server omits the component and
     /// the client reuses its cache. (Mirrors io.mateu.dtos.ServerSideComponentDto.structureHash.)</summary>
     public string? StructureHash { get; init; }
+
+    /// <summary>The data the component renders with (a lookup's &lt;field&gt;-label, its selected
+    /// option…): only an island delivered INSIDE another page's answer (an EmbeddedView) has it — it
+    /// has no fragment of its own. Omitted elsewhere. (Mirrors io.mateu.dtos.ServerSideComponentDto.data.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public object? Data { get; init; }
 }
 
 /// <summary>A client-side field validation (mirrors io.mateu.dtos.ValidationDto): Condition is a

@@ -1,5 +1,5 @@
 import { applyColumnPrefs } from '../prefs.mjs'
-import { walkWithinSurface } from './tree.mjs'
+import { walkWithinSurface, findPageLevel } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
 import { buttonRouteOf, clearUiValues, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory, uiValueOf } from './content.mjs'
 import { safeHref, treeDisclosureOf } from './display.mjs'
@@ -10,18 +10,22 @@ import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage, dateConverterOptions, moneyText, temporalText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-/** RENDER helper: first node of the tree with the given metadata.type. */
+/** RENDER helper: first node of the SURFACE with the given metadata.type. It never crosses into
+ *  an island (a ServerSide below the root): an island is another surface, with its own context —
+ *  crossing made the Explorer's example islands claim the host page (their Page taken for the
+ *  host's header and toolbar, their NotFound / Foldout / TaskQueue for the whole page). */
 export function findByType(tree, type) {
   let found = null
-  const walk = (node) => {
+  const walk = (node, isRoot) => {
     if (found || !node || typeof node !== 'object') return
+    if (Array.isArray(node)) { node.forEach((x) => walk(x, false)); return }
+    if (!isRoot && node.type === 'ServerSide') return
     if (node.metadata && node.metadata.type === type) { found = node; return }
     for (const v of Object.values(node)) {
-      if (Array.isArray(v)) v.forEach(walk)
-      else if (v && typeof v === 'object') walk(v)
+      if (v && typeof v === 'object') walk(v, false)
     }
   }
-  walk(tree)
+  walk(tree, true)
   return found
 }
 
@@ -72,7 +76,9 @@ export function pageListingNodeOf(tree) {
   const all = cruds(tree)
   if (!all.length) return null
   const type = declaredTemplateTypeOf(tree)
-  if (!type) return all[0]
+  // without a template, the page's listing is one the PAGE owns: one inside a card or a tab is that
+  // part's content (an Explorer example's listing took the whole entry page over)
+  if (!type) return all.find((n) => findPageLevel(tree, (x) => x === n)) || null
   if (!PAGE_LISTING_TEMPLATES[type]) return null
   if (type === 'CollectionDetailPage') {
     const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')

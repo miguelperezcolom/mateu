@@ -26,7 +26,7 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // (Edit, Back to People), which was dropped. A page template that owns the header (noHeader:
     // the Welcome page's hero) gets none, or its title showed twice.
     val exprCtx = PageChrome.exprContext(r.ctx, state, data)
-    val header = if (PageChrome.ownsNoHeader(metadata)) null else PageChrome.header(r, metadata, exprCtx)
+    val header = if (PageChrome.ownsNoHeader(metadata)) null else PageChrome.header(r, metadata, exprCtx, state, data)
     if (header != null) panel.addStacked(header, JBGap)
     // A form with a header (or one whose template owns it) IS the page: it gets the page gutter
     // instead of touching the window's edges.
@@ -40,6 +40,7 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     val children = component.path("children")
     if (children.isArray) for (child in children) panel.addStacked(r.render(child, state, data), JBGap)
+    PageChrome.footer(r, metadata, state, data)?.let { panel.addStacked(it, JBGap) }
 
     if (!readOnly) {
         val buttons = metadata.arr("buttons")

@@ -37,7 +37,14 @@ define([
         return;
       }
       // an atom of a surface of its own (a MicroFrontend) goes back to that surface
-      if (surfaceId) {
+      // (a page painted by a template — a foldout — may not have registered its inline islands yet)
+      if (surfaceId && !(context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
+        const reg = context.$application.variables.mateuRegistry;
+        context.$application.variables.mateuRegistry = await bridge.ensureInlineIslands(
+          bridge.baseOf(reg) || bridge.mateuBase(context.$application.constants.mateuBaseUrl), reg,
+          { appState: context.$application.variables.mateuAppState || {} });
+      }
+      if (surfaceId && (context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
         await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });
         return;
       }

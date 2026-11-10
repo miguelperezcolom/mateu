@@ -174,9 +174,6 @@ object PageLevel {
                     gb.setConstraints(child, k)
                 }
             }
-            if (c is JComponent && c.parent?.layout is javax.swing.BoxLayout) {
-                c.maximumSize = java.awt.Dimension(c.maximumSize.width, c.preferredSize.height.coerceAtLeast(1))
-            }
             if (c is Container) c.components.forEach(::walk)
         }
         walk(root)

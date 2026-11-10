@@ -19,6 +19,11 @@ public sealed class TabAttribute(string name) : Attribute
     /// <summary>A feature flag (optionally negated with <c>!</c>): the tab is offered only while it is
     /// on (an <see cref="IFeatureFlags"/> answers it). (Mirrors Java's @Tab(show).)</summary>
     public string? Show { get; init; }
+
+    /// <summary>The key combination that selects this tab, e.g. "alt+1" (same syntax as an
+    /// action's shortcut); it travels as the tab's <c>shortcut</c>. (Mirrors Java's
+    /// @Tab(shortcut).)</summary>
+    public string? Shortcut { get; init; }
 }
 
 /// <summary>When a <see cref="SubresourceAttribute"/> listing is fetched.</summary>
@@ -320,6 +325,10 @@ public sealed class FabAttribute(string icon, string? label = null, int order = 
     public string Icon { get; } = icon;
     public string? Label { get; } = label;
     public int Order { get; } = order;
+
+    /// <summary>The button emphasis: primary (the default) | secondary | tertiary | none. (Mirrors
+    /// Java's @Fab(buttonStyle).)</summary>
+    public string ButtonStyle { get; init; } = "primary";
 }
 
 /// <summary>Binds a keyboard shortcut to a [Button]/action method, e.g. "ctrl+s".</summary>

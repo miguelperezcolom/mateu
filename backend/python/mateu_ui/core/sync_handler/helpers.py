@@ -225,6 +225,14 @@ class ResponseHelpersMixin(MixinBase):
         return value
 
     def bind_state(self, instance, state: dict[str, Any]) -> None:
+        self._bind_state(instance, state)
+        # the view's own hook, once its state is bound (Java's PostHydrationHandler.onHydrated)
+        from mateu_ui.uidl.suppliers import PostHydrationHandler
+
+        if isinstance(instance, PostHydrationHandler):
+            instance.on_hydrated()
+
+    def _bind_state(self, instance, state: dict[str, Any]) -> None:
         # a field a components.yaml business component hides or locks for the caller (the view's
         # own tree may draw it): never written from the wire
         from ..component_registry import without_locked

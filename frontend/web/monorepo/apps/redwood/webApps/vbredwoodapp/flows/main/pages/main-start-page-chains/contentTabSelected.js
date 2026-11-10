@@ -69,11 +69,11 @@ define([
       // the form's action row (withFormActions) does not depend on the tab: it stays
       const withRow = bridge.withFormActionsRowOf(projected, $application.variables.mateuHostContent);
       // the tab is already visible; its @Subresource (lazy: loaded when it opens) arrive later
-      $application.variables.mateuHostContent = bridge.withSubresources(withRow, reg.contexts);
+      $application.variables.mateuHostContent = bridge.withSubresources(withRow, reg.contexts, { activeTabs: $application.variables.mateuActiveTabs });
       reg = await bridge.loadSubresources(bridge.baseOf(reg) || bridge.mateuBase($application.constants.mateuBaseUrl),
         reg, projected, { appState: $application.variables.mateuAppState || {} });
       $application.variables.mateuRegistry = reg;
-      const blocks = bridge.withSubresources(withRow, reg.contexts);
+      const blocks = bridge.withSubresources(withRow, reg.contexts, { activeTabs: $application.variables.mateuActiveTabs });
       $application.variables.mateuHostContent = blocks;
       bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
       // a nested bar appears/changes when the tab changes: all of them are refreshed

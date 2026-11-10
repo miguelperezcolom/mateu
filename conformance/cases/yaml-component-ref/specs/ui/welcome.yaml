@@ -1,0 +1,6 @@
+# A page that drops a catalogue component where a component goes, by name.
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Text, text: Hello}
+    - {type: ComponentRef, ref: WelcomeNotice}

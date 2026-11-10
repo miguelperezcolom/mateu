@@ -1,17 +1,13 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * The create/edit DRAWER validates like the routed form. Fixture: mvc-app1 `DrawerValidationCrud`
+ * The create/edit DRAWER validates like the routed form. Fixture: sample1 `DrawerValidationCrud`
  * (/drawer-validation) — `@NotEmpty name`, `@Email email` (both validated in the browser).
  *
  * Before the fix the drawer's form was plain content of the crud component, whose create/save are
  * not validated in the browser: an empty required field was sent, the server refused it, and the
  * field was never marked invalid.
  */
-
-test.beforeEach(({}, testInfo) => {
-  test.skip(testInfo.project.name !== 'mvc-app1', 'the drawer-validation fixture lives in mvc-app1');
-});
 
 const drawer = (page: Page) => page.getByRole('dialog', { name: /New|Edit/ });
 const input = (page: Page, fieldId: string) => drawer(page).locator(`#${fieldId} input`).first();

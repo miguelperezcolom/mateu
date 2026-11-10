@@ -37,6 +37,15 @@ define([
       if (!fieldId) {
         return;
       }
+      // a field of a SURFACE of its own (an inline island, a MicroFrontend): the value goes to ITS
+      // state and its own OnValueChange / @AutoSave run against it (bridge.surfaceFieldEditOf)
+      const surfaceId = bridge.surfaceOfEvent(event);
+      const edit = surfaceId ? bridge.surfaceFieldEditOf($application.variables.mateuRegistry, surfaceId, fieldId, detail.value) : null;
+      if (edit) {
+        $application.variables.mateuRegistry = edit.registry;
+        if (edit.actionId) await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId: edit.actionId } });
+        return;
+      }
       // input of the merged ISLAND (fromNested, e.g. the document editor): its value
       // goes to the island's draft (runMateuIslandAction merges it into its componentState) and
       // does NOT relaunch the host's auto-save

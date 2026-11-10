@@ -250,8 +250,15 @@ class WizardMapperMixin(MixinBase):
         )
         # no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
         # every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
+        # @wizard_labels(back, next): the wizard's own words for its built-in buttons (Java's
+        # @WizardLabels → Wizard.backLabel / nextLabel); "Back" / "Next" otherwise
+        back_word, next_word = getattr(cls, "__mateu_wizard_labels__", ("", ""))
         back = (
-            self.client(ButtonMetadata(label="Back", action_id="back", color="normal"), None, [])
+            self.client(
+                ButtonMetadata(label=self.T(back_word) if back_word else "Back", action_id="back", color="normal"),
+                None,
+                [],
+            )
             if previous_applicable(cls, instance, current, total) is not None else None
         )
         if completion is not None and current == completing_step(cls, instance, total):
@@ -267,7 +274,10 @@ class WizardMapperMixin(MixinBase):
         else:
             nxt = self.client(
                 ButtonMetadata(
-                    label="Next" if has_next_step(cls, current, total, instance) else "Finish",
+                    label=(
+                        (self.T(next_word) if next_word else "Next")
+                        if has_next_step(cls, current, total, instance) else "Finish"
+                    ),
                     action_id="next",
                     button_style="primary", color="normal",
                 ),

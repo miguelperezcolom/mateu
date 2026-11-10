@@ -629,7 +629,7 @@ internal fun pagerButton(icon: javax.swing.Icon, name: String, onPress: () -> Un
     putClientProperty("JButton.buttonType", "square")
     isFocusable = true
     toolTipText = plainTip(name)
-    accessibleContext.accessibleName = name
+    getAccessibleContext().accessibleName = name
     addActionListener { onPress() }
 }
 
@@ -702,9 +702,9 @@ private fun formatAggregate(value: Double, spec: ColSpec): String {
         return MoneyValues.numberText(value)
     }
     if (spec.aggregate == "count") {
-        return java.text.NumberFormat.getIntegerInstance().format(Math.round(value))
+        return java.text.NumberFormat.getIntegerInstance(MoneyValues.uiLocale()).format(Math.round(value))
     }
-    val nf = java.text.NumberFormat.getNumberInstance()
+    val nf = java.text.NumberFormat.getNumberInstance(MoneyValues.uiLocale())
     nf.maximumFractionDigits = 2
     return nf.format(value)
 }

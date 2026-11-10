@@ -1487,7 +1487,8 @@ test('atajos: sólo las acciones de la pantalla con modificador; las pestañas l
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.match(shell, /bridge\.installKeys\(\)/)
   assert.match(shell, /bridge\.setAccessKeysEnabled\(/)
-  assert.match(webApp('resources/js/mateu-bridge.js'), /setShortcutContext\(reg\.contexts\[HOST_ID\]\)/)
+  // the host's AND the surfaces' (inline islands) shortcuts, every reduction
+  assert.match(webApp('resources/js/mateu-bridge.js'), /setShortcutContexts\(reg, HOST_ID\)/)
 })
 
 // ── P1 #18 floating windows on mouse hover ───────────────────────────────────────────────────

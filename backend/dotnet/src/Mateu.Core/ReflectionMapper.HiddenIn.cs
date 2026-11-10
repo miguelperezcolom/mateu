@@ -20,6 +20,11 @@ internal sealed partial class ReflectionMapper
         finally { CrudFormMode.Value = previous; }
     }
 
+    /// <summary>An [EditableOnlyWhenCreating] property outside a creation form: read-only (Java's
+    /// PageFormBuilder: <c>!forCreationForm &amp;&amp; EditableOnlyWhenCreating</c>).</summary>
+    internal static bool LockedOutsideCreation(MemberInfo member) =>
+        member.Find<EditableOnlyWhenCreatingAttribute>() is not null && CrudFormMode.Value != "new";
+
     /// <summary>Hidden on the crud form being mapped.</summary>
     internal static bool HiddenInCurrentForm(MemberInfo member) => HiddenInForm(member, CrudFormMode.Value);
 
@@ -44,7 +49,12 @@ internal sealed partial class ReflectionMapper
         var readOnlyRecord = element.Find<ReadOnlyAttribute>() is not null;
         var serverOwned = EditableProperties(element)
             .Where(p => HiddenInForm(p, mode)
-                        || ((readOnlyRecord || p.Find<ReadOnlyAttribute>() is not null) && p.Find<VersionAttribute>() is null))
+                        || ((readOnlyRecord || p.Find<ReadOnlyAttribute>() is not null) && p.Find<VersionAttribute>() is null)
+                        // an edit keeps the stored generated value and create-only field; a create
+                        // keeps the client's generated value — the server generated it for the very
+                        // form being saved (Java's ClientWritableFields)
+                        || (!creating && (p.Find<GeneratedValueAttribute>() is not null
+                                          || p.Find<EditableOnlyWhenCreatingAttribute>() is not null)))
             .Select(p => Naming.CamelCase(p.Name)).ToHashSet();
         // a nested record also arrives flattened, as <field>-<key>
         return serverOwned.Count == 0

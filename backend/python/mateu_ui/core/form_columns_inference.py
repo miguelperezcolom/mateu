@@ -20,6 +20,7 @@ import collections.abc
 from typing import get_origin
 
 from mateu_ui.uidl import Aside, HeaderBadge, Hidden, Timestamp, Version
+from mateu_ui.uidl.markers import Avatar as PageAvatar, Footer as PageFooter, Header as PageHeader
 from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl import kpi as KpiMarker
 
@@ -87,6 +88,9 @@ def renders_in_any_form(f) -> bool:
         or f.has(Timestamp)
         or f.has(Aside)
         or f.has(Version)
+        or f.has(PageAvatar)
+        or f.has(PageHeader)
+        or f.has(PageFooter)
     )
 
 

@@ -202,12 +202,12 @@ internal fun badgeIconOf(metadata: JsonNode): Pair<String, Boolean>? {
 fun renderAnchor(ctx: AppContext, metadata: JsonNode): JComponent {
     val text = metadata.text("text", metadata.text("url"))
     val url = metadata.text("url")
-    return if (url.startsWith("/")) {
-        ActionLink(plain(text)) { ctx.navigate(url, "", null, "") }
-    } else {
-        val l = JBLabel(plain(text))
-        l.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
-        l
+    if (MountLinks.immediate(ctx.session.baseUrl, url) == MountLinks.Target.None) return JBLabel(plain(text))
+    // every link is clickable: another site opens in the browser, a path opens the app mounted
+    // there (this one → in place; another mount → its own view) — see MountLinks
+    return ActionLink(plain(text)) { MountLinks.open(ctx, url, text) }.apply {
+        if (MountLinks.immediate(ctx.session.baseUrl, url) is MountLinks.Target.Browse) setExternalLinkIcon()
+        toolTipText = plainTip(url)
     }
 }
 

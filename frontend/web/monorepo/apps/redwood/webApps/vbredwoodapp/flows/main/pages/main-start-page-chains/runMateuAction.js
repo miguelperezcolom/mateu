@@ -355,7 +355,8 @@ define([
         $page.variables.mateuModalOpen = false;
         await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
       }
-      if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
+      // (a Dialog stacked OVER the drawer is not another drawer: what was typed in it stays)
+      if (bridge.drawerChangedBetween(before, reg)) {
         $page.variables.mateuDrawerDraft = {};
         // another drawer (or none): its Spectra template starts at its size, nothing pending
         $page.variables.mateuDrawerState = 'auto';
@@ -514,7 +515,7 @@ define([
       if (hostBlocks2) {
         reg = await bridge.loadSubresources(base, reg, hostBlocks2, { appState });
         $application.variables.mateuRegistry = reg;
-        hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts);
+        hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts, { activeTabs: vars.mateuActiveTabs });
       }
       // the blocks WIN when they are rich (EntityHeader/Meter/Ledger, tabs, tables…): the
       // generic form and the plain text are suppressed — same rule as the archetypes. Also

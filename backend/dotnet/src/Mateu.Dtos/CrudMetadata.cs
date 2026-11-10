@@ -124,6 +124,11 @@ public record GridColumnDto(GridColumnMetaDto Metadata)
     [JsonPropertyOrder(-1)] public string Type { get; init; } = "ClientSide";
 
     public string? Id => Metadata.Id;
+
+    /// <summary>The column component's own style — a reflected column's [Style], also on its
+    /// metadata (Java's GridColumn style). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Style { get; init; }
 }
 
 public record GridColumnMetaDto(string Id, string Label)
@@ -171,6 +176,24 @@ public record GridColumnMetaDto(string Id, string Label)
 
     /// <summary>A fixed CSS width (e.g. the "3rem" of a grid field's Edit column).</summary>
     public string? Width { get; init; }
+
+    /// <summary>The column's flex-grow ("0" for a fixed [ColumnWidth]); omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? FlexGrow { get; init; }
+
+    /// <summary>[Priority]: which columns go first when the listing must drop some (mirrors
+    /// GridColumnDto.priority); omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? Priority { get; init; }
+
+    /// <summary>[Line]: the line of a list/card row the column is drawn on (mirrors
+    /// GridColumnDto.line); omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? Line { get; init; }
+
+    /// <summary>[Style]: the column's own style (mirrors GridColumnDto.style); omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Style { get; init; }
 
     /// <summary>Cell alignment of a listing column: "end" for numbers, "center" for booleans
     /// (Java's GridColumnMapper.getAlignment); omitted otherwise.</summary>

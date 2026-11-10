@@ -190,8 +190,15 @@ public class MateuHelidonRoutes {
             res.status(ClientErrorLog.BAD_REQUEST).send();
             return;
           }
-          // rate-limited per client address (the endpoint is open to anonymous callers)
-          res.status(ClientErrorLog.handle(body, null, req.remotePeer().host())).send();
+          // rate-limited per user (Helidon security's principal), else per client address (the
+          // endpoint is open to anonymous callers); the lines carry the user, as on every adapter
+          var principal = HelidonSeIdentity.principalOf(req);
+          res.status(
+                  ClientErrorLog.handle(
+                      body,
+                      principal == null ? null : principal.getName(),
+                      req.remotePeer().host()))
+              .send();
         });
 
     // GET <baseUrl>/mateu/v3/documents/<token>: a document an action produced, served once

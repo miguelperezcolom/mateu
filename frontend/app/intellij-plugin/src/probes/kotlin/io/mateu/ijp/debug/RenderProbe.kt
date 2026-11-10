@@ -36,6 +36,9 @@ fun main() {
     // its options in a probe.properties file instead.
     File(if (input.isDirectory) input else input.absoluteFile.parentFile, "probe.properties").takeIf { it.isFile }
         ?.reader()?.use { options.load(it) }
+    // `locale=en`: the app's locale (AppDto.locale) a captured SCREEN does not carry — in the IDE
+    // the app shell sets it; without it money and dates followed the probe JVM's locale
+    option("locale", "MATEU_PROBE_LOCALE")?.let { io.mateu.ijp.ui.MoneyValues.setAppLocale(it) }
     bootstrap()
     if (input.isDirectory) {
         // Batch mode: every *.json in the folder → <out>/<name>.png + <name>.txt (the tree dump), in
@@ -83,12 +86,25 @@ private fun renderOne(jsonFile: File, pngPath: String) {
     // MATEU_PROBE_SIZE=WxH (env: the gradle task forwards only fixed properties).
     val (w, h) = (option("size", "MATEU_PROBE_SIZE") ?: "1200x900").split("x").map { it.trim().toInt() }
 
+    lateinit var frame: JFrame
     SwingUtilities.invokeAndWait {
-        val frame = JFrame("probe")
+        frame = JFrame("probe")
         frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
-        frame.contentPane.add(panel)
+        // the IDE's frames carry an IdeGlassPane the platform splitters need (see ProbeGlassPane)
+        frame.glassPane = ProbeGlassPane()
+        // hosted as a view is in the IDE (MateuViewManager): a page taller than the window SCROLLS,
+        // it is not squeezed to the frame — which the screen caps (a 2400px frame came out 854px)
+        frame.contentPane.add(com.intellij.ui.components.JBScrollPane(io.mateu.ijp.plugin.FillOrScrollPanel(panel)))
         frame.setSize(w, h)
         frame.isVisible = true
+        frame.validate()
+    }
+    // `settleMs=6000`: what arrives AFTER the first paint (islands, micro frontends, rows of a search,
+    // images) is laid out on a shown frame, as in the IDE, before the tree is dumped
+    val settle = option("settleMs", "MATEU_PROBE_SETTLE_MS")?.toLongOrNull() ?: 0L
+    var waited = 0L
+    while (waited < settle) { Thread.sleep(250); waited += 250; SwingUtilities.invokeAndWait {} }
+    SwingUtilities.invokeAndWait {
         frame.validate()
 
         println("=== component tree ===")
@@ -99,9 +115,12 @@ private fun renderOne(jsonFile: File, pngPath: String) {
         }
         println("=== dirty chain: trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
 
-        val img = BufferedImage(frame.width, frame.height, BufferedImage.TYPE_INT_RGB)
+        // the whole page (as tall as it lays out, up to the configured height), not the visible window
+        val img = BufferedImage(panel.width.coerceAtLeast(1), panel.height.coerceIn(1, maxOf(h, frame.height)), BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()
-        frame.contentPane.paint(g)
+        g.color = panel.background ?: java.awt.Color.WHITE
+        g.fillRect(0, 0, img.width, img.height)
+        panel.paint(g)
         g.dispose()
         ImageIO.write(img, "png", File(pngPath))
         println("=== png written to $pngPath ===")

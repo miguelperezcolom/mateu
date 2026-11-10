@@ -409,11 +409,11 @@ fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boo
     buttons.alignmentX = Component.LEFT_ALIGNMENT
     canvas.accessibleContext.accessibleName = "$what drawing area"
     buttons.add(JButton("Clear").apply {
-        accessibleContext.accessibleName = "Clear $what"
+        getAccessibleContext().accessibleName = "Clear $what"
         addActionListener { strokes.clear(); canvas.repaint() }
     })
     buttons.add(JButton("Accept").apply {
-        accessibleContext.accessibleName = "Accept $what"
+        getAccessibleContext().accessibleName = "Accept $what"
         addActionListener {
             val img = BufferedImage(canvas.width.coerceAtLeast(1), canvas.height.coerceAtLeast(1), BufferedImage.TYPE_INT_RGB)
             val g = img.createGraphics()

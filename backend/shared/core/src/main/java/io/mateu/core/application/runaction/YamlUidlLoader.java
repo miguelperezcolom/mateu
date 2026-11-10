@@ -53,11 +53,37 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       JsonNode source,
       java.util.Set<String> refusedActions,
       java.util.Set<String> lockedFields,
-      String pageType) {
+      String pageType,
+      java.util.Set<String> hiddenFields) {
 
     public YamlPageSpec {
       refusedActions = refusedActions == null ? java.util.Set.of() : refusedActions;
       lockedFields = lockedFields == null ? java.util.Set.of() : lockedFields;
+      hiddenFields = hiddenFields == null ? java.util.Set.of() : hiddenFields;
+    }
+
+    /** As the canonical constructor, with no field hidden from the caller. */
+    public YamlPageSpec(
+        String modelView,
+        Component layout,
+        io.mateu.uidl.data.LayoutDelta delta,
+        java.util.List<io.mateu.uidl.fluent.Action> actions,
+        java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
+        JsonNode source,
+        java.util.Set<String> refusedActions,
+        java.util.Set<String> lockedFields,
+        String pageType) {
+      this(
+          modelView,
+          layout,
+          delta,
+          actions,
+          triggers,
+          source,
+          refusedActions,
+          lockedFields,
+          pageType,
+          null);
     }
 
     public YamlPageSpec(
@@ -495,6 +521,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     JsonNode tree;
     java.util.Set<String> refused = java.util.Set.of();
     java.util.Set<String> locked = java.util.Set.of();
+    java.util.Set<String> hidden = java.util.Set.of();
     try {
       var catalogueRefused = catalogueActionsRefusedIn(source, httpRequest);
       if (io.mateu.core.application.security.YamlAccess.declaresAccess(source)
@@ -508,6 +535,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         tree = applied.tree();
         refused = applied.refusedActions();
         locked = applied.lockedFields();
+        hidden = applied.hiddenFields();
       } else {
         tree = source.deepCopy();
       }
@@ -549,7 +577,8 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
           null,
           refused,
           locked,
-          spec.pageType());
+          spec.pageType(),
+          hidden);
     } catch (Exception e) {
       log.error("Could not build the personalised YAML spec for {}", route, e);
       throw new IllegalStateException(

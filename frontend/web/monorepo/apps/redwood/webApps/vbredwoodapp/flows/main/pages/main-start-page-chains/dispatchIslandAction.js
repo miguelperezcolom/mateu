@@ -23,11 +23,17 @@ define([
      * @param {Object} params.parameters
      * @param {boolean} params.fromNested
      * @param {string} params.route  the RouteLink of a navigating button
+     * @param {string} params.surfaceId  the surface (MicroFrontend / inline island) the atom belongs to
      */
-    async run(context, { actionId, parameters, fromNested, route }) {
+    async run(context, { actionId, parameters, fromNested, route, surfaceId }) {
       const click = bridge.blockClickOf({ actionId, parameters, route, state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page?.variables.mateuDraft) });
       if (click.navigate) {
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
+        return;
+      }
+      // an atom of a surface of its own goes back to that surface
+      if (surfaceId && (context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
+        await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });
         return;
       }
       await Actions.callChain(context, {

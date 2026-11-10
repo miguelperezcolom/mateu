@@ -823,6 +823,23 @@ class VerticalLayout(Component):
 
 
 @dataclass(frozen=True)
+class FormLayout(Component):
+    """A responsive form grid (Java's fluent ``FormLayout``): its ``content`` flows into up to
+    ``max_columns`` columns (0 = no cap: 100 on the wire, like Java), with labels on top or, with
+    ``labels_aside``, to the left of each field."""
+
+    content: tuple = ()
+    max_columns: int = 0
+    auto_responsive: bool = False
+    labels_aside: bool = False
+    column_width: str | None = None
+    expand_columns: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class HorizontalLayout(Component):
     """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout);
     ``wrap`` lets the items flow onto the next line."""
@@ -871,6 +888,9 @@ class FormField(Component):
     #: endpoint) the renderer fetches — through the server (``__restfetch__``, by the field's id)
     #: when the source is proxied (Java's FormField.optionsSource).
     options_source: object | None = None
+    #: Renders as a read-only property row: label left, value right, a divider under it (Java's
+    #: FormField.propertyRow).
+    property_row: bool = False
 
 
 @dataclass(frozen=True)
@@ -2444,6 +2464,7 @@ __all__ = [
     "FormField",
     "GridTrack",
     "HorizontalLayout",
+    "FormLayout",
     "Image",
     "ListingColumn",
     "ListingComponent",

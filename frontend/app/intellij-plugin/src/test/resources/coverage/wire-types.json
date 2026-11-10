@@ -306,16 +306,6 @@
      },
      {
       "type": "ClientSide",
-      "id": "c33",
-      "metadata": {
-       "type": "Breadcrumb",
-       "text": "Single crumb",
-       "link": "/x"
-      },
-      "children": []
-     },
-     {
-      "type": "ClientSide",
       "id": "c34",
       "metadata": {
        "type": "MenuBar",

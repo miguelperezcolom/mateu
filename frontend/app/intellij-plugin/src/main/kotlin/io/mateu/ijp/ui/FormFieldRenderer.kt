@@ -703,7 +703,16 @@ private fun textArea(ctx: AppContext, fieldId: String, initial: String, enabled:
         override fun removeUpdate(e: DocumentEvent) { ctx.putState(fieldId, ta.text) }
         override fun changedUpdate(e: DocumentEvent) { ctx.putState(fieldId, ta.text) }
     })
-    return JScrollPane(ta)
+    return TextAreaScrollPane(ta)
+}
+
+/**
+ * A multi-line field's scroll pane keeps its four visible lines: a plain scroll pane's MINIMUM is
+ * its scroll bars, and a form row that is short of height (or a layout that sizes by minimum) shrank
+ * it to a one-line, 20px strip over a 64px text area.
+ */
+internal class TextAreaScrollPane(view: JComponent) : JScrollPane(view) {
+    override fun getMinimumSize(): java.awt.Dimension = java.awt.Dimension(super.getMinimumSize().width, preferredSize.height)
 }
 
 private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent =

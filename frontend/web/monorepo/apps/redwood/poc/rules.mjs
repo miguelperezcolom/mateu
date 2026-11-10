@@ -355,13 +355,43 @@ const hasRules = (ctx) => !!(ctx && ctx.tree && (ctx.tree.rules || []).length)
 export function ruleSurfacesOf(reg, hostId = '__root__') {
   const out = []
   const contexts = (reg && reg.contexts) || {}
-  if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+  const add = (surface, ctx) => {
+    if (!ctx) return
+    if (hasRules(ctx)) out.push({ surface, ctx })
+    // an island painted INSIDE this surface (a nested ServerSide of its tree — an EmbeddedView, a
+    // page an example embeds) brings rules of its own: they act on its fields, which are painted
+    // in this surface, against the island's state (its initialData, then what is typed). They
+    // were never read, so a `@Hidden("!state.company")` inside an island did nothing.
+    for (const island of nestedRuleIslandsOf(ctx.tree)) {
+      // an inline island registered as a context of its own (transport registerInlineIsland) has
+      // its CURRENT state there; else the state it arrived with
+      const own = island.id ? Object.values(contexts).find((c) => c && c !== ctx && c.tree && c.tree.id === island.id) : null
+      out.push({ surface, ctx: { id: (ctx.id || surface) + '/' + (island.id || ''), tree: island, state: (own && own.state) || island.initialData || {}, data: (own && own.data) || ctx.data || {} } })
+    }
+  }
+  add('host', contexts[hostId])
   for (const [id, ctx] of Object.entries(contexts)) {
-    if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+    if (id !== hostId && ctx && ctx.kind === 'island') add('island', ctx)
   }
   const stack = (reg && reg.stack) || []
   const top = stack.length ? contexts[stack[stack.length - 1]] : null
-  if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+  add('overlay', top)
+  return out
+}
+
+/** The ServerSide nodes nested in a tree (not the root) that carry rules. Pure. */
+export function nestedRuleIslandsOf(tree) {
+  const out = []
+  const walk = (n, isRoot) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && n.type === 'ServerSide' && Array.isArray(n.rules) && n.rules.length) out.push(n)
+    for (const [k, v] of Object.entries(n)) {
+      if (k === 'rules' || k === 'initialData' || k === 'validations') continue
+      if (v && typeof v === 'object') walk(v, false)
+    }
+  }
+  walk(tree, true)
   return out
 }
 

@@ -24,13 +24,14 @@ public class DayPlan implements TitleSupplier {
     return "Plan for " + date;
   }
 
-  @Button
+  // reflection does not keep declaration order: the order is declared
+  @Button(order = 1)
   @Label("‹ Previous day")
   URI previous() {
     return URI.create("/x/behaviour/deep-links/days/" + LocalDate.parse(date).minusDays(1));
   }
 
-  @Button
+  @Button(order = 2)
   @Label("Next day ›")
   URI next() {
     return URI.create("/x/behaviour/deep-links/days/" + LocalDate.parse(date).plusDays(1));

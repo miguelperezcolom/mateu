@@ -36,6 +36,11 @@ internal sealed class YamlSpecLoader : ISpecsCache
         /// <summary>Ids of fields hidden or read-only for the caller: their client values are dropped.</summary>
         public IReadOnlySet<string> LockedFields { get; init; } = new HashSet<string>();
 
+        /// <summary>Ids of fields REMOVED for the caller (eyesOnly:/access:) — a subset of
+        /// <see cref="LockedFields"/>: their value must not travel at all, not even as a route seed
+        /// (a read-only field keeps its seed: it is drawn, with its value).</summary>
+        public IReadOnlySet<string> HiddenFields { get; init; } = new HashSet<string>();
+
         public bool DependsOnRequest => Source is not null;
 
         /// <summary>The <c>pageType:</c> the definition declares (wire name), or null — inferred.</summary>
@@ -112,7 +117,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
         // very layout, state and actions the access keys were taking away (mirrors Java).
         var source = spec.Source;
         object? tree;
-        IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>();
+        IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>(), hidden = new HashSet<string>();
         try
         {
             // the action catalogue's restricted entries this page names (not its own): enforced
@@ -123,7 +128,7 @@ internal sealed class YamlSpecLoader : ISpecsCache
             {
                 var applied = YamlAccess.Apply(source, granted, path => _registry.IsReachable(path, granted),
                     catalogueRefused);
-                (tree, refused, locked) = (applied.Tree, applied.RefusedActions, applied.LockedFields);
+                (tree, refused, locked, hidden) = (applied.Tree, applied.RefusedActions, applied.LockedFields, applied.HiddenFields);
             }
             else tree = YamlAccess.DeepCopy(source);
         }
@@ -148,13 +153,13 @@ internal sealed class YamlSpecLoader : ISpecsCache
         }
         // an app shell is not built into components: the caller's copy of its tree is the spec
         if (spec.Shell is not null)
-            return spec with { Shell = tree as IDictionary<object, object>, Source = null, RefusedActions = refused, LockedFields = locked };
+            return spec with { Shell = tree as IDictionary<object, object>, Source = null, RefusedActions = refused, LockedFields = locked, HiddenFields = hidden };
         try
         {
             var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials, _fieldTypes);
             return spec with
             {
-                Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked,
+                Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked, HiddenFields = hidden,
                 // re-read from the caller's copy: a refused action is gone, its texts translated
                 Actions = YamlDeclaredActions.Of(tree).Where(a => !refused.Contains(a.Dto.Id)).ToList(),
                 Triggers = YamlDeclaredTriggers.Of(tree),

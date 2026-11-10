@@ -7,6 +7,7 @@ import {
   templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, withFormActions,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
+import { urlOfRoute } from './mount.mjs'
 import { chromeText } from './i18n.mjs'
 import { withoutOverlays } from './shellFlows.mjs'
 
@@ -112,6 +113,27 @@ export function overlayVarsOf(reg, picker = null) {
     drawerOpen: !!drawer && !(picker && !picker.inDrawer),
     modal: !!dialog && !picker,
   }
+}
+
+/** Whether the DRAWER on screen is another one (opened, closed, replaced) — the drawer's draft and
+ *  its Spectra template state start over. A Dialog stacked over it is not a new drawer: resetting on
+ *  any change of the stack's top lost what was typed in a drawer the moment a nested dialog opened. */
+export function drawerChangedBetween(before, reg) {
+  const id = (r) => { const d = drawerOverlayOf(r); return d ? d.id : null }
+  return id(before) !== id(reg)
+}
+
+/**
+ * The overlays after an action of a SURFACE of the content (an inline island, a MicroFrontend —
+ * runMateuSurfaceAction): a Dialog / Drawer it returned is pushed on the registry's stack like a
+ * page action's, and has to be painted the same way (overlayVarsOf). `changed`: there is something
+ * to (re)paint — an overlay opened, closed or refreshed.
+ */
+export function surfaceOverlayVarsOf(before, reg) {
+  const stackOf = (r) => ((r && r.stack) || []).join('|')
+  const vars = overlayVarsOf(reg, null)
+  const changed = stackOf(before) !== stackOf(reg) || ((reg && reg.stack) || []).length > 0
+  return { ...vars, changed }
 }
 
 /**
@@ -327,6 +349,17 @@ export function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn =
  * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
  * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
  */
+/** A declared trail as the header draws it: links (in-app urls) but the last one. Pure. */
+export function headerCrumbsOf(breadcrumbs) {
+  const list = breadcrumbs || []
+  return list.map((c, i) => {
+    const last = i === list.length - 1
+    const route = !last && c.route ? (c.route.charAt(0) === '/' || /^[a-z]+:/i.test(c.route) ? c.route : '/' + c.route) : ''
+    const href = route && !/^[a-z][a-z0-9+.-]*:/i.test(route) ? urlOfRoute(route) : ''
+    return { key: String(i), text: c.text, href, hasHref: !!href, noHref: !href, last }
+  })
+}
+
 export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
   const showBand = showHeader && pageWidth !== 'edgeToEdge'
   const showListBand = !!listing && pageWidth !== 'edgeToEdge'
@@ -364,6 +397,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     subtitle,
     // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
     overline: extras.overline,
+    // the trail a page DECLARES (BreadcrumbsSupplier), above the header: Spectra has no breadcrumbs
+    // component (its go-to-parent stays the parent crumb); the last crumb is where we are
+    crumbs: headerCrumbsOf(extras.breadcrumbs),
     // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
     // text went to the subtitle)
     timestamp: stamp.iso,
@@ -391,6 +427,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
     // primaryId) instead of general-overview's «‹ Cancel» link
     createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+    // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+    // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+    cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
     showBand: showBand && !gopOn && !iopOn,
     showInline: showHeader && !showBand && !gopOn && !iopOn,
     showListBand,

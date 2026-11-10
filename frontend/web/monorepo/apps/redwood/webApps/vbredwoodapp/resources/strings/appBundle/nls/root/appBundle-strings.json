@@ -98,6 +98,7 @@
   "captureSignHere": "Sign here",
   "offlineBand": "Offline — changes you make now won't be saved.",
   "errOffline": "You're offline. Your changes were not sent — check the network and try again.",
+  "errUnreachable": "Its server could not be reached. It may be down — try again later.",
   "errTimeout": "The server is taking too long to answer. Your changes may not have been saved.",
   "errServer": "The server could not complete the request. Try again.",
   "wireVersionMismatch": "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",

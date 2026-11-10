@@ -78,6 +78,10 @@ public sealed record FormField : ComponentBase
     /// inline endpoint) the renderer fetches — through the server (<c>__restfetch__</c>, by the
     /// field's id) when the source is proxied (Java's FormField.optionsSource).</summary>
     public RestDataSource? OptionsSource { get; init; }
+
+    /// <summary>Drawn as a read-only property row (label left, value right). (Mirrors
+    /// io.mateu.uidl.data.FormField.propertyRow.)</summary>
+    public bool PropertyRow { get; init; }
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────
@@ -1405,6 +1409,15 @@ public sealed record HorizontalLayout : ComponentBase
 public sealed record VerticalLayout : ComponentBase
 {
     public bool Spacing { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+}
+
+/// <summary>A responsive form grid of its content (fields, texts…), up to <see cref="MaxColumns"/>
+/// columns (0 = as many as fit). The YAML <c>type: FormLayout</c>. (C# analogue of
+/// io.mateu.uidl.data.FormLayout.)</summary>
+public sealed record FormLayout : ComponentBase
+{
+    public int MaxColumns { get; init; }
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
 

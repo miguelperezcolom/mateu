@@ -482,8 +482,8 @@ internal sealed class RouteRegistry : ISpecsCache
             Params(node, "defaultParams", "default_params"),
             parentRoute is null ? null : Prefix(basePath, parentRoute),
             null,
-            Params(node, "state", "state"),
-            Params(node, "appState", "app_state"),
+            Seeds(Params(node, "state", "state")),
+            Seeds(Params(node, "appState", "app_state")),
             DataSourceOf(node, "data"),
             DataSourceOf(node, "appData", "app_data"),
             YamlAccess.AccessOf(node.TryGetValue("access", out var access) ? access : null))
@@ -550,6 +550,38 @@ internal sealed class RouteRegistry : ISpecsCache
             if (name is not null) values[name] = kv.Value;
         }
         return values;
+    }
+
+    /// <summary>A route's literal <c>state</c>/<c>appState</c> seeds, their scalars TYPED as YAML's
+    /// core schema reads them — <c>height: 172</c> is the number 172, <c>active: true</c> a
+    /// boolean — as Java's SnakeYAML and Python's loader do (the untyped deserializer hands every
+    /// scalar over as text, and the seed travelled as "172"). Nested maps and lists are typed too.</summary>
+    private static IReadOnlyDictionary<string, object?> Seeds(IReadOnlyDictionary<string, object?> raw) =>
+        raw.Count == 0 ? raw : raw.ToDictionary(kv => kv.Key, kv => TypedScalar(kv.Value));
+
+    internal static object? TypedScalar(object? value)
+    {
+        switch (value)
+        {
+            case string s:
+                if (s is "true" or "True" or "TRUE") return true;
+                if (s is "false" or "False" or "FALSE") return false;
+                if (s is "~" or "null" or "Null" or "NULL") return null;
+                if (System.Text.RegularExpressions.Regex.IsMatch(s, "^[-+]?[0-9]+$")
+                    && long.TryParse(s, out var l))
+                    return l is >= int.MinValue and <= int.MaxValue ? (int)l : l;
+                if (System.Text.RegularExpressions.Regex.IsMatch(s, @"^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$")
+                    && double.TryParse(s, System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var d))
+                    return d;
+                return s;
+            case IDictionary<object, object> map:
+                return map.ToDictionary(kv => kv.Key.ToString()!, kv => TypedScalar(kv.Value));
+            case IEnumerable<object> list:
+                return list.Select(TypedScalar).ToList();
+            default:
+                return value;
+        }
     }
 
     /// <summary>Routes are relative to the mount, so a leading or trailing slash carries no meaning.</summary>

@@ -35,6 +35,20 @@ from .messages import (  # noqa: F401
     UserFacingException,
 )
 from .markers import (  # noqa: F401
+    Avatar,
+    ColumnWidth,
+    DivStyle,
+    EditableOnlyWhenCreating,
+    Footer,
+    GeneratedValue,
+    Header,
+    Line,
+    MappedValue,
+    Notice,
+    OptionsLayout,
+    Priority,
+    Status,
+    Style,
     Subresource,
     Aggregate,
     AggregateFunction,
@@ -133,6 +147,16 @@ from .suppliers import (  # noqa: F401
     PeerNavigationSupplier,
     RuleSupplier,
     BreadcrumbsSupplier,
+    AvatarSupplier,
+    FooterSupplier,
+    HeaderSupplier,
+    OverlineSupplier,
+    TitlePlaceholderSupplier,
+    VisibilitySupplier,
+    ReadOnlySupplier,
+    RequiredSupplier,
+    ColspanSupplier,
+    PostHydrationHandler,
 )
 from .placement import (  # noqa: F401
     Aside,
@@ -194,6 +218,10 @@ from .class_decorators import (  # noqa: F401
     ui,
     welcome_banner,
     wizard_progress,
+    wizard_labels,
+    style,
+    css_classes,
+    rule,
     zones,
 )
 from .method_decorators import (  # noqa: F401
@@ -471,4 +499,12 @@ __all__ = [
     "AutoEditableView", "DetailPart", "EditableView", "MasterDetailView", "NoSelection",
     # typed crud search criteria (Java's FilterCriterion / FilterOperator)
     "FilterCriterion", "FilterOperator",
+    # 3.0 GA parity (Java's page blocks, column options, mapped values, server-owned values,
+    # presentation, class rules and wizard labels)
+    "Avatar", "Header", "Footer", "AvatarSupplier", "HeaderSupplier", "FooterSupplier",
+    "ColumnWidth", "Priority", "Line", "Style", "DivStyle", "OptionsLayout", "Notice",
+    "Status", "MappedValue", "GeneratedValue", "EditableOnlyWhenCreating",
+    "wizard_labels", "style", "css_classes", "rule",
+    "OverlineSupplier", "TitlePlaceholderSupplier", "VisibilitySupplier", "ReadOnlySupplier",
+    "RequiredSupplier", "ColspanSupplier", "PostHydrationHandler",
 ]

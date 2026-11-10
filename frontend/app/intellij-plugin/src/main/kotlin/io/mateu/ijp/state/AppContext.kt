@@ -57,6 +57,26 @@ class AppContext(val session: AppSession) {
     /** When true, load/action failures are logged instead of shown in a dialog (used by embedded islands). */
     var silentErrors = false
 
+    /**
+     * The `MicroFrontend.chrome` this context is embedded with (NONE / COMPACT / PAGE), null for a
+     * page of its own: sent on every request (the remote then sends no window commands), and its
+     * OWN page header follows it ([EmbeddedChrome]).
+     */
+    var embeddedChrome: String? = null
+
+    /**
+     * Where a failing ISLAND says so: an embedded app whose backend is down used to stay an empty
+     * box, the failure only in the log ("Navigation failed: null"). Set by the island's creator.
+     */
+    var onIslandFailure: ((String) -> Unit)? = null
+
+    /** An island that embeds a whole app (a micro frontend, an app preview): an App shell answered
+     *  here is drawn as its navigator AND its screens ([io.mateu.ijp.ui.EmbeddedAppContent]). */
+    var embedsApps = false
+
+    /** Loads the screen this context shows again (an embedded app's context selector changed). */
+    fun reload() = navigate(currentRoute, currentConsumedRoute, navigationServerSideType.ifBlank { null }, "")
+
     /** True only on the navigator's context (the app shell) — its App feeds the IDE menu bar/title;
      *  mediator Apps rendered inside views must not. */
     var appShell = false
@@ -303,7 +323,7 @@ class AppContext(val session: AppSession) {
             // Append: convert to a vertical stack, preserving what's already there.
             val existing = target.components.toList()
             target.removeAll()
-            target.layout = BoxLayout(target, BoxLayout.Y_AXIS)
+            target.layout = io.mateu.ijp.ui.StackLayout()
             for (c in existing) target.add(c)
             node.alignmentX = java.awt.Component.LEFT_ALIGNMENT
             target.add(node)
@@ -332,7 +352,7 @@ class AppContext(val session: AppSession) {
             container.layout = BorderLayout()
             container.add(renderer.render(list[0], state, data), BorderLayout.CENTER)
         } else {
-            container.layout = BoxLayout(container, BoxLayout.Y_AXIS)
+            container.layout = io.mateu.ijp.ui.StackLayout()
             for (child in list) {
                 val c = renderer.render(child, state, data)
                 c.alignmentX = java.awt.Component.LEFT_ALIGNMENT
@@ -386,10 +406,10 @@ class AppContext(val session: AppSession) {
                 if (!actionId.isNullOrBlank()) {
                     apiClient.runAction(
                         route, consumedRoute ?: "", actionId, serverSideType,
-                        currentComponentId, currentComponentState, appState, emptyMap(),
+                        currentComponentId, currentComponentState, appState, emptyMap(), embeddedChrome,
                     )
                 } else {
-                    apiClient.navigate(route, consumedRoute, serverSideType, appState)
+                    apiClient.navigate(route, consumedRoute, serverSideType, appState, embeddedChrome)
                 }
             },
             onOk = { increment ->
@@ -408,7 +428,9 @@ class AppContext(val session: AppSession) {
             },
             onErr = {
                 clearStaleLoading(target, loading)
-                showError("Navigation failed: ${it.message}")
+                val reason = it.message ?: it.javaClass.simpleName
+                onIslandFailure?.invoke(reason)
+                showError("Navigation failed: $reason")
             },
         )
     }
@@ -571,7 +593,7 @@ class AppContext(val session: AppSession) {
                 work = {
                     apiClient.runActionStream(
                         currentRoute, currentConsumedRoute, actionId, serverSideType,
-                        currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
+                        currentComponentId, currentComponentState, appState, parameters ?: emptyMap(), embeddedChrome,
                     ) { increment ->
                         val reported = ProgressTasks.commandsOf(increment)
                         reported.forEach { taskIds.add(it.taskId) }
@@ -605,7 +627,7 @@ class AppContext(val session: AppSession) {
             work = {
                 apiClient.runAction(
                     currentRoute, currentConsumedRoute, actionId, serverSideType,
-                    currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
+                    currentComponentId, currentComponentState, appState, parameters ?: emptyMap(), embeddedChrome,
                 )
             },
             onOk = { increment ->
@@ -719,7 +741,7 @@ class AppContext(val session: AppSession) {
         val increment = apiClient.runAction(
             currentRoute, currentConsumedRoute, "__restfetch__", currentServerSideType,
             currentComponentId, currentComponentState, appState,
-            extra + mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
+            extra + mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId), embeddedChrome,
         )
         // The endpoint's failure the server reports in appData._restfetchError THROWS, like the web's
         // and RN's: read as success it showed "Deleted" for a delete that failed and left a refused
@@ -1439,7 +1461,7 @@ class AppContext(val session: AppSession) {
             work = {
                 apiClient.runAction(
                     route, currentConsumedRoute, "", serverSideType,
-                    id.ifBlank { "ux_main" }, emptyMap(), appState, emptyMap(),
+                    id.ifBlank { "ux_main" }, emptyMap(), appState, emptyMap(), embeddedChrome,
                 )
             },
             onOk = { increment ->

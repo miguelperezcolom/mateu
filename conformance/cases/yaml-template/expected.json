@@ -1,0 +1,129 @@
+{
+  "commands" : [ {
+    "data" : "Luke",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "children" : [ {
+                    "metadata" : {
+                      "abbreviation" : "LS",
+                      "type" : "Avatar"
+                    },
+                    "style" : "width: 8rem; height: 8rem",
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%; align-items: center",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "metadata" : {
+                      "colspan" : 1,
+                      "dataType" : "string",
+                      "fieldId" : "gender",
+                      "label" : "Gender",
+                      "propertyRow" : true,
+                      "readOnly" : true,
+                      "stereotype" : "regular",
+                      "type" : "FormField"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "metadata" : {
+                      "container" : "div",
+                      "text" : "From the archive",
+                      "type" : "Text"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%",
+                "type" : "ClientSide"
+              },
+              "type" : "Card"
+            },
+            "style" : "flex: 0 0 22rem; max-width: 100%; position: sticky; top: 0; align-self: flex-start",
+            "type" : "ClientSide"
+          }, {
+            "children" : [ {
+              "metadata" : {
+                "colspan" : 1,
+                "dataType" : "string",
+                "fieldId" : "height",
+                "label" : "Height (cm)",
+                "propertyRow" : true,
+                "readOnly" : true,
+                "stereotype" : "regular",
+                "type" : "FormField"
+              },
+              "type" : "ClientSide"
+            } ],
+            "metadata" : {
+              "type" : "VerticalLayout"
+            },
+            "style" : "flex: 1 1 24rem; min-width: min(24rem, 100%)",
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "spacing" : true,
+            "type" : "HorizontalLayout",
+            "wrap" : true
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "subtitle" : "Character",
+          "template" : {
+            "avatar" : {
+              "initials" : "LS"
+            },
+            "type" : "ItemOverviewPage"
+          },
+          "title" : "${state.name}",
+          "type" : "Form"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "gender" : "male",
+        "height" : 172,
+        "name" : "Luke"
+      },
+      "pageType" : "detail",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "gender" : "male",
+      "height" : 172,
+      "name" : "Luke"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

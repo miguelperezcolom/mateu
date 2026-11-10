@@ -5,9 +5,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -31,9 +33,12 @@ define([
       const blocks = wizardBlocks.length
         ? wizardBlocks
         : ($application.variables.mateuHostContent || []);
+      // the picker of the toggled row's SURFACE (an inline island's goes back to the island)
+      const surfaceId = bridge.surfaceOfEvent(event);
       let picker = null;
       for (const block of blocks) {
-        picker = (block.items || []).find((a) => a.isAddOns) || picker;
+        picker = (block.items || []).find((a) => a.isAddOns && (a.surfaceId || '') === surfaceId
+          && (a.items || []).some((it) => it.id === itemId)) || picker;
       }
       if (!picker || itemId == null) {
         return;
@@ -44,8 +49,9 @@ define([
         return sum + (nowAdded ? (it.price || 0) : 0);
       }, 0);
       await Actions.callChain(context, {
-        chain: 'runMateuAction',
+        chain: surfaceId ? 'dispatchHostBlockAction' : 'runMateuAction',
         params: {
+          surfaceId,
           actionId: picker.actionId,
           parameters: { _item: itemId, _added: added, _total: total },
         },

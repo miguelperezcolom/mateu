@@ -77,6 +77,9 @@ class MateuApiClient(
         componentState: Map<String, Any?>,
         appState: Map<String, Any?>,
         parameters: Map<String, Any?>,
+        /** `MicroFrontend.chrome` of the island asking (NONE / COMPACT / PAGE), else null: the
+         *  remote's server then sends no window commands ([io.mateu.ijp.state.EmbeddedChrome]). */
+        embeddedChrome: String? = null,
     ): JsonNode {
         val routeStripped = when {
             route == null -> ""
@@ -95,6 +98,7 @@ class MateuApiClient(
         body["componentState"] = componentState
         body["appState"] = appState
         body["parameters"] = parameters
+        body["embeddedChrome"] = embeddedChrome
         // Omit null values so the JSON matches the web frontend's behaviour.
         body.values.removeIf { it == null }
 
@@ -154,6 +158,7 @@ class MateuApiClient(
         componentState: Map<String, Any?>,
         appState: Map<String, Any?>,
         parameters: Map<String, Any?>,
+        embeddedChrome: String? = null,
         onIncrement: (JsonNode) -> Unit,
     ) {
         val routeStripped = (route ?: "").removePrefix("/")
@@ -167,6 +172,7 @@ class MateuApiClient(
             "componentState" to componentState,
             "appState" to appState,
             "parameters" to parameters,
+            "embeddedChrome" to embeddedChrome,
         ).filterValues { it != null }
         val url = "$baseUrl/mateu/v3/sse/$urlSegment"
         log("[Mateu] --> POST (stream) $url")
@@ -244,7 +250,8 @@ class MateuApiClient(
      */
     fun fetchExternal(url: String, method: String, headers: Map<String, String>, body: String?): JsonNode {
         val builder = HttpRequest.newBuilder()
-            .uri(URI.create(url))
+            // a root-relative source (`/explorer-api/…`) is the app backend's, as in the browser
+            .uri(URI.create(Urls.resolve(baseUrl, url)))
             .timeout(Duration.ofSeconds(60))
             .header("Accept", "application/json")
         headers.forEach { (k, v) -> builder.header(k, v) }
@@ -265,8 +272,8 @@ class MateuApiClient(
     fun initialLoad(route: String?, appState: Map<String, Any?>): JsonNode =
         runAction(route, "_empty", "", null, "ux_main", emptyMap(), appState, emptyMap())
 
-    fun navigate(route: String?, consumedRoute: String?, serverSideType: String?, appState: Map<String, Any?>): JsonNode =
-        runAction(route, consumedRoute ?: "_empty", "", serverSideType, "ux_main", emptyMap(), appState, emptyMap())
+    fun navigate(route: String?, consumedRoute: String?, serverSideType: String?, appState: Map<String, Any?>, embeddedChrome: String? = null): JsonNode =
+        runAction(route, consumedRoute ?: "_empty", "", serverSideType, "ux_main", emptyMap(), appState, emptyMap(), embeddedChrome)
 
     companion object {
         /** Wire logging to stdout (the bodies can carry personal data and tokens' effects): opt-in

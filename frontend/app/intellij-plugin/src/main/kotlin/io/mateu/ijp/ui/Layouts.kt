@@ -191,8 +191,26 @@ private class FixedWidth(private val width: Int, child: JComponent) : JPanel(jav
 }
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
+/**
+ * A tabbed pane as tall as its SELECTED tab (plus the tab strip), like a web tab sheet: a Swing
+ * tabbed pane asks for the height of its TALLEST tab, so a short code sample sat over a band of
+ * blank space as tall as the longest sample of the entry. Switching tab re-lays the page out.
+ */
+internal class SelectedHeightTabbedPane : JBTabbedPane() {
+    init {
+        addChangeListener { revalidate(); repaint() }
+    }
+
+    override fun getPreferredSize(): java.awt.Dimension {
+        val full = super.getPreferredSize()
+        val selected = selectedComponent ?: return full
+        val tallest = (0 until tabCount).maxOfOrNull { getComponentAt(it)?.preferredSize?.height ?: 0 } ?: 0
+        return java.awt.Dimension(full.width, (full.height - tallest + selected.preferredSize.height).coerceAtLeast(0))
+    }
+}
+
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val tabs = JBTabbedPane()
+    val tabs = SelectedHeightTabbedPane()
     val children = component.path("children")
     if (children.isArray) {
         for ((i, tab) in children.withIndex()) {
@@ -227,7 +245,6 @@ fun renderAccordion(r: ComponentRenderer, component: JsonNode, state: JsonNode, 
             t.accessibleContext.accessibleName = label
             t.getAccessibleContext().accessibleDescription = if (i == opened[0]) "Expanded" else "Collapsed"
         }
-        // a stacked panel froze the heights at add time: let them follow the open panel
         AccordionStack.refit(panel)
     }
     children.forEachIndexed { i, p ->
@@ -260,23 +277,9 @@ fun renderAccordion(r: ComponentRenderer, component: JsonNode, state: JsonNode, 
     return panel
 }
 
-/** Keeps a stack of accordion sections sized to what is visible (a panel opening or closing). */
+/** Re-lays a stack of accordion sections out after a panel opened or closed (StackLayout reads live heights). */
 internal object AccordionStack {
     fun refit(c: java.awt.Container) {
-        fun fit(x: java.awt.Component) {
-            if (x is JComponent && x.parent?.layout is javax.swing.BoxLayout) {
-                x.maximumSize = java.awt.Dimension(Int.MAX_VALUE, x.preferredSize.height.coerceAtLeast(1))
-            }
-            if (x is java.awt.Container) x.components.forEach(::fit)
-        }
-        c.components.forEach(::fit)
-        var p: java.awt.Container? = c
-        while (p != null) {
-            if (p is JComponent && p.parent?.layout is javax.swing.BoxLayout && p !== c) {
-                p.maximumSize = java.awt.Dimension(Int.MAX_VALUE, p.preferredSize.height.coerceAtLeast(1))
-            }
-            p = p.parent
-        }
         c.revalidate()
         c.repaint()
     }

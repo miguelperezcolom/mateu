@@ -517,7 +517,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
   'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-  'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
+  'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -525,10 +525,14 @@ export const CONTENT_ACTION_SINKS = Object.freeze([
   'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
   'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
   'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
+  'setRowSelectSink',
 ])
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */
 export const NOT_IN_EMBEDDED = Object.freeze({
+  // Ctrl+K opens the SHELL's Search-or-go palette: an embedded component has no shell palette, and
+  // the host page owns its own keyboard shortcuts
+  setPaletteSink: 'the palette is the standalone shell\'s; the host page owns Ctrl+K',
   // a skip link is the first child of the BODY: the host page owns its own landmarks
   mountSkipLink: 'the host page owns the document landmarks',
   // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
@@ -587,7 +591,7 @@ export function installEmbeddedContentRuntime(b, runtime) {
     b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
   }
   if (typeof b.setKanbanMoveSink === 'function') {
-    b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
+    b.setKanbanMoveSink(({ key, move, surfaceId }) => runtime.fireEvent('application:mateuKanbanMove', { key, move, surfaceId: surfaceId || '' }))
   }
   // the document-level listeners once per page; the sinks and hooks above/below follow the
   // CURRENT component (a new <mateu-ui> takes them over)

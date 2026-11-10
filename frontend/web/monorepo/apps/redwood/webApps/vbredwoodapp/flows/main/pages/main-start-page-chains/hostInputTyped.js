@@ -32,6 +32,18 @@ define([
       if (value === undefined || !fieldId) {
         return;
       }
+      // a field of a SURFACE of its own: ITS @AutoSave, against its state (bridge.surfaceFieldEditOf)
+      const surfaceId = bridge.surfaceOfEvent(event);
+      const edit = surfaceId ? bridge.surfaceFieldEditOf($application.variables.mateuRegistry, surfaceId, fieldId, value, { typing: true }) : null;
+      if (edit) {
+        if (!edit.changed) return;
+        $application.variables.mateuRegistry = edit.registry;
+        const surfaceToken = ++debounceToken;
+        await new Promise((resolve) => setTimeout(resolve, edit.debounceMillis));
+        if (surfaceToken !== debounceToken || !edit.actionId) return;
+        await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId: edit.actionId } });
+        return;
+      }
       const host = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID];
       const auto = bridge.autoSaveOf(host);
       if (!auto) {

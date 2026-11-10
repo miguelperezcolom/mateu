@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from contextvars import ContextVar
+
+from mateu_ui.uidl.suppliers import OverlineSupplier, TitlePlaceholderSupplier
+
 from mateu_ui.dtos import (
     Action,
     ClientSideComponent,
@@ -48,9 +52,22 @@ from ._common import (
 )
 
 
+
+#: The route of the view being mapped (see ``map_view``).
+HOST_ROUTE: ContextVar[str | None] = ContextVar("mateu_host_route", default=None)
+
 class ViewMapperMixin(MixinBase):
     # ── Plain view ─────────────────────────────────────────────────────────────
     def map_view(self, cls, instance, route: str, layout_override=None) -> ServerSideComponent:
+        # the route the view answers on: an island it embeds (fluent.EmbeddedView) with no route
+        # of its own answers on it too (Java's EmbeddedView branch passes the consumed route on)
+        token = HOST_ROUTE.set(route)
+        try:
+            return self._map_view(cls, instance, route, layout_override)
+        finally:
+            HOST_ROUTE.reset(token)
+
+    def _map_view(self, cls, instance, route: str, layout_override=None) -> ServerSideComponent:
         element = crud_element_type(cls)
         if element is not None:
             return self.map_crud(cls, element, route, instance)
@@ -247,13 +264,21 @@ class ViewMapperMixin(MixinBase):
             peer_nav=self.peer_nav(instance),
             switcher=self.record_switcher(instance),
             timestamp=self.timestamp_of(cls, instance),
-            overline=self._opt_t(class_flag(cls, "__mateu_overline__", None)),
+            # a supplier wins over the annotation, one being dynamic (Java's PageMetadataExtractor)
+            overline=self._opt_t(
+                instance.overline() if isinstance(instance, OverlineSupplier)
+                else class_flag(cls, "__mateu_overline__", None)
+            ),
             title_placeholder=self._opt_t(
-                class_flag(cls, "__mateu_title_placeholder__", None)
+                instance.title_placeholder() if isinstance(instance, TitlePlaceholderSupplier)
+                else class_flag(cls, "__mateu_title_placeholder__", None)
             ),
             title_is_text=True if titled_by_data(cls, instance) else None,
             breadcrumbs=self.declared_breadcrumbs(cls, instance),
             no_breadcrumbs=True if getattr(cls, "__mateu_no_breadcrumbs__", False) else None,
+            avatar=self.page_avatar(cls, instance),
+            header=self.page_header(cls, instance),
+            footer=self.page_footer(cls, instance),
         )
         if is_tree_supplier:
             # The tree is the fragment component: the ServerSide holds the mapped tree children
@@ -266,10 +291,17 @@ class ViewMapperMixin(MixinBase):
             if wrapper is not None:
                 server_children = [ClientSideComponent(metadata=wrapper, children=children)]
         else:
+            # @style / @css_classes on the class: the page component's own (Java's class @Style /
+            # @CssClasses); compact mode prepends its density overrides
+            declared_style = getattr(cls, "__mateu_style__", None)
+            page_style = (
+                (COMPACT_STYLE + (declared_style or "")) if compact else declared_style
+            )
             page = ClientSideComponent(
                 metadata=page_meta,
                 children=children,
-                style=COMPACT_STYLE if compact else None,
+                style=page_style or None,
+                css_classes=getattr(cls, "__mateu_css_classes__", None) or None,
             )
             server_children = [page]
             server_style = None
