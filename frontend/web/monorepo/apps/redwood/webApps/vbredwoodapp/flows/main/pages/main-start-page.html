@@ -101186,6 +101186,10 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
         <oj-bind-if test="[[ $current.data.isBlockRow ]]">
           <div :class="[[ $current.data.blockClass ]]">
           <div :class="[[ $current.data.frameClass ]]">
+            <!-- the card's title heads the frame, above its columns -->
+            <oj-bind-if test="[[ !!$current.data.frameTitle ]]">
+              <div :class="[[ $current.data.frameTitleClass ]]"><oj-bind-text value="[[ $current.data.frameTitle ]]"></oj-bind-text></div>
+            </oj-bind-if>
             <div class="oj-flex">
             <oj-bind-for-each data="[[ $current.data.subBlocks ]]">
               <template>

@@ -2910,7 +2910,18 @@ export function withSubresources(blocks, contexts, opts = {}) {
     }
     flush()
     const frameClass = block.isCard ? 'oj-panel oj-sm-margin-3x-bottom' : 'oj-sm-margin-2x-bottom'
-    return { isBlockRow: true, blockClass: block.blockClass || 'oj-flex-item oj-sm-12', frameClass,
+    // a card's title (its first atom, a subheading) heads the frame, above the columns
+    let frameTitle = ''
+    let frameTitleClass = ''
+    const lead = subBlocks[0]
+    const first = lead && !/oj-md-/.test(lead.blockClass) && lead.items[0]
+    if (block.isCard && first && first.isText && !first.isHeading && /subheading/.test(first.cls || '')) {
+      frameTitle = first.text
+      frameTitleClass = first.cls
+      lead.items = lead.items.slice(1)
+      if (!lead.items.length) subBlocks.shift()
+    }
+    return { isBlockRow: true, blockClass: block.blockClass || 'oj-flex-item oj-sm-12', frameClass, frameTitle, frameTitleClass,
       subBlocks: subBlocks.map((b, i) => ({ ...b, key: String(i), items: b.items.map((x, j) => (x && typeof x === 'object' ? { ...x, key: x.key || String(j) } : x)) })),
       items: block.items.flatMap((a) => (columnsOf.has(a) ? a.items : [a])) }
   })
