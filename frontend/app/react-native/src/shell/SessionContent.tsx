@@ -217,6 +217,9 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
   const title = overlayTitleOf(entry);
   const subtitle = interpolate(String(meta['subtitle'] ?? ''), { state: entry.state });
   const close = () => session.closeTopOverlay();
+  // a drawer's own header controls, all local (no round trip): ⤢ maximize, ▾/▴ fold a bottom drawer
+  const [maximized, setMaximized] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   /** What the overlay draws OUTSIDE its content (a footer, a header, a ConfirmDialog's body) runs on
    *  the view that opened it, with its state — the web's actions bubble to the opener. */
@@ -238,6 +241,12 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
         <MateuViewHost session={session} serverSideNode={content} overlaid overlayOpener={entry.opener} />
       </FitsContent.Provider>
     ) : null;
+  const peerNav = (meta['peerNav'] as Record<string, string | null> | null | undefined) ?? null;
+  const peers = peerNav
+    ? (['prev', 'next'] as const)
+        .map((side) => ({ side, label: String(peerNav[`${side}Label`] ?? ''), route: String(peerNav[`${side}Route`] ?? '') }))
+        .filter((p) => p.label || p.route)
+    : [];
   const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={close} />;
   // a lower layer stays drawn (dimmed by the one above) but takes no touches
   const layer = StyleSheet.absoluteFill;
@@ -292,18 +301,36 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
     // bare text, unreachable as a control)
     <View style={[layer, styles.overlayBackdrop, meta['modeless'] === true && styles.clearBackdrop]} pointerEvents={top ? 'auto' : 'none'}>
       {/* a Material bottom sheet: drag handle, title, close */}
-      <View style={styles.overlaySheet}>
+      <View style={[styles.overlaySheet, maximized && styles.sheetMaximized, collapsed && styles.sheetCollapsed]}>
         <View style={styles.overlayHandle} />
         <View style={styles.overlayHeader}>
           <View style={styles.overlayTitle}>
             <PaperText variant="titleLarge" {...headingA11y(2)} numberOfLines={2}>{title}</PaperText>
             {!!subtitle && <PaperText variant="bodyMedium" style={styles.overlaySubtitle}>{subtitle}</PaperText>}
           </View>
+          {peers.map((peer) => (
+            <IconButton
+              key={peer.side}
+              icon={peer.side === 'prev' ? 'chevron-left' : 'chevron-right'}
+              disabled={!peer.route}
+              accessibilityLabel={`${peer.side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`}
+              onPress={() => {
+                close();
+                session.openView({ label: peer.label, route: peer.route, consumedRoute: '', serverSideType: '' });
+              }}
+            />
+          ))}
+          {meta['maximizable'] === true && (
+            <IconButton icon={maximized ? 'arrow-collapse' : 'arrow-expand'} accessibilityLabel={maximized ? 'Restore size' : 'Maximize'} onPress={() => setMaximized((m) => !m)} />
+          )}
+          {meta['collapsible'] === true && (
+            <IconButton icon={collapsed ? 'chevron-up' : 'chevron-down'} accessibilityLabel={collapsed ? 'Expand' : 'Collapse'} accessibilityState={{ expanded: !collapsed }} onPress={() => setCollapsed((c) => !c)} />
+          )}
           {closeButton}
         </View>
-        {onOpener(meta['header'])}
-        <View style={styles.sheetBody}>{host(false)}</View>
-        {!!meta['footer'] && <View style={styles.sheetFooter}>{onOpener(meta['footer'])}</View>}
+        {!collapsed && onOpener(meta['header'])}
+        {!collapsed && <View style={styles.sheetBody}>{host(false)}</View>}
+        {!collapsed && !!meta['footer'] && <View style={styles.sheetFooter}>{onOpener(meta['footer'])}</View>}
       </View>
     </View>
   );
@@ -446,5 +473,7 @@ const styles = themed(() => StyleSheet.create({
   dialogBody: { paddingHorizontal: 24, paddingVertical: 8, gap: 8 },
   dialogFooter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
   sheetBody: { flexShrink: 1, flexGrow: 1 },
+  sheetMaximized: { maxHeight: '100%', minHeight: '100%', borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+  sheetCollapsed: { minHeight: 0 },
   sheetFooter: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, padding: 12 },
 }));
