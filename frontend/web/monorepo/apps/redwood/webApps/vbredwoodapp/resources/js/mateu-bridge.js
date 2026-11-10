@@ -9206,6 +9206,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function valueLabelOf(c, value) {
     // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
     if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
+    // a TOTALLED number column (@Aggregate) reads like its total and subtotals (1,122 beside 5,432)
+    if (isTotalledNumberColumn(c) && typeof value === 'number') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
     // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
     if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
     // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
@@ -9232,8 +9234,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return c && LISTING_NUMERIC_TYPES.indexOf(c.dataType) >= 0 ? 'end' : null
   }
 
+  const isTotalledNumberColumn = (c) => !!c && !!c.aggregate && ['integer', 'number', 'double', 'decimal', 'long', 'float'].indexOf(c.dataType) >= 0
+
   function labelColumn(c) {
-    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c) || isTotalledNumberColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -26706,6 +26710,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
   }
 
+  // ── Listings whose row click OPENS the record: the click is not a selection ─────────────────────
+  // oj-table selects the row a click lands on; on a listing whose rows open (the crud's view, a
+  // rowRoute, a master-detail) that click also ticked its checkbox — the web selects only from the
+  // checkbox. The last pointer press is remembered, and the selection chain undoes a change it caused.
+  let lastRowPress = { target: null, at: 0 }
+  /** Installs (once) the memory of the last pointer press. */
+  function installRowClickSelectionGuard(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowPress) return
+    doc.__mateuRowPress = true
+    doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
+  }
+  /** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
+   *  checkbox, nor from the keyboard): that change is to be undone. */
+  function selectionIsRowOpen(table, now = Date.now()) {
+    const t = lastRowPress.target
+    if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
+    const cls = String((table.getAttribute && table.getAttribute('class')) || '')
+    if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
+    return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+  }
+
   // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
   /** Marks `id` as the picked method of a picker's methods row (its button takes the callToAction). */
   function pickPaymentMethod(methods, id) {
@@ -26966,7 +26991,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // while nothing is checked — as Spectra's collection actions are — and comes on with the first
     // checked row (listSecondaryForSelection, from the selection chain)
     return {
-      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
+      // the primary too: an action that needs rows (rowsSelectedRequired) is off until one is checked
+      mateuListPrimary: primaryToolbar
+        ? listPrimaryForSelection({ label: primaryToolbar.label,
+          ...(primaryToolbar.disabled ? { inert: true } : {}),
+          ...((primaryToolbar.rowsSelectedRequired || required.indexOf(primaryToolbar.actionId) >= 0) ? { needsSelection: true } : {}) }, selection)
+        : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
       // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
       mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
@@ -26981,6 +27011,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Whether a listing selection (selectionOfKeySet) holds at least one row. */
   function hasSelectedRows(selection) {
     return !!selection && (selection.all || (selection.keys || []).length > 0)
+  }
+
+  /** The listing header's primary action for a selection (the same rule as the secondary ones). */
+  function listPrimaryForSelection(primary, selection) {
+    if (!primary || primary.display === 'off') return primary
+    const { display, ...rest } = primary
+    return (primary.inert || (primary.needsSelection && !hasSelectedRows(selection))) ? { ...rest, display: 'disabled' } : rest
   }
 
   /** The listing header's secondary actions with their `display` for a selection: an inert one is
@@ -29720,7 +29757,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
     'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
   ])
 
@@ -30683,6 +30720,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installScoreboards,
     showAddOnTotal,
     installPaymentPickers,
+    installRowClickSelectionGuard,
+    selectionIsRowOpen,
     paymentParametersOf,
     setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
@@ -30692,6 +30731,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
     listSecondaryForSelection,
+    listPrimaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,

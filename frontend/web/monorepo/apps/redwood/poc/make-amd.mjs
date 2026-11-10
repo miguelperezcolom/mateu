@@ -653,6 +653,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installScoreboards,
     showAddOnTotal,
     installPaymentPickers,
+    installRowClickSelectionGuard,
+    selectionIsRowOpen,
     paymentParametersOf,
     setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
@@ -662,6 +664,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
     listSecondaryForSelection,
+    listPrimaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,

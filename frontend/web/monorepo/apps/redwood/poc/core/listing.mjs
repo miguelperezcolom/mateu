@@ -1039,6 +1039,8 @@ export const LABEL_CELL_SUFFIX = '__labelCell'
 export function valueLabelOf(c, value) {
   // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
   if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
+  // a TOTALLED number column (@Aggregate) reads like its total and subtotals (1,122 beside 5,432)
+  if (isTotalledNumberColumn(c) && typeof value === 'number') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
   // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
   if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
   // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
@@ -1065,8 +1067,10 @@ export function alignOf(c) {
   return c && LISTING_NUMERIC_TYPES.indexOf(c.dataType) >= 0 ? 'end' : null
 }
 
+const isTotalledNumberColumn = (c) => !!c && !!c.aggregate && ['integer', 'number', 'double', 'decimal', 'long', 'float'].indexOf(c.dataType) >= 0
+
 export function labelColumn(c) {
-  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
+  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c) || isTotalledNumberColumn(c))) && !c.editable
     && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
 }
 

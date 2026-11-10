@@ -516,7 +516,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-  'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers',
+  'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
   'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
 ])
 

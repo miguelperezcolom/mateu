@@ -148,6 +148,7 @@ define([
       // the KPI band is oj-sp-scoreboard: each card's icon, and its drill-in (MetricCard.actionId)
       bridge.installScoreboards();
       bridge.installPaymentPickers();
+      bridge.installRowClickSelectionGuard();
       bridge.setScoreboardActionSink(runPageAction);
       // a FileList's oj-sp-attachment-chip downloads its file's URL (local data, no Oracle REST)
       bridge.installAttachmentChips();

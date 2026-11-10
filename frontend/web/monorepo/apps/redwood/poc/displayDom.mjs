@@ -2,7 +2,7 @@ import { chromeText, moneyNumberText } from './i18n.mjs'
 import { streamChat, buildChatBody, chatMarkdownToHtml, chatStatusText, chatTurnTextOf, chatUsageTextOf, dispatchChatEvent, latestUsage, mergeTurnUsage, uploadChatFiles } from './chat.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { authHeadersOf, askForReauthentication } from './resilience.mjs'
-import { hasConsentCookie, customComponentMountOf } from './reduceContexts.mjs'
+import { hasConsentCookie, customComponentMountOf, rowActionIsRows } from './reduceContexts.mjs'
 
 // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
 // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
@@ -478,6 +478,27 @@ export function showAddOnTotal(target, total, currency) {
   const picker = target && target.closest ? target.closest('.mateu-addons') : null
   const out = picker ? picker.querySelector('.mateu-addons-total-value') : null
   if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
+}
+
+// ── Listings whose row click OPENS the record: the click is not a selection ─────────────────────
+// oj-table selects the row a click lands on; on a listing whose rows open (the crud's view, a
+// rowRoute, a master-detail) that click also ticked its checkbox — the web selects only from the
+// checkbox. The last pointer press is remembered, and the selection chain undoes a change it caused.
+let lastRowPress = { target: null, at: 0 }
+/** Installs (once) the memory of the last pointer press. */
+export function installRowClickSelectionGuard(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuRowPress) return
+  doc.__mateuRowPress = true
+  doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
+}
+/** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
+ *  checkbox, nor from the keyboard): that change is to be undone. */
+export function selectionIsRowOpen(table, now = Date.now()) {
+  const t = lastRowPress.target
+  if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
+  const cls = String((table.getAttribute && table.getAttribute('class')) || '')
+  if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
+  return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
 }
 
 // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
