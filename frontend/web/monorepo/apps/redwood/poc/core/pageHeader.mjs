@@ -222,6 +222,10 @@ export function pageHeaderExtrasOf(ctx) {
   const prevRoute = pn ? text(pn.prevRoute) : ''
   const nextRoute = pn ? text(pn.nextRoute) : ''
   return {
+    // the trail a page DECLARES (BreadcrumbsSupplier → Page.breadcrumbs): it replaces the automatic one
+    breadcrumbs: (md.breadcrumbs || [])
+      .map((b) => ({ text: text(b && b.text), route: String((b && b.link) || '').trim() }))
+      .filter((b) => b.text),
     overline: text(md.overline),
     titlePlaceholder: text(md.titlePlaceholder),
     timestamp: text(md.timestamp),
@@ -605,7 +609,9 @@ export function summarizeHost(reg, route) {
   // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
   // borrowing the crud's or the menu's label (pageHeaderOf)
   const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
-  const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
+  const hostExtras = pageHeaderExtrasOf(host)
+  const placeholder = !declaredTitle && hostExtras.titlePlaceholder
+  const declaredCrumbs = hostExtras.breadcrumbs.map((c) => (c.route ? { text: c.text, route: c.route } : { text: c.text }))
   return {
     // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
     // there either, in the menu label
@@ -625,7 +631,8 @@ export function summarizeHost(reg, route) {
     // @NoBreadcrumbs on the page or on the shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
       ? []
-      : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
+      // a page that declares its trail (BreadcrumbsSupplier) is where IT says it is
+      : (declaredCrumbs.length ? declaredCrumbs : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) })),
     text: formMetadata ? '' : String(state.message == null ? '' : state.message),
     formMetadata,
     fields,
