@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { theme, themed } from '../theme';
-import { Image, PanResponder, Platform, StyleSheet, View } from 'react-native';
+import { PanResponder, Platform, StyleSheet, View } from 'react-native';
+import { Image } from './BackendImage';
 import { acceptsMedia, fileValueSummary } from './fileUpload';
 import { RadioButton } from 'react-native-paper';
 import { TouchableOpacity } from '../ui/Touchable';

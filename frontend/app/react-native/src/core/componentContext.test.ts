@@ -57,7 +57,20 @@ test('the trigger plan: AutoSave defaults, custom-event subscriptions, the rest 
   assert.deepEqual(p.autoSave, { actionId: 'save', debounceMillis: 800 });
   assert.deepEqual(p.subscriptions, [{ eventName: 'saved', actionId: 'load', from: 'list', scope: 'COMPONENT' }]);
   assert.deepEqual(triggerPlanOf([{ type: 'autosave', actionId: 'draft', debounceMillis: 200 }]).autoSave, { actionId: 'draft', debounceMillis: 200 });
-  assert.deepEqual(triggerPlanOf(undefined), { autoSave: null, subscriptions: [] });
+  assert.deepEqual(triggerPlanOf(undefined), { autoSave: null, subscriptions: [], valueChanges: [] });
+});
+
+test('OnValueChange: an edit of the named field (or any, when unnamed) runs the action whose condition holds', async () => {
+  const { valueChangeActionsOf } = await import('./componentContext.ts');
+  const { valueChanges } = triggerPlanOf([
+    { type: 'OnValueChange', actionId: 'countryChanged', propertyName: 'country', condition: '' },
+    { type: 'OnValueChange', actionId: 'recalculate', propertyName: 'quantity' },
+    { type: 'OnValueChange', actionId: 'anyEdit' },
+    { type: 'OnValueChange', actionId: 'onlyBig', propertyName: 'quantity', condition: 'state.quantity > 10' },
+  ]);
+  const holds = (c: string) => c !== 'state.quantity > 10';
+  assert.deepEqual(valueChangeActionsOf(valueChanges, 'country', holds), ['countryChanged', 'anyEdit']);
+  assert.deepEqual(valueChangeActionsOf(valueChanges, 'quantity', holds), ['recalculate', 'anyEdit']);
 });
 
 test('a subscription filters COMPONENT-scoped events by the emitter, passes the rest', () => {
@@ -127,4 +140,18 @@ test('a route\'s query seeds a listing\'s search, under what the user set', () =
   const s: Record<string, unknown> = { vista: 'IN_HOUSE' };
   seedSearchFromRoute(s, 'reservas?vista=LLEGADAS_HOY&hotel=MRU01');
   assert.deepEqual(s, { vista: 'IN_HOUSE', hotel: 'MRU01', page: 0, size: 10, sort: [], searchText: '' });
+});
+
+test('floating components: a Notification toasts, a Dialog/ConfirmDialog/Drawer opens as an overlay once something is on screen', async () => {
+  const { floatingIntentOf, notificationToastOf } = await import('./componentContext.ts');
+  const n = (type: string) => ({ type: 'ClientSide', metadata: { type } });
+  assert.equal(floatingIntentOf('Replace', n('Notification'), true), 'toast');
+  assert.equal(floatingIntentOf('Replace', n('ConfirmDialog'), true), 'overlay');
+  assert.equal(floatingIntentOf('Add', n('Drawer'), false), 'overlay');
+  // a screen that IS a dialog (nothing on screen yet), or any other component, renders in place
+  assert.equal(floatingIntentOf('Replace', n('Dialog'), false), null);
+  assert.equal(floatingIntentOf('Replace', n('Form'), true), null);
+  assert.equal(floatingIntentOf('Replace', { type: 'ServerSide', metadata: { type: 'Dialog' } }, true), null);
+  assert.deepEqual(notificationToastOf({ title: 'Saved', text: 'All good', theme: 'error' }), { title: 'Saved', text: 'All good', variant: 'error', duration: undefined });
+  assert.deepEqual(notificationToastOf({ title: 'Only a title' }), { title: null, text: 'Only a title', variant: 'info', duration: undefined });
 });

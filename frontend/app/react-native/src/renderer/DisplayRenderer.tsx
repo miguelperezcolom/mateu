@@ -1,6 +1,7 @@
 import { materialIconOf } from '../ui/wireIcons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View, type DimensionValue } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View, type DimensionValue } from 'react-native';
+import { Image, ImageBackground } from './BackendImage';
 import { cssToRn } from '../core/cssStyle';
 import { TrendLine } from './ChartRenderer';
 import { MIcon } from '../ui/controls';
@@ -300,7 +301,7 @@ export function TimelineRenderer({ component }: { component: unknown }) {
           </View>
         );
         return it.actionId ? (
-          <TouchableOpacity {...buttonA11y()} key={it.id ?? i} onPress={() => void controller.runAction(it.actionId!)}>
+          <TouchableOpacity {...buttonA11y()} key={it.id ?? i} onPress={() => void controller.runAction(it.actionId!, { _clickedItem: it })}>
             {body}
           </TouchableOpacity>
         ) : (
@@ -442,7 +443,7 @@ function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
   return (
     <>
       {node.actionId ? (
-        <TouchableOpacity {...buttonA11y()} onPress={() => void controller.runAction(node.actionId!)}>{row}</TouchableOpacity>
+        <TouchableOpacity {...buttonA11y()} onPress={() => void controller.runAction(node.actionId!, { _clickedNode: node })}>{row}</TouchableOpacity>
       ) : row}
       {(node.children ?? []).map((c, i) => (
         <OrgNodeRow key={c.id ?? i} node={c} depth={depth + 1} />
@@ -527,7 +528,7 @@ function OrgFocusCard({ node, variant, onFocus }: { node: OrgNode; variant: 'anc
   const big = variant === 'focused';
   const size = big ? 56 : 36;
   const accent = node.color ?? theme.primary;
-  const runNode = () => void controller.runAction(node.actionId!);
+  const runNode = () => void controller.runAction(node.actionId!, { _clickedNode: node });
   const reports = orgChildren(node).length;
   const title = node.actionId ? (
     <TouchableOpacity {...buttonA11y({ role: 'link', label: node.title ?? '' })} onPress={runNode}>
@@ -761,7 +762,7 @@ export function FileListRenderer({ component }: { component: unknown }) {
           </View>
         );
         return f.actionId ? (
-          <TouchableOpacity {...buttonA11y()} key={i} onPress={() => void controller.runAction(f.actionId!)}>{row}</TouchableOpacity>
+          <TouchableOpacity {...buttonA11y()} key={i} onPress={() => void controller.runAction(f.actionId!, { _file: f })}>{row}</TouchableOpacity>
         ) : <View key={i}>{row}</View>;
       })}
     </View>
@@ -780,7 +781,7 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
   const toggle = (it: ChecklistItem, i: number) => {
     const next = !done[i];
     setDone({ ...done, [i]: next });
-    if (it.actionId) void controller.runAction(it.actionId);
+    if (it.actionId) void controller.runAction(it.actionId, { _item: it, _done: next });
   };
   return (
     <View style={styles.checklist}>

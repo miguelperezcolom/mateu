@@ -18,11 +18,17 @@ export interface ActionFlags {
   bubble: Record<string, boolean>;
   /** @RestAction/@RestData descriptors: the client fetches the endpoint itself. */
   restData: Record<string, Json>;
+  /** `@Action(timeoutMillis)`: how long the client waits for the answer. */
+  timeoutMillis: Record<string, number>;
+  /** `@Action(idempotent)`: safe to repeat after a timeout / 5xx. */
+  idempotent: Record<string, boolean>;
+  /** `@Action(js = …)`: a CLIENT-side script — the server method is never called for it. */
+  js: Record<string, string>;
 }
 
 /** Reads the flags of the wire `actions` list; entries without an id are skipped. */
 export function actionFlagsOf(actions: unknown): ActionFlags {
-  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {} };
+  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {} };
   for (const a of asArray(actions)) {
     const id = str(a['id']);
     if (!id) continue;
@@ -34,6 +40,10 @@ export function actionFlagsOf(actions: unknown): ActionFlags {
     if (a['sse'] === true) flags.sse[id] = true;
     flags.bubble[id] = a['bubble'] === true;
     if (a['restAction'] && typeof a['restAction'] === 'object') flags.restData[id] = a['restAction'] as Json;
+    const timeout = Number(a['timeoutMillis']);
+    if (timeout > 0) flags.timeoutMillis[id] = timeout;
+    if (a['idempotent'] === true) flags.idempotent[id] = true;
+    if (typeof a['js'] === 'string' && a['js'].trim()) flags.js[id] = a['js'];
   }
   return flags;
 }
@@ -87,15 +97,31 @@ export interface EventSubscription {
   scope: string;
 }
 
-/** The component's @AutoSave and @SubscribeTo/OnCustomEvent triggers (others are ignored here). */
+/** An OnValueChange trigger: runs `actionId` when `propertyName` (any field when blank) is edited
+ *  and its `condition` (if any) holds — a dependent field recomputes (Total), a select's options
+ *  follow another (City after Country). */
+export interface ValueChangeTrigger {
+  actionId: string;
+  propertyName: string;
+  condition: string;
+}
+
+/** The component's @AutoSave, @SubscribeTo/OnCustomEvent and OnValueChange triggers. */
 export function triggerPlanOf(triggers: unknown): {
   autoSave: { actionId: string; debounceMillis: number } | null;
   subscriptions: EventSubscription[];
+  valueChanges: ValueChangeTrigger[];
 } {
   let autoSave: { actionId: string; debounceMillis: number } | null = null;
   const subscriptions: EventSubscription[] = [];
+  const valueChanges: ValueChangeTrigger[] = [];
   for (const trigger of asArray(triggers)) {
     const type = String(trigger['type']).toLowerCase();
+    if (type === 'onvaluechange') {
+      const actionId = str(trigger['actionId']);
+      if (actionId) valueChanges.push({ actionId, propertyName: str(trigger['propertyName']), condition: str(trigger['condition']) });
+      continue;
+    }
     if (type === 'autosave') {
       autoSave = { actionId: str(trigger['actionId']) || 'save', debounceMillis: Number(trigger['debounceMillis']) || 800 };
       continue;
@@ -106,7 +132,12 @@ export function triggerPlanOf(triggers: unknown): {
     if (!eventName || !actionId) continue;
     subscriptions.push({ eventName, actionId, from: str(trigger['from']), scope: str(trigger['source']).toUpperCase() });
   }
-  return { autoSave, subscriptions };
+  return { autoSave, subscriptions, valueChanges };
+}
+
+/** The OnValueChange actions an edit of `fieldId` runs (the web's mateu-component rule). */
+export function valueChangeActionsOf(triggers: ValueChangeTrigger[], fieldId: string, holds: (condition: string) => boolean): string[] {
+  return triggers.filter((t) => (!t.propertyName || t.propertyName === fieldId) && (!t.condition || holds(t.condition))).map((t) => t.actionId);
 }
 
 /** The action parameters an event delivers to a subscription, or null when a COMPONENT-scoped
@@ -259,4 +290,31 @@ export interface ToastAction {
   parameters: Json;
   route: string | null;
   style: string | null;
+}
+
+/**
+ * What a fragment carrying a FLOATING component does. On the web a returned Notification, Dialog,
+ * ConfirmDialog or Drawer floats above the component that returned it (a vaadin-notification /
+ * dialog element opens over the page): the island keeps its own content. Drawn in place here, it
+ * REPLACED the island's content (the Notify button vanished; a ConfirmDialog took the buttons' place
+ * and never went). So: a Notification is a toast, the others open as overlays — Add fragments of a
+ * Drawer/Dialog always did; any fragment does when something is already on screen.
+ */
+export function floatingIntentOf(fragmentAction: string, component: Json | null | undefined, hasContent: boolean): 'toast' | 'overlay' | null {
+  if (!component || component['type'] === 'ServerSide') return null;
+  const type = str((component['metadata'] as Json)?.['type']);
+  const add = fragmentAction.toLowerCase() === 'add';
+  if (type === 'Notification') return add || hasContent ? 'toast' : null;
+  if (type === 'Drawer' || type === 'Dialog' || type === 'ConfirmDialog') return add || hasContent ? 'overlay' : null;
+  return null;
+}
+
+/** A Notification component as a toast. */
+export function notificationToastOf(metadata: Json): { title: string | null; text: string; variant: 'info' | 'warning' | 'error'; duration: number | undefined } {
+  const theme = str(metadata['theme'] ?? metadata['variant']).toLowerCase();
+  const variant: 'info' | 'warning' | 'error' = /error|danger/.test(theme) ? 'error' : /warning/.test(theme) ? 'warning' : 'info';
+  const title = str(metadata['title']);
+  const text = str(metadata['text']) || str(metadata['message']) || title;
+  const duration = Number(metadata['duration']) || undefined;
+  return { title: title && text !== title ? title : null, text, variant, duration };
 }

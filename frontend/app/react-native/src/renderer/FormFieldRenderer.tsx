@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FieldFocusRegistrar } from '../ui/fieldFocus';
 import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
@@ -103,13 +104,25 @@ interface Props {
   error?: string;
 }
 
-export function FormFieldRenderer({ metadata, state, onStateChange, error }: Props) {
+/** A form field; its input can be asked for the focus (the first invalid field of a rejected save). */
+export function FormFieldRenderer(props: Props) {
+  const controller = useViewController();
+  const fieldId = props.metadata.fieldId;
+  const register = React.useCallback((focus: () => void) => controller.registerFieldFocus(fieldId, focus), [controller, fieldId]);
+  return (
+    <FieldFocusRegistrar.Provider value={register}>
+      <FormFieldBody {...props} />
+    </FieldFocusRegistrar.Provider>
+  );
+}
+
+function FormFieldBody({ metadata, state, onStateChange, error }: Props) {
   const { fieldId, dataType = 'string', stereotype = '', readOnly = false, disabled = false, options = [] } = metadata;
   const controller = useViewController();
 
-  // putState mutates the controller state WITHOUT re-publishing (a full re-render per keystroke
-  // would be wasteful), so widgets that derive their display from props (switch, date, selects,
-  // grid) keep a local echo of the last committed value until the next real publish remounts us.
+  // widgets that derive their display from props (switch, date, selects, grid) keep a local echo of
+  // the last committed value; an edit re-publishes the same state, and a value the SERVER changes
+  // arrives with a remount (or replaces the echo below when it differs).
   const [localValue, setLocalValue] = useState<unknown>(undefined);
   const rawValue = (localValue !== undefined ? localValue : state[fieldId] ?? metadata.initialValue) ?? '';
   const stringValue = rawValue === null || rawValue === undefined ? '' : String(rawValue);

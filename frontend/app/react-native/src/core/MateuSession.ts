@@ -3,6 +3,7 @@ import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { RestSourceCatalogue, sharedRestSources } from './restFetch.ts';
+import { againstBase } from './backendUrl.ts';
 import { ActionCatalogue, sharedActionCatalogue } from './shellFlows.ts';
 import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShellExtras.ts';
 import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts';
@@ -47,6 +48,11 @@ export interface OverlayOpenerContext {
   route: string;
   consumedRoute: string;
   serverSideType: string;
+  /** The session the opener runs in (a remote island's): the overlay's actions go to its backend. */
+  session?: MateuSession;
+  /** The view that opened it: what the overlay draws OUTSIDE its own content (a footer, a
+   *  ConfirmDialog's buttons) runs on it, with its state — the web's bubbling to the opener. */
+  controller?: unknown;
 }
 
 /**
@@ -70,6 +76,8 @@ export interface ScreenBack {
 export class MateuSession {
   readonly api: MateuApiClient;
   readonly appState: Record<string, unknown>;
+  /** What the server put in the app's data (`UIIncrementDto.appData`): `${appData.x}` reads it. */
+  readonly appData: Record<string, unknown> = {};
   /** Where this app's credentials may go: its own backend + the islands it names (an island
    *  shares its host's scope). */
   readonly credentials: CredentialScope;
@@ -144,7 +152,23 @@ export class MateuSession {
   confirmDiscard: () => Promise<boolean> = async () => true;
 
   /** Host hook: whether the screen on show has unsaved changes (its controller tracks them). */
-  hasUnsavedChanges: () => boolean = () => false;
+  hasUnsavedChanges: () => boolean = () => this.anyUnsavedChanges();
+
+  /** The views on screen with unsaved changes (@ConfirmOnNavigationIfDirty) — an island's included:
+   *  an edited form embedded in a page let a menu navigation leave without asking. */
+  private readonly dirtyViews = new Set<unknown>();
+
+  /** A view says whether it has unsaved changes now (a derived session tells the app's). */
+  noteDirty(view: unknown, dirty: boolean): void {
+    if (this.storesFromSession) return this.storesFromSession.noteDirty(view, dirty);
+    if (dirty) this.dirtyViews.add(view);
+    else this.dirtyViews.delete(view);
+  }
+
+  /** Whether any view of this app on screen has unsaved changes. */
+  anyUnsavedChanges(): boolean {
+    return this.storesFromSession ? this.storesFromSession.anyUnsavedChanges() : this.dirtyViews.size > 0;
+  }
   /** A hub keeps every opened UI mounted: only the one on screen answers Android's Back, polls, or opens a browser. */
   private ownOnScreen = true;
   private readonly storesFromSession?: MateuSession;
@@ -231,6 +255,28 @@ export class MateuSession {
     // A redeployed backend / a screen built by an older deployment: one sticky notice with Reload.
     this.noticeTarget = storesFrom?.noticeTarget ?? this;
     this.api.onBuildNotice = (kind) => this.noticeTarget.showBuildNotice(kind);
+    // A live app's relative source urls (`/explorer-api/planets`) are relative to its backend — the
+    // web's page is served by it; a native app has none (they went to the Expo dev server). A static
+    // bundle re-points this at the bundle (openStaticBundle).
+    if (!storesFrom && this.sources.relativeBase === undefined) this.sources.relativeBase = baseUrl;
+    if (storesFrom) {
+      // A derived session (a remote island, a navigation to another backend) has no hosts of its
+      // own: its toasts, questions and overlays are the app's. Delegated at call time — the hosts
+      // wire these hooks in effects, after the derived session may already exist. An overlay keeps
+      // the session that opened it (its opener), so its actions still go to the island's backend.
+      this.notify = (...a) => storesFrom.notify(...a);
+      this.confirmAction = (t) => storesFrom.confirmAction(t);
+      this.confirmDiscard = () => storesFrom.confirmDiscard();
+      this.openOverlay = (c, s, d, opener) => storesFrom.openOverlay(c, s, d, opener ? { ...opener, session: opener.session ?? this } : { route: '', consumedRoute: '', serverSideType: '', session: this });
+      this.updateOverlayState = (id, state) => storesFrom.updateOverlayState(id, state);
+      this.closeTopOverlay = () => storesFrom.closeTopOverlay();
+      this.openView = (target) => storesFrom.openView(target);
+    }
+  }
+
+  /** `url` (an image, a link, a micro frontend's base) resolved against this session's backend. */
+  backendUrl(url: string | null | undefined): string {
+    return againstBase(url, this.api.baseUrl);
   }
 
   /**
@@ -325,6 +371,9 @@ export class MateuSession {
  * instead of reaching the process-wide stores every other UI could read.
  */
 export function islandSession(host: MateuSession, baseUrl: string): MateuSession {
+  // a root-relative base (`/apps/rooms`: an app mounted on the same server) is the HOST backend's,
+  // as on the web, where it is relative to the page that server served
+  baseUrl = againstBase(baseUrl, host.api.baseUrl);
   if (!baseUrl || baseUrl === host.api.baseUrl) return host;
   // the island's base url came in an ANSWER: trusted only when the app's own backend named it
   host.credentials.declare(host.api.baseUrl, [baseUrl]);
@@ -340,6 +389,7 @@ export function islandSession(host: MateuSession, baseUrl: string): MateuSession
  * and is anonymous otherwise.
  */
 export function navigationSession(host: MateuSession, baseUrl: string): MateuSession {
+  baseUrl = againstBase(baseUrl, host.api.baseUrl);
   if (!baseUrl || baseUrl === host.api.baseUrl) return host;
   const session = sessionOver(host, baseUrl);
   // a SCREEN opened against another backend still names the shell's bar (RN-22) — an island does not

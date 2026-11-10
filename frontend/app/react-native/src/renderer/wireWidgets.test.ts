@@ -193,6 +193,13 @@ test('workflow: a precondition cycle does not hang', () => {
   assert.equal(diagram.nodes.length, 2);
 });
 
+test('a grid cell action sends the row as its parameters; a crud row action under _clickedRow', async () => {
+  const { gridCellParameters } = await import('./wireWidgets.ts');
+  const row = { id: 'w1', title: 'Starry Night' };
+  assert.deepEqual(gridCellParameters('openWork', row), row);
+  assert.deepEqual(gridCellParameters('action-on-row-cancel', row), { _clickedRow: row });
+});
+
 test('a grid with column groups has a group header row over its leaf columns', () => {
   const col = (id: string, extra: Record<string, unknown> = {}) => ({ type: 'ClientSide', metadata: { type: 'GridColumn', id, label: id.toUpperCase(), ...extra } });
   const grid = { metadata: { content: [col('work', { width: '14rem' }), { metadata: { type: 'GridGroupColumn', label: 'Loan', columns: [col('from'), col('to')] } }] } };

@@ -11,7 +11,10 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, type GestureResponderEvent, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useOpenHref } from './useOpenHref';
+import { hrefIntent } from '../core/linkTarget';
+import { Image } from './BackendImage';
 import { cssToRn } from '../core/cssStyle';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
@@ -41,6 +44,7 @@ import {
   textOfHtml,
   type MenuOptionLike,
   gridTrackSizes,
+  gridCellParameters,
   orderByAreas,
 } from './wireWidgets';
 import { interpolate } from '../core/expressions';
@@ -421,7 +425,7 @@ export function GridRenderer({ component, state, data }: { component: unknown; s
               }
               const leafPad = tree && ci === 0 ? { paddingLeft: 6 + indent + 18 } : null;
               return c.actionId ? (
-                <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, { _clickedRow: row })}>
+                <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, gridCellParameters(c.actionId!, row))}>
                   <Text style={[...cellStyle, leafPad, styles.link]} numberOfLines={1}>{text}</Text>
                 </TouchableOpacity>
               ) : (
@@ -806,7 +810,21 @@ export function ElementRenderer({ metadata, state, data }: { metadata: Dict; sta
   const raw = interpolate(str(metadata['content']), { state, data });
   const text = metadata['html'] === true ? textOfHtml(raw) : raw;
   const kind = elementKind(name);
-  const press = on['click'] ? () => void controller.runAction(on['click']!, { event: {} }) : undefined;
+  const openHref = useOpenHref();
+  // `on: {click: action}` runs the action with the event, as the web serializes it (its scalar
+  // fields: type, clientX/Y…) — an empty `{}` made the handler answer "null at x=null, y=null"
+  // a second press within 300 ms is a double click (`on: {dblclick: …}`), after its click, as in a browser
+  const lastPress = useRef(0);
+  const press = on['click'] || on['dblclick']
+    ? (e?: GestureResponderEvent) => {
+        const now = Date.now();
+        const double = now - lastPress.current < 300;
+        lastPress.current = double ? 0 : now;
+        if (on['click']) void controller.runAction(on['click']!, { event: pressEventOf(e) });
+        if (double && on['dblclick']) void controller.runAction(on['dblclick']!, { event: { ...pressEventOf(e), type: 'dblclick', detail: 2 } });
+      }
+    : undefined;
+  if (name.toLowerCase() === 'iframe') return <FramedPage src={str(attrs['src'])} title={str(attrs['title'])} />;
   let node: React.ReactNode;
   switch (kind) {
     case 'heading': {
@@ -826,7 +844,7 @@ export function ElementRenderer({ metadata, state, data }: { metadata: Dict; sta
     case 'link': {
       const href = attrs['href'] ?? '';
       node = (
-        <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={press ?? (() => href && void openExternal(href))}>
+        <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={press ?? (() => openHref(href, text))}>
           <Text style={styles.link}>{text || href}</Text>
         </TouchableOpacity>
       );
@@ -855,6 +873,51 @@ export function ElementRenderer({ metadata, state, data }: { metadata: Dict; sta
   );
 }
 
+/**
+ * An `<iframe>` (the Explorer's AppPreview frames a whole app): a native app cannot frame a web
+ * page, so a page of THIS backend (a relative src) is drawn live in a framed box — the same screen,
+ * hosted as an island at that route — with a link that opens it as a screen of its own; another
+ * origin's page is only that link (to the OS browser).
+ */
+function FramedPage({ src, title }: { src: string; title: string }) {
+  const { session } = useViewController();
+  const openHref = useOpenHref();
+  const intent = hrefIntent(src);
+  if (intent.kind === 'none') return null;
+  return (
+    <View style={styles.frame} accessibilityLabel={title || undefined}>
+      {intent.kind === 'inApp' && (
+        <View style={styles.frameBody}>
+          <MateuViewHost session={session} target={{ label: title, route: intent.route, consumedRoute: '', serverSideType: '' }} embedded />
+        </View>
+      )}
+      <TouchableOpacity {...buttonA11y({ role: 'link' })} style={styles.frameLink} onPress={() => openHref(src, title)}>
+        <Text style={styles.link}>{intent.kind === 'inApp' ? 'Open full screen ↗' : `${title || src} ↗`}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+/** A press as the web's element events serialize it (its scalar fields). */
+function pressEventOf(e?: GestureResponderEvent): Record<string, unknown> {
+  const n = (e?.nativeEvent ?? {}) as unknown as Record<string, unknown>;
+  const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
+  const out: Record<string, unknown> = {
+    type: 'click',
+    clientX: num(n['clientX']) ?? num(n['pageX']),
+    clientY: num(n['clientY']) ?? num(n['pageY']),
+    pageX: num(n['pageX']),
+    pageY: num(n['pageY']),
+    offsetX: num(n['offsetX']) ?? num(n['locationX']),
+    offsetY: num(n['offsetY']) ?? num(n['locationY']),
+    timeStamp: num(n['timestamp']) ?? num(n['timeStamp']) ?? Date.now(),
+    button: 0,
+    detail: 1,
+  };
+  for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
+  return out;
+}
+
 /** An App shell nested inside a screen (an embedded app, e.g. a crud mediator the controller did
  *  not unwrap): hosted as its own island, at its home route. */
 export function NestedAppRenderer({ metadata }: { metadata: Dict }) {
@@ -868,7 +931,7 @@ export function NestedAppRenderer({ metadata }: { metadata: Dict }) {
         consumedRoute: str(metadata['homeConsumedRoute']),
         serverSideType: str(metadata['homeServerSideType']) || str(metadata['serverSideType']),
       }}
-      silent
+      embedded
     />
   );
 }
@@ -986,6 +1049,9 @@ const styles = themed(() => StyleSheet.create({
   bold: { fontWeight: '600', color: theme.ink, fontSize: 14 },
   muted: { fontSize: 12, color: theme.muted },
   link: { color: theme.info, fontSize: 14 },
+  frame: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd, overflow: 'hidden', backgroundColor: theme.background },
+  frameBody: { maxHeight: 560, overflow: 'hidden' },
+  frameLink: { paddingHorizontal: 12, minHeight: theme.minTouch, justifyContent: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   placeholder: { color: theme.faint, fontStyle: 'italic', padding: 12, textAlign: 'center' },
   empty: { color: theme.faint, padding: 16 },
   partLabel: { fontWeight: '600', color: theme.muted, fontSize: 14, textTransform: 'uppercase' },

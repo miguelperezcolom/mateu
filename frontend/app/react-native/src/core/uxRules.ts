@@ -98,6 +98,13 @@ export function loadFailureMessage(raw: string | null | undefined): { title: str
   if (/\b5\d\d\b/.test(text)) {
     return { title: 'Something went wrong on the server', detail: 'Try again. If it keeps failing, contact support.' };
   }
+  if (/\b(404|410)\b|not found/i.test(text)) {
+    return { title: "This isn't available", detail: 'It may have been moved or deleted.' };
+  }
+  // a page of HTML where data was expected — never the parser's "Unexpected token '<'"
+  if (/unexpected token|is not valid json|json parse error|unexpected end of json|unrecognized token/i.test(text)) {
+    return { title: "This screen couldn't be loaded", detail: 'The server sent an answer this app cannot read. Please try again later.' };
+  }
   return { title: "This screen couldn't be loaded", detail: text || 'Try again.' };
 }
 

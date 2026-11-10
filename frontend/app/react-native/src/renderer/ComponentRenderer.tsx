@@ -1,7 +1,7 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Image } from './BackendImage';
 import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
-import { EmbeddedChrome } from './ScrollContext';
 import { materialIconOf } from '../ui/wireIcons';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
@@ -9,6 +9,7 @@ import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { wireButtonAlignSelf } from '../core/phoneLayout';
 import { useButtonPress } from './useButtonPress';
+import { PendingAware } from './usePendingAction';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { buttonGroupMembers } from '../core/buttonGroup';
@@ -22,7 +23,7 @@ import { PageRenderer } from './PageRenderer';
 import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
-  PopoverRenderer,
+  PopoverRenderer, PopoverTrigger,
 } from './ContainerRenderer';
 import {
   MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
@@ -45,7 +46,6 @@ import { MatrixGridRenderer } from './MatrixGridRenderer';
 import { MapRenderer } from './MapRenderer';
 import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
-import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { MateuButton } from '../ui/controls';
@@ -87,8 +87,10 @@ export function ComponentRenderer({ component, state, data }: Props) {
 }
 
 function ServerSideIsland({ component }: { component: Record<string, unknown> }) {
-  const { session } = useAppContext();
-  return <MateuViewHost session={session} serverSideNode={component} silent />;
+  // the island runs in the session of the view it sits in (a remote micro frontend's own island
+  // talks to the remote, not to the app's backend)
+  const { session } = useViewController();
+  return <MateuViewHost session={session} serverSideNode={component} embedded />;
 }
 
 /**
@@ -96,16 +98,15 @@ function ServerSideIsland({ component }: { component: Record<string, unknown> })
  * own baseUrl we spin a dedicated session for that origin; otherwise it shares the host session.
  */
 function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }) {
-  const { session } = useAppContext();
+  const { session } = useViewController();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(() => islandSession(session, baseUrl), [baseUrl, session]);
-  // its declared chrome (NONE / COMPACT / PAGE) reaches the page inside it, and its own box style
-  // (a dashed frame, padding) is drawn around it
-  const chrome = typeof metadata['chrome'] === 'string' ? (metadata['chrome'] as string).toUpperCase() : null;
+  // its declared chrome (NONE / COMPACT / PAGE) reaches the page inside it (MateuViewHost provides
+  // it and sends it as embeddedChrome), and its own box style (a dashed frame, padding) is drawn around it
+  const chrome = typeof metadata['chrome'] === 'string' && metadata['chrome'] ? (metadata['chrome'] as string).toUpperCase() : null;
   const box = cssToRn(String(metadata['style'] ?? ''), DIV_BOX);
   return (
     <View style={box}>
-    <EmbeddedChrome.Provider value={chrome}>
     <MateuViewHost
       session={remoteSession}
       target={{
@@ -117,9 +118,9 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
       // resolved by the host (resolve = SERVER): painted without asking; its actions still go to
       // the island's own session — the remote
       preview={resolvedPreviewOf(metadata)}
-      silent
+      embedded
+      chrome={chrome}
     />
-    </EmbeddedChrome.Provider>
     </View>
   );
 }
@@ -129,12 +130,16 @@ const FullWidthContext = React.createContext(false);
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
   const inFullWidth = React.useContext(FullWidthContext);
+  const popoverTrigger = React.useContext(PopoverTrigger);
   const controller = useViewController();
   const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
 
   const metadata = (component['metadata'] as Record<string, unknown>) ?? {};
   const metaType = (metadata['type'] as string) ?? '';
+  // what a `${…}` in a text or a label reads: the state, the view's data, the app's state and data
+  // (`${data.lastUpdate}` / `${appState.language}` stayed empty — only the state was offered)
+  const textCtx = { state, data: data ?? controller.rendered.data, appState: controller.session.appState, appData: controller.session.appData };
 
   const renderComponent = (comp: unknown, st: Record<string, unknown>, onStateChange: (id: string, v: unknown) => void) => (
     <ComponentRenderer component={comp} state={st} />
@@ -203,7 +208,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
         );
       }
       const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
-      const label = interpolate((metadata['label'] as string) ?? id, { state });
+      const label = interpolate((metadata['label'] as string) ?? id, textCtx);
       // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
@@ -213,24 +218,35 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // else the button is disabled — never a navigation to "/p/" nor a fall-through to the action.
       const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
       const disabled = metadata['disabled'] === true || press.disabled;
-      const onPress = press.onPress;
+      const onPress = popoverTrigger
+        ? () => {
+            popoverTrigger();
+            if (metadata['route'] || controller.advertises(id)) press.onPress();
+          }
+        : press.onPress;
       return (
-        <MateuButton
-          label={label}
-          buttonStyle={metadata['buttonStyle'] as string | undefined}
-          color={metadata['color'] as string | undefined}
-          size={metadata['size'] as string | undefined}
-          icon={materialIconOf(metadata['iconOnLeft'] as string | undefined)}
-          iconRight={materialIconOf(metadata['iconOnRight'] as string | undefined)}
-          disabled={disabled}
-          onPress={onPress}
-          style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
-        />
+        // while its action is in flight the button shows busy and takes no second press
+        <PendingAware actionId={id}>
+          {(pending) => (
+            <MateuButton
+              label={label}
+              buttonStyle={metadata['buttonStyle'] as string | undefined}
+              color={metadata['color'] as string | undefined}
+              size={metadata['size'] as string | undefined}
+              icon={materialIconOf(metadata['iconOnLeft'] as string | undefined)}
+              iconRight={materialIconOf(metadata['iconOnRight'] as string | undefined)}
+              disabled={disabled || pending}
+              loading={pending}
+              onPress={onPress}
+              style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
+            />
+          )}
+        </PendingAware>
       );
     }
 
     case 'Text': {
-      const text = interpolate((metadata['text'] as string) ?? '', { state });
+      const text = interpolate((metadata['text'] as string) ?? '', textCtx);
       // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
       const TEXT_SIZES: Record<string, number> = { xl: 22, l: 18, s: 12.5, xs: 11 };
       const size = TEXT_SIZES[(metadata['size'] as string) ?? ''];

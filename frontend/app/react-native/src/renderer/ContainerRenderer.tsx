@@ -13,7 +13,7 @@ import { MateuButton, StatusChip } from '../ui/controls';
 import { headingA11y } from '../a11y/a11y';
 import { buttonA11y } from '../a11y/a11y';
 import { popoverOpensOnPress } from './hoverDetails';
-import { openExternal } from './openExternal';
+import { useOpenHref } from './useOpenHref';
 import { badgeIconsOf } from './displayFigures';
 import { progressBarColor } from './displayTones';
 import { badgeLook } from '../ui/looks';
@@ -289,14 +289,14 @@ export function BadgeRenderer({ metadata }: { metadata: Dict }) {
 }
 
 export function AnchorRenderer({ metadata }: { metadata: Dict }) {
-  const controller = useViewController();
-  const navigate = (url: string) => controller.session.openView({ label: url, route: url, consumedRoute: '', serverSideType: '' });
+  const openHref = useOpenHref();
   const url = (metadata['url'] as string) ?? '';
   const text = (metadata['text'] as string) ?? url;
-  // Internal routes open in-app; external URLs (or target="_blank") hand off to the OS browser.
-  const external = !url.startsWith('/') || (metadata['target'] as string) === '_blank';
+  // A relative url is a place in this backend: it opens in the app, whatever its `target` (a new
+  // tab is the web's way of keeping the page — here the pushed screen keeps it, under Back); an
+  // absolute one is handed to the OS browser (core/linkTarget hrefIntent).
   return (
-    <TouchableOpacity {...buttonA11y()} onPress={() => { if (!url) return; if (external) { openExternal(url); } else { navigate(url); } }}>
+    <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={() => openHref(url, text)}>
       <Text style={styles.link}>{text}</Text>
     </TouchableOpacity>
   );
@@ -334,6 +334,9 @@ export function DialogRenderer({ component, state }: { component: unknown; state
   );
 }
 
+/** Set inside a Popover's wrapped component: what pressing the trigger does (toggle the panel). */
+export const PopoverTrigger = React.createContext<(() => void) | null>(null);
+
 // ── Popover ───────────────────────────────────────────────────────────────────
 /**
  * A popover: the wrapped component, and its content in a small floating panel shown under it.
@@ -351,7 +354,12 @@ export function PopoverRenderer({ component, state }: { component: unknown; stat
         disabled={!opensOnPress}
         onPress={() => setOpen(!open)}
       >
-        {!!m['wrapped'] && typeof m['wrapped'] === 'object' && <ComponentRenderer component={m['wrapped']} state={state} />}
+        {/* a button it wraps is the popover's trigger: pressing it opens the popover, and runs its
+            action only when the view advertises one (the web: an unclaimed id bubbles out, unsent —
+            here it was POSTed and answered 403) */}
+        <PopoverTrigger.Provider value={opensOnPress ? () => setOpen((o) => !o) : null}>
+          {!!m['wrapped'] && typeof m['wrapped'] === 'object' && <ComponentRenderer component={m['wrapped']} state={state} />}
+        </PopoverTrigger.Provider>
       </TouchableOpacity>
       {open && !!m['content'] && typeof m['content'] === 'object' && (
         <View style={styles.popoverPanel} accessibilityLiveRegion="polite">

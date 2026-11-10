@@ -1,5 +1,3 @@
-import { buttonGroupMembers } from '../core/buttonGroup';
-import { GroupMenuButton } from './GroupMenuButton';
 import { badgeLook } from '../ui/looks';
 import { materialIconOf } from '../ui/wireIcons';
 import { bodyRepeatsBar } from '../core/barTitle';
@@ -21,6 +19,7 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { drawsNothing, pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
+import { ToolbarButton } from './ToolbarButton';
 import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, SectionIndex, useEmbeddedChrome, type SectionEntry, type SectionRegistry, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
@@ -114,7 +113,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const fabs = (metadata['fabs'] as { id?: string; label?: string; actionId?: string; icon?: string }[]) ?? [];
   const children = (component['children'] as unknown[]) ?? [];
   // Record/context switcher (PageDto.switcher): a compact selector under the title.
-  const switcher = switcherOf(metadata);
+  const switcher = noHeader ? null : switcherOf(metadata);
   // overline / title placeholder / "last updated" / previous-next record (the canonical header)
   const extras = noHeader ? pageHeaderExtrasOf({}, '') : pageHeaderExtrasOf(metadata, declaredTitle);
   const openPeer = (label: string, route: string) =>
@@ -211,17 +210,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           )}
           {toolbar.length > 0 && (
             <View style={styles.toolbar}>
-              {toolbar.map((btn, i) => {
-                // a ButtonGroup ("More actions"): a menu of its buttons
-                const members = buttonGroupMembers(btn as Record<string, unknown>);
-                if (members) return <GroupMenuButton key={i} group={btn as Record<string, unknown>} members={members} ctx={ctx} run={(a, p) => void controller.runAction(a, p)} />;
-                const id = btn.actionId ?? btn.id ?? '';
-                const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
-                const disabled = !!btn.disabled || press.disabled;
-                return (
-                  <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
-                );
-              })}
+              {toolbar.map((btn, i) => (
+                // a ButtonGroup is one trigger opening its buttons as a menu; a pressed button shows busy
+                <ToolbarButton key={i} button={btn as Record<string, unknown>} ctx={ctx} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+              ))}
             </View>
           )}
         </View>
@@ -270,14 +262,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
       {buttons.length > 0 && (
         <View style={[styles.bottomBar, bodyEmpty && styles.bottomBarFlush]}>
-          {buttons.map((btn, i) => {
-            const id = btn.actionId ?? btn.id ?? '';
-            const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
-            const disabled = !!btn.disabled || press.disabled;
-            return (
-              <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
-            );
-          })}
+          {buttons.map((btn, i) => (
+            <ToolbarButton key={i} button={btn as Record<string, unknown>} ctx={ctx} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+          ))}
         </View>
       )}
       {/* AFTER the bottom bar and lifted above it: drawn before it (and at the same height) the
