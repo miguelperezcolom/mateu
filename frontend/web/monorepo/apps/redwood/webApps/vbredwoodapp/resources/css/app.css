@@ -1862,6 +1862,9 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
   box-shadow: var(--oj-core-box-shadow-lg, 0 8px 24px rgba(0,0,0,.2)); background: var(--oj-core-bg-color-content, #fff); }
 .mateu-cookie-bottom { bottom: 16px; }
 .mateu-cookie-top { top: 16px; }
+.mateu-cookie-left, .mateu-cookie-right { max-width: min(24rem, calc(100vw - 32px)); }
+.mateu-cookie-left { inset-inline-end: auto; }
+.mateu-cookie-right { inset-inline-start: auto; }
 
 .mateu-breadcrumbs { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; gap: 4px; }
 .mateu-breadcrumbs li + li::before { content: '/'; margin-inline-end: 4px; color: var(--oj-core-text-color-secondary, #666); }
@@ -2300,3 +2303,38 @@ oj-button.mateu-btn-success, oj-button.mateu-btn-error, oj-button.mateu-btn-warn
   --oj-button-call-to-action-chrome-bg-color-hover: var(--mateu-btn-tone);
   --oj-button-call-to-action-chrome-border-color: var(--mateu-btn-tone);
 }
+
+/* EntityHeader: title / badges / facts on the left, its METRIC (label, value, caption) on the right */
+.mateu-entity-header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.mateu-entity-header-main { flex: 1 1 20rem; min-width: 0; }
+.mateu-entity-header-metric { flex: 0 0 auto; text-align: end; }
+
+/* HeroSection: its CTAs inside the band (centred with a centred hero) and its TONE — a dark tinted
+   band with light ink (core/display.mjs heroAtomOf). */
+.mateu-hero-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.mateu-hero-centered .mateu-hero-actions { justify-content: center; }
+.mateu-hero-tone { color: #fff; }
+.mateu-hero-tone h2, .mateu-hero-tone p, .mateu-hero-tone .mateu-hero-overline { color: #fff; }
+.mateu-hero-tone-ocean { background-color: #1f4e6b; }
+.mateu-hero-tone-pine { background-color: #2f5d50; }
+.mateu-hero-tone-lilac { background-color: #5b4a7a; }
+.mateu-hero-tone-teal { background-color: #1e5e63; }
+.mateu-hero-tone-rose { background-color: #7a3b4b; }
+.mateu-hero-tone-pebble { background-color: #4f4a45; }
+.mateu-hero-tone-slate { background-color: #3d4a57; }
+.mateu-hero-tone-plum { background-color: #5a2f4f; }
+.mateu-hero-tone-sienna { background-color: #7a4126; }
+.mateu-hero-tone oj-button { --oj-button-outlined-chrome-text-color: #fff; --oj-button-outlined-chrome-border-color: rgb(255 255 255 / .7); }
+
+/* Badge: `small` and `pill` (core/content.mjs badgeClassOf; `primary` drops the subtle tint) */
+.mateu-badge-small { font-size: .6875rem; line-height: 1rem; padding-block: 0; }
+.mateu-badge-pill { border-radius: 999px; }
+/* AvatarGroup: the avatars OVERLAP, each ringed in the surface colour (a lone Avatar keeps its gap) */
+.mateu-avatar-group oj-avatar { margin-inline-end: -0.5rem !important; box-shadow: 0 0 0 2px var(--oj-core-bg-color-content, #fff); border-radius: 50%; }
+.mateu-avatar-group .mateu-avatar-overflow { margin-inline-start: 0.75rem; }
+
+/* Notice: its severity icon before the text */
+.mateu-notice-icon { font-size: 1.25rem; vertical-align: middle; }
+/* a chip in a cell keeps its natural width (the cell column stretches its block children) */
+.mateu-cell > span { align-self: flex-start; }
+.mateu-card-outlined { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-lg, 6px); }

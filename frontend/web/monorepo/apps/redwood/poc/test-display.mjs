@@ -1029,7 +1029,8 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
       node({ type: 'Button', label: 'Greet', actionId: 'greet' }),
     ]),
   ])
-  const buttons = atomsOf(tree).filter((a) => a.isButtons).flatMap((a) => a.buttons)
+  // a hero's buttons are drawn inside its band (heroAtomOf.buttons)
+  const buttons = atomsOf(tree).filter((a) => a.isButtons || a.isHero).flatMap((a) => a.buttons)
   const browse = buttons.find((b) => b.actionId === 'browseProducts')
   assert.equal(browse.route, 'products')
   assert.equal(browse.chroming, 'callToAction')

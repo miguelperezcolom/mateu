@@ -705,7 +705,9 @@ export function cookieConsentAtomOf(m, interp = (x) => x) {
     learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
     learnMoreLink: safeHref(m.learnMoreLink),
     hasLearnMore: !!safeHref(m.learnMoreLink),
-    bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
+    // a corner position (BottomRight, TopLeft…) is a box in that corner, not a full-width bar
+    bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom')
+      + (position.indexOf('left') >= 0 ? ' mateu-cookie-left' : position.indexOf('right') >= 0 ? ' mateu-cookie-right' : ''),
   }
 }
 /** Whether the consent cookie is set in a cookie string (document.cookie). */
@@ -1121,6 +1123,8 @@ export function autoFitColClass(template, cells = 1) {
 }
 
 // ── HeroSection / EmptyState / ProgressBar in the content ───────────────────────────────────────
+/** The HeroSection tones the wire names (HeroSectionDto.tone). */
+export const HERO_TONES = new Set(['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna'])
 export function heroAtomOf(m, interp = (x) => x) {
   const image = m.image ? elementModuleUrl(str(m.image)) : ''
   return {
@@ -1129,7 +1133,11 @@ export function heroAtomOf(m, interp = (x) => x) {
     overline: interp(str(m.overline)),
     title: interp(str(m.title)),
     subtitle: interp(str(m.subtitle)),
-    heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
+    // its tone (ocean, pine, plum…): a dark tinted band with light ink (app.css .mateu-hero-tone-*)
+    heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : '')
+      + (HERO_TONES.has(str(m.tone)) ? ' mateu-hero-tone mateu-hero-tone-' + str(m.tone) : ''),
+    // its call-to-action buttons, drawn INSIDE the band (the visitor fills them from its children)
+    buttons: [],
     heroStyle: image ? { backgroundImage: 'linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("' + image.replace(/"/g, '%22') + '")', minHeight: str(m.height) || '' } : { minHeight: str(m.height) || '' },
   }
 }

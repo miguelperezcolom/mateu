@@ -489,7 +489,8 @@
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
-                      <div class="oj-sm-margin-3x-bottom">
+                      <div class="oj-sm-margin-3x-bottom mateu-entity-header">
+                      <div class="mateu-entity-header-main">
                         <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
                         <oj-bind-for-each data="[[ $current.data.badges ]]">
                           <template>
@@ -521,9 +522,27 @@
                           </oj-bind-for-each>
                         </div>
                       </div>
+                      <oj-bind-if test="[[ !!$current.data.metricValue ]]">
+                        <!-- its METRIC (a balance, a total): label, big value, caption — right of the header -->
+                        <div class="mateu-entity-header-metric">
+                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.metricLabel ]]"></oj-bind-text></div>
+                          <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.metricValue ]]"></oj-bind-text></div>
+                          <oj-bind-if test="[[ !!$current.data.metricCaption ]]">
+                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.metricCaption ]]"></oj-bind-text></div>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isNotice ]]">
                       <div :class="[[ $current.data.noticeClass ]]">
+                        <!-- its severity icon (by theme, or the notice's own icon: a name or an emoji) -->
+                        <oj-bind-if test="[[ !!$current.data.noticeIconClass ]]">
+                          <span class="mateu-notice-icon oj-sm-margin-2x-end" :class="[[ $current.data.noticeIconClass ]]" aria-hidden="true"></span>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ !!$current.data.noticeGlyph ]]">
+                          <span class="mateu-notice-icon oj-sm-margin-2x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.noticeGlyph ]]"></oj-bind-text></span>
+                        </oj-bind-if>
                         <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
@@ -555,14 +574,14 @@
                       <img class="mateu-atom-image" :class="[[ $current.data.cls || '' ]]" :style="[[ $current.data.style || {} ]]" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAvatar ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom" :class="[[ $current.data.group ? 'mateu-avatar-group' : '' ]]">
                         <oj-bind-for-each data="[[ $current.data.avatars ]]">
                           <template>
                             <oj-avatar class="oj-sm-margin-1x-end" size="[[ $current.data.size || 'xs' ]]" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
                           </template>
                         </oj-bind-for-each>
                         <oj-bind-if test="[[ !!$current.data.overflow ]]">
-                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                          <span class="oj-typography-body-sm oj-text-color-secondary mateu-avatar-overflow"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
                         </oj-bind-if>
                       </div>
                     </oj-bind-if>
@@ -1737,6 +1756,18 @@
                         </oj-bind-if>
                         <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
                         <p class="oj-typography-body-lg"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></p>
+                        <oj-bind-if test="[[ ($current.data.buttons || []).length > 0 ]]">
+                          <div class="mateu-hero-actions">
+                            <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                              <template>
+                                <oj-button :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEmptyStateAtom ]]">

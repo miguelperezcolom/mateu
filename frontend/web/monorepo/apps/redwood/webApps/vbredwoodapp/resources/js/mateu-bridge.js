@@ -5745,6 +5745,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     info: 'oj-badge oj-badge-info oj-badge-subtle',
   }
 
+  /** A Badge's chip: its colour, SOLID when `primary` (no subtle tint), smaller when `small`, round when `pill`. */
+  function badgeChipClassOf(m) {
+    let cls = BADGE_CLASSES[m && m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle'
+    if (m && m.primary) cls = cls.replace(' oj-badge-subtle', '')
+    if (m && m.small) cls += ' mateu-badge-small'
+    if (m && m.pill) cls += ' mateu-badge-pill'
+    return cls
+  }
+
   /** Projection of the TaskQueue (front-office work queue): groups of cards with
    *  badges; the click dispatches metadata.actionId with parameters._item = the item's id
    *  (contract of the shared web renderer: mateu-task-queue.ts). The data travels
@@ -6082,6 +6091,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     l: 'oj-typography-subheading-md',
     s: 'oj-typography-body-sm',
     xs: 'oj-typography-body-xs oj-text-color-secondary',
+  }
+  /** A content heading's size by its level (Text container h1…h6): h4 keeps the quiet subheading
+   *  every Explorer example title uses; h2 / h3 grow (they rendered like h4). */
+  const HEADING_CLASSES = {
+    h1: 'oj-typography-heading-md',
+    h2: 'oj-typography-heading-sm',
+    h3: 'oj-typography-subheading-md',
+    h4: 'oj-typography-subheading-xs',
+    h5: 'oj-typography-subheading-2xs',
+    h6: 'oj-typography-body-sm oj-typography-bold',
+  }
+  /** …and a heading's declared size (Text.size), which wins over the level. */
+  const HEADING_SIZE_CLASSES = {
+    xl: 'oj-typography-heading-md',
+    l: 'oj-typography-heading-sm',
+    s: 'oj-typography-subheading-2xs',
+    xs: 'oj-typography-body-sm oj-typography-bold',
+  }
+  /** A Notice's severity icon: its own `icon` (a name → the font's class, anything else → a glyph),
+   *  else the one of its theme. */
+  const NOTICE_ICONS = { info: 'oj-ux-ico-information', success: 'oj-ux-ico-check-circle', warning: 'oj-ux-ico-warning', danger: 'oj-ux-ico-error' }
+  function noticeIconOf(m) {
+    const icon = m && m.icon
+    if (icon) return /^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0
+      ? { noticeIconClass: ojIconOrGenericOf(icon), noticeGlyph: '' } : { noticeIconClass: '', noticeGlyph: String(icon) }
+    return { noticeIconClass: NOTICE_ICONS[m && m.theme] || NOTICE_ICONS.info, noticeGlyph: '' }
   }
   const NOTICE_CLASSES = {
     success: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30',
@@ -6456,6 +6491,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       } else {
         items = atomsInto([kid])
         if (!items) return null
+        // the piece's own SIZE belongs to its cell (an OfferCard's `width: 17rem`, a chart's 22rem)
+        const own = styleObjectOf(kid.style || km.style)
+        for (const k of ['width', 'minWidth', 'maxWidth', 'flex', 'flexGrow', 'flexBasis']) if (own[k]) style[k] = own[k]
       }
       if (flexGrow != null && style.flexGrow == null) style.flexGrow = String(flexGrow)
       // a cell grows when told to (flexGrows / flex-grow in its style) or when it holds wide pieces
@@ -7022,13 +7060,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
         const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
         // a section's heading IS that title (oj-sp-section draws it): not twice
-        if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
-          card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+        // its SLOTS (media, header prefix / suffix, subtitle, footer): they were never drawn
+        const parts = cardPartNodes(m)
+        const variants = Array.isArray(m.variants) ? m.variants : []
+        const horizontal = variants.includes('horizontal') && parts.media.length > 0
+        const media = horizontal ? atomsInto(parts.media) : null
+        if (!horizontal) for (const n of parts.media) visit(n, card)
+        const titleAtoms = title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)
+          ? [{ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-1x-bottom' }] : []
+        const secondary = (as) => (as || []).map((a) => (a.isText ? { ...a, cls: ((a.cls || '') + ' oj-text-color-secondary').trim() } : a))
+        const subtitle = parts.subtitle.length ? atomsInto(parts.subtitle) : []
+        const prefix = parts.prefix.length || parts.header.length ? atomsInto([...parts.prefix, ...parts.header]) : []
+        const suffix = parts.suffix.length ? atomsInto(parts.suffix) : []
+        if (prefix && suffix && subtitle && (prefix.length || suffix.length)) {
+          // prefix | title + subtitle | suffix, on one line
+          const cells = []
+          if (prefix.length) cells.push({ key: 'p', cellClass: '', style: { flex: '0 0 auto' }, items: prefix })
+          cells.push({ key: 't', cellClass: '', style: { flex: '1 1 0', minWidth: '0' }, items: [...titleAtoms, ...secondary(subtitle)].map((a, i) => ({ ...a, key: String(i) })) })
+          if (suffix.length) cells.push({ key: 's', cellClass: '', style: { flex: '0 0 auto' }, items: suffix })
+          card.items.push({ isCells: true, boxClass: '', style: { gap: '0.75rem', alignItems: 'flex-start' }, cells })
+        } else {
+          card.items.push(...titleAtoms)
+          if (subtitle) card.items.push(...secondary(subtitle))
+          else for (const n of parts.subtitle) visit(n, card)
+          for (const n of [...parts.prefix, ...parts.header, ...parts.suffix]) visit(n, card)
         }
         for (const child of node.children || []) visit(child, card)
         const cardInner = m.content
         if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
         else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+        for (const n of parts.footer) visit(n, card)
+        // HORIZONTAL: the media on the left, the rest beside it
+        const rest = flatAtoms(card.items)
+        if (horizontal && media && media.length && rest.every((a) => a && CELL_ATOM_FLAGS.some((f) => a[f]))) {
+          card.items = [{ isCells: true, boxClass: '', style: { gap: '1rem', alignItems: 'flex-start' }, cells: [
+            { key: 'm', cellClass: '', style: { flex: '0 0 auto' }, items: media },
+            { key: 'r', cellClass: '', style: { flex: '1 1 0', minWidth: '0' }, items: rest.map((a, i) => ({ ...a, key: String(i) })) },
+          ] }]
+        } else if (horizontal) for (const n of parts.media) visit(n, card)
         // a titled @Section is painted by Spectra's own section, oj-sp-section: it draws the title
         // (with its accent marker) itself, so its body is the card's atoms without that heading
         if (card.sectionTitle) {
@@ -7089,7 +7158,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               isH2: m.container === 'h2',
               text,
               // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-              ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
+              // its LEVEL sets the size (h1 largest … h6), a declared size wins over the level
+              ...withTextVariants(m, styledTextOf((HEADING_SIZE_CLASSES[m.size] || HEADING_CLASSES[m.container]) + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
             }, container)
           } else {
             atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
@@ -7222,6 +7292,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
           metricLabel: interp(m.metricLabel || ''),
           metricValue: interp(m.metricValue || ''),
+          metricCaption: interp(m.metricCaption || ''),
         }, container)
         return
       }
@@ -7240,6 +7311,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isNotice: true,
           text: noticeText,
           noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
+          ...noticeIconOf(m),
           buttons: [...own, ...collectButtons({ children: kids }, [])],
         }, container)
         for (const child of kids) if (!holdsButtons(child)) visit(child, container)
@@ -7318,7 +7390,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // the wrapped part is painted as a trigger with its text; the content, as lines in the
         // shared floating window (hover.mjs) — on hover/focus (hover) or on press (click)
         const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
-        const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
+        const wm = (m.wrapped && m.wrapped.metadata) || {}
+        const label = wrappedTexts.join(' ') || wm.label || wm.text || 'Details'
         const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
         // the content WITH its structure (headings, lists, links, badges…) as sanitised HTML: the
         // popup shows that, the text lines stay as its accessible fallback
@@ -7330,6 +7403,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           hoverText: m.trigger === 'hover' ? text : '',
           clickText: m.trigger === 'hover' ? '' : text,
           html,
+          // the wrapped button IS drawn (as the trigger): the form's action row must not repeat it
+          buttons: m.wrapped ? collectButtons(m.wrapped, []) : [],
         }, container)
         return
       }
@@ -7377,7 +7452,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // an oj-avatar per person up to maxItemsVisible, and «+N» for the ones that do not fit
         const all = (m.avatars || []).map(avatarOf)
         const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
-        atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
+        atom({ isAvatar: true, group: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
         return
       }
       if (t === 'CarouselLayout') {
@@ -7401,7 +7476,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isBadge: true,
           label: interp(m.text),
-          badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+          badgeClass: badgeChipClassOf(m),
           // its icons, inside the chip before/after the text (they were never drawn)
           ...badgeIconsOf(m),
         }, container)
@@ -7664,8 +7739,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
       if (t === 'HeroSection') {
         // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
-        atom(heroAtomOf(m, interp), container)
-        for (const child of kidsOf(node)) visit(child, container)
+        // its buttons are its call to action, drawn inside the band (centred with it); anything
+        // else it holds follows it
+        const hero = heroAtomOf(m, interp)
+        const kids = kidsOf(node)
+        const isButtonKid = (k) => k && k.metadata && k.metadata.type === 'Button'
+        hero.buttons = kids.filter(isButtonKid).flatMap((k) => groupMembersOf(k.metadata).map(buttonOf))
+        atom(hero, container)
+        for (const child of kids) if (!isButtonKid(child)) visit(child, container)
         return
       }
       // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
@@ -7810,8 +7891,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!blocks || !blocks.length) return blocks
     const drawn = {}
     for (const block of blocks) {
-      for (const atom of block.items || []) {
-        if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+      // inside a row of inline pieces or a layout box too: a «Show map» in a HorizontalLayout was
+      // drawn there AND again in the action row
+      for (const atom of flatAtoms(block.items)) {
+        if (atom && (atom.isButtons || atom.isHero || atom.isPopover)) for (const b of atom.buttons || []) drawn[b.actionId] = true
+        if (atom && atom.isRow) for (const b of atom.items || []) if (b.isButton) drawn[b.actionId] = true
       }
     }
     const inTabs = tabOnlyActionIdsOf(tree)
@@ -13854,7 +13938,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
       learnMoreLink: safeHref(m.learnMoreLink),
       hasLearnMore: !!safeHref(m.learnMoreLink),
-      bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
+      // a corner position (BottomRight, TopLeft…) is a box in that corner, not a full-width bar
+      bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom')
+        + (position.indexOf('left') >= 0 ? ' mateu-cookie-left' : position.indexOf('right') >= 0 ? ' mateu-cookie-right' : ''),
     }
   }
   /** Whether the consent cookie is set in a cookie string (document.cookie). */
@@ -14270,6 +14356,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── HeroSection / EmptyState / ProgressBar in the content ───────────────────────────────────────
+  /** The HeroSection tones the wire names (HeroSectionDto.tone). */
+  const HERO_TONES = new Set(['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna'])
   function heroAtomOf(m, interp = (x) => x) {
     const image = m.image ? elementModuleUrl(str(m.image)) : ''
     return {
@@ -14278,7 +14366,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       overline: interp(str(m.overline)),
       title: interp(str(m.title)),
       subtitle: interp(str(m.subtitle)),
-      heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
+      // its tone (ocean, pine, plum…): a dark tinted band with light ink (app.css .mateu-hero-tone-*)
+      heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : '')
+        + (HERO_TONES.has(str(m.tone)) ? ' mateu-hero-tone mateu-hero-tone-' + str(m.tone) : ''),
+      // its call-to-action buttons, drawn INSIDE the band (the visitor fills them from its children)
+      buttons: [],
       heroStyle: image ? { backgroundImage: 'linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("' + image.replace(/"/g, '%22') + '")', minHeight: str(m.height) || '' } : { minHeight: str(m.height) || '' },
     }
   }
