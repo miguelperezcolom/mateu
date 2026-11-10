@@ -3,7 +3,7 @@ import { evaluateExpression } from '../rules.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
-import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
+import { findPageLevel, findPageLevelType, collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
@@ -126,7 +126,7 @@ export const pageEmptyStateNode = (tree) => {
   findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
   // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
   // was lost — such an empty state is content, painted with its action
-  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+  return findPageLevel(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
     && !n.metadata.actionId))
 }
 export function emptyStateOf(tree) {
@@ -153,7 +153,7 @@ export const NOT_FOUND_TEXTS = {
  *  exception message as the headline); if missing, the generic ones in the page's language.
  *  null if the host is not a not-found. */
 export function notFoundOf(tree, lang) {
-  const node = findByType(tree, 'NotFound')
+  const node = findPageLevelType(tree, 'NotFound')
   if (!node) return null
   const md = node.metadata || {}
   const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
@@ -1251,7 +1251,8 @@ export function islandContentOf(ctx, opts = {}) {
     // overview in its place and each panel as a collapsible panel — its title and, when open, its
     // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
     // authored) opens — stacked, it never runs out of row
-    if (t === 'FoldoutLayout' && tabScope) {
+    // (…and one inside a card or another part of the page that the page-level foldout does not take)
+    if (t === 'FoldoutLayout' && (tabScope || opts.surface || findPageLevelType(ctx.tree, 'FoldoutLayout') !== node)) {
       const bySlot = {}
       for (const child of node.children || []) bySlot[child.slot || ''] = child
       if (bySlot.overview) visit(bySlot.overview, container)
@@ -1783,7 +1784,8 @@ export function islandContentOf(ctx, opts = {}) {
     // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
     // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
     // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
-    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+    // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
+    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
       atom(nestedListingAtomOf(node, ctx), container)
       return
     }
@@ -1807,6 +1809,14 @@ export function islandContentOf(ctx, opts = {}) {
     // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
     if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
       atom(emptyStateAtomOf(m, interp), container)
+      return
+    }
+    // a NotFound inside the content (an example's, in a card): what the page-level one says — its
+    // heading, its explanation and the way back — drawn where it sits (the page's own is notFoundOf)
+    if (t === 'NotFound' && findPageLevelType(ctx.tree, 'NotFound') !== node) {
+      atom(emptyStateAtomOf({ icon: m.icon, title: m.title || NOT_FOUND_TEXTS.en.title, description: m.message || NOT_FOUND_TEXTS.en.message }, interp), container)
+      const back = m.backRoute ? safeHref('/' + String(m.backRoute).replace(/^\/+/, '')) : ''
+      if (back) atom({ isAnchor: true, text: interp(m.backLabel || NOT_FOUND_TEXTS.en.back), href: back, target: '_self', rel: '' }, container)
       return
     }
     // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)

@@ -29,6 +29,35 @@ export function walkWithinSurface(node, visit) {
   walk(node, true)
 }
 
+/** Where a component stops being the PAGE's: inside a card, a tab, a console's pane or an overlay
+ *  it is a piece of that part of the page — a NotFound, an EmptyState, a FoldoutLayout or a Listing
+ *  there is content (an Explorer example's card), never the page-level projection that takes over the
+ *  whole screen. */
+export const PAGE_CLAIM_STOPS = { Card: true, Tab: true, TabLayout: true, MasterDetailLayout: true, SplitLayout: true,
+  Drawer: true, Dialog: true }
+
+/** The first node of the surface satisfying `test` that the PAGE owns: not inside one of the
+ *  PAGE_CLAIM_STOPS (the root itself may be one), never across an island. */
+export function findPageLevel(tree, test, stops = PAGE_CLAIM_STOPS) {
+  let found = null
+  const walk = (n, isRoot) => {
+    if (found || !n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && n.type === 'ServerSide') return
+    if (test(n)) { found = n; return }
+    const t = n.metadata && n.metadata.type
+    if (!isRoot && t && stops[t]) return
+    for (const c of n.children || []) walk(c, false)
+    const inner = n.metadata && n.metadata.content
+    if (Array.isArray(inner)) inner.forEach((c) => walk(c, false))
+    else if (inner && typeof inner === 'object') walk(inner, false)
+  }
+  walk(tree, true)
+  return found
+}
+/** findPageLevel by component type. */
+export const findPageLevelType = (tree, type) => findPageLevel(tree, (n) => !!(n.metadata && n.metadata.type === type))
+
 /** The node id of every metadata object of the tree (metadata → its node's id), for the visual
  *  editor's canvas: the fields and the buttons are collected as their METADATA, and what the
  *  editor selects is the node. Only asked for in editor mode (setEditorNodeIds). */

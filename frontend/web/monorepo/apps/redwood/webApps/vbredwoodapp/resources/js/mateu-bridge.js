@@ -2332,6 +2332,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     walk(node, true)
   }
 
+  /** Where a component stops being the PAGE's: inside a card, a tab, a console's pane or an overlay
+   *  it is a piece of that part of the page — a NotFound, an EmptyState, a FoldoutLayout or a Listing
+   *  there is content (an Explorer example's card), never the page-level projection that takes over the
+   *  whole screen. */
+  const PAGE_CLAIM_STOPS = { Card: true, Tab: true, TabLayout: true, MasterDetailLayout: true, SplitLayout: true,
+    Drawer: true, Dialog: true }
+
+  /** The first node of the surface satisfying `test` that the PAGE owns: not inside one of the
+   *  PAGE_CLAIM_STOPS (the root itself may be one), never across an island. */
+  function findPageLevel(tree, test, stops = PAGE_CLAIM_STOPS) {
+    let found = null
+    const walk = (n, isRoot) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return
+      if (test(n)) { found = n; return }
+      const t = n.metadata && n.metadata.type
+      if (!isRoot && t && stops[t]) return
+      for (const c of n.children || []) walk(c, false)
+      const inner = n.metadata && n.metadata.content
+      if (Array.isArray(inner)) inner.forEach((c) => walk(c, false))
+      else if (inner && typeof inner === 'object') walk(inner, false)
+    }
+    walk(tree, true)
+    return found
+  }
+  /** findPageLevel by component type. */
+  const findPageLevelType = (tree, type) => findPageLevel(tree, (n) => !!(n.metadata && n.metadata.type === type))
+
   /** The node id of every metadata object of the tree (metadata → its node's id), for the visual
    *  editor's canvas: the fields and the buttons are collected as their METADATA, and what the
    *  editor selects is the node. Only asked for in editor mode (setEditorNodeIds). */
@@ -3100,7 +3129,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function foldoutOf(ctx, { parent = null } = {}) {
     // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
     // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
-    const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
+    // …nor one inside a card (an Explorer example's): any PAGE_CLAIM_STOPS keeps it content
+    const node = ctx && ctx.tree ? findPageLevelType(ctx.tree, 'FoldoutLayout') : null
     if (!node) return null
     const md = node.metadata
     const children = node.children || []
@@ -5255,7 +5285,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
     // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
     // was lost — such an empty state is content, painted with its action
-    return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+    return findPageLevel(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
       && !n.metadata.actionId))
   }
   function emptyStateOf(tree) {
@@ -5282,7 +5312,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  exception message as the headline); if missing, the generic ones in the page's language.
    *  null if the host is not a not-found. */
   function notFoundOf(tree, lang) {
-    const node = findByType(tree, 'NotFound')
+    const node = findPageLevelType(tree, 'NotFound')
     if (!node) return null
     const md = node.metadata || {}
     const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
@@ -6380,7 +6410,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // overview in its place and each panel as a collapsible panel — its title and, when open, its
       // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
       // authored) opens — stacked, it never runs out of row
-      if (t === 'FoldoutLayout' && tabScope) {
+      // (…and one inside a card or another part of the page that the page-level foldout does not take)
+      if (t === 'FoldoutLayout' && (tabScope || opts.surface || findPageLevelType(ctx.tree, 'FoldoutLayout') !== node)) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
@@ -6912,7 +6943,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
       // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
       // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
-      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+      // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
+      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
         atom(nestedListingAtomOf(node, ctx), container)
         return
       }
@@ -6936,6 +6968,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
       if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
         atom(emptyStateAtomOf(m, interp), container)
+        return
+      }
+      // a NotFound inside the content (an example's, in a card): what the page-level one says — its
+      // heading, its explanation and the way back — drawn where it sits (the page's own is notFoundOf)
+      if (t === 'NotFound' && findPageLevelType(ctx.tree, 'NotFound') !== node) {
+        atom(emptyStateAtomOf({ icon: m.icon, title: m.title || NOT_FOUND_TEXTS.en.title, description: m.message || NOT_FOUND_TEXTS.en.message }, interp), container)
+        const back = m.backRoute ? safeHref('/' + String(m.backRoute).replace(/^\/+/, '')) : ''
+        if (back) atom({ isAnchor: true, text: interp(m.backLabel || NOT_FOUND_TEXTS.en.back), href: back, target: '_self', rel: '' }, container)
         return
       }
       // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
@@ -8148,7 +8188,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const all = cruds(tree)
     if (!all.length) return null
     const type = declaredTemplateTypeOf(tree)
-    if (!type) return all[0]
+    // without a template, the page's listing is one the PAGE owns: one inside a card or a tab is that
+    // part's content (an Explorer example's listing took the whole entry page over)
+    if (!type) return all.find((n) => findPageLevel(tree, (x) => x === n)) || null
     if (!PAGE_LISTING_TEMPLATES[type]) return null
     if (type === 'CollectionDetailPage') {
       const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')

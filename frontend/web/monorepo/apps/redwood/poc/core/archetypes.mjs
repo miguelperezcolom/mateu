@@ -1,4 +1,4 @@
-import { collectTexts } from './tree.mjs'
+import { collectTexts, findPageLevelType } from './tree.mjs'
 import { BADGE_CLASSES, interpolate, islandContentOf, buttonRouteOf } from './content.mjs'
 import { declaresTemplate, templateFormOf } from './overviews.mjs'
 import { PANE_TYPES, findOutside, pageHeaderNodeOf, pageToolbarOf, pageSubtitleOf, isBackButton } from './pageHeader.mjs'
@@ -30,7 +30,8 @@ export function sameFoldoutStructure(before, now) {
 export function foldoutOf(ctx, { parent = null } = {}) {
   // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
   // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
-  const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
+  // …nor one inside a card (an Explorer example's): any PAGE_CLAIM_STOPS keeps it content
+  const node = ctx && ctx.tree ? findPageLevelType(ctx.tree, 'FoldoutLayout') : null
   if (!node) return null
   const md = node.metadata
   const children = node.children || []

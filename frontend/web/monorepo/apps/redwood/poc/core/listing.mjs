@@ -1,5 +1,5 @@
 import { applyColumnPrefs } from '../prefs.mjs'
-import { walkWithinSurface } from './tree.mjs'
+import { walkWithinSurface, findPageLevel } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
 import { buttonRouteOf, clearUiValues, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory, uiValueOf } from './content.mjs'
 import { safeHref, treeDisclosureOf } from './display.mjs'
@@ -76,7 +76,9 @@ export function pageListingNodeOf(tree) {
   const all = cruds(tree)
   if (!all.length) return null
   const type = declaredTemplateTypeOf(tree)
-  if (!type) return all[0]
+  // without a template, the page's listing is one the PAGE owns: one inside a card or a tab is that
+  // part's content (an Explorer example's listing took the whole entry page over)
+  if (!type) return all.find((n) => findPageLevel(tree, (x) => x === n)) || null
   if (!PAGE_LISTING_TEMPLATES[type]) return null
   if (type === 'CollectionDetailPage') {
     const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
