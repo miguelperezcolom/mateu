@@ -72,7 +72,9 @@ framework's annotation processor: it writes the class index the build-time catal
 **From YAML** — add `<specsOnly>true</specsOnly>`: every definition-only route whose type the
 browser can expand (`AppShell`, `Listing`/`Crudl`, `Form`, the layouts, `Card`) ships as its **raw
 definition**, and the client-side expander turns it into the wire at runtime. Nothing is
-pre-rendered; edit a definition in `manifest.json`, refresh, see it.
+pre-rendered; edit a definition in `manifest.json`, refresh, see it. This needs the Vaadin renderer:
+the Redwood renderer has no client-side expander, so a Redwood bundle ignores `specsOnly` (with a
+warning) and pre-renders every route — see [Choosing the renderer](#choosing-the-renderer).
 
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.

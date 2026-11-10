@@ -40,6 +40,17 @@ describe('client-side expander — bare-layout definition (Phase 6, increment 1)
         expect(text.children).toEqual([])
     })
 
+    it('spaces an authored HorizontalLayout by default, like every backend\'s YAML loader — a column stays unspaced', () => {
+        // the goldens compare as a structural subset, so this default is pinned here explicitly
+        // (Java YamlUidlMapperFactory.spacedRowsByDefault, .NET YamlComponentBuilder, Python yaml_preview)
+        const row = expandComponent({ type: 'HorizontalLayout', content: [] } as any) as any
+        expect(row.metadata.spacing).toBe(true)
+        const unspaced = expandComponent({ type: 'HorizontalLayout', spacing: false, content: [] } as any) as any
+        expect(unspaced.metadata.spacing).toBe(false)
+        const column = expandComponent({ type: 'VerticalLayout', content: [] } as any) as any
+        expect(column.metadata.spacing).toBeUndefined()
+    })
+
     it('drops the authors\' design notes, as the server does — they never reach the wire', () => {
         const noted = { type: 'VerticalLayout', note: 'the screen', content: [{ type: 'Listing', note: 'paged', columns: [] }, { type: 'Text', text: 'x', note: 'a hint' }] }
         expect(JSON.stringify(expandComponent(noted as any))).not.toContain('note')

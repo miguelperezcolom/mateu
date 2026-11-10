@@ -168,16 +168,10 @@
     { "name": "syntax: ternary without else", "expr": "state.flag ? 1", "expected": { "$error": true } },
 
     {
-      "name": "method call on a string", "expr": "state.name.toUpperCase()", "expected": "ANA",
-      "overrides": {
-        "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers (only a regex's .test, which the server emits)" }
-      }
+      "name": "method call on a string", "expr": "state.name.toUpperCase()", "expected": "ANA"
     },
     {
-      "name": "includes on an array", "expr": "state.tags.includes('a')", "expected": true,
-      "overrides": {
-        "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers" }
-      }
+      "name": "includes on an array", "expr": "state.tags.includes('a')", "expected": true
     },
     {
       "name": "array literal", "expr": "['Ana', 'Bo'].includes(state.name)", "expected": true,
@@ -195,10 +189,7 @@
       }
     },
     {
-      "name": "global allow-list", "expr": "Math.max(1, state.age)", "expected": 30,
-      "overrides": {
-        "intellij": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" }
-      }
+      "name": "global allow-list", "expr": "Math.max(1, state.age)", "expected": 30
     },
     {
       "name": "typeof", "expr": "typeof state.age", "expected": "number",

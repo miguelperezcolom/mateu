@@ -143,7 +143,7 @@ class ComponentRenderer(val ctx: AppContext) {
             // A Tab / AccordionPanel outside its TabLayout / AccordionLayout.
             "Tab", "AccordionPanel" -> renderTitledChildren(this, component, metadata, state, data)
             // ── navigation ──
-            "Breadcrumbs", "Breadcrumb" -> renderBreadcrumbs(ctx, metadata)
+            "Breadcrumbs" -> renderBreadcrumbs(ctx, metadata)
             "MenuBar" -> renderMenuBar(ctx, metadata)
             "ContextMenu" -> renderContextMenu(this, metadata, state, data)
             "Directory" -> renderDirectory(ctx, metadata)

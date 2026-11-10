@@ -267,7 +267,6 @@ public final class MateuBundleExporter {
           "VerticalLayout",
           "HorizontalLayout",
           "Div",
-          "FlexLayout",
           "Card",
           "CustomComponent");
 
