@@ -16,6 +16,9 @@ import { MateuButton } from '../ui/controls';
  *  buttons dispatch actions, cruds register data handlers. */
 const ViewControllerContext = createContext<MateuViewController | null>(null);
 
+/** Renders a subtree against an EXISTING controller (an overlay's footer runs on its opener). */
+export const ViewControllerProvider = ViewControllerContext.Provider;
+
 export function useViewController(): MateuViewController {
   const ctx = useContext(ViewControllerContext);
   if (!ctx) throw new Error('useViewController must be used inside a MateuViewHost');

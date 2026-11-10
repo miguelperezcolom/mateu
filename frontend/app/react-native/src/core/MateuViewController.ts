@@ -3,7 +3,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificationToastOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -767,13 +767,19 @@ export class MateuViewController {
 
     // Overlay fragments (action Add + Drawer/Dialog) stack over the page. The opener context
     // lets a ClientSide overlay content dispatch its actions against THIS view's component.
-    const overlayType = component ? str((component['metadata'] as Json)?.['type']) : '';
-    if (action.toLowerCase() === 'add' && (overlayType === 'Drawer' || overlayType === 'Dialog')) {
+    const floating = floatingIntentOf(action, component, !!this.view.component);
+    if (floating === 'toast') {
+      const toast = notificationToastOf((component!['metadata'] as Json) ?? {});
+      this.session.notify(toast.title, toast.text, toast.variant, { duration: toast.duration });
+      return;
+    }
+    if (floating === 'overlay') {
       this.session.openOverlay(component, state, data, {
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
         serverSideType: this.currentServerSideType,
         session: this.session,
+        controller: this,
       });
       return;
     }

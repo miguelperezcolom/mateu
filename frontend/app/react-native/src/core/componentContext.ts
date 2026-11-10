@@ -260,3 +260,30 @@ export interface ToastAction {
   route: string | null;
   style: string | null;
 }
+
+/**
+ * What a fragment carrying a FLOATING component does. On the web a returned Notification, Dialog,
+ * ConfirmDialog or Drawer floats above the component that returned it (a vaadin-notification /
+ * dialog element opens over the page): the island keeps its own content. Drawn in place here, it
+ * REPLACED the island's content (the Notify button vanished; a ConfirmDialog took the buttons' place
+ * and never went). So: a Notification is a toast, the others open as overlays — Add fragments of a
+ * Drawer/Dialog always did; any fragment does when something is already on screen.
+ */
+export function floatingIntentOf(fragmentAction: string, component: Json | null | undefined, hasContent: boolean): 'toast' | 'overlay' | null {
+  if (!component || component['type'] === 'ServerSide') return null;
+  const type = str((component['metadata'] as Json)?.['type']);
+  const add = fragmentAction.toLowerCase() === 'add';
+  if (type === 'Notification') return add || hasContent ? 'toast' : null;
+  if (type === 'Drawer' || type === 'Dialog' || type === 'ConfirmDialog') return add || hasContent ? 'overlay' : null;
+  return null;
+}
+
+/** A Notification component as a toast. */
+export function notificationToastOf(metadata: Json): { title: string | null; text: string; variant: 'info' | 'warning' | 'error'; duration: number | undefined } {
+  const theme = str(metadata['theme'] ?? metadata['variant']).toLowerCase();
+  const variant: 'info' | 'warning' | 'error' = /error|danger/.test(theme) ? 'error' : /warning/.test(theme) ? 'warning' : 'info';
+  const title = str(metadata['title']);
+  const text = str(metadata['text']) || str(metadata['message']) || title;
+  const duration = Number(metadata['duration']) || undefined;
+  return { title: title && text !== title ? title : null, text, variant, duration };
+}

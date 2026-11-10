@@ -50,6 +50,9 @@ export interface OverlayOpenerContext {
   serverSideType: string;
   /** The session the opener runs in (a remote island's): the overlay's actions go to its backend. */
   session?: MateuSession;
+  /** The view that opened it: what the overlay draws OUTSIDE its own content (a footer, a
+   *  ConfirmDialog's buttons) runs on it, with its state — the web's bubbling to the opener. */
+  controller?: unknown;
 }
 
 /**

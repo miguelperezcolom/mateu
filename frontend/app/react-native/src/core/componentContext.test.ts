@@ -128,3 +128,17 @@ test('a route\'s query seeds a listing\'s search, under what the user set', () =
   seedSearchFromRoute(s, 'reservas?vista=LLEGADAS_HOY&hotel=MRU01');
   assert.deepEqual(s, { vista: 'IN_HOUSE', hotel: 'MRU01', page: 0, size: 10, sort: [], searchText: '' });
 });
+
+test('floating components: a Notification toasts, a Dialog/ConfirmDialog/Drawer opens as an overlay once something is on screen', async () => {
+  const { floatingIntentOf, notificationToastOf } = await import('./componentContext.ts');
+  const n = (type: string) => ({ type: 'ClientSide', metadata: { type } });
+  assert.equal(floatingIntentOf('Replace', n('Notification'), true), 'toast');
+  assert.equal(floatingIntentOf('Replace', n('ConfirmDialog'), true), 'overlay');
+  assert.equal(floatingIntentOf('Add', n('Drawer'), false), 'overlay');
+  // a screen that IS a dialog (nothing on screen yet), or any other component, renders in place
+  assert.equal(floatingIntentOf('Replace', n('Dialog'), false), null);
+  assert.equal(floatingIntentOf('Replace', n('Form'), true), null);
+  assert.equal(floatingIntentOf('Replace', { type: 'ServerSide', metadata: { type: 'Dialog' } }, true), null);
+  assert.deepEqual(notificationToastOf({ title: 'Saved', text: 'All good', theme: 'error' }), { title: 'Saved', text: 'All good', variant: 'error', duration: undefined });
+  assert.deepEqual(notificationToastOf({ title: 'Only a title' }), { title: null, text: 'Only a title', variant: 'info', duration: undefined });
+});

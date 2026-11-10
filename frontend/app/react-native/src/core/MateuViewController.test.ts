@@ -790,3 +790,21 @@ test('an island behind a mediator carries what its host seeded: on its loads, it
   assert.equal(streamed.length, 1, 'the mediator declared the scan as a stream');
   assert.equal(streamed[0]!.componentState.stayId, 'st-1');
 });
+
+test('a Notification / ConfirmDialog an island action returns floats: the island keeps its content', async () => {
+  const notification = { type: 'ClientSide', metadata: { type: 'Notification', title: 'Catalogue exported', text: '1,284 records' } };
+  const confirm = { type: 'ClientSide', metadata: { type: 'ConfirmDialog', header: 'Delete?', confirmActionId: 'doDelete' }, children: [] };
+  const { c, session, notes, renders } = harness([fragment(ssc()), fragment(notification), fragment(confirm)]);
+  const opened: Json[] = [];
+  session.openOverlay = (component, _s, _d, opener) => opened.push({ component, opener });
+  await c.navigate('/orders', '', '');
+  const shown = renders.at(-1)!.component;
+  await c.runAction('notifyMe');
+  await c.runAction('askToDelete');
+  assert.equal(renders.at(-1)!.component, shown);
+  assert.deepEqual(notes.map((n) => [n.title, n.text]), [['Catalogue exported', '1,284 records']]);
+  assert.equal(opened.length, 1);
+  assert.equal(opened[0].component, confirm);
+  // its buttons run on the view that opened it
+  assert.equal(opened[0].opener.controller, c);
+});
