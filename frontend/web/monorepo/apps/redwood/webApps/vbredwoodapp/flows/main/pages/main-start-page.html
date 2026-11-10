@@ -1172,11 +1172,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -1192,7 +1207,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -1210,6 +1225,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -3878,11 +3909,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -3898,7 +3944,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -3916,6 +3962,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -5944,11 +6006,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -5964,7 +6041,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -5982,6 +6059,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -8043,11 +8136,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -8063,7 +8171,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -8081,6 +8189,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -10109,11 +10233,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -10129,7 +10268,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -10147,6 +10286,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -12236,11 +12391,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -12256,7 +12426,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -12274,6 +12444,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -14356,11 +14542,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -14376,7 +14577,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -14394,6 +14595,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -16428,11 +16645,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -16448,7 +16680,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -16466,6 +16698,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -18511,11 +18759,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -18531,7 +18794,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -18549,6 +18812,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -20616,11 +20895,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -20636,7 +20930,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -20654,6 +20948,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -22693,11 +23003,26 @@
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asCards ]]">
+                            <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                            <div :class="[[ $current.data.layoutClass || '' ]]">
                             <div class="oj-flex mateu-nested-cards">
                               <oj-bind-for-each data="[[ $current.data.cards ]]">
                                 <template>
-                                  <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                    <oj-bind-if test="[[ !!$current.data.route ]]">
+                                  <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                    <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                      <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                        on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                        <div class="oj-sm-padding-3x">
+                                          <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                          <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                            <template>
+                                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                            </template>
+                                          </oj-bind-for-each>
+                                        </div>
+                                      </oj-action-card>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                       <oj-action-card class="mateu-nested-card" style="width:100%"
                                         on-oj-action="[[ $listeners.hostBlockAction ]]">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -22713,7 +23038,7 @@
                                         </div>
                                       </oj-action-card>
                                     </oj-bind-if>
-                                    <oj-bind-if test="[[ !$current.data.route ]]">
+                                    <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                       <div class="oj-panel mateu-nested-card">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
                                           <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -22731,6 +23056,22 @@
                                   </div>
                                 </template>
                               </oj-bind-for-each>
+                            </div>
+                            <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                              <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                </oj-bind-if>
+                                <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                  <template>
+                                    <div class="oj-sm-margin-3x-bottom">
+                                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                      <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                    </div>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -24788,11 +25129,26 @@
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asCards ]]">
+                            <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                            <div :class="[[ $current.data.layoutClass || '' ]]">
                             <div class="oj-flex mateu-nested-cards">
                               <oj-bind-for-each data="[[ $current.data.cards ]]">
                                 <template>
-                                  <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                    <oj-bind-if test="[[ !!$current.data.route ]]">
+                                  <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                    <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                      <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                        on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                        <div class="oj-sm-padding-3x">
+                                          <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                          <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                            <template>
+                                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                            </template>
+                                          </oj-bind-for-each>
+                                        </div>
+                                      </oj-action-card>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                       <oj-action-card class="mateu-nested-card" style="width:100%"
                                         on-oj-action="[[ $listeners.hostBlockAction ]]">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -24808,7 +25164,7 @@
                                         </div>
                                       </oj-action-card>
                                     </oj-bind-if>
-                                    <oj-bind-if test="[[ !$current.data.route ]]">
+                                    <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                       <div class="oj-panel mateu-nested-card">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
                                           <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -24826,6 +25182,22 @@
                                   </div>
                                 </template>
                               </oj-bind-for-each>
+                            </div>
+                            <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                              <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                </oj-bind-if>
+                                <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                  <template>
+                                    <div class="oj-sm-margin-3x-bottom">
+                                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                      <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                    </div>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -26870,11 +27242,26 @@
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asCards ]]">
+                                <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                                <div :class="[[ $current.data.layoutClass || '' ]]">
                                 <div class="oj-flex mateu-nested-cards">
                                   <oj-bind-for-each data="[[ $current.data.cards ]]">
                                     <template>
-                                      <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                        <oj-bind-if test="[[ !!$current.data.route ]]">
+                                      <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                        <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                          <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                            on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                            <div class="oj-sm-padding-3x">
+                                              <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                              <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                                <template>
+                                                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                                </template>
+                                              </oj-bind-for-each>
+                                            </div>
+                                          </oj-action-card>
+                                        </oj-bind-if>
+                                        <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                           <oj-action-card class="mateu-nested-card" style="width:100%"
                                             on-oj-action="[[ $listeners.hostBlockAction ]]">
                                             <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -26890,7 +27277,7 @@
                                             </div>
                                           </oj-action-card>
                                         </oj-bind-if>
-                                        <oj-bind-if test="[[ !$current.data.route ]]">
+                                        <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                           <div class="oj-panel mateu-nested-card">
                                             <oj-bind-if test="[[ !!$current.data.image ]]">
                                               <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -26908,6 +27295,22 @@
                                       </div>
                                     </template>
                                   </oj-bind-for-each>
+                                </div>
+                                <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                  <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                    <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                      <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                    </oj-bind-if>
+                                    <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                      <template>
+                                        <div class="oj-sm-margin-3x-bottom">
+                                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                          <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                        </div>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </oj-bind-if>
                                 </div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -29207,11 +29610,26 @@
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asCards ]]">
+                                  <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                                  <div :class="[[ $current.data.layoutClass || '' ]]">
                                   <div class="oj-flex mateu-nested-cards">
                                     <oj-bind-for-each data="[[ $current.data.cards ]]">
                                       <template>
-                                        <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                          <oj-bind-if test="[[ !!$current.data.route ]]">
+                                        <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                          <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                            <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                              on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                              <div class="oj-sm-padding-3x">
+                                                <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                                <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                                  <template>
+                                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                                  </template>
+                                                </oj-bind-for-each>
+                                              </div>
+                                            </oj-action-card>
+                                          </oj-bind-if>
+                                          <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                             <oj-action-card class="mateu-nested-card" style="width:100%"
                                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -29227,7 +29645,7 @@
                                               </div>
                                             </oj-action-card>
                                           </oj-bind-if>
-                                          <oj-bind-if test="[[ !$current.data.route ]]">
+                                          <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                             <div class="oj-panel mateu-nested-card">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
                                                 <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -29245,6 +29663,22 @@
                                         </div>
                                       </template>
                                     </oj-bind-for-each>
+                                  </div>
+                                  <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                    <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                      <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                      </oj-bind-if>
+                                      <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                        <template>
+                                          <div class="oj-sm-margin-3x-bottom">
+                                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </div>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </oj-bind-if>
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -31289,11 +31723,26 @@
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asCards ]]">
+                                  <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                                  <div :class="[[ $current.data.layoutClass || '' ]]">
                                   <div class="oj-flex mateu-nested-cards">
                                     <oj-bind-for-each data="[[ $current.data.cards ]]">
                                       <template>
-                                        <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                          <oj-bind-if test="[[ !!$current.data.route ]]">
+                                        <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                          <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                            <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                              on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                              <div class="oj-sm-padding-3x">
+                                                <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                                <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                                  <template>
+                                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                                  </template>
+                                                </oj-bind-for-each>
+                                              </div>
+                                            </oj-action-card>
+                                          </oj-bind-if>
+                                          <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                             <oj-action-card class="mateu-nested-card" style="width:100%"
                                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -31309,7 +31758,7 @@
                                               </div>
                                             </oj-action-card>
                                           </oj-bind-if>
-                                          <oj-bind-if test="[[ !$current.data.route ]]">
+                                          <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                             <div class="oj-panel mateu-nested-card">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
                                                 <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -31327,6 +31776,22 @@
                                         </div>
                                       </template>
                                     </oj-bind-for-each>
+                                  </div>
+                                  <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                    <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                      <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                      </oj-bind-if>
+                                      <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                        <template>
+                                          <div class="oj-sm-margin-3x-bottom">
+                                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </div>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </oj-bind-if>
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -33396,11 +33861,26 @@
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asCards ]]">
+                                  <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                                  <div :class="[[ $current.data.layoutClass || '' ]]">
                                   <div class="oj-flex mateu-nested-cards">
                                     <oj-bind-for-each data="[[ $current.data.cards ]]">
                                       <template>
-                                        <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                          <oj-bind-if test="[[ !!$current.data.route ]]">
+                                        <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                          <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                            <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                              on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                              <div class="oj-sm-padding-3x">
+                                                <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                                <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                                  <template>
+                                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                                  </template>
+                                                </oj-bind-for-each>
+                                              </div>
+                                            </oj-action-card>
+                                          </oj-bind-if>
+                                          <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                             <oj-action-card class="mateu-nested-card" style="width:100%"
                                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -33416,7 +33896,7 @@
                                               </div>
                                             </oj-action-card>
                                           </oj-bind-if>
-                                          <oj-bind-if test="[[ !$current.data.route ]]">
+                                          <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                             <div class="oj-panel mateu-nested-card">
                                               <oj-bind-if test="[[ !!$current.data.image ]]">
                                                 <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -33434,6 +33914,22 @@
                                         </div>
                                       </template>
                                     </oj-bind-for-each>
+                                  </div>
+                                  <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                    <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                      <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                      </oj-bind-if>
+                                      <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                        <template>
+                                          <div class="oj-sm-margin-3x-bottom">
+                                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </div>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </oj-bind-if>
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -35725,11 +36221,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -35745,7 +36256,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -35763,6 +36274,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -37796,11 +38323,26 @@
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asCards ]]">
+                            <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                            <div :class="[[ $current.data.layoutClass || '' ]]">
                             <div class="oj-flex mateu-nested-cards">
                               <oj-bind-for-each data="[[ $current.data.cards ]]">
                                 <template>
-                                  <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                    <oj-bind-if test="[[ !!$current.data.route ]]">
+                                  <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                    <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                      <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                        on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                        <div class="oj-sm-padding-3x">
+                                          <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                          <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                            <template>
+                                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                            </template>
+                                          </oj-bind-for-each>
+                                        </div>
+                                      </oj-action-card>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                       <oj-action-card class="mateu-nested-card" style="width:100%"
                                         on-oj-action="[[ $listeners.hostBlockAction ]]">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -37816,7 +38358,7 @@
                                         </div>
                                       </oj-action-card>
                                     </oj-bind-if>
-                                    <oj-bind-if test="[[ !$current.data.route ]]">
+                                    <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                       <div class="oj-panel mateu-nested-card">
                                         <oj-bind-if test="[[ !!$current.data.image ]]">
                                           <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -37834,6 +38376,22 @@
                                   </div>
                                 </template>
                               </oj-bind-for-each>
+                            </div>
+                            <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                              <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                </oj-bind-if>
+                                <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                  <template>
+                                    <div class="oj-sm-margin-3x-bottom">
+                                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                      <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                    </div>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -39867,11 +40425,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -39887,7 +40460,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -39905,6 +40478,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -41963,11 +42552,26 @@
                     <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asCards ]]">
+                    <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                    <div :class="[[ $current.data.layoutClass || '' ]]">
                     <div class="oj-flex mateu-nested-cards">
                       <oj-bind-for-each data="[[ $current.data.cards ]]">
                         <template>
-                          <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                            <oj-bind-if test="[[ !!$current.data.route ]]">
+                          <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                            <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                              <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                <div class="oj-sm-padding-3x">
+                                  <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-action-card>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                               <oj-action-card class="mateu-nested-card" style="width:100%"
                                 on-oj-action="[[ $listeners.hostBlockAction ]]">
                                 <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -41983,7 +42587,7 @@
                                 </div>
                               </oj-action-card>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ !$current.data.route ]]">
+                            <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                               <div class="oj-panel mateu-nested-card">
                                 <oj-bind-if test="[[ !!$current.data.image ]]">
                                   <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -42001,6 +42605,22 @@
                           </div>
                         </template>
                       </oj-bind-for-each>
+                    </div>
+                    <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                      <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                        <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-for-each data="[[ $current.data.detail ]]">
+                          <template>
+                            <div class="oj-sm-margin-3x-bottom">
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -44045,11 +44665,26 @@
                     <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asCards ]]">
+                    <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                    <div :class="[[ $current.data.layoutClass || '' ]]">
                     <div class="oj-flex mateu-nested-cards">
                       <oj-bind-for-each data="[[ $current.data.cards ]]">
                         <template>
-                          <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                            <oj-bind-if test="[[ !!$current.data.route ]]">
+                          <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                            <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                              <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                <div class="oj-sm-padding-3x">
+                                  <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-action-card>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                               <oj-action-card class="mateu-nested-card" style="width:100%"
                                 on-oj-action="[[ $listeners.hostBlockAction ]]">
                                 <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -44065,7 +44700,7 @@
                                 </div>
                               </oj-action-card>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ !$current.data.route ]]">
+                            <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                               <div class="oj-panel mateu-nested-card">
                                 <oj-bind-if test="[[ !!$current.data.image ]]">
                                   <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -44083,6 +44718,22 @@
                           </div>
                         </template>
                       </oj-bind-for-each>
+                    </div>
+                    <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                      <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                        <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-for-each data="[[ $current.data.detail ]]">
+                          <template>
+                            <div class="oj-sm-margin-3x-bottom">
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -46141,11 +46792,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -46161,7 +46827,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -46179,6 +46845,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -48569,11 +49251,26 @@
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asCards ]]">
+                              <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                              <div :class="[[ $current.data.layoutClass || '' ]]">
                               <div class="oj-flex mateu-nested-cards">
                                 <oj-bind-for-each data="[[ $current.data.cards ]]">
                                   <template>
-                                    <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                      <oj-bind-if test="[[ !!$current.data.route ]]">
+                                    <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                      <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                        <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                          on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                          <div class="oj-sm-padding-3x">
+                                            <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                            <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                              <template>
+                                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                              </template>
+                                            </oj-bind-for-each>
+                                          </div>
+                                        </oj-action-card>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                         <oj-action-card class="mateu-nested-card" style="width:100%"
                                           on-oj-action="[[ $listeners.hostBlockAction ]]">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -48589,7 +49286,7 @@
                                           </div>
                                         </oj-action-card>
                                       </oj-bind-if>
-                                      <oj-bind-if test="[[ !$current.data.route ]]">
+                                      <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                         <div class="oj-panel mateu-nested-card">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
                                             <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -48607,6 +49304,22 @@
                                     </div>
                                   </template>
                                 </oj-bind-for-each>
+                              </div>
+                              <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                  <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                  </oj-bind-if>
+                                  <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                    <template>
+                                      <div class="oj-sm-margin-3x-bottom">
+                                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -51053,11 +51766,26 @@
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asCards ]]">
+                              <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                              <div :class="[[ $current.data.layoutClass || '' ]]">
                               <div class="oj-flex mateu-nested-cards">
                                 <oj-bind-for-each data="[[ $current.data.cards ]]">
                                   <template>
-                                    <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                      <oj-bind-if test="[[ !!$current.data.route ]]">
+                                    <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                      <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                        <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                          on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                          <div class="oj-sm-padding-3x">
+                                            <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                            <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                              <template>
+                                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                              </template>
+                                            </oj-bind-for-each>
+                                          </div>
+                                        </oj-action-card>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                         <oj-action-card class="mateu-nested-card" style="width:100%"
                                           on-oj-action="[[ $listeners.hostBlockAction ]]">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -51073,7 +51801,7 @@
                                           </div>
                                         </oj-action-card>
                                       </oj-bind-if>
-                                      <oj-bind-if test="[[ !$current.data.route ]]">
+                                      <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                         <div class="oj-panel mateu-nested-card">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
                                             <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -51091,6 +51819,22 @@
                                     </div>
                                   </template>
                                 </oj-bind-for-each>
+                              </div>
+                              <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                  <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                  </oj-bind-if>
+                                  <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                    <template>
+                                      <div class="oj-sm-margin-3x-bottom">
+                                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -53523,11 +54267,26 @@
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asCards ]]">
+                              <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                              <div :class="[[ $current.data.layoutClass || '' ]]">
                               <div class="oj-flex mateu-nested-cards">
                                 <oj-bind-for-each data="[[ $current.data.cards ]]">
                                   <template>
-                                    <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                      <oj-bind-if test="[[ !!$current.data.route ]]">
+                                    <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                      <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                        <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                          on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                          <div class="oj-sm-padding-3x">
+                                            <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                            <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                              <template>
+                                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                              </template>
+                                            </oj-bind-for-each>
+                                          </div>
+                                        </oj-action-card>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                         <oj-action-card class="mateu-nested-card" style="width:100%"
                                           on-oj-action="[[ $listeners.hostBlockAction ]]">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -53543,7 +54302,7 @@
                                           </div>
                                         </oj-action-card>
                                       </oj-bind-if>
-                                      <oj-bind-if test="[[ !$current.data.route ]]">
+                                      <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                         <div class="oj-panel mateu-nested-card">
                                           <oj-bind-if test="[[ !!$current.data.image ]]">
                                             <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -53561,6 +54320,22 @@
                                     </div>
                                   </template>
                                 </oj-bind-for-each>
+                              </div>
+                              <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                  <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                    <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                  </oj-bind-if>
+                                  <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                    <template>
+                                      <div class="oj-sm-margin-3x-bottom">
+                                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -55972,11 +56747,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -55992,7 +56782,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -56010,6 +56800,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -58036,11 +58842,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -58056,7 +58877,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -58074,6 +58895,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -60930,11 +61767,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.islandBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -60950,7 +61802,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -60968,6 +61820,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -62994,11 +63862,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.islandBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -63014,7 +63897,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -63032,6 +63915,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -65137,11 +66036,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -65157,7 +66071,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -65175,6 +66089,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -67203,11 +68133,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -67223,7 +68168,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -67241,6 +68186,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -69283,11 +70244,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -69303,7 +70279,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -69321,6 +70297,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -71349,11 +72341,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -71369,7 +72376,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -71387,6 +72394,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -73481,11 +74504,26 @@
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asCards ]]">
+                                <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                                <div :class="[[ $current.data.layoutClass || '' ]]">
                                 <div class="oj-flex mateu-nested-cards">
                                   <oj-bind-for-each data="[[ $current.data.cards ]]">
                                     <template>
-                                      <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                        <oj-bind-if test="[[ !!$current.data.route ]]">
+                                      <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                        <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                          <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                            on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                            <div class="oj-sm-padding-3x">
+                                              <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                              <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                                <template>
+                                                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                                </template>
+                                              </oj-bind-for-each>
+                                            </div>
+                                          </oj-action-card>
+                                        </oj-bind-if>
+                                        <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                           <oj-action-card class="mateu-nested-card" style="width:100%"
                                             on-oj-action="[[ $listeners.hostBlockAction ]]">
                                             <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -73501,7 +74539,7 @@
                                             </div>
                                           </oj-action-card>
                                         </oj-bind-if>
-                                        <oj-bind-if test="[[ !$current.data.route ]]">
+                                        <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                           <div class="oj-panel mateu-nested-card">
                                             <oj-bind-if test="[[ !!$current.data.image ]]">
                                               <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -73519,6 +74557,22 @@
                                       </div>
                                     </template>
                                   </oj-bind-for-each>
+                                </div>
+                                <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                                  <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                                    <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                      <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                                    </oj-bind-if>
+                                    <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                      <template>
+                                        <div class="oj-sm-margin-3x-bottom">
+                                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                          <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                        </div>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </oj-bind-if>
                                 </div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -75827,11 +76881,26 @@
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asCards ]]">
+                        <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                        <div :class="[[ $current.data.layoutClass || '' ]]">
                         <div class="oj-flex mateu-nested-cards">
                           <oj-bind-for-each data="[[ $current.data.cards ]]">
                             <template>
-                              <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                <oj-bind-if test="[[ !!$current.data.route ]]">
+                              <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                  <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                    on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                    <div class="oj-sm-padding-3x">
+                                      <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                        <template>
+                                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </oj-action-card>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                   <oj-action-card class="mateu-nested-card" style="width:100%"
                                     on-oj-action="[[ $listeners.hostBlockAction ]]">
                                     <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -75847,7 +76916,7 @@
                                     </div>
                                   </oj-action-card>
                                 </oj-bind-if>
-                                <oj-bind-if test="[[ !$current.data.route ]]">
+                                <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                   <div class="oj-panel mateu-nested-card">
                                     <oj-bind-if test="[[ !!$current.data.image ]]">
                                       <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -75865,6 +76934,22 @@
                               </div>
                             </template>
                           </oj-bind-for-each>
+                        </div>
+                        <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                          <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                            <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                            </oj-bind-if>
+                            <oj-bind-for-each data="[[ $current.data.detail ]]">
+                              <template>
+                                <div class="oj-sm-margin-3x-bottom">
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -77911,11 +78996,26 @@
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asCards ]]">
+                        <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                        <div :class="[[ $current.data.layoutClass || '' ]]">
                         <div class="oj-flex mateu-nested-cards">
                           <oj-bind-for-each data="[[ $current.data.cards ]]">
                             <template>
-                              <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                <oj-bind-if test="[[ !!$current.data.route ]]">
+                              <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                  <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                    on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                    <div class="oj-sm-padding-3x">
+                                      <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                        <template>
+                                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </div>
+                                  </oj-action-card>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                   <oj-action-card class="mateu-nested-card" style="width:100%"
                                     on-oj-action="[[ $listeners.hostBlockAction ]]">
                                     <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -77931,7 +79031,7 @@
                                     </div>
                                   </oj-action-card>
                                 </oj-bind-if>
-                                <oj-bind-if test="[[ !$current.data.route ]]">
+                                <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                   <div class="oj-panel mateu-nested-card">
                                     <oj-bind-if test="[[ !!$current.data.image ]]">
                                       <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -77949,6 +79049,22 @@
                               </div>
                             </template>
                           </oj-bind-for-each>
+                        </div>
+                        <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                          <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                            <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                            </oj-bind-if>
+                            <oj-bind-for-each data="[[ $current.data.detail ]]">
+                              <template>
+                                <div class="oj-sm-margin-3x-bottom">
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -79977,11 +81093,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -79997,7 +81128,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -80015,6 +81146,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
@@ -82043,11 +83190,26 @@
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <!-- gridLayout cards (a grid), list (one column) or masterDetail (the list beside the picked row's fields) -->
+                          <div :class="[[ $current.data.layoutClass || '' ]]">
                           <div class="oj-flex mateu-nested-cards">
                             <oj-bind-for-each data="[[ $current.data.cards ]]">
                               <template>
-                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
-                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                <div :class="[[ $current.data.cellClass || 'oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom' ]]">
+                                  <oj-bind-if test="[[ !!$current.data.uiKey ]]">
+                                    <oj-action-card :class="[[ $current.data.cardClass || 'mateu-nested-card' ]]" style="width:100%"
+                                      on-oj-action="[[ $listeners.uiValueChanged ]]">
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !!$current.data.route && !$current.data.uiKey ]]">
                                     <oj-action-card class="mateu-nested-card" style="width:100%"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
@@ -82063,7 +83225,7 @@
                                       </div>
                                     </oj-action-card>
                                   </oj-bind-if>
-                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                  <oj-bind-if test="[[ !$current.data.route && !$current.data.uiKey ]]">
                                     <div class="oj-panel mateu-nested-card">
                                       <oj-bind-if test="[[ !!$current.data.image ]]">
                                         <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
@@ -82081,6 +83243,22 @@
                                 </div>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                          <oj-bind-if test="[[ !!$current.data.hasDetail ]]">
+                            <div class="oj-panel oj-sm-padding-4x mateu-nested-detail">
+                              <oj-bind-if test="[[ !$current.data.detail.length ]]">
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.noData ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                              <oj-bind-for-each data="[[ $current.data.detail ]]">
+                                <template>
+                                  <div class="oj-sm-margin-3x-bottom">
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">

@@ -2307,3 +2307,8 @@ oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-
 .mateu-grid-column-borders .oj-table-data-cell + .oj-table-data-cell,
 .mateu-grid-column-borders .oj-table-column-header-cell + .oj-table-column-header-cell { border-inline-start: 1px solid var(--oj-core-divider-color, #ddd); }
 .mateu-grid-action-link { --oj-button-text-color: var(--oj-core-link-text-color, #2b6a9e); margin-inline-start: -.5rem; }
+/* a surface listing in masterDetail: the list beside the picked row's fields */
+.mateu-nested-md { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.mateu-nested-md > .mateu-nested-cards { flex: 0 1 20rem; min-width: 14rem; }
+.mateu-nested-md > .mateu-nested-detail { flex: 1 1 20rem; }
+.mateu-nested-card-picked { outline: 2px solid var(--oj-core-brand-color, #227e9e); outline-offset: -2px; }

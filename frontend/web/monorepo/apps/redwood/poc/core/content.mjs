@@ -8,7 +8,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf, nestedListingKeyOf, valueLabelOf } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -2161,6 +2161,8 @@ export function withSubresources(blocks, contexts) {
         selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
         dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
       }
+      // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
+      Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
       // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
       // drawn too, the table where the listing sits — only the table was kept, the zones were lost
       const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
@@ -2176,6 +2178,55 @@ export function withSubresources(blocks, contexts) {
       return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
     }),
   }))
+}
+
+/**
+ * A surface's listing in its declared gridLayout — what to lay over its table atom: `cards` (a grid
+ * of cards: the identifier as title, the other columns as lines), `list` (one card per line, the
+ * identifier and the @Priority 1–2 columns), `masterDetail` (that list beside the picked row's
+ * fields; the pick is client state) or `tree` (rows with `children`, the first column disclosing
+ * them). {} for a table (auto / table).
+ */
+export function subresourceLayoutOf(crud, ctx, page, grid, surfaceKey) {
+  const md = (crud && crud.metadata) || {}
+  const layout = String(md.gridLayout || '')
+  const raw = page.content || []
+  if (layout === 'tree') {
+    if (!raw.some((r) => Array.isArray(r && r.children) && r.children.length)) return {}
+    const key = 'listingTree:' + surfaceKey
+    const flat = flattenTreeRows(raw, (k) => !!uiValueOf(key + ':open:' + k, false)).map((r) => ({
+      ...r,
+      ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+        uiKey: key + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
+    }))
+    const wire = leafColumnsOf(md.columns).filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+    const rows = labelCellRows(flat, wire).map((r, i) => ({ ...r, _rowNumber: i }))
+    const columns = grid.columns.map((c, i) => (i === 0 ? { ...c, template: 'cellTreeToggle', sortable: 'disabled' } : { ...c, sortable: 'disabled' }))
+    return { rows, columns, adp: dataProviderFactory ? dataProviderFactory(rows) : null, isEmpty: rows.length === 0 }
+  }
+  if (layout !== 'cards' && layout !== 'list' && layout !== 'masterDetail') return {}
+  const node = { ...crud, metadata: { ...md, gridLayout: 'cards' } }
+  const nested = nestedListingAtomOf(node, { ...ctx, data: { ...(ctx.data || {}), [nestedListingKeyOf(node)]: { page } } })
+  const out = { ...nested, isGrid: false, title: grid.label || nested.title }
+  if (layout === 'cards') return out
+  // list / master-detail: the identifier titles each line, its @Priority 1–2 columns are its caption
+  const columns = leafColumnsOf(md.columns).map((c) => c.metadata || c).filter((c) => c.id && c.dataType !== 'actionGroup')
+  const captionIds = columns.filter((c) => !c.identifier && (c.priority === 1 || c.priority === 2)).map((c) => c.id)
+  const pickKey = 'listingPick:' + surfaceKey
+  const picked = uiValueOf(pickKey, 0)
+  const cards = nested.cards.map((card, i) => ({
+    ...card,
+    lines: captionIds.length ? card.lines.filter((l) => columns.some((c) => captionIds.includes(c.id) && (c.label || c.id) === l.label)) : card.lines.slice(0, 1),
+    cellClass: 'oj-flex-item oj-sm-12 oj-sm-padding-2x-bottom',
+    ...(layout === 'masterDetail' ? { uiKey: pickKey, uiValue: i, cardClass: 'mateu-nested-card' + (i === picked ? ' mateu-nested-card-picked' : '') } : {}),
+  }))
+  if (layout === 'list') return { ...out, cards }
+  const row = raw[picked] || null
+  const detail = row ? columns.map((c) => {
+    const shown = labelColumn(c) ? valueLabelOf(c, row[c.id]) : row[c.id]
+    return { label: c.label || c.id, value: shown == null ? '' : String(typeof shown === 'object' ? (shown.value ?? shown.message ?? '') : shown) }
+  }) : []
+  return { ...out, cards, hasDetail: true, detail, layoutClass: 'mateu-nested-md' }
 }
 
 /** Merges the content of the NESTED island into the blocks of the parent island:
