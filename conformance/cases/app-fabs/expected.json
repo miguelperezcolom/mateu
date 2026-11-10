@@ -1,0 +1,43 @@
+{
+  "commands" : [ {
+    "data" : "Fab app",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "fabs" : [ {
+          "actionId" : "create",
+          "buttonStyle" : "primary",
+          "icon" : "vaadin:plus",
+          "label" : "Create"
+        }, {
+          "actionId" : "help",
+          "buttonStyle" : "tertiary",
+          "icon" : "vaadin:question",
+          "label" : "Help"
+        } ],
+        "homeConsumedRoute" : "/conformance/app-fabs",
+        "homeRoute" : "/conformance/app-fabs/home",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-fabs",
+          "label" : "Home",
+          "path" : "/home",
+          "route" : "/conformance/app-fabs/home",
+          "uriPrefix" : "/conformance/app-fabs",
+          "visible" : true
+        } ],
+        "rootRoute" : "/conformance/app-fabs",
+        "route" : "/conformance/app-fabs",
+        "title" : "Fab app",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
