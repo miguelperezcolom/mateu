@@ -183,10 +183,10 @@ define([
       let reg;
       try {
         // a route of the local MENU belongs to the app declaring it: it loads with its serverSideType (without
-        // it the server answers «Not found.»), and a group RouteLink falls through to its terminal route
+        // it «Not found.»), a group RouteLink falls to its terminal route; WITH its ?query (query > defaults)
         reg = remote
-          ? await bridge.loadRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra)
-          : await bridge.loadMenuRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra);
+          ? await bridge.loadRouteInto(callBase, $application.variables.mateuRegistry, target.full, '', extra)
+          : await bridge.loadMenuRouteInto(callBase, $application.variables.mateuRegistry, target.full, '', extra);
         // the load reduces inside the transport: here its DOM effects are applied and the
         // client rules' context is set (without this, a freshly opened screen did not have them)
         bridge.applyDomEffects(null, reg);

@@ -1969,7 +1969,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const quoted = /^\s*>\s?(.*)$/.exec(line)
       if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
-      flushList(); flushQuote()
+      // a LAZY continuation: a plain line right after a list item (or a quote) belongs to it, as
+      // in CommonMark — a bullet wrapped onto a second source line fell out of the list
+      if (list && list.items.length) { list.items[list.items.length - 1] += ' ' + line.trim(); continue }
+      if (quote.length) { quote.push(line.trim()); continue }
       para.push(line.trim())
     }
     flushAll()
@@ -2488,7 +2491,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
         value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
       }
-      out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
+      // a label is a template like a section title (`Price per night (${state.currency})`)
+      const label = typeof widget.label === 'string' && widget.label.includes('${')
+        ? interpolate(widget.label, s, { data: data || {} }) : widget.label
+      out.push({ ...widget, label, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
     }
     return out
   }
@@ -5324,8 +5330,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
+    // An ESCAPED `\${i18n.x}` is the literal text `${i18n.x}` (it read `\x`).
     if (text != null && String(text).includes('i18n.')) {
-      text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+      text = String(text).replace(/(\\\\|\\\$\{)|\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, escaped, key) => (escaped ? all : key))
     }
     // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
     // arrives as ${state['_position']})
@@ -6459,7 +6466,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Markdown') {
         // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
         // that installRichText dumps into its container (VB does not stamp HTML from a binding)
-        const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+        // NOT interpolated: a Markdown's text is prose (a description, a code listing) where `${…}`
+        // is content, like the web renderer's mateu-markdown — interpolating it blanked the
+        // expressions out of every Explorer description and showed source code that is not the file
+        const html = richHtmlOf('markdown', String(m.markdown || m.text || ''))
         if (html) atom({ isRichText: true, label: '', html }, container)
         return
       }
@@ -7953,6 +7963,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parentCrumb(summarizeHost(reg, route).trail) || null
   }
 
+  /** A view model class read as a title — `…smartsearchpage.LoanFinder` → «Loan finder», like the
+   *  server's Humanizer; '' for a framework class (a YAML page's SeededYamlPage names nothing). */
+  function typeTitleOf(serverSideType) {
+    const type = String(serverSideType || '')
+    if (!type || type.startsWith('io.mateu.core') || type.startsWith('io.mateu.uidl')) return ''
+    const simple = type.split('.').pop().split('$').pop()
+    const words = simple.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase()
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : ''
+  }
+
+  /** Does the tree carry a heading Text (h1–h6) of its own (not crossing an island)? */
+  function hasHeadingText(tree) {
+    let found = false
+    const walk = (n, isRoot) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return
+      const md = n.metadata
+      if (md && md.type === 'Text' && /^h[1-6]$/.test(md.container || '') && String(md.text || '').trim()) { found = true; return }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return found
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
@@ -7986,7 +8021,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
       title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
         || (option && (option.caption || option.label))
-        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
+        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '')
+        // …and a composed page with NO title at all (no @Title, no window title, no menu entry —
+        // a SmartSearchPage opened on its own): Spectra's header draws «...» for an empty title, so
+        // the page is named by its class, as the server names an untitled one (the Humanizer)
+        // (not when its content brings a heading of its own: a wizard's h2 names it)
+        || (hasHeadingText(host.tree) ? '' : typeTitleOf(host.tree && host.tree.serverSideType)) || ''),
       // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
       // @NoBreadcrumbs on the page or on the shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
@@ -10926,7 +10966,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-select-one, JET answered with the first option and the form saved it unasked.
     const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
     const raw = s[fieldId] != null ? s[fieldId] : fromData
-    const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    // a label is a template like a section title (`Price per night (${state.currency})`)
+    const widget = typeof built.label === 'string' && built.label.includes('${')
+      ? { ...built, label: interpolate(built.label, s, { data: d }) } : built
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
@@ -18596,13 +18639,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function ruleSurfacesOf(reg, hostId = '__root__') {
     const out = []
     const contexts = (reg && reg.contexts) || {}
-    if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+    const add = (surface, ctx) => {
+      if (!ctx) return
+      if (hasRules(ctx)) out.push({ surface, ctx })
+      // an island painted INSIDE this surface (a nested ServerSide of its tree — an EmbeddedView, a
+      // page an example embeds) brings rules of its own: they act on its fields, which are painted
+      // in this surface, against the island's state (its initialData, then what is typed). They
+      // were never read, so a `@Hidden("!state.company")` inside an island did nothing.
+      for (const island of nestedRuleIslandsOf(ctx.tree)) {
+        // an inline island registered as a context of its own (transport registerInlineIsland) has
+        // its CURRENT state there; else the state it arrived with
+        const own = island.id ? Object.values(contexts).find((c) => c && c !== ctx && c.tree && c.tree.id === island.id) : null
+        out.push({ surface, ctx: { id: (ctx.id || surface) + '/' + (island.id || ''), tree: island, state: (own && own.state) || island.initialData || {}, data: (own && own.data) || ctx.data || {} } })
+      }
+    }
+    add('host', contexts[hostId])
     for (const [id, ctx] of Object.entries(contexts)) {
-      if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+      if (id !== hostId && ctx && ctx.kind === 'island') add('island', ctx)
     }
     const stack = (reg && reg.stack) || []
     const top = stack.length ? contexts[stack[stack.length - 1]] : null
-    if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+    add('overlay', top)
+    return out
+  }
+
+  /** The ServerSide nodes nested in a tree (not the root) that carry rules. Pure. */
+  function nestedRuleIslandsOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide' && Array.isArray(n.rules) && n.rules.length) out.push(n)
+      for (const [k, v] of Object.entries(n)) {
+        if (k === 'rules' || k === 'initialData' || k === 'validations') continue
+        if (v && typeof v === 'object') walk(v, false)
+      }
+    }
+    walk(tree, true)
     return out
   }
 
@@ -20241,9 +20314,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const matches = (shortcut, e) => (typeof shortcutMatches === 'function' ? shortcutMatches(shortcut, e) : false)
 
+  // Enter on the EMPTY box of Spectra's smart search (oj-sp-smart-filter-search) threw inside
+  // Spectra — its keyword handler trims an input raw value that is still undefined — and searched
+  // nothing; a SmartSearchPage says «Press Enter on an empty box to list every loan». The key is
+  // taken in capture before Spectra sees it: with no keyword chip it launches the listing's search
+  // with no text through the header's own search slot (its ojValueAction → mateuSearchAction), with
+  // chips it is just swallowed (they already are the search).
+  function emptySearchEnterOf(e) {
+    if (!e || e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null
+    const target = e.target
+    if (!target || target.tagName !== 'INPUT' || String(target.value || '').trim() !== '') return null
+    const header = target.closest ? target.closest('oj-sp-smart-filter-search') : null
+    if (!header) return null
+    const slot = header.querySelector('oj-input-search[slot="search"]')
+    if (slot && slot.contains(target)) return null // the slot's own box: JET handles it
+    const chips = (header.smartFilters && header.smartFilters.value) || []
+    return { slot, search: !chips.some((c) => c && c.filter === 'keyword') }
+  }
+
+  function installEmptySearchEnter(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuEmptySearchEnter) return
+    doc.__mateuEmptySearchEnter = true
+    const handle = (e) => {
+      const hit = emptySearchEnterOf(e)
+      if (!hit) return
+      e.stopImmediatePropagation()
+      e.preventDefault()
+      if (e.type === 'keyup' && hit.search && hit.slot) {
+        hit.slot.dispatchEvent(new CustomEvent('ojValueAction', { detail: { value: '' }, bubbles: true }))
+      }
+    }
+    doc.addEventListener('keydown', handle, true)
+    doc.addEventListener('keyup', handle, true)
+  }
+
   function installKeys(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuKeys) return
     doc.__mateuKeys = true
+    installEmptySearchEnter(doc)
     let holdTimer = null
     doc.addEventListener('keydown', (e) => {
       // holding Alt (alone): the keys appear
@@ -23637,8 +23745,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const toasts = [...(next.effects.toasts || [])]
     // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
     // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
+    const answered = next
     next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-    toasts.push(...(next.effects.toasts || []))
+    // only what the SUBSCRIBERS' answers brought: with nothing delivered the registry comes back as it
+    // was, and its toasts — the action's own — were counted twice (a «Fail» showed its error twice)
+    if (next !== answered && next.effects !== answered.effects) toasts.push(...(next.effects.toasts || []))
     // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
     next = await ensureInlineIslands(outbound.baseUrl, next, extra)
     return { ...next, effects: { ...next.effects, toasts } }
@@ -26386,7 +26497,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+  // oj-sp-header-create-edit draws its own Cancel with a FIXED label (its translations and display
+  // options have none for it), so a crud's `cancelLabel()` («Discard») showed «Cancel». The header
+  // carries the wire's label (`data-mateu-cancel-label`) and this puts it on Spectra's button
+  // (`<header id>_cancelAction`); oj-sp re-renders it, so it is re-checked like the fact actions.
+  const CANCEL_LABEL_HOST = '[data-mateu-cancel-label]'
+  function relabelCancel(host) {
+    const label = host.getAttribute('data-mateu-cancel-label') || ''
+    if (!label || !host.id) return
+    const button = host.querySelector('[id="' + host.id + '_cancelAction"]')
+    if (button && button.label !== label) button.label = label
+  }
+
+  /** Installs (once) the fact action buttons of every header that carries some, and their clicks
+   *  — and the wire's Cancel label on a create/edit header (relabelCancel). */
   function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuFactActions) return
     doc.__mateuFactActions = true
@@ -26399,6 +26523,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     const root = doc.body || doc.documentElement
     for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+    for (const host of Array.from(root.querySelectorAll(CANCEL_LABEL_HOST))) relabelCancel(host)
     if (typeof MutationObserver === 'undefined') return
     new MutationObserver((records) => {
       const hosts = new Set()
@@ -26413,7 +26538,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       }
       for (const host of hosts) decorateFactActions(host, doc)
-    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+      const relabel = new Set()
+      for (const r of records) {
+        const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+        const host = target && target.closest ? target.closest(CANCEL_LABEL_HOST) : null
+        if (host) relabel.add(host)
+        for (const n of r.addedNodes || []) {
+          if (n.nodeType !== 1) continue
+          if (n.matches && n.matches(CANCEL_LABEL_HOST)) relabel.add(n)
+          for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(CANCEL_LABEL_HOST) : [])) relabel.add(h)
+        }
+      }
+      for (const host of relabel) relabelCancel(host)
+    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
   }
 
   // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
@@ -26886,6 +27023,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
       // primaryId) instead of general-overview's «‹ Cancel» link
       createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+      // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+      // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+      cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
       showBand: showBand && !gopOn && !iopOn,
       showInline: showHeader && !showBand && !gopOn && !iopOn,
       showListBand,

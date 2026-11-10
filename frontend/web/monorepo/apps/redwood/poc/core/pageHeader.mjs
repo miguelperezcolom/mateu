@@ -557,6 +557,31 @@ export function parentCrumbOf(reg, route) {
   return parentCrumb(summarizeHost(reg, route).trail) || null
 }
 
+/** A view model class read as a title — `…smartsearchpage.LoanFinder` → «Loan finder», like the
+ *  server's Humanizer; '' for a framework class (a YAML page's SeededYamlPage names nothing). */
+export function typeTitleOf(serverSideType) {
+  const type = String(serverSideType || '')
+  if (!type || type.startsWith('io.mateu.core') || type.startsWith('io.mateu.uidl')) return ''
+  const simple = type.split('.').pop().split('$').pop()
+  const words = simple.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase()
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : ''
+}
+
+/** Does the tree carry a heading Text (h1–h6) of its own (not crossing an island)? */
+function hasHeadingText(tree) {
+  let found = false
+  const walk = (n, isRoot) => {
+    if (found || !n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && n.type === 'ServerSide') return
+    const md = n.metadata
+    if (md && md.type === 'Text' && /^h[1-6]$/.test(md.container || '') && String(md.text || '').trim()) { found = true; return }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+  }
+  walk(tree, true)
+  return found
+}
+
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
   // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
@@ -590,7 +615,12 @@ export function summarizeHost(reg, route) {
     // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
     title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
       || (option && (option.caption || option.label))
-      || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
+      || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '')
+      // …and a composed page with NO title at all (no @Title, no window title, no menu entry —
+      // a SmartSearchPage opened on its own): Spectra's header draws «...» for an empty title, so
+      // the page is named by its class, as the server names an untitled one (the Humanizer)
+      // (not when its content brings a heading of its own: a wizard's h2 names it)
+      || (hasHeadingText(host.tree) ? '' : typeTitleOf(host.tree && host.tree.serverSideType)) || ''),
     // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
     // @NoBreadcrumbs on the page or on the shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)

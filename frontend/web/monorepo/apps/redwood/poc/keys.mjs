@@ -111,9 +111,44 @@ function hideAccessKeys(doc) {
 
 const matches = (shortcut, e) => (typeof shortcutMatches === 'function' ? shortcutMatches(shortcut, e) : false)
 
+// Enter on the EMPTY box of Spectra's smart search (oj-sp-smart-filter-search) threw inside
+// Spectra — its keyword handler trims an input raw value that is still undefined — and searched
+// nothing; a SmartSearchPage says «Press Enter on an empty box to list every loan». The key is
+// taken in capture before Spectra sees it: with no keyword chip it launches the listing's search
+// with no text through the header's own search slot (its ojValueAction → mateuSearchAction), with
+// chips it is just swallowed (they already are the search).
+export function emptySearchEnterOf(e) {
+  if (!e || e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null
+  const target = e.target
+  if (!target || target.tagName !== 'INPUT' || String(target.value || '').trim() !== '') return null
+  const header = target.closest ? target.closest('oj-sp-smart-filter-search') : null
+  if (!header) return null
+  const slot = header.querySelector('oj-input-search[slot="search"]')
+  if (slot && slot.contains(target)) return null // the slot's own box: JET handles it
+  const chips = (header.smartFilters && header.smartFilters.value) || []
+  return { slot, search: !chips.some((c) => c && c.filter === 'keyword') }
+}
+
+export function installEmptySearchEnter(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuEmptySearchEnter) return
+  doc.__mateuEmptySearchEnter = true
+  const handle = (e) => {
+    const hit = emptySearchEnterOf(e)
+    if (!hit) return
+    e.stopImmediatePropagation()
+    e.preventDefault()
+    if (e.type === 'keyup' && hit.search && hit.slot) {
+      hit.slot.dispatchEvent(new CustomEvent('ojValueAction', { detail: { value: '' }, bubbles: true }))
+    }
+  }
+  doc.addEventListener('keydown', handle, true)
+  doc.addEventListener('keyup', handle, true)
+}
+
 export function installKeys(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuKeys) return
   doc.__mateuKeys = true
+  installEmptySearchEnter(doc)
   let holdTimer = null
   doc.addEventListener('keydown', (e) => {
     // holding Alt (alone): the keys appear

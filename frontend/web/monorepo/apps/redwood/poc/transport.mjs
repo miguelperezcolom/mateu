@@ -701,8 +701,11 @@ export async function runSurfaceAction(reg, surfaceId, actionId, parameters, ext
   const toasts = [...(next.effects.toasts || [])]
   // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
   // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
+  const answered = next
   next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-  toasts.push(...(next.effects.toasts || []))
+  // only what the SUBSCRIBERS' answers brought: with nothing delivered the registry comes back as it
+  // was, and its toasts — the action's own — were counted twice (a «Fail» showed its error twice)
+  if (next !== answered && next.effects !== answered.effects) toasts.push(...(next.effects.toasts || []))
   // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
   next = await ensureInlineIslands(outbound.baseUrl, next, extra)
   return { ...next, effects: { ...next.effects, toasts } }
