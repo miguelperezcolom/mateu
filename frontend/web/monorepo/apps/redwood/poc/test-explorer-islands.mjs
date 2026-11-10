@@ -210,5 +210,19 @@ test('an island\'s tabs and panels keep their own keys: a click in one never swi
   assert.equal(after[1].selectedId, codeStrip.selectedId, 'the Code tabs did not')
 })
 
+test('a Card inside an example card stays in place, with its media, subtitle, suffix and footer', () => {
+  const inner = cs({ type: 'Card', title: cs({ type: 'Text', text: 'Deluxe sea view' }), subtitle: cs({ type: 'Text', text: '32 m²' }),
+    media: cs({ type: 'Image', src: '/bay.svg' }), headerSuffix: cs({ type: 'Badge', text: '€ 380' }),
+    content: cs({ type: 'Text', text: 'Morning sun' }), footer: cs({ type: 'Button', label: 'See availability', actionId: 'see' }) })
+  const tree = ss('entry', 'explorer.EntryPage', [cs({ type: 'Form', title: 'Cards' }, [
+    cs({ type: 'Card', title: cs({ type: 'Text', text: 'In YAML' }) }, [cs({ type: 'VerticalLayout' }, [inner, cs({ type: 'Text', text: 'after' })])]),
+  ])])
+  const blocks = hostContentOf({ tree, state: {}, data: {} }, null, {})
+  const card = blocks.find((b) => b.isCard)
+  const seq = card.items.map((a) => (a.isImage ? 'img' : a.isBadge ? 'badge:' + a.label : a.isButtons ? 'btn:' + a.buttons[0].label : a.text))
+  assert.deepEqual(seq, ['In YAML', 'img', 'Deluxe sea view', '32 m²', 'badge:€ 380', 'Morning sun', 'btn:See availability', 'after'])
+  assert.equal(blocks.filter((b) => b.isCard).length, 1, 'not moved out as a block of its own')
+})
+
 for (const [name, fn] of pending) { await fn(); passed++; console.log('  ✓ ' + name) }
 console.log(`\n${passed} explorer-islands tests OK`)

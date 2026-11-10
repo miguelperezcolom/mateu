@@ -1131,6 +1131,36 @@ export function islandContentOf(ctx, opts = {}) {
       atom(chartAtomOf(m, t, interp), container)
       return
     }
+    // a Card INSIDE another block (an example card holding cards, a card in a zone): a block cannot
+    // nest in a block, and pushing it as one more block moved it out of its container — drawn after
+    // it, out of order. Inline it is its title as a heading and its content after it, where it sits.
+    // A fluent Card's slots are COMPONENTS on its metadata: media and header prefix before the title,
+    // subtitle and header suffix after it, then its content and its FOOTER (a «See availability» /
+    // «Hold for 24 h» button) — only title and content were read, the rest was lost (the footer's
+    // button ended up in the page's action row, at the very bottom).
+    const cardSlot = (slot, into) => {
+      const v = m[slot]
+      if (Array.isArray(v)) v.forEach((c) => visit(c, into))
+      else if (v && typeof v === 'object' && v.metadata) visit(v, into)
+    }
+    const cardSubtitleOf = () => {
+      const v = m.subtitle
+      if (!v) return ''
+      return interp(typeof v === 'string' ? v : (v.metadata && v.metadata.type === 'Text' ? v.metadata.text || '' : ''))
+    }
+    if (t === 'Card' && container && !isSectionNode(node)) {
+      cardSlot('media', container)
+      cardSlot('headerPrefix', container)
+      const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
+      if (title) atom({ isText: true, isHeading: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-4x-top' }, container)
+      const sub = cardSubtitleOf()
+      if (sub) atom({ isText: true, text: sub, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+      cardSlot('headerSuffix', container)
+      for (const child of node.children || []) visit(child, container)
+      cardSlot('content', container)
+      cardSlot('footer', container)
+      return
+    }
     if (t === 'Card') {
       const card = { isCard: true, items: [] }
       // a @Section card says which section it is (data-mateu-section): the sections index (toc.mjs)
@@ -1144,13 +1174,17 @@ export function islandContentOf(ctx, opts = {}) {
       // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
       const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
       // a section's heading IS that title (oj-sp-section draws it): not twice
+      cardSlot('media', card)
+      cardSlot('headerPrefix', card)
       if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
         card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
       }
+      const cardSub = cardSubtitleOf()
+      if (cardSub) card.items.push({ isText: true, text: cardSub, cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+      cardSlot('headerSuffix', card)
       for (const child of node.children || []) visit(child, card)
-      const cardInner = m.content
-      if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
-      else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+      cardSlot('content', card)
+      cardSlot('footer', card)
       // a titled @Section is painted by Spectra's own section, oj-sp-section: it draws the title
       // (with its accent marker) itself, so its body is the card's atoms without that heading
       if (card.sectionTitle) {
