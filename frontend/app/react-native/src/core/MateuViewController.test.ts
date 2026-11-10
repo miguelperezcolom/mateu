@@ -840,6 +840,34 @@ test('data / appState / appData an answer carries reach the screen', async () =>
   assert.deepEqual(session.appData, { museum: 'Rijks' });
 });
 
+test('an edited @ConfirmOnNavigationIfDirty island makes the whole app ask before leaving', async () => {
+  const { c, session } = harness();
+  c.mountServerSide(ssc({ confirmOnNavigationIfDirty: true }));
+  assert.equal(session.anyUnsavedChanges(), false);
+  c.putState('name', 'Ada');
+  assert.equal(session.anyUnsavedChanges(), true);
+  assert.equal(session.hasUnsavedChanges(), true);
+  c.dispose();
+  assert.equal(session.anyUnsavedChanges(), false, 'a view that is gone has nothing to lose');
+});
+
+test('an @Action(js) is client-side only: never sent to the server (RunJS is off on the app)', async () => {
+  const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'changeNote', js: "state.note = 'x'" }, { id: 'save', js: '' }] })), {}]);
+  await c.initialLoad('/orders');
+  const warn = console.warn;
+  const warned: string[] = [];
+  console.warn = (m: string) => warned.push(m);
+  try {
+    assert.equal(await c.runAction('changeNote'), false);
+  } finally {
+    console.warn = warn;
+  }
+  assert.equal(calls.filter((x) => x.kind === 'action').length, 0);
+  assert.match(warned[0], /RunJS is off/);
+  await c.runAction('save');
+  assert.equal(calls.at(-1)!.actionId, 'save');
+});
+
 test('an action sends its declared timeout and idempotency', async () => {
   const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'slowCheck', timeoutMillis: 1500, idempotent: true }] })), {}]);
   await c.initialLoad('/orders');

@@ -3,7 +3,8 @@
  * buttons, chips and checkboxes instead of ad-hoc styles. They wrap React Native Paper and keep the
  * renderer's accessibility contract (role, name, state — src/a11y).
  */
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { FieldFocusRegistrar } from './fieldFocus';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Button, Checkbox, HelperText, Icon, Text, TextInput } from 'react-native-paper';
 import { decimalDraft } from '../core/uxRules';
@@ -124,9 +125,16 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
   error?: string;
   a11y?: Record<string, unknown>;
 }) {
+  // the field around it may be asked to take the focus (the first invalid field of a rejected save)
+  const register = useContext(FieldFocusRegistrar);
+  const input = useRef<{ focus?: () => void } | null>(null);
+  useEffect(() => {
+    register?.(() => input.current?.focus?.());
+  }, [register]);
   return (
     <View>
       <TextInput
+        ref={input as never}
         mode="outlined"
         label={label ? `${label}${required ? ' *' : ''}` : undefined}
         error={!!error}

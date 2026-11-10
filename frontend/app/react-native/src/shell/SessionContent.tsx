@@ -417,7 +417,7 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   }
 
   // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => c.trackDirty && c.dirty; }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
+  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => (c.trackDirty && c.dirty) || session.anyUnsavedChanges(); }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
 const styles = themed(() => StyleSheet.create({

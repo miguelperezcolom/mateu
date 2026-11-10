@@ -22,11 +22,13 @@ export interface ActionFlags {
   timeoutMillis: Record<string, number>;
   /** `@Action(idempotent)`: safe to repeat after a timeout / 5xx. */
   idempotent: Record<string, boolean>;
+  /** `@Action(js = …)`: a CLIENT-side script — the server method is never called for it. */
+  js: Record<string, string>;
 }
 
 /** Reads the flags of the wire `actions` list; entries without an id are skipped. */
 export function actionFlagsOf(actions: unknown): ActionFlags {
-  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {} };
+  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {} };
   for (const a of asArray(actions)) {
     const id = str(a['id']);
     if (!id) continue;
@@ -41,6 +43,7 @@ export function actionFlagsOf(actions: unknown): ActionFlags {
     const timeout = Number(a['timeoutMillis']);
     if (timeout > 0) flags.timeoutMillis[id] = timeout;
     if (a['idempotent'] === true) flags.idempotent[id] = true;
+    if (typeof a['js'] === 'string' && a['js'].trim()) flags.js[id] = a['js'];
   }
   return flags;
 }

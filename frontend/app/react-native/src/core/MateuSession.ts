@@ -152,7 +152,23 @@ export class MateuSession {
   confirmDiscard: () => Promise<boolean> = async () => true;
 
   /** Host hook: whether the screen on show has unsaved changes (its controller tracks them). */
-  hasUnsavedChanges: () => boolean = () => false;
+  hasUnsavedChanges: () => boolean = () => this.anyUnsavedChanges();
+
+  /** The views on screen with unsaved changes (@ConfirmOnNavigationIfDirty) — an island's included:
+   *  an edited form embedded in a page let a menu navigation leave without asking. */
+  private readonly dirtyViews = new Set<unknown>();
+
+  /** A view says whether it has unsaved changes now (a derived session tells the app's). */
+  noteDirty(view: unknown, dirty: boolean): void {
+    if (this.storesFromSession) return this.storesFromSession.noteDirty(view, dirty);
+    if (dirty) this.dirtyViews.add(view);
+    else this.dirtyViews.delete(view);
+  }
+
+  /** Whether any view of this app on screen has unsaved changes. */
+  anyUnsavedChanges(): boolean {
+    return this.storesFromSession ? this.storesFromSession.anyUnsavedChanges() : this.dirtyViews.size > 0;
+  }
   /** A hub keeps every opened UI mounted: only the one on screen answers Android's Back, polls, or opens a browser. */
   private ownOnScreen = true;
   private readonly storesFromSession?: MateuSession;

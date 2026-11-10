@@ -122,6 +122,7 @@ export class MateuViewController {
   private actionRestData: Record<string, Json> = {};
   private actionTimeout: Record<string, number> = {};
   private actionIdempotent: Record<string, boolean> = {};
+  private actionJs: Record<string, string> = {};
   /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
   private pending = new Set<string>();
   private pendingListeners = new Set<() => void>();
@@ -187,6 +188,20 @@ export class MateuViewController {
   /** Action-returned banners (UIIncrementDto.banners) — cleared on navigation. */
   actionBanners: PageBanner[] = [];
 
+  /** How each field on screen takes the focus (its input registers it), and the field a rejected
+   *  save asked to focus — the first invalid one — once it is drawn. */
+  private fieldFocus: Record<string, () => void> = {};
+  private focusRequest: string | null = null;
+
+  registerFieldFocus(fieldId: string, focus: () => void): void {
+    if (!fieldId) return;
+    this.fieldFocus[fieldId] = focus;
+    if (this.focusRequest === fieldId) {
+      this.focusRequest = null;
+      setTimeout(focus, 50);
+    }
+  }
+
   /** Inline field validation errors (fieldId → message), consumed by the field renderers. */
   fieldErrors: Record<string, string> = {};
 
@@ -238,6 +253,7 @@ export class MateuViewController {
 
   /** The host unmounted this view: pending timed triggers must not fire. */
   dispose(): void {
+    this.session.noteDirty(this, false);
     this.polling.stop();
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
   }
@@ -391,6 +407,9 @@ export class MateuViewController {
       }
       if (Object.keys(errors).length > 0) {
         this.fieldErrors = errors;
+        // the focus goes to the first rejected field (the web's focusFirstInvalidField), drawn anew
+        // by the publish below
+        this.focusRequest = Object.keys(errors)[0] ?? null;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
         // the message is under each field, by its label: a summary here could only name the fields
@@ -408,6 +427,14 @@ export class MateuViewController {
     // mateu-component (selection guard, validation, then the question).
     const confirmation = this.actionConfirmation[actionId];
     if (confirmation && !(await this.session.confirmAction(confirmation))) return false;
+
+    // @Action(js = …) runs in the CLIENT and never reaches the server method. The web runs it only
+    // where the page opted in (RunJS is off by default); a native app has no page to run it in, so it
+    // is always off here — said once on the console, as the web says it, and nothing is sent.
+    if (this.actionJs[actionId] !== undefined) {
+      console.warn(`[mateu] RunJS is off: the client-side script of "${actionId}" was not run (the mobile app runs no page scripts).`);
+      return false;
+    }
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
     // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
@@ -675,6 +702,8 @@ export class MateuViewController {
   }
 
   private setDirty(value: boolean): void {
+    // the session knows every view with unsaved changes: a navigation away asks about ALL of them
+    this.session.noteDirty(this, value && this.trackDirty);
     if (this.dirty === value) return;
     this.dirty = value;
     this.onDirtyChanged(value);
@@ -694,6 +723,7 @@ export class MateuViewController {
     this.actionRestData = flags.restData;
     this.actionTimeout = flags.timeoutMillis;
     this.actionIdempotent = flags.idempotent;
+    this.actionJs = flags.js;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -803,6 +833,11 @@ export class MateuViewController {
   applyIncrement(increment: Json, origin?: IncrementOrigin): void {
     // first: the components about to render may fetch from the sources they name
     this.session.sources.addReferenced(increment['restSources']);
+    // an answer that opens an overlay names the OVERLAY's content (a crud drawer's record): the
+    // window under it keeps its title
+    const opensOverlay = asArray(increment['fragments']).some(
+      (f) => floatingIntentOf(str(f['action']) || 'Replace', f['component'] as Json | null, !!this.view.component) === 'overlay',
+    );
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
 
     for (const msg of asArray(increment['messages'])) {
@@ -834,7 +869,10 @@ export class MateuViewController {
       }
     }
 
-    for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd, origin);
+    for (const cmd of asArray(increment['commands'])) {
+      if (opensOverlay && str(cmd['type']) === 'SetWindowTitle') continue;
+      this.handleCommand(cmd, origin);
+    }
 
     // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
     const banners = asArray(increment['banners']) as PageBanner[];
@@ -880,7 +918,9 @@ export class MateuViewController {
       this.session.openOverlay(component, state, data, {
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
-        serverSideType: this.currentServerSideType,
+        // an overlay re-sent from inside an overlay (a drawer's «Save and next») keeps the ORIGINAL
+        // opener as the place its unowned actions bubble to
+        serverSideType: this.openerServerSideType || this.currentServerSideType,
         session: this.session,
         controller: this,
       });
@@ -974,11 +1014,19 @@ export class MateuViewController {
   }
 
   /** Mounts an inline ServerSide node (embedded island / overlay content) into this view. */
+  /** The opener's type of an overlay's content (see mountServerSide). */
+  private openerServerSideType = '';
+
   mountServerSide(component: unknown): void {
     const node = component as Json;
+    // an overlay's content was seeded with its OPENER's type: what the content does not own (a crud
+    // drawer's Save, owned by the crud, not by the entity form inside) bubbles to the opener — sent
+    // as the entity form's type it answered 403
+    const opener = this.currentServerSideType;
     this.currentRoute = str(node['route']) || this.currentRoute;
     this.currentServerSideType = str(node['serverSideType']) || this.currentServerSideType;
-    this.navigationServerSideType = this.currentServerSideType;
+    this.navigationServerSideType = opener || this.currentServerSideType;
+    if (opener) this.openerServerSideType = opener;
     this.freshScreen = true;
     this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, null);
   }
