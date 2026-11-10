@@ -67,6 +67,7 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             ?: FlexSpec.ofGrow(child.text("style"))
     }
     if (specs.any { it != null }) {
+        val anyGrows = specs.any { (it?.weight ?: 0.0) > 0.0 }
         val row = JPanel(java.awt.GridBagLayout())
         row.isOpaque = false
         children.forEachIndexed { i, child ->
@@ -75,7 +76,9 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val gbc = java.awt.GridBagConstraints().apply {
                 gridx = i
                 gridy = 0
-                weightx = spec?.weight ?: 10.0
+                // a child with no flex keeps its content width (CSS `flex: 0 1 auto` — a ✕ button beside a
+                // `flex: 1` title was stretched to 122px), unless no child grows at all
+                weightx = spec?.weight ?: if (anyGrows) 0.0 else 10.0
                 weighty = 1.0
                 // Preferred height anchored NORTH: every column starts at the top of the row
                 // (the wire even says so: align-items: flex-start).
@@ -205,20 +208,78 @@ fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data:
     return tabs
 }
 
-/** AccordionLayout → each panel rendered as a titled section, stacked (v1: not collapsible). */
+/**
+ * AccordionLayout → panels with a ▸ / ▾ summary, ONE open at a time: the panel the wire marks
+ * `active`, or none (a folded "More options" of layout inference starts closed) — the web's
+ * vaadin-accordion contract. Every panel used to be drawn open, so folded options showed expanded.
+ */
 fun renderAccordion(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val panel = verticalPanel()
-    val children = component.path("children")
-    if (children.isArray) {
-        for (p in children) {
-            val body = verticalPanel()
-            body.border = IdeBorderFactory.createTitledBorder(plain(p.path("metadata").text("label")), false)
-            val inner = p.path("children")
-            if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
-            panel.addStacked(body, JBGap)
+    val panel = verticalPanel(0)
+    val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
+    val opened = intArrayOf(children.indexOfFirst { it.path("metadata").bool("active") })
+    val bodies = ArrayList<JComponent>()
+    val toggles = ArrayList<javax.swing.JButton>()
+    fun sync() {
+        bodies.forEachIndexed { i, body -> body.isVisible = i == opened[0] }
+        toggles.forEachIndexed { i, t ->
+            val label = children[i].path("metadata").text("label")
+            t.text = plain((if (i == opened[0]) "▾ " else "▸ ") + label)
+            t.accessibleContext.accessibleName = label
+            t.getAccessibleContext().accessibleDescription = if (i == opened[0]) "Expanded" else "Collapsed"
         }
+        // a stacked panel froze the heights at add time: let them follow the open panel
+        AccordionStack.refit(panel)
     }
+    children.forEachIndexed { i, p ->
+        val meta = p.path("metadata")
+        val toggle = javax.swing.JButton().apply {
+            isBorderPainted = false
+            isContentAreaFilled = false
+            horizontalAlignment = javax.swing.SwingConstants.LEADING
+            font = font.deriveFont(java.awt.Font.BOLD)
+            isEnabled = !meta.bool("disabled")
+            border = JBUI.Borders.empty(6, 2)
+        }
+        toggle.addActionListener {
+            opened[0] = if (opened[0] == i) -1 else i
+            sync()
+        }
+        val body = verticalPanel()
+        body.border = JBUI.Borders.empty(0, 14, 8, 0)
+        val inner = p.path("children")
+        if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
+        val section = verticalPanel(0)
+        section.border = JBUI.Borders.customLineBottom(com.intellij.ui.JBColor.border())
+        section.addStacked(toggle, 0)
+        section.addStacked(body, 0)
+        toggles += toggle
+        bodies += body
+        panel.addStacked(section, 0)
+    }
+    sync()
     return panel
+}
+
+/** Keeps a stack of accordion sections sized to what is visible (a panel opening or closing). */
+internal object AccordionStack {
+    fun refit(c: java.awt.Container) {
+        fun fit(x: java.awt.Component) {
+            if (x is JComponent && x.parent?.layout is javax.swing.BoxLayout) {
+                x.maximumSize = java.awt.Dimension(Int.MAX_VALUE, x.preferredSize.height.coerceAtLeast(1))
+            }
+            if (x is java.awt.Container) x.components.forEach(::fit)
+        }
+        c.components.forEach(::fit)
+        var p: java.awt.Container? = c
+        while (p != null) {
+            if (p is JComponent && p.parent?.layout is javax.swing.BoxLayout && p !== c) {
+                p.maximumSize = java.awt.Dimension(Int.MAX_VALUE, p.preferredSize.height.coerceAtLeast(1))
+            }
+            p = p.parent
+        }
+        c.revalidate()
+        c.repaint()
+    }
 }
 
 /** SplitLayout → a [JBSplitter] (2 children); more than two are stacked vertically as a fallback. */

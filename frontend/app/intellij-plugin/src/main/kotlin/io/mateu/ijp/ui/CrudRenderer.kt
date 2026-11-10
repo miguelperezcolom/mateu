@@ -360,7 +360,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // ── search bar: the IDE's SearchTextField (magnifier, clear button, history popup) plus a
     //    collapsible "Filter by" panel with a type-specific widget per filter (smart search port) ──
-    if (metadata.bool("searchable")) {
+    // a Filterable listing that is not Searchable still has its filter bar (no search box): the whole
+    // bar used to hang on `searchable`, so its typed filters (ranges, multi-selects) had no widget
+    val searchable = metadata.bool("searchable")
+    if (searchable || metadata.arr("filters").isNotEmpty()) {
         val searchField = SearchTextField(true)
         searchField.textEditor.emptyText.text = "Search…"
         searchField.textEditor.columns = 24
@@ -382,7 +385,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         searchField.textEditor.addActionListener { doSearch() }
         val searchBar = JPanel(FlushFlowLayout(JBUI.scale(JBGap))).apply {
             isOpaque = false
-            add(searchField)
+            if (searchable) add(searchField)
         }
 
         val north = verticalPanel(0)

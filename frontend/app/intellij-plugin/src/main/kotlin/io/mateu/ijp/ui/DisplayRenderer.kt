@@ -169,7 +169,7 @@ fun renderSkeleton(metadata: JsonNode): JComponent {
 
 /** Foldout: overview stays visible on the left; panels unfold as vertical accordion strips. */
 fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    // The VB/Redwood foldout anatomy: a HORIZONTAL row of always-expanded columns — the
+    // The VB/Redwood foldout anatomy: a HORIZONTAL row of columns (a folded panel is a strip) — the
     // overview first, then one column per panel, each with its own heading ("Operaciones ·
     // 2 de 7") and widths proportional to the wire's FoldoutPanel.width (rem units; the
     // overview weighs the renderer default, 22).
@@ -191,8 +191,7 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
             if (summary == null) {
                 col.add(heading, BorderLayout.NORTH)
             } else {
-                // The panel's `summary` slot — what a FOLDED panel shows. These columns never fold,
-                // so it reads as a compact digest line under the heading.
+                // the panel's `summary` slot: a compact digest line under the heading (a folded panel shows it as its tooltip)
                 val top = verticalPanel(2)
                 top.addStacked(heading, 2)
                 top.addStacked(summary, 0)
@@ -231,24 +230,107 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
 
     val overview = children.firstOrNull { it.text("slot") == "overview" }
         ?: children.firstOrNull { !it.text("slot").startsWith("summary-") && !it.text("slot").startsWith("panel-") }
-    if (overview != null) {
-        add(widthPx("22rem"), column(metadata.text("headerTitle"), "", r.render(overview, state, data)))
+    val overviewColumn = overview?.let { column(metadata.text("headerTitle"), "", r.render(it, state, data)) }
+    // Each panel is rendered ONCE; folding swaps its column for a strip and back (local state, no
+    // round trip — the web's foldout). `open: false` starts folded: it used to render expanded.
+    data class PanelView(val index: Int, val title: String, val subtitle: String, val width: Int, val content: JComponent, val summary: JComponent?, val summaryText: String)
+    val panels = panelsInfo.withIndex().mapNotNull { (i, info) ->
+        val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: return@mapNotNull null
+        val summaryNode = PageSlots.foldoutSummary(children, i)
+        PanelView(i, info.text("title", "Panel ${i + 1}"), info.text("subtitle"), widthPx(info.text("width", "22rem")),
+            r.render(content, state, data),
+            summaryNode?.let { node -> r.render(node, state, data).apply { foreground = uxMuted() } },
+            summaryNode?.path("metadata")?.text("text").orEmpty())
     }
-    for ((i, info) in panelsInfo.withIndex()) {
-        val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: continue
-        val summary = PageSlots.foldoutSummary(children, i)?.let { node ->
-            r.render(node, state, data).apply { foreground = uxMuted() }
+    val open = BooleanArray(panelsInfo.size) { panelsInfo[it].path("open").asBoolean(true) }
+    fun rebuild() {
+        row.removeAll()
+        overviewColumn?.let { add(widthPx("22rem"), it) }
+        for (pv in panels) {
+            if (open[pv.index]) {
+                val col = column(pv.title, pv.subtitle, pv.content, pv.summary)
+                val fold = javax.swing.JButton("‹").apply {
+                    toolTipText = "Fold ${pv.title}"
+                    accessibleName("Fold ${pv.title}")
+                    putClientProperty("JButton.buttonType", "square")
+                    addActionListener { open[pv.index] = false; rebuild() }
+                }
+                val withFold = JPanel(BorderLayout()).apply {
+                    isOpaque = false
+                    add(col, BorderLayout.CENTER)
+                    add(JPanel(BorderLayout()).apply { isOpaque = false; add(fold, BorderLayout.NORTH) }, BorderLayout.EAST)
+                }
+                add(pv.width, withFold)
+            } else {
+                add(JBUI.scale(44), FoldedStrip(pv.title, pv.summaryText) { open[pv.index] = true; rebuild() })
+            }
         }
-        add(widthPx(info.text("width", "22rem")),
-            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data), summary))
+        row.revalidate()
+        row.repaint()
     }
+    rebuild()
     val scroll = ContentHeightScrollPane(row)
     scroll.border = JBUI.Borders.empty()
     scroll.isOpaque = false
     scroll.viewport.isOpaque = false
     scroll.verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
     scroll.accessibleContext.accessibleName = metadata.text("headerTitle").ifBlank { "Record" }
-    return scroll
+    // `navigation`: the record's own header — back to its parent, previous / next record. It was
+    // in the wire and never drawn, so those actions could not be reached.
+    val nav = metadata.path("navigation").takeIf { it.isObject } ?: return scroll
+    val bar = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false; border = JBUI.Borders.emptyBottom(8) }
+    val left = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
+    nav.text("parentActionId").takeIf { it.isNotBlank() }?.let { actionId ->
+        left.add(com.intellij.ui.components.ActionLink(plain("‹ " + nav.text("parentLabel", "Back"))) { r.ctx.runAction(actionId, null) }
+            .apply { accessibleName("Back to ${nav.text("parentLabel", "parent")}") })
+    }
+    nav.text("title").takeIf { it.isNotBlank() }?.let { left.add(JBLabel(plain(it)).apply { font = font.deriveFont(Font.BOLD, font.size2D + 2f) }) }
+    bar.add(left, BorderLayout.CENTER)
+    val right = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(4), 0)).apply { isOpaque = false }
+    fun peer(actionId: String, glyph: String, name: String) {
+        right.add(javax.swing.JButton(glyph).apply {
+            putClientProperty("JButton.buttonType", "square")
+            toolTipText = name
+            accessibleName(name)
+            isEnabled = actionId.isNotBlank()
+            addActionListener { r.ctx.runAction(actionId, null) }
+        })
+    }
+    peer(nav.text("previousActionId"), "‹", "Previous")
+    peer(nav.text("nextActionId"), "›", "Next")
+    bar.add(right, BorderLayout.EAST)
+    val wrapper = verticalPanel(0)
+    wrapper.addStacked(bar, 0)
+    wrapper.addStacked(scroll, 0)
+    return wrapper
+}
+
+/** A folded foldout panel: a narrow strip with its title written vertically; a click unfolds it. */
+internal class FoldedStrip(private val title: String, summary: String, private val onUnfold: () -> Unit) : JPanel() {
+    init {
+        isOpaque = false
+        toolTipText = plainTip(if (summary.isNotBlank()) "$title — $summary" else title)
+        activatable("Unfold $title") { onUnfold() }
+    }
+
+    override fun getPreferredSize() = Dimension(JBUI.scale(36), JBUI.scale(40) + getFontMetrics(font.deriveFont(Font.BOLD)).stringWidth(title))
+
+    override fun paintComponent(g: Graphics) {
+        val g2 = g.create() as Graphics2D
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g2.color = SurfaceColors.placeholder
+        g2.fillRoundRect(0, 0, width - JBUI.scale(4), height, JBUI.scale(6), JBUI.scale(6))
+        g2.font = font.deriveFont(Font.BOLD)
+        g2.color = ToneColors.foreground()
+        val fm = g2.fontMetrics
+        g2.drawString("›", (width - JBUI.scale(4) - fm.stringWidth("›")) / 2, fm.ascent + JBUI.scale(6))
+        // the title rotated a quarter turn, read top to bottom
+        g2.translate(((width - JBUI.scale(4)) / 2 - fm.height / 2 + fm.ascent).toDouble(), (fm.height + JBUI.scale(14)).toDouble())
+        g2.rotate(Math.PI / 2)
+        g2.translate(0.0, -fm.ascent.toDouble())
+        g2.drawString(title, 0, fm.ascent)
+        g2.dispose()
+    }
 }
 
 /** Gantt: labels column + proportional bars over the tasks' date range, with a today marker. */
