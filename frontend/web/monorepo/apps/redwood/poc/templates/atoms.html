@@ -1091,6 +1091,7 @@
                           <template>
                             <oj-bind-if test="[[ $current.data.isText ]]">
                               <oj-input-text
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
@@ -1104,6 +1105,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -1118,7 +1120,8 @@
                                  (codesearch-<field>, via hostBlockAction); bridge.searchableWidgetOf -->
 
                             <oj-bind-if test="[[ $current.data.isSearchable ]]">
-                              <oj-label-value label-edge="top">
+                              <oj-label-value
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
                                 <div slot="value">
                                   <div class="mateu-searchable" :data-field-id="[[ $current.data.fieldId ]]">
@@ -1153,6 +1156,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isTextArea ]]">
                               <oj-text-area
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   rows="3"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
@@ -1166,6 +1170,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDate ]]">
                               <oj-input-date
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
@@ -1177,7 +1182,8 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDateTime ]]">
-                              <oj-input-date-time
+                              <oj-input-date
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"-time
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
@@ -1190,6 +1196,7 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSelect ]]">
                               <oj-select-one
+                                  :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
                                   options="[[ $current.data.options ]]"
                                   placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                                   label-hint="[[ $current.data.label ]]"
@@ -1586,7 +1593,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
                       <!-- ContextMenu: its content is above; its menu, an oj-menu-button (installContextMenus also opens it on right click) -->
-                      <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]" :data-mateu-context-left="[[ $current.data.leftClick ? 'true' : null ]]">
                         <oj-menu-button chroming="borderless" display="icons">
                           <span slot="startIcon" class="oj-ux-ico-overflow-h"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
                           <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.{{menuAction}} ]]">
@@ -1594,6 +1601,10 @@
                               <template>
                                 <oj-bind-if test="[[ $current.data.isItem ]]">
                                   <oj-option :value="[[ $current.data.value ]]" disabled="[[ $current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                                  <!-- MenuSeparator: JET's divider is an oj-option with no content -->
+                                  <oj-option></oj-option>
                                 </oj-bind-if>
                               </template>
                             </oj-bind-for-each>
@@ -1622,6 +1633,9 @@
                                     <template>
                                       <oj-bind-if test="[[ $current.data.isItem ]]">
                                         <oj-option :value="[[ $current.data.value ]]" disabled="[[ $current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                                        <oj-option></oj-option>
                                       </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>

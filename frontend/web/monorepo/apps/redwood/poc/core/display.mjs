@@ -630,7 +630,8 @@ export function menuBarAtomOf(m, interp = (x) => x) {
   }
 }
 export function contextMenuAtomOf(m, interp = (x) => x) {
-  return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+  // a right click on what it wraps always opens it; activateOnLeftClick makes a plain click do so too
+  return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: true, leftClick: !!m.activateOnLeftClick }
 }
 /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
 export function directoryAtomOf(m, interp = (x) => x) {

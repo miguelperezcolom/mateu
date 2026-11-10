@@ -1,6 +1,7 @@
 <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
 <oj-bind-if test="[[ $current.data.isPassword ]]">
   <oj-input-password
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
       value="[[ $current.data.value ]]"
@@ -11,6 +12,7 @@
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isRadio ]]">
   <oj-radioset
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
       value="[[ $current.data.value ]]"
@@ -28,6 +30,7 @@
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isMultiSelect ]]">
   <oj-select-many
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       options="[[ $current.data.options ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
@@ -39,6 +42,7 @@
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCheckboxSet ]]">
   <oj-checkboxset
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
       value="[[ $current.data.value ]]"
@@ -58,6 +62,7 @@
      field (an Amount's own, else the declared one), so no client-side currency service is needed -->
 <oj-bind-if test="[[ $current.data.isMoney ]]">
   <oj-sp-input-currency
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
       value="[[ $current.data.value ]]"
@@ -72,6 +77,7 @@
 <!-- (both default to auto-focus=true: a form would open with its first email/link focused) -->
 <oj-bind-if test="[[ $current.data.isEmail ]]">
   <oj-sp-input-email
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       auto-focus="false"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
@@ -83,6 +89,7 @@
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isUrl ]]">
   <oj-sp-input-url
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       auto-focus="false"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
@@ -95,7 +102,8 @@
 <!-- file / image / signature / camera: JET has no component — mateu-capture-field (poc/inputs.mjs) -->
 
 <oj-bind-if test="[[ $current.data.isCapture ]]">
-  <oj-label-value label-edge="top">
+  <oj-label-value
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
     <div slot="value">
       <mateu-capture-field
@@ -114,6 +122,7 @@
 <!-- @Slider → oj-slider -->
 <oj-bind-if test="[[ $current.data.isSlider ]]">
   <oj-slider
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
       label-hint="[[ $current.data.label ]]"
       help.instruction="[[ $current.data.help ]]"
       value="[[ $current.data.value ]]"
@@ -126,7 +135,8 @@
 </oj-bind-if>
 <!-- stars → oj-rating-gauge (editable unless read only) -->
 <oj-bind-if test="[[ $current.data.isStars ]]">
-  <oj-label-value label-edge="top">
+  <oj-label-value
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
     <div slot="value">
       <oj-rating-gauge
@@ -144,7 +154,8 @@
 </oj-bind-if>
 <!-- color → mateu-color-field (poc/inputs.mjs): a hex string; JET's oj-color-spectrum works on oj.Color -->
 <oj-bind-if test="[[ $current.data.isColor ]]">
-  <oj-label-value label-edge="top">
+  <oj-label-value
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
     <div slot="value">
       <mateu-color-field
@@ -161,7 +172,8 @@
 </oj-bind-if>
 <!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML -->
 <oj-bind-if test="[[ $current.data.isRichEditor ]]">
-  <oj-label-value label-edge="top">
+  <oj-label-value
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
     <div slot="value">
       <mateu-rich-text-field
@@ -178,7 +190,8 @@
 </oj-bind-if>
 <!-- an editable markdown / html → mateu-markup-field (poc/richtext.mjs): the source + a Preview toggle -->
 <oj-bind-if test="[[ $current.data.isMarkupEditor ]]">
-  <oj-label-value label-edge="top">
+  <oj-label-value
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
     <div slot="value">
       <mateu-markup-field
@@ -197,7 +210,8 @@
 <!-- a DATE RANGE (dataType dateRange: {from, to}) → two oj-input-date side by side, one per end: each
      edits `<field>#from|to`, which the chains fold back into the field (rangeEditOf) -->
 <oj-bind-if test="[[ $current.data.isDateRange ]]">
-  <div class="oj-flex oj-sm-flex-wrap-nowrap mateu-date-range">
+  <div
+      :data-mateu-span="[[ $current.data.colspanAttr || null ]]" class="oj-flex oj-sm-flex-wrap-nowrap mateu-date-range">
     <oj-bind-for-each data="[[ $current.data.rangeParts ]]">
       <template>
         <oj-input-date class="oj-flex-item oj-sm-margin-2x-end"

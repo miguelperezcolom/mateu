@@ -4496,7 +4496,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isText', 'isHeading', 'isRow', 'isAnchor', 'isBadge', 'isButtons', 'isIcon', 'isImage', 'isAvatar',
     'isNotice', 'isBullets', 'isSeparator', 'isStat', 'isMeter', 'isProgressBar', 'isProgress', 'isOffer',
     'isChart', 'isCallout', 'isStatusList', 'isLedger', 'isTaskProgress', 'isScoreboard', 'isPropertyRow',
-    'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText', 'isChecklist', 'isComments',
+    'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText', 'isChecklist', 'isComments', 'isContextMenu',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -6742,6 +6742,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         for (const kid of kids) visit(kid, container)
         return
       }
+      // a fluent / YAML FormSection / FormSubSection: its TITLE heads the fields it groups (only the
+      // reflected @Section cards drew one)
+      if ((t === 'FormSection' || t === 'FormSubSection') && m.title) {
+        const target = live(container) || plain
+        const notFirst = !!(target && target.items.length)
+        atom({ isText: true, isHeading: true, text: interp(m.title),
+          cls: (t === 'FormSection' ? 'oj-typography-subheading-sm' : 'oj-typography-subheading-xs') + (notFirst ? ' oj-sm-margin-6x-top' : '') + ' oj-sm-margin-2x-bottom' }, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
       if (t === 'App') {
         // NESTED island (e.g. the check-in's document): a placeholder — the
         // content lives in its own context and mateuNested paints it in that slot
@@ -7035,7 +7045,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // ResponsiveGrid whose children a cell can paint: a CSS grid box, laid out by the wire's own
       // tracks and named areas, in place (it used to cut the card it sat in: the grid hoisted out)
       // (at the page's level the column blocks keep the job: templates mark them fromTemplate)
-      if (t === 'ResponsiveGrid' && container) {
+      if (t === 'ResponsiveGrid' && (container || ctx.kind === 'island')) {
         const grid = responsiveGridOf(node)
         if (grid) { atom(grid, container); return }
       }
@@ -7922,6 +7932,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'ContextMenu') {
+        // WHAT IT WRAPS and its menu in ONE box: a right (or, with activateOnLeftClick, a left) click
+        // on it finds the menu next to it — the wrapped Card used to be moved out as a block of its own
+        const wrapped = [...(m.wrapped ? [m.wrapped] : []), ...kidsOf(node)]
+        if (wrapped.length && wrapped.every((w) => fitsInBox(w))) {
+          const cells = wrapped.map((w) => cellOf(w, null))
+          if (cells.every(Boolean)) {
+            atom({ isCells: true, boxClass: 'mateu-cells-column mateu-context-wrap', style: {},
+              cells: [...cells.map((c, i) => ({ ...c, key: String(i) })), { key: 'menu', cellClass: '', style: {}, items: [{ ...contextMenuAtomOf(m, interp), key: '0' }] }],
+              ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }, container)
+            return
+          }
+        }
         if (m.wrapped) visit(m.wrapped, container)
         for (const child of kidsOf(node)) visit(child, container)
         atom(contextMenuAtomOf(m, interp), container)
@@ -11926,7 +11948,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
-    if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
+    const colspan = Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns))
+    // classic oj-form-layout sizes every child to one column (it wraps each in an oj-flex-item with an
+    // inline width): the child says how many it spans of how many, `2of3`, and app.css widens the
+    // wrapper (.oj-flex-item:has(> [data-mateu-span="2of3"])) — null = one column
+    const colspanAttr = colspan > 1 ? colspan + 'of' + columns : null
+    if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan, colspanAttr, messagesCustom: [] }
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -11936,9 +11963,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       ...widget,
       value,
-      // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
-      // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
-      colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+      // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
+      colspan,
+      colspanAttr,
       // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
       placeholder: md.placeholder ? String(md.placeholder) : '',
       messagesCustom: [],
@@ -13986,7 +14013,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
   function contextMenuAtomOf(m, interp = (x) => x) {
-    return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+    // a right click on what it wraps always opens it; activateOnLeftClick makes a plain click do so too
+    return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: true, leftClick: !!m.activateOnLeftClick }
   }
   /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
   function directoryAtomOf(m, interp = (x) => x) {
@@ -27086,6 +27114,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const menu = holder.querySelector('oj-menu')
         if (!menu || typeof menu.open !== 'function') return
         e.preventDefault()
+        try { menu.open(e) } catch (err) { /* not upgraded yet */ }
+        return
+      }
+    })
+    // activateOnLeftClick: a plain click on what the menu wraps opens it too (not a click on a
+    // control of its own, nor on the menu's button)
+    doc.addEventListener('click', (e) => {
+      const t = e.target
+      if (!t || !t.closest || t.closest('a, button, oj-button, oj-menu-button, oj-menu, input, select, textarea, .mateu-context-menu')) return
+      let node = t
+      for (let depth = 0; node && depth < 5; depth++, node = node.parentElement) {
+        const holder = node.querySelector && node.querySelector('.mateu-context-menu[data-mateu-context-left="true"]')
+        if (!holder) continue
+        const menu = holder.querySelector('oj-menu')
+        if (!menu || typeof menu.open !== 'function') return
         try { menu.open(e) } catch (err) { /* not upgraded yet */ }
         return
       }

@@ -432,7 +432,12 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
   if (widget.isMoney && value != null && typeof value === 'object') value = value.value
-  if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
+  const colspan = Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns))
+  // classic oj-form-layout sizes every child to one column (it wraps each in an oj-flex-item with an
+  // inline width): the child says how many it spans of how many, `2of3`, and app.css widens the
+  // wrapper (.oj-flex-item:has(> [data-mateu-span="2of3"])) — null = one column
+  const colspanAttr = colspan > 1 ? colspan + 'of' + columns : null
+  if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan, colspanAttr, messagesCustom: [] }
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -442,9 +447,9 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   return {
     ...widget,
     value,
-    // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
-    // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
-    colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+    // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
+    colspan,
+    colspanAttr,
     // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
     placeholder: md.placeholder ? String(md.placeholder) : '',
     messagesCustom: [],
