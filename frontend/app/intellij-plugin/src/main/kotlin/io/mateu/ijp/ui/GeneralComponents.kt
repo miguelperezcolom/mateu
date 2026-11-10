@@ -186,12 +186,15 @@ internal fun gridColumnCount(template: String): Int {
     return count.coerceAtLeast(1)
 }
 
-/** FormItem: its children (label + control) side by side. */
-fun renderFormItem(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent =
-    JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
-        isOpaque = false
-        kids(component).forEach { add(r.render(it, state, data)) }
-    }
+/**
+ * FormItem: its children (label + control) as one item of the form, filling the item's width — a
+ * flow row sized the field to its preferred width (a 62px "Invoice to").
+ */
+fun renderFormItem(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val panel = verticalPanel(2)
+    kids(component).forEachIndexed { i, child -> panel.addStackedBetween(r.render(child, state, data), 2, first = i == 0) }
+    return panel
+}
 
 /** A Tab / AccordionPanel met outside its container: a titled group of its children. */
 fun renderTitledChildren(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent =
