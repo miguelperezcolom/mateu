@@ -7,6 +7,7 @@ import { Text } from '../ui/Text';
 import { interpolate } from '../core/expressions';
 import { PageBanner } from '../core/MateuViewController';
 import { useViewController } from './MateuViewHost';
+import { BreadcrumbsRenderer } from './WireComponents';
 import { ComponentRenderer } from './ComponentRenderer';
 import { theme, themed } from '../theme';
 import { FAB, IconButton, Text as PaperText } from 'react-native-paper';
@@ -119,10 +120,15 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
     ((children[0] as Record<string, unknown>)?.['metadata'] as Record<string, unknown> | undefined)?.['type'] === 'Crud';
   const pressButton = useButtonPress();
 
+  // the page's breadcrumb trail (BreadcrumbsSupplier / the derived trail) unless it opts out — it
+  // was never drawn; and the page's HEADER components (HeaderSupplier: a listing's drop zones…)
+  const crumbs = metadata['noBreadcrumbs'] === true ? [] : ((metadata['breadcrumbs'] as Record<string, unknown>[] | undefined) ?? []);
+  const headerComponents = (metadata['header'] as unknown[] | undefined) ?? [];
   return (
     <View style={[styles.root, fits && FIT_CONTENT]}>
-      {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers) && (
+      {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers || crumbs.length > 0) && (
         <View style={styles.header}>
+          {crumbs.length > 0 && <BreadcrumbsRenderer metadata={{ breadcrumbs: crumbs, currentItemText: title }} />}
           {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
           {!declaredTitle && !!extras.placeholder && (
             <PaperText variant="headlineSmall" style={[styles.title, styles.placeholder]} {...headingA11y(1)}>{extras.placeholder}</PaperText>
@@ -146,7 +152,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
                     key={side}
                     label={peer.label}
                     icon={side === 'prev' ? 'chevron-left' : 'chevron-right'}
-                    accessibilityLabel={`${side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`}
+                    accessibilityLabel={peer.label ? `${side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}` : side === 'prev' ? 'Previous' : 'Next'}
                     disabled={disabled}
                     compact
                     onPress={() => peer.route && openPeer(peer.label, peer.route)}
@@ -184,6 +190,12 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
               })}
             </View>
           )}
+        </View>
+      )}
+
+      {headerComponents.length > 0 && (
+        <View style={styles.headerComponents}>
+          {headerComponents.map((c, i) => <ComponentRenderer key={i} component={c} state={state} data={data} />)}
         </View>
       )}
 
@@ -238,6 +250,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
 const styles = themed(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.surface },
+  headerComponents: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   header: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 16, backgroundColor: theme.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   title: { color: theme.ink, fontWeight: '600' },
   subtitle: { color: theme.muted, marginTop: 4 },

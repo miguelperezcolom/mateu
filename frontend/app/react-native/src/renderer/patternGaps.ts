@@ -201,7 +201,9 @@ export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | un
   const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
   const nav = metadata?.['peerNav'] as Record<string, unknown> | null | undefined;
   const side = (label: unknown, route: unknown) =>
-    text(label) || text(route) ? { label: text(label) || (text(route) ? 'Open' : ''), route: text(route) || null } : undefined;
+    // a side with no route is still DRAWN, disabled (the first/last record): the arrows keep their
+    // place, as on the web, instead of one of them vanishing
+    ({ label: text(label) || (text(route) ? 'Open' : ''), route: text(route) || null });
   const prev = nav ? side(nav['prevLabel'], nav['prevRoute']) : undefined;
   const next = nav ? side(nav['nextLabel'], nav['nextRoute']) : undefined;
   return {

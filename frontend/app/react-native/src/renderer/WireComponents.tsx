@@ -28,8 +28,11 @@ import {
   cellText,
   contentSlots,
   elementKind,
-  flattenTree,
-  gridColumnsOf,
+  gridCellText,
+  gridHeader,
+  visibleTreeRows,
+  type GridLeaf,
+
   gridRowsOf,
   initials,
   menuIntent,
@@ -367,33 +370,62 @@ export function DirectoryRenderer({ metadata }: { metadata: Dict }) {
 
 export function GridRenderer({ component, state, data }: { component: unknown; state: Dict; data?: unknown }) {
   const controller = useViewController();
-  const columns = gridColumnsOf(component);
-  const rows = flattenTree(gridRowsOf(component, state, data));
-  const tree = meta(component)['tree'] === true;
-  const colW = 140;
+  const m = meta(component);
+  const { leaves: columns, groups } = gridHeader(component);
+  const tree = m['tree'] === true;
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const allRows = gridRowsOf(component, state, data);
+  const rows = tree ? visibleTreeRows(allRows, expanded) : allRows.map((row, i) => ({ row, depth: 0, key: String(i), hasChildren: false }));
+  const stripes = m['rowStripes'] === true;
+  const colW = (c: GridLeaf) => c.width ?? 140;
+  const toggle = (key: string) => setExpanded((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
   return (
     <ScrollView horizontal style={styles.gridBox}>
       <View>
+        {groups && (
+          <View style={[styles.gridRow, styles.gridHead]}>
+            {groups.map((g, gi) => {
+              const start = groups.slice(0, gi).reduce((n, x) => n + x.span, 0);
+              const width = columns.slice(start, start + g.span).reduce((n, c) => n + colW(c), 0);
+              return <Text key={gi} style={[styles.th, styles.thGroup, { width }]} numberOfLines={1}>{g.label}</Text>;
+            })}
+          </View>
+        )}
         <View style={[styles.gridRow, styles.gridHead]}>
           {columns.map((c) => (
-            <Text key={c.id} style={[styles.th, { width: colW }]} numberOfLines={1}>
+            <Text key={c.id} style={[styles.th, { width: colW(c), textAlign: c.align === 'end' || c.align === 'right' ? 'right' : 'left' }]} numberOfLines={1}>
               {c.label}
             </Text>
           ))}
         </View>
         {rows.length === 0 && <Text style={styles.empty}>No data.</Text>}
-        {rows.map(({ row, depth }, r) => (
-          <View key={r} style={styles.gridRow}>
+        {rows.map(({ row, depth, key, hasChildren }, r) => (
+          <View key={key} style={[styles.gridRow, stripes && r % 2 === 1 ? styles.gridStripe : null]}>
             {columns.map((c, ci) => {
-              const text = cellText(row, c.id);
-              const indent = tree && ci === 0 ? depth * 14 : 0;
-              const cellStyle = [styles.td, { width: colW, paddingLeft: 6 + indent, textAlign: (c.align === 'end' || c.align === 'right' ? 'right' : 'left') as 'left' | 'right' }];
+              // money in the UI's locale, dates as dates — the column's dataType, like a listing
+              const text = gridCellText(row[c.id], c);
+              const indent = tree && ci === 0 ? depth * 16 : 0;
+              const cellStyle = [styles.td, { width: colW(c), paddingLeft: 6 + indent, textAlign: (c.align === 'end' || c.align === 'right' ? 'right' : 'left') as 'left' | 'right' }];
+              if (tree && ci === 0 && hasChildren) {
+                const open = expanded.has(key);
+                return (
+                  <TouchableOpacity key={c.id} {...buttonA11y({ expanded: open, label: text })} style={[styles.treeCell, { width: colW(c), paddingLeft: indent }]} onPress={() => toggle(key)}>
+                    <MIcon name={open ? 'chevron-down' : 'chevron-right'} size={18} color={theme.muted} />
+                    <Text style={styles.treeCellText} numberOfLines={1}>{text}</Text>
+                  </TouchableOpacity>
+                );
+              }
+              const leafPad = tree && ci === 0 ? { paddingLeft: 6 + indent + 18 } : null;
               return c.actionId ? (
                 <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, { _clickedRow: row })}>
-                  <Text style={[...cellStyle, styles.link]} numberOfLines={1}>{text}</Text>
+                  <Text style={[...cellStyle, leafPad, styles.link]} numberOfLines={1}>{text}</Text>
                 </TouchableOpacity>
               ) : (
-                <Text key={c.id} style={cellStyle} numberOfLines={1}>{text}</Text>
+                <Text key={c.id} style={[...cellStyle, leafPad]} numberOfLines={1}>{text}</Text>
               );
             })}
           </View>
@@ -996,6 +1028,10 @@ const styles = themed(() => StyleSheet.create({
   gridRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   gridHead: { backgroundColor: theme.background },
   th: { fontWeight: '600', color: theme.muted, fontSize: 14, padding: 8 },
+  thGroup: { textAlign: 'center', color: theme.ink, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: theme.border },
+  gridStripe: { backgroundColor: theme.background },
+  treeCell: { flexDirection: 'row', alignItems: 'center', minHeight: 36, paddingRight: 6 },
+  treeCellText: { flex: 1, fontSize: 14, color: theme.ink },
   td: { color: theme.ink, fontSize: 14, padding: 8 },
   // stepper
   // carousel

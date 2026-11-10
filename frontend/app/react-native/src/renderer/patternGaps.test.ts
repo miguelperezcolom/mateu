@@ -151,6 +151,9 @@ test('the page header extras: overline, a placeholder only while untitled, times
   assert.deepEqual(extras.peers, { prev: { label: 'Record 1', route: '/records/1' }, next: { label: 'Record 3', route: null } });
   assert.equal(pageHeaderExtrasOf({ titlePlaceholder: 'New booking…' }, 'Booking 7').placeholder, '');
   assert.equal(pageHeaderExtrasOf({}, 'x').peers, null);
+  // the first record: no previous one, but its arrow is still drawn (disabled)
+  assert.deepEqual(pageHeaderExtrasOf({ peerNav: { nextLabel: 'Record 2', nextRoute: '/records/2' } }, 'x').peers,
+    { prev: { label: '', route: null }, next: { label: 'Record 2', route: '/records/2' } });
 });
 
 test('a LongTask step updates the open progress dialog it targets, and nothing else', () => {
