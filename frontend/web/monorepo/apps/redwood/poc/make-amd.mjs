@@ -286,6 +286,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dismissOverlayById,
     overlayVarsOf,
     overlaysClosedVarsOf,
+    surfaceOverlayVarsOf,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,

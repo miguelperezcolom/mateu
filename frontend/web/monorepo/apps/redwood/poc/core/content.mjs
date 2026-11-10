@@ -7,7 +7,7 @@ import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, witho
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
-import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
+import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
@@ -423,6 +423,34 @@ export function islandContentOf(ctx, opts = {}) {
       parameters: m.parameters || {},
       ...(route ? { route } : {}),
     }
+  }
+  // the HEADER of another surface's page (an example island, a MicroFrontend's page): the same
+  // elements the host's band draws for its own page — overline, title (or its placeholder while
+  // empty), badges, subtitle, timestamp, KPIs — as an EntityHeader-like atom inside the island
+  const islandPageHeaderOf = (pageNode) => {
+    const md = pageNode.metadata || {}
+    const pageCtx = { tree: pageNode, state, data: ctx.data || {} }
+    const extras = pageHeaderExtrasOf(pageCtx)
+    const title = interp(md.title || '')
+    const subtitle = pageSubtitleOf(pageCtx)
+    const kpis = pageKpisOf(pageCtx)
+    const stamp = extras.timestamp
+    const out = []
+    if (extras.overline) out.push({ isText: true, text: extras.overline, cls: 'oj-typography-body-xs oj-text-color-secondary mateu-island-overline' })
+    const shown = title || extras.titlePlaceholder
+    if (!shown && !subtitle && !extras.badges.length && !kpis.length && !stamp) return out
+    out.push({
+      isEntityHeader: true,
+      isIslandHeader: true,
+      title: shown,
+      titleIsPlaceholder: !title && !!extras.titlePlaceholder,
+      subtitle: [subtitle, stamp].filter(Boolean).join(' · '),
+      badges: extras.badges.map((b) => ({ label: b.label, badgeClass: BADGE_CLASSES[b.status] || 'oj-badge oj-badge-neutral oj-badge-subtle' })),
+      facts: kpis.map((k) => ({ label: k.label, value: k.value })),
+      metricLabel: '',
+      metricValue: '',
+    })
+    return out
   }
   // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
   const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
@@ -1130,12 +1158,33 @@ export function islandContentOf(ctx, opts = {}) {
       // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
       // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
       const chrome = !embeddedPageSeen ? opts.chrome : null
+      // the page of ANOTHER surface painted in its hole (an Explorer example island, a MicroFrontend):
+      // nobody else draws its header, its banners or its buttons — the host's header is the host's
+      const surfacePage = !!opts.surface && !embeddedPageSeen
       embeddedPageSeen = true
-      const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
-      if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+      const withHeader = chrome !== 'NONE' && chrome !== 'COMPACT'
+      if (surfacePage && withHeader) islandPageHeaderOf(node).forEach((a) => atom(a, container))
+      else {
+        const pageTitle = withHeader ? interp(m.title || '') : ''
+        if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+      }
       const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
-      if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+      // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
+      if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
+      if (surfacePage) {
+        for (const banner of m.banners || []) {
+          const text = [banner && banner.title, banner && banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+          if (text) atom({ isNotice: true, text, noticeClass: NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info, buttons: [] }, container)
+        }
+      }
       for (const child of kidsOf(node)) visit(child, container)
+      // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
+      // the web: on another surface, or on the host page itself (opts.pageButtons, hostContentOf —
+      // a page with no field has no generic form to draw them). The embedded mediator's island
+      // paints its own action row, so it asks for neither.
+      const pageButtons = (surfacePage || opts.pageButtons)
+        ? (m.buttons || []).flatMap((b) => (b ? groupMembersOf(b) : [])).filter((b) => b && b.actionId) : []
+      if (pageButtons.length) atom({ isButtons: true, fromPageButtons: true, buttons: pageButtons.map(buttonOf) }, container)
       return
     }
     if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
@@ -2072,7 +2121,7 @@ export function withSubresources(blocks, contexts) {
       // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
       const chrome = (a.subresource && a.subresource.chrome) || null
       if (!crud) {
-        const inner = islandContentOf(ctx, chrome ? { chrome } : {})
+        const inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
         // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
         // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
         const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -2154,7 +2203,7 @@ export function kidsInAreaOrder(kids, areas) {
 }
 
 export function hostContentOf(ctx, islandBlocks, opts = {}) {
-  const blocks = islandContentOf(ctx, opts)
+  const blocks = islandContentOf(ctx, { ...opts, pageButtons: true })
   if (!blocks) return null
   let merged = mergeNestedContent(blocks, islandBlocks || null)
   const title = opts.title || ''

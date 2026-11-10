@@ -115,6 +115,21 @@ export function overlayVarsOf(reg, picker = null) {
 }
 
 /**
+ * The overlays after an action of a SURFACE of the content (an inline island, a MicroFrontend —
+ * runMateuSurfaceAction): a Dialog / Drawer it returned is pushed on the registry's stack like a
+ * page action's, and has to be painted the same way (overlayVarsOf). `changed`: there is something
+ * to (re)paint — an overlay opened, closed or refreshed; `fresh`: the top overlay is another one
+ * (its draft and its Spectra template state start over).
+ */
+export function surfaceOverlayVarsOf(before, reg) {
+  const stackOf = (r) => ((r && r.stack) || []).join('|')
+  const top = (r) => { const s = (r && r.stack) || []; return s.length ? s[s.length - 1] : null }
+  const vars = overlayVarsOf(reg, null)
+  const changed = stackOf(before) !== stackOf(reg) || ((reg && reg.stack) || []).length > 0
+  return { ...vars, changed, fresh: top(before) !== top(reg) }
+}
+
+/**
  * The application variables of a navigation that closes every open overlay (onMateuNavigate): the
  * registry without them, the drawer panel shut and both overlay projections empty.
  */

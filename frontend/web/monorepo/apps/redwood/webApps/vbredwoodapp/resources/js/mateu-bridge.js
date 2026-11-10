@@ -5551,6 +5551,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...(route ? { route } : {}),
       }
     }
+    // the HEADER of another surface's page (an example island, a MicroFrontend's page): the same
+    // elements the host's band draws for its own page — overline, title (or its placeholder while
+    // empty), badges, subtitle, timestamp, KPIs — as an EntityHeader-like atom inside the island
+    const islandPageHeaderOf = (pageNode) => {
+      const md = pageNode.metadata || {}
+      const pageCtx = { tree: pageNode, state, data: ctx.data || {} }
+      const extras = pageHeaderExtrasOf(pageCtx)
+      const title = interp(md.title || '')
+      const subtitle = pageSubtitleOf(pageCtx)
+      const kpis = pageKpisOf(pageCtx)
+      const stamp = extras.timestamp
+      const out = []
+      if (extras.overline) out.push({ isText: true, text: extras.overline, cls: 'oj-typography-body-xs oj-text-color-secondary mateu-island-overline' })
+      const shown = title || extras.titlePlaceholder
+      if (!shown && !subtitle && !extras.badges.length && !kpis.length && !stamp) return out
+      out.push({
+        isEntityHeader: true,
+        isIslandHeader: true,
+        title: shown,
+        titleIsPlaceholder: !title && !!extras.titlePlaceholder,
+        subtitle: [subtitle, stamp].filter(Boolean).join(' · '),
+        badges: extras.badges.map((b) => ({ label: b.label, badgeClass: BADGE_CLASSES[b.status] || 'oj-badge oj-badge-neutral oj-badge-subtle' })),
+        facts: kpis.map((k) => ({ label: k.label, value: k.value })),
+        metricLabel: '',
+        metricValue: '',
+      })
+      return out
+    }
     // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
     const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
     const STATUS_TEXT = {
@@ -6257,12 +6285,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
         // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
         const chrome = !embeddedPageSeen ? opts.chrome : null
+        // the page of ANOTHER surface painted in its hole (an Explorer example island, a MicroFrontend):
+        // nobody else draws its header, its banners or its buttons — the host's header is the host's
+        const surfacePage = !!opts.surface && !embeddedPageSeen
         embeddedPageSeen = true
-        const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
-        if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+        const withHeader = chrome !== 'NONE' && chrome !== 'COMPACT'
+        if (surfacePage && withHeader) islandPageHeaderOf(node).forEach((a) => atom(a, container))
+        else {
+          const pageTitle = withHeader ? interp(m.title || '') : ''
+          if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+        }
         const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
-        if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+        // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
+        if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
+        if (surfacePage) {
+          for (const banner of m.banners || []) {
+            const text = [banner && banner.title, banner && banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+            if (text) atom({ isNotice: true, text, noticeClass: NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info, buttons: [] }, container)
+          }
+        }
         for (const child of kidsOf(node)) visit(child, container)
+        // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
+        // the web: on another surface, or on the host page itself (opts.pageButtons, hostContentOf —
+        // a page with no field has no generic form to draw them). The embedded mediator's island
+        // paints its own action row, so it asks for neither.
+        const pageButtons = (surfacePage || opts.pageButtons)
+          ? (m.buttons || []).flatMap((b) => (b ? groupMembersOf(b) : [])).filter((b) => b && b.actionId) : []
+        if (pageButtons.length) atom({ isButtons: true, fromPageButtons: true, buttons: pageButtons.map(buttonOf) }, container)
         return
       }
       if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
@@ -7199,7 +7248,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
         const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx, chrome ? { chrome } : {})
+          const inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -7281,7 +7330,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function hostContentOf(ctx, islandBlocks, opts = {}) {
-    const blocks = islandContentOf(ctx, opts)
+    const blocks = islandContentOf(ctx, { ...opts, pageButtons: true })
     if (!blocks) return null
     let merged = mergeNestedContent(blocks, islandBlocks || null)
     const title = opts.title || ''
@@ -8015,18 +8064,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-  /** RENDER helper: first node of the tree with the given metadata.type. */
+  /** RENDER helper: first node of the SURFACE with the given metadata.type. It never crosses into
+   *  an island (a ServerSide below the root): an island is another surface, with its own context —
+   *  crossing made the Explorer's example islands claim the host page (their Page taken for the
+   *  host's header and toolbar, their NotFound / Foldout / TaskQueue for the whole page). */
   function findByType(tree, type) {
     let found = null
-    const walk = (node) => {
+    const walk = (node, isRoot) => {
       if (found || !node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach((x) => walk(x, false)); return }
+      if (!isRoot && node.type === 'ServerSide') return
       if (node.metadata && node.metadata.type === type) { found = node; return }
       for (const v of Object.values(node)) {
-        if (Array.isArray(v)) v.forEach(walk)
-        else if (v && typeof v === 'object') walk(v)
+        if (v && typeof v === 'object') walk(v, false)
       }
     }
-    walk(tree)
+    walk(tree, true)
     return found
   }
 
@@ -10292,6 +10345,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
           widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
         }
+        continue
+      }
+
+      // a Notification an ACTION returned is a TOAST (its title and text), not new content: it used to
+      // replace the surface it was aimed at — an Explorer example lost its buttons and showed a band
+      if (fr.component?.type === 'ClientSide' && md.type === 'Notification') {
+        const text = [md.title, md.text].filter((x) => x != null && String(x).trim()).join(' — ')
+        if (text) effects.toasts.push({ text, variant: 'info' })
         continue
       }
 
@@ -23637,11 +23698,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const toasts = [...(next.effects.toasts || [])]
     // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
     // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
-    next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-    toasts.push(...(next.effects.toasts || []))
+    const delivered = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
+    // nothing delivered = the SAME registry back: its toasts are the ones already taken (twice on screen)
+    if (delivered !== next) toasts.push(...(delivered.effects.toasts || []))
+    next = delivered
+    // the ConfirmDialogs the answer RETURNED: the chain asks them, then runs the pick on this surface
+    const returnedConfirms = returnedConfirmDialogsOf(increment)
     // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
     next = await ensureInlineIslands(outbound.baseUrl, next, extra)
-    return { ...next, effects: { ...next.effects, toasts } }
+    return { ...next, effects: { ...next.effects, toasts, returnedConfirms } }
   }
 
   /**
@@ -26607,6 +26672,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       drawerOpen: !!drawer && !(picker && !picker.inDrawer),
       modal: !!dialog && !picker,
     }
+  }
+
+  /**
+   * The overlays after an action of a SURFACE of the content (an inline island, a MicroFrontend —
+   * runMateuSurfaceAction): a Dialog / Drawer it returned is pushed on the registry's stack like a
+   * page action's, and has to be painted the same way (overlayVarsOf). `changed`: there is something
+   * to (re)paint — an overlay opened, closed or refreshed; `fresh`: the top overlay is another one
+   * (its draft and its Spectra template state start over).
+   */
+  function surfaceOverlayVarsOf(before, reg) {
+    const stackOf = (r) => ((r && r.stack) || []).join('|')
+    const top = (r) => { const s = (r && r.stack) || []; return s.length ? s[s.length - 1] : null }
+    const vars = overlayVarsOf(reg, null)
+    const changed = stackOf(before) !== stackOf(reg) || ((reg && reg.stack) || []).length > 0
+    return { ...vars, changed, fresh: top(before) !== top(reg) }
   }
 
   /**
@@ -29978,6 +30058,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dismissOverlayById,
     overlayVarsOf,
     overlaysClosedVarsOf,
+    surfaceOverlayVarsOf,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,

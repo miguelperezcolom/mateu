@@ -301,6 +301,14 @@ export function reduceContexts(reg, increment, opts = {}) {
       continue
     }
 
+    // a Notification an ACTION returned is a TOAST (its title and text), not new content: it used to
+    // replace the surface it was aimed at — an Explorer example lost its buttons and showed a band
+    if (fr.component?.type === 'ClientSide' && md.type === 'Notification') {
+      const text = [md.title, md.text].filter((x) => x != null && String(x).trim()).join(' — ')
+      if (text) effects.toasts.push({ text, variant: 'info' })
+      continue
+    }
+
     if (fr.action === 'Add') {
       // a returned ConfirmDialog is not a drawer: the chain asks it (returnedConfirmDialogsOf)
       if (md && md.type === 'ConfirmDialog') continue

@@ -4,7 +4,7 @@
 // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
@@ -701,11 +701,15 @@ export async function runSurfaceAction(reg, surfaceId, actionId, parameters, ext
   const toasts = [...(next.effects.toasts || [])]
   // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
   // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
-  next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-  toasts.push(...(next.effects.toasts || []))
+  const delivered = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
+  // nothing delivered = the SAME registry back: its toasts are the ones already taken (twice on screen)
+  if (delivered !== next) toasts.push(...(delivered.effects.toasts || []))
+  next = delivered
+  // the ConfirmDialogs the answer RETURNED: the chain asks them, then runs the pick on this surface
+  const returnedConfirms = returnedConfirmDialogsOf(increment)
   // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
   next = await ensureInlineIslands(outbound.baseUrl, next, extra)
-  return { ...next, effects: { ...next.effects, toasts } }
+  return { ...next, effects: { ...next.effects, toasts, returnedConfirms } }
 }
 
 /**
