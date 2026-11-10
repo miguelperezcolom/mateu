@@ -1423,17 +1423,17 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
+MEDIATED = {"wizard-labels", "crud-generated-new", "crud-generated-edit", "crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "bulk-actions", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
+MEDIATED_FORMS = {"crud-generated-new", "crud-generated-edit", "crud-hidden-in-edit", "crud-hidden-in-new", "crud-hidden-constraints-edit", "crud-hidden-constraints-new", "crud-new", "crud-edit", "crud-view", "editable-view", "editable-view-edit", "view-toolbar-button", "crud-nested-form", "routed-tabs-crud-new", "routed-tabs-crud-listing", "subresource-listing"}
 
 #: Mediated record forms whose FORM state is pinned all the same (Java's FORM_STATE_PINNED): the
 #: record's field values are the form's, only the _-prefixed routing keys are protocol.
-FORM_STATE_PINNED = {"routed-tabs-crud-new"}
+FORM_STATE_PINNED = {"routed-tabs-crud-new", "crud-generated-new", "crud-generated-edit"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -1484,11 +1484,17 @@ class YamlCase:
     """Stands for "no fixture type": the case is a ``specs/ui/`` directory of its own."""
 
 
-def _yaml_handler(specs: Path) -> SyncHandler:
+def _yaml_handler(specs: Path, environment: str | None = None) -> SyncHandler:
     from mateu_ui.core.route_registry import RouteRegistry
     from mateu_ui.core.yaml_spec_loader import YamlSpecLoader
 
-    handler = SyncHandler(MateuRegistry(MODULE), rest_sources=RestSourceRegistry(directory=str(specs)))
+    from mateu_ui.core.component_registry import ComponentRegistry
+
+    handler = SyncHandler(
+        MateuRegistry(MODULE),
+        rest_sources=RestSourceRegistry(directory=str(specs), environment=environment),
+        components=ComponentRegistry(directory=str(specs)),
+    )
     handler.routes = RouteRegistry(str(specs))
     handler.yaml_specs = YamlSpecLoader(str(specs), handler.routes)
     return handler
@@ -1499,7 +1505,9 @@ def actual(view_cls, case: str | None = None) -> dict:
     if specs is not None and specs.is_dir():
         # A YAML case: the handler reads ITS definitions, and the request names no type
         req = json.loads((CORPUS / case / "request.json").read_text())
-        inc = _yaml_handler(specs).handle(RunActionRq(
+        # a case may name the deployment's environment: set for this case alone, as a deployment
+        # would (MATEU_ENVIRONMENT)
+        inc = _yaml_handler(specs, req.get("environment")).handle(RunActionRq(
             route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
             action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
             parameters=req.get("parameters", {}),
@@ -1889,10 +1897,264 @@ class ConformanceRoutes(RouteEntrySupplier):
         ]
 
 
+# ── The parity cases of 3.0 GA (Java's ParityConformanceFixtures) ─────────────────────────────
+
+from mateu_ui.uidl import (  # noqa: E402
+    Avatar as AvatarBlock,
+    AvatarSupplier,
+    ColumnWidth,
+    DivStyle,
+    EditableOnlyWhenCreating,
+    Footer,
+    FooterSupplier,
+    GeneratedValue,
+    ListingData,
+    Header,
+    HeaderSupplier,
+    Line,
+    MappedValue,
+    Notice as NoticeField,
+    OptionsLayout,
+    Priority,
+    Status,
+    Style,
+    css_classes,
+    rule,
+    style,
+    validation,
+    wizard_labels,
+)
+from mateu_ui.uidl import Lookup, Tooltip, UseRadioButtons  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
+
+
+@ui("/conformance/page-decorations")
+@title("Customer")
+class PageDecorationsPage:
+    """The page's avatar, header and footer blocks, declared on fields — never drawn in the body."""
+
+    avatar: Annotated[fluent.Avatar, AvatarBlock()] = fluent.Avatar(name="Ada Lovelace")
+    banner: Annotated[fluent.Text, Header()] = fluent.Text(text="Gold member")
+    legal: Annotated[fluent.Text, Footer()] = fluent.Text(text="Data kept for five years")
+    name: str = "Ada"
+
+
+@ui("/conformance/page-decorations-supplied")
+@title("Customer")
+class SuppliedDecorationsPage(HeaderSupplier, FooterSupplier, AvatarSupplier):
+    """The same blocks, supplied in code."""
+
+    name: str = "Ada"
+
+    def header(self):
+        return [fluent.Text(text="Gold member"), fluent.Text(text="Since 2019")]
+
+    def footer(self):
+        return [fluent.Text(text="Data kept for five years")]
+
+    def avatar(self):
+        return fluent.Avatar(name="Ada Lovelace")
+
+
+@ui("/conformance/tab-shortcuts")
+@title("Tabs")
+class TabShortcuts:
+    """Tab(shortcut=): each tab carries the key combination that selects it."""
+
+    name: Annotated[str, Tab("General", shortcut="alt+1")] = "Ada"
+    city: Annotated[str, Tab("Details", shortcut="alt+2")] = "London"
+
+
+class Shipment:
+    """A row whose fields carry every reflected column option."""
+
+    code: Annotated[str, Priority(1, identifier=True)] = ""
+    carrier: Annotated[str, ColumnWidth("9rem")] = ""
+    destination: Annotated[str, Line(2)] = ""
+    notes: Annotated[str, Style("color: grey;")] = ""
+    state: Annotated[str, Tooltip("notes")] = ""
+
+
+@ui("/conformance/listing-column-options")
+@title("Shipments")
+class ShipmentsListing(Listing[Shipment]):
+    def search(self, request, http=None):
+        return []
+
+
+class Ticket:
+    """A row whose values are MAPPED on their way out: a status chip and a mapped label."""
+
+    id: str = ""
+    state: Annotated[str, Status({"OPEN": "WARNING", "DONE": "SUCCESS"}, default="NONE")] = ""
+    urgency: Annotated[str, MappedValue({"H": "High", "L": "Low"}, default="Normal")] = ""
+
+    def __init__(self, id="", state="", urgency=""):
+        self.id, self.state, self.urgency = id, state, urgency
+
+
+@ui("/conformance/listing-mapped-values")
+@title("Tickets")
+class TicketsListing(Listing[Ticket]):
+    def search(self, request, http=None):
+        # Java's ListingData.from(rows): one page holding every row
+        rows = [Ticket("t1", "OPEN", "H"), Ticket("t2", "DONE", "X")]
+        return ListingData(rows, total_elements=len(rows), page_size=len(rows))
+
+
+class TicketNumbers:
+    """The server's ticket numbers: what a GeneratedValue field starts a creation form with."""
+
+    def generate(self):
+        return "T-100"
+
+
+class Case:
+    """A reference the server generates, a code only editable when creating, and a free text."""
+
+    id: str = ""
+    reference: Annotated[str, GeneratedValue(TicketNumbers)] = ""
+    code: Annotated[str, EditableOnlyWhenCreating()] = ""
+    title: str = ""
+
+    def __init__(self, id="", reference="", code="", title=""):
+        self.id, self.reference, self.code, self.title = id, reference, code, title
+
+    def __str__(self):
+        return self.title if self.title and self.title.strip() else "New case"
+
+
+CASES_STORE = [Case("T-001", "T-001", "INC", "Printer jam")]
+
+
+@ui("/conformance/crud-generated")
+@title("Cases")
+class CasesCrud(Crud[Case]):
+    def fetch(self, search):
+        return list(CASES_STORE)
+
+    def get(self, id):
+        return next((c for c in CASES_STORE if c.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+@ui("/conformance/wizard-labels")
+@title("Join")
+@wizard_labels(back="Previous", next="Continue")
+class LabelledWizard(Wizard):
+    """The built-in Back and Next buttons carry the wizard's own words (pinned on step 2)."""
+
+    name: Annotated[str, Step(1)] = "Ada"
+    city: Annotated[str, Step(2)] = "London"
+    agree: Annotated[bool, Step(3)] = False
+    reference: Annotated[str, Step(4)] = ""
+
+    @wizard_completion_action("Join")
+    def join(self):
+        return None
+
+    def step_title(self, step: int) -> str | None:
+        # Java names a step after its field (who / where / confirm / thanks)
+        return {1: "Who", 2: "Where", 3: "Confirm", 4: "Thanks"}.get(step)
+
+
+class SupplierIsland(LookupLabelSupplier):
+    """A view embedded in another page: its lookup label travels WITH the island."""
+
+    supplier: Annotated[str, Lookup()] = "a2"
+
+    def label(self, field_name: str, id) -> str | None:
+        return "Acme" if id == "a2" else None
+
+
+@ui("/conformance/island-data")
+@title("Island")
+class IslandDataPage(ComponentTreeSupplier):
+    def style(self):
+        return None
+
+    def component(self):
+        return fluent.EmbeddedView(SupplierIsland())
+
+
+@ui("/conformance/app-fabs")
+@app("Fab app")
+class FabApp:
+    """App-level floating buttons (fab methods of the app class), one restyled."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+    @fab("vaadin:plus")
+    def create(self):
+        return None
+
+    @fab("vaadin:question", button_style="tertiary", order=1)
+    def help(self):
+        return None
+
+
+@ui("/conformance/fab-style")
+@title("Fab page")
+class StyledFabPage:
+    name: str = "Ada"
+
+    @fab("vaadin:edit", button_style="secondary")
+    def edit(self):
+        return None
+
+
+class FieldSize(str, Enum):
+    S = "S"
+    M = "M"
+    L = "L"
+
+
+@ui("/conformance/field-decorations")
+@title("Decorations")
+@style("max-width: 40rem;")
+@css_classes("decorated")
+class FieldDecorations:
+    """Presentation declared on the class and its fields."""
+
+    size: Annotated[FieldSize, UseRadioButtons(), OptionsLayout(columns=3)] = FieldSize.M
+    styled: Annotated[str, Style("color: grey;")] = "a"
+    wrapped: Annotated[str, DivStyle("padding: 1rem;")] = "c"
+    complaints: Annotated[
+        str, NoticeField(theme="warning", slim=True, action_label="Review", action_id="review")
+    ] = "2 complaints pending"
+
+
+@ui("/conformance/class-rules")
+@title("Order")
+@rule("state.total > 100", "SetDataValue", field_name="discount", field_attribute="hidden", expression="false")
+@validation("state.total >= 0", "total", "Cannot be negative")
+class ClassRulesForm:
+    total: int = 10
+    discount: str = ""
+
+
+@ui("/conformance/banner-options")
+@title("Banners")
+class BannerOptionsPage:
+    name: str = "Ada"
+
+    @banner(BannerTheme.WARNING, "Maintenance", closeable=True, timeout_seconds=10)
+    def maintenance(self) -> str:
+        return "Tonight at 22:00"
+
+
+
 #: Cases pinning the proxy's answer: data on appData, no page.
 PROXY_ANSWERS = {"definition-proxied-bulk", "app-source-proxied", "app-source-no-such-role"}
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("definition-proxied-bulk", YamlCase), ("app-source-proxied", YamlCase), ("app-source-no-such-role", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage), ("routed-tabs-deep-link", RtCustomerMaster), ("routed-tabs-crud-listing", RtAccountOrders), ("routed-tabs-crud-search", RtAccountOrders), ("routed-tabs-crud-new", RtAccountOrders), ("subresource-page", RtVcnDetail), ("subresource-only", RtOnlySubnets), ("subresource-inline-trap", RtInlineTrap), ("subresource-listing", RtSubnets), ("subresource-search", RtSubnets)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("definition-proxied-bulk", YamlCase), ("app-source-proxied", YamlCase), ("app-source-no-such-role", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage), ("routed-tabs-deep-link", RtCustomerMaster), ("routed-tabs-crud-listing", RtAccountOrders), ("routed-tabs-crud-search", RtAccountOrders), ("routed-tabs-crud-new", RtAccountOrders), ("subresource-page", RtVcnDetail), ("subresource-only", RtOnlySubnets), ("subresource-inline-trap", RtInlineTrap), ("subresource-listing", RtSubnets), ("subresource-search", RtSubnets), ("page-decorations", PageDecorationsPage), ("page-decorations-supplied", SuppliedDecorationsPage), ("tab-shortcuts", TabShortcuts), ("listing-column-options", ShipmentsListing), ("listing-mapped-values", TicketsListing), ("crud-generated-new", CasesCrud), ("crud-generated-edit", CasesCrud), ("wizard-labels", LabelledWizard), ("island-data", IslandDataPage), ("app-fabs", FabApp), ("fab-style", StyledFabPage), ("field-decorations", FieldDecorations), ("class-rules", ClassRulesForm), ("banner-options", BannerOptionsPage), ("yaml-partial", YamlCase), ("yaml-component-ref", YamlCase), ("yaml-field-types", YamlCase), ("yaml-template", YamlCase), ("yaml-eyes-only", YamlCase), ("yaml-environment", YamlCase)]
 
 
 def test_every_case_of_the_corpus_is_wired():

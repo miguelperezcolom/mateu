@@ -68,6 +68,13 @@ class PageMetadata(Wire):
     #: an embedded view, or a page under a back-link app of its routes.yaml chain); None = the shell
     #: shows it. A declared trail still shows (mirrors PageDto.noBreadcrumbs).
     no_breadcrumbs: bool | None = None
+    #: The page's avatar block (``Avatar()`` field / AvatarSupplier); None when it has none
+    #: (mirrors PageDto.avatar).
+    avatar: Any | None = None
+    #: The page's header blocks (``Header()`` fields / HeaderSupplier; mirrors PageDto.header).
+    header: list[Any] | None = None
+    #: The page's footer blocks (``Footer()`` fields / FooterSupplier; mirrors PageDto.footer).
+    footer: list[Any] | None = None
 
 
 class TemplateImageRecord(Wire):

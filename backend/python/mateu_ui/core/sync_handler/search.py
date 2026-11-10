@@ -144,7 +144,9 @@ class SearchHandlerMixin(MixinBase):
                 )
                 crud_data: dict = {"page": {
                     "content": rows,
-                    "pageSize": request.pageable.size,
+                    # the page the listing itself says it answers (Java's Page.pageSize), else
+                    # the size asked for
+                    "pageSize": found.page_size if found.page_size is not None else request.pageable.size,
                     "pageNumber": request.pageable.page,
                     "totalElements": found.total_elements,
                 }}
@@ -254,7 +256,7 @@ class SearchHandlerMixin(MixinBase):
                 child_props = view_fields(child_type)
                 row[camel_case(p.name)] = [self._row_dict(c, child_props) for c in (value or [])]
             else:
-                row[camel_case(p.name)] = self.cell_value(value)
+                row[camel_case(p.name)] = self.cell_value(_mapped_value(p, value))
         return row
 
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
@@ -609,3 +611,28 @@ def _numbered(rows: list[dict], page: int, size: int) -> list[dict]:
     for i, row in enumerate(rows):
         row["_rowNumber"] = page * size + i
     return rows
+
+
+def _mapped_value(p, value):
+    """A row value as it travels: a ``Status(mappings)`` field becomes a status object (its type
+    from the mapping, else the default; its message the value humanised), a ``MappedValue`` field
+    the mapped text (else the default) — Java's StatusFieldMapper / MappedValueFieldMapper."""
+    from mateu_ui.core.naming import humanize_constant
+    from mateu_ui.uidl.markers import MappedValue, Status
+
+    status = p.marker(Status)
+    if status is not None:
+        if value is None:
+            return None
+        raw = value.value if hasattr(value, "value") and not isinstance(value, str) else value
+        text = str(raw)
+        return {
+            "type": str(status.mappings.get(text, status.default)),
+            "message": humanize_constant(text),
+            "value": text,
+        }
+    mapped = p.marker(MappedValue)
+    if mapped is not None:
+        raw = value.value if hasattr(value, "value") and not isinstance(value, str) else value
+        return mapped.mappings.get(str(raw), mapped.default)
+    return value

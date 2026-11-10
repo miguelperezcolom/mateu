@@ -671,6 +671,10 @@ def add_mateu(
         _add_dev_endpoints(app)
 
     renderer = ui_page.configured_renderer(ui)
+    # the project's declared renderer (specs/ui/project.yaml) vs the one served: warn once
+    from mateu_ui.core import project_renderer
+
+    project_renderer.warn_on_startup(renderer)
     if renderer is not None:
         app_type = registry.app_type
         title = (
