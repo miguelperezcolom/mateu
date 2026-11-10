@@ -310,6 +310,9 @@ class ListingData:
     rows: list
     total_elements: int | None = None
     groups: list | None = None
+    #: The size of the page ``rows`` is (with ``total_elements``): None = the size asked for.
+    #: Java's ``ListingData.from(rows)`` answers one page holding every row (page size = rows).
+    page_size: int | None = None
 
     @staticmethod
     def of(rows: Iterable) -> "ListingData":

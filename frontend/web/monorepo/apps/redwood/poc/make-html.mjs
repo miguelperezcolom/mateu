@@ -16,7 +16,40 @@ import { dirname, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const page = join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html')
-const partial = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/\n$/, '')
+const partialSource = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/\n$/, '')
+
+/** Every atom's ROOT element (a direct child of a top-level `oj-bind-if` of the template) carries
+ *  the surface it belongs to — an inline island's, a MicroFrontend's — as `data-mateu-surface-id`, so
+ *  whatever fires inside it (a DOM sink, a field's change) finds where to send its action by walking
+ *  up (poc/surfaces.mjs). Stamped here, not by hand: an atom added later gets it too. A root that is
+ *  itself an `oj-bind-*` (it repeats or switches) has no element of its own: its pieces are found
+ *  through the block around them. */
+export const stampSurfaces = (text) => {
+  const lines = text.split('\n')
+  const top = lines.find((l) => /^\s*<oj-bind-if /.test(l))
+  const atomIndent = top ? top.match(/^(\s*)/)[1].length + 2 : -1
+  const ATTR = ' :data-mateu-surface-id="[[ $current.data.surfaceId ]]"'
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*)<([a-z][\w-]*)(?=[\s>/]|$)/)
+    if (!m || m[1].length !== atomIndent || /^oj-bind-|^template$/.test(m[2])) continue
+    // the attribute goes LAST in the opening tag (before its `>`, outside any quoted value), so the
+    // tag still reads as written (`<oj-data-grid class="mateu-matrix"…`)
+    let quoted = false
+    for (let j = i; j < lines.length; j++) {
+      const line = lines[j]
+      let at = -1
+      for (let k = j === i ? m[0].length : 0; k < line.length; k++) {
+        if (line[k] === '"') quoted = !quoted
+        else if (line[k] === '>' && !quoted) { at = line[k - 1] === '/' ? k - 1 : k; break }
+      }
+      if (at < 0) continue
+      if (!lines.slice(i, j + 1).join('\n').includes('data-mateu-surface-id')) lines[j] = line.slice(0, at) + ATTR + line.slice(at)
+      break
+    }
+  }
+  return lines.join('\n')
+}
+const partial = stampSurfaces(partialSource)
 // The field widgets added later (radio, multiple selection, amount, capture) go in a
 // SECOND partial, inserted after the oj-select-one of EACH copy of the fields —those of the
 // atoms and the 7 outside (drawer, row editor, generic form, wizard, island)—. The only thing

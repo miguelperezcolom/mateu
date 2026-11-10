@@ -1,0 +1,156 @@
+{
+  "commands" : [ {
+    "data" : "Decorations",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "size",
+                        "label" : "Size",
+                        "options" : [ {
+                          "label" : "s",
+                          "value" : "S"
+                        }, {
+                          "label" : "m",
+                          "value" : "M"
+                        }, {
+                          "label" : "l",
+                          "value" : "L"
+                        } ],
+                        "optionsColumns" : 3,
+                        "sliderMax" : 100,
+                        "stereotype" : "radio",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "styled",
+                        "label" : "Styled",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "style" : "color: grey;",
+                        "type" : "FormField"
+                      },
+                      "style" : "color: grey;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "attributes" : [ {
+                          "key" : "divStyle",
+                          "value" : "padding: 1rem;"
+                        } ],
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "wrapped",
+                        "label" : "Wrapped",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "actionId" : "review",
+                        "actionLabel" : "Review",
+                        "slim" : true,
+                        "text" : "${state.complaints}",
+                        "theme" : "warning",
+                        "type" : "Notice"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "cssClasses" : "decorated",
+        "metadata" : {
+          "pageTitle" : "Field decorations",
+          "pageType" : "form",
+          "title" : "Decorations",
+          "type" : "Page"
+        },
+        "style" : "max-width: 40rem;",
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "complaints" : "2 complaints pending",
+        "size" : "M",
+        "styled" : "a",
+        "wrapped" : "c"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "complaints" : "2 complaints pending",
+      "size" : "M",
+      "styled" : "a",
+      "wrapped" : "c"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

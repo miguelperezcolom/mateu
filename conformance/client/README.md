@@ -7,7 +7,7 @@
 |---|---|---|
 | Web (libs/mateu) — the reference | `infra/ui/expression.ts` | `infra/http/bundleStore.ts` |
 | Redwood (VB) | `apps/redwood/poc/rules.mjs` | `apps/redwood/poc/bundle.mjs` |
-| React Native | `src/core/expressions.ts` | — (no static bundle mode) |
+| React Native | `src/core/expressions.ts` | `src/core/staticBundle.ts` (sync paths only, `src/shared/mateuLib.test.ts`) |
 | IntelliJ | `state/Expressions.kt` | — (no static bundle mode) |
 
 Copies drift silently: before this corpus, Redwood had no `??` / `?.`, neither native renderer had
@@ -23,7 +23,8 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   `ExpressionsConformanceTest.kt` (IntelliJ `gradlew test`).
 - `route-params.json` — registry entries + a pre-rendered increment + a sync path → the state,
   data, appState and initialData a statically served load must carry. Run by the web and Redwood
-  suites (the only renderers with a static bundle mode).
+  suites; React Native opens a static bundle too (`src/core/staticBundle.ts`) and runs the corpus'
+  `syncPaths` (`src/shared/mateuLib.test.ts`). IntelliJ has no static bundle mode.
 - `app-compat.json` — can a hub app (phone or desktop) render a UI: the UI's manifest
   (`wireVersion`, `minAppVersion`, `mateuVersion`) against what the app knows of itself →
   compatible | recommended | required, with the reason. Run by `src/hub/compat.conformance.test.ts`
@@ -45,8 +46,8 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
 - `live-reload.json` — what a development server's live-reload event (`hello`, `specs-changed`,
   `reload`, `ping`) means for the screen on display: nothing, re-render the page or the app, and the
   boot id to remember (a new one = a restarted server). Run by `liveReload.conformance.test.ts`
-  (libs/mateu, the reference), `src/core/liveReload.test.ts` (React Native) and `LiveReloadTest.kt`
-  (IntelliJ).
+  (libs/mateu, the reference), `src/core/liveReload.test.ts` (React Native), `poc/test-live-reload.mjs`
+  (Redwood, `poc/liveReload.mjs`) and `LiveReloadTest.kt` (IntelliJ).
 
 - `hub-links.json` — what a hub link or a scanned code means (`mateu://add|import`,
   `https://mateu.io/add`, a pasted address): the UI(s) it adds, the route, or why it is refused.
@@ -57,8 +58,9 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   makes (values percent-encoded by position, encoded once, money sent as its amount, allow-listed
   calls such as `encodeURIComponent` / `String` / `Math.*`). Run by
   `sourceTemplates.conformance.test.ts` (libs/mateu, the reference), `poc/test-conformance.mjs`
-  (Redwood) and `src/core/sourceTemplates.conformance.test.ts` (React Native); the servers' proxied
-  leg pins the same rules in their own url-template tests.
+  (Redwood), `src/core/sourceTemplates.conformance.test.ts` (React Native) and
+  `SourceTemplatesConformanceTest.kt` (IntelliJ, `ui/RestFetch.kt` → `Expressions.interpolateUrl`);
+  the servers' proxied leg pins the same rules in their own url-template tests.
 - `figma-import.json` — Import from Figma's host-side rules: a Figma URL (or bare key, branch URLs)
   → the file key, which routes file gets the imported pages, the page → route rule and the minimal
   routes.yaml append (before a `# __ROUTES__` marker, else at the end; `expected: null` = an already
@@ -78,8 +80,8 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
 an override for itself. A renderer that deliberately differs carries
 `"overrides": { "<redwood|rn|intellij>": { "expected": …, "why": "…" } }` — the divergence is
 stated, reasoned and still pinned, never skipped. Today's overrides are the subset the native
-renderers do not implement (method calls, array literals, arrow functions, globals, `typeof`),
-their null-safe member access, and Kotlin's single null.
+renderers do not implement (method calls outside the allow-list a REST url uses, array literals,
+arrow functions, globals, `typeof`), their null-safe member access, and Kotlin's single null.
 
 ## Route parameter precedence
 

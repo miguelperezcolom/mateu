@@ -134,7 +134,7 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
             if (line !is MatrixGrids.Line.RowLine) {
                 text = ""
                 background = sectionBg
-                accessibleContext.accessibleName = (line as? MatrixGrids.Line.SectionLine)?.title ?: ""
+                getAccessibleContext().accessibleName = (line as? MatrixGrids.Line.SectionLine)?.title ?: ""
                 return this
             }
             val r = line.row
@@ -153,8 +153,8 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
                 }
             }
             text = if (link) "<html><u>${escapeHtml(v)}</u></html>" else plain(v)
-            accessibleContext.accessibleName = MatrixGrids.cellA11yName(r, col, v)
-            accessibleContext.accessibleDescription = when {
+            getAccessibleContext().accessibleName = MatrixGrids.cellA11yName(r, col, v)
+            getAccessibleContext().accessibleDescription = when {
                 link && r.editable -> "Link. Press Space to open, F2 to edit"
                 link -> "Link. Press Space to open"
                 r.editable -> "Editable. Press F2 to edit"
@@ -174,14 +174,14 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
                 is MatrixGrids.Line.SectionLine -> {
                     font = font.deriveFont(Font.BOLD)
                     if (!isSelected) background = sectionBg
-                    accessibleContext.accessibleName = "${l.title}, ${if (l.collapsed) "collapsed" else "expanded"}"
-                    accessibleContext.accessibleDescription = "Section. Press Enter or Space to toggle"
+                    getAccessibleContext().accessibleName = "${l.title}, ${if (l.collapsed) "collapsed" else "expanded"}"
+                    getAccessibleContext().accessibleDescription = "Section. Press Enter or Space to toggle"
                 }
                 is MatrixGrids.Line.RowLine -> {
                     if (l.row.emphasis) font = font.deriveFont(Font.BOLD)
                     if (!isSelected) background = table.background
-                    accessibleContext.accessibleName = l.row.label
-                    accessibleContext.accessibleDescription = null
+                    getAccessibleContext().accessibleName = l.row.label
+                    getAccessibleContext().accessibleDescription = null
                 }
                 null -> {}
             }

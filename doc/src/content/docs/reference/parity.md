@@ -23,7 +23,7 @@ in the same change.
 |---|---|---|---|
 | Forms, sections, field types, validation. Field help (`[Help]` / `Help()` → `description`), `[SliderMin]`/`[SliderMax]` (`SliderMin()`/`SliderMax()`) and the fluent `FormField`'s `placeholder`/`autofocus`/`step` are in both ports (conformance cases `field-help`, `field-hints`). `@Section(sticky, columns, style)`, `@MainFilter` and `@HiddenInList/View/Editor/Create` are in both ports since 3.0 GA (.NET `[Section(Sticky, Columns, Style)]`, `[MainFilter]`, `[HiddenIn*]`; Python `Section(sticky=, columns=, style=)`, `MainFilter()`, `HiddenIn*()`; cases `section-options`, `crud-hidden-in`, `-edit`, `-new`). Validation: .NET checks `[Required]`, `[Range]`, `[StringLength]`/`[MinLength]`/`[MaxLength]` (= `@Size`) and `[RegularExpression]` (= `@Pattern`) on both legs with Java's conditions and messages (translated); a pattern is matched with find semantics on every server and must be a JavaScript-compatible regexp; a field the crud form hides with `HiddenIn*` is not checked, a `@ReadOnly`/`@PlainText`/`@ReadOnlyUnless`-locked field or a read-only view still is, as in Java (cases `validation-text`, `crud-hidden-constraints-new`/`-edit`, `validation-locked`, `validation-unless`, `validation-read-only-view`) | ✅ | ✅ | ✅ |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
-| App shell + menus + navigation. `@App(layout, accentColor, askLabel, askIcon)` is in both ports (case `app-branding`); .NET also sets `logo`/`favicon`/`drawerClosed`/`noBreadcrumbs`/`style`/`cssClasses` and app-level `[Fab]`s from code, Python those from a YAML shell only. `@App(backLink)` is in both ports (`[App(BackLink = BackLink.Parent)]`, `@app(back_link=BackLink.PARENT)`, and on a code `AppShell`; case `app-back-link`): `noBreadcrumbs` plus `backRoute`/`backLabel`, the parent screen's title resolved on the server. Page breadcrumbs — `@NoBreadcrumbs` on a page or app class, a declared trail (`@Breadcrumbs`/`BreadcrumbsSupplier` · `[Breadcrumb(label, url)]`/`IBreadcrumbsSupplier` · `@breadcrumbs(...)`/`BreadcrumbsSupplier`), an embedded view's page, and pages under an `@App(backLink = PARENT)` ancestor of their route chain, including pages inside overlay or card content (a code shell's `backLink` shows the link but keeps the trail, as in Java) — emit `PageDto.breadcrumbs`/`noBreadcrumbs` identically (cases `page-no-breadcrumbs`, `page-breadcrumbs`, `page-back-link-chain`, `-nested`, `page-back-link-code-shell`) | ✅ | ✅ | ✅ |
+| App shell + menus + navigation. `@App(layout, accentColor, askLabel, askIcon)` is in both ports (case `app-branding`); .NET also sets `logo`/`favicon`/`drawerClosed`/`noBreadcrumbs`/`style`/`cssClasses` and app-level `[Fab]`s from code, Python those from a YAML shell only — except the app-level FABs, which its `AppMetadata` has no member for. `@App(backLink)` is in both ports (`[App(BackLink = BackLink.Parent)]`, `@app(back_link=BackLink.PARENT)`, and on a code `AppShell`; case `app-back-link`): `noBreadcrumbs` plus `backRoute`/`backLabel`, the parent screen's title resolved on the server. Page breadcrumbs — `@NoBreadcrumbs` on a page or app class, a declared trail (`@Breadcrumbs`/`BreadcrumbsSupplier` · `[Breadcrumb(label, url)]`/`IBreadcrumbsSupplier` · `@breadcrumbs(...)`/`BreadcrumbsSupplier`), an embedded view's page, and pages under an `@App(backLink = PARENT)` ancestor of their route chain, including pages inside overlay or card content (a code shell's `backLink` shows the link but keeps the trail, as in Java) — emit `PageDto.breadcrumbs`/`noBreadcrumbs` identically (cases `page-no-breadcrumbs`, `page-breadcrumbs`, `page-back-link-chain`, `-nested`, `page-back-link-code-shell`) | ✅ | ✅ | ✅ |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
 | [App shell as data](/define/yaml/app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). Both ports read `type: AppShell` since 3.0 GA (menus incl. card menus, rule and remote leaves, `homeRoute` > the mount's `home:` > the first leaf, flows, widgets, switches, `ai:`, shortcuts, header values, idle session, context selectors, header actions, notification/search sources, `access:` per caller), held to the three Java goldens (`app-shell`, `app-shell-extras`, `app-shell-card-menus`; .NET differs only in the shell's own generated id). Both ports also read `backLink` and `pageTitle` (`pageTitle` names the mobile/PWA manifest of a YAML mount without `title`) and a `RemoteMenu`'s `shellLabel`/`routePrefix` (golden `app-shell-back-link`) | ✅ | ✅ | ✅ |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
@@ -35,7 +35,7 @@ in the same change.
 | Fluent `Card` with component slots (title, subtitle, media, header…, content, footer) | ✅ | ✅ | ✅ |
 | An app with no declared home lands on its first menu item; an app under a sub-path accepts mount-absolute routes; the chrome language follows `Accept-Language`; an error toast stays until dismissed; a `List<Enum>` with no stereotype is a multi-select | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
-| Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
+| Tabs, stereotypes, shortcuts, compact, dirty guard. An action's shortcut is in both ports (`[Shortcut]`, `@shortcut`); a TAB's (`@Tab(shortcut = "alt+1")`) is not: .NET `[Tab]` has `Open`/`Key`/`Show` and Python `Tab(name, open=, key=, show=)`, so a port's tab is selected by click only | ✅ | 🟡 | 🟡 |
 | Redwood pattern gaps (2026-10-10): display records (`Toggle` + `WizardDisplay`/`CrudDisplay`/`GeneralOverviewDisplay`), wizard drafts/skip/early completion/`beforeStepNavigate` (ports: steps by number), edit-drawer save-and-next + error banner, `GeneralOverview` info slot, foldout `summary`, `DataManagement` docked panels, header `RecordSwitcherSupplier`, `@Section` edit/add/view-more, hero tone, `Announce` command, smart-search pre-search content — see [Page templates](/ux-patterns/page-templates/#display-options-one-tri-state-grammar) | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
@@ -63,12 +63,12 @@ in the same change.
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`; the Redwood renderer is light only and ignores it) | ✅ | ✅ | ✅ |
-| [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports have no app logo/favicon/accent, so `icon`/`themeColor` come only from `MobileApp` or the env vars there | ✅ | ✅ | ✅ |
+| [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports' manifest takes `icon`/`themeColor` only from `MobileApp`, the env vars or a YAML shell: it does not fall back to the app's logo/favicon (.NET has `[Logo]`/`[FavIcon]`) or `accentColor` (both ports have it) as Java's does | ✅ | ✅ | ✅ |
 | [Installable app (PWA)](/deploy/install-as-app/): `GET <baseUrl>/mateu/v3/pwa/{manifest.webmanifest,sw.js,register.js,icon-*.png}` and the page's manifest link + worker registration, the manifest derived like the mobile one; off with `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED=false` (.NET also `MateuOptions.Pwa`) and in dev mode | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in CSV writer, Excel / PDF through the app's `IListingExporter` services — no exporter, no button) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; built-in CSV writer, Excel / PDF through the app's `ListingExporter` subclasses — no exporter, no button, as in Java) |
-| i18n, events (emit/subscribe), security scaffolding. `[SubscribeTo]` / `@subscribe_to` carry the scopes (`source`/`from`/`condition`, `DOCUMENT` by default) in both ports (conformance case `triggers`). Python has no class-level `read_only_unless` (.NET's `[ReadOnlyUnless]` works on a class) | ✅ | ✅ | 🟡 |
+| i18n, events (emit/subscribe), security scaffolding. `[SubscribeTo]` / `@subscribe_to` carry the scopes (`source`/`from`/`condition`, `DOCUMENT` by default) in both ports (conformance case `triggers`). A class-level read-only gate is in both ports (.NET `[ReadOnlyUnless]` on a class, Python `@read_only_unless(...)` as a class decorator — `test_class_read_only_unless.py`) | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
@@ -117,13 +117,13 @@ in the same change.
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
-| Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
+| Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards). All three servers emit `onItemSelectionActionId`; the Redwood renderer does not dispatch it yet (see [Renderers](#renderers)) | ✅ | ✅ | ✅ |
 | Fluent `Grid` with column groups (`GridGroupColumn`: a header spanning several columns, its columns in `metadata.columns`; authorable in code and in YAML) — in both ports since 3.0 GA (case `more-components`) | ✅ | ✅ | ✅ |
 | Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | ✅ | ✅ |
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
 | Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
 | Nested data objects in forms (`@Inline` sub-form expanded into the section, or a card sub-form without it; .NET `[Inline]` on a POCO property, Python `Inline()` on a plain-class field — the field's type tells it from an island): prefixed ids, nested toolbar/buttons dispatched as `nested-form-action-<field>-<method>`, nested + flattened state round trip, the nested object's constraints on both legs (cases `inline-form`, `inline-form-action`); a crud entity's plain nested object advertises and runs its nested actions too (`crud-nested-form`, `-action`). Client rules (`@Hidden(expr)`, `@Disabled`) apply to a view's own fields only, so a nested object's fields get none — in all three (`inline-form-rules`) | ✅ | ✅ | ✅ |
-| [Static bundle](/deploy/static-ui/) export: Java `mateu-bundle:bundle`, Python `python -m mateu_ui.bundle`, .NET `dotnet mateu-bundle` (the `Mateu.Bundle` tool, or `MateuBundle.Run` from the app). Each renders every route through its own sync handler and writes the same bundle — `manifest.json` with both loads under an app shell, `:param` templates, the authored route table and catalogues, `specsOnly`, `staticOnly` with the same static-safety rules, `environment`, `mock`; a YAML-only app's `mateu/v3/manifest` and PWA manifest come from the root mount's `type: AppShell` (title, logo, accent) — held to one golden, `conformance/bundle`. The `openapi`/`server` goals stay Java-only (they derive a Java/Spring server) | ✅ | ✅ | ✅ |
+| [Static bundle](/deploy/static-ui/) export: Java `mateu-bundle:bundle`, Python `python -m mateu_ui.bundle`, .NET `dotnet mateu-bundle` (the `Mateu.Bundle` tool, or `MateuBundle.Run` from the app). Each renders every route through its own sync handler and writes the same bundle — `manifest.json` with both loads under an app shell, `:param` templates, the authored route table and catalogues, `specsOnly`, `staticOnly` with the same static-safety rules, `environment`, `mock`; a YAML-only app's `mateu/v3/manifest` and PWA manifest come from the root mount's `type: AppShell` (title, logo, accent) — held to one golden, `conformance/bundle`. `specsOnly` (raw definitions expanded in the browser) needs the Vaadin renderer: Redwood has no client-side expander, so a Redwood bundle is always pre-rendered (the goal warns and ignores `specsOnly`; see [Choosing the renderer](/deploy/static-ui/#choosing-the-renderer)). The `openapi`/`server` goals stay Java-only (they derive a Java/Spring server) | ✅ | ✅ | ✅ |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`, `followLabel`, `followingLabel`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
@@ -147,7 +147,13 @@ in the same change.
 | Hub manifest version fields for the [apps' compatibility check](/ux-patterns/mobile-app/) (`wireVersion`, `mateuVersion` on a release) and `devEvents` in development mode ([live reload on desktop and phone](/java-user-manual/build/live-reload/)) | ✅ | ✅ | ✅ |
 | Access keys and `${i18n.…}` inside a YAML `type: Partial` applied on the server like inline content — the partial is inlined as source before the per-caller passes, in pages and (Java) in a `type: AppShell` (Java `YamlPartialAccessSyncTest` + `YamlShellPartialAccessSyncTest`, .NET `YamlAccessTests`, Python `test_yaml_access.py`) | ✅ | ✅ | ✅ |
 | Proxied REST leg: the browser's expression subset (`ProxyExpression`, corpus `source-templates.json`), the action's parameters over the state, `forEachSelectedRow` one call per row, a refused direct source (403), a route's `fixedParams` over the state | ✅ | ✅ | ✅ |
-| Deep links to a dotted id (`/people/ana.perez`): a FILE is an asset extension, anything else is a route (Java `SpaFallback.ASSET_EXTENSIONS`, .NET `UiPage.IsAsset`, Python `ui_page.is_asset`) | ✅ | ✅ | ✅ |
+| Deep links to a dotted id (`/people/ana.perez`): a FILE is an asset extension, anything else is a route (Java `SpaFallback.ASSET_EXTENSIONS`, .NET `UiPage.IsAsset`, Python `ui_page.is_asset`); pinned on the five Java adapters by `AdapterParityITFoundation.answersADottedIdDeepLinkWithTheIndex` | ✅ | ✅ | ✅ |
+| [Undo a delete](/java-user-manual/build/capability-listings/) (`Restorable<Id>` on the listing, .NET `IRestorable<TId>`, Python `Restorable`: the delete loses its confirmation, answers an undoable "N records deleted" toast and `restore-deleted` calls `restoreAllById`; 403 without it) | ✅ | ✅ | ✅ |
+| A listing whose rows open by click leaves out the reflected column of the row's declared id (`@PrimaryKey`, else `id`; .NET `[Id]`/`Id`; Python `id`) unless it is labelled (cases `crud`, `crud-grouped`, `listing-navigable`) | ✅ | ✅ | ✅ |
+| `MetricCard.timeframe` (the period a number covers, under the value; .NET `Timeframe`, Python `timeframe`) | ✅ | ✅ | ✅ |
+| [Long-running tasks](/ux-patterns/long-running-jobs/): the ETA computed by the server from the progress it streams (corpus `conformance/progress/eta.json`) and re-attaching to a task after a reload (`_progress-tasks` / `_progress-resume`, a grace period before an unfollowed task is cancelled; `MATEU_PROGRESS_REATTACH_GRACE_SECONDS` everywhere) | ✅ | ✅ | ✅ |
+| [Stored inbox + OS notifications](/ux-patterns/notification-inbox/) (`InboxStore` / .NET `IInboxStore` / Python `InboxStore`, in memory by default; `@App(inbox)`, `@App(osNotifications)` → `AppDto.osNotifications`) | ✅ | ✅ | ✅ |
+| [Untrusted screens](/reference/agent-operability/) (a screen an agent authored renders through `__preview__` with `_untrusted: true`, every script-capable construct stripped; Java `UntrustedDefinition`, .NET `UntrustedDefinition`, Python `core/untrusted.py`; shared cases `conformance/untrusted/cases.json`) | ✅ | ✅ | ✅ |
 | CRUD write gates: a forced write, New/Edit or `/new`·`/{id}/edit` the crud does not offer is refused (403) — `canCreate/canEdit/canDelete` (.NET `CanX`, Python `can_x()`), read-only, display toggles incl. a disabled Save and next | ✅ | ✅ | ✅ |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
@@ -227,8 +233,9 @@ avatar, StatusList compact/frameless, Notice status/noIcon/content, `@Audience`)
 three backends in the same commits; the two features that had slipped through Java-only — app
 header actions with dropdown grouping (`AppActionsSupplier`) and `Anchor.target` — were ported the
 same day (.NET `IAppActionsSupplier`/`Anchor { Target }`, Python `AppActionsSupplier`/`Anchor`),
-each pinned by golden-JSON tests. The remaining Java-only rows above are in-page orchestration
-behaviors (embedded islands, inline-grid "+", wide-field auto-colspan), not wire surface.
+each pinned by golden-JSON tests. (At the time the remaining Java-only rows were in-page
+orchestration behaviors — embedded islands, inline-grid "+", wide-field auto-colspan —; the ports
+closed them on 2026-10-10, below.)
 
 **2026-07-17**: optimistic locking (`[Version]`/`Version()` — stale saves and inline row updates
 answer the same reload/overwrite conflict dialog as Java, byte-identical texts; `_forceOverwrite`
@@ -314,7 +321,11 @@ server sets them from a declaration Java has.)
 
 | DTO | Still Java-only | Why |
 |---|---|---|
-| `AppDto` | `apps`, `home`, `homeUriPrefix`; Python from code also `logo`, `favicon`, `drawerClosed`, `style`, `cssClasses`, `fabs` (it sets them from a YAML shell) | `apps`/`home*` belong to Java's multi-app shells |
+| `AppDto` | `apps`, `home`, `homeUriPrefix`; Python from code also `logo`, `favicon`, `drawerClosed`, `style`, `cssClasses` (it sets those from a YAML shell). Python's `AppMetadata` has no `fabs` member at all, so its app-level FABs cannot travel even from a YAML shell | `apps`/`home*` belong to Java's multi-app shells |
+| `PageDto` | `avatar`, `header`, `footer` (`@Avatar`/`@Header`/`@Footer` and their suppliers), `status`, `icon`, `favicon`; Python also `pageWidth` (its `@page_width` reaches the `ServerSide` envelope, not the page) | the port page DTOs lack the members |
+| `ServerSideComponentDto` | `data`, `containerId` | Java uses `data` for an embedded island's own lookup labels and selector options; a port's island carries `initialData` only |
+| `GridColumnDto` (reflected listings) | `priority`, `line`, `frozen`, `frozenToEnd`, `sortingProperty`, `filterable`, `style`, `cssClasses`; .NET also `flexGrow` | `@Priority`, `@Line`, `@ColumnWidth`, frozen columns, a sortable property, `filterable` and a column's style have no port declaration. The fluent `Grid`'s columns carry them in both ports |
+| `FormFieldDto` | .NET `cssClasses` | no field-level `@CssClasses` in .NET |
 
 Since 3.0 GA the fluent listing (Java `Listing`, .NET/Python `ListingComponent`, YAML
 `type: Listing`) carries every grid option in both ports — listing type, toolbar, size, initial
@@ -327,9 +338,33 @@ A fluent listing's `triggers` are not on the wire in Java either.
 
 #### Authoring
 
-Nothing a port cannot declare that Java can, beyond the port idioms below. The bundle goals
-`mateu-bundle:openapi` / `server` stay Java build goals: they derive a contract and a Spring Boot
-server module, which is Java tooling, not UI — a port's bundle can be fed to them (`from=bundle`).
+Declarations Java has and the ports do not (beyond the [port idioms](#port-idioms-same-wire-different-declaration)).
+None of them is in the conformance corpus yet, so the hard gate does not see them:
+
+- **Page decorations**: `@Header`, `@Footer`, `@Avatar` and `HeaderSupplier`/`FooterSupplier`/
+  `AvatarSupplier` (the `PageDto` members above).
+- **Tabs**: `@Tab(shortcut)`.
+- **Reflected listing columns**: `@ColumnWidth`, `@Priority`, `@Line`, frozen columns, a sorting
+  property, `filterable`, a column's `style`/`cssClasses` (the `GridColumnDto` members above).
+- **CRUD fields**: `@EditableOnlyWhenCreating` and `@GeneratedValue` — the latter also keeps a
+  generated id out of what a client may write, so a port's CRUD relies on its own store for that.
+- **Wizards, foldouts, CRUD navigation**: `@WizardLabels(back, next)`, `@WizardLayout`,
+  `@Section(panelWidth)`, `@FoldoutDetail`, `@SplitCrud`, `@NoCrudNavigation`, `@NotNavigable`.
+- **Smaller ones**: `@Fab(buttonStyle)`; `@MappedValue` / `@Status(mappings)`; `@OptionsLayout`;
+  field and class `@Style`, `@CssClasses`, `@DivStyle`; the `@Notice` field marker (the fluent
+  `Notice` is in both); .NET has no class-level `@Rule`/`@Validation`; Python's declarative
+  `@banner` has no `closeable`/`timeout_seconds` (a `PageBanner` returned by an action has them).
+- **Supplier interfaces**: `OverlineSupplier`, `TitlePlaceholderSupplier`, `ToolbarSupplier`,
+  `ButtonsSupplier`, `WidgetSupplier`, `ColspanSupplier`, `StereotypeSupplier`, `ValueGenerator`,
+  `Auditable`, `PostHydrationHandler` and the per-field visibility / read-only / required /
+  disabled suppliers. Some of them have a method-convention equivalent in a port; they are not
+  triaged one by one yet.
+- **Project settings**: both ports validate `type: Project`, but neither warns at startup when the
+  renderer it serves differs from `renderer:` (Java's `ProjectRendererCheck`).
+
+The bundle goals `mateu-bundle:openapi` / `server` stay Java build goals: they derive a contract and
+a Spring Boot server module, which is Java tooling, not UI — a port's bundle can be fed to them
+(`from=bundle`).
 
 ### The conformance gate
 
@@ -365,7 +400,7 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 | CollectionDetail composition | a reflected form whose detail is an embedded island (its own `ServerSide` component, round-tripping alone) | a `VerticalLayout` + `ResponsiveGrid` tree built by the archetype | same as .NET | Idiom (2026-10-17 decision). Same screen, same actions (`selectCollectionItem`, `filterCollection`); the ports have no island machinery and nothing on screen needs one. Not a conformance case. |
 | Crud create/edit form actions | the form's Save/Cancel bubble to the crud MEDIATOR above it (the form advertises `*`) | the form advertises and answers `create`/`save`/`cancel-*` itself | same as .NET | Idiom. The ports have no mediator component above the form; the buttons, labels and outcome are identical. |
 | Wizard action advertising | a `*` catch-all (the wizard mediator claims every action) | `next` / `back` / `skip` / the completion action, listed | same as .NET | Idiom; the web client dispatches the same ids either way. |
-| Component route of the root (`""`) | `""` | `_empty` | `_empty` | Idiom; both spellings mean the mount root and every renderer accepts both (the conformance normaliser treats them as equal). |
+| Component route of the root (`""`) | `_empty` | `_empty` | `_empty` | Not a divergence: the three servers answer the mount root's component route as `_empty` (the conformance goldens carry it and the runners compare it as written — none equates the two spellings). A request may name the root either way, and every renderer accepts both. |
 
 ## Renderers
 
@@ -389,7 +424,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on every surface: the page, embedded islands and the open drawer/dialog | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
-| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
+| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | 🟡 `@AutoSave` and the scopes; a grid field's `@OnRowSelected` is not dispatched (it never reads `onItemSelectionActionId` nor sends `_clickedRow`) | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
 | "Open on mobile" (`mobileQr`: a header button whose dialog shows the QR of the `mateu.io/add` link, a link instead on a phone) | ✅ | ✅ | N/A (desktop IDE) | N/A (it is the app) |
@@ -425,6 +460,12 @@ of each type and fail on a placeholder — not a string match on the source.
 | Live header values + `liveUpdates` stream (one per browser, tabs share it) | ✅ | ✅ | ✅ (navigator; one stream per session) | ✅ (drawer; foreground only, `expo/fetch`) |
 | Idle-session warning (countdown, stay / sign out, activity shared across tabs) | ✅ | ✅ | ✅ (IDE activity; one session) | ✅ (touches; background counts as idle) |
 | Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
+| Embedded chrome of a `MicroFrontend` (`chrome` NONE/COMPACT/PAGE: the island sends `embeddedChrome` and drops its own title/favicon/history commands and header) | ✅ | ✅ | — (the island keeps its header and applies its window commands) | — (same) |
+| Banner close button and timeout (`@Banner(closeable, timeoutSeconds)` → `BannerDto.hasCloseButton`/`timeoutSeconds`) | ✅ | — | — | ✅ |
+| Labels aside (`FormLayoutDto.labelsAside`, inferred or `@FormLayout(labelsAside)`) | ✅ | — (labels on top) | — (labels on top) | — (labels on top) |
+| Select a grid row by keyboard (`@OnRowSelected(shortcut)` → `FormFieldDto.rowSelectionShortcut`) | ✅ | — | — | N/A (no hardware-key model) |
+| Browser-page commands: `PushStateToHistory` | ✅ | ✅ | N/A (ignored: no browser history) | N/A (ignored) |
+| Browser-page commands: `SetFavicon`, `AddContentToHead`/`AddContentToBody` | ✅ | — (ignored) | N/A (ignored: no page) | N/A (ignored: no page) |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
 
@@ -693,8 +734,8 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 
 ### IntelliJ plugin component coverage
 
-The IntelliJ plugin has a case for **every** wire component type in `ComponentMetadataDto` (115 as
-of 2026-10-10). This is enforced, not just claimed: `WireTypeParityTest` reads the backend's
+The IntelliJ plugin has a case for **every** wire component type in `ComponentMetadataDto` (114 as
+of 2026-11-10). This is enforced, not just claimed: `WireTypeParityTest` reads the backend's
 `@JsonSubTypes` list and fails the plugin build when a type has no branch in
 `ui/ComponentRenderer.kt`, and `WireTypeRenderTest` renders each of them headlessly and checks for
 exceptions, the "Unsupported component" fallback and accessible names on every control. The types
@@ -710,8 +751,8 @@ below were the last to arrive, so this is how each one maps to Swing:
 | `BoardLayout` / `BoardLayoutRow` / `BoardLayoutItem` | rows stacked, equal-width columns |
 | `ContentLayout` | `main-*` centre, `aside-*` start/end column (`asideWidth`), `footer-*` below |
 | `ResponsiveGrid` | grid with the column count of `gridTemplateColumns` |
-| `FormItem`, `Tab`, `AccordionPanel`, `Stepper` met outside their container | a row / titled group / stack of their children |
-| `Breadcrumbs` / `Breadcrumb` | link trail, current item in bold |
+| `FormItem`, `Tab`, `AccordionPanel` met outside their container | a row / titled group / stack of their children |
+| `Breadcrumbs` | link trail, current item in bold |
 | `MenuBar` | row of buttons; groups open a popup menu (submenus nest) |
 | `ContextMenu` | the wrapped component with a popup (right click, or left click when asked) |
 | `Directory` | sitemap of links under group headings |
@@ -719,7 +760,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | `Icon` | the platform icon for known names, else the name |
 | `Details` | disclosure toggle (▸/▾) over its content |
 | `Tooltip` | tooltip + accessible description on the wrapped component |
-| `Notification`, `Result`, `NotFound` | inline strip / outcome page with links / not-found page with a way back |
+| `Notification`, `NotFound` | inline strip / not-found page with a way back |
 | `CookieConsent` | dismissible strip (the IDE has no cookies; dismissal lasts the session) |
 | `Element` | the element as HTML text; an `on.click` runs its action |
 | `Bpmn` | the process as an ordered list of its named flow nodes (start → tasks → end) |

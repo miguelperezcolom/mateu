@@ -1328,16 +1328,25 @@ export function withoutWindowCommands(increment) {
 }
 /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
  *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
-export function tagSurfaceActions(value, surfaceId) {
-  if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+export function tagSurfaceActions(value, surfaceId, top = true) {
+  if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId, top))
   // only plain data: a JET data provider or converter is passed through as it is
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
   const out = {}
   // (the parameters travel to the server as they are)
-  for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-  if ('actionId' in out) out.surfaceId = surfaceId
+  for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId, false)
+  // every ATOM of the surface carries it (make-html stamps it on the atom's root element as
+  // data-mateu-surface-id: the DOM pieces — a calendar's day, a map marker, a field's change — find
+  // it there, poc/surfaces.mjs), and so does any object inside that names an action of its own
+  // (`actionId`, or a `…ActionId` of a component: markerActionId, dayActionId, moveActionId…).
+  // A surface nested in this one already tagged ITS actions (withSubresources fills inside out).
+  if ((top || Object.keys(out).some(isActionKey)) && !out.surfaceId) out.surfaceId = surfaceId
+  // a table's data provider was built from the UNTAGGED rows: a cell naming an action (a Grid
+  // column's actionId link) read no surface from it and went to the host (403) — rebuilt from them
+  if (value.adp && Array.isArray(out.rows) && out.rows !== value.rows && dataProviderFactory) out.adp = dataProviderFactory(out.rows)
   return out
 }
+const isActionKey = (k) => k === 'actionId' || /ActionId$/.test(k)
 
 // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
 export function unsupportedAtomOf(type, id) {

@@ -1,0 +1,10 @@
+# Access keys on components, applied server-side for an anonymous caller: an eyesOnly field is
+# not drawn and its value leaves the state; a readOnlyUnless field is drawn read-only; a
+# disabledUnless button is drawn disabled.
+layout:
+  type: VerticalLayout
+  content:
+    - {type: FormField, id: name, label: Name, dataType: string}
+    - {type: FormField, id: salary, label: Salary, dataType: integer, readOnlyUnless: {roles: [hr]}}
+    - {type: FormField, id: notes, label: Notes, dataType: string, eyesOnly: {groups: [staff]}}
+    - {type: Button, label: Archive, actionId: archive, disabledUnless: {roles: [manager]}}

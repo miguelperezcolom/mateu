@@ -1,0 +1,133 @@
+{
+  "commands" : [ {
+    "data" : "Tabs",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "children" : [ {
+                          "metadata" : {
+                            "colspan" : 1,
+                            "dataType" : "string",
+                            "fieldId" : "name",
+                            "label" : "Name",
+                            "optionsColumns" : 1,
+                            "sliderMax" : 100,
+                            "stereotype" : "regular",
+                            "type" : "FormField"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "type" : "FormRow"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "autoResponsive" : true,
+                        "expandColumns" : true,
+                        "maxColumns" : 1,
+                        "type" : "FormLayout"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "label" : "General",
+                      "shortcut" : "alt+1",
+                      "type" : "Tab"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "children" : [ {
+                        "children" : [ {
+                          "metadata" : {
+                            "colspan" : 1,
+                            "dataType" : "string",
+                            "fieldId" : "city",
+                            "label" : "City",
+                            "optionsColumns" : 1,
+                            "sliderMax" : 100,
+                            "stereotype" : "regular",
+                            "type" : "FormField"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "type" : "FormRow"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "autoResponsive" : true,
+                        "expandColumns" : true,
+                        "maxColumns" : 1,
+                        "type" : "FormLayout"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "label" : "Details",
+                      "shortcut" : "alt+2",
+                      "type" : "Tab"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "groupRelationship" : "alternative",
+                    "type" : "TabLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Tab shortcuts",
+          "pageType" : "form",
+          "title" : "Tabs",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "city" : "London",
+        "name" : "Ada"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "city" : "London",
+      "name" : "Ada"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

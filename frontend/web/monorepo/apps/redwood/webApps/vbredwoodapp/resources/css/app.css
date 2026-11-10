@@ -1982,6 +1982,10 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
    OVERLINE: the quiet line above the title. Drawn right before the header and pulled into its top
    padding, at the header's own title indent (24px inside the header box), so it reads as part of it. */
 .mateu-header-overline { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
+/* a page's DECLARED trail (BreadcrumbsSupplier) above its header, aligned with the title */
+.mateu-header-crumbs { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-12x, 48px) 0; line-height: 1rem; }
+oj-bind-if:has(> .mateu-header-crumbs) + oj-bind-if:has(> .mateu-header-overline) .mateu-header-overline { padding-top: var(--oj-core-spacing-2x, 8px); }
+oj-bind-if:has(> .mateu-header-crumbs) ~ oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 /* an EntityHeader fact's action in oj-sp's contextualInfo (displayDom.installFactActions): a small
    borderless icon button right after the value, on its line */
@@ -2312,3 +2316,16 @@ oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-
 .mateu-nested-md > .mateu-nested-cards { flex: 0 1 20rem; min-width: 14rem; }
 .mateu-nested-md > .mateu-nested-detail { flex: 1 1 20rem; }
 .mateu-nested-card-picked { outline: 2px solid var(--oj-core-brand-color, #227e9e); outline-offset: -2px; }
+/* @App(chromeless): no global header (and no navigation: shellNavOf mode none) — the content is
+   full-bleed and the Ask FAB (the command center) is the way around */
+oj-sp-simple-ui-shell.mateu-chromeless .oj-sp-simple-ui-shell-globalheader { display: none; }
+/* RAIL: the docked navigator, narrow — compact rows */
+.mateu-nav-rail oj-navigation-list { font-size: var(--oj-typography-body-sm-font-size, 0.875rem); }
+/* a MicroFrontend embedding a whole app (content.mjs withSubresources → isAppFrame): the app on its
+   own page, in a frame the width of its box */
+.mateu-app-frame { display: block; width: 100%; min-height: 20rem; border: 1px solid var(--oj-core-divider-color, #ddd); border-radius: var(--oj-core-border-radius-md, 6px); background: var(--oj-core-bg-color-content, #fff); }
+.mateu-island-banner { display: flex; align-items: center; gap: 0.5rem; }
+.mateu-island-banner > span { flex: 1 1 auto; }
+.mateu-banner-close { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0.25rem; color: inherit; }
+/* @OnRowSelected grid field (tables.mjs installRowSelection): a row click selects it */
+.mateu-grid-selectable oj-table tbody tr { cursor: pointer; }

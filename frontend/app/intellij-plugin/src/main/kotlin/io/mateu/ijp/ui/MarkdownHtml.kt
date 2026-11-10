@@ -16,17 +16,50 @@ object MarkdownHtml {
     private val TABLE_SEPARATOR = Regex("""^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?$""")
     private val LINK = Regex("""\[([^\]]+)]\(([^)\s]+)\)""")
 
+    private val FENCE = Regex("""^(`{3,}|~{3,})\s*([\w+#.-]*)\s*$""")
+
     fun toHtml(md: String): String {
         val sb = StringBuilder("<html><body>")
         val lines = md.lines()
         var list: String? = null // "ul" | "ol" while one is open
+        // consecutive text lines are ONE paragraph, as in markdown (each line used to end in a <br>,
+        // so a description wrapped where its source did, not where the page does)
+        val paragraph = mutableListOf<String>()
+        fun closeParagraph() {
+            if (paragraph.isEmpty()) return
+            sb.append("<p style='margin-top:0;margin-bottom:6px'>")
+            paragraph.forEachIndexed { n, text ->
+                if (n > 0) sb.append(if (paragraph[n - 1].endsWith("  ")) "<br>" else " ")
+                sb.append(inline(text.trim()))
+            }
+            sb.append("</p>")
+            paragraph.clear()
+        }
         fun closeList() {
+            closeParagraph()
             list?.let { sb.append("</").append(it).append(">") }
             list = null
         }
         var i = 0
         while (i < lines.size) {
             val line = lines[i].trim()
+            // a fenced code block: as written — monospace, indentation and blank lines kept, nothing
+            // inside read as markdown (a YAML `# comment` is not a heading, a javadoc ` * ` is not a
+            // bullet, `*` is not italics) and no line trimmed
+            val fence = FENCE.matchEntire(line)
+            if (fence != null) {
+                closeList()
+                val marker = fence.groupValues[1]
+                val code = mutableListOf<String>()
+                i++
+                while (i < lines.size && !lines[i].trim().let { it.startsWith(marker) && it.trim(marker[0]).isBlank() }) {
+                    code += lines[i]
+                    i++
+                }
+                i++ // the closing fence (or the end of the text)
+                sb.append(codeBlock(code))
+                continue
+            }
             // a pipe table: a row, then the separator row
             if (line.startsWith("|") && i + 1 < lines.size && TABLE_SEPARATOR.matches(lines[i + 1].trim())) {
                 closeList()
@@ -61,15 +94,44 @@ object MarkdownHtml {
                     if (list != "ol") { closeList(); sb.append("<ol>"); list = "ol" }
                     sb.append("<li>").append(inline(numbered.groupValues[1])).append("</li>")
                 }
-                else -> {
+                line.isBlank() -> closeList()
+                // an indented line under a list item CONTINUES it (a wrapped bullet used to close the
+                // list and become a paragraph of its own)
+                list != null && lines[i].first().isWhitespace() && sb.endsWith("</li>") -> {
+                    sb.setLength(sb.length - "</li>".length)
+                    sb.append(' ').append(inline(line)).append("</li>")
+                }
+                // a quote: `> text` lines, as one indented paragraph
+                line.startsWith(">") -> {
                     closeList()
-                    if (line.isNotBlank()) sb.append(inline(line)).append("<br>")
+                    val quote = mutableListOf<String>()
+                    while (i < lines.size && lines[i].trim().startsWith(">")) {
+                        quote += lines[i].trim().removePrefix(">").trim()
+                        i++
+                    }
+                    sb.append("<blockquote style='margin-top:0;margin-bottom:6px'>")
+                        .append(quote.filter { it.isNotBlank() }.joinToString(" ") { inline(it) })
+                        .append("</blockquote>")
+                    continue
+                }
+                else -> {
+                    if (list != null) closeList()
+                    paragraph += lines[i]
                 }
             }
             i++
         }
         closeList()
         return sb.append("</body></html>").toString()
+    }
+
+    /**
+     * A code block as Swing's HTML kit keeps it: `<pre>` is monospace and keeps spaces; tabs become
+     * four spaces (the kit draws a tab as one), and every line is escaped — nothing is markup.
+     */
+    internal fun codeBlock(code: List<String>): String {
+        val body = code.joinToString("\n") { escape(it.replace("\t", "    ")) }
+        return "<pre style='margin-top:0;margin-bottom:6px'>$body</pre>"
     }
 
     private fun cells(row: String): List<String> = row.trim().removePrefix("|").removeSuffix("|").split("|").map { it.trim() }

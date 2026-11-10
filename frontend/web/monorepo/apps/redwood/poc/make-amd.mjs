@@ -31,7 +31,7 @@ const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
 // restSources.mjs (REST sources + sample mode) before bundle.mjs and transport.mjs, which use it.
 // chat.mjs is self-contained (only the SSE transport of the AI chat); it goes at the end of the shared scope.
 export const MODULES = [
-  'i18n.mjs', 'oracleCdn.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
+  'i18n.mjs', 'oracleCdn.mjs', 'surfaces.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'versionSkew.mjs', 'a11y.mjs', 'viewport.mjs', 'elements.mjs', 'foldouts.mjs',
   'osNotify.mjs', 'tasks.mjs', 'inbox.mjs', 'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'historyIndex.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
@@ -83,7 +83,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the periodic refresh reads its triggers' conditions against the latest state (polling.mjs)
     notePollingRegistry(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
-    setShortcutContext(reg.contexts[HOST_ID]);
+    setShortcutContexts(reg, HOST_ID);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
@@ -141,6 +141,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 
   return {
     HOST_ID,
+    // the surface (inline island / MicroFrontend) a painted node belongs to (surfaces.mjs)
+    surfaceOfNode,
+    surfaceOfEvent,
+    surfaceAtomOf,
     // live reload contra un backend en modo dev (poc/liveReload.mjs)
     installDevLiveReload,
     devEventsUrlOf,
@@ -178,6 +182,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
+    installBannerDismissal,
     installRules,
     setPanelExpanded,
     panelExpanded,
@@ -196,6 +201,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     viewsMenuOf,
     listingScope,
     installRowTones,
+    // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)
+    installRowSelection,
+    setRowSelectSink,
+    rowShortcutIndexOf,
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
@@ -213,6 +222,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     mapViewPlanOf,
     installCalendars,
     installKeys,
+    setPaletteSink,
     installHover,
     installDragAndDrop,
     setDropSink,
@@ -286,6 +296,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dismissOverlayById,
     overlayVarsOf,
     overlaysClosedVarsOf,
+    surfaceOverlayVarsOf,
+    drawerChangedBetween,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,
@@ -407,6 +419,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    surfaceFieldEditOf,
     selectDroppedItsValue,
     // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
     // what a navigation does with them: one question, then every overlay closes
@@ -431,6 +444,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withContextState,
     withSearchableIds,
     shellNavOf,
+    shellChromeOf,
     // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
     headerActionRouteOf,
     // YAML app-context selectors backed by an optionsSource (direct sources)

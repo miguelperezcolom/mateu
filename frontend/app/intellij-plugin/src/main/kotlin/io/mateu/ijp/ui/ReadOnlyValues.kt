@@ -75,7 +75,7 @@ object ReadOnlyValues {
     fun booleanComponent(value: Boolean): JComponent = JBLabel(plain(if (value) "✓" else EMPTY)).apply {
         foreground = com.intellij.util.ui.UIUtil.getLabelForeground()
         border = JBUI.Borders.empty(2, 0)
-        accessibleContext.accessibleDescription = if (value) "Yes" else "No"
+        getAccessibleContext().accessibleDescription = if (value) "Yes" else "No"
     }
 
     /** Whether the value reads better as wrapped lines than as one label. */
@@ -99,7 +99,7 @@ object ReadOnlyValues {
         }
         return JBLabel(plain(text)).apply {
             foreground = ToneColors.secondaryText()
-            accessibleContext.accessibleDescription = "Empty"
+            getAccessibleContext().accessibleDescription = "Empty"
             border = JBUI.Borders.empty(2, 0)
         }
     }

@@ -428,7 +428,10 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   // oj-select-one, JET answered with the first option and the form saved it unasked.
   const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
   const raw = s[fieldId] != null ? s[fieldId] : fromData
-  const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+  const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+  // a label is a template like a section title (`Price per night (${state.currency})`)
+  const widget = typeof built.label === 'string' && built.label.includes('${')
+    ? { ...built, label: interpolate(built.label, s, { data: d }) } : built
   let value = raw == null || raw === '' ? null : raw
   // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
   if (widget.isMoney && value != null && typeof value === 'object') value = value.value

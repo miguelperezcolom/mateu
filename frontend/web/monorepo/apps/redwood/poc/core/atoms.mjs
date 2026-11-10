@@ -463,6 +463,8 @@ export const RICH_ATOM_FLAGS = [
   'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
   'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+  // a MicroFrontend embedding a whole app: the app framed (content.mjs withSubresources)
+  'isAppFrame', 'isIslandBanner',
   // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
   'isNestedListing',
   // a long VirtualList (JET's virtualised oj-list-view)

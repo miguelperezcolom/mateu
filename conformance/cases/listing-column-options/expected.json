@@ -1,0 +1,120 @@
+{
+  "commands" : [ {
+    "data" : "Shipments",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "search"
+      }, {
+        "id" : "action-on-row-*"
+      }, {
+        "id" : "action-on-view-*"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "identifier" : true,
+                "label" : "Code",
+                "priority" : 1,
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "dataType" : "string",
+                "flexGrow" : "0",
+                "label" : "Carrier",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "tooltipPath" : "carrier",
+                "type" : "GridColumn",
+                "weight" : 3.0,
+                "width" : "9rem"
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Destination",
+                "line" : 2,
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Notes",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "style" : "color: grey;",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "style" : "color: grey;",
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "State",
+                "resizable" : true,
+                "sortable" : true,
+                "stereotype" : "regular",
+                "tooltipPath" : "notes",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filtersLayout" : "inline",
+            "gridLayout" : "auto",
+            "pageSize" : 10,
+            "searchOnEnter" : true,
+            "searchable" : false,
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "style" : "min-width: min(30rem, 100%); display: block;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Shipments listing",
+          "pageType" : "collection",
+          "title" : "Shipments",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "collection",
+      "route" : "_empty",
+      "triggers" : [ {
+        "actionId" : "search",
+        "times" : 1,
+        "type" : "OnLoad"
+      } ],
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

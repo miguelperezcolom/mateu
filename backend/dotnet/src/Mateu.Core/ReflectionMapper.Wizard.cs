@@ -62,13 +62,17 @@ internal sealed partial class ReflectionMapper
             };
         // no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
         // every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
+        // [WizardLabels(Back, Next)] words the built-in buttons (Java's backLabel()/nextLabel())
+        var labels = type.Find<WizardLabelsAttribute>();
+        var backLabel = string.IsNullOrWhiteSpace(labels?.Back) ? "Back" : T(labels!.Back);
+        var nextWord = string.IsNullOrWhiteSpace(labels?.Next) ? "Next" : T(labels!.Next);
         ComponentDto? back = WizardBranching.Previous(wizard, current, total) is not null
-            ? Client(new ButtonMetadataDto("Back", "back") { Color = "normal" }, null, [])
+            ? Client(new ButtonMetadataDto(backLabel, "back") { Color = "normal" }, null, [])
             : null;
         var completing = completion is not null && current == WizardBranching.Completing(wizard, total);
         var streamsCompletion = completing && StreamsCompletion(wizard!);
         var nextLabel = completing ? completion!
-            : WizardBranching.Next(wizard, current, total) is null ? "Finish" : "Next";
+            : WizardBranching.Next(wizard, current, total) is null ? "Finish" : nextWord;
         // the completion button dispatches the wizard's CompletionActionId (Java: the
         // @WizardCompletionAction method's name); "next" by default
         var nextId = completing ? wizard!.CompletionActionId : "next";

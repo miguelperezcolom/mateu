@@ -1,5 +1,6 @@
 import { writeTileOrder, moveTile, moveTileBy } from './prefs.mjs'
 import { kanbanDropIndexOf } from './core/kanban.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
 // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
 // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -152,9 +153,7 @@ export function installDragAndDrop(doc = typeof document !== 'undefined' ? docum
     if (!ids.length || !dropSink) return
     let params = {}
     try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
-    // a zone of a surface of its own (an inline island, a MicroFrontend) sends its action THERE
-    dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) },
-      { surfaceId: zone.getAttribute('data-drop-surface') || '' })
+    dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, surfaceAtomOf(zone))
   }, true)
 }
 
@@ -182,7 +181,9 @@ export function installKanbans(doc = typeof document !== 'undefined' ? document 
   const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
   const send = (board, move) => {
     if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
-    kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+    // the board's surface (an inline island's board moves through the island)
+    const surfaceId = surfaceAtomOf(board).surfaceId
+    kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move, ...(surfaceId ? { surfaceId } : {}) })
   }
   const clearMarks = () => {
     for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()

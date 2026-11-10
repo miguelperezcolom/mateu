@@ -9,6 +9,7 @@
 
 import { sanitizeHtml } from './richtext.mjs'
 import { safeHref } from './core/display.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 const loaded = {}
 
@@ -97,7 +98,7 @@ export function wireElementEvents(element, atom) {
       const current = element.__mateuAtom || {}
       const actionId = (current.on || {})[eventName]
       if (!actionId || !sink) return
-      sink(actionId, { event: serializeElementEvent(e) }, current)
+      sink(actionId, { event: serializeElementEvent(e) }, surfaceAtomOf(element, current))
     })
   }
 }

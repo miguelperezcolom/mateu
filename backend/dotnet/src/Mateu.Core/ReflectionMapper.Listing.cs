@@ -903,8 +903,15 @@ internal sealed partial class ReflectionMapper
             if (m.DataType is "integer" or "number" or "money" || stereotype == "money") align = "end";
             else if (m.DataType == "bool") align = "center";
         }
+        // the reflected column options (Java's ListingColumnBuilder.getColumn): [Priority],
+        // [ColumnWidth] (a fixed width that does not grow, its own text read on hover, its weight
+        // parsed from a px width), [Line], [Style]
+        var priority = p?.Find<PriorityAttribute>();
+        var columnWidth = p?.Find<ColumnWidthAttribute>()?.Value;
+        var style = p?.Find<Mateu.Uidl.StyleAttribute>()?.Value;
         return column with
         {
+            Style = style ?? column.Style,
             Metadata = m with
             {
                 Stereotype = stereotype,
@@ -912,11 +919,28 @@ internal sealed partial class ReflectionMapper
                 // the header sorts (the sort reaches the search) unless the rows are grouped
                 Sortable = p is not null && IsSortableType(p.PropertyType)
                     && !row.GetProperties().Any(x => x.Find<GroupByAttribute>() != null),
-                AutoWidth = m.AutoWidth || m.Width is null,
+                AutoWidth = columnWidth is null && (m.AutoWidth || m.Width is null),
+                Width = columnWidth ?? m.Width,
+                FlexGrow = columnWidth is not null ? "0" : m.FlexGrow,
+                TooltipPath = m.TooltipPath ?? (columnWidth is not null ? m.Id : null),
+                Priority = priority?.Value ?? m.Priority,
+                Identifier = m.Identifier || priority?.Identifier == true,
+                Line = p?.Find<LineAttribute>()?.Value ?? m.Line,
+                Style = style ?? m.Style,
                 Align = align,
-                Weight = m.Weight ?? (p is null ? 3.0 : WeightOf(p, stereotype)),
+                Weight = m.Weight ?? (columnWidth is not null ? ParsePx(columnWidth)
+                    : p is null ? 3.0 : WeightOf(p, stereotype)),
             },
         };
+    }
+
+    /// <summary>Java's WeightEstimator.parsePx: a px width over the 76px unit; 3.0 for anything that
+    /// is not a px number (a rem width, "auto"...).</summary>
+    private static double ParsePx(string value)
+    {
+        var s = value.Trim().ToLowerInvariant().Replace("px", "").Trim();
+        return double.TryParse(s, System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out var px) ? px / 76.0 : 3.0;
     }
 
     /// <summary>Whether a column of this type sorts from its header (Java's

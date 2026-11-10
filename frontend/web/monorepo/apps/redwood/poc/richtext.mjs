@@ -197,7 +197,10 @@ export function markdownToHtml(md) {
     }
     const quoted = /^\s*>\s?(.*)$/.exec(line)
     if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
-    flushList(); flushQuote()
+    // a LAZY continuation: a plain line right after a list item (or a quote) belongs to it, as
+    // in CommonMark — a bullet wrapped onto a second source line fell out of the list
+    if (list && list.items.length) { list.items[list.items.length - 1] += ' ' + line.trim(); continue }
+    if (quote.length) { quote.push(line.trim()); continue }
     para.push(line.trim())
   }
   flushAll()

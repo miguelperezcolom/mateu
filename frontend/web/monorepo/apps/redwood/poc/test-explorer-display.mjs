@@ -235,7 +235,9 @@ test('a surface\'s listing is ONE part of it: its DropZones and its page\'s head
   assert.ok(zone, 'the drop zone beside it')
   assert.equal(zone.surfaceId, 's', 'its drop goes back to the surface')
   assert.ok(items.some((a) => a.isText && a.text === 'Drop here'), 'the HeaderSupplier header')
-  assert.match(template(), /:data-drop-surface="\[\[ \$current\.data\.surfaceId \|\| '' \]\]"/)
+  // the drop finds that surface through the zone's data-mateu-surface-id (make-html stamps it)
+  assert.match(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8'),
+    /class="mateu-drop-zone[^>]*:data-mateu-surface-id="\[\[ \$current\.data\.surfaceId \]\]"/)
 })
 
 test('a surface\'s listing in its gridLayout: cards, list (identifier + priorities), master/detail, tree', () => {

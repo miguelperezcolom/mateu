@@ -128,6 +128,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // ── network / errors ──
       offlineBand: "Offline — changes you make now won't be saved.",
       errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+      errUnreachable: 'Its server could not be reached. It may be down — try again later.',
       errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
       errServer: 'The server could not complete the request. Try again.',
       wireVersionMismatch: "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",
@@ -417,6 +418,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureSignHere: 'Firme aquí',
       offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
       errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+      errUnreachable: 'No se ha podido contactar con su servidor. Puede estar caído — inténtalo más tarde.',
       errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
       errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
       wireVersionMismatch: 'El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.',
@@ -822,6 +824,57 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (typeof url !== 'string' || !url.startsWith(ORACLE_CDN + '/')) return url
     const base = oracleCdnBase(config)
     return base === ORACLE_CDN ? url : base + url.slice(ORACLE_CDN.length)
+  }
+
+
+  // The SURFACE a painted node belongs to.
+  //
+  // An inline island (a Java `java:` example embedded in a page: a ServerSide nested in the host's
+  // tree) and a MicroFrontend are surfaces of their own: their atoms are painted among the host's,
+  // but whatever they send — a button, a calendar's day, a map marker, a matrix cell, a typed value,
+  // a shortcut — must go to THEIR class (their context in the registry), or the server answers 403
+  // for the host's.
+  //
+  // The projection tags each atom of a surface with its `surfaceId` (tagSurfaceActions, core/display),
+  // and make-html stamps it on every atom's ROOT element as `data-mateu-surface-id`. So any DOM-level
+  // piece (a sink fired from a click/drag/keydown, a field's change listener) finds the surface by
+  // walking up from the node that fired — with no per-atom code: a new atom gets it for free.
+
+  const SURFACE_ATTR = 'data-mateu-surface-id'
+
+  /** The surface id of the nearest painted ancestor that carries one ('' = the host's), crossing
+   *  shadow roots (a JET element's inner node reports its host). */
+  function surfaceOfNode(node) {
+    let el = node && node.nodeType === 1 ? node : (node && node.parentElement) || null
+    let guard = 0
+    while (el && guard++ < 500) {
+      const v = el.getAttribute ? el.getAttribute(SURFACE_ATTR) : null
+      if (v) return v
+      if (el.parentElement) { el = el.parentElement; continue }
+      const root = el.getRootNode ? el.getRootNode() : null
+      el = root && root.host && root.host !== el ? root.host : null
+    }
+    return ''
+  }
+
+  /** The third argument of a page-action sink for something fired from `node`: the atom's own
+   *  routing ({surfaceId, fromNested}) when the caller has it, else the surface the node sits in. */
+  function surfaceAtomOf(node, atom) {
+    const own = atom && typeof atom === 'object' ? atom : {}
+    if (own.surfaceId) return own
+    const surfaceId = surfaceOfNode(node)
+    // painted among the host's own atoms: the caller's routing as it was
+    return surfaceId ? { ...own, surfaceId } : own
+  }
+
+  /** The surface an event was fired in (its composed path's first element). */
+  function surfaceOfEvent(event) {
+    if (!event) return ''
+    // VB hands a chain a COPY of the event: its composedPath is then an unbound method (Illegal
+    // invocation) — the target it carries is the real node
+    let first = null
+    try { first = typeof event.composedPath === 'function' ? event.composedPath()[0] : null } catch (e) { first = null }
+    return surfaceOfNode(first || event.target || event.currentTarget || null)
   }
 
 
@@ -1303,6 +1356,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
 
 
+
   const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
   const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
   const calAddDays = (iso, n) => fromUtc(toUtc(iso) + n * 86400000)
@@ -1606,20 +1660,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (navButton) {
         let params = {}
         try { params = JSON.parse(navButton.getAttribute('data-cal-nav-params') || '{}') } catch (e) { params = {} }
-        calendarSink(navButton.getAttribute('data-cal-nav-action'), params, {})
+        calendarSink(navButton.getAttribute('data-cal-nav-action'), params, surfaceAtomOf(cal))
         return true
       }
       if (chip) {
         if (chip.getAttribute('data-cal-clickable') !== 'true') return false
         calendarSink(chip.getAttribute('data-cal-action'), {
           _clickedEvent: { id: chip.getAttribute('data-cal-event'), title: chip.getAttribute('data-cal-title'), date: chip.getAttribute('data-cal-date') },
-        }, {})
+        }, surfaceAtomOf(cal))
         return true
       }
       const cell = target.closest('[data-cal-date]')
       const action = cal.getAttribute('data-day-action')
       if (cell && action && cell.getAttribute('data-cal-date')) {
-        calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, {})
+        calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, surfaceAtomOf(cal))
         return true
       }
       return false
@@ -1695,7 +1749,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const ids = (e.detail && e.detail.value) || []
       const hit = ids.length ? spec.actions[ids[ids.length - 1]] : null
       if (!hit || !calendarSink) return
-      calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, {})
+      calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, surfaceAtomOf(cal))
       setTimeout(() => { el.selected = [] }, 0)
     })
     // the toolbar: with a CalendarPage behind, its ‹ › Today and views are the page's (server-side) actions
@@ -1703,16 +1757,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav) return
       const step = spNavActionOf(spec.nav, el.selectedViewValue || spec.view, spec.anchor, String(e.detail.value || ''))
       if (step && step.kind === 'same') return
-      if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, {}); return }
+      if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, surfaceAtomOf(cal)); return }
       setTimeout(() => { el.focusDate = spec.focusDate }, 0)
     })
     el.addEventListener('selectedViewValueChanged', (e) => {
       if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav || !spec.nav.viewAction) return
       const v = e.detail.value
-      if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, {})
+      if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, surfaceAtomOf(cal))
     })
     el.addEventListener('spCalendarEventCreate', () => {
-      if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, {})
+      if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, surfaceAtomOf(cal))
     })
     // a date's cell (dayActionId): FullCalendar stamps data-date on it
     const dayOf = (target) => {
@@ -1724,14 +1778,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const date = dayOf(e.target)
       if (!date || !calendarSink) return
       e.preventDefault(); e.stopPropagation()
-      calendarSink(spec.dayActionId, { _date: date }, {})
+      calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
     }, true)
     host.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return
       const date = dayOf(e.target)
       if (!date || !calendarSink) return
       e.preventDefault()
-      calendarSink(spec.dayActionId, { _date: date }, {})
+      calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
     }, true)
     let queued = false
     new MutationObserver(() => {
@@ -1987,7 +2041,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const quoted = /^\s*>\s?(.*)$/.exec(line)
       if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
-      flushList(); flushQuote()
+      // a LAZY continuation: a plain line right after a list item (or a quote) belongs to it, as
+      // in CommonMark — a bullet wrapped onto a second source line fell out of the list
+      if (list && list.items.length) { list.items[list.items.length - 1] += ' ' + line.trim(); continue }
+      if (quote.length) { quote.push(line.trim()); continue }
       para.push(line.trim())
     }
     flushAll()
@@ -2338,7 +2395,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // content: its actionId + label made a stray «Customer» button in the form's action row. A
         // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
         if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-        if (k === 'fabs' && n.type === 'Form') continue
+        // (a reflected Page carries them the same way: drawn as FABs AND as a «Mark clean» row button)
+        if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
         // nor are an EntityHeader's facts: one with an action ({label, value, actionId}) has a
         // button's shape, and «BALANCE» and «EMPRESA» showed up again as a row under the content —
         // the header draws their actions beside their values (factActions)
@@ -2349,6 +2407,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     walk(node, true)
   }
+
+  /** Where a component stops being the PAGE's: inside a card, a tab, a console's pane or an overlay
+   *  it is a piece of that part of the page — a NotFound, an EmptyState, a FoldoutLayout or a Listing
+   *  there is content (an Explorer example's card), never the page-level projection that takes over the
+   *  whole screen. */
+  const PAGE_CLAIM_STOPS = { Card: true, Tab: true, TabLayout: true, MasterDetailLayout: true, SplitLayout: true,
+    Drawer: true, Dialog: true }
+
+  /** The first node of the surface satisfying `test` that the PAGE owns: not inside one of the
+   *  PAGE_CLAIM_STOPS (the root itself may be one), never across an island. */
+  function findPageLevel(tree, test, stops = PAGE_CLAIM_STOPS) {
+    let found = null
+    const walk = (n, isRoot) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return
+      if (test(n)) { found = n; return }
+      const t = n.metadata && n.metadata.type
+      if (!isRoot && t && stops[t]) return
+      for (const c of n.children || []) walk(c, false)
+      const inner = n.metadata && n.metadata.content
+      if (Array.isArray(inner)) inner.forEach((c) => walk(c, false))
+      else if (inner && typeof inner === 'object') walk(inner, false)
+    }
+    walk(tree, true)
+    return found
+  }
+  /** findPageLevel by component type. */
+  const findPageLevelType = (tree, type) => findPageLevel(tree, (n) => !!(n.metadata && n.metadata.type === type))
 
   /** The node id of every metadata object of the tree (metadata → its node's id), for the visual
    *  editor's canvas: the fields and the buttons are collected as their METADATA, and what the
@@ -2506,7 +2593,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
         value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
       }
-      out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
+      // a label is a template like a section title (`Price per night (${state.currency})`)
+      const label = typeof widget.label === 'string' && widget.label.includes('${')
+        ? interpolate(widget.label, s, { data: data || {} }) : widget.label
+      out.push({ ...widget, label, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
     }
     return out
   }
@@ -3098,8 +3188,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
   function foldoutContentOf(proj) {
     return proj
-      ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+      ? { overview: proj.overview, panels: proj.panels, header: proj.header, ...(proj.surfaceId ? { surfaceId: proj.surfaceId } : {}) }
       : { overview: { blocks: [] }, panels: [], header: {} }
+  }
+
+  /** The id of the NESTED ServerSide (another surface: an inline island) that holds `target` in
+   *  `tree`, or '' when the page itself does. */
+  function enclosingServerSideIdOf(tree, target) {
+    let found = ''
+    const walk = (n, owner) => {
+      if (found || !n || typeof n !== 'object') return false
+      if (n === target) { found = owner; return true }
+      const own = n !== tree && n.type === 'ServerSide' && n.id ? n.id : owner
+      for (const c of n.children || []) if (walk(c, own)) return true
+      const inner = n.metadata && n.metadata.content
+      if (Array.isArray(inner)) { for (const c of inner) if (walk(c, own)) return true }
+      else if (inner && typeof inner === 'object' && walk(inner, own)) return true
+      return false
+    }
+    walk(tree, '')
+    return found
   }
 
   /** Same structure → the chain updates the content in place; otherwise it remounts the foldout.
@@ -3118,8 +3226,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function foldoutOf(ctx, { parent = null } = {}) {
     // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
     // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
-    const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
+    // …nor one inside a card (an Explorer example's): any PAGE_CLAIM_STOPS keeps it content
+    const node = ctx && ctx.tree ? findPageLevelType(ctx.tree, 'FoldoutLayout') : null
     if (!node) return null
+    // a foldout an INLINE ISLAND holds (a Java example embedded in a page) is that island's: its
+    // navigation and its panels' actions go back to it (surfaceId → runMateuSurfaceAction), or the
+    // host was asked for them (403)
+    const surfaceId = enclosingServerSideIdOf(ctx.tree, node)
     const md = node.metadata
     const children = node.children || []
     const bySlot = {}
@@ -3133,7 +3246,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
-      return (blocks || []).map((block) => ({
+      return (surfaceId ? tagSurfaceActions(blocks || [], surfaceId) : (blocks || [])).map((block) => ({
         ...block,
         blockClass: block.colClass || 'oj-flex-item oj-sm-12',
       }))
@@ -3165,6 +3278,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
     const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
     return {
+      ...(surfaceId ? { surfaceId } : {}),
       headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
@@ -3962,6 +4076,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
     'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+    // a MicroFrontend embedding a whole app: the app framed (content.mjs withSubresources)
+    'isAppFrame', 'isIslandBanner',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
     // a long VirtualList (JET's virtualised oj-list-view)
@@ -5076,6 +5192,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * What the shell draws around the content, from its nav mode: the navigator (HAMBURGER_MENU folds
+   * it with the hamburger; MENU_ON_LEFT and RAIL keep it docked, RAIL narrow), no chrome at all
+   * (@App(chromeless)), and Spectra's Ask FAB (the Search-or-go palette) — off in a FRAMED app (an
+   * iframe preview) that enables no command center or global search: there the FAB only covered the
+   * small frame's content. Pure.
+   */
+  function shellChromeOf(nav, shell, framed = false) {
+    const mode = (nav && nav.mode) || ''
+    const palette = !!(shell && (shell.commandCenterEnabled || shell.globalSearchEnabled || shell.chromeless))
+    return {
+      drawer: mode === 'drawer' || mode === 'left' || mode === 'rail',
+      docked: mode === 'left' || mode === 'rail',
+      rail: mode === 'rail',
+      chromeless: mode === 'none',
+      askFab: framed && !palette ? 'off' : 'on',
+    }
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
@@ -5085,7 +5220,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
       // menu that does not go through there must not draw it either
       if (option.visible === false) continue
-      const node = navNodeOf(option, '')
+      // TILES: every group opens as a panel of CARDS (the card menu, @Menu(display = cards)) —
+      // Redwood's springboard of tiles, in the subheader band
+      const tiled = shell.variant === 'TILES' && (option.submenus || option.submenu || []).length && !option.display
+        ? { ...option, display: 'cards' } : option
+      const node = navNodeOf(tiled, '')
       items.push(node.disabled
         ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
         : { id: node.id, label: node.label, icon: node.icon })
@@ -5104,8 +5243,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside the dark header (topbar)
     // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
     // level (only the sections) and the subheader carries the second level of the section on screen.
+    // MENU_ON_LEFT → LEFT: the same navigator, docked and always there (no hamburger to fold it);
+    // RAIL → RAIL: that navigator as a narrow rail of the first level; TILES → the subheader band
+    // with each group as a panel of cards; @App(chromeless) → NONE: no navigation chrome at all —
+    // the Ask palette (the command center) is the way around
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.chromeless) mode = 'none'
+    else if (shell.variant === 'HAMBURGER_MENU') mode = 'drawer'
+    else if (shell.variant === 'MENU_ON_LEFT') mode = 'left'
+    else if (shell.variant === 'RAIL') mode = 'rail'
+    else if (shell.variant === 'TILES') mode = 'tiles'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
@@ -5335,7 +5482,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
     // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
     // was lost — such an empty state is content, painted with its action
-    return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+    return findPageLevel(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
       && !n.metadata.actionId))
   }
   function emptyStateOf(tree) {
@@ -5362,7 +5509,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  exception message as the headline); if missing, the generic ones in the page's language.
    *  null if the host is not a not-found. */
   function notFoundOf(tree, lang) {
-    const node = findByType(tree, 'NotFound')
+    const node = findPageLevelType(tree, 'NotFound')
     if (!node) return null
     const md = node.metadata || {}
     const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
@@ -5406,8 +5553,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
+    // An ESCAPED `\${i18n.x}` is the literal text `${i18n.x}` (it read `\x`).
     if (text != null && String(text).includes('i18n.')) {
-      text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+      text = String(text).replace(/(\\\\|\\\$\{)|\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, escaped, key) => (escaped ? all : key))
     }
     // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
     // arrives as ${state['_position']})
@@ -5544,6 +5692,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
   const panelState = {}
   function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+  // the island banners dismissed this session (their ✕ or their timeout): not painted again
+  const dismissedBanners = new Set()
+  function dismissBanner(key) { if (key) dismissedBanners.add(String(key)) }
+  function isBannerDismissed(key) { return dismissedBanners.has(String(key)) }
   function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
   // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
   // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
@@ -5598,6 +5750,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+  /** The app-wide scopes the texts interpolate (`${appState.x}`, `${appData.x}`): the reduced
+   *  registry's (reducer: an answer's appState/appData merge into it), set by the reduce hook. */
+  let appScope = { appState: {}, appData: {} }
+  function setAppScope(reg) {
+    appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -5605,11 +5764,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
     // NESTED strips (a TabLayout inside a tab): each strip has its key, derived from
     // the tab that contains it (tabScope) and its ordinal among siblings — see tabStripKeyOf.
-    let tabScope = ''
+    // another surface's strips and panels live in ITS scope (opts.keyScope = its id): two islands —
+    // or an island and the page — each have a top-level strip, an accordion with no id… whose keys
+    // were the same, so a click in one switched the other (the page's Code tabs, the twin accordion)
+    const keyScope = opts.keyScope ? String(opts.keyScope) : ''
+    const scoped = (key) => (keyScope ? keyScope + '|' + key : key)
+    let tabScope = keyScope
     const stripsPerScope = {}
     let tabBars = 0
     const state = ctx.state || {}
-    const interp = (t) => interpolate(t, state)
+    // `${data.x}` (this component's data), `${appState.x}` / `${appData.x}` (the app's, kept by the
+    // reducer from every answer: Return AppState / AppData) — not only `${state.x}`
+    const scope = { data: ctx.data || {}, appState: appScope.appState || {}, appData: appScope.appData || {} }
+    const interp = (t) => interpolate(t, state, scope)
     const badgeOf = (b) => ({
       label: b.label,
       badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
@@ -5632,6 +5799,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         parameters: m.parameters || {},
         ...(route ? { route } : {}),
       }
+    }
+    // the HEADER of another surface's page (an example island, a MicroFrontend's page): the same
+    // elements the host's band draws for its own page — overline, title (or its placeholder while
+    // empty), badges, subtitle, timestamp, KPIs — as an EntityHeader-like atom inside the island
+    const islandPageHeaderOf = (pageNode) => {
+      const md = pageNode.metadata || {}
+      const pageCtx = { tree: pageNode, state, data: ctx.data || {} }
+      const extras = pageHeaderExtrasOf(pageCtx)
+      const title = interp(md.title || '')
+      const subtitle = pageSubtitleOf(pageCtx)
+      const kpis = pageKpisOf(pageCtx)
+      const stamp = extras.timestamp
+      const out = []
+      if (extras.overline) out.push({ isText: true, text: extras.overline, cls: 'oj-typography-body-xs oj-text-color-secondary mateu-island-overline' })
+      const shown = title || extras.titlePlaceholder
+      if (!shown && !subtitle && !extras.badges.length && !kpis.length && !stamp) return out
+      out.push({
+        isEntityHeader: true,
+        isIslandHeader: true,
+        title: shown,
+        titleIsPlaceholder: !title && !!extras.titlePlaceholder,
+        subtitle: [subtitle, stamp].filter(Boolean).join(' · '),
+        badges: extras.badges.map((b) => ({ label: b.label, badgeClass: BADGE_CLASSES[b.status] || 'oj-badge oj-badge-neutral oj-badge-subtle' })),
+        facts: kpis.map((k) => ({ label: k.label, value: k.value })),
+        metricLabel: '',
+        metricValue: '',
+      })
+      return out
     }
     // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
     const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
@@ -6024,6 +6219,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             rowEditable,
             addActionId: rowEditable ? fieldId + '_add' : '',
             addLabel: chromeText('add'),
+            // @OnRowSelected: a click on a row (or its shortcut + the row's number) runs the action with
+            // the row in _clickedRow (tables.mjs installRowSelection reads these off the grid's root)
+            ...(m.onItemSelectionActionId ? {
+              selectActionId: m.onItemSelectionActionId,
+              selectShortcut: m.rowSelectionShortcut || '',
+              // the rows as the server sent them (the client's own keys — _rowNumber, __… — left out)
+              selectRows: JSON.stringify(rows.map((r) => (r && typeof r === 'object'
+                ? Object.fromEntries(Object.entries(r).filter(([k]) => k !== '_rowNumber' && !k.startsWith('__'))) : r))),
+            } : {}),
           }, container)
           return
         }
@@ -6106,7 +6310,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isTabs: true,
           // the first strip keeps the usual id (the chains refresh it by selector)
-          barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
+          barId: keyScope ? 'mateuContentTabs-' + keyScope.replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + tabBars++
+            : tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
           stripKey,
           selectedId: ids[current],
           tabs: tabs.map((tab, i) => ({
@@ -6302,6 +6507,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom(chartAtomOf(m, t, interp), container)
         return
       }
+      // a Card INSIDE another block (an example card holding cards, a card in a zone): a block cannot
+      // nest in a block, and pushing it as one more block moved it out of its container — drawn after
+      // it, out of order. Inline it is its title as a heading and its content after it, where it sits.
+      // A fluent Card's slots are COMPONENTS on its metadata: media and header prefix before the title,
+      // subtitle and header suffix after it, then its content and its FOOTER (a «See availability» /
+      // «Hold for 24 h» button) — only title and content were read, the rest was lost (the footer's
+      // button ended up in the page's action row, at the very bottom).
+      const cardSlot = (slot, into) => {
+        const v = m[slot]
+        if (Array.isArray(v)) v.forEach((c) => visit(c, into))
+        else if (v && typeof v === 'object' && v.metadata) visit(v, into)
+      }
+      const cardSubtitleOf = () => {
+        const v = m.subtitle
+        if (!v) return ''
+        return interp(typeof v === 'string' ? v : (v.metadata && v.metadata.type === 'Text' ? v.metadata.text || '' : ''))
+      }
+      if (t === 'Card' && container && !isSectionNode(node)) {
+        cardSlot('media', container)
+        cardSlot('headerPrefix', container)
+        const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
+        if (title) atom({ isText: true, isHeading: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-4x-top' }, container)
+        const sub = cardSubtitleOf()
+        if (sub) atom({ isText: true, text: sub, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+        cardSlot('headerSuffix', container)
+        for (const child of node.children || []) visit(child, container)
+        cardSlot('content', container)
+        cardSlot('footer', container)
+        return
+      }
       if (t === 'Card') {
         const card = { isCard: true, items: [] }
         // a @Section card says which section it is (data-mateu-section): the sections index (toc.mjs)
@@ -6315,13 +6550,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
         const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
         // a section's heading IS that title (oj-sp-section draws it): not twice
+        cardSlot('media', card)
+        cardSlot('headerPrefix', card)
         if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
           card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
         }
+        const cardSub = cardSubtitleOf()
+        if (cardSub) card.items.push({ isText: true, text: cardSub, cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+        cardSlot('headerSuffix', card)
         for (const child of node.children || []) visit(child, card)
-        const cardInner = m.content
-        if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
-        else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+        cardSlot('content', card)
+        cardSlot('footer', card)
         // a titled @Section is painted by Spectra's own section, oj-sp-section: it draws the title
         // (with its accent marker) itself, so its body is the card's atoms without that heading
         if (card.sectionTitle) {
@@ -6339,12 +6578,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
         // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
         const chrome = !embeddedPageSeen ? opts.chrome : null
+        // the page of ANOTHER surface painted in its hole (an Explorer example island, a MicroFrontend):
+        // nobody else draws its header, its banners or its buttons — the host's header is the host's
+        const surfacePage = !!opts.surface && !embeddedPageSeen
         embeddedPageSeen = true
-        const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
-        if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+        const withHeader = chrome !== 'NONE' && chrome !== 'COMPACT'
+        if (surfacePage && withHeader) islandPageHeaderOf(node).forEach((a) => atom(a, container))
+        else {
+          const pageTitle = withHeader ? interp(m.title || '') : ''
+          if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+        }
         const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
-        if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+        // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
+        if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
+        if (surfacePage) {
+          // its banners, under its header: a closeable one gets its ✕ and a timed one goes by itself
+          // (notify.mjs installBannerDismissal); one the user (or its timeout) dismissed stays dismissed
+          ;(m.banners || []).forEach((banner, i) => {
+            if (!banner) return
+            const text = [banner.title, banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+            const bannerKey = scoped('banner:' + i + ':' + (banner.title || ''))
+            if (!text || isBannerDismissed(bannerKey)) return
+            atom({
+              isIslandBanner: true,
+              text,
+              noticeClass: (NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info) + ' mateu-island-banner',
+              bannerKey,
+              closeable: !!(banner.hasCloseButton || banner.closeable),
+              closeLabel: chromeText('close'),
+              timeoutMs: banner.timeoutSeconds > 0 ? String(Math.round(banner.timeoutSeconds * 1000)) : '',
+            }, container)
+          })
+        }
         for (const child of kidsOf(node)) visit(child, container)
+        // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
+        // the web: on another surface, or on the host page itself (opts.pageButtons, hostContentOf —
+        // a page with no field has no generic form to draw them). The embedded mediator's island
+        // paints its own action row, so it asks for neither.
+        const pageButtons = (surfacePage || opts.pageButtons)
+          ? (m.buttons || []).flatMap((b) => (b ? groupMembersOf(b) : [])).filter((b) => b && b.actionId) : []
+        if (pageButtons.length) atom({ isButtons: true, fromPageButtons: true, buttons: pageButtons.map(buttonOf) }, container)
         return
       }
       if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
@@ -6411,12 +6684,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // overview in its place and each panel as a collapsible panel — its title and, when open, its
       // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
       // authored) opens — stacked, it never runs out of row
-      if (t === 'FoldoutLayout' && tabScope) {
+      // (…and one inside a card or another part of the page that the page-level foldout does not take)
+      if (t === 'FoldoutLayout' && (tabScope || opts.surface || findPageLevelType(ctx.tree, 'FoldoutLayout') !== node)) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
         ;(m.panels || []).forEach((panel, i) => {
-          const key = 'fold:' + (node.id || 'foldout') + ':' + i
+          const key = scoped('fold:' + (node.id || 'foldout') + ':' + i)
           const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
@@ -6439,7 +6713,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'AccordionLayout') {
         kidsOf(node).forEach((panel, i) => {
           const pm = panel.metadata || {}
-          const key = 'acc:' + (node.id || 'accordion') + ':' + i
+          const key = scoped('acc:' + (node.id || 'accordion') + ':' + i)
           const expanded = panelExpanded(key, !!pm.active)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
           if (expanded) for (const child of kidsOf(panel)) visit(child, container)
@@ -6454,7 +6728,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const title = interp(m.headerTitle || m.title || '')
         const pieces = kidsOf(node)
         if (m.collapsible) {
-          const key = 'drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer'))
+          const key = scoped('drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer')))
           const expanded = panelExpanded(key, m.opened !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title, expanded, disabled: false }, container)
           if (expanded) for (const child of pieces) visit(child, container)
@@ -6466,7 +6740,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'Details') {
         const summaryTexts = m.summary ? collectTexts(m.summary) : []
-        const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+        const key = scoped('det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details')))
         const expanded = panelExpanded(key, !!m.opened)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
         if (expanded && m.content) visit(m.content, container)
@@ -6539,7 +6813,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Markdown') {
         // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
         // that installRichText dumps into its container (VB does not stamp HTML from a binding)
-        const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+        // NOT interpolated: a Markdown's text is prose (a description, a code listing) where `${…}`
+        // is content, like the web renderer's mateu-markdown — interpolating it blanked the
+        // expressions out of every Explorer description and showed source code that is not the file
+        const html = richHtmlOf('markdown', String(m.markdown || m.text || ''))
         if (html) atom({ isRichText: true, label: '', html }, container)
         return
       }
@@ -6991,7 +7268,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom(opts.crudAtom, container)
         return
       }
-      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+      // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
+      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
         atom(nestedListingAtomOf(node, ctx), container)
         return
       }
@@ -7017,6 +7295,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom(emptyStateAtomOf(m, interp), container)
         return
       }
+      // a NotFound inside the content (an example's, in a card): what the page-level one says — its
+      // heading, its explanation and the way back — drawn where it sits (the page's own is notFoundOf)
+      if (t === 'NotFound' && findPageLevelType(ctx.tree, 'NotFound') !== node) {
+        atom(emptyStateAtomOf({ icon: m.icon, title: m.title || NOT_FOUND_TEXTS.en.title, description: m.message || NOT_FOUND_TEXTS.en.message }, interp), container)
+        const back = m.backRoute ? safeHref('/' + String(m.backRoute).replace(/^\/+/, '')) : ''
+        if (back) atom({ isAnchor: true, text: interp(m.backLabel || NOT_FOUND_TEXTS.en.back), href: back, target: '_self', rel: '' }, container)
+        return
+      }
       // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
       if (t === 'ProgressBar' && !wizardOf(ctx)) {
         atom(progressBarAtomOf(m, state, interp), container)
@@ -7031,7 +7317,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Faq') {
         // like an accordion: a collapsible header per question, the answer after it when open
         ;(m.items || []).forEach((item, i) => {
-          const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+          const key = scoped('faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i)
           const expanded = panelExpanded(key, !!item.open)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
           if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
@@ -7099,7 +7385,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // at a time with its pager — the slide shown is client state (uiValueChanged)
         const slides = kidsOf(node)
         if (slides.length > 1) {
-          const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+          const key = scoped('carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel'))
           const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
           atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
           visit(slides[current], container)
@@ -7192,7 +7478,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (n.actionId && n.label && !n.fieldId) (tab ? inside : outside)[n.actionId] = true
       for (const [k, v] of Object.entries(n)) {
         if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-        if (k === 'fabs' && n.type === 'Form') continue
+        if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
         if (v && typeof v === 'object') walk(v, false, tab)
       }
     }
@@ -7326,7 +7612,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
    *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
-  function withSubresources(blocks, contexts) {
+  function withSubresources(blocks, contexts, opts = {}) {
+    const depth = (opts && opts.depth) || 0
+    const activeTabs = (opts && opts.activeTabs) || {}
     if (!blocks) return blocks
     return blocks.map((block) => ({
       ...block,
@@ -7334,11 +7622,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!a || !a.isSubresource) return [a]
         const ctx = contexts && contexts[a.islandId]
         if (!ctx || !ctx.tree) return [a]
+        // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
+        // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
+        if (ctx.embeddedApp) {
+          const href = safeHref(ctx.embeddedApp.src)
+          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+        }
         const crud = findByType(ctx.tree, 'Crud')
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
         const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx, chrome ? { chrome } : {})
+          let inner = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), surface: true, keyScope: a.islandId, activeTabs })
+          // a surface holds surfaces of its own (an example island with component fields, a
+          // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
+          // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
+          if (inner && depth < 4) {
+            inner = withSubresources(inner.map((b) => ({
+              ...b,
+              items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
+                ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
+            })), contexts, { depth: depth + 1, activeTabs })
+          }
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -7492,7 +7796,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function hostContentOf(ctx, islandBlocks, opts = {}) {
-    const blocks = islandContentOf(ctx, opts)
+    const blocks = islandContentOf(ctx, { ...opts, pageButtons: true })
     if (!blocks) return null
     let merged = mergeNestedContent(blocks, islandBlocks || null)
     const title = opts.title || ''
@@ -7829,6 +8133,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const prevRoute = pn ? text(pn.prevRoute) : ''
     const nextRoute = pn ? text(pn.nextRoute) : ''
     return {
+      // the trail a page DECLARES (BreadcrumbsSupplier → Page.breadcrumbs): it replaces the automatic one
+      breadcrumbs: (md.breadcrumbs || [])
+        .map((b) => ({ text: text(b && b.text), route: String((b && b.link) || '').trim() }))
+        .filter((b) => b.text),
       overline: text(md.overline),
       titlePlaceholder: text(md.titlePlaceholder),
       timestamp: text(md.timestamp),
@@ -8164,6 +8472,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parentCrumb(summarizeHost(reg, route).trail) || null
   }
 
+  /** A view model class read as a title — `…smartsearchpage.LoanFinder` → «Loan finder», like the
+   *  server's Humanizer; '' for a framework class (a YAML page's SeededYamlPage names nothing). */
+  function typeTitleOf(serverSideType) {
+    const type = String(serverSideType || '')
+    if (!type || type.startsWith('io.mateu.core') || type.startsWith('io.mateu.uidl')) return ''
+    const simple = type.split('.').pop().split('$').pop()
+    const words = simple.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase()
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : ''
+  }
+
+  /** Does the tree carry a heading Text (h1–h6) of its own (not crossing an island)? */
+  function hasHeadingText(tree) {
+    let found = false
+    const walk = (n, isRoot) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return
+      const md = n.metadata
+      if (md && md.type === 'Text' && /^h[1-6]$/.test(md.container || '') && String(md.text || '').trim()) { found = true; return }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return found
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
@@ -8187,7 +8520,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
     const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
-    const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
+    const hostExtras = pageHeaderExtrasOf(host)
+    const placeholder = !declaredTitle && hostExtras.titlePlaceholder
+    const declaredCrumbs = hostExtras.breadcrumbs.map((c) => (c.route ? { text: c.text, route: c.route } : { text: c.text }))
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
       // there either, in the menu label
@@ -8197,12 +8532,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
       title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
         || (option && (option.caption || option.label))
-        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
+        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '')
+        // …and a composed page with NO title at all (no @Title, no window title, no menu entry —
+        // a SmartSearchPage opened on its own): Spectra's header draws «...» for an empty title, so
+        // the page is named by its class, as the server names an untitled one (the Humanizer)
+        // (not when its content brings a heading of its own: a wizard's h2 names it)
+        || (hasHeadingText(host.tree) ? '' : typeTitleOf(host.tree && host.tree.serverSideType)) || ''),
       // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
       // @NoBreadcrumbs on the page or on the shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
         ? []
-        : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
+        // a page that declares its trail (BreadcrumbsSupplier) is where IT says it is
+        : (declaredCrumbs.length ? declaredCrumbs : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) })),
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -8226,18 +8567,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-  /** RENDER helper: first node of the tree with the given metadata.type. */
+  /** RENDER helper: first node of the SURFACE with the given metadata.type. It never crosses into
+   *  an island (a ServerSide below the root): an island is another surface, with its own context —
+   *  crossing made the Explorer's example islands claim the host page (their Page taken for the
+   *  host's header and toolbar, their NotFound / Foldout / TaskQueue for the whole page). */
   function findByType(tree, type) {
     let found = null
-    const walk = (node) => {
+    const walk = (node, isRoot) => {
       if (found || !node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach((x) => walk(x, false)); return }
+      if (!isRoot && node.type === 'ServerSide') return
       if (node.metadata && node.metadata.type === type) { found = node; return }
       for (const v of Object.values(node)) {
-        if (Array.isArray(v)) v.forEach(walk)
-        else if (v && typeof v === 'object') walk(v)
+        if (v && typeof v === 'object') walk(v, false)
       }
     }
-    walk(tree)
+    walk(tree, true)
     return found
   }
 
@@ -8288,7 +8633,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const all = cruds(tree)
     if (!all.length) return null
     const type = declaredTemplateTypeOf(tree)
-    if (!type) return all[0]
+    // without a template, the page's listing is one the PAGE owns: one inside a card or a tab is that
+    // part's content (an Explorer example's listing took the whole entry page over)
+    if (!type) return all.find((n) => findPageLevel(tree, (x) => x === n)) || null
     if (!PAGE_LISTING_TEMPLATES[type]) return null
     if (type === 'CollectionDetailPage') {
       const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
@@ -10401,6 +10748,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * opts.initiator = contextId of the surface that launched the request (for commands without a target,
    * like the save-in-drawer's MarkAsClean).
    */
+  const mergedAppScope = (kept, sent) => (sent && typeof sent === 'object' && !Array.isArray(sent)
+    ? { ...(kept || {}), ...sent } : kept || null)
+
   function reduceContexts(reg, increment, opts = {}) {
     const contexts = { ...reg.contexts }
     const stack = [...reg.stack]
@@ -10491,6 +10841,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           osNotifications: !!md.osNotifications,
           // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
+          // @App(commandCenter) / @App(chromeless): the Ask palette is the way around (no nav chrome)
+          commandCenterEnabled: !!md.commandCenterEnabled || !!md.chromeless,
+          chromeless: !!md.chromeless,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
           // notifications.source/markRead, globalSearch.source) instead of the app-level actions
           notificationsSource: md.notificationsSource || null,
@@ -10515,6 +10868,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
           widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
         }
+        continue
+      }
+
+      // a Notification an ACTION returned is a TOAST (its title and text), not new content: it used to
+      // replace the surface it was aimed at — an Explorer example lost its buttons and showed a band
+      if (fr.component?.type === 'ClientSide' && md.type === 'Notification') {
+        const text = [md.title, md.text].filter((x) => x != null && String(x).trim()).join(' — ')
+        if (text) effects.toasts.push({ text, variant: 'info' })
         continue
       }
 
@@ -10695,6 +11056,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const kept = {}
     if (reg.appLevels) kept.appLevels = reg.appLevels
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
+    // the APP's state and data (UIIncrementDto.appState / appData: an action returning AppState /
+    // AppData): app-wide, merged answer after answer — what `${appState.x}` / `${appData.x}` read
+    const appState = mergedAppScope(reg.appState, increment.appState)
+    const appData = mergedAppScope(reg.appData, increment.appData)
+    if (appState) kept.appState = appState
+    if (appData) kept.appData = appData
+    // the projections that follow read them (content.mjs islandContentOf)
+    setAppScope(kept)
     return { ...kept, contexts, stack, shell, effects }
   }
 
@@ -11149,7 +11518,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-select-one, JET answered with the first option and the form saved it unasked.
     const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
     const raw = s[fieldId] != null ? s[fieldId] : fromData
-    const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    // a label is a template like a section title (`Price per night (${state.currency})`)
+    const widget = typeof built.label === 'string' && built.label.includes('${')
+      ? { ...built, label: interpolate(built.label, s, { data: d }) } : built
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
@@ -13958,16 +14330,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
    *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
-  function tagSurfaceActions(value, surfaceId) {
-    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+  function tagSurfaceActions(value, surfaceId, top = true) {
+    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId, top))
     // only plain data: a JET data provider or converter is passed through as it is
     if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
     const out = {}
     // (the parameters travel to the server as they are)
-    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-    if ('actionId' in out) out.surfaceId = surfaceId
+    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId, false)
+    // every ATOM of the surface carries it (make-html stamps it on the atom's root element as
+    // data-mateu-surface-id: the DOM pieces — a calendar's day, a map marker, a field's change — find
+    // it there, poc/surfaces.mjs), and so does any object inside that names an action of its own
+    // (`actionId`, or a `…ActionId` of a component: markerActionId, dayActionId, moveActionId…).
+    // A surface nested in this one already tagged ITS actions (withSubresources fills inside out).
+    if ((top || Object.keys(out).some(isActionKey)) && !out.surfaceId) out.surfaceId = surfaceId
+    // a table's data provider was built from the UNTAGGED rows: a cell naming an action (a Grid
+    // column's actionId link) read no surface from it and went to the host (403) — rebuilt from them
+    if (value.adp && Array.isArray(out.rows) && out.rows !== value.rows && dataProviderFactory) out.adp = dataProviderFactory(out.rows)
     return out
   }
+  const isActionKey = (k) => k === 'actionId' || /ActionId$/.test(k)
 
   // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
   function unsupportedAtomOf(type, id) {
@@ -15559,6 +15940,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
         }
         if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
+        // an ISOLATED request (another origin's island, a federated remote) that did not arrive says
+        // that server is down, not that the user is offline — «You're offline» was wrong in its box
+        if (failure.kind === 'offline' && isolated && connectivity.isOnline()) failure = { ...failure, message: chromeText('errUnreachable') }
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
           // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
@@ -16311,6 +16695,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   const loaded = {}
 
   // ── component events → server action ─────────────────────────────────────────────
@@ -16398,7 +16783,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const current = element.__mateuAtom || {}
         const actionId = (current.on || {})[eventName]
         if (!actionId || !sink) return
-        sink(actionId, { event: serializeElementEvent(e) }, current)
+        sink(actionId, { event: serializeElementEvent(e) }, surfaceAtomOf(element, current))
       })
     }
   }
@@ -17786,6 +18171,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
   //
   // Inbox (the App's NotificationsSupplier): the header bell with the unread count
@@ -17984,6 +18370,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
+  }
+
+  /**
+   * An island page's banners (content.mjs, isIslandBanner): a click on a closeable one's ✕ dismisses
+   * it, and one with a timeout dismisses itself after it — both remembered (dismissBanner), so a
+   * re-projection does not bring it back. Listened at document level (the banner is drawn by a
+   * template, in any surface's hole).
+   */
+  function installBannerDismissal(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuBannerDismissal) return
+    doc.__mateuBannerDismissal = true
+    const hide = (el) => {
+      if (!el) return
+      dismissBanner(el.getAttribute('data-mateu-banner'))
+      el.hidden = true
+      el.style.display = 'none'
+    }
+    doc.addEventListener('click', (e) => {
+      const close = e.target && e.target.closest ? e.target.closest('[data-mateu-banner-close]') : null
+      if (close) hide(close.closest('[data-mateu-banner]'))
+    }, true)
+    const timed = new WeakSet()
+    const arm = () => {
+      for (const el of doc.querySelectorAll('[data-mateu-banner-timeout]')) {
+        const ms = Number(el.getAttribute('data-mateu-banner-timeout'))
+        if (!(ms > 0) || timed.has(el)) continue
+        timed.add(el)
+        setTimeout(() => hide(el), ms)
+      }
+    }
+    const View = doc.defaultView
+    if (View && View.MutationObserver && doc.body) new View.MutationObserver(arm).observe(doc.body, { childList: true, subtree: true })
+    arm()
   }
 
 
@@ -18185,6 +18604,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // context from there: rules + host state)
   let afterReduce = null
   function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
+
+  /** A registry that changed WITHOUT a reduction of the page (inline islands registered, surfaces
+   *  loaded): what reads the registry after every reduction (the rules, the shortcuts…) sees it too. */
+  function noteRegistry(reg) {
+    if (reg && reg.contexts && afterReduce) afterReduce(reg)
+  }
 
   /** Applies a reduction's DOM effects. Returns how many downloads it launched. */
   function applyDomEffects(effects, reg, env = globalThis) {
@@ -18958,13 +19383,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function ruleSurfacesOf(reg, hostId = '__root__') {
     const out = []
     const contexts = (reg && reg.contexts) || {}
-    if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+    const add = (surface, ctx) => {
+      if (!ctx) return
+      if (hasRules(ctx)) out.push({ surface, ctx })
+      // an island painted INSIDE this surface (a nested ServerSide of its tree — an EmbeddedView, a
+      // page an example embeds) brings rules of its own: they act on its fields, which are painted
+      // in this surface, against the island's state (its initialData, then what is typed). They
+      // were never read, so a `@Hidden("!state.company")` inside an island did nothing.
+      for (const island of nestedRuleIslandsOf(ctx.tree)) {
+        // an inline island registered as a context of its own (transport registerInlineIsland) has
+        // its CURRENT state there; else the state it arrived with
+        const own = island.id ? Object.values(contexts).find((c) => c && c !== ctx && c.tree && c.tree.id === island.id) : null
+        out.push({ surface, ctx: { id: (ctx.id || surface) + '/' + (island.id || ''), tree: island, state: (own && own.state) || island.initialData || {}, data: (own && own.data) || ctx.data || {} } })
+      }
+    }
+    add('host', contexts[hostId])
     for (const [id, ctx] of Object.entries(contexts)) {
-      if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+      if (id !== hostId && ctx && ctx.kind === 'island') add('island', ctx)
     }
     const stack = (reg && reg.stack) || []
     const top = stack.length ? contexts[stack[stack.length - 1]] : null
-    if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+    add('overlay', top)
+    return out
+  }
+
+  /** The ServerSide nodes nested in a tree (not the root) that carry rules. Pure. */
+  function nestedRuleIslandsOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide' && Array.isArray(n.rules) && n.rules.length) out.push(n)
+      for (const [k, v] of Object.entries(n)) {
+        if (k === 'rules' || k === 'initialData' || k === 'validations') continue
+        if (v && typeof v === 'object') walk(v, false)
+      }
+    }
+    walk(tree, true)
     return out
   }
 
@@ -19175,6 +19630,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
   // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
   // (RuleLink) whose RunAction rule names one runs those commands in the browser — no server
@@ -19239,8 +19695,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
-  function pageFlowOf(reg, actionId, scope) {
-    const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
+  function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
+    // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
+    const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
     const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
       .find((a) => a && a.id === actionId)
     const commands = own ? flowCommandsOf(own) : flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
@@ -19524,6 +19981,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
    * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
    */
+  /**
+   * A value edited in a field of a SURFACE of its own (an inline island — a Java example embedded in a
+   * page —, a MicroFrontend): its painted fields sit among the host's atoms, so the host's draft took
+   * the value and the island's next request went out without it (`name: null`, a wizard refusing its
+   * step). The value goes to the SURFACE's state instead — the state runSurfaceAction posts — and the
+   * surface's own triggers follow it: its @Trigger(OnValueChange) for that field, else its @AutoSave.
+   * `typing` = a keystroke (rawValue): only the auto-save (debounced by the caller) listens to it.
+   * Returns null when the surface is not in the registry (the caller falls back to the host's draft),
+   * else { registry, actionId, debounceMillis, changed }.
+   */
+  function surfaceFieldEditOf(reg, surfaceId, fieldId, value, { typing = false } = {}) {
+    const ctx = surfaceId && reg && reg.contexts ? reg.contexts[surfaceId] : null
+    if (!ctx || !fieldId || surfaceId === HOST_ID) return null
+    const state = ctx.state || {}
+    // one END of a date range (`<field>#from|to`): the field's value is the whole {from, to}
+    const range = rangeEditOf(fieldId, state, state, value)
+    const id = range ? range.fieldId : fieldId
+    const next = range ? range.value : value
+    const changed = JSON.stringify(state[id] === undefined ? null : state[id]) !== JSON.stringify(next === undefined ? null : next)
+    const nextState = { ...state, [id]: next }
+    const registry = changed
+      ? { ...reg, contexts: { ...reg.contexts, [surfaceId]: { ...ctx, state: nextState } } }
+      : reg
+    const auto = autoSaveOf(ctx)
+    // a keystroke only matters to an auto-save (the value lands on blur/Enter anyway)
+    if (typing) return auto ? { registry, changed, actionId: changed ? auto.actionId : '', debounceMillis: auto.debounceMillis } : { registry: reg, changed: false, actionId: '', debounceMillis: 0 }
+    // the OnValueChange trigger fires on every committed change, like the host's (hostInputChanged)
+    const vc = valueChangeActionOf(ctx, id, nextState)
+    return { registry, changed, actionId: vc || (changed && auto ? auto.actionId : ''), debounceMillis: 0 }
+  }
+
   function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
     const contexts = (reg && reg.contexts) || {}
     const stack = (reg && reg.stack) || []
@@ -19586,6 +20074,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       panel.dispatchEvent(new CustomEvent('mateuDrawerLeave', { bubbles: false }))
     }, true)
   }
+
 
 
   // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
@@ -19703,7 +20192,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!rowId) return
       const [a, b] = [Math.min(d.anchor, d.current), Math.max(d.anchor, d.current)]
       const base = Date.parse(d.start + 'Z')
-      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, {})
+      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, surfaceAtomOf(d.gantt))
     }, true)
   }
 
@@ -19791,6 +20280,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
 
@@ -19991,7 +20481,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!r) return
       const state = refreshMerge(r)
       if (state && state.spec.mergeActionId && recordMergeSink) {
-        recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom))
+        recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom), surfaceAtomOf(r))
       }
     }, true)
   }
@@ -20490,6 +20980,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // KEYBOARD of the VB shell: the declared shortcuts and the ACCESS KEYS.
   //  - @Action(shortcut) of the current screen: the shortcut launches the action (through the Element
   //    channel), as in the web renderer; only combinations with Ctrl/Alt/Meta — a bare key
@@ -20527,16 +21018,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
   /** The current screen (afterReduce): its actions with a modifier or function-key shortcut. */
   function setShortcutContext(hostCtx) {
-    const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
-    shortcutActions = actions
-      .filter((a) => a && a.id && a.shortcut
-        && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
-      .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+    shortcutActions = shortcutsOf(hostCtx, '')
   }
+  const shortcutsOf = (ctx, surfaceId) => ((ctx && ctx.tree && ctx.tree.actions) || [])
+    .filter((a) => a && a.id && a.shortcut
+      && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
+    .map((a) => (surfaceId ? { id: a.id, shortcut: String(a.shortcut).toLowerCase(), surfaceId } : { id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+  /** The current screen and the SURFACES painted in it (an inline island — a Java example embedded in
+   *  a page —, a MicroFrontend): each one's @Action(shortcut)s, the surface's carrying its id so the
+   *  action goes back to it. A surface's only count while it is on screen (shortcutLive). The host's
+   *  win over a surface's with the same keys; the overlays' (a drawer) are not the page's. */
+  function setShortcutContexts(reg, hostId = '__root__') {
+    const contexts = (reg && reg.contexts) || {}
+    const stack = new Set((reg && reg.stack) || [])
+    const out = shortcutsOf(contexts[hostId], '')
+    for (const [id, ctx] of Object.entries(contexts)) {
+      if (id === hostId || stack.has(id)) continue
+      for (const a of shortcutsOf(ctx, id)) if (!out.some((o) => o.shortcut === a.shortcut && !o.surfaceId)) out.push(a)
+    }
+    shortcutActions = out
+  }
+  /** A surface's shortcut only while the surface has something painted (its atoms carry its id). */
+  const shortcutLive = (doc, a) => !a.surfaceId || !!doc.querySelector('[data-mateu-surface-id="' + attrSelectorValue(a.surfaceId) + '"]')
   const currentShortcutActions = () => shortcutActions
 
   let keysSink = null
   function setKeysActionSink(fn) { keysSink = typeof fn === 'function' ? fn : null }
+
+  // Ctrl+K / ⌘K opens the Search-or-go palette (the Ask FAB's: menu, recent, global search), like
+  // the web's ⌘K palette and command center — a screen action bound to the same keys wins
+  let paletteSink = null
+  function setPaletteSink(fn) { paletteSink = typeof fn === 'function' ? fn : null }
+  const isPaletteKey = (e) => !!e && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
+    && (String(e.key || '').toLowerCase() === 'k' || e.code === 'KeyK')
 
   let accessKeysOn = false
   function setAccessKeysEnabled(on) { accessKeysOn = !!on }
@@ -20549,11 +21063,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
 
+  /** A JET element's `disabled` is its PROPERTY: the template's `disabled="[[ … ]]"` attribute stays
+   *  on the element whatever it is bound to — read as an attribute, every bound button counted as
+   *  disabled and only the tabs got a key. */
+  const isDisabledTarget = (el) => (typeof el.disabled === 'boolean' ? el.disabled : el.hasAttribute('disabled'))
+
   /** What can be pressed with an access key: buttons (not disabled) and tabs. */
   function accessCandidates(doc) {
     const out = []
     for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
-      if (!keyTargetVisible(el) || el.hasAttribute('disabled') || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
+      if (!keyTargetVisible(el) || isDisabledTarget(el) || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
       const label = labelOf(el)
       if (!label) continue
       const actionId = el.getAttribute('data-action-id')
@@ -20603,9 +21122,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const matches = (shortcut, e) => (typeof shortcutMatches === 'function' ? shortcutMatches(shortcut, e) : false)
 
+  // Enter on the EMPTY box of Spectra's smart search (oj-sp-smart-filter-search) threw inside
+  // Spectra — its keyword handler trims an input raw value that is still undefined — and searched
+  // nothing; a SmartSearchPage says «Press Enter on an empty box to list every loan». The key is
+  // taken in capture before Spectra sees it: with no keyword chip it launches the listing's search
+  // with no text through the header's own search slot (its ojValueAction → mateuSearchAction), with
+  // chips it is just swallowed (they already are the search).
+  function emptySearchEnterOf(e) {
+    if (!e || e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null
+    const target = e.target
+    if (!target || target.tagName !== 'INPUT' || String(target.value || '').trim() !== '') return null
+    const header = target.closest ? target.closest('oj-sp-smart-filter-search') : null
+    if (!header) return null
+    const slot = header.querySelector('oj-input-search[slot="search"]')
+    if (slot && slot.contains(target)) return null // the slot's own box: JET handles it
+    const chips = (header.smartFilters && header.smartFilters.value) || []
+    return { slot, search: !chips.some((c) => c && c.filter === 'keyword') }
+  }
+
+  function installEmptySearchEnter(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuEmptySearchEnter) return
+    doc.__mateuEmptySearchEnter = true
+    const handle = (e) => {
+      const hit = emptySearchEnterOf(e)
+      if (!hit) return
+      e.stopImmediatePropagation()
+      e.preventDefault()
+      if (e.type === 'keyup' && hit.search && hit.slot) {
+        hit.slot.dispatchEvent(new CustomEvent('ojValueAction', { detail: { value: '' }, bubbles: true }))
+      }
+    }
+    doc.addEventListener('keydown', handle, true)
+    doc.addEventListener('keyup', handle, true)
+  }
+
   function installKeys(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuKeys) return
     doc.__mateuKeys = true
+    installEmptySearchEnter(doc)
     let holdTimer = null
     doc.addEventListener('keydown', (e) => {
       // holding Alt (alone): the keys appear
@@ -20616,10 +21170,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
       if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
       // 1. an action of the screen
-      const action = shortcutActions.find((a) => matches(a.shortcut, e))
+      const action = shortcutActions.find((a) => matches(a.shortcut, e) && shortcutLive(doc, a))
       if (action && keysSink) {
         e.preventDefault(); e.stopPropagation()
-        keysSink(action.id, {}, {})
+        keysSink(action.id, {}, action.surfaceId ? { surfaceId: action.surfaceId } : {})
+        return
+      }
+      if (paletteSink && isPaletteKey(e)) {
+        e.preventDefault(); e.stopPropagation()
+        paletteSink()
         return
       }
       // 2. a tab
@@ -20762,6 +21321,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
 
@@ -20918,9 +21478,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!ids.length || !dropSink) return
       let params = {}
       try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
-      // a zone of a surface of its own (an inline island, a MicroFrontend) sends its action THERE
-      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) },
-        { surfaceId: zone.getAttribute('data-drop-surface') || '' })
+      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, surfaceAtomOf(zone))
     }, true)
   }
 
@@ -20948,7 +21506,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
     const send = (board, move) => {
       if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
-      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+      // the board's surface (an inline island's board moves through the island)
+      const surfaceId = surfaceAtomOf(board).surfaceId
+      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move, ...(surfaceId ? { surfaceId } : {}) })
     }
     const clearMarks = () => {
       for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
@@ -21017,6 +21577,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     (ojBeforeEditEnd) the new value, if it changed, goes out through editActionId;
   //   - a linking cell: click → cellActionId. Both with { _rowId, _columnId, _value }.
 
+
   let matrixSink = null
   /** Who runs the action (the shell reuses the Elements' sink). */
   function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
@@ -21053,17 +21614,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const before = input.getAttribute('data-mx-value')
       const after = input.value
       if (!matrixEditChanged(before, after)) return
-      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), {})
+      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), surfaceAtomOf(grid))
     }, true)
     doc.addEventListener('click', (e) => {
       const link = e.target && e.target.closest ? e.target.closest('[data-mx-link="true"]') : null
       const grid = gridOf(link)
       if (!link || !grid || !matrixSink || !grid.dataset.cellAction) return
-      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), {})
+      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), surfaceAtomOf(grid))
     }, true)
   }
 
   void panelExpanded
+
 
 
 
@@ -21181,7 +21743,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }).addTo(map)
       if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
       const hover = [m.label, m.description].filter(Boolean).join(' · ')
-      const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) } : null
+      const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), surfaceAtomOf(el)) } : null
       if (run) pin.on('click', run)
       // the marker's SVG path exists only once the map has a view (Leaflet adds layers whenReady, and
       // the view is set below): decorate it when the layer is ADDED — read right here, getElement()
@@ -21249,6 +21811,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-map-spec'] })
   }
+
+
 
 
   // Listing ROW TONES (@RowStatus) and GROUP rows (@GroupBy) on JET's oj-table.
@@ -21333,6 +21897,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const now = win.scrollY > 48
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
     }, { passive: true })
+  }
+
+  // ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the
+  // declared base combination plus a number key (ctrl+shift+2 = the second row, top row or keypad) —
+  // runs the field's onItemSelectionActionId with the row in `_clickedRow`, as the web grid does.
+  // Read-only grids too: this is the master/detail idiom. The grid's root carries the action, the
+  // shortcut and its rows (data-row-select-*, the isGrid atom); the action goes back to the grid's
+  // SURFACE (an inline island's).
+  let rowSelectSink = null
+  function setRowSelectSink(fn) { rowSelectSink = typeof fn === 'function' ? fn : null }
+
+  const rowsOfSelectHost = (host) => {
+    try { const rows = JSON.parse(host.getAttribute('data-row-select-rows') || '[]'); return Array.isArray(rows) ? rows : [] } catch (e) { return [] }
+  }
+
+  /** The row (0-based) a base combination + number key selects, or null: the shortcut is the BASE
+   *  combination («ctrl+shift»), the number (top row or keypad) is the row's position. */
+  function rowShortcutIndexOf(shortcut, e) {
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(String((e && e.code) || '')) || /^([1-9])$/.exec(String((e && e.key) || ''))
+    if (!shortcut || !m) return null
+    const combo = String(shortcut).toLowerCase().replace(/\s+/g, '')
+    return shortcutMatches(combo + '+' + m[1], e) ? Number(m[1]) - 1 : null
+  }
+
+  function installRowSelection(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowSelection) return
+    doc.__mateuRowSelection = true
+    const select = (host, index) => {
+      const rows = rowsOfSelectHost(host)
+      if (!rowSelectSink || index == null || index < 0 || index >= rows.length) return false
+      rowSelectSink(host.getAttribute('data-row-select-action'), { _clickedRow: rows[index] }, surfaceAtomOf(host))
+      return true
+    }
+    doc.addEventListener('click', (e) => {
+      const target = e.target && e.target.closest ? e.target : null
+      const host = target && target.closest('[data-row-select-action]')
+      if (!host || !host.getAttribute('data-row-select-action')) return
+      // a control inside a cell does its own thing
+      if (target.closest('oj-button, button, a, input, oj-input-text, oj-select-single, oj-switch')) return
+      const table = target.closest('oj-table')
+      const ctx = table && typeof table.getContextByNode === 'function' ? table.getContextByNode(target) : null
+      if (!ctx || ctx.rowIndex == null || (ctx.subId && ctx.subId !== 'oj-table-cell')) return
+      select(host, ctx.rowIndex)
+    })
+    doc.addEventListener('keydown', (e) => {
+      if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+      for (const host of doc.querySelectorAll('[data-row-select-shortcut]')) {
+        const sc = host.getAttribute('data-row-select-shortcut')
+        if (!sc || !(host.getClientRects && host.getClientRects().length)) continue
+        const index = rowShortcutIndexOf(sc, e)
+        if (index != null && select(host, index)) { e.preventDefault(); e.stopPropagation(); return }
+      }
+    }, true)
   }
 
 
@@ -23318,6 +23935,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** An absolute base url on another origin than the page's (false outside a browser). */
   function isForeignBase(base) {
     if (!base || !/^https?:\/\//i.test(String(base))) return false
@@ -23340,9 +23958,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
-    const bare = (body.route || '').replace(/^\//, '')
+    // a static remote (its base names a bundle's manifest) has no server to POST to
+    if (isStaticBundleBase(base)) throw staticRemoteError(base)
+    const bare = routeForRemote(base, body.route || '').replace(/^\//, '')
     noteDocumentBase(base) // a parked Document is requested from THIS backend
-    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
+    const query = typeof options.urlQuery === 'string' && options.urlQuery[0] === '?' ? options.urlQuery : ''
+    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -23499,6 +24120,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
    *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
    *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
+  /** loadRoute with the screen's query on the request URL (and in the bundle's lookup). */
+  function loadRouteWithQuery(base, route, initiator, extra, urlQuery) {
+    if (!urlQuery || urlQuery === '?') return loadRoute(base, route, initiator, extra)
+    return loadRoute(base, route + urlQuery, initiator, extra, { urlQuery })
+  }
+
   const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
@@ -23521,7 +24148,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
-    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
+    // the query rides the URL (callOptions.urlQuery), never the body's route
+    const at = callOptions.urlQuery ? String(route).indexOf('?') : -1
+    return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -23638,7 +24267,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
-    const bare = effectiveRoute.replace(/^\//, '')
+    const bare = routeForRemote(base, effectiveRoute).replace(/^\//, '')
     noteDocumentBase(base)
     // No timeout: a LongTask keeps the stream open by design, so a ceiling would
     // kill it halfway. It still goes through the policy so the failure arrives classified.
@@ -23767,6 +24396,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
+  /** The remote screen a shell's App names as its content (a federated deep link), or null: an App
+   *  whose home lives on ANOTHER base than the one asked. */
+  function remoteHomeOf(increment, base) {
+    for (const fr of (increment && increment.fragments) || []) {
+      const c = fr.component
+      const md = c && c.metadata
+      if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App' || md.variant === 'MEDIATOR') continue
+      const home = md.homeBaseUrl
+      if (!home || String(home).replace(/\/+$/, '') === String(base || '').replace(/\/+$/, '')) continue
+      if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) continue
+      return {
+        baseUrl: home,
+        homeRoute: md.homeRoute || '',
+        consumedRoute: md.homeConsumedRoute || '',
+        serverSideType: md.homeServerSideType,
+        uriPrefix: md.homeUriPrefix || '',
+      }
+    }
+    return null
+  }
+
+  /** The shell prefix a deep link puts in front of the remote's route (/inventory/stock + /stock →
+   *  /inventory); '' when the link does not end with it. */
+  function remotePrefixOfDeepLink(requested, homeRoute) {
+    const r = String(requested || '').split('?')[0].replace(/\/+$/, '')
+    const h = String(homeRoute || '').split('?')[0].replace(/\/+$/, '')
+    if (!h || h === '/' || r === h || !r.endsWith(h)) return ''
+    return r.slice(0, r.length - h.length)
+  }
+
   /** Did the load answer the server's «Not found.» (a lone Text, no ServerSide)? */
   function isServerNotFound(ctx) {
     const t = ctx && ctx.tree
@@ -23834,6 +24493,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the raw INCREMENT is kept: the 1st load of a menu option arrives as a mediator App
     // (ClientSide type App), which reduceContexts routes to the CHROME (shell) and not to the context —
     // mediatorOf(host) does not see it, so the mediator has to be taken from the increment itself.
+    // the route's ?query (/x/rates/web/palma?currency=USD) is the SCREEN's parameters: the server
+    // reads them off the request URL (RouteSegmentUtils: query > defaults) — the route itself, its
+    // outbound and the menu matching stay clean, as before
+    const queryAt = String(route || '').indexOf('?')
+    const urlQuery = queryAt >= 0 ? String(route).slice(queryAt) : ''
+    if (queryAt >= 0) route = String(route).slice(0, queryAt)
+    const loadRoute = (b, r, t, e) => loadRouteWithQuery(b, r, t, e, urlQuery)
     let firstIncrement = await loadRoute(base, route, targetId, extra)
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
@@ -23867,7 +24533,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
-    if (info) {
+    // a deep link / reload of a REMOTE screen (/fed/inventory/stock): the shell answers its App aimed
+    // at it and names where it lives (homeBaseUrl + homeRoute + homeServerSideType) — the content is
+    // asked to THAT remote, as a menu click would. The shell used to stop there: a blank page.
+    const remoteHome = targetId === '' ? remoteHomeOf(firstIncrement, base) : null
+    if (remoteHome) {
+      registerRemotePrefix(remoteHome.baseUrl, remotePrefixOfDeepLink(effectiveRoute, remoteHome.homeRoute))
+      registerRemoteRoute(effectiveRoute, remoteHome)
+      outbound = { route: effectiveRoute, consumedRoute: remoteHome.consumedRoute, serverSideType: remoteHome.serverSideType, baseUrl: remoteHome.baseUrl }
+      next = reduceContexts(next, await loadRoute(remoteHome.baseUrl, remoteHome.homeRoute, targetId, {
+        ...extra,
+        consumedRoute: remoteHome.consumedRoute,
+        serverSideType: remoteHome.serverSideType,
+      }))
+    } else if (info) {
       // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
       // the route of its content — the crud's own path
       if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
@@ -23956,6 +24635,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!sub.windowless || isStaleResponse(error)) throw error
       return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
     }
+    // a WHOLE APP answers (a MicroFrontend embedding an app: its shell App, not a page) — it is not
+    // this page's shell (reduced, it replaced the host's menu and chrome) and its shell features (context
+    // pickers, header actions, shortcuts, idle warning…) are its own — or a PAGE that only a whole page
+    // can draw (a crud or any mediator, a listing page, a page template): shown as itself, on its own
+    // page, framed (embeddedAppOf → the content's app frame)
+    const app = sub.resolved || !sub.windowless ? null : embeddedAppOf(answer, sub)
+    if (app) {
+      return { ...reg, contexts: { ...reg.contexts, [sub.id]: { id: sub.id, kind: 'island', tree: { type: 'ServerSide', id: sub.id, children: [] }, state: {}, data: {}, dirty: false, outbound, embeddedApp: app } } }
+    }
     let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
@@ -23969,6 +24657,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // title (nor its history push) away from the chains that apply them after loading the blocks
     if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
+  }
+
+  /** The app a MicroFrontend's answer is (its fragment is a ClientSide App: the app's shell), or null:
+   *  {src, title, height} — src is the app's own page (where "Open this app on its own" goes). */
+  function embeddedAppOf(answer, sub) {
+    const frames = ((answer && answer.fragments) || []).map((f) => f && f.component).filter(Boolean)
+    const app = frames.find((c) => c.type === 'ClientSide' && c.metadata && c.metadata.type === 'App' && c.metadata.variant !== 'MEDIATOR')
+    // the page: its ServerSide, or — a definition-only YAML route — its ClientSide Form itself
+    const page = frames.find((c) => c.type === 'ServerSide') || frames.find((c) => c !== app && c.metadata && c.metadata.type === 'Form')
+    const first = page && page.type === 'ServerSide' ? (page.children || [])[0] : null
+    const form = page && findByType(page, 'Form')
+    const wholePage = !!page && (
+      !!(first && first.metadata && first.metadata.type === 'App' && first.metadata.variant === 'MEDIATOR')
+      || !!(form && form.metadata && form.metadata.template)
+      || !!pageListingNodeOf(page))
+    if (!app && !wholePage) return null
+    const base = String((sub && sub.baseUrl) || '').replace(/\/+$/, '')
+    const route = String((sub && sub.route) || '')
+    const raw = app ? (base || route || app.metadata.route || '/') : base + (route.startsWith('/') || !route ? route : '/' + route)
+    const src = /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '/' + raw
+    return { src: src || '/', title: (app && app.metadata.title) || '', height: app ? '36rem' : '40rem' }
   }
 
   /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
@@ -23992,20 +24701,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const ctx = reg && reg.contexts && reg.contexts[surfaceId]
     if (!ctx || !actionId) return reg
     const outbound = ctx.outbound || {}
-    const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
-      { ...extra, parameters: parameters || {} })
+    // OWNER FIRST, then the app's action catalogue: a flow (`steps`) the surface declares — or the
+    // catalogue's, when it does not declare the id — runs HERE, with no round trip (like the host's,
+    // runMateuAction's pageFlowOf): a catalogue «Go to the home» inside an embedded page navigated
+    // nowhere, the server got it instead
+    const flow = pageFlowOf(reg, actionId, { state: { ...(ctx.state || {}), ...(parameters || {}) }, appState: extra.appState || {} }, surfaceId)
+    const increment = flow
+      ? { commands: flow, fragments: [], messages: [] }
+      : await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+        { ...extra, parameters: parameters || {} })
     if (!increment) return reg
     // the increment is reduced AS the surface's (initiator): its MarkAsClean/Dirty land on it and the
     // bus events it emits carry it as their source
     let next = reduceContexts(reg, increment, { initiator: surfaceId })
     const toasts = [...(next.effects.toasts || [])]
+    // where the surface's answer (or flow) sends the page: the reductions below must not lose it
+    const navigate = next.effects.navigate || null
     // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
     // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
-    next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-    toasts.push(...(next.effects.toasts || []))
+    const delivered = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
+    // nothing delivered = the SAME registry back: its toasts are the ones already taken (twice on screen)
+    if (delivered !== next) toasts.push(...(delivered.effects.toasts || []))
+    next = delivered
+    // the ConfirmDialogs the answer RETURNED: the chain asks them, then runs the pick on this surface
+    const returnedConfirms = returnedConfirmDialogsOf(increment)
     // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
     next = await ensureInlineIslands(outbound.baseUrl, next, extra)
-    return { ...next, effects: { ...next.effects, toasts } }
+    return { ...next, effects: { ...next.effects, toasts, returnedConfirms, navigate: navigate || next.effects.navigate || null } }
   }
 
   /**
@@ -24017,7 +24739,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   async function registerInlineIsland(base, reg, sub, extra = {}) {
     const node = sub.inline
-    const host = (reg.contexts || {})[HOST_ID] || {}
+    // an island inside another surface talks to the backend of that surface, under its route
+    const host = (sub.parentId && (reg.contexts || {})[sub.parentId]) || (reg.contexts || {})[HOST_ID] || {}
     const hostOutbound = host.outbound || {}
     const outbound = {
       route: hostOutbound.route || '',
@@ -24077,6 +24800,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const inline of inlineIslandsOf(host && host.tree)) {
       if (!next.contexts[inline.id]) next = await registerInlineIsland(base, next, inline, extra)
     }
+    // new surfaces on the page: their shortcuts and rules count from now on (keys.mjs, rules.mjs)
+    if (next !== reg) noteRegistry(next)
     return next
   }
 
@@ -24155,11 +24880,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   async function loadSubresources(base, reg, blocks, extra = {}) {
     let next = reg
-    for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
-      try {
-        next = await loadSubresource(base, next, sub, extra)
-      } catch (ignored) { /* the error band already reports it (onSettle) */ }
+    // a loaded surface may hold surfaces of its own (withSubresources marks them with their parent):
+    // a few rounds, each one over the content as filled so far — every surface asked once
+    const tried = new Set()
+    for (let round = 0; round < 5; round++) {
+      const shown = round === 0 ? blocks : withSubresources(blocks, next.contexts)
+      const pending = pendingSubresourcesOf(shown, next.contexts).filter((sub) => !tried.has(sub.id))
+      if (!pending.length) break
+      for (const sub of pending) {
+        tried.add(sub.id)
+        try {
+          next = await loadSubresource(base, next, sub, extra)
+        } catch (ignored) { /* the error band already reports it (onSettle) */ }
+      }
     }
+    if (next !== reg) noteRegistry(next)
     return next
   }
 
@@ -24210,6 +24945,55 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Menu route → where it really lives. Filled by expandRemoteMenus; read by navigation. */
   const remoteRoutes = new Map()
+
+  // A remote's screens live UNDER its mount's prefix in the shell (`routePrefix`: /inventory), as the
+  // shell's server reads a deep link (/fed/inventory/stock → the Inventory remote's /stock): its menu
+  // leaves are spliced with the prefix in front (adoptRemote), so the address, a reload and a shared
+  // link name the remote — they used to lose it (/fed/stock) and a reload broke. The remote itself
+  // knows its routes WITHOUT the prefix: it is taken off every request sent to that base.
+  const remotePrefixes = new Map()
+
+  /** `route` with `prefix` in front, unless it already lives under it (or there is no prefix). */
+  function prefixedRoute(prefix, route) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    const r = String(route == null ? '' : route)
+    if (!p || p === '/') return r
+    const path = r.split('?')[0]
+    const norm = path && path[0] !== '/' ? '/' + path : path
+    if (norm === p || norm.indexOf(p + '/') === 0) return r
+    const rest = r && r[0] !== '/' ? '/' + r : r
+    return p + (rest === '/' ? '' : rest)
+  }
+
+  /** The route as the remote at `base` knows it: its prefix in the shell taken off. */
+  function routeForRemote(base, route) {
+    const prefix = remotePrefixes.get(String(base || ''))
+    const r = String(route == null ? '' : route)
+    if (!prefix) return r
+    const lead = r[0] === '/' ? r : '/' + r
+    if (lead === prefix || lead.indexOf(prefix + '?') === 0) return lead.slice(prefix.length) || ''
+    return lead.indexOf(prefix + '/') === 0 ? lead.slice(prefix.length) : r
+  }
+
+  /** Records the prefix a remote's screens live under in the shell (no-op without one). */
+  function registerRemotePrefix(base, prefix) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    if (base && p && p !== '/') remotePrefixes.set(String(base), p[0] === '/' ? p : '/' + p)
+  }
+
+  /** A base url that names a static bundle's MANIFEST (a RemoteMenu to a statically deployed
+   *  domain), not a Mateu server — the web's bundleStore.isStaticBundleUrl. */
+  function isStaticBundleBase(base) {
+    const path = String(base || '').split('#')[0].split('?')[0]
+    return /\.json$/i.test(path)
+  }
+
+  /** What a request to a static remote fails with: it is not a server. */
+  function staticRemoteError(base) {
+    const error = new Error('mateu: ' + base + ' is a static bundle, not a Mateu server')
+    error.mateuStaticRemote = true
+    return error
+  }
 
   /**
    * Where a route lives, or undefined if the shell itself serves it.
@@ -24286,8 +25070,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function adoptRemote(menu, option, app) {
     const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
+    // only the prefix the SERVER declares (routePrefix: where it reads the remote's deep links), not
+    // the option's path — a remote mounted as a menu path keeps its routes as they come
+    const prefix = option.routePrefix ? mountPrefix(option) : ''
+    registerRemotePrefix(option.baseUrl, prefix)
     for (const child of menu || []) {
       if (child.baseUrl) continue
+      // under the mount's prefix in the shell (see remotePrefixes); the raw route stays registered too
+      const raw = child.route || child.path || ''
+      if (prefix) {
+        if (child.route) child.route = prefixedRoute(prefix, child.route)
+        if (child.path) child.path = prefixedRoute(prefix, child.path)
+      }
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
         // The group belongs to the pod too: whatever hangs from its route and is none of its leaves —the
@@ -24316,6 +25110,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = child.route || child.path || ''
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
+      if (raw && raw !== route && !remoteRoutes.has(raw)) {
+        remoteRoutes.set(raw, descriptor)
+        remoteRoutes.set(String(raw).replace(/^\//, ''), descriptor)
+      }
     }
   }
 
@@ -26292,7 +27090,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // the header band already paints the host's EntityHeader: without this it came back in the content
         dropEntityHeader: !!entityHeaderOf(host),
       }) || []
-      hostContent = withSubresources(projected, contexts)
+      hostContent = withSubresources(projected, contexts, { activeTabs: vars.mateuActiveTabs })
     }
     let island = null
     const islandCtx = vars.mateuIslandId ? contexts[vars.mateuIslandId] : null
@@ -26305,6 +27103,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     return { hostContent, island }
   }
+
 
 
 
@@ -26766,7 +27565,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+  // oj-sp-header-create-edit draws its own Cancel with a FIXED label (its translations and display
+  // options have none for it), so a crud's `cancelLabel()` («Discard») showed «Cancel». The header
+  // carries the wire's label (`data-mateu-cancel-label`) and this puts it on Spectra's button
+  // (`<header id>_cancelAction`); oj-sp re-renders it, so it is re-checked like the fact actions.
+  const CANCEL_LABEL_HOST = '[data-mateu-cancel-label]'
+  function relabelCancel(host) {
+    const label = host.getAttribute('data-mateu-cancel-label') || ''
+    if (!label || !host.id) return
+    const button = host.querySelector('[id="' + host.id + '_cancelAction"]')
+    if (button && button.label !== label) button.label = label
+  }
+
+  /** Installs (once) the fact action buttons of every header that carries some, and their clicks
+   *  — and the wire's Cancel label on a create/edit header (relabelCancel). */
   function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuFactActions) return
     doc.__mateuFactActions = true
@@ -26775,10 +27587,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!button || !factActionSink) return
       let parameters = {}
       try { parameters = JSON.parse(button.getAttribute('data-mateu-fact-parameters') || '{}') || {} } catch (err) { parameters = {} }
-      factActionSink(button.getAttribute('data-action-id'), parameters, {})
+      factActionSink(button.getAttribute('data-action-id'), parameters, surfaceAtomOf(button))
     })
     const root = doc.body || doc.documentElement
     for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+    for (const host of Array.from(root.querySelectorAll(CANCEL_LABEL_HOST))) relabelCancel(host)
     if (typeof MutationObserver === 'undefined') return
     new MutationObserver((records) => {
       const hosts = new Set()
@@ -26793,7 +27606,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       }
       for (const host of hosts) decorateFactActions(host, doc)
-    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+      const relabel = new Set()
+      for (const r of records) {
+        const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+        const host = target && target.closest ? target.closest(CANCEL_LABEL_HOST) : null
+        if (host) relabel.add(host)
+        for (const n of r.addedNodes || []) {
+          if (n.nodeType !== 1) continue
+          if (n.matches && n.matches(CANCEL_LABEL_HOST)) relabel.add(n)
+          for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(CANCEL_LABEL_HOST) : [])) relabel.add(h)
+        }
+      }
+      for (const host of relabel) relabelCancel(host)
+    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
   }
 
   // ── AddOnPicker: the running total follows the switches at once (the web's header does) ─────────
@@ -26920,7 +27745,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const runKey = (host, key) => {
       if (key === lastClick.key && Date.now() - lastClick.at < 800) return false
       const run = scoreboardDrillInOf(atomOf(host), key)
-      if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], run[2]) }
+      // a band of an island's goes to THAT island (surfaces.mjs)
+      if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2])) }
       return !!run
     }
     doc.addEventListener('click', (e) => {
@@ -26956,6 +27782,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       pass(hosts)
     }).observe(root, { subtree: true, childList: true })
   }
+
 
 
 
@@ -27064,6 +27891,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       drawerOpen: !!drawer && !(picker && !picker.inDrawer),
       modal: !!dialog && !picker,
     }
+  }
+
+  /** Whether the DRAWER on screen is another one (opened, closed, replaced) — the drawer's draft and
+   *  its Spectra template state start over. A Dialog stacked over it is not a new drawer: resetting on
+   *  any change of the stack's top lost what was typed in a drawer the moment a nested dialog opened. */
+  function drawerChangedBetween(before, reg) {
+    const id = (r) => { const d = drawerOverlayOf(r); return d ? d.id : null }
+    return id(before) !== id(reg)
+  }
+
+  /**
+   * The overlays after an action of a SURFACE of the content (an inline island, a MicroFrontend —
+   * runMateuSurfaceAction): a Dialog / Drawer it returned is pushed on the registry's stack like a
+   * page action's, and has to be painted the same way (overlayVarsOf). `changed`: there is something
+   * to (re)paint — an overlay opened, closed or refreshed.
+   */
+  function surfaceOverlayVarsOf(before, reg) {
+    const stackOf = (r) => ((r && r.stack) || []).join('|')
+    const vars = overlayVarsOf(reg, null)
+    const changed = stackOf(before) !== stackOf(reg) || ((reg && reg.stack) || []).length > 0
+    return { ...vars, changed }
   }
 
   /**
@@ -27291,6 +28139,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
    * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
    */
+  /** A declared trail as the header draws it: links (in-app urls) but the last one. Pure. */
+  function headerCrumbsOf(breadcrumbs) {
+    const list = breadcrumbs || []
+    return list.map((c, i) => {
+      const last = i === list.length - 1
+      const route = !last && c.route ? (c.route.charAt(0) === '/' || /^[a-z]+:/i.test(c.route) ? c.route : '/' + c.route) : ''
+      const href = route && !/^[a-z][a-z0-9+.-]*:/i.test(route) ? urlOfRoute(route) : ''
+      return { key: String(i), text: c.text, href, hasHref: !!href, noHref: !href, last }
+    })
+  }
+
   function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
     const showBand = showHeader && pageWidth !== 'edgeToEdge'
     const showListBand = !!listing && pageWidth !== 'edgeToEdge'
@@ -27328,6 +28187,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       subtitle,
       // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
       overline: extras.overline,
+      // the trail a page DECLARES (BreadcrumbsSupplier), above the header: Spectra has no breadcrumbs
+      // component (its go-to-parent stays the parent crumb); the last crumb is where we are
+      crumbs: headerCrumbsOf(extras.breadcrumbs),
       // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
       // text went to the subtitle)
       timestamp: stamp.iso,
@@ -27355,6 +28217,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
       // primaryId) instead of general-overview's «‹ Cancel» link
       createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+      // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+      // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+      cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
       showBand: showBand && !gopOn && !iopOn,
       showInline: showHeader && !showBand && !gopOn && !iopOn,
       showListBand,
@@ -29852,7 +30717,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
-    'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
+    'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -29860,10 +30725,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
     'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
+    'setRowSelectSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
   const NOT_IN_EMBEDDED = Object.freeze({
+    // Ctrl+K opens the SHELL's Search-or-go palette: an embedded component has no shell palette, and
+    // the host page owns its own keyboard shortcuts
+    setPaletteSink: 'the palette is the standalone shell\'s; the host page owns Ctrl+K',
     // a skip link is the first child of the BODY: the host page owns its own landmarks
     mountSkipLink: 'the host page owns the document landmarks',
     // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
@@ -29922,7 +30791,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
     }
     if (typeof b.setKanbanMoveSink === 'function') {
-      b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
+      b.setKanbanMoveSink(({ key, move, surfaceId }) => runtime.fireEvent('application:mateuKanbanMove', { key, move, surfaceId: surfaceId || '' }))
     }
     // the document-level listeners once per page; the sinks and hooks above/below follow the
     // CURRENT component (a new <mateu-ui> takes them over)
@@ -30244,7 +31113,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the periodic refresh reads its triggers' conditions against the latest state (polling.mjs)
     notePollingRegistry(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
-    setShortcutContext(reg.contexts[HOST_ID]);
+    setShortcutContexts(reg, HOST_ID);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
@@ -30302,6 +31171,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   return {
     HOST_ID,
+    // the surface (inline island / MicroFrontend) a painted node belongs to (surfaces.mjs)
+    surfaceOfNode,
+    surfaceOfEvent,
+    surfaceAtomOf,
     // live reload contra un backend en modo dev (poc/liveReload.mjs)
     installDevLiveReload,
     devEventsUrlOf,
@@ -30339,6 +31212,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
+    installBannerDismissal,
     installRules,
     setPanelExpanded,
     panelExpanded,
@@ -30357,6 +31231,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     viewsMenuOf,
     listingScope,
     installRowTones,
+    // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)
+    installRowSelection,
+    setRowSelectSink,
+    rowShortcutIndexOf,
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
@@ -30374,6 +31252,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     mapViewPlanOf,
     installCalendars,
     installKeys,
+    setPaletteSink,
     installHover,
     installDragAndDrop,
     setDropSink,
@@ -30447,6 +31326,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dismissOverlayById,
     overlayVarsOf,
     overlaysClosedVarsOf,
+    surfaceOverlayVarsOf,
+    drawerChangedBetween,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,
@@ -30568,6 +31449,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    surfaceFieldEditOf,
     selectDroppedItsValue,
     // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
     // what a navigation does with them: one question, then every overlay closes
@@ -30592,6 +31474,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withContextState,
     withSearchableIds,
     shellNavOf,
+    shellChromeOf,
     // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
     headerActionRouteOf,
     // YAML app-context selectors backed by an optionsSource (direct sources)

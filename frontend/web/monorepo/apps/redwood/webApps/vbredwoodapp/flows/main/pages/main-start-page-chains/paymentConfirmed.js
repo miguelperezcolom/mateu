@@ -21,11 +21,13 @@ define([
      * @param {Object} params.event       the confirm button's ojAction
      * @param {string} params.actionId    the picker's actionId
      * @param {Object} params.parameters  { _method: the server's selected method }
+     * @param {string} params.surfaceId   the surface (an island) the picker belongs to, if any
      */
-    async run(context, { event, actionId, parameters }) {
+    async run(context, { event, actionId, parameters, surfaceId }) {
+      // through the block dispatcher: a picker of an island sends its confirm to that island
       await Actions.callChain(context, {
-        chain: 'runMateuAction',
-        params: { actionId, parameters: bridge.paymentParametersOf(event && event.target, parameters) },
+        chain: 'dispatchHostBlockAction',
+        params: { actionId, parameters: bridge.paymentParametersOf(event && event.target, parameters), surfaceId: surfaceId || '' },
       });
     }
   }

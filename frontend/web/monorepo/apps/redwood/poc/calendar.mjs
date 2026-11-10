@@ -8,6 +8,7 @@
 // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
 
 import { chromeText, uiLocale } from './i18n.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
 const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
@@ -312,20 +313,20 @@ export function installCalendars(doc = typeof document !== 'undefined' ? documen
     if (navButton) {
       let params = {}
       try { params = JSON.parse(navButton.getAttribute('data-cal-nav-params') || '{}') } catch (e) { params = {} }
-      calendarSink(navButton.getAttribute('data-cal-nav-action'), params, {})
+      calendarSink(navButton.getAttribute('data-cal-nav-action'), params, surfaceAtomOf(cal))
       return true
     }
     if (chip) {
       if (chip.getAttribute('data-cal-clickable') !== 'true') return false
       calendarSink(chip.getAttribute('data-cal-action'), {
         _clickedEvent: { id: chip.getAttribute('data-cal-event'), title: chip.getAttribute('data-cal-title'), date: chip.getAttribute('data-cal-date') },
-      }, {})
+      }, surfaceAtomOf(cal))
       return true
     }
     const cell = target.closest('[data-cal-date]')
     const action = cal.getAttribute('data-day-action')
     if (cell && action && cell.getAttribute('data-cal-date')) {
-      calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, {})
+      calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, surfaceAtomOf(cal))
       return true
     }
     return false
@@ -401,7 +402,7 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     const ids = (e.detail && e.detail.value) || []
     const hit = ids.length ? spec.actions[ids[ids.length - 1]] : null
     if (!hit || !calendarSink) return
-    calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, {})
+    calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, surfaceAtomOf(cal))
     setTimeout(() => { el.selected = [] }, 0)
   })
   // the toolbar: with a CalendarPage behind, its ‹ › Today and views are the page's (server-side) actions
@@ -409,16 +410,16 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav) return
     const step = spNavActionOf(spec.nav, el.selectedViewValue || spec.view, spec.anchor, String(e.detail.value || ''))
     if (step && step.kind === 'same') return
-    if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, {}); return }
+    if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, surfaceAtomOf(cal)); return }
     setTimeout(() => { el.focusDate = spec.focusDate }, 0)
   })
   el.addEventListener('selectedViewValueChanged', (e) => {
     if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav || !spec.nav.viewAction) return
     const v = e.detail.value
-    if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, {})
+    if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, surfaceAtomOf(cal))
   })
   el.addEventListener('spCalendarEventCreate', () => {
-    if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, {})
+    if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, surfaceAtomOf(cal))
   })
   // a date's cell (dayActionId): FullCalendar stamps data-date on it
   const dayOf = (target) => {
@@ -430,14 +431,14 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     const date = dayOf(e.target)
     if (!date || !calendarSink) return
     e.preventDefault(); e.stopPropagation()
-    calendarSink(spec.dayActionId, { _date: date }, {})
+    calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
   }, true)
   host.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return
     const date = dayOf(e.target)
     if (!date || !calendarSink) return
     e.preventDefault()
-    calendarSink(spec.dayActionId, { _date: date }, {})
+    calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
   }, true)
   let queued = false
   new MutationObserver(() => {

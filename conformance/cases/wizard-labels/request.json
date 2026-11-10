@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/wizard-labels",
+  "actionId": "next",
+  "componentState": {
+    "name": "Ada"
+  }
+}

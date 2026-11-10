@@ -77,7 +77,6 @@ const CONTAINER_TYPES = new Set([
     'VerticalLayout',
     'HorizontalLayout',
     'Div',
-    'FlexLayout',
     // A custom component (coherence-plan #14) lifts its slotted `content` into wire children, exactly
     // like the server's CustomComponentMapper — its `name`/`props` stay in metadata. The rendering is
     // per-renderer (registerCustomComponent), but the expansion is the ordinary container mapping.

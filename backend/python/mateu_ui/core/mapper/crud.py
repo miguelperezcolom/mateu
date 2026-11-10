@@ -28,6 +28,8 @@ from mateu_ui.dtos import (
     Trigger,
     VerticalLayoutMetadata,
 )
+from mateu_ui.uidl.markers import ColumnWidth, Line, Priority, Style
+from mateu_ui.uidl.markers import Status as StatusMarker
 from mateu_ui.uidl import (
     Restorable,
     Aggregate,
@@ -164,7 +166,7 @@ class CrudMapperMixin(MixinBase):
             [f for f in view_fields(element) if self.visible(f) and not f.has(HiddenInList)], True
         ):
             editable = inline and not f.has(ReadOnly)
-            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
+            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(column_options(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 editable=editable,
@@ -182,7 +184,7 @@ class CrudMapperMixin(MixinBase):
                 value_labels=value_labels_of(f.type),
                 # the first column opens the record (Java: ListRouteResolver.withViewOnFirstColumn)
                 action_id="view" if not columns else None,
-            ), f), f.type, grouped=self.group_by_of(element) is not None)))
+            ), f), f), f.type, grouped=self.group_by_of(element) is not None)))
         # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
         # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
         display = self._crud_display(cls, instance)
@@ -505,7 +507,7 @@ class CrudMapperMixin(MixinBase):
             if self.grid_row_type(f) is None and self.visible(f)
         ]
         for f in without_technical_id(row_fields, rows_clickable):
-            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
+            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(column_options(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 data_type=listing_data_type(f.type),
@@ -517,7 +519,7 @@ class CrudMapperMixin(MixinBase):
                 value_labels=value_labels_of(f.type),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
-            ), f), f.type, grouped=row_type is not None and self.group_by_of(row_type) is not None)))
+            ), f), f), f.type, grouped=row_type is not None and self.group_by_of(row_type) is not None)))
         # A listing declaring an interaction capability is a CRUD (Java bridges it to one with
         # CapabilityCrud); a plain one is a page holding a listing (Java's PageListingBuilder):
         # its title is the PAGE's, its row/view actions are open wildcards, nothing is validated.
@@ -719,6 +721,18 @@ class CrudMapperMixin(MixinBase):
         can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
         save_and_next: Button | None = None,
     ) -> ServerSideComponent:
+        # a creation form starts with what the server generates for its GeneratedValue() fields
+        # (Java's GeneratedValueInitializer, on a "new" request only)
+        if mode == "new" and entity is not None:
+            from mateu_ui.uidl.markers import GeneratedValue
+
+            for f in view_fields(element):
+                generated = f.marker(GeneratedValue)
+                if generated is not None:
+                    try:
+                        setattr(entity, f.name, generated.generate())
+                    except AttributeError:  # a frozen record: the form shows what it holds
+                        pass
         # HiddenInView() / HiddenInEditor() / HiddenInCreate() drop their fields from this form
         with crud_form_mode(mode):
             return self._map_entity_form(
@@ -841,8 +855,16 @@ class CrudMapperMixin(MixinBase):
     def map_rules(self, cls, instance) -> list[RuleRecord]:
         """Client-side rules of a view (mirrors Java's RuleMapper.createRules): ``Disabled()``
         fields disable unconditionally, ``Hidden(expr)`` fields hide while the expression is
-        truthy, and a :class:`RuleSupplier` contributes programmatic rules."""
-        rules: list[RuleRecord] = []
+        truthy, and a :class:`RuleSupplier` contributes programmatic rules. The class-level
+        ``@rule`` declarations come first, as Java's class ``@Rule``s do."""
+        rules: list[RuleRecord] = [
+            RuleRecord(
+                filter=r.filter, action=r.action, field_name=r.field_name,
+                field_attribute=r.field_attribute, value=r.value, expression=r.expression,
+                result=r.result, action_id=r.action_id,
+            )
+            for r in (getattr(cls, "__dict__", {}).get("__mateu_rules__", ()) if isinstance(cls, type) else ())
+        ]
         for f in view_fields(cls):
             field_id = camel_case(f.name)
             if f.has(Disabled) or not self.authorized(f.marker(DisabledUnless)):
@@ -946,6 +968,47 @@ def sortable_type(t) -> bool:
     return t in (str, int, float, bool, Decimal, date, datetime, time) or is_enum(t)
 
 
+#: Java's WeightEstimator.PX_PER_UNIT.
+_PX_PER_UNIT = 76.0
+
+
+def parse_px(value: str | None) -> float:
+    """Java's WeightEstimator.parsePx: a px width / 76, and 3.0 for anything else (``9rem``)."""
+    if value is None:
+        return 3.0
+    try:
+        return float(value.strip().lower().replace("px", "").strip()) / _PX_PER_UNIT
+    except ValueError:
+        return 3.0
+
+
+def column_options(meta: GridColumnMeta, f) -> GridColumnMeta:
+    """The options a reflected listing row field declares (Java's ListingColumnBuilder.getColumn):
+    Priority() → priority/identifier; ColumnWidth() → a fixed width, flex-grow "0", the column's
+    own text as its tooltip unless a Tooltip() names another field; Line(); Style()."""
+    update: dict = {}
+    # a Status(mappings) field's cells are status chips (Java's ColumnTypeMapper)
+    if f.has(StatusMarker):
+        update["data_type"] = "status"
+    priority = f.marker(Priority)
+    if priority is not None:
+        update["priority"] = priority.value
+        update["identifier"] = bool(priority.identifier) or meta.identifier
+    width = f.marker(ColumnWidth)
+    if width is not None:
+        update["width"] = width.value
+        update["flex_grow"] = "0"
+        if not meta.tooltip_path:
+            update["tooltip_path"] = camel_case(f.name)
+    line = f.marker(Line)
+    if line is not None:
+        update["line"] = line.value
+    style = f.marker(Style)
+    if style is not None and style.value:
+        update["style"] = style.value
+    return meta.model_copy(update=update) if update else meta
+
+
 def listing_column(meta: GridColumnMeta, t, grouped: bool = False) -> GridColumnMeta:
     """What every LISTING column carries on Java's wire (ListingColumnBuilder + GridColumnMapper):
     a "regular" stereotype unless it declares one, resizable, sortable when its values have a
@@ -963,7 +1026,7 @@ def listing_column(meta: GridColumnMeta, t, grouped: bool = False) -> GridColumn
         "sortable": not grouped and sortable_type(t),
         "auto_width": meta.auto_width or meta.width is None,
         "align": align,
-        "weight": column_weight(t, meta.stereotype),
+        "weight": parse_px(meta.width) if meta.width else column_weight(t, meta.stereotype),
     })
 
 

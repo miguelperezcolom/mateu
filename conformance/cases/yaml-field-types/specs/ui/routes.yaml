@@ -1,0 +1,4 @@
+# The case's own route table: one definition-only page whose fields and columns name field types.
+routes:
+  - route: order
+    layout: order.yaml

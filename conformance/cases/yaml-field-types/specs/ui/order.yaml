@@ -1,0 +1,15 @@
+# Fields and columns that name a field type: the type's attributes are their defaults, what they
+# declare themselves wins (the e-mail field relabels itself).
+layout:
+  type: VerticalLayout
+  content:
+    - {type: FormField, id: status, fieldType: OrderStatus}
+    - {type: FormField, id: total, label: Total, fieldType: Money}
+    - {type: FormField, id: contact, label: Contact e-mail, fieldType: Email}
+    - type: Listing
+      id: lines
+      title: Lines
+      rowsSource: {url: "https://api.example/lines", itemsPath: items}
+      columns:
+        - {type: GridColumn, id: status, fieldType: OrderStatus}
+        - {type: GridColumn, id: amount, label: Amount, fieldType: Money}

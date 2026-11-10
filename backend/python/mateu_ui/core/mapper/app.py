@@ -170,6 +170,8 @@ class AppMapperMixin(MixinBase):
             menu=items,
             route=app_route,
             root_route=mount,
+            # app-level floating buttons: the @fab methods of the app class (Java's AppDto.fabs)
+            fabs=self.fabs(cls),
             total_menu_options=self._total_menu_options(items),
             home_route=home_route,
             # The home always lives under the mount and is served by the app class itself.

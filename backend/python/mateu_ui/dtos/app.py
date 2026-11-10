@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .fields import ComponentEntryRecord, RestDataSource, RestSourceEntryRecord
     from .records import (
         Action,
+        Fab,
         MenuItem,
         Option,
     )
@@ -27,6 +28,9 @@ class AppMetadata(Wire):
     variant: str
     menu: list["MenuItem"] = Field(default_factory=list)
     layout: str = "SINGLE_SLOT"
+    #: App-level floating action buttons (``@fab`` methods of the app class), stacked above the AI
+    #: FAB on every screen (mirrors AppDto.fabs).
+    fabs: list["Fab"] = Field(default_factory=list)
     #: The app's own mount route (mirrors AppDto.route). A reflected (@Menu-field) app carries it;
     #: an AppSupplier shell that does not set one leaves it None.
     route: str | None = None

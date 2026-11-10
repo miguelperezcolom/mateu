@@ -288,8 +288,9 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
 }
 
 /** A standalone Image component (metadata.src — data URI or URL). */
-fun renderStandaloneImage(metadata: JsonNode): JComponent {
-    val src = metadata.text("src")
+fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null): JComponent {
+    // a root-relative src (`/assets/logo.png`) is the app backend's, as the browser reads it
+    val src = metadata.text("src").let { if (it.startsWith("data:")) it else io.mateu.ijp.api.Urls.resolve(baseUrl, it) }
     // the declared text alternative (Image.alt) is the accessible name a screen reader reads
     val alt = metadata.text("alt").trim()
     if (src.isBlank()) return JPanel().apply { isOpaque = false }

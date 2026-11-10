@@ -7366,8 +7366,9 @@ test('embedded MicroFrontend: NONE draws no title nor toolbar, COMPACT only the 
     const blocks = mfeWithSubresources([{ items: [{ isSubresource: true, islandId: sub.id, subresource: sub }] }], reg.contexts)
     const items = blocks.flatMap((b) => b.items)
     return {
-      title: items.some((a) => a.isText && a.text === 'Remote page'),
-      toolbar: items.some((a) => a.isButtons && a.fromPageToolbar),
+      // the remote page's header is drawn inside its box (the island header atom)
+      title: items.some((a) => (a.isText || a.isIslandHeader) && (a.text === 'Remote page' || a.title === 'Remote page')),
+      toolbar: items.some((a) => a.isButtons && !a.fromPageButtons),
       body: items.some((a) => a.isText && /remote body/.test(a.text || a.html || '')),
       crumbs: items.some((a) => a.isBreadcrumbs || a.crumbs),
     }

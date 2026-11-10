@@ -152,18 +152,25 @@ define([
       bridge.setScoreboardActionSink(runPageAction);
       // a FileList's oj-sp-attachment-chip downloads its file's URL (local data, no Oracle REST)
       bridge.installAttachmentChips();
+      // an island page's closeable / timed banners (notify.mjs)
+      bridge.installBannerDismissal();
       // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
       // kanban cards: drag between/within columns or the ⋯ select → the content page's kanbanCardMoved
-      bridge.setKanbanMoveSink(({ key, move }) => Actions.fireEvent(window.__mateuShellContext || context, {
-        name: 'application:mateuKanbanMove', payload: { key, move },
+      bridge.setKanbanMoveSink(({ key, move, surfaceId }) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuKanbanMove', payload: { key, move, surfaceId: surfaceId || '' },
       }));
       bridge.installKanbans();
       bridge.setKeysActionSink(runPageAction);
+      // Ctrl+K / ⌘K: the Search-or-go palette (the Ask FAB's chain)
+      bridge.setPaletteSink(() => Actions.callChain(window.__mateuShellContext || context, { chain: 'askOracleOpen' }));
       // compare & merge (RecordMerge): picks are DOM state; the merge goes out as a page action
       bridge.installRecordMerges();
       bridge.setRecordMergeSink(runPageAction);
+      // @OnRowSelected on a grid field: a row click / its shortcut + the row's number
+      bridge.installRowSelection();
+      bridge.setRowSelectSink(runPageAction);
       // app shortcuts + «?» + quick launch, live header values, the idle warning (appExtras.mjs)
       bridge.installAppExtras();
 
@@ -296,12 +303,19 @@ define([
       $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
       // MENU_ON_TOP: band 2 under the header — the console's title and its menu
       // HAMBURGER_SECTIONS: the same band, with the second level of the section on screen
-      $application.variables.mateuMenuSubheader = nav.mode === 'subheader' || nav.mode === 'sections';
+      $application.variables.mateuMenuSubheader = nav.mode === 'subheader' || nav.mode === 'sections' || nav.mode === 'tiles';
       $application.variables.mateuMenuSections = nav.mode === 'sections';
       $application.variables.mateuSectionList = nav.sections;
       $application.variables.mateuShellTitle = nav.title;
-      $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
-      $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // open from the start
+      // the navigator: HAMBURGER_MENU (folds with the hamburger), MENU_ON_LEFT (docked, always
+      // there) and RAIL (docked, narrow) — bridge.shellChromeOf
+      const chrome = bridge.shellChromeOf(nav, reg.shell, window.self !== window.top);
+      $application.variables.mateuMenuDrawerMode = chrome.drawer;
+      $application.variables.mateuNavDrawerOpen = chrome.drawer; // open from the start
+      $application.variables.mateuMenuDocked = chrome.docked;
+      $application.variables.mateuMenuRail = chrome.rail;
+      $application.variables.mateuChromeless = chrome.chromeless;
+      $application.variables.mateuAskFab = chrome.askFab;
       $application.variables.mateuMenuTree = nav.menuTree;
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
@@ -385,7 +399,7 @@ define([
         document.title = reg.shell.title;
       }
 
-      if (nav.mode === 'drawer') {
+      if (chrome.drawer) {
         // the navigation-list parses its <ul> on init; the stamped li arrive later
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuNavList', method: 'refresh' });

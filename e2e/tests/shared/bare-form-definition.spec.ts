@@ -2,14 +2,10 @@ import { test, expect } from '@playwright/test';
 
 /**
  * A definition-only route whose definition is a bare `type: Form` (no `layout:` envelope) holding
- * only a Text renders THAT definition — not the mount's root page. Fixture: mvc-app1
+ * only a Text renders THAT definition — not the mount's root page. Fixture: sample1
  * `specs/ui/bare-form-routes.yaml` (one and two segments under sample1's `@UI("")` SimpleForm, and
- * an untitled one carrying `$schema:`).
+ * an untitled one carrying `$schema:`), so every SUT app serves it.
  */
-
-test.beforeEach(({}, testInfo) => {
-  test.skip(testInfo.project.name !== 'mvc-app1', 'the bare-form fixtures live in mvc-app1');
-});
 
 for (const route of ['/bare-form-note', '/bare/form-note']) {
   test(`${route} renders the bare Form definition`, async ({ page }) => {

@@ -366,6 +366,30 @@ class DispatchMixin(MixinBase):
                 # declared actions/triggers/pageType and a proxied source. A path parameter ALONE is
                 # no seed: such a page answers its bare layout, as Java's seedBareLayout does.
                 page_actions = self._definition_page_actions(yaml_spec)
+                # a field hidden from the caller (eyesOnly:/access:) never gets a value from the
+                # route either: a state:/defaultParams:/fixedParams: seed of it would otherwise
+                # travel to that caller (a read-only field keeps its seed: it is drawn, with it).
+                # So does one a business component the layout names hides: compositions are
+                # resolved while the page is mapped, after this seeding
+                hidden = set(yaml_spec.hidden_fields)
+                components = getattr(self, "components", None)
+                if components is not None:
+                    from ..component_registry import component_refs_in
+
+                    hidden |= components.hidden_for(
+                        component_refs_in(yaml_spec.layout), self.mapper.authorized
+                    )
+                if hidden:
+                    rq = rq.model_copy(
+                        update={
+                            "component_state": {
+                                k: v
+                                for k, v in (rq.component_state or {}).items()
+                                if k not in hidden
+                            }
+                        }
+                    )
+                    client_state = {k: v for k, v in client_state.items() if k not in hidden}
                 wraps = bool(
                     route_seeds or yaml_spec.page_type or page_actions or list(yaml_spec.triggers)
                 )
