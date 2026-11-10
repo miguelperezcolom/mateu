@@ -128,6 +128,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // ── network / errors ──
       offlineBand: "Offline — changes you make now won't be saved.",
       errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+      errUnreachable: 'Its server could not be reached. It may be down — try again later.',
       errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
       errServer: 'The server could not complete the request. Try again.',
       wireVersionMismatch: "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",
@@ -417,6 +418,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureSignHere: 'Firme aquí',
       offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
       errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+      errUnreachable: 'No se ha podido contactar con su servidor. Puede estar caído — inténtalo más tarde.',
       errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
       errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
       wireVersionMismatch: 'El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.',
@@ -1969,7 +1971,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const quoted = /^\s*>\s?(.*)$/.exec(line)
       if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
-      flushList(); flushQuote()
+      // a LAZY continuation: a plain line right after a list item (or a quote) belongs to it, as
+      // in CommonMark — a bullet wrapped onto a second source line fell out of the list
+      if (list && list.items.length) { list.items[list.items.length - 1] += ' ' + line.trim(); continue }
+      if (quote.length) { quote.push(line.trim()); continue }
       para.push(line.trim())
     }
     flushAll()
@@ -2488,7 +2493,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
         value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
       }
-      out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
+      // a label is a template like a section title (`Price per night (${state.currency})`)
+      const label = typeof widget.label === 'string' && widget.label.includes('${')
+        ? interpolate(widget.label, s, { data: data || {} }) : widget.label
+      out.push({ ...widget, label, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
     }
     return out
   }
@@ -5035,6 +5043,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * What the shell draws around the content, from its nav mode: the navigator (HAMBURGER_MENU folds
+   * it with the hamburger; MENU_ON_LEFT and RAIL keep it docked, RAIL narrow), no chrome at all
+   * (@App(chromeless)), and Spectra's Ask FAB (the Search-or-go palette) — off in a FRAMED app (an
+   * iframe preview) that enables no command center or global search: there the FAB only covered the
+   * small frame's content. Pure.
+   */
+  function shellChromeOf(nav, shell, framed = false) {
+    const mode = (nav && nav.mode) || ''
+    const palette = !!(shell && (shell.commandCenterEnabled || shell.globalSearchEnabled || shell.chromeless))
+    return {
+      drawer: mode === 'drawer' || mode === 'left' || mode === 'rail',
+      docked: mode === 'left' || mode === 'rail',
+      rail: mode === 'rail',
+      chromeless: mode === 'none',
+      askFab: framed && !palette ? 'off' : 'on',
+    }
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
@@ -5044,7 +5071,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
       // menu that does not go through there must not draw it either
       if (option.visible === false) continue
-      const node = navNodeOf(option, '')
+      // TILES: every group opens as a panel of CARDS (the card menu, @Menu(display = cards)) —
+      // Redwood's springboard of tiles, in the subheader band
+      const tiled = shell.variant === 'TILES' && (option.submenus || option.submenu || []).length && !option.display
+        ? { ...option, display: 'cards' } : option
+      const node = navNodeOf(tiled, '')
       items.push(node.disabled
         ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
         : { id: node.id, label: node.label, icon: node.icon })
@@ -5063,8 +5094,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside the dark header (topbar)
     // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
     // level (only the sections) and the subheader carries the second level of the section on screen.
+    // MENU_ON_LEFT → LEFT: the same navigator, docked and always there (no hamburger to fold it);
+    // RAIL → RAIL: that navigator as a narrow rail of the first level; TILES → the subheader band
+    // with each group as a panel of cards; @App(chromeless) → NONE: no navigation chrome at all —
+    // the Ask palette (the command center) is the way around
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.chromeless) mode = 'none'
+    else if (shell.variant === 'HAMBURGER_MENU') mode = 'drawer'
+    else if (shell.variant === 'MENU_ON_LEFT') mode = 'left'
+    else if (shell.variant === 'RAIL') mode = 'rail'
+    else if (shell.variant === 'TILES') mode = 'tiles'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
@@ -5324,8 +5363,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
+    // An ESCAPED `\${i18n.x}` is the literal text `${i18n.x}` (it read `\x`).
     if (text != null && String(text).includes('i18n.')) {
-      text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+      text = String(text).replace(/(\\\\|\\\$\{)|\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, escaped, key) => (escaped ? all : key))
     }
     // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
     // arrives as ${state['_position']})
@@ -6459,7 +6499,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Markdown') {
         // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
         // that installRichText dumps into its container (VB does not stamp HTML from a binding)
-        const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+        // NOT interpolated: a Markdown's text is prose (a description, a code listing) where `${…}`
+        // is content, like the web renderer's mateu-markdown — interpolating it blanked the
+        // expressions out of every Explorer description and showed source code that is not the file
+        const html = richHtmlOf('markdown', String(m.markdown || m.text || ''))
         if (html) atom({ isRichText: true, label: '', html }, container)
         return
       }
@@ -7618,6 +7661,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const prevRoute = pn ? text(pn.prevRoute) : ''
     const nextRoute = pn ? text(pn.nextRoute) : ''
     return {
+      // the trail a page DECLARES (BreadcrumbsSupplier → Page.breadcrumbs): it replaces the automatic one
+      breadcrumbs: (md.breadcrumbs || [])
+        .map((b) => ({ text: text(b && b.text), route: String((b && b.link) || '').trim() }))
+        .filter((b) => b.text),
       overline: text(md.overline),
       titlePlaceholder: text(md.titlePlaceholder),
       timestamp: text(md.timestamp),
@@ -7953,6 +8000,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parentCrumb(summarizeHost(reg, route).trail) || null
   }
 
+  /** A view model class read as a title — `…smartsearchpage.LoanFinder` → «Loan finder», like the
+   *  server's Humanizer; '' for a framework class (a YAML page's SeededYamlPage names nothing). */
+  function typeTitleOf(serverSideType) {
+    const type = String(serverSideType || '')
+    if (!type || type.startsWith('io.mateu.core') || type.startsWith('io.mateu.uidl')) return ''
+    const simple = type.split('.').pop().split('$').pop()
+    const words = simple.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase()
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : ''
+  }
+
+  /** Does the tree carry a heading Text (h1–h6) of its own (not crossing an island)? */
+  function hasHeadingText(tree) {
+    let found = false
+    const walk = (n, isRoot) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return
+      const md = n.metadata
+      if (md && md.type === 'Text' && /^h[1-6]$/.test(md.container || '') && String(md.text || '').trim()) { found = true; return }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return found
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
@@ -7976,7 +8048,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
     const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
-    const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
+    const hostExtras = pageHeaderExtrasOf(host)
+    const placeholder = !declaredTitle && hostExtras.titlePlaceholder
+    const declaredCrumbs = hostExtras.breadcrumbs.map((c) => (c.route ? { text: c.text, route: c.route } : { text: c.text }))
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
       // there either, in the menu label
@@ -7986,12 +8060,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
       title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
         || (option && (option.caption || option.label))
-        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
+        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '')
+        // …and a composed page with NO title at all (no @Title, no window title, no menu entry —
+        // a SmartSearchPage opened on its own): Spectra's header draws «...» for an empty title, so
+        // the page is named by its class, as the server names an untitled one (the Humanizer)
+        // (not when its content brings a heading of its own: a wizard's h2 names it)
+        || (hasHeadingText(host.tree) ? '' : typeTitleOf(host.tree && host.tree.serverSideType)) || ''),
       // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
       // @NoBreadcrumbs on the page or on the shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
         ? []
-        : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
+        // a page that declares its trail (BreadcrumbsSupplier) is where IT says it is
+        : (declaredCrumbs.length ? declaredCrumbs : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) })),
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -10268,6 +10348,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           osNotifications: !!md.osNotifications,
           // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
+          // @App(commandCenter) / @App(chromeless): the Ask palette is the way around (no nav chrome)
+          commandCenterEnabled: !!md.commandCenterEnabled || !!md.chromeless,
+          chromeless: !!md.chromeless,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
           // notifications.source/markRead, globalSearch.source) instead of the app-level actions
           notificationsSource: md.notificationsSource || null,
@@ -10926,7 +11009,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-select-one, JET answered with the first option and the form saved it unasked.
     const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
     const raw = s[fieldId] != null ? s[fieldId] : fromData
-    const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+    // a label is a template like a section title (`Price per night (${state.currency})`)
+    const widget = typeof built.label === 'string' && built.label.includes('${')
+      ? { ...built, label: interpolate(built.label, s, { data: d }) } : built
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
@@ -15197,6 +15283,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
         }
         if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
+        // an ISOLATED request (another origin's island, a federated remote) that did not arrive says
+        // that server is down, not that the user is offline — «You're offline» was wrong in its box
+        if (failure.kind === 'offline' && isolated && connectivity.isOnline()) failure = { ...failure, message: chromeText('errUnreachable') }
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
           // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
@@ -18596,13 +18685,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function ruleSurfacesOf(reg, hostId = '__root__') {
     const out = []
     const contexts = (reg && reg.contexts) || {}
-    if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+    const add = (surface, ctx) => {
+      if (!ctx) return
+      if (hasRules(ctx)) out.push({ surface, ctx })
+      // an island painted INSIDE this surface (a nested ServerSide of its tree — an EmbeddedView, a
+      // page an example embeds) brings rules of its own: they act on its fields, which are painted
+      // in this surface, against the island's state (its initialData, then what is typed). They
+      // were never read, so a `@Hidden("!state.company")` inside an island did nothing.
+      for (const island of nestedRuleIslandsOf(ctx.tree)) {
+        // an inline island registered as a context of its own (transport registerInlineIsland) has
+        // its CURRENT state there; else the state it arrived with
+        const own = island.id ? Object.values(contexts).find((c) => c && c !== ctx && c.tree && c.tree.id === island.id) : null
+        out.push({ surface, ctx: { id: (ctx.id || surface) + '/' + (island.id || ''), tree: island, state: (own && own.state) || island.initialData || {}, data: (own && own.data) || ctx.data || {} } })
+      }
+    }
+    add('host', contexts[hostId])
     for (const [id, ctx] of Object.entries(contexts)) {
-      if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+      if (id !== hostId && ctx && ctx.kind === 'island') add('island', ctx)
     }
     const stack = (reg && reg.stack) || []
     const top = stack.length ? contexts[stack[stack.length - 1]] : null
-    if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+    add('overlay', top)
+    return out
+  }
+
+  /** The ServerSide nodes nested in a tree (not the root) that carry rules. Pure. */
+  function nestedRuleIslandsOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide' && Array.isArray(n.rules) && n.rules.length) out.push(n)
+      for (const [k, v] of Object.entries(n)) {
+        if (k === 'rules' || k === 'initialData' || k === 'validations') continue
+        if (v && typeof v === 'object') walk(v, false)
+      }
+    }
+    walk(tree, true)
     return out
   }
 
@@ -20176,6 +20295,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let keysSink = null
   function setKeysActionSink(fn) { keysSink = typeof fn === 'function' ? fn : null }
 
+  // Ctrl+K / ⌘K opens the Search-or-go palette (the Ask FAB's: menu, recent, global search), like
+  // the web's ⌘K palette and command center — a screen action bound to the same keys wins
+  let paletteSink = null
+  function setPaletteSink(fn) { paletteSink = typeof fn === 'function' ? fn : null }
+  const isPaletteKey = (e) => !!e && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
+    && (String(e.key || '').toLowerCase() === 'k' || e.code === 'KeyK')
+
   let accessKeysOn = false
   function setAccessKeysEnabled(on) { accessKeysOn = !!on }
 
@@ -20241,9 +20367,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const matches = (shortcut, e) => (typeof shortcutMatches === 'function' ? shortcutMatches(shortcut, e) : false)
 
+  // Enter on the EMPTY box of Spectra's smart search (oj-sp-smart-filter-search) threw inside
+  // Spectra — its keyword handler trims an input raw value that is still undefined — and searched
+  // nothing; a SmartSearchPage says «Press Enter on an empty box to list every loan». The key is
+  // taken in capture before Spectra sees it: with no keyword chip it launches the listing's search
+  // with no text through the header's own search slot (its ojValueAction → mateuSearchAction), with
+  // chips it is just swallowed (they already are the search).
+  function emptySearchEnterOf(e) {
+    if (!e || e.key !== 'Enter' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null
+    const target = e.target
+    if (!target || target.tagName !== 'INPUT' || String(target.value || '').trim() !== '') return null
+    const header = target.closest ? target.closest('oj-sp-smart-filter-search') : null
+    if (!header) return null
+    const slot = header.querySelector('oj-input-search[slot="search"]')
+    if (slot && slot.contains(target)) return null // the slot's own box: JET handles it
+    const chips = (header.smartFilters && header.smartFilters.value) || []
+    return { slot, search: !chips.some((c) => c && c.filter === 'keyword') }
+  }
+
+  function installEmptySearchEnter(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuEmptySearchEnter) return
+    doc.__mateuEmptySearchEnter = true
+    const handle = (e) => {
+      const hit = emptySearchEnterOf(e)
+      if (!hit) return
+      e.stopImmediatePropagation()
+      e.preventDefault()
+      if (e.type === 'keyup' && hit.search && hit.slot) {
+        hit.slot.dispatchEvent(new CustomEvent('ojValueAction', { detail: { value: '' }, bubbles: true }))
+      }
+    }
+    doc.addEventListener('keydown', handle, true)
+    doc.addEventListener('keyup', handle, true)
+  }
+
   function installKeys(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuKeys) return
     doc.__mateuKeys = true
+    installEmptySearchEnter(doc)
     let holdTimer = null
     doc.addEventListener('keydown', (e) => {
       // holding Alt (alone): the keys appear
@@ -20258,6 +20419,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (action && keysSink) {
         e.preventDefault(); e.stopPropagation()
         keysSink(action.id, {}, {})
+        return
+      }
+      if (paletteSink && isPaletteKey(e)) {
+        e.preventDefault(); e.stopPropagation()
+        paletteSink()
         return
       }
       // 2. a tab
@@ -22976,9 +23142,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
-    const bare = (body.route || '').replace(/^\//, '')
+    // a static remote (its base names a bundle's manifest) has no server to POST to
+    if (isStaticBundleBase(base)) throw staticRemoteError(base)
+    const bare = routeForRemote(base, body.route || '').replace(/^\//, '')
     noteDocumentBase(base) // a parked Document is requested from THIS backend
-    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
+    const query = typeof options.urlQuery === 'string' && options.urlQuery[0] === '?' ? options.urlQuery : ''
+    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -23135,6 +23304,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
    *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
    *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
+  /** loadRoute with the screen's query on the request URL (and in the bundle's lookup). */
+  function loadRouteWithQuery(base, route, initiator, extra, urlQuery) {
+    if (!urlQuery || urlQuery === '?') return loadRoute(base, route, initiator, extra)
+    return loadRoute(base, route + urlQuery, initiator, extra, { urlQuery })
+  }
+
   const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
@@ -23157,7 +23332,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
-    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
+    // the query rides the URL (callOptions.urlQuery), never the body's route
+    const at = callOptions.urlQuery ? String(route).indexOf('?') : -1
+    return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -23274,7 +23451,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
-    const bare = effectiveRoute.replace(/^\//, '')
+    const bare = routeForRemote(base, effectiveRoute).replace(/^\//, '')
     noteDocumentBase(base)
     // No timeout: a LongTask keeps the stream open by design, so a ceiling would
     // kill it halfway. It still goes through the policy so the failure arrives classified.
@@ -23403,6 +23580,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
+  /** The remote screen a shell's App names as its content (a federated deep link), or null: an App
+   *  whose home lives on ANOTHER base than the one asked. */
+  function remoteHomeOf(increment, base) {
+    for (const fr of (increment && increment.fragments) || []) {
+      const c = fr.component
+      const md = c && c.metadata
+      if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App' || md.variant === 'MEDIATOR') continue
+      const home = md.homeBaseUrl
+      if (!home || String(home).replace(/\/+$/, '') === String(base || '').replace(/\/+$/, '')) continue
+      if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) continue
+      return {
+        baseUrl: home,
+        homeRoute: md.homeRoute || '',
+        consumedRoute: md.homeConsumedRoute || '',
+        serverSideType: md.homeServerSideType,
+        uriPrefix: md.homeUriPrefix || '',
+      }
+    }
+    return null
+  }
+
+  /** The shell prefix a deep link puts in front of the remote's route (/inventory/stock + /stock →
+   *  /inventory); '' when the link does not end with it. */
+  function remotePrefixOfDeepLink(requested, homeRoute) {
+    const r = String(requested || '').split('?')[0].replace(/\/+$/, '')
+    const h = String(homeRoute || '').split('?')[0].replace(/\/+$/, '')
+    if (!h || h === '/' || r === h || !r.endsWith(h)) return ''
+    return r.slice(0, r.length - h.length)
+  }
+
   /** Did the load answer the server's «Not found.» (a lone Text, no ServerSide)? */
   function isServerNotFound(ctx) {
     const t = ctx && ctx.tree
@@ -23470,6 +23677,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the raw INCREMENT is kept: the 1st load of a menu option arrives as a mediator App
     // (ClientSide type App), which reduceContexts routes to the CHROME (shell) and not to the context —
     // mediatorOf(host) does not see it, so the mediator has to be taken from the increment itself.
+    // the route's ?query (/x/rates/web/palma?currency=USD) is the SCREEN's parameters: the server
+    // reads them off the request URL (RouteSegmentUtils: query > defaults) — the route itself, its
+    // outbound and the menu matching stay clean, as before
+    const queryAt = String(route || '').indexOf('?')
+    const urlQuery = queryAt >= 0 ? String(route).slice(queryAt) : ''
+    if (queryAt >= 0) route = String(route).slice(0, queryAt)
+    const loadRoute = (b, r, t, e) => loadRouteWithQuery(b, r, t, e, urlQuery)
     let firstIncrement = await loadRoute(base, route, targetId, extra)
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
@@ -23503,7 +23717,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
-    if (info) {
+    // a deep link / reload of a REMOTE screen (/fed/inventory/stock): the shell answers its App aimed
+    // at it and names where it lives (homeBaseUrl + homeRoute + homeServerSideType) — the content is
+    // asked to THAT remote, as a menu click would. The shell used to stop there: a blank page.
+    const remoteHome = targetId === '' ? remoteHomeOf(firstIncrement, base) : null
+    if (remoteHome) {
+      registerRemotePrefix(remoteHome.baseUrl, remotePrefixOfDeepLink(effectiveRoute, remoteHome.homeRoute))
+      registerRemoteRoute(effectiveRoute, remoteHome)
+      outbound = { route: effectiveRoute, consumedRoute: remoteHome.consumedRoute, serverSideType: remoteHome.serverSideType, baseUrl: remoteHome.baseUrl }
+      next = reduceContexts(next, await loadRoute(remoteHome.baseUrl, remoteHome.homeRoute, targetId, {
+        ...extra,
+        consumedRoute: remoteHome.consumedRoute,
+        serverSideType: remoteHome.serverSideType,
+      }))
+    } else if (info) {
       // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
       // the route of its content — the crud's own path
       if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
@@ -23637,8 +23864,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const toasts = [...(next.effects.toasts || [])]
     // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
     // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
+    const answered = next
     next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
-    toasts.push(...(next.effects.toasts || []))
+    // only what the SUBSCRIBERS' answers brought: with nothing delivered the registry comes back as it
+    // was, and its toasts — the action's own — were counted twice (a «Fail» showed its error twice)
+    if (next !== answered && next.effects !== answered.effects) toasts.push(...(next.effects.toasts || []))
     // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
     next = await ensureInlineIslands(outbound.baseUrl, next, extra)
     return { ...next, effects: { ...next.effects, toasts } }
@@ -23847,6 +24077,55 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Menu route → where it really lives. Filled by expandRemoteMenus; read by navigation. */
   const remoteRoutes = new Map()
 
+  // A remote's screens live UNDER its mount's prefix in the shell (`routePrefix`: /inventory), as the
+  // shell's server reads a deep link (/fed/inventory/stock → the Inventory remote's /stock): its menu
+  // leaves are spliced with the prefix in front (adoptRemote), so the address, a reload and a shared
+  // link name the remote — they used to lose it (/fed/stock) and a reload broke. The remote itself
+  // knows its routes WITHOUT the prefix: it is taken off every request sent to that base.
+  const remotePrefixes = new Map()
+
+  /** `route` with `prefix` in front, unless it already lives under it (or there is no prefix). */
+  function prefixedRoute(prefix, route) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    const r = String(route == null ? '' : route)
+    if (!p || p === '/') return r
+    const path = r.split('?')[0]
+    const norm = path && path[0] !== '/' ? '/' + path : path
+    if (norm === p || norm.indexOf(p + '/') === 0) return r
+    const rest = r && r[0] !== '/' ? '/' + r : r
+    return p + (rest === '/' ? '' : rest)
+  }
+
+  /** The route as the remote at `base` knows it: its prefix in the shell taken off. */
+  function routeForRemote(base, route) {
+    const prefix = remotePrefixes.get(String(base || ''))
+    const r = String(route == null ? '' : route)
+    if (!prefix) return r
+    const lead = r[0] === '/' ? r : '/' + r
+    if (lead === prefix || lead.indexOf(prefix + '?') === 0) return lead.slice(prefix.length) || ''
+    return lead.indexOf(prefix + '/') === 0 ? lead.slice(prefix.length) : r
+  }
+
+  /** Records the prefix a remote's screens live under in the shell (no-op without one). */
+  function registerRemotePrefix(base, prefix) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    if (base && p && p !== '/') remotePrefixes.set(String(base), p[0] === '/' ? p : '/' + p)
+  }
+
+  /** A base url that names a static bundle's MANIFEST (a RemoteMenu to a statically deployed
+   *  domain), not a Mateu server — the web's bundleStore.isStaticBundleUrl. */
+  function isStaticBundleBase(base) {
+    const path = String(base || '').split('#')[0].split('?')[0]
+    return /\.json$/i.test(path)
+  }
+
+  /** What a request to a static remote fails with: it is not a server. */
+  function staticRemoteError(base) {
+    const error = new Error('mateu: ' + base + ' is a static bundle, not a Mateu server')
+    error.mateuStaticRemote = true
+    return error
+  }
+
   /**
    * Where a route lives, or undefined if the shell itself serves it.
    *
@@ -23922,8 +24201,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function adoptRemote(menu, option, app) {
     const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
+    // only the prefix the SERVER declares (routePrefix: where it reads the remote's deep links), not
+    // the option's path — a remote mounted as a menu path keeps its routes as they come
+    const prefix = option.routePrefix ? mountPrefix(option) : ''
+    registerRemotePrefix(option.baseUrl, prefix)
     for (const child of menu || []) {
       if (child.baseUrl) continue
+      // under the mount's prefix in the shell (see remotePrefixes); the raw route stays registered too
+      const raw = child.route || child.path || ''
+      if (prefix) {
+        if (child.route) child.route = prefixedRoute(prefix, child.route)
+        if (child.path) child.path = prefixedRoute(prefix, child.path)
+      }
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
         // The group belongs to the pod too: whatever hangs from its route and is none of its leaves —the
@@ -23952,6 +24241,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = child.route || child.path || ''
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
+      if (raw && raw !== route && !remoteRoutes.has(raw)) {
+        remoteRoutes.set(raw, descriptor)
+        remoteRoutes.set(String(raw).replace(/^\//, ''), descriptor)
+      }
     }
   }
 
@@ -26386,7 +26679,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+  // oj-sp-header-create-edit draws its own Cancel with a FIXED label (its translations and display
+  // options have none for it), so a crud's `cancelLabel()` («Discard») showed «Cancel». The header
+  // carries the wire's label (`data-mateu-cancel-label`) and this puts it on Spectra's button
+  // (`<header id>_cancelAction`); oj-sp re-renders it, so it is re-checked like the fact actions.
+  const CANCEL_LABEL_HOST = '[data-mateu-cancel-label]'
+  function relabelCancel(host) {
+    const label = host.getAttribute('data-mateu-cancel-label') || ''
+    if (!label || !host.id) return
+    const button = host.querySelector('[id="' + host.id + '_cancelAction"]')
+    if (button && button.label !== label) button.label = label
+  }
+
+  /** Installs (once) the fact action buttons of every header that carries some, and their clicks
+   *  — and the wire's Cancel label on a create/edit header (relabelCancel). */
   function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuFactActions) return
     doc.__mateuFactActions = true
@@ -26399,6 +26705,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     const root = doc.body || doc.documentElement
     for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+    for (const host of Array.from(root.querySelectorAll(CANCEL_LABEL_HOST))) relabelCancel(host)
     if (typeof MutationObserver === 'undefined') return
     new MutationObserver((records) => {
       const hosts = new Set()
@@ -26413,7 +26720,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       }
       for (const host of hosts) decorateFactActions(host, doc)
-    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+      const relabel = new Set()
+      for (const r of records) {
+        const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+        const host = target && target.closest ? target.closest(CANCEL_LABEL_HOST) : null
+        if (host) relabel.add(host)
+        for (const n of r.addedNodes || []) {
+          if (n.nodeType !== 1) continue
+          if (n.matches && n.matches(CANCEL_LABEL_HOST)) relabel.add(n)
+          for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(CANCEL_LABEL_HOST) : [])) relabel.add(h)
+        }
+      }
+      for (const host of relabel) relabelCancel(host)
+    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
   }
 
   // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
@@ -26499,6 +26818,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       pass(hosts)
     }).observe(root, { subtree: true, childList: true })
   }
+
 
 
 
@@ -26822,6 +27142,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
    * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
    */
+  /** A declared trail as the header draws it: links (in-app urls) but the last one. Pure. */
+  function headerCrumbsOf(breadcrumbs) {
+    const list = breadcrumbs || []
+    return list.map((c, i) => {
+      const last = i === list.length - 1
+      const route = !last && c.route ? (c.route.charAt(0) === '/' || /^[a-z]+:/i.test(c.route) ? c.route : '/' + c.route) : ''
+      const href = route && !/^[a-z][a-z0-9+.-]*:/i.test(route) ? urlOfRoute(route) : ''
+      return { key: String(i), text: c.text, href, hasHref: !!href, noHref: !href, last }
+    })
+  }
+
   function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
     const showBand = showHeader && pageWidth !== 'edgeToEdge'
     const showListBand = !!listing && pageWidth !== 'edgeToEdge'
@@ -26859,6 +27190,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       subtitle,
       // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
       overline: extras.overline,
+      // the trail a page DECLARES (BreadcrumbsSupplier), above the header: Spectra has no breadcrumbs
+      // component (its go-to-parent stays the parent crumb); the last crumb is where we are
+      crumbs: headerCrumbsOf(extras.breadcrumbs),
       // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
       // text went to the subtitle)
       timestamp: stamp.iso,
@@ -26886,6 +27220,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
       // primaryId) instead of general-overview's «‹ Cancel» link
       createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+      // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+      // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+      cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
       showBand: showBand && !gopOn && !iopOn,
       showInline: showHeader && !showBand && !gopOn && !iopOn,
       showListBand,
@@ -29395,6 +29732,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
   const NOT_IN_EMBEDDED = Object.freeze({
+    // Ctrl+K opens the SHELL's Search-or-go palette: an embedded component has no shell palette, and
+    // the host page owns its own keyboard shortcuts
+    setPaletteSink: 'the palette is the standalone shell\'s; the host page owns Ctrl+K',
     // a skip link is the first child of the BODY: the host page owns its own landmarks
     mountSkipLink: 'the host page owns the document landmarks',
     // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
@@ -29905,6 +30245,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     mapViewPlanOf,
     installCalendars,
     installKeys,
+    setPaletteSink,
     installHover,
     installDragAndDrop,
     setDropSink,
@@ -30123,6 +30464,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withContextState,
     withSearchableIds,
     shellNavOf,
+    shellChromeOf,
     // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
     headerActionRouteOf,
     // YAML app-context selectors backed by an optionsSource (direct sources)

@@ -197,8 +197,9 @@ export function isExternalRoute(route) {
 export function interpolate(text, state, scope = {}) {
   // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
   // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
+  // An ESCAPED `\${i18n.x}` is the literal text `${i18n.x}` (it read `\x`).
   if (text != null && String(text).includes('i18n.')) {
-    text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+    text = String(text).replace(/(\\\\|\\\$\{)|\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, escaped, key) => (escaped ? all : key))
   }
   // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
   // arrives as ${state['_position']})
@@ -1332,7 +1333,10 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Markdown') {
       // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
       // that installRichText dumps into its container (VB does not stamp HTML from a binding)
-      const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+      // NOT interpolated: a Markdown's text is prose (a description, a code listing) where `${…}`
+      // is content, like the web renderer's mateu-markdown — interpolating it blanked the
+      // expressions out of every Explorer description and showed source code that is not the file
+      const html = richHtmlOf('markdown', String(m.markdown || m.text || ''))
       if (html) atom({ isRichText: true, label: '', html }, container)
       return
     }

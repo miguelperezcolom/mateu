@@ -7,6 +7,7 @@ import {
   templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, withFormActions,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
+import { urlOfRoute } from './mount.mjs'
 import { chromeText } from './i18n.mjs'
 import { withoutOverlays } from './shellFlows.mjs'
 
@@ -327,6 +328,17 @@ export function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn =
  * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
  * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
  */
+/** A declared trail as the header draws it: links (in-app urls) but the last one. Pure. */
+export function headerCrumbsOf(breadcrumbs) {
+  const list = breadcrumbs || []
+  return list.map((c, i) => {
+    const last = i === list.length - 1
+    const route = !last && c.route ? (c.route.charAt(0) === '/' || /^[a-z]+:/i.test(c.route) ? c.route : '/' + c.route) : ''
+    const href = route && !/^[a-z][a-z0-9+.-]*:/i.test(route) ? urlOfRoute(route) : ''
+    return { key: String(i), text: c.text, href, hasHref: !!href, noHref: !href, last }
+  })
+}
+
 export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
   const showBand = showHeader && pageWidth !== 'edgeToEdge'
   const showListBand = !!listing && pageWidth !== 'edgeToEdge'
@@ -364,6 +376,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     subtitle,
     // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
     overline: extras.overline,
+    // the trail a page DECLARES (BreadcrumbsSupplier), above the header: Spectra has no breadcrumbs
+    // component (its go-to-parent stays the parent crumb); the last crumb is where we are
+    crumbs: headerCrumbsOf(extras.breadcrumbs),
     // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
     // text went to the subtitle)
     timestamp: stamp.iso,
@@ -391,6 +406,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
     // primaryId) instead of general-overview's «‹ Cancel» link
     createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+    // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+    // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+    cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
     showBand: showBand && !gopOn && !iopOn,
     showInline: showHeader && !showBand && !gopOn && !iopOn,
     showListBand,

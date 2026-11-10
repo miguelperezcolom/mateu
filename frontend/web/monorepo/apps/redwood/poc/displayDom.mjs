@@ -442,7 +442,20 @@ export function decorateFactActions(host, doc = host.ownerDocument) {
   }
 }
 
-/** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+// oj-sp-header-create-edit draws its own Cancel with a FIXED label (its translations and display
+// options have none for it), so a crud's `cancelLabel()` («Discard») showed «Cancel». The header
+// carries the wire's label (`data-mateu-cancel-label`) and this puts it on Spectra's button
+// (`<header id>_cancelAction`); oj-sp re-renders it, so it is re-checked like the fact actions.
+const CANCEL_LABEL_HOST = '[data-mateu-cancel-label]'
+export function relabelCancel(host) {
+  const label = host.getAttribute('data-mateu-cancel-label') || ''
+  if (!label || !host.id) return
+  const button = host.querySelector('[id="' + host.id + '_cancelAction"]')
+  if (button && button.label !== label) button.label = label
+}
+
+/** Installs (once) the fact action buttons of every header that carries some, and their clicks
+ *  — and the wire's Cancel label on a create/edit header (relabelCancel). */
 export function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuFactActions) return
   doc.__mateuFactActions = true
@@ -455,6 +468,7 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
   })
   const root = doc.body || doc.documentElement
   for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+  for (const host of Array.from(root.querySelectorAll(CANCEL_LABEL_HOST))) relabelCancel(host)
   if (typeof MutationObserver === 'undefined') return
   new MutationObserver((records) => {
     const hosts = new Set()
@@ -469,7 +483,19 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
       }
     }
     for (const host of hosts) decorateFactActions(host, doc)
-  }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+    const relabel = new Set()
+    for (const r of records) {
+      const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+      const host = target && target.closest ? target.closest(CANCEL_LABEL_HOST) : null
+      if (host) relabel.add(host)
+      for (const n of r.addedNodes || []) {
+        if (n.nodeType !== 1) continue
+        if (n.matches && n.matches(CANCEL_LABEL_HOST)) relabel.add(n)
+        for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(CANCEL_LABEL_HOST) : [])) relabel.add(h)
+      }
+    }
+    for (const host of relabel) relabelCancel(host)
+  }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
 }
 
 // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────

@@ -213,6 +213,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     mapViewPlanOf,
     installCalendars,
     installKeys,
+    setPaletteSink,
     installHover,
     installDragAndDrop,
     setDropSink,
@@ -431,6 +432,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withContextState,
     withSearchableIds,
     shellNavOf,
+    shellChromeOf,
     // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
     headerActionRouteOf,
     // YAML app-context selectors backed by an optionsSource (direct sources)

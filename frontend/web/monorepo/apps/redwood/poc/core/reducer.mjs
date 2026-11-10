@@ -274,6 +274,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         osNotifications: !!md.osNotifications,
         // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
         globalSearchEnabled: !!md.globalSearchEnabled,
+        // @App(commandCenter) / @App(chromeless): the Ask palette is the way around (no nav chrome)
+        commandCenterEnabled: !!md.commandCenterEnabled || !!md.chromeless,
+        chromeless: !!md.chromeless,
         // a data-authored shell's inbox and palette search from REST sources (type: AppShell
         // notifications.source/markRead, globalSearch.source) instead of the app-level actions
         notificationsSource: md.notificationsSource || null,

@@ -74,6 +74,21 @@
   <div :class="[[ $application.variables.mateuPageHeader.bandClass || 'oj-bg-neutral-30 oj-sm-padding-10x-bottom' ]]">
     <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
       :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
+      <!-- the trail a page DECLARES (BreadcrumbsSupplier): Spectra has no breadcrumbs component -->
+      <oj-bind-if test="[[ ($application.variables.mateuPageHeader.crumbs || []).length > 0 ]]">
+        <nav class="mateu-header-crumbs" :aria-label="[[ $application.translations.appBundle.breadcrumb ]]">
+          <ol class="mateu-breadcrumbs oj-typography-body-sm">
+            <oj-bind-for-each data="[[ $application.variables.mateuPageHeader.crumbs ]]">
+              <template>
+                <li>
+                  <oj-bind-if test="[[ $current.data.hasHref ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.noHref ]]"><span :aria-current="[[ $current.data.last ? 'page' : null ]]" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></oj-bind-if>
+                </li>
+              </template>
+            </oj-bind-for-each>
+          </ol>
+        </nav>
+      </oj-bind-if>
       <!-- the Redwood OVERLINE (the quiet line above the title): oj-sp's header has no element for
            it, so the page draws it right above, aligned with the header's title -->
       <oj-bind-if test="[[ !!$application.variables.mateuPageHeader.overline ]]">
@@ -91,6 +106,7 @@
           contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
           :data-mateu-fact-actions="[[ $application.variables.mateuPageHeader.factActions || null ]]"
           contextual-info-sticky="true"
+          :data-mateu-cancel-label="[[ $application.variables.mateuPageHeader.cancelLabel || null ]]"
           primary-action="[[ { label: $application.variables.mateuPageHeader.primary.label, disabled: $application.variables.mateuPageHeader.primary.display === 'disabled' } ]]"
           secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
           on-sp-primary-action="[[ $listeners.headerPrimary ]]"
@@ -3062,6 +3078,21 @@
      integrate it: guided process, general overview, welcome banner and the
      listing's smart-filter-search -->
 <oj-bind-if test="[[ $application.variables.mateuPageHeader.showInline ]]">
+  <!-- the trail a page DECLARES (BreadcrumbsSupplier): Spectra has no breadcrumbs component -->
+  <oj-bind-if test="[[ ($application.variables.mateuPageHeader.crumbs || []).length > 0 ]]">
+    <nav class="mateu-header-crumbs oj-bg-neutral-30" :aria-label="[[ $application.translations.appBundle.breadcrumb ]]">
+      <ol class="mateu-breadcrumbs oj-typography-body-sm">
+        <oj-bind-for-each data="[[ $application.variables.mateuPageHeader.crumbs ]]">
+          <template>
+            <li>
+              <oj-bind-if test="[[ $current.data.hasHref ]]"><a :href="[[ $current.data.href ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></oj-bind-if>
+              <oj-bind-if test="[[ $current.data.noHref ]]"><span :aria-current="[[ $current.data.last ? 'page' : null ]]" class="oj-text-color-secondary"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span></oj-bind-if>
+            </li>
+          </template>
+        </oj-bind-for-each>
+      </ol>
+    </nav>
+  </oj-bind-if>
   <!-- the Redwood OVERLINE (the quiet line above the title): oj-sp's header has no element for
        it, so the page draws it right above, aligned with the header's title -->
   <oj-bind-if test="[[ !!$application.variables.mateuPageHeader.overline ]]">
@@ -3079,6 +3110,7 @@
           contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
           :data-mateu-fact-actions="[[ $application.variables.mateuPageHeader.factActions || null ]]"
           contextual-info-sticky="true"
+          :data-mateu-cancel-label="[[ $application.variables.mateuPageHeader.cancelLabel || null ]]"
           primary-action="[[ { label: $application.variables.mateuPageHeader.primary.label, disabled: $application.variables.mateuPageHeader.primary.display === 'disabled' } ]]"
           secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
           on-sp-primary-action="[[ $listeners.headerPrimary ]]"

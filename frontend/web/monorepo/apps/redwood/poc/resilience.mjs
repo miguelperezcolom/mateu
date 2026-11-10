@@ -532,6 +532,9 @@ export async function fetchWithPolicy(url, init, options = {}) {
         if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
       }
       if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
+      // an ISOLATED request (another origin's island, a federated remote) that did not arrive says
+      // that server is down, not that the user is offline — «You're offline» was wrong in its box
+      if (failure.kind === 'offline' && isolated && connectivity.isOnline()) failure = { ...failure, message: chromeText('errUnreachable') }
       attempt++
       if (!shouldRetry(failure, attempt, { idempotent })) {
         // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
