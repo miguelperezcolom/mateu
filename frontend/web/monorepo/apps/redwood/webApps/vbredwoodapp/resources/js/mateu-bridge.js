@@ -11595,10 +11595,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       isEmail: false, isUrl: false, currency: '',
-      // a date field writes and reads dates in the UI's locale, not in the one JET booted with
-      converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : null,
+      // a date field writes and reads dates in the UI's locale, not in the one JET booted with; an
+      // INTEGER field reads as typed, without thousands separators (a year showed «1,906»)
+      converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : isNumber ? numberConverterOf(f.dataType) : null,
       captureMode: '', accept: '',
     }
+  }
+
+  /** Whole-number types: no grouping, no decimals (a year, a count, a room number). */
+  const INTEGER_TYPES = { integer: true, int: true, long: true }
+  const numberConverters = new Map()
+  /** The converter of a number field: integers ungrouped, the rest JET's default decimal one; one
+   *  instance per kind, so a re-projection does not hand JET a new converter on every keystroke. */
+  function numberConverterOf(dataType) {
+    const kind = INTEGER_TYPES[dataType] ? 'integer' : 'decimal'
+    if (!numberConverters.has(kind)) {
+      numberConverters.set(kind, converterOf({ type: 'number', options: kind === 'integer'
+        ? { style: 'decimal', useGrouping: false, maximumFractionDigits: 0 }
+        : { style: 'decimal' } }))
+    }
+    return numberConverters.get(kind)
   }
 
   /** The row's empty required fields → { fieldId: message }; {} if it is fine. */
