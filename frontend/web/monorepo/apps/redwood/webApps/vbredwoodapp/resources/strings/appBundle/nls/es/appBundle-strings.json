@@ -98,6 +98,7 @@
   "captureSignHere": "Firme aquí",
   "offlineBand": "Sin conexión — los cambios que hagas ahora no se guardarán.",
   "errOffline": "Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.",
+  "errUnreachable": "No se ha podido contactar con su servidor. Puede estar caído — inténtalo más tarde.",
   "errTimeout": "El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.",
   "errServer": "El servidor no ha podido completar la petición. Inténtalo de nuevo.",
   "wireVersionMismatch": "El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.",
