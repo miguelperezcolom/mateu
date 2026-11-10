@@ -1,3 +1,4 @@
+import { badgeLook } from '../ui/looks';
 import { materialIconOf } from '../ui/wireIcons';
 import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
@@ -190,7 +191,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           {badges.length > 0 && (
             <View style={styles.badges}>
               {badges.map((b, i) => (
-                <StatusChip key={i} label={interpolate(b.text ?? '', ctx)} tone={b.color} />
+                <StatusChip key={i} label={interpolate(b.text ?? '', ctx)} look={badgeLook(b)} />
               ))}
             </View>
           )}

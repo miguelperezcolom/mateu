@@ -8,7 +8,8 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { Text as PaperText } from 'react-native-paper';
-import { MateuButton } from '../ui/controls';
+import { MateuButton, StatusChip } from '../ui/controls';
+import { badgeLook } from '../ui/looks';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
 import { FIT_CONTENT, InsideVerticalScroll, useBarTitle, useFitsContent } from './ScrollContext';
@@ -59,12 +60,35 @@ export function FormRenderer({ component, metadata, state }: Props) {
   // all reach FormFieldRenderer wired to the controller's live state.
   const renderChild = (child: unknown) => <ComponentRenderer component={child} state={state} />;
 
+  // the canonical header's other pieces (a fluent/YAML Form carries them like a Page): overline,
+  // badges, the "last updated" timestamp and the KPI facts — only subtitle and toolbar were drawn
+  const overline = noHeader ? '' : interpolate(String(metadata['overline'] ?? ''), { state });
+  const timestamp = noHeader ? '' : interpolate(String(metadata['timestamp'] ?? ''), { state });
+  const badges = noHeader ? [] : ((metadata['badges'] as Record<string, unknown>[] | undefined) ?? []);
+  const kpis = noHeader ? [] : ((metadata['kpis'] as { title?: string; text?: string }[] | undefined) ?? []);
   return (
     <View style={[styles.root, fits && FIT_CONTENT]}>
-      {(title || subtitle || toolbar.length > 0 || (declared.length > 0 && !readOnly)) && (
+      {(title || subtitle || overline || timestamp || badges.length > 0 || kpis.length > 0 || toolbar.length > 0 || (declared.length > 0 && !readOnly)) && (
         <View style={styles.header}>
+          {!!overline && <Text style={styles.overline}>{overline}</Text>}
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}
           {!!subtitle && <PaperText variant="bodyMedium" style={styles.subtitle}>{subtitle}</PaperText>}
+          {!!timestamp && <Text style={styles.timestamp}>{timestamp}</Text>}
+          {badges.length > 0 && (
+            <View style={styles.badges}>
+              {badges.map((b, i) => <StatusChip key={i} label={interpolate(String(b['text'] ?? ''), { state })} look={badgeLook(b)} />)}
+            </View>
+          )}
+          {kpis.length > 0 && (
+            <View style={styles.kpis}>
+              {kpis.map((k, i) => (
+                <View key={i} style={styles.kpi}>
+                  <Text style={styles.kpiTitle}>{interpolate(k.title ?? '', { state })}</Text>
+                  <Text style={styles.kpiText}>{interpolate(k.text ?? '', { state })}</Text>
+                </View>
+              ))}
+            </View>
+          )}
           {(toolbar.length > 0 || (!readOnly && declared.length > 0)) && (
             <View style={styles.actionBar}>
               {(readOnly ? toolbar : actions).map((a, i) => {
@@ -109,6 +133,13 @@ const styles = themed(() => StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 16, backgroundColor: theme.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   title: { color: theme.ink, fontWeight: '600' },
   subtitle: { color: theme.muted, marginTop: 4 },
+  overline: { fontSize: 12, fontWeight: '600', color: theme.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
+  timestamp: { fontSize: 12, color: theme.faint, marginTop: 4 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginTop: 10 },
+  kpi: { gap: 2 },
+  kpiTitle: { fontSize: 12, color: theme.faint },
+  kpiText: { fontSize: 16, fontWeight: '600', color: theme.ink },
   actionBar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 14, gap: 8 },
   fields: { padding: 16, paddingBottom: 24 },
   bottomBar: {
