@@ -512,7 +512,7 @@ const styles = themed(() => StyleSheet.create({
   overlayFold: { alignSelf: 'center', margin: 0 },
   overlayTitleBox: { flex: 1 },
   overlaySubtitle: { color: theme.muted },
-  overlayBody: { flexShrink: 1 },
+  overlayBody: { flexShrink: 1, flexGrow: 1 },
   overlayFolded: { height: 0, overflow: 'hidden' },
   modelessHost: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'flex-end' },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },
