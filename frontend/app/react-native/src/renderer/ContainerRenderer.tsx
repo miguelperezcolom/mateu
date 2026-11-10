@@ -131,10 +131,11 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
           <View style={styles.cardRowBody}>{body}</View>
         </View>
       ) : (
-        <>
+        // a View, not a fragment: Paper's Card hands its children an `index` prop
+        <View>
           {media && <View style={styles.cardMediaTop}><ComponentRenderer component={media} state={state} /></View>}
           {body}
-        </>
+        </View>
       )}
     </Card>
     </View>

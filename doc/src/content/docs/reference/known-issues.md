@@ -137,6 +137,21 @@ React Native has no hover (popovers and tooltips open on press / long-press), no
 `Workflow`, `FormEditor` and `Bpmn` read only. IntelliJ shows `Workflow` and `FormEditor` read only,
 uses a file picker for photo capture and searches only the loaded options of a searchable picker.
 
+On a phone the React Native app also lays a few things out for the screen size:
+
+- a `Drawer` is a bottom sheet whatever its position (`size` sets its starting height,
+  `maximizable` takes it to full height, `modeless` keeps the screen behind usable);
+- a horizontal `SplitLayout` stacks its panes, with no drag handle;
+- the `@Toc` index is a row of section chips above the page, which stays on screen, instead of a
+  sticky side index, and `@Section(sticky = true)` cards are not pinned (a pinned card would cover
+  most of the screen; the index lists them first);
+- labels stay above the fields (`labelsAside` is not applied: an outlined field carries its label
+  in its outline);
+- a `masterDetail` listing shows the pressed row's detail under it;
+- a row (`HorizontalLayout`) wraps rather than running off the screen;
+- `@FileUpload` offers the photo library on a device (any file in the web build); an `accept`
+  list with no image or video type says so instead of offering a picker.
+
 **Workaround:** edit workflows and forms on the web. The full list is in the
 [renderer coverage tables](/reference/parity/#renderers).
 
