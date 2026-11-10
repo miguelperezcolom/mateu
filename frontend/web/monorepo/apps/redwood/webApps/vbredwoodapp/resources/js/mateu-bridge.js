@@ -23701,8 +23701,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function embeddedAppOf(answer, sub) {
     const frames = ((answer && answer.fragments) || []).map((f) => f && f.component).filter(Boolean)
     const app = frames.find((c) => c.type === 'ClientSide' && c.metadata && c.metadata.type === 'App' && c.metadata.variant !== 'MEDIATOR')
-    const page = frames.find((c) => c.type === 'ServerSide')
-    const first = page && (page.children || [])[0]
+    // the page: its ServerSide, or — a definition-only YAML route — its ClientSide Form itself
+    const page = frames.find((c) => c.type === 'ServerSide') || frames.find((c) => c !== app && c.metadata && c.metadata.type === 'Form')
+    const first = page && page.type === 'ServerSide' ? (page.children || [])[0] : null
     const form = page && findByType(page, 'Form')
     const wholePage = !!page && (
       !!(first && first.metadata && first.metadata.type === 'App' && first.metadata.variant === 'MEDIATOR')
