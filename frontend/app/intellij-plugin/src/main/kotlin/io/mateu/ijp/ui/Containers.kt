@@ -177,6 +177,8 @@ private fun badgeInk(c: Color): Color =
 /** A label painting a rounded background (a pill: radius = height). */
 private class BadgeLabel(text: String, private val pill: Boolean) : JBLabel(text) {
     init { isOpaque = false }
+    // a chip keeps its own width in a stack (a vertical layout stretched it into a full-width bar)
+    override fun getMaximumSize(): java.awt.Dimension = preferredSize
     override fun paintComponent(g: java.awt.Graphics) {
         val g2 = g.create() as java.awt.Graphics2D
         g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)

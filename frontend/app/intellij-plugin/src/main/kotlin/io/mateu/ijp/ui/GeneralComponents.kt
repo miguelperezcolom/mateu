@@ -162,11 +162,8 @@ fun renderContentLayout(r: ComponentRenderer, component: JsonNode, metadata: Jso
 
 /** ResponsiveGrid: children on a grid with as many columns as `gridTemplateColumns` declares. */
 fun renderResponsiveGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val children = kids(component)
-    val cols = gridColumnCount(metadata.text("gridTemplateColumns")).coerceIn(1, children.size.coerceAtLeast(1))
-    // Spans honoured and rows sized to their own content (IJ-06): a GridLayout made every cell the
-    // size of the biggest one.
-    return renderSpanGrid(r, children.toList(), cols, state, data)
+    // the CSS tracks and named areas (ResponsiveGrids); rows sized to their own content (IJ-06)
+    return renderResponsiveGridTracks(r, kids(component), metadata, state, data)
 }
 
 /** Columns in a CSS grid-template-columns value: `repeat(3, 1fr)` → 3, `2fr 1fr` → 2, blank → 2. */
@@ -331,25 +328,90 @@ private fun cellText(v: JsonNode): String = when {
     else -> v.toString()
 }
 
-/** Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only; a
- *  column group becomes its columns headed "Group · Column" ([ColumnGroups]). */
+/**
+ * Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only; a
+ * column group becomes its columns headed "Group · Column" ([ColumnGroups]). Each column keeps its
+ * width / alignment / formatting ([GridTables]); a `tree` grid shows its rows' `children` under a
+ * ▸ / ▾ toggle in the first column; a column with an `actionId` runs it with the row.
+ */
 fun renderGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val columns = metadata.leafColumns("content").map { it.path("metadata").takeIf { m -> m.isObject } ?: it }
         .filter { it.text("type", "GridColumn") == "GridColumn" }
     val rows = pageRows(component, metadata, state, data)
     val ids = columns.map { it.text("id") }.ifEmpty { rows.firstOrNull()?.fieldNames()?.asSequence()?.toList() ?: emptyList() }
     val labels = if (columns.isNotEmpty()) columns.map { it.text("label", it.text("id")) } else ids
+    val tree = metadata.bool("tree")
+    val expanded = HashSet<String>()
+    var shown: List<GridTables.ShownRow> = emptyList()
     val model = object : DefaultTableModel(labels.toTypedArray(), 0) {
         override fun isCellEditable(row: Int, column: Int) = false
     }
-    rows.forEach { row -> model.addRow(ids.map { cellText(row.path(it)) }.toTypedArray()) }
+    val emptyColumn = com.fasterxml.jackson.databind.node.MissingNode.getInstance()
+    fun fill() {
+        shown = if (tree) GridTables.flatten(rows, expanded) else rows.mapIndexed { i, row -> GridTables.ShownRow(row, 0, "$i", false) }
+        model.rowCount = 0
+        shown.forEach { s ->
+            model.addRow(ids.mapIndexed { c, id ->
+                val text = GridTables.cellText(s.row.path(id), columns.getOrNull(c) ?: emptyColumn)
+                if (tree && c == 0) GridTables.treeCellText(s, text, s.key in expanded) else text
+            }.toTypedArray())
+        }
+    }
+    fill()
     val table = JBTable(model).plainCells().apply {
         setShowGrid(metadata.bool("columnBorders"))
         emptyText.text = "No data."
-        accessibleName(component.text("id").ifBlank { "Grid" })
+        accessibleName(component.text("id").ifBlank { if (tree) "Tree grid" else "Grid" })
+        tableHeader.reorderingAllowed = false
     }
-    val visible = rows.size.coerceIn(3, 15)
-    return JBScrollPane(table).fixedHeight(JBUI.scale(28) * (visible + 1))
+    val stripes = metadata.bool("rowStripes")
+    val aligns = columns.map { ColumnAlign.of(it.text("dataType"), it.text("stereotype"), it.text("align")) }
+    for (i in 0 until table.columnCount) {
+        val meta = columns.getOrNull(i)
+        table.columnModel.getColumn(i).cellRenderer =
+            GridCellRenderer(aligns.getOrElse(i) { ColumnAlign.Align.START }, stripes, meta?.text("actionId")?.isNotBlank() == true)
+    }
+    ColumnAlign.alignHeaders(table) { modelCol -> aligns.getOrElse(modelCol) { ColumnAlign.Align.START } }
+    if (columns.isNotEmpty()) GridTables.applyWidths(table, columns)
+    if (metadata.bool("compact")) table.rowHeight = JBUI.scale(22)
+    val scroll = JBScrollPane(table)
+    fun resize() {
+        val visible = shown.size.coerceIn(3, 15)
+        scroll.fixedHeight(table.rowHeight * visible + JBUI.scale(30))
+        scroll.revalidate()
+    }
+    resize()
+    table.addMouseListener(object : java.awt.event.MouseAdapter() {
+        override fun mouseClicked(e: java.awt.event.MouseEvent) {
+            val row = table.rowAtPoint(e.point).takeIf { it >= 0 } ?: return
+            val col = table.convertColumnIndexToModel(table.columnAtPoint(e.point)).takeIf { it >= 0 } ?: return
+            val s = shown.getOrNull(table.convertRowIndexToModel(row)) ?: return
+            if (tree && col == 0 && s.hasChildren) {
+                if (!expanded.remove(s.key)) expanded.add(s.key)
+                fill(); resize()
+                return
+            }
+            val actionId = columns.getOrNull(col)?.text("actionId").orEmpty()
+            if (actionId.isNotBlank()) {
+                @Suppress("UNCHECKED_CAST")
+                r.ctx.runAction(actionId, r.ctx.mapper.convertValue(s.row, Map::class.java) as Map<String, Any?>)
+            }
+        }
+    })
+    // the keyboard twin of the toggle: Right expands, Left collapses the selected row
+    if (tree) table.addKeyListener(object : java.awt.event.KeyAdapter() {
+        override fun keyPressed(e: java.awt.event.KeyEvent) {
+            val s = shown.getOrNull(table.selectedRow) ?: return
+            val selected = table.selectedRow
+            val changed = when (e.keyCode) {
+                java.awt.event.KeyEvent.VK_RIGHT -> s.hasChildren && expanded.add(s.key)
+                java.awt.event.KeyEvent.VK_LEFT -> expanded.remove(s.key)
+                else -> false
+            }
+            if (changed) { fill(); resize(); table.setRowSelectionInterval(selected, selected); e.consume() }
+        }
+    })
+    return scroll
 }
 
 /** VirtualList: the rows as a list, one line each (the row's text/label, else its first values). */
@@ -530,17 +592,23 @@ fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
 /** BPMN: the process as an ordered list of its named flow nodes (start → tasks → end). */
 fun renderBpmn(metadata: JsonNode): JComponent {
     val nodes = bpmnFlowNodes(metadata.text("xml"))
+    val model = BpmnDiagrams.parse(metadata.text("xml"))
     val panel = verticalPanel(4)
     panel.addStacked(JBLabel("Process").apply { font = font.deriveFont(Font.BOLD) }, 0)
-    if (nodes.isEmpty()) panel.addStacked(muted("Empty or unreadable BPMN diagram."), 4)
-    nodes.forEachIndexed { i, (kind, label) ->
-        val glyph = when {
-            kind.endsWith("startEvent") -> "○"
-            kind.endsWith("endEvent") -> "◉"
-            kind.contains("Gateway") -> "◇"
-            else -> "▭"
+    if (model == null || model.nodes.isEmpty()) {
+        panel.addStacked(muted("Empty or unreadable BPMN diagram."), 4)
+    } else if (model.laidOut) {
+        // drawn as laid out in the XML (the web's bpmn-js view); wide processes scroll sideways
+        val canvas = BpmnCanvas(model)
+        panel.addStacked(ContentHeightScrollPane(canvas).apply {
+            border = null
+            verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+        }, 4)
+    } else {
+        // no layout: an outline whose gateways list their branches
+        for ((depth, text) in BpmnDiagrams.outline(model)) {
+            panel.addStacked(JBLabel(plain(text)).apply { border = JBUI.Borders.emptyLeft(depth * 18) }, 2)
         }
-        panel.addStacked(JBLabel(plain("${if (i > 0) "↓ " else ""}$glyph $label")), 2)
     }
     return panel.accessibleName("BPMN process: " + nodes.joinToString(", ") { it.second })
 }

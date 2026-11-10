@@ -24,8 +24,15 @@ import javax.swing.SwingConstants
 /** Display components (HeroSection, EmptyState, Skeleton, FoldoutLayout, Gantt) on Swing. */
 
 fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val panel = verticalPanel(6)
+    // `height` (14rem) is the band's height; `image` its background, covered by a dark veil so the
+    // white title stays readable (the web's hero) — both were ignored
+    val minHeight = cssLengthPx(metadata.text("height"))?.let { JBUI.scale(it) } ?: 0
+    val panel = HeroPanel(minHeight)
+    panel.layout = javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS)
     panel.border = JBUI.Borders.empty(28, 16)
+    metadata.text("image").takeIf { it.isNotBlank() }?.let { src -> panel.loadBackground(heroImageUrl(r.ctx.session.baseUrl, src)) }
+    val centered = !metadata.has("centered") || metadata.path("centered").isNull || metadata.path("centered").asBoolean(true)
+    val textAlign = if (centered) SwingConstants.CENTER else SwingConstants.LEADING
     // `tone` (ocean, pine, …): a dark tinted band with light ink; absent/unknown → the default look.
     val tone = PageSlots.heroToneColor(metadata.text("tone"))
     panel.background = tone ?: Color(0x2B, 0x3A, 0x55)
@@ -33,18 +40,18 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     // `overline`: a short quiet line above the title (the Redwood welcome page's overline).
     val overline = metadata.text("overline")
     if (overline.isNotBlank()) {
-        val o = JBLabel(plain(overline), SwingConstants.CENTER)
+        val o = JBLabel(plain(overline), textAlign)
         o.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         o.font = o.font.deriveFont(Font.PLAIN, o.font.size2D * 0.9f)
         panel.addStacked(o, 2)
     }
-    val title = JBLabel(plain(metadata.text("title")), SwingConstants.CENTER)
+    val title = JBLabel(plain(metadata.text("title")), textAlign)
     title.font = title.font.deriveFont(Font.BOLD, PageChrome.fontSize(24f))
     title.foreground = Color.WHITE
     panel.addStacked(title, 6)
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(plain(subtitle), SwingConstants.CENTER)
+        val l = JBLabel(plain(subtitle), textAlign)
         l.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         panel.addStacked(l, 10)
     }
@@ -55,7 +62,7 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     var ctas: JPanel? = null
     for (child in component.path("children")) {
         if (child.path("metadata").text("type") == "Button") {
-            val row = ctas ?: JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(8), 0)).also {
+            val row = ctas ?: JPanel(FlowLayout(if (centered) FlowLayout.CENTER else FlowLayout.LEFT, JBUI.scale(8), 0)).also {
                 it.isOpaque = false
                 blocks.add(it)
                 ctas = it
@@ -68,6 +75,48 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     }
     for (block in blocks) panel.addStacked(block, 6)
     return panel
+}
+
+/** A hero's image url: a root-relative path resolves against the app's own origin. */
+internal fun heroImageUrl(baseUrl: String, src: String): String = when {
+    src.startsWith("data:") || Regex("^https?://", RegexOption.IGNORE_CASE).containsMatchIn(src) -> src
+    src.startsWith("/") -> runCatching { java.net.URI(baseUrl).resolve(src).toString() }.getOrDefault(src)
+    else -> src
+}
+
+/** The hero band: at least [minHeight] tall, painting an optional background image (cover + veil). */
+internal class HeroPanel(private val minHeight: Int) : JPanel() {
+    @Volatile var image: java.awt.image.BufferedImage? = null
+        private set
+
+    override fun getPreferredSize(): java.awt.Dimension = super.getPreferredSize().let { java.awt.Dimension(it.width, maxOf(it.height, minHeight)) }
+
+    fun loadBackground(url: String) {
+        Thread {
+            val svg = SvgImages.isSvg(url)
+            val img = runCatching {
+                val bytes = if (url.startsWith("data:")) (if (svg) SvgImages.dataUriBytes(url) else java.util.Base64.getDecoder().decode(url.substringAfter("base64,")))
+                else java.net.URI(url).toURL().openStream().use { it.readBytes() }
+                bytes?.let { decodeImage(it, svg) }
+            }.getOrNull() ?: return@Thread
+            javax.swing.SwingUtilities.invokeLater { image = img; repaint() }
+        }.apply { isDaemon = true; name = "mateu-hero-image" }.start()
+    }
+
+    override fun paintComponent(g: java.awt.Graphics) {
+        super.paintComponent(g)
+        val img = image ?: return
+        val g2 = g.create() as java.awt.Graphics2D
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        // object-fit: cover
+        val s = maxOf(width.toDouble() / img.width, height.toDouble() / img.height)
+        val w = (img.width * s).toInt()
+        val h = (img.height * s).toInt()
+        g2.drawImage(img, (width - w) / 2, (height - h) / 2, w, h, null)
+        g2.color = Color(0, 0, 0, 110)
+        g2.fillRect(0, 0, width, height)
+        g2.dispose()
+    }
 }
 
 fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {

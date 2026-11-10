@@ -96,6 +96,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Row actions live in the right-click context menu (the IDE way) — no button column in the table.
     val actionSpecs = allSpecs.filter { it.kind == ColKind.ACTIONS }
     val specs = allSpecs.filterNot { it.kind == ColKind.ACTIONS }
+    // each shown column's wire metadata (width / autoWidth / flexGrow), by model index like specs
+    val specColumns = metadata.leafColumns().map { c -> c.path("metadata").takeIf { it.isObject } ?: c }.filterIndexed { i, _ -> allSpecs[i].kind != ColKind.ACTIONS }
 
     // @RestListing: the rows are fetched WHOLE (the plugin does not honour totalPath, and a source
     // answered from its SAMPLE cannot honour `${'$'}{state.page}` either), so search, filters, sort and
@@ -479,6 +481,16 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         splitter.firstComponent = JBScrollPane(table)
         splitter.secondComponent = detail
         resultsHost.add(splitter, BorderLayout.CENTER)
+    } else if (ListingCards.isCardLayout(metadata.text("gridLayout"))) {
+        // GridLayout.cards / list: the rows as cards (a hero search's results); the table stays the
+        // model, so search, paging and sort keep working on it
+        val open: ((Int) -> Unit)? = when {
+            rowOpen != null -> { i -> model.rowAt(i)?.let(openRow) }
+            rowLinkActionId.isNotBlank() -> { i -> model.rowAt(i)?.let { ctx.runAction(rowLinkActionId, rowAsParams(ctx, it)) } }
+            else -> null
+        }
+        val cards = ListingCards.panel(model, metadata.text("gridLayout") == "list", { !model.isSynthetic(it) }, open)
+        resultsHost.add(JBScrollPane(cards).apply { border = null }, BorderLayout.CENTER)
     } else {
         resultsHost.add(JBScrollPane(table), BorderLayout.CENTER)
     }
@@ -521,6 +533,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val eff = listing.path("page").let { if (!it.isMissingNode && !it.isNull) it else d }
         val rows = extractRows(eff)
         model.setEntries(buildEntries(rows, specs, groupBy, listing))
+        // `width` / `@ColumnWidth("auto")` (autoWidth) / flexGrow 0 — the desktop ignored them all;
+        // an auto column needs its rows to measure, so the plan is applied on every page
+        GridTables.applyWidths(table, specColumns)
         val total = eff.path("totalElements").asLong(rows.size.toLong())
         val pageNumber = eff.path("pageNumber").asInt(0)
         val pageSize = eff.path("pageSize").asInt(10).coerceAtLeast(1)

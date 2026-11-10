@@ -25,7 +25,10 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     // `${state.x}` in a button's label is interpolated, and again on every edit (the web's label
     // follows the state; the desktop showed the raw "Charge ${state.nights} nights")
     val label = if (template.contains("\${")) Expressions.interpolate(template, PageChrome.exprContext(ctx, null)) else template
-    val button = JButton(plain(label))
+    // a button keeps its own width in a vertical stack (the web lays it out at its content width)
+    val button = object : JButton(plain(label)) {
+        override fun getMaximumSize(): java.awt.Dimension = preferredSize
+    }
     if (template.contains("\${")) {
         button.putClientProperty(LABEL_TEMPLATE, template)
         ctx.registerLiveLabel(button)
@@ -96,7 +99,8 @@ internal fun styleButton(button: JButton, metadata: JsonNode) {
             button.background = solid
             button.foreground = java.awt.Color.WHITE
         } else {
-            button.foreground = solid
+            // amber text on a light button needs the darker ink to read
+            button.foreground = if (tone == ToneColors.Tone.WARNING) java.awt.Color(0x8A, 0x5A, 0x00) else solid
         }
         button.putClientProperty(BUTTON_TONE, tone.name)
     } else if (metadata.text("color").equals("contrast", ignoreCase = true)) {

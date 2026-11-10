@@ -16,9 +16,38 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val panel = verticalPanel(gap)
     val children = component.path("children")
+    // horizontalAlignment END / CENTER: each child at its own width on that side (a totals column
+    // aligned right) — every child was stretched to the left edge
+    val align = when (metadata.text("horizontalAlignment").uppercase()) {
+        "END", "RIGHT" -> java.awt.FlowLayout.RIGHT
+        "CENTER" -> java.awt.FlowLayout.CENTER
+        else -> null
+    }
+    // FullWidth stretches what it wraps across the row (a button keeps its own width elsewhere)
+    val stretch = metadata.text("type") == "FullWidth"
     if (children.isArray) {
         children.forEachIndexed { i, child ->
-            panel.addStackedBetween(r.render(child, state, data), gap, first = i == 0)
+            val rendered = r.render(child, state, data)
+            val placed = when {
+                stretch -> JPanel(java.awt.BorderLayout()).apply { isOpaque = false; add(rendered, java.awt.BorderLayout.CENTER) }
+                align == null -> rendered
+                else -> JPanel(java.awt.FlowLayout(align, 0, 0)).apply { isOpaque = false; add(rendered) }
+            }
+            panel.addStackedBetween(placed, gap, first = i == 0)
+        }
+    }
+    if (metadata.bool("padding")) panel.border = JBUI.Borders.empty(JBGap * 2)
+    // a Scroller with a height (`height: 9rem`) is a viewport of that height over its content
+    if (metadata.text("type") == "Scroller") {
+        cssPx(component.text("style"), "height")?.let { h ->
+            return com.intellij.ui.components.JBScrollPane(panel).apply {
+                val px = JBUI.scale(h)
+                preferredSize = java.awt.Dimension(preferredSize.width, px)
+                minimumSize = java.awt.Dimension(0, px)
+                maximumSize = java.awt.Dimension(Int.MAX_VALUE, px)
+                border = com.intellij.ui.IdeBorderFactory.createRoundedBorder()
+                horizontalScrollBarPolicy = javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+            }
         }
     }
     return panel
@@ -30,7 +59,13 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
-    val specs = children.map { FlexSpec.of(it.text("style")) }
+    // the layout's `flexGrows` ([2, 1]) or a child's `flex-grow: N` are weights too (the 2:1 columns
+    // fell back to a flow row at preferred widths)
+    val grows = metadata.path("flexGrows").let { g -> if (g.isArray) g.map { it.asDouble(0.0) } else emptyList() }
+    val specs = children.mapIndexed { i, child ->
+        FlexSpec.of(child.text("style")) ?: grows.getOrNull(i)?.takeIf { it > 0 }?.let { FlexSpec(it * 100) }
+            ?: FlexSpec.ofGrow(child.text("style"))
+    }
     if (specs.any { it != null }) {
         val row = JPanel(java.awt.GridBagLayout())
         row.isOpaque = false
@@ -45,7 +80,11 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 // Preferred height anchored NORTH: every column starts at the top of the row
                 // (the wire even says so: align-items: flex-start).
                 fill = java.awt.GridBagConstraints.HORIZONTAL
-                anchor = java.awt.GridBagConstraints.NORTH
+                anchor = when (metadata.text("verticalAlignment").uppercase()) {
+                    "CENTER" -> java.awt.GridBagConstraints.CENTER
+                    "END", "BOTTOM" -> java.awt.GridBagConstraints.SOUTH
+                    else -> java.awt.GridBagConstraints.NORTH
+                }
                 insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
             }
             val rendered = r.render(child, state, data)
@@ -77,6 +116,12 @@ data class FlexSpec(val weight: Double, val fixedPx: Int? = null) {
         private val LENGTH = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)$""")
 
         private val PERCENT = Regex("""(\d+(?:\.\d+)?)%""")
+
+        private val FLEX_GROW = Regex("""(?:^|;)\s*flex-grow:\s*(\d+(?:\.\d+)?)""")
+
+        /** `flex-grow: N` (N > 0) as a weight; null when absent. */
+        fun ofGrow(style: String): FlexSpec? =
+            FLEX_GROW.find(style)?.groupValues?.get(1)?.toDoubleOrNull()?.takeIf { it > 0 }?.let { FlexSpec(it * 100) }
 
         fun of(style: String): FlexSpec? {
             val value = FLEX.find(style)?.groupValues?.get(1)?.trim() ?: return null

@@ -24,13 +24,14 @@ import javax.swing.SwingConstants
 /** Timeline: a vertical list of entries, each a colored dot + title/timestamp/description. */
 fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(0)
-    for (item in metadata.arr("items")) {
-        val row = JPanel(BorderLayout(8, 0))
+    val items = metadata.arr("items").toList()
+    for ((index, item) in items.withIndex()) {
+        val row = JPanel(BorderLayout(JBUI.scale(10), 0))
         row.isOpaque = false
-        val icon = item.text("icon")
-        val dot = JBLabel(plain(if (icon.isNotBlank()) icon else "●"), SwingConstants.CENTER)
-        runCatching { Color.decode(item.text("color")) }.getOrNull()?.let { dot.foreground = it }
-        row.add(dot, BorderLayout.WEST)
+        // the rail: a vertical line through every entry with a dot (or the entry's icon in a ring)
+        // on it — it drew only the icons, so the entries read as an unconnected list
+        val color = runCatching { Color.decode(item.text("color")) }.getOrNull()
+        row.add(TimelineMarker(wireIconText(item.text("icon")), color, first = index == 0, last = index == items.lastIndex), BorderLayout.WEST)
         val body = verticalPanel(2)
         val title = item.text("title")
         val timestamp = item.text("timestamp")
@@ -47,9 +48,51 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
         if (actionId.isNotBlank()) {
             row.activatable { r.ctx.runAction(actionId, null) }
         }
-        panel.addStacked(row, 10)
+        // the gap below the entry belongs to its text, so the rail runs on through it
+        body.border = JBUI.Borders.emptyBottom(10)
+        panel.addStacked(row, 0)
     }
     return panel
+}
+
+/** One entry's spot on the timeline rail: the line above/below and its dot (or icon in a ring). */
+internal class TimelineMarker(glyphText: String?, private val color: Color?, private val first: Boolean, private val last: Boolean) : JPanel() {
+    init { isOpaque = false }
+
+    // an emoji's variation selector (U+FE0F) draws as a box in a Swing font
+    private val glyph = glyphText?.replace("\uFE0F", "")?.takeIf { it.isNotBlank() }
+
+    private val size get() = JBUI.scale(if (glyph != null) 22 else 12)
+
+    override fun getPreferredSize() = Dimension(JBUI.scale(24), JBUI.scale(24))
+    override fun getMinimumSize() = preferredSize
+
+    override fun paintComponent(g: Graphics) {
+        val g2 = g.create() as Graphics2D
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+        val cx = width / 2
+        val cy = JBUI.scale(10)
+        g2.color = ToneColors.secondaryText().let { Color(it.red, it.green, it.blue, 110) }
+        val lw = JBUI.scale(2)
+        if (!first) g2.fillRect(cx - lw / 2, 0, lw, cy)
+        if (!last) g2.fillRect(cx - lw / 2, cy, lw, height - cy)
+        val accent = color ?: com.intellij.ui.JBColor(Color(0x3574F0), Color(0x548AF7))
+        val d = size
+        if (glyph != null) {
+            g2.color = com.intellij.util.ui.UIUtil.getPanelBackground()
+            g2.fillOval(cx - d / 2, cy - d / 2, d, d)
+            g2.color = accent
+            g2.drawOval(cx - d / 2, cy - d / 2, d - 1, d - 1)
+            g2.font = g2.font.deriveFont(JBUI.scale(11).toFloat())
+            val fm = g2.fontMetrics
+            g2.color = ToneColors.foreground()
+            g2.drawString(glyph, cx - fm.stringWidth(glyph) / 2, cy - fm.height / 2 + fm.ascent)
+        } else {
+            g2.color = accent
+            g2.fillOval(cx - d / 2, cy - d / 2, d, d)
+        }
+        g2.dispose()
+    }
 }
 
 /**
