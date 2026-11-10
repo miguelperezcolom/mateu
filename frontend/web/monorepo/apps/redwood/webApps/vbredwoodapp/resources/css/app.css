@@ -2268,3 +2268,9 @@ oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color:
 oj-sp-simple-ui-shell.mateu-chromeless .oj-sp-simple-ui-shell-globalheader { display: none; }
 /* RAIL: the docked navigator, narrow — compact rows */
 .mateu-nav-rail oj-navigation-list { font-size: var(--oj-typography-body-sm-font-size, 0.875rem); }
+/* a MicroFrontend embedding a whole app (content.mjs withSubresources → isAppFrame): the app on its
+   own page, in a frame the width of its box */
+.mateu-app-frame { display: block; width: 100%; min-height: 20rem; border: 1px solid var(--oj-core-divider-color, #ddd); border-radius: var(--oj-core-border-radius-md, 6px); background: var(--oj-core-bg-color-content, #fff); }
+.mateu-island-banner { display: flex; align-items: center; gap: 0.5rem; }
+.mateu-island-banner > span { flex: 1 1 auto; }
+.mateu-banner-close { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0.25rem; color: inherit; }

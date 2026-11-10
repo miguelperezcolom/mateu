@@ -1097,6 +1097,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -1220,6 +1229,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -3735,6 +3748,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -3858,6 +3880,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -5717,6 +5743,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -5840,6 +5875,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -7732,6 +7771,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -7855,6 +7903,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -9714,6 +9766,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -9837,6 +9898,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -11757,6 +11822,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -11880,6 +11954,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -13793,6 +13871,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -13916,6 +14003,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -15781,6 +15872,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -15904,6 +16004,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -17780,6 +17884,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -17903,6 +18016,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -19801,6 +19918,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -19924,6 +20050,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -21794,6 +21924,15 @@
                           </oj-bind-for-each>
                         </div>
                       </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
                         <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -21917,6 +22056,10 @@
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                      </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -23805,6 +23948,15 @@
                           </oj-bind-for-each>
                         </div>
                       </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
                         <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -23928,6 +24080,10 @@
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                      </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -25803,6 +25959,15 @@
                               </oj-bind-for-each>
                             </div>
                           </oj-bind-if>
+                          <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                          <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                            <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                              <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                              <oj-bind-if test="[[ $current.data.closeable ]]">
+                                <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isBullets ]]">
                             <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                               <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -25926,6 +26091,10 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isSeparator ]]">
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                          </oj-bind-if>
+                          <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                          <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                            <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
                             <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -28056,6 +28225,15 @@
                                 </oj-bind-for-each>
                               </div>
                             </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
                               <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                                 <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -28179,6 +28357,10 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                            </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -30054,6 +30236,15 @@
                                 </oj-bind-for-each>
                               </div>
                             </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
                               <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                                 <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -30177,6 +30368,10 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                            </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -32077,6 +32272,15 @@
                                 </oj-bind-for-each>
                               </div>
                             </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
                               <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                                 <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -32200,6 +32404,10 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                            </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -34322,6 +34530,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -34445,6 +34662,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -36309,6 +36530,15 @@
                           </oj-bind-for-each>
                         </div>
                       </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
                         <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -36432,6 +36662,10 @@
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                      </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -38296,6 +38530,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -38419,6 +38662,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -40308,6 +40555,15 @@
                   </oj-bind-for-each>
                 </div>
               </oj-bind-if>
+              <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+              <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                  <oj-bind-if test="[[ $current.data.closeable ]]">
+                    <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                  </oj-bind-if>
+                </div>
+              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isBullets ]]">
                 <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                   <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -40431,6 +40687,10 @@
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isSeparator ]]">
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
+              </oj-bind-if>
+              <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+              <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
                 <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -42306,6 +42566,15 @@
                   </oj-bind-for-each>
                 </div>
               </oj-bind-if>
+              <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+              <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                  <oj-bind-if test="[[ $current.data.closeable ]]">
+                    <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                  </oj-bind-if>
+                </div>
+              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isBullets ]]">
                 <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                   <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -42429,6 +42698,10 @@
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isSeparator ]]">
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
+              </oj-bind-if>
+              <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+              <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
                 <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -44318,6 +44591,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -44441,6 +44723,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -46662,6 +46948,15 @@
                             </oj-bind-for-each>
                           </div>
                         </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
                           <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -46785,6 +47080,10 @@
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                        </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -49062,6 +49361,15 @@
                             </oj-bind-for-each>
                           </div>
                         </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
                           <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -49185,6 +49493,10 @@
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                        </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -51448,6 +51760,15 @@
                             </oj-bind-for-each>
                           </div>
                         </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
                           <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -51571,6 +51892,10 @@
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                        </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -53813,6 +54138,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -53936,6 +54270,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -55793,6 +56131,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -55916,6 +56263,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -58603,6 +58954,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -58726,6 +59086,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -60583,6 +60947,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -60706,6 +61079,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -62642,6 +63019,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -62765,6 +63151,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -64624,6 +65014,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -64747,6 +65146,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -66620,6 +67023,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -66743,6 +67155,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -68602,6 +69018,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -68725,6 +69150,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -70650,6 +71079,15 @@
                               </oj-bind-for-each>
                             </div>
                           </oj-bind-if>
+                          <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                          <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                            <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                              <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                              <oj-bind-if test="[[ $current.data.closeable ]]">
+                                <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isBullets ]]">
                             <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                               <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -70773,6 +71211,10 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isSeparator ]]">
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                          </oj-bind-if>
+                          <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                          <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                            <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
                             <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -72912,6 +73354,15 @@
                       </oj-bind-for-each>
                     </div>
                   </oj-bind-if>
+                  <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                  <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                    <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                      <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      <oj-bind-if test="[[ $current.data.closeable ]]">
+                        <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                      </oj-bind-if>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBullets ]]">
                     <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -73035,6 +73486,10 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isSeparator ]]">
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                  </oj-bind-if>
+                  <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                  <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                    <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
                     <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -74912,6 +75367,15 @@
                       </oj-bind-for-each>
                     </div>
                   </oj-bind-if>
+                  <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                  <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                    <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                      <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      <oj-bind-if test="[[ $current.data.closeable ]]">
+                        <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                      </oj-bind-if>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBullets ]]">
                     <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -75035,6 +75499,10 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isSeparator ]]">
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                  </oj-bind-if>
+                  <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                  <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                    <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
                     <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -76894,6 +77362,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -77017,6 +77494,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -78876,6 +79357,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -78999,6 +79489,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">

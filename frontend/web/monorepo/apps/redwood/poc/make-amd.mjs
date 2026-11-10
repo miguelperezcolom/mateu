@@ -178,6 +178,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
+    installBannerDismissal,
     installRules,
     setPanelExpanded,
     panelExpanded,
@@ -287,6 +288,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dismissOverlayById,
     overlayVarsOf,
     overlaysClosedVarsOf,
+    surfaceOverlayVarsOf,
+    drawerChangedBetween,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,

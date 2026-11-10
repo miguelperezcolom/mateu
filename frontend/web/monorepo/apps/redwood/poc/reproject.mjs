@@ -26,7 +26,7 @@ export function reprojectedContentOf(vars) {
       // the header band already paints the host's EntityHeader: without this it came back in the content
       dropEntityHeader: !!entityHeaderOf(host),
     }) || []
-    hostContent = withSubresources(projected, contexts)
+    hostContent = withSubresources(projected, contexts, { activeTabs: vars.mateuActiveTabs })
   }
   let island = null
   const islandCtx = vars.mateuIslandId ? contexts[vars.mateuIslandId] : null

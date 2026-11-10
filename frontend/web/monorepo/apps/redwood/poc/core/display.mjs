@@ -1243,7 +1243,8 @@ export function tagSurfaceActions(value, surfaceId) {
   const out = {}
   // (the parameters travel to the server as they are)
   for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-  if ('actionId' in out) out.surfaceId = surfaceId
+  // a surface nested in this one already tagged ITS actions (withSubresources fills inside out)
+  if ('actionId' in out && !out.surfaceId) out.surfaceId = surfaceId
   return out
 }
 

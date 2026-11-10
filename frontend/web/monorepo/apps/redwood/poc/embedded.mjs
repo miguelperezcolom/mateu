@@ -517,7 +517,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
   'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-  'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
+  'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
