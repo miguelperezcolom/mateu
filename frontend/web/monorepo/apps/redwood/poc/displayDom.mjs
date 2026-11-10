@@ -51,11 +51,6 @@ export function drawBpmn(el, spec, doc = el.ownerDocument) {
   el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
   for (const f of spec.flows || []) {
     el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
-    if (f.label) {
-      const mid = f.points[Math.floor(f.points.length / 2)]
-      const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
-      t.textContent = f.label
-    }
   }
   for (const n of spec.nodes || []) {
     const cx = n.x + n.w / 2
@@ -90,8 +85,29 @@ export function drawBpmn(el, spec, doc = el.ownerDocument) {
       })
     }
   }
+  // the flows' names last, at the middle of their middle segment: drawn first, at the end point,
+  // the target's shape covered them («yes» out of the gateway was never seen)
+  for (const f of spec.flows || []) {
+    if (!f.label || !f.points || f.points.length < 2) continue
+    const [mx, my, vertical] = bpmnFlowLabelPointOf(f.points)
+    // beside a vertical segment (to its right), above a horizontal one
+    const t = el2('text', vertical
+      ? { x: mx + 6, y: my, 'text-anchor': 'start', 'dominant-baseline': 'middle', class: 'mateu-bpmn-flow-label' }
+      : { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
+    t.textContent = f.label
+  }
+  // a box with its own height: the diagram scales into it
+  if (el.style && el.style.height) { svg.setAttribute('height', '100%'); svg.style.maxHeight = 'none' }
   el.textContent = ''
   el.appendChild(svg)
+}
+
+/** Where a flow's name goes: the middle of its middle segment. */
+export function bpmnFlowLabelPointOf(points) {
+  const i = Math.max(0, Math.floor((points.length - 1) / 2))
+  const a = points[i]
+  const b = points[i + 1] || a
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])]
 }
 
 export function installBpmn(doc = typeof document !== 'undefined' ? document : null) {

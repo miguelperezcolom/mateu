@@ -6978,7 +6978,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
       if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
       if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
-      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id, node.style), container); return }
       if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
@@ -13628,7 +13628,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
     }
     let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
-    for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+    for (const n of nodes) {
+      if (n.x == null) continue
+      // a name drawn BELOW its shape (events, gateways) is centred on it and may be wider than it:
+      // «Loan requested» under a start event was clipped at the left edge
+      const below = n.label && n.kind !== 'task' && n.kind !== 'note'
+      const half = below ? Math.min(String(n.label).length, 18) * 3.6 : 0
+      maxX = Math.max(maxX, n.x + n.w, n.x + n.w / 2 + half)
+      maxY = Math.max(maxY, n.y + n.h + (below ? 48 : 20))
+      minX = Math.min(minX, n.x, n.x + n.w / 2 - half)
+      minY = Math.min(minY, n.y)
+    }
     for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
     if (!isFinite(minX)) { minX = 0; minY = 0 }
     return {
@@ -13638,10 +13648,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
     }
   }
-  function bpmnAtomOf(m, id) {
+  function bpmnAtomOf(m, id, style) {
     const diagram = bpmnDiagramOf(m.xml)
+    const box = styleObjectOf(style || m.style)
     return {
       isBpmn: true,
+      // its own size (`height: 18rem`): the diagram scales into it
+      bpmnStyle: box,
       bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
       spec: JSON.stringify(diagram),
       isEmpty: !diagram.nodes.length,
@@ -26346,11 +26359,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
     for (const f of spec.flows || []) {
       el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
-      if (f.label) {
-        const mid = f.points[Math.floor(f.points.length / 2)]
-        const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
-        t.textContent = f.label
-      }
     }
     for (const n of spec.nodes || []) {
       const cx = n.x + n.w / 2
@@ -26385,8 +26393,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         })
       }
     }
+    // the flows' names last, at the middle of their middle segment: drawn first, at the end point,
+    // the target's shape covered them («yes» out of the gateway was never seen)
+    for (const f of spec.flows || []) {
+      if (!f.label || !f.points || f.points.length < 2) continue
+      const [mx, my] = bpmnFlowLabelPointOf(f.points)
+      const t = el2('text', { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
+      t.textContent = f.label
+    }
+    // a box with its own height: the diagram scales into it
+    if (el.style && el.style.height) { svg.setAttribute('height', '100%'); svg.style.maxHeight = 'none' }
     el.textContent = ''
     el.appendChild(svg)
+  }
+
+  /** Where a flow's name goes: the middle of its middle segment. */
+  function bpmnFlowLabelPointOf(points) {
+    const i = Math.max(0, Math.floor((points.length - 1) / 2))
+    const a = points[i]
+    const b = points[i + 1] || a
+    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
   }
 
   function installBpmn(doc = typeof document !== 'undefined' ? document : null) {

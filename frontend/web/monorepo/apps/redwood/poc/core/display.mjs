@@ -1,6 +1,6 @@
 import { chromeText } from '../i18n.mjs'
 import { elementModuleUrl } from '../elements.mjs'
-import { sanitizeHtml, markdownToHtml } from '../richtext.mjs'
+import { sanitizeHtml, markdownToHtml, styleObjectOf } from '../richtext.mjs'
 import { collectTexts } from './tree.mjs'
 import { avatarOf } from './atoms.mjs'
 import { ojIconOf, GENERIC_ICON } from './shellNav.mjs'
@@ -998,7 +998,17 @@ export function bpmnDiagramOf(xml) {
     if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
   }
   let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
-  for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+  for (const n of nodes) {
+    if (n.x == null) continue
+    // a name drawn BELOW its shape (events, gateways) is centred on it and may be wider than it:
+    // «Loan requested» under a start event was clipped at the left edge
+    const below = n.label && n.kind !== 'task' && n.kind !== 'note'
+    const half = below ? Math.min(String(n.label).length, 18) * 3.6 : 0
+    maxX = Math.max(maxX, n.x + n.w, n.x + n.w / 2 + half)
+    maxY = Math.max(maxY, n.y + n.h + (below ? 48 : 20))
+    minX = Math.min(minX, n.x, n.x + n.w / 2 - half)
+    minY = Math.min(minY, n.y)
+  }
   for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
   if (!isFinite(minX)) { minX = 0; minY = 0 }
   return {
@@ -1008,10 +1018,13 @@ export function bpmnDiagramOf(xml) {
     width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
   }
 }
-export function bpmnAtomOf(m, id) {
+export function bpmnAtomOf(m, id, style) {
   const diagram = bpmnDiagramOf(m.xml)
+  const box = styleObjectOf(style || m.style)
   return {
     isBpmn: true,
+    // its own size (`height: 18rem`): the diagram scales into it
+    bpmnStyle: box,
     bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
     spec: JSON.stringify(diagram),
     isEmpty: !diagram.nodes.length,

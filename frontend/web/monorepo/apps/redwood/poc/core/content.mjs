@@ -1810,7 +1810,7 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
     if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
     if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
-    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id, node.style), container); return }
     if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }

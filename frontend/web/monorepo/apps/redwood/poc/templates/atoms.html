@@ -1778,7 +1778,7 @@
                     <oj-bind-if test="[[ $current.data.isBpmn ]]">
                       <!-- BPMN: drawn from its BPMN-DI (installBpmn); bpmn-js is not under a permissive licence -->
                       <div class="mateu-bpmn oj-panel oj-sm-margin-2x-bottom" :id="[[ $current.data.bpmnId ]]" role="img"
-                        :aria-label="[[ $current.data.ariaLabel ]]" :data-mateu-bpmn="[[ $current.data.spec ]]"></div>
+                        :aria-label="[[ $current.data.ariaLabel ]]" :style="[[ $current.data.bpmnStyle || {} ]]" :data-mateu-bpmn="[[ $current.data.spec ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isWorkflow ]]">
                       <div class="oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom mateu-workflow">
