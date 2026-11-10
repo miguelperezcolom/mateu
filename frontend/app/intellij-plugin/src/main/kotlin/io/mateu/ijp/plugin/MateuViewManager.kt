@@ -232,7 +232,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
  * content's preferred height exceeds it — so filling layouts (tables) keep working and long forms
  * become scrollable instead of being squashed.
  */
-private class FillOrScrollPanel(content: JComponent) : JPanel(BorderLayout()), javax.swing.Scrollable {
+class FillOrScrollPanel(content: JComponent) : JPanel(BorderLayout()), javax.swing.Scrollable {
     init {
         add(content, BorderLayout.CENTER)
     }
