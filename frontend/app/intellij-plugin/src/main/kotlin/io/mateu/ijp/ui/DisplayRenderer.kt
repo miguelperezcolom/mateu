@@ -288,17 +288,20 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
 }
 
 /** A standalone Image component (metadata.src — data URI or URL). */
-fun renderStandaloneImage(metadata: JsonNode): JComponent {
+fun renderStandaloneImage(metadata: JsonNode, style: String = ""): JComponent {
     val src = metadata.text("src")
+    val svg = SvgImages.isSvg(src)
+    // the image's CSS width / max-width (`max-width: 24rem`) caps it, as on the web; else 360px
+    val capPx = JBUI.scale(cssPx(style, "width") ?: cssPx(style, "max-width") ?: 360)
     // the declared text alternative (Image.alt) is the accessible name a screen reader reads
     val alt = metadata.text("alt").trim()
     if (src.isBlank()) return JPanel().apply { isOpaque = false }
     fun iconOf(img: java.awt.image.BufferedImage): javax.swing.Icon {
-        val scale = minOf(1.0, JBUI.scale(360).toDouble() / img.width)
+        val scale = minOf(1.0, capPx.toDouble() / img.width)
         return javax.swing.ImageIcon(img.getScaledInstance(
             (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))
     }
-    // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be the
+    // An image Swing cannot decode (a broken url, an unreachable host): a named placeholder. It used to be the
     // src itself — a data URI dumped as a wall of base64 across the page.
     val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
     val label = JBLabel(plain("🖼 ${alt.ifEmpty { shown }}"))
@@ -313,14 +316,17 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
         label.repaint()
     }
     if (src.startsWith("data:")) {
-        val base64 = src.substringAfter("base64,", "")
-        runCatching { javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) }.getOrNull()?.let(::show)
+        // an SVG data URI may be percent-encoded instead of base64
+        (if (svg) SvgImages.dataUriBytes(src) else runCatching { java.util.Base64.getDecoder().decode(src.substringAfter("base64,", "")) }.getOrNull())
+            ?.let { decodeImage(it, svg) }?.let(::show)
     } else if (isRemoteImage(src)) {
         // Off the EDT: the url used to be fetched WHILE rendering, so a slow image host froze the
         // whole IDE until it answered (or timed out). Meanwhile a short status, not the raw url.
         label.text = plain(if (alt.isNotEmpty()) "🖼 $alt" else "Loading image…")
         Thread {
-            val img = runCatching { javax.imageio.ImageIO.read(java.net.URI.create(src.trim()).toURL()) }.getOrNull()
+            // SVGs (ImageIO reads none) through the platform's SVG renderer
+            val img = runCatching { java.net.URI.create(src.trim()).toURL().openStream().use { it.readBytes() } }.getOrNull()
+                ?.let { decodeImage(it, svg) }
             javax.swing.SwingUtilities.invokeLater {
                 if (img != null) show(img) else if (alt.isEmpty()) label.text = "Image unavailable"
             }

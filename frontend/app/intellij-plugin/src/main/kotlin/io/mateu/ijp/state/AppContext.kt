@@ -83,6 +83,7 @@ class AppContext(val session: AppSession) {
     fun putState(fieldId: String, value: Any?) {
         currentComponentState[fieldId] = value
         markUserEdit()
+        refreshLiveLabels()
         // Rules react to edits (conditional visibility/disabling); re-render only on real changes.
         if (applyRules()) rerenderCurrentForm()
         // @AutoSave: fire the configured action once the user has been idle for the debounce window.
@@ -95,6 +96,30 @@ class AppContext(val session: AppSession) {
     }
 
     private var autoSaveDebounceMillis = 800
+
+    /**
+     * Buttons whose label is a `${…}` template ("Charge ${state.nights} nights"): re-interpolated on
+     * every edit, as the web re-renders them. Weakly held — a re-rendered screen drops its buttons.
+     */
+    private val liveLabels = ArrayList<java.lang.ref.WeakReference<javax.swing.AbstractButton>>()
+
+    fun registerLiveLabel(button: javax.swing.AbstractButton) {
+        liveLabels.removeAll { it.get() == null }
+        liveLabels.add(java.lang.ref.WeakReference(button))
+    }
+
+    private fun refreshLiveLabels() {
+        if (liveLabels.isEmpty()) return
+        val exprCtx = io.mateu.ijp.ui.PageChrome.exprContext(this, null)
+        liveLabels.removeAll { ref ->
+            val button = ref.get() ?: return@removeAll true
+            val template = button.getClientProperty(io.mateu.ijp.ui.LABEL_TEMPLATE) as? String ?: return@removeAll true
+            val label = io.mateu.ijp.state.Expressions.interpolate(template, exprCtx)
+            button.text = io.mateu.ijp.ui.plain(label)
+            button.accessibleContext.accessibleName = label
+            false
+        }
+    }
 
     /**
      * Evaluates the component's rules against the live state (same semantics as the web's

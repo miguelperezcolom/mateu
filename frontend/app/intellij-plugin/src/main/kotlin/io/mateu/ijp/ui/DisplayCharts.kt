@@ -312,11 +312,14 @@ fun renderHeatmap(metadata: JsonNode): JComponent {
     val byDate = cells.associate { it.first to it.second }
     val base = Color(0x1A, 0x73, 0xE8)
     val panel = object : JPanel() {
+        // a canvas keeps its size inside a stack/row: its minimum was a FlowLayout's empty 10px,
+        // which a squeezed box layout honoured — a 10px strip showing 5 of 17 days
+        override fun getMinimumSize(): Dimension = preferredSize
         override fun paintComponent(g: Graphics) {
             super.paintComponent(g)
             val g2 = g as Graphics2D
-            val size = 12
-            val gap = 3
+            val size = JBUI.scale(12)
+            val gap = JBUI.scale(3)
             var d = start
             var col = 0
             while (!d.isAfter(max)) {
@@ -333,7 +336,8 @@ fun renderHeatmap(metadata: JsonNode): JComponent {
     }
     val weeks = ChronoUnit.DAYS.between(start, max).toInt() / 7 + 2
     panel.isOpaque = false
-    panel.preferredSize = Dimension(weeks * 15, 7 * 15)
+    panel.preferredSize = Dimension(JBUI.scale(weeks * 15), JBUI.scale(7 * 15))
+    panel.getAccessibleContext().accessibleName = heatmapTextAlternative(metadata)
     return panel
 }
 
@@ -381,24 +385,43 @@ fun renderTrendChart(metadata: JsonNode): JComponent {
     val span = (max - min).takeIf { it != 0.0 } ?: 1.0
     val color = runCatching { Color.decode(metadata.text("color")) }.getOrElse { Color(0x1A, 0x73, 0xE8) }
     val area = metadata.path("area").asBoolean(false)
+    val labels = metadata.arr("labels").map { it.asText() }
     val chart = object : JPanel() {
+        // the chart keeps its height in a stack (a squeezed box layout cut it to a sliver)
+        override fun getMinimumSize(): Dimension = Dimension(JBUI.scale(120), preferredSize.height)
         override fun paintComponent(g: Graphics) {
             super.paintComponent(g)
             val g2 = g as Graphics2D
             g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
-            val pad = 6
+            g2.font = JBUI.Fonts.smallFont()
+            val fm = g2.fontMetrics
+            val pad = JBUI.scale(6)
+            // room under the line for the x labels, when the wire names the points
+            val labelH = if (labels.isNotEmpty()) fm.height else 0
+            val plotH = height - labelH
             val stepX = (width - pad * 2).toDouble() / (values.size - 1)
             val xs = IntArray(values.size)
             val ys = IntArray(values.size)
             for (i in values.indices) {
                 xs[i] = pad + (i * stepX).toInt()
-                ys[i] = pad + ((height - pad * 2) * (1 - (values[i] - min) / span)).toInt()
+                ys[i] = pad + ((plotH - pad * 2) * (1 - (values[i] - min) / span)).toInt()
+            }
+            if (labels.isNotEmpty()) {
+                g2.color = ToneColors.secondaryText()
+                // as many labels as fit without overlapping, the last always
+                val every = ((labels.maxOf { fm.stringWidth(it) } + JBUI.scale(8)) / stepX.coerceAtLeast(1.0)).toInt() + 1
+                for (i in values.indices) {
+                    val l = labels.getOrNull(i) ?: continue
+                    if (i % every != 0 && i != values.lastIndex) continue
+                    val x = (xs[i] - fm.stringWidth(l) / 2).coerceIn(0, (width - fm.stringWidth(l)).coerceAtLeast(0))
+                    g2.drawString(l, x, height - fm.descent)
+                }
             }
             if (area) {
                 val poly = java.awt.Polygon()
                 for (i in values.indices) poly.addPoint(xs[i], ys[i])
-                poly.addPoint(xs.last(), height - pad)
-                poly.addPoint(xs.first(), height - pad)
+                poly.addPoint(xs.last(), plotH - pad)
+                poly.addPoint(xs.first(), plotH - pad)
                 g2.color = Color(color.red, color.green, color.blue, 30)
                 g2.fillPolygon(poly)
             }
@@ -408,7 +431,18 @@ fun renderTrendChart(metadata: JsonNode): JComponent {
         }
     }
     chart.isOpaque = false
-    chart.preferredSize = Dimension(420, 140)
+    chart.preferredSize = Dimension(JBUI.scale(420), JBUI.scale(140))
+    chart.getAccessibleContext().accessibleName = (if (title.isNotBlank()) "$title. " else "") +
+        chartTextAlternative(labels, values, line = true)
     panel.addStacked(chart, 0)
     return panel
+}
+
+/** The heatmap's text alternative: "Heatmap, 17 days. Busiest 2026-10-07: 8 (…)". */
+internal fun heatmapTextAlternative(metadata: JsonNode): String {
+    val cells = metadata.arr("cells").filter { it.text("date").isNotBlank() }
+    if (cells.isEmpty()) return "Heatmap, no data"
+    val busiest = cells.maxBy { it.path("value").asDouble(0.0) }
+    val label = busiest.text("label").let { if (it.isNotBlank()) " ($it)" else "" }
+    return "Heatmap, ${cells.size} days. Busiest ${busiest.text("date")}: ${formatTick(busiest.path("value").asDouble(0.0))}$label"
 }

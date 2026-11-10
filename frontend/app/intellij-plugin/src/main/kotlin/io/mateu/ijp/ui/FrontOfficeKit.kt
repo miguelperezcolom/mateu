@@ -83,21 +83,7 @@ internal fun uxMono(base: Font, style: Int = Font.BOLD, size: Int = 0): Font =
 
 /** Maps the wire's neutral (Vaadin-set) action icon names to the IDE's own AllIcons glyphs;
  *  null → no icon known, the caller falls back to a labelled button. */
-internal fun uxActionIcon(name: String): javax.swing.Icon? = when (name) {
-    "vaadin:pencil", "vaadin:pen", "vaadin:edit" -> com.intellij.icons.AllIcons.Actions.Edit
-    "vaadin:ban" -> com.intellij.icons.AllIcons.Actions.Cancel
-    "vaadin:check" -> com.intellij.icons.AllIcons.Actions.Checked
-    "vaadin:barcode", "vaadin:search" -> com.intellij.icons.AllIcons.Actions.Search
-    "vaadin:rotate-left", "vaadin:refresh" -> com.intellij.icons.AllIcons.Actions.Refresh
-    "vaadin:trash" -> com.intellij.icons.AllIcons.Actions.GC
-    "vaadin:plus" -> com.intellij.icons.AllIcons.General.Add
-    "vaadin:exchange" -> com.intellij.icons.AllIcons.Actions.SwapPanels
-    "vaadin:wifi" -> com.intellij.icons.AllIcons.General.Web
-    "vaadin:key" -> com.intellij.icons.AllIcons.CodeWithMe.CwmPermissions
-    "vaadin:credit-card" -> com.intellij.icons.AllIcons.Actions.Commit
-    "vaadin:gift" -> com.intellij.icons.AllIcons.Nodes.Favorite
-    else -> null
-}
+internal fun uxActionIcon(name: String): javax.swing.Icon? = wireIcon(name)
 
 /** Up to three per-item actions (actionId/actionLabel/actionIcon, 2, 3) as a row of buttons —
  *  icon-only (label as tooltip) when the icon maps to an AllIcons glyph, labelled otherwise. */

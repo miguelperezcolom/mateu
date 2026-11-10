@@ -415,8 +415,15 @@ private fun avatarColor(seed: String): Color {
 /** Icon: the platform icon for known names, else the name in muted text. */
 fun renderIcon(metadata: JsonNode): JComponent {
     val name = metadata.text("icon")
-    val icon = uxActionIcon(name.substringAfter(':'))
-    return (if (icon != null) JBLabel(icon) else muted(name.substringAfter(':'), smaller = false)).accessibleName(name)
+    // the token was stripped of its `vaadin:` prefix BEFORE the lookup, so no icon ever matched and
+    // the name ("calendar") was printed; an icon without a glyph shows a symbol, never its name
+    val icon = wireIcon(name)
+    val label = when {
+        icon != null -> JBLabel(icon)
+        else -> JBLabel(plain(wireIconText(name) ?: "•"))
+    }
+    metadata.text("color").takeIf { it.isNotBlank() }?.let { c -> runCatching { java.awt.Color.decode(c) }.getOrNull()?.let { label.foreground = it } }
+    return label.accessibleName(WireIcons.bareName(name).replace('-', ' '))
 }
 
 /** Details: a disclosure — the summary toggles the content. */
