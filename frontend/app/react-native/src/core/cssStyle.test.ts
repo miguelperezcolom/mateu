@@ -40,3 +40,40 @@ test('what cannot be mapped is left out; `only` keeps a subset', () => {
   assert.deepEqual(cssToRn('flex: 0 0 22rem'), { flexGrow: 0, flexShrink: 0, flexBasis: 352 });
   assert.deepEqual(cssToRn('flex: 1'), { flexGrow: 1, flexBasis: 0 });
 });
+
+test('every Lumo colour variable maps onto a theme token, in both schemes', () => {
+  const expected: Record<string, keyof typeof theme> = {
+    'lumo-base-color': 'surface', 'lumo-contrast-5pct': 'background', 'lumo-contrast-10pct': 'divider',
+    'lumo-contrast-20pct': 'border', 'lumo-contrast-30pct': 'border', 'lumo-contrast-50pct': 'faint',
+    'lumo-contrast-60pct': 'muted', 'lumo-contrast-70pct': 'muted', 'lumo-contrast-80pct': 'ink',
+    'lumo-contrast-90pct': 'ink', 'lumo-contrast': 'ink', 'lumo-body-text-color': 'ink',
+    'lumo-header-text-color': 'ink', 'lumo-secondary-text-color': 'muted', 'lumo-tertiary-text-color': 'faint',
+    'lumo-primary-color': 'primary', 'lumo-primary-text-color': 'primary', 'lumo-primary-color-10pct': 'primaryContainer',
+    'lumo-primary-color-50pct': 'primary', 'lumo-success-color': 'success', 'lumo-success-text-color': 'success',
+    'lumo-success-color-10pct': 'successBg', 'lumo-warning-color': 'warning', 'lumo-warning-text-color': 'warning',
+    'lumo-warning-color-10pct': 'warningBg', 'lumo-error-color': 'danger', 'lumo-error-text-color': 'danger',
+    'lumo-error-color-10pct': 'dangerBg',
+  };
+  for (const scheme of ['light', 'dark'] as const) {
+    applyTheme(scheme);
+    for (const [name, token] of Object.entries(expected)) {
+      // the fallback is never used for a known variable: the token follows the scheme
+      assert.equal(cssColor(`var(--${name}, #123456)`), theme[token], `${scheme} ${name}`);
+    }
+  }
+  applyTheme('light');
+});
+
+test('size bounds and gaps are camel-cased; auto only for width/height; border keywords and radius', () => {
+  assert.deepEqual(cssToRn('min-width: 10rem; min-height: 2rem; row-gap: 4px; column-gap: var(--lumo-space-s)'), {
+    minWidth: 160, minHeight: 32, rowGap: 4, columnGap: 8,
+  });
+  assert.deepEqual(cssToRn('width: auto; max-height: auto'), { width: 'auto' });
+  assert.deepEqual(cssToRn('border: 1px dashed var(--lumo-contrast-20pct, #ddd); border-radius: 50%'), {
+    borderWidth: 1, borderColor: theme.border, borderStyle: 'dashed', borderRadius: 9999,
+  });
+  assert.deepEqual(cssToRn('border: none; margin-inline: 4px 8px; padding-block: 2px'), {
+    borderWidth: 0, marginLeft: 4, marginRight: 8, paddingTop: 2, paddingBottom: 2,
+  });
+  assert.deepEqual(cssToRn('opacity: .5; align-self: end; flex-shrink: 0; color: inherit'), { opacity: 0.5, alignSelf: 'flex-end', flexShrink: 0 });
+});

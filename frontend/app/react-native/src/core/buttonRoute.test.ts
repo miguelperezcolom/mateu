@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buttonPressOf, resolvedButtonRoute } from './buttonRoute.ts';
+import { buttonPressOf, resolvedButtonRoute, warnUnresolvedButtonRoute } from './buttonRoute.ts';
 
 test('a button route resolves when every expression has a value', () => {
   assert.equal(resolvedButtonRoute('/p/${state.id}', { state: { id: 7 } }), '/p/7');
@@ -21,4 +21,13 @@ test('pressing a routed button navigates; an unresolved one does nothing; no rou
   assert.deepEqual(buttonPressOf({ actionId: 'open', route: '/p/${state.id}' }, { state: {} }), { kind: 'unresolvedRoute', template: '/p/${state.id}' });
   assert.deepEqual(buttonPressOf({ actionId: 'save' }, { state: {} }), { kind: 'action' });
   assert.deepEqual(buttonPressOf({ actionId: 'save', route: '' }, { state: {} }), { kind: 'action' });
+});
+
+test('an unresolved button route is warned about once per template', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  warnUnresolvedButtonRoute('/once/${state.id}');
+  warnUnresolvedButtonRoute('/once/${state.id}');
+  warnUnresolvedButtonRoute('/other/${state.id}');
+  assert.equal(warn.mock.callCount(), 2);
+  assert.match(String(warn.mock.calls[0].arguments[0]), /\/once\/\$\{state\.id\}/);
 });

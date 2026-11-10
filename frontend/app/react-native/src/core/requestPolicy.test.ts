@@ -50,3 +50,14 @@ test('connectivity: our traffic decides; listeners hear the change once', () => 
   assert.deepEqual(heard, [false, true, false]);
   assert.equal(c.isOnline, false);
 });
+
+test('connectivity: an unsubscribed listener hears nothing more', () => {
+  const c = new Connectivity();
+  const heard: boolean[] = [];
+  const off = c.subscribe((on) => heard.push(on));
+  c.noteUnreachable();
+  off();
+  c.noteReachable();
+  assert.deepEqual(heard, [false]);
+  assert.equal(c.isOnline, true);
+});
