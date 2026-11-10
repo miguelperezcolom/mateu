@@ -189,3 +189,10 @@ test('workflow: a precondition cycle does not hang', () => {
   const { diagram } = workflowDiagram(JSON.stringify({ steps: [{ id: 'a', preconditionStepId: 'b' }, { id: 'b', preconditionStepId: 'a' }] }));
   assert.equal(diagram.nodes.length, 2);
 });
+
+test('a grid cell action sends the row as its parameters; a crud row action under _clickedRow', async () => {
+  const { gridCellParameters } = await import('./wireWidgets.ts');
+  const row = { id: 'w1', title: 'Starry Night' };
+  assert.deepEqual(gridCellParameters('openWork', row), row);
+  assert.deepEqual(gridCellParameters('action-on-row-cancel', row), { _clickedRow: row });
+});

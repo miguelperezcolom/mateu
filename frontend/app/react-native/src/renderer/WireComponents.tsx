@@ -40,6 +40,7 @@ import {
   textOfHtml,
   type MenuOptionLike,
   gridTrackSizes,
+  gridCellParameters,
   orderByAreas,
 } from './wireWidgets';
 import { interpolate } from '../core/expressions';
@@ -841,12 +842,6 @@ function FramedPage({ src, title }: { src: string; title: string }) {
       </TouchableOpacity>
     </View>
   );
-}
-
-/** A grid cell's action parameters, as mateu-table sends them: the ROW itself (`openWork` reads
- *  its fields), a crud row action (`action-on-row-*`) the row under `_clickedRow`. */
-export function gridCellParameters(actionId: string, row: Record<string, unknown>): Record<string, unknown> {
-  return actionId.startsWith('action-on-row-') ? { _clickedRow: row } : { ...row };
 }
 
 /** A press as the web's element events serialize it (its scalar fields). */

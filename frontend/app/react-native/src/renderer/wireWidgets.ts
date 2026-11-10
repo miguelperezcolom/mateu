@@ -278,3 +278,9 @@ export function menuIntent(o: MenuOptionLike): { kind: 'action' | 'route' | 'sub
   return { kind: 'none', target: '' };
 }
 
+
+/** A grid cell's action parameters, as mateu-table sends them: the ROW itself (`openWork` reads
+ *  its fields), a crud row action (`action-on-row-*`) the row under `_clickedRow`. */
+export function gridCellParameters(actionId: string, row: Record<string, unknown>): Record<string, unknown> {
+  return actionId.startsWith('action-on-row-') ? { _clickedRow: row } : { ...row };
+}
