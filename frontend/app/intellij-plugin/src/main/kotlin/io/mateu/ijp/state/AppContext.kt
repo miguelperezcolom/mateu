@@ -311,6 +311,9 @@ class AppContext(val session: AppSession) {
     private val registry: MutableMap<String, JComponent> = HashMap()
     private val dataHandlers: MutableMap<String, (JsonNode) -> Unit> = HashMap()
 
+    /** The plain island whose body is being rendered (its listing registers its data under its id). */
+    var currentIslandId: String? = null
+
     // ── slot helpers ────────────────────────────────────────────────────────────────
     /**
      * A slot panel. A single child fills the slot (BorderLayout.CENTER) so tables/forms expand to
@@ -623,11 +626,17 @@ class AppContext(val session: AppSession) {
             )
             return
         }
+        // read the context NOW, on the EDT: the work runs later on a pool thread, by when another
+        // island's OnLoad may have re-aimed it (its search then went out as the other island)
+        val rqRoute = currentRoute
+        val rqConsumedRoute = currentConsumedRoute
+        val rqComponentId = currentComponentId
+        val rqState = HashMap(currentComponentState)
         background(
             work = {
                 apiClient.runAction(
-                    currentRoute, currentConsumedRoute, actionId, serverSideType,
-                    currentComponentId, currentComponentState, appState, parameters ?: emptyMap(), embeddedChrome,
+                    rqRoute, rqConsumedRoute, actionId, serverSideType,
+                    rqComponentId, rqState, appState, parameters ?: emptyMap(), embeddedChrome,
                 )
             },
             onOk = { increment ->
@@ -1441,7 +1450,21 @@ class AppContext(val session: AppSession) {
                     container.border = com.intellij.util.ui.JBUI.Borders.empty(io.mateu.ijp.ui.PageChrome.GUTTER)
                 }
                 SwingUtilities.invokeLater {
-                    putChildren(container, ComponentRenderer(this), children, state, state)
+                    // Several plain islands share this context, and their bodies are put LATER: by
+                    // then the context points at the LAST island loaded. Re-aim it at this one, so
+                    // its listing registers for, and its OnLoad search runs as, THIS island — three
+                    // listings on one page all searched as the last and only it got rows.
+                    if (id.isNotBlank()) currentComponentId = id
+                    if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
+                    currentIslandId = id.ifBlank { null }
+                    try {
+                        putChildren(container, ComponentRenderer(this), children, state, state)
+                    } finally {
+                        currentIslandId = null
+                    }
+                    // the island's own crud moved currentComponentId to its "crud" id while rendering
+                    if (id.isNotBlank()) currentComponentId = id
+                    if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
                     if (triggers.isArray) fireOnLoadTriggers(triggers)
                 }
             }

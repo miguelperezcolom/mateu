@@ -121,6 +121,20 @@ class DesktopWidgetsRenderTest : RenderTestCase() {
         assertFalse(all(view).any { it is com.intellij.ui.SearchTextField })
     }
 
+    fun testTwoListingIslandsOnOnePageEachSearchAsThemselves() {
+        val island = { id: String, type: String ->
+            """{"type":"ServerSide","id":"$id","serverSideType":"$type","route":"","initialData":{},
+                "triggers":[{"type":"OnLoad","actionId":"search"}],
+                "children":[{"type":"ClientSide","id":"crud","metadata":{"type":"Crud","searchable":false,
+                  "columns":[{"type":"ClientSide","metadata":{"type":"GridColumn","id":"name","label":"Name"}}]}}]}"""
+        }
+        render(context(), """{"type":"VerticalLayout"}""", "[${island("i1", "x.Cards")},${island("i2", "x.List")}]")
+        awaitRequests(2)
+        val searches = server.requests.filter { it.path("actionId").asText() == "search" }
+        assertEquals(setOf("x.Cards", "x.List"), searches.map { it.path("serverSideType").asText() }.toSet())
+        assertEquals(setOf("i1", "i2"), searches.map { it.path("initiatorComponentId").asText() }.toSet())
+    }
+
     fun testCollectionChoicesAreCheckboxesAndAListBox() {
         val opts = """[{"value":"A","label":"Alpha"},{"value":"B","label":"Beta"}]"""
         val boxes = render(context(), """{"type":"FormField","fieldId":"extras","label":"Extras","dataType":"array","stereotype":"checkbox","options":$opts}""")

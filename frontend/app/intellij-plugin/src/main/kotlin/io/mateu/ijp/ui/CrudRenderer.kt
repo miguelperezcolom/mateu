@@ -548,6 +548,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         next.isEnabled = pageNumber + 1 < totalPages
     }
     ctx.registerDataHandler("crud") { applyData(it) }
+    // inside a plain island the search answer targets the island: register under its id too, or
+    // the last listing on the page took every island's rows
+    ctx.currentIslandId?.let { islandId -> ctx.registerDataHandler(islandId) { applyData(it) } }
     // Seed with any data already present on this fragment.
     if (!data.isNull && !data.isMissingNode) applyData(data)
 
