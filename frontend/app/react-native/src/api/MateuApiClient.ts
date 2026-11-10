@@ -32,6 +32,9 @@ export interface RunActionParams {
   componentState: Record<string, unknown>;
   appState: Record<string, unknown>;
   parameters: Record<string, unknown>;
+  /** The chrome of the embedded micro frontend this request comes from (MicroFrontend.chrome): the
+   *  server then sends it no window commands (title, favicon, history). */
+  embeddedChrome?: string;
 }
 
 declare const __DEV__: boolean | undefined;
@@ -223,6 +226,7 @@ export class MateuApiClient {
       componentState: params.componentState ?? {},
       appState: params.appState ?? {},
       parameters: params.parameters ?? {},
+      embeddedChrome: params.embeddedChrome,
     };
     for (const key of Object.keys(body)) {
       if (body[key] === null || body[key] === undefined) delete body[key];
@@ -260,6 +264,7 @@ export class MateuApiClient {
       componentState: params.componentState ?? {},
       appState: params.appState ?? {},
       parameters: params.parameters ?? {},
+      embeddedChrome: params.embeddedChrome,
     };
 
     // Drop null values to match web frontend behaviour
@@ -349,8 +354,10 @@ export class MateuApiClient {
     serverSideType: string,
     appState: Record<string, unknown>,
     componentState: Record<string, unknown> = {},
+    embeddedChrome?: string,
   ): Promise<unknown> {
     return this.runAction({
+      embeddedChrome,
       route,
       // '' means "nothing consumed yet" (a full URL load); '_empty' would make the backend
       // treat the route as relative to the root shell and answer with the App chrome again.

@@ -1,6 +1,7 @@
 import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image } from './BackendImage';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';

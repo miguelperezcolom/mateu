@@ -1,6 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
-import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { PanResponder, StyleSheet, View } from 'react-native';
+import { Image } from './BackendImage';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';

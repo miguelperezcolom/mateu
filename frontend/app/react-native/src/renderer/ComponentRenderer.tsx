@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Image } from './BackendImage';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
@@ -19,7 +20,7 @@ import { PageRenderer } from './PageRenderer';
 import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
-  PopoverRenderer,
+  PopoverRenderer, PopoverTrigger,
 } from './ContainerRenderer';
 import {
   MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
@@ -42,8 +43,8 @@ import { MatrixGridRenderer } from './MatrixGridRenderer';
 import { MapRenderer } from './MapRenderer';
 import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
-import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
+import { chromeOf } from './ScrollContext';
 import { theme, themed } from '../theme';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y, headingA11y, imageA11y } from '../a11y/a11y';
@@ -84,8 +85,10 @@ export function ComponentRenderer({ component, state, data }: Props) {
 }
 
 function ServerSideIsland({ component }: { component: Record<string, unknown> }) {
-  const { session } = useAppContext();
-  return <MateuViewHost session={session} serverSideNode={component} silent />;
+  // the island runs in the session of the view it sits in (a remote micro frontend's own island
+  // talks to the remote, not to the app's backend)
+  const { session } = useViewController();
+  return <MateuViewHost session={session} serverSideNode={component} embedded />;
 }
 
 /**
@@ -93,9 +96,10 @@ function ServerSideIsland({ component }: { component: Record<string, unknown> })
  * own baseUrl we spin a dedicated session for that origin; otherwise it shares the host session.
  */
 function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }) {
-  const { session } = useAppContext();
+  const { session } = useViewController();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(() => islandSession(session, baseUrl), [baseUrl, session]);
+  const chrome = chromeOf(metadata['chrome']);
   return (
     <MateuViewHost
       session={remoteSession}
@@ -108,7 +112,8 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
       // resolved by the host (resolve = SERVER): painted without asking; its actions still go to
       // the island's own session — the remote
       preview={resolvedPreviewOf(metadata)}
-      silent
+      embedded
+      chrome={chrome}
     />
   );
 }
@@ -118,6 +123,7 @@ const FullWidthContext = React.createContext(false);
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
   const inFullWidth = React.useContext(FullWidthContext);
+  const popoverTrigger = React.useContext(PopoverTrigger);
   const controller = useViewController();
   const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
@@ -202,7 +208,12 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // else the button is disabled — never a navigation to "/p/" nor a fall-through to the action.
       const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
       const disabled = metadata['disabled'] === true || press.disabled;
-      const onPress = press.onPress;
+      const onPress = popoverTrigger
+        ? () => {
+            popoverTrigger();
+            if (metadata['route'] || controller.advertises(id)) press.onPress();
+          }
+        : press.onPress;
       return (
         <MateuButton
           label={label}

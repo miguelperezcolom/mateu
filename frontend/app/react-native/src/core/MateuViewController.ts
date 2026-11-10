@@ -149,8 +149,15 @@ export class MateuViewController {
   /** Host hook: go to `target` on the native stack — back to it when it is already there, else
    *  pushed (or taking the top's place when `replaceTop`). */
   stackNavigator: ((target: NavTarget, replaceTop: boolean) => void) | null = null;
-  /** Errors/messages silenced (embedded islands). */
-  silentErrors = false;
+  /**
+   * A view that does not own the window: an island inside a page, an overlay's content, an embedded
+   * micro frontend. Its SetWindowTitle / its page title never reach the app bar (the web's
+   * embeddedChrome rule) — it used to rename the bar after the first embedded page and keep it.
+   */
+  windowless = false;
+  /** An embedded micro frontend's chrome (MicroFrontend.chrome): sent on every request, so the
+   *  remote's server leaves the window commands out (RunActionRqDto.embeddedChrome). */
+  embeddedChrome: string | undefined = undefined;
 
   private dataHandlers: Record<string, (data: unknown) => void> = {};
   /** Field-scoped data (lookup `search-<field>` results arrive as `{ <fieldId>: page }`). */
@@ -247,7 +254,7 @@ export class MateuViewController {
       }
       const increment = await timed(`load ${route || '/'}`, () =>
         this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState,
-          (consumedRoute ?? '') === this.mediatorConsumed ? { ...this.mediatorSeed } : {}));
+          (consumedRoute ?? '') === this.mediatorConsumed ? { ...this.mediatorSeed } : {}, this.embeddedChrome));
       enter();
       this.freshScreen = true;
       this.applyIncrement(increment as Json);
@@ -378,6 +385,7 @@ export class MateuViewController {
             actionId,
             serverSideType: this.resolveActionTarget(actionId) || null,
             initiatorComponentId: this.currentComponentId,
+            embeddedChrome: this.embeddedChrome,
             componentState: this.actionState(),
             appState: this.session.appState,
             parameters: parameters ?? {},
@@ -401,6 +409,7 @@ export class MateuViewController {
         actionId,
         serverSideType: this.resolveActionTarget(actionId) || null,
         initiatorComponentId: this.currentComponentId,
+        embeddedChrome: this.embeddedChrome,
         componentState: this.actionState(),
         appState: this.session.appState,
         parameters: parameters ?? {},
@@ -415,7 +424,7 @@ export class MateuViewController {
       return true;
     } catch (e) {
       // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
-      if (silent || this.silentErrors || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
+      if (silent || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
       else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
       return false;
     }
@@ -524,7 +533,8 @@ export class MateuViewController {
       if (successRoute && !successRoute.includes('${')) this.handleCommand({ type: 'NavigateTo', data: successRoute });
       return true;
     } catch (e) {
-      if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
+      // a screen-load fetch (@RestData) fails like a load: logged; a pressed action says so
+      if (actionId === '__restdata__') devLog('[Mateu] rest data failed:', errorText(e));
       else this.session.notify(null, `Request failed: ${errorText(e)}`, 'error');
       return false;
     }
@@ -546,6 +556,7 @@ export class MateuViewController {
       actionId: '__restfetch__',
       serverSideType: this.currentServerSideType || null,
       initiatorComponentId: this.currentComponentId,
+      embeddedChrome: this.embeddedChrome,
       componentState: this.actionState(),
       appState: this.session.appState,
       parameters: { _sourceKind: sourceKind, _sourceId: sourceId, ...extra },
@@ -655,6 +666,11 @@ export class MateuViewController {
     return ownsAction(this.currentComponentActions, actionId);
   }
 
+  /** Whether the view on show advertises `actionId` (what the web's mateu-component claims). */
+  advertises(actionId: string): boolean {
+    return this.ownsAction(actionId);
+  }
+
   private resolveActionTarget(actionId: string): string {
     // Unowned action on an inner view (e.g. "edit" on a crud detail): bubble to the crud
     // orchestrator, else to the sst the view was navigated with.
@@ -701,10 +717,6 @@ export class MateuViewController {
     for (const msg of asArray(increment['messages'])) {
       const toast = toastOf(msg);
       if (!toast) continue;
-      if (this.silentErrors) {
-        devLog(`[Mateu] ${toast.variant}: ${toast.text}`);
-        continue;
-      }
       // The message's actions (an Undo among them) run on THIS controller — the initiator whose
       // action produced the message; a route navigates.
       const actions = toast.actions.map((a) => ({ label: a.label, style: a.style, onPress: () => this.runToastAction(a) }));
@@ -761,6 +773,7 @@ export class MateuViewController {
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
         serverSideType: this.currentServerSideType,
+        session: this.session,
       });
       return;
     }
@@ -948,6 +961,7 @@ export class MateuViewController {
           actionId: '',
           serverSideType: sst || null,
           initiatorComponentId: id || 'ux_main',
+          embeddedChrome: this.embeddedChrome,
           componentState: {},
           appState: this.session.appState,
           parameters: {},
@@ -1006,6 +1020,7 @@ export class MateuViewController {
         actionId: '_progress-cancel',
         serverSideType: this.currentServerSideType || null,
         initiatorComponentId: this.currentComponentId,
+        embeddedChrome: this.embeddedChrome,
         componentState: {},
         appState: this.session.appState,
         parameters: { taskId },
@@ -1061,6 +1076,8 @@ export class MateuViewController {
         break;
       case 'SetWindowTitle': {
         const title = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['title']);
+        // the window is the host's: an embedded page never names it (nor is announced as a new screen)
+        if (this.windowless) break;
         if (title && !title.startsWith('[')) {
           this.windowTitle = title;
           this.session.setTitle(title);
@@ -1147,7 +1164,7 @@ export class MateuViewController {
     this.onRender(view);
     // a YAML record page is named by the server before its record arrives ("28"): once its own
     // title template resolves ("Voyager 1"), the title follows it — silently (core/windowTitle.ts)
-    const title = resolvedPageTitle(view.component, view.state ?? {}, view.data);
+    const title = this.windowless ? '' : resolvedPageTitle(view.component, view.state ?? {}, view.data);
     if (title && title !== this.windowTitle) {
       this.windowTitle = title;
       this.session.setTitle(title);

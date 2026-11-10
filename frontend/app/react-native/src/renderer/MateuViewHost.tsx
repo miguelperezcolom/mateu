@@ -6,7 +6,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
-import { FIT_CONTENT, InsideVerticalScroll, useFitsContent, ScreenHasBack } from './ScrollContext';
+import { BarTitle, EmbeddedChrome, type EmbeddedChromeMode, FIT_CONTENT, InsideVerticalScroll, useFitsContent, ScreenHasBack } from './ScrollContext';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
@@ -20,6 +20,12 @@ export function useViewController(): MateuViewController {
   const ctx = useContext(ViewControllerContext);
   if (!ctx) throw new Error('useViewController must be used inside a MateuViewHost');
   return ctx;
+}
+
+/** Resolves a url the server sent (an image `src`, a link) against the view's backend (core/backendUrl). */
+export function useBackendUrl(): (url: string | null | undefined) => string {
+  const ctx = useContext(ViewControllerContext);
+  return (url) => (ctx ? ctx.session.backendUrl(url) : url ?? '');
 }
 
 interface Props {
@@ -40,8 +46,14 @@ interface Props {
   /** An increment the shell already holds (the assistant's render-screen `__preview__` answer):
    *  its first component fragment is rendered here, against `route`. */
   preview?: { increment: unknown; route: string; consumedRoute: string; serverSideType?: string };
-  /** Errors shown as inline text instead of toasts (embedded islands). */
-  silent?: boolean;
+  /**
+   * A view embedded in a page (an island, a micro frontend, a framed page): it lives in the host's
+   * scroll, its load failure is a line of text, and it never names the window (the bar keeps the
+   * host's title, and the embedded page keeps its own heading). Overlay contents are windowless too.
+   */
+  embedded?: boolean;
+  /** An embedded micro frontend's declared chrome (NONE | COMPACT | PAGE). */
+  chrome?: EmbeddedChromeMode;
   /** Hands the live controller to the host (dirty checks on back navigation). */
   onController?: (controller: MateuViewController) => void;
 }
@@ -51,14 +63,15 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, embedded, chrome, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
   const fits = useFitsContent();
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
   useEffect(() => {
     controller.onRender = (v) => setView({ ...v });
-    controller.silentErrors = !!silent;
+    controller.windowless = !!embedded || !!serverSideNode;
+    controller.embeddedChrome = chrome;
     controller.detailOpener = onOpenDetail ?? null;
     controller.stackNavigator = onStackNavigate ?? null;
     controller.confirmDiscard = () => session.confirmDiscard();
@@ -106,7 +119,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
       if (serverSideNode) controller.mountServerSide(serverSideNode);
       else if (target) void controller.navigate(target.route, target.consumedRoute, target.serverSideType);
     };
-    if (silent) return <Text style={styles.error}>{message.title}</Text>;
+    if (embedded) return <Text style={styles.error}>{message.title}</Text>;
     return (
       <View style={styles.centered} accessibilityRole="alert">
         <Text style={styles.failureTitle} {...headingA11y(2)}>{message.title}</Text>
@@ -136,7 +149,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
           <ActivityIndicator color={theme.primary} accessibilityLabel="Loading" />
         </View>
       )}
-      {(serverSideNode && !overlaid) || selfScrolling ? (
+      {((serverSideNode || embedded) && !overlaid) || selfScrolling ? (
         content
       ) : (
         <ScrollView style={fits ? FIT_CONTENT : styles.host} contentContainerStyle={styles.scrollBody} keyboardShouldPersistTaps="handled">
@@ -148,12 +161,17 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
     </View>
   );
 
+  const windowless = !!embedded || !!serverSideNode;
   return (
     <ViewControllerContext.Provider value={controller}>
-      {serverSideNode ? (
-        // an island (an embedded crud, an overlay's content) is not the pushed screen: ITS «Back to
-        // list» goes back inside the island, which the screen's arrow does not — it keeps it (RN-26)
+      {windowless ? (
+        // nothing in an embedded view repeats the app bar's title (it is not its title), and only a
+        // micro frontend's own page is under its declared chrome
+        <BarTitle.Provider value={null}><EmbeddedChrome.Provider value={chrome}>
+        {/* an island (an embedded crud, an overlay's content) is not the pushed screen: ITS «Back to
+            list» goes back inside the island, which the screen's arrow does not — it keeps it (RN-26) */}
         <ScreenHasBack.Provider value={false}>{body}</ScreenHasBack.Provider>
+        </EmbeddedChrome.Provider></BarTitle.Provider>
       ) : (
         // RN-19: on iOS the software keyboard is laid OVER the screen — without this the bottom
         // button bar (Save / Next) and the last fields of a form sat hidden behind it. Android

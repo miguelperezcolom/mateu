@@ -224,12 +224,34 @@ test('messages: toasts with duration and an Undo that runs the reverse action', 
   assert.equal(calls.at(-1)!.actionId, 'restore');
 });
 
-test('silent errors (embedded islands) never toast', async () => {
-  const { c, notes } = harness([new Error('boom')]);
-  c.silentErrors = true;
-  c.applyIncrement({ messages: [{ text: 'hidden' }] });
+test('an embedded island shows what its actions answer: messages, sticky errors, undo, a failed action', async () => {
+  const { c, notes } = harness([
+    { messages: [{ text: 'Junior suite held', variant: 'success' }] },
+    { messages: [{ text: 'That user name is taken', variant: 'error', persistence: 'sticky' }] },
+    new Error('HTTP 503'),
+  ]);
+  c.windowless = true;
+  await c.runAction('hold');
+  await c.runAction('save');
   await c.runAction('x');
-  assert.equal(notes.length, 0);
+  assert.deepEqual(notes.map((n) => n.text), ['Junior suite held', 'That user name is taken', notes[2].text]);
+  assert.equal(notes[1].options.sticky, true);
+  assert.equal(notes[2].variant, 'error');
+  // only a trigger's (silent) failure stays quiet
+  await c.runAction('poll', undefined, true);
+  assert.equal(notes.length, 3);
+});
+
+test('an embedded view never names the window, and says its chrome on every request', async () => {
+  const { c, session, calls } = harness([{ commands: [{ type: 'SetWindowTitle', data: 'Address' }] }, {}]);
+  const titles: string[] = [];
+  session.setTitle = (t) => titles.push(t);
+  c.windowless = true;
+  c.embeddedChrome = 'COMPACT';
+  await c.runAction('edit');
+  await c.navigate('/x', '', '');
+  assert.deepEqual(titles, []);
+  assert.equal(calls[0].embeddedChrome, 'COMPACT');
 });
 
 test('a failed action toasts unless it is a silent trigger', async () => {

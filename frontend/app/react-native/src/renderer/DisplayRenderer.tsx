@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground } from './BackendImage';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';

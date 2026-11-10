@@ -11,7 +11,7 @@ import { Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, useBarTitle, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, headerPartsOf, InsideVerticalScroll, useBarTitle, useEmbeddedChrome, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -38,8 +38,10 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const declaredTitle = noHeader ? '' : interpolate((metadata['title'] as string) ?? '', { state });
   // the shell's bar already names the screen (RN-22): the header does not say it twice
   const barTitle = useBarTitle();
-  const title = bodyRepeatsBar(declaredTitle, barTitle) ? '' : declaredTitle;
-  const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', { state });
+  // an embedded micro frontend's chrome: NONE no header, COMPACT only its actions
+  const parts = headerPartsOf(useEmbeddedChrome());
+  const title = !parts.texts || bodyRepeatsBar(declaredTitle, barTitle) ? '' : declaredTitle;
+  const subtitle = noHeader || !parts.texts ? '' : interpolate((metadata['subtitle'] as string) ?? '', { state });
   const readOnly = Boolean(metadata['readOnly']);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   // Header buttons. A form expanded on the device (a static bundle's raw definition) also carries
@@ -48,8 +50,8 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const declared = ((metadata['actions'] as ButtonDto[]) ?? []).filter((a) => !!a?.label);
   // …and its page toolbar (a YAML Form's `toolbar:` — Edit, Delete…): navigation as much as action,
   // so shown on a read-only record too. The way back is the screen's own back arrow, not a button.
-  const toolbar = ((metadata['toolbar'] as ButtonDto[]) ?? []).filter((b) => !!b?.label && !isBackButton(b));
-  const actions = [...toolbar, ...declared];
+  const toolbar = parts.actions ? ((metadata['toolbar'] as ButtonDto[]) ?? []).filter((b) => !!b?.label && !isBackButton(b)) : [];
+  const actions = parts.actions ? [...toolbar, ...declared] : [];
   const children = (component['children'] as unknown[]) ?? [];
 
   const handleAction = (actionId: string) => void controller.runAction(actionId);
@@ -61,11 +63,11 @@ export function FormRenderer({ component, metadata, state }: Props) {
 
   return (
     <View style={[styles.root, fits && FIT_CONTENT]}>
-      {(title || subtitle || toolbar.length > 0 || (declared.length > 0 && !readOnly)) && (
+      {(title || subtitle || toolbar.length > 0 || (actions.length > 0 && !readOnly)) && (
         <View style={styles.header}>
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}
           {!!subtitle && <PaperText variant="bodyMedium" style={styles.subtitle}>{subtitle}</PaperText>}
-          {(toolbar.length > 0 || (!readOnly && declared.length > 0)) && (
+          {(toolbar.length > 0 || (!readOnly && actions.length > 0)) && (
             <View style={styles.actionBar}>
               {(readOnly ? toolbar : actions).map((a, i) => {
                 const id = a.actionId ?? a.id ?? '';

@@ -189,7 +189,7 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
       <FitsContent.Provider value={fit}>
         <MateuViewHost
           key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
-          session={session}
+          session={top.opener?.session ?? session}
           serverSideNode={content}
           overlaid
           overlayOpener={top.opener}
