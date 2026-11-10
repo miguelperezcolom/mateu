@@ -162,7 +162,7 @@ test('dnd: soltar filas en un DropZone que acepta su tipo lanza su acción con _
   assert.ok(over.defaultPrevented && zone.classList.contains('mateu-drop-over'))
   assert.equal(fire(other, 'dragover', { dataTransfer: dt }).defaultPrevented, false, 'otro tipo: no se puede soltar')
   fire(zone, 'drop', { dataTransfer: dt })
-  assert.deepEqual(sink.calls, [['moveCharges', { window: 2, _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, {}]])
+  assert.deepEqual(sink.calls, [['moveCharges', { window: 2, _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, { surfaceId: '' }]])
   assert.ok(!zone.classList.contains('mateu-drop-over') && !zone.classList.contains('mateu-drop-ready'))
   zone.setAttribute('data-drop-params', '{roto')
   fire(zone, 'drop', { dataTransfer: dt })

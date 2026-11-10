@@ -8,7 +8,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -29,6 +29,9 @@ function advertisedIdsOf(tree) {
   walk(tree)
   return ids
 }
+
+/** A fluent Grid column with an actionId: its cell reads <id>__actionCell = {text, actionId, parameters}. */
+export const GRID_ACTION_CELL_SUFFIX = '__actionCell'
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
 export const BADGE_CLASSES = {
@@ -1353,14 +1356,38 @@ export function islandContentOf(ctx, opts = {}) {
         : raw
       // PAGING: Grid.size rows per page (client side, the rows travel inline)
       const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
-      const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+      // a column's actionId makes its cells LINKS that run it with the row's values (the web's
+      // contract); the cell reads <id>__actionCell = {text, actionId, parameters}
+      const actionCols = leafColumns.filter((c) => c.actionId && !(tree && c === leafColumns[0]))
+      const rows = labelCellRows(paging.rows, leafColumns).map((r, i) => {
+        const out = { ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }
+        for (const c of actionCols) {
+          const values = {}
+          for (const k of Object.keys(r)) if (!k.startsWith('__') && k !== 'children' && !k.endsWith(LABEL_CELL_SUFFIX)) values[k] = r[k]
+          const shown = labelColumn(c) ? out[c.id + LABEL_CELL_SUFFIX] : r[c.id]
+          out[c.id + GRID_ACTION_CELL_SUFFIX] = { text: shown == null ? '' : String(shown), actionId: c.actionId, parameters: values }
+        }
+        return out
+      })
       const columns = leafColumns.map((c, i) => {
-        const def = { headerText: interp(c.label || c.id), field: c.id }
+        // sortable ONLY where declared (every column showed a sort icon)
+        const def = { headerText: interp(c.label || c.id), field: c.id, sortable: c.sortable ? 'enabled' : 'disabled' }
         if (tree && i === 0) def.template = 'cellTreeToggle'
+        else if (c.actionId) { def.field = c.id + GRID_ACTION_CELL_SUFFIX; def.template = 'cellGridAction'; def.sortable = 'disabled' }
+        // money formatted in the UI's locale, booleans Yes/No, dates localised (the raw value was shown)
+        else if (labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
+        // its `align` (and numbers / amounts at the end), as the listings do
+        const align = alignOf(c)
+        if (align) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+        const width = columnWidthOf(c)
+        Object.assign(def, width)
+        if (c.frozen) def.frozenEdge = 'start'
         return def
       })
       atom({
         isGrid: true,
+        // Grid.rowStripes / columnBorders: the table's own look (oj-table draws neither by itself)
+        gridClass: 'oj-sm-margin-4x-bottom' + (m.rowStripes ? ' mateu-grid-stripes' : '') + (m.columnBorders ? ' mateu-grid-column-borders' : ''),
         fieldId: node.id || 'grid',
         label: '',
         columns,
@@ -1753,6 +1780,11 @@ export function islandContentOf(ctx, opts = {}) {
     // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
     // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
     // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+    // a @Subresource / MicroFrontend surface's own listing, already projected (withSubresources)
+    if (t === 'Crud' && opts.crudAtom) {
+      atom(opts.crudAtom, container)
+      return
+    }
     if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
       atom(nestedListingAtomOf(node, ctx), container)
       return
@@ -2104,15 +2136,20 @@ export function withSubresources(blocks, contexts) {
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}
       const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-      return [{
+      const grid = {
         isGrid: true,
         isSubresourceGrid: true,
         fieldId: a.islandId,
         // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
         label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
-        columns: wire.map((c) => (c.dataType === 'status'
-          ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+        columns: wire.map((c) => {
+          const def = c.dataType === 'status'
+            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
+          const align = alignOf(c)
+          if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+          return def
+        }),
         rows,
         adp: dataProviderFactory ? dataProviderFactory(rows) : null,
         isEmpty: rows.length === 0,
@@ -2120,7 +2157,23 @@ export function withSubresources(blocks, contexts) {
         rowEditable: false,
         addActionId: '',
         addLabel: '',
-      }]
+        // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
+        selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
+        dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
+      }
+      // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
+      // drawn too, the table where the listing sits — only the table was kept, the zones were lost
+      const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
+      // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
+      const pageNode = findByType(ctx.tree, 'Page')
+      const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+      const head = declared.length
+        ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
+        : []
+      const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
+      if (items.length <= 1) return [grid]
+      const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+      return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
     }),
   }))
 }

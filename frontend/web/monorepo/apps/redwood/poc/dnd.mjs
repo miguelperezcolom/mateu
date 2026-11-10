@@ -152,7 +152,9 @@ export function installDragAndDrop(doc = typeof document !== 'undefined' ? docum
     if (!ids.length || !dropSink) return
     let params = {}
     try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
-    dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    // a zone of a surface of its own (an inline island, a MicroFrontend) sends its action THERE
+    dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) },
+      { surfaceId: zone.getAttribute('data-drop-surface') || '' })
   }, true)
 }
 

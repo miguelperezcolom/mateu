@@ -2302,3 +2302,8 @@ oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-
 .mateu-resource-card { display: block; width: calc(100% - 8px); height: calc(100% - 8px); box-sizing: border-box; }
 .mateu-resource-flag { display: inline-block; margin-bottom: .25rem; }
 .mateu-offer > .oj-badge { align-self: flex-start; }
+/* fluent Grid: rowStripes / columnBorders (oj-table draws neither) and its action-column links */
+.mateu-grid-stripes .oj-table-body-row:nth-child(even) > .oj-table-data-cell { background-color: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .04)); }
+.mateu-grid-column-borders .oj-table-data-cell + .oj-table-data-cell,
+.mateu-grid-column-borders .oj-table-column-header-cell + .oj-table-column-header-cell { border-inline-start: 1px solid var(--oj-core-divider-color, #ddd); }
+.mateu-grid-action-link { --oj-button-text-color: var(--oj-core-link-text-color, #2b6a9e); margin-inline-start: -.5rem; }

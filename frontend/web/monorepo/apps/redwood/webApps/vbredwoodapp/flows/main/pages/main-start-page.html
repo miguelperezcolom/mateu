@@ -673,7 +673,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -1563,12 +1563,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -3368,7 +3379,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -4258,12 +4269,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -5423,7 +5445,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -6313,12 +6335,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -7511,7 +7544,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -8401,12 +8434,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -9566,7 +9610,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -10456,12 +10500,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -11682,7 +11737,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -12572,12 +12627,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -13791,7 +13857,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -14681,12 +14747,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -15852,7 +15929,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -16742,12 +16819,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -17924,7 +18012,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -18814,12 +18902,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -20018,7 +20117,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -20908,12 +21007,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -22084,7 +22194,7 @@
                         <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                           :aria-label="[[ $current.data.ariaLabel ]]"
                           :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                          :data-drop-params="[[ $current.data.params ]]">
+                          :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                           <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                           <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -22974,12 +23084,23 @@
                            form). The atom brings the data provider ready-made: there are several per
                            page and one variable per table cannot be declared in advance. -->
                       <oj-bind-if test="[[ $current.data.isGrid ]]">
-                        <div class="oj-sm-margin-4x-bottom">
+                        <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                          <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                          <oj-bind-if test="[[ !!$current.data.label ]]">
+                            <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
                           <oj-table class="oj-sm-12" display="list"
                             data="[[ $current.data.adp ]]"
-                            columns="[[ $current.data.columns ]]">
+                            columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                            dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                             <template slot="noData">
                               <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                            </template>
+                            <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                            <template slot="cellGridAction">
+                              <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                             </template>
                             <template slot="cellStatusBadge">
                               <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -24168,7 +24289,7 @@
                         <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                           :aria-label="[[ $current.data.ariaLabel ]]"
                           :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                          :data-drop-params="[[ $current.data.params ]]">
+                          :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                           <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                           <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -25058,12 +25179,23 @@
                            form). The atom brings the data provider ready-made: there are several per
                            page and one variable per table cannot be declared in advance. -->
                       <oj-bind-if test="[[ $current.data.isGrid ]]">
-                        <div class="oj-sm-margin-4x-bottom">
+                        <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                          <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                          <oj-bind-if test="[[ !!$current.data.label ]]">
+                            <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
                           <oj-table class="oj-sm-12" display="list"
                             data="[[ $current.data.adp ]]"
-                            columns="[[ $current.data.columns ]]">
+                            columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                            dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                             <template slot="noData">
                               <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                            </template>
+                            <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                            <template slot="cellGridAction">
+                              <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                             </template>
                             <template slot="cellStatusBadge">
                               <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -26239,7 +26371,7 @@
                             <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                               :aria-label="[[ $current.data.ariaLabel ]]"
                               :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                              :data-drop-params="[[ $current.data.params ]]">
+                              :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                               <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                               <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -27129,12 +27261,23 @@
                                form). The atom brings the data provider ready-made: there are several per
                                page and one variable per table cannot be declared in advance. -->
                           <oj-bind-if test="[[ $current.data.isGrid ]]">
-                            <div class="oj-sm-margin-4x-bottom">
+                            <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                              <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                              <oj-bind-if test="[[ !!$current.data.label ]]">
+                                <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                              </oj-bind-if>
                               <oj-table class="oj-sm-12" display="list"
                                 data="[[ $current.data.adp ]]"
-                                columns="[[ $current.data.columns ]]">
+                                columns="[[ $current.data.columns ]]"
+                                selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                                dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                                 <template slot="noData">
                                   <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                                </template>
+                                <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                                <template slot="cellGridAction">
+                                  <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                                 </template>
                                 <template slot="cellStatusBadge">
                                   <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -28565,7 +28708,7 @@
                               <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                                 :aria-label="[[ $current.data.ariaLabel ]]"
                                 :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                                :data-drop-params="[[ $current.data.params ]]">
+                                :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                                 <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                                 <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -29455,12 +29598,23 @@
                                  form). The atom brings the data provider ready-made: there are several per
                                  page and one variable per table cannot be declared in advance. -->
                             <oj-bind-if test="[[ $current.data.isGrid ]]">
-                              <div class="oj-sm-margin-4x-bottom">
+                              <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                                <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                                <oj-bind-if test="[[ !!$current.data.label ]]">
+                                  <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
                                 <oj-table class="oj-sm-12" display="list"
                                   data="[[ $current.data.adp ]]"
-                                  columns="[[ $current.data.columns ]]">
+                                  columns="[[ $current.data.columns ]]"
+                                  selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                                  dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                                   <template slot="noData">
                                     <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                                  </template>
+                                  <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                                  <template slot="cellGridAction">
+                                    <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                                   </template>
                                   <template slot="cellStatusBadge">
                                     <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -30636,7 +30790,7 @@
                               <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                                 :aria-label="[[ $current.data.ariaLabel ]]"
                                 :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                                :data-drop-params="[[ $current.data.params ]]">
+                                :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                                 <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                                 <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -31526,12 +31680,23 @@
                                  form). The atom brings the data provider ready-made: there are several per
                                  page and one variable per table cannot be declared in advance. -->
                             <oj-bind-if test="[[ $current.data.isGrid ]]">
-                              <div class="oj-sm-margin-4x-bottom">
+                              <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                                <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                                <oj-bind-if test="[[ !!$current.data.label ]]">
+                                  <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
                                 <oj-table class="oj-sm-12" display="list"
                                   data="[[ $current.data.adp ]]"
-                                  columns="[[ $current.data.columns ]]">
+                                  columns="[[ $current.data.columns ]]"
+                                  selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                                  dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                                   <template slot="noData">
                                     <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                                  </template>
+                                  <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                                  <template slot="cellGridAction">
+                                    <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                                   </template>
                                   <template slot="cellStatusBadge">
                                     <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -32732,7 +32897,7 @@
                               <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                                 :aria-label="[[ $current.data.ariaLabel ]]"
                                 :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                                :data-drop-params="[[ $current.data.params ]]">
+                                :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                                 <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                                 <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -33622,12 +33787,23 @@
                                  form). The atom brings the data provider ready-made: there are several per
                                  page and one variable per table cannot be declared in advance. -->
                             <oj-bind-if test="[[ $current.data.isGrid ]]">
-                              <div class="oj-sm-margin-4x-bottom">
+                              <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                                <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                                <oj-bind-if test="[[ !!$current.data.label ]]">
+                                  <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
                                 <oj-table class="oj-sm-12" display="list"
                                   data="[[ $current.data.adp ]]"
-                                  columns="[[ $current.data.columns ]]">
+                                  columns="[[ $current.data.columns ]]"
+                                  selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                                  dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                                   <template slot="noData">
                                     <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                                  </template>
+                                  <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                                  <template slot="cellGridAction">
+                                    <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                                   </template>
                                   <template slot="cellStatusBadge">
                                     <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -35050,7 +35226,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -35940,12 +36116,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -37110,7 +37297,7 @@
                         <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                           :aria-label="[[ $current.data.ariaLabel ]]"
                           :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                          :data-drop-params="[[ $current.data.params ]]">
+                          :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                           <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                           <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -38000,12 +38187,23 @@
                            form). The atom brings the data provider ready-made: there are several per
                            page and one variable per table cannot be declared in advance. -->
                       <oj-bind-if test="[[ $current.data.isGrid ]]">
-                        <div class="oj-sm-margin-4x-bottom">
+                        <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                          <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                          <oj-bind-if test="[[ !!$current.data.label ]]">
+                            <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
                           <oj-table class="oj-sm-12" display="list"
                             data="[[ $current.data.adp ]]"
-                            columns="[[ $current.data.columns ]]">
+                            columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                            dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                             <template slot="noData">
                               <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                            </template>
+                            <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                            <template slot="cellGridAction">
+                              <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                             </template>
                             <template slot="cellStatusBadge">
                               <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -39170,7 +39368,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -40060,12 +40258,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -41255,7 +41464,7 @@
                 <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                   :aria-label="[[ $current.data.ariaLabel ]]"
                   :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                  :data-drop-params="[[ $current.data.params ]]">
+                  :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                   <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                   <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -42145,12 +42354,23 @@
                    form). The atom brings the data provider ready-made: there are several per
                    page and one variable per table cannot be declared in advance. -->
               <oj-bind-if test="[[ $current.data.isGrid ]]">
-                <div class="oj-sm-margin-4x-bottom">
+                <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                  <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                  <oj-bind-if test="[[ !!$current.data.label ]]">
+                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                  </oj-bind-if>
                   <oj-table class="oj-sm-12" display="list"
                     data="[[ $current.data.adp ]]"
-                    columns="[[ $current.data.columns ]]">
+                    columns="[[ $current.data.columns ]]"
+                    selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                    dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                     <template slot="noData">
                       <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                    </template>
+                    <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                    <template slot="cellGridAction">
+                      <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                     </template>
                     <template slot="cellStatusBadge">
                       <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -43326,7 +43546,7 @@
                 <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                   :aria-label="[[ $current.data.ariaLabel ]]"
                   :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                  :data-drop-params="[[ $current.data.params ]]">
+                  :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                   <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                   <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -44216,12 +44436,23 @@
                    form). The atom brings the data provider ready-made: there are several per
                    page and one variable per table cannot be declared in advance. -->
               <oj-bind-if test="[[ $current.data.isGrid ]]">
-                <div class="oj-sm-margin-4x-bottom">
+                <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                  <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                  <oj-bind-if test="[[ !!$current.data.label ]]">
+                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                  </oj-bind-if>
                   <oj-table class="oj-sm-12" display="list"
                     data="[[ $current.data.adp ]]"
-                    columns="[[ $current.data.columns ]]">
+                    columns="[[ $current.data.columns ]]"
+                    selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                    dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                     <template slot="noData">
                       <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                    </template>
+                    <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                    <template slot="cellGridAction">
+                      <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                     </template>
                     <template slot="cellStatusBadge">
                       <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -45411,7 +45642,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -46301,12 +46532,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -47828,7 +48070,7 @@
                           <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                             :aria-label="[[ $current.data.ariaLabel ]]"
                             :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                            :data-drop-params="[[ $current.data.params ]]">
+                            :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                             <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                             <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -48718,12 +48960,23 @@
                              form). The atom brings the data provider ready-made: there are several per
                              page and one variable per table cannot be declared in advance. -->
                         <oj-bind-if test="[[ $current.data.isGrid ]]">
-                          <div class="oj-sm-margin-4x-bottom">
+                          <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                            <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                            <oj-bind-if test="[[ !!$current.data.label ]]">
+                              <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
                             <oj-table class="oj-sm-12" display="list"
                               data="[[ $current.data.adp ]]"
-                              columns="[[ $current.data.columns ]]">
+                              columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                              dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                               <template slot="noData">
                                 <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                              </template>
+                              <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                              <template slot="cellGridAction">
+                                <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                               </template>
                               <template slot="cellStatusBadge">
                                 <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -50301,7 +50554,7 @@
                           <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                             :aria-label="[[ $current.data.ariaLabel ]]"
                             :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                            :data-drop-params="[[ $current.data.params ]]">
+                            :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                             <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                             <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -51191,12 +51444,23 @@
                              form). The atom brings the data provider ready-made: there are several per
                              page and one variable per table cannot be declared in advance. -->
                         <oj-bind-if test="[[ $current.data.isGrid ]]">
-                          <div class="oj-sm-margin-4x-bottom">
+                          <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                            <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                            <oj-bind-if test="[[ !!$current.data.label ]]">
+                              <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
                             <oj-table class="oj-sm-12" display="list"
                               data="[[ $current.data.adp ]]"
-                              columns="[[ $current.data.columns ]]">
+                              columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                              dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                               <template slot="noData">
                                 <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                              </template>
+                              <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                              <template slot="cellGridAction">
+                                <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                               </template>
                               <template slot="cellStatusBadge">
                                 <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -52760,7 +53024,7 @@
                           <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                             :aria-label="[[ $current.data.ariaLabel ]]"
                             :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                            :data-drop-params="[[ $current.data.params ]]">
+                            :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                             <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                             <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -53650,12 +53914,23 @@
                              form). The atom brings the data provider ready-made: there are several per
                              page and one variable per table cannot be declared in advance. -->
                         <oj-bind-if test="[[ $current.data.isGrid ]]">
-                          <div class="oj-sm-margin-4x-bottom">
+                          <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                            <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                            <oj-bind-if test="[[ !!$current.data.label ]]">
+                              <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
                             <oj-table class="oj-sm-12" display="list"
                               data="[[ $current.data.adp ]]"
-                              columns="[[ $current.data.columns ]]">
+                              columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                              dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                               <template slot="noData">
                                 <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                              </template>
+                              <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                              <template slot="cellGridAction">
+                                <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                               </template>
                               <template slot="cellStatusBadge">
                                 <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -55198,7 +55473,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -56088,12 +56363,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -57251,7 +57537,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -58141,12 +58427,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -60134,7 +60431,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -61024,12 +61321,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -62187,7 +62495,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -63077,12 +63385,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -64319,7 +64638,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -65209,12 +65528,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -66374,7 +66704,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -67264,12 +67594,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -68443,7 +68784,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -69333,12 +69674,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -70498,7 +70850,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -71388,12 +71740,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -72619,7 +72982,7 @@
                             <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                               :aria-label="[[ $current.data.ariaLabel ]]"
                               :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                              :data-drop-params="[[ $current.data.params ]]">
+                              :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                               <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                               <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -73509,12 +73872,23 @@
                                form). The atom brings the data provider ready-made: there are several per
                                page and one variable per table cannot be declared in advance. -->
                           <oj-bind-if test="[[ $current.data.isGrid ]]">
-                            <div class="oj-sm-margin-4x-bottom">
+                            <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                              <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                              <oj-bind-if test="[[ !!$current.data.label ]]">
+                                <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                              </oj-bind-if>
                               <oj-table class="oj-sm-12" display="list"
                                 data="[[ $current.data.adp ]]"
-                                columns="[[ $current.data.columns ]]">
+                                columns="[[ $current.data.columns ]]"
+                                selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                                dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                                 <template slot="noData">
                                   <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                                </template>
+                                <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                                <template slot="cellGridAction">
+                                  <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                                 </template>
                                 <template slot="cellStatusBadge">
                                   <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -74954,7 +75328,7 @@
                     <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                       :aria-label="[[ $current.data.ariaLabel ]]"
                       :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                      :data-drop-params="[[ $current.data.params ]]">
+                      :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                       <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                       <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -75844,12 +76218,23 @@
                        form). The atom brings the data provider ready-made: there are several per
                        page and one variable per table cannot be declared in advance. -->
                   <oj-bind-if test="[[ $current.data.isGrid ]]">
-                    <div class="oj-sm-margin-4x-bottom">
+                    <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                      <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                      <oj-bind-if test="[[ !!$current.data.label ]]">
+                        <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                      </oj-bind-if>
                       <oj-table class="oj-sm-12" display="list"
                         data="[[ $current.data.adp ]]"
-                        columns="[[ $current.data.columns ]]">
+                        columns="[[ $current.data.columns ]]"
+                        selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                        dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                         <template slot="noData">
                           <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                        </template>
+                        <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                        <template slot="cellGridAction">
+                          <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                         </template>
                         <template slot="cellStatusBadge">
                           <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -77027,7 +77412,7 @@
                     <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                       :aria-label="[[ $current.data.ariaLabel ]]"
                       :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                      :data-drop-params="[[ $current.data.params ]]">
+                      :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                       <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                       <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -77917,12 +78302,23 @@
                        form). The atom brings the data provider ready-made: there are several per
                        page and one variable per table cannot be declared in advance. -->
                   <oj-bind-if test="[[ $current.data.isGrid ]]">
-                    <div class="oj-sm-margin-4x-bottom">
+                    <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                      <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                      <oj-bind-if test="[[ !!$current.data.label ]]">
+                        <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                      </oj-bind-if>
                       <oj-table class="oj-sm-12" display="list"
                         data="[[ $current.data.adp ]]"
-                        columns="[[ $current.data.columns ]]">
+                        columns="[[ $current.data.columns ]]"
+                        selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                        dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                         <template slot="noData">
                           <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                        </template>
+                        <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                        <template slot="cellGridAction">
+                          <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                         </template>
                         <template slot="cellStatusBadge">
                           <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -79082,7 +79478,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -79972,12 +80368,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -81137,7 +81544,7 @@
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
-                        :data-drop-params="[[ $current.data.params ]]">
+                        :data-drop-params="[[ $current.data.params ]]" :data-drop-surface="[[ $current.data.surfaceId || '' ]]">
                         <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
@@ -82027,12 +82434,23 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div :class="[[ $current.data.gridClass || 'oj-sm-margin-4x-bottom' ]]">
+                        <!-- a listing's / a grid field's title (Listing.title: it was not drawn) -->
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></h3>
+                        </oj-bind-if>
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
-                          columns="[[ $current.data.columns ]]">
+                          columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode || { row: 'none' } ]]"
+                          dnd.drag.rows.data-types="[[ $current.data.dragTypes || [] ]]">
                           <template slot="noData">
                             <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <!-- a fluent GridColumn with an actionId: the cell is a link that runs it with the row -->
+                          <template slot="cellGridAction">
+                            <oj-button chroming="borderless" class="oj-button-sm mateu-grid-action-link" :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></oj-button>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
