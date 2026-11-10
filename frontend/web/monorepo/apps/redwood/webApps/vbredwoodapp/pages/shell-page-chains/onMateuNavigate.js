@@ -306,9 +306,7 @@ define([
       }
       // the CONTENT is seeded BEFORE stamping the structure: the panels read
       // mateuFoldoutContent.panels[i] when they mount
-      $application.variables.mateuFoldoutContent = foldoutProjection
-        ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels, header: foldoutProjection.header }
-        : { overview: { blocks: [] }, panels: [], header: {} };
+      $application.variables.mateuFoldoutContent = bridge.foldoutContentOf(foldoutProjection); // + its surfaceId (an island's)
       $application.variables.mateuFoldout = foldoutProjection;
       // What THIS chain has just assigned is read from the constants, not back from the variable:
       // a VB `any` variable that held an object and is set to null (or any falsy) reads

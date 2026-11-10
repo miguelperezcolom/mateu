@@ -827,6 +827,57 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // The SURFACE a painted node belongs to.
+  //
+  // An inline island (a Java `java:` example embedded in a page: a ServerSide nested in the host's
+  // tree) and a MicroFrontend are surfaces of their own: their atoms are painted among the host's,
+  // but whatever they send — a button, a calendar's day, a map marker, a matrix cell, a typed value,
+  // a shortcut — must go to THEIR class (their context in the registry), or the server answers 403
+  // for the host's.
+  //
+  // The projection tags each atom of a surface with its `surfaceId` (tagSurfaceActions, core/display),
+  // and make-html stamps it on every atom's ROOT element as `data-mateu-surface-id`. So any DOM-level
+  // piece (a sink fired from a click/drag/keydown, a field's change listener) finds the surface by
+  // walking up from the node that fired — with no per-atom code: a new atom gets it for free.
+
+  const SURFACE_ATTR = 'data-mateu-surface-id'
+
+  /** The surface id of the nearest painted ancestor that carries one ('' = the host's), crossing
+   *  shadow roots (a JET element's inner node reports its host). */
+  function surfaceOfNode(node) {
+    let el = node && node.nodeType === 1 ? node : (node && node.parentElement) || null
+    let guard = 0
+    while (el && guard++ < 500) {
+      const v = el.getAttribute ? el.getAttribute(SURFACE_ATTR) : null
+      if (v) return v
+      if (el.parentElement) { el = el.parentElement; continue }
+      const root = el.getRootNode ? el.getRootNode() : null
+      el = root && root.host && root.host !== el ? root.host : null
+    }
+    return ''
+  }
+
+  /** The third argument of a page-action sink for something fired from `node`: the atom's own
+   *  routing ({surfaceId, fromNested}) when the caller has it, else the surface the node sits in. */
+  function surfaceAtomOf(node, atom) {
+    const own = atom && typeof atom === 'object' ? atom : {}
+    if (own.surfaceId) return own
+    const surfaceId = surfaceOfNode(node)
+    // painted among the host's own atoms: the caller's routing as it was
+    return surfaceId ? { ...own, surfaceId } : own
+  }
+
+  /** The surface an event was fired in (its composed path's first element). */
+  function surfaceOfEvent(event) {
+    if (!event) return ''
+    // VB hands a chain a COPY of the event: its composedPath is then an unbound method (Illegal
+    // invocation) — the target it carries is the real node
+    let first = null
+    try { first = typeof event.composedPath === 'function' ? event.composedPath()[0] : null } catch (e) { first = null }
+    return surfaceOfNode(first || event.target || event.currentTarget || null)
+  }
+
+
 
   // LISTING PERSONALISATION in the browser: the COLUMN CHOOSER (which ones show and in what
   // order) and SAVED VIEWS (a named combination of search + filters, with one as
@@ -1305,6 +1356,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
 
 
+
   const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
   const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
   const calAddDays = (iso, n) => fromUtc(toUtc(iso) + n * 86400000)
@@ -1605,20 +1657,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (navButton) {
         let params = {}
         try { params = JSON.parse(navButton.getAttribute('data-cal-nav-params') || '{}') } catch (e) { params = {} }
-        calendarSink(navButton.getAttribute('data-cal-nav-action'), params, {})
+        calendarSink(navButton.getAttribute('data-cal-nav-action'), params, surfaceAtomOf(cal))
         return true
       }
       if (chip) {
         if (chip.getAttribute('data-cal-clickable') !== 'true') return false
         calendarSink(chip.getAttribute('data-cal-action'), {
           _clickedEvent: { id: chip.getAttribute('data-cal-event'), title: chip.getAttribute('data-cal-title'), date: chip.getAttribute('data-cal-date') },
-        }, {})
+        }, surfaceAtomOf(cal))
         return true
       }
       const cell = target.closest('[data-cal-date]')
       const action = cal.getAttribute('data-day-action')
       if (cell && action && cell.getAttribute('data-cal-date')) {
-        calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, {})
+        calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, surfaceAtomOf(cal))
         return true
       }
       return false
@@ -1690,7 +1742,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const ids = (e.detail && e.detail.value) || []
       const hit = ids.length ? spec.actions[ids[ids.length - 1]] : null
       if (!hit || !calendarSink) return
-      calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, {})
+      calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, surfaceAtomOf(cal))
       setTimeout(() => { el.selected = [] }, 0)
     })
     // the toolbar: with a CalendarPage behind, its ‹ › Today and views are the page's (server-side) actions
@@ -1698,16 +1750,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav) return
       const step = spNavActionOf(spec.nav, el.selectedViewValue || spec.view, spec.anchor, String(e.detail.value || ''))
       if (step && step.kind === 'same') return
-      if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, {}); return }
+      if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, surfaceAtomOf(cal)); return }
       setTimeout(() => { el.focusDate = spec.focusDate }, 0)
     })
     el.addEventListener('selectedViewValueChanged', (e) => {
       if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav || !spec.nav.viewAction) return
       const v = e.detail.value
-      if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, {})
+      if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, surfaceAtomOf(cal))
     })
     el.addEventListener('spCalendarEventCreate', () => {
-      if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, {})
+      if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, surfaceAtomOf(cal))
     })
     // a date's cell (dayActionId): FullCalendar stamps data-date on it
     const dayOf = (target) => {
@@ -1719,14 +1771,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const date = dayOf(e.target)
       if (!date || !calendarSink) return
       e.preventDefault(); e.stopPropagation()
-      calendarSink(spec.dayActionId, { _date: date }, {})
+      calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
     }, true)
     host.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return
       const date = dayOf(e.target)
       if (!date || !calendarSink) return
       e.preventDefault()
-      calendarSink(spec.dayActionId, { _date: date }, {})
+      calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
     }, true)
     let queued = false
     new MutationObserver(() => {
@@ -3118,8 +3170,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
   function foldoutContentOf(proj) {
     return proj
-      ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+      ? { overview: proj.overview, panels: proj.panels, header: proj.header, ...(proj.surfaceId ? { surfaceId: proj.surfaceId } : {}) }
       : { overview: { blocks: [] }, panels: [], header: {} }
+  }
+
+  /** The id of the NESTED ServerSide (another surface: an inline island) that holds `target` in
+   *  `tree`, or '' when the page itself does. */
+  function enclosingServerSideIdOf(tree, target) {
+    let found = ''
+    const walk = (n, owner) => {
+      if (found || !n || typeof n !== 'object') return false
+      if (n === target) { found = owner; return true }
+      const own = n !== tree && n.type === 'ServerSide' && n.id ? n.id : owner
+      for (const c of n.children || []) if (walk(c, own)) return true
+      const inner = n.metadata && n.metadata.content
+      if (Array.isArray(inner)) { for (const c of inner) if (walk(c, own)) return true }
+      else if (inner && typeof inner === 'object' && walk(inner, own)) return true
+      return false
+    }
+    walk(tree, '')
+    return found
   }
 
   /** Same structure → the chain updates the content in place; otherwise it remounts the foldout.
@@ -3141,6 +3211,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // …nor one inside a card (an Explorer example's): any PAGE_CLAIM_STOPS keeps it content
     const node = ctx && ctx.tree ? findPageLevelType(ctx.tree, 'FoldoutLayout') : null
     if (!node) return null
+    // a foldout an INLINE ISLAND holds (a Java example embedded in a page) is that island's: its
+    // navigation and its panels' actions go back to it (surfaceId → runMateuSurfaceAction), or the
+    // host was asked for them (403)
+    const surfaceId = enclosingServerSideIdOf(ctx.tree, node)
     const md = node.metadata
     const children = node.children || []
     const bySlot = {}
@@ -3154,7 +3228,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
-      return (blocks || []).map((block) => ({
+      return (surfaceId ? tagSurfaceActions(blocks || [], surfaceId) : (blocks || [])).map((block) => ({
         ...block,
         blockClass: block.colClass || 'oj-flex-item oj-sm-12',
       }))
@@ -3186,6 +3260,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
     const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
     return {
+      ...(surfaceId ? { surfaceId } : {}),
       headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
@@ -5593,6 +5668,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+  /** The app-wide scopes the texts interpolate (`${appState.x}`, `${appData.x}`): the reduced
+   *  registry's (reducer: an answer's appState/appData merge into it), set by the reduce hook. */
+  let appScope = { appState: {}, appData: {} }
+  function setAppScope(reg) {
+    appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -5609,7 +5691,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const stripsPerScope = {}
     let tabBars = 0
     const state = ctx.state || {}
-    const interp = (t) => interpolate(t, state)
+    // `${data.x}` (this component's data), `${appState.x}` / `${appData.x}` (the app's, kept by the
+    // reducer from every answer: Return AppState / AppData) — not only `${state.x}`
+    const scope = { data: ctx.data || {}, appState: appScope.appState || {}, appData: appScope.appData || {} }
+    const interp = (t) => interpolate(t, state, scope)
     const badgeOf = (b) => ({
       label: b.label,
       badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
@@ -6052,6 +6137,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             rowEditable,
             addActionId: rowEditable ? fieldId + '_add' : '',
             addLabel: chromeText('add'),
+            // @OnRowSelected: a click on a row (or its shortcut + the row's number) runs the action with
+            // the row in _clickedRow (tables.mjs installRowSelection reads these off the grid's root)
+            ...(m.onItemSelectionActionId ? {
+              selectActionId: m.onItemSelectionActionId,
+              selectShortcut: m.rowSelectionShortcut || '',
+              // the rows as the server sent them (the client's own keys — _rowNumber, __… — left out)
+              selectRows: JSON.stringify(rows.map((r) => (r && typeof r === 'object'
+                ? Object.fromEntries(Object.entries(r).filter(([k]) => k !== '_rowNumber' && !k.startsWith('__'))) : r))),
+            } : {}),
           }, container)
           return
         }
@@ -10431,6 +10525,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * opts.initiator = contextId of the surface that launched the request (for commands without a target,
    * like the save-in-drawer's MarkAsClean).
    */
+  const mergedAppScope = (kept, sent) => (sent && typeof sent === 'object' && !Array.isArray(sent)
+    ? { ...(kept || {}), ...sent } : kept || null)
+
   function reduceContexts(reg, increment, opts = {}) {
     const contexts = { ...reg.contexts }
     const stack = [...reg.stack]
@@ -10736,6 +10833,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const kept = {}
     if (reg.appLevels) kept.appLevels = reg.appLevels
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
+    // the APP's state and data (UIIncrementDto.appState / appData: an action returning AppState /
+    // AppData): app-wide, merged answer after answer — what `${appState.x}` / `${appData.x}` read
+    const appState = mergedAppScope(reg.appState, increment.appState)
+    const appData = mergedAppScope(reg.appData, increment.appData)
+    if (appState) kept.appState = appState
+    if (appData) kept.appData = appData
+    // the projections that follow read them (content.mjs islandContentOf)
+    setAppScope(kept)
     return { ...kept, contexts, stack, shell, effects }
   }
 
@@ -13863,17 +13968,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
    *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
-  function tagSurfaceActions(value, surfaceId) {
-    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+  function tagSurfaceActions(value, surfaceId, top = true) {
+    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId, top))
     // only plain data: a JET data provider or converter is passed through as it is
     if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
     const out = {}
     // (the parameters travel to the server as they are)
-    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-    // a surface nested in this one already tagged ITS actions (withSubresources fills inside out)
-    if ('actionId' in out && !out.surfaceId) out.surfaceId = surfaceId
+    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId, false)
+    // every ATOM of the surface carries it (make-html stamps it on the atom's root element as
+    // data-mateu-surface-id: the DOM pieces — a calendar's day, a map marker, a field's change — find
+    // it there, poc/surfaces.mjs), and so does any object inside that names an action of its own
+    // (`actionId`, or a `…ActionId` of a component: markerActionId, dayActionId, moveActionId…).
+    // A surface nested in this one already tagged ITS actions (withSubresources fills inside out).
+    if ((top || Object.keys(out).some(isActionKey)) && !out.surfaceId) out.surfaceId = surfaceId
     return out
   }
+  const isActionKey = (k) => k === 'actionId' || /ActionId$/.test(k)
 
   // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
   function unsupportedAtomOf(type, id) {
@@ -16220,6 +16330,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   const loaded = {}
 
   // ── component events → server action ─────────────────────────────────────────────
@@ -16307,7 +16418,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const current = element.__mateuAtom || {}
         const actionId = (current.on || {})[eventName]
         if (!actionId || !sink) return
-        sink(actionId, { event: serializeElementEvent(e) }, current)
+        sink(actionId, { event: serializeElementEvent(e) }, surfaceAtomOf(element, current))
       })
     }
   }
@@ -18129,6 +18240,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let afterReduce = null
   function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
 
+  /** A registry that changed WITHOUT a reduction of the page (inline islands registered, surfaces
+   *  loaded): what reads the registry after every reduction (the rules, the shortcuts…) sees it too. */
+  function noteRegistry(reg) {
+    if (reg && reg.contexts && afterReduce) afterReduce(reg)
+  }
+
   /** Applies a reduction's DOM effects. Returns how many downloads it launched. */
   function applyDomEffects(effects, reg, env = globalThis) {
     if (reg && reg.contexts && afterReduce) afterReduce(reg)
@@ -19148,6 +19265,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
   // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
   // (RuleLink) whose RunAction rule names one runs those commands in the browser — no server
@@ -19212,8 +19330,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
-  function pageFlowOf(reg, actionId, scope) {
-    const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
+  function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
+    // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
+    const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
     const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
       .find((a) => a && a.id === actionId)
     const commands = own ? flowCommandsOf(own) : flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
@@ -19497,6 +19616,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
    * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
    */
+  /**
+   * A value edited in a field of a SURFACE of its own (an inline island — a Java example embedded in a
+   * page —, a MicroFrontend): its painted fields sit among the host's atoms, so the host's draft took
+   * the value and the island's next request went out without it (`name: null`, a wizard refusing its
+   * step). The value goes to the SURFACE's state instead — the state runSurfaceAction posts — and the
+   * surface's own triggers follow it: its @Trigger(OnValueChange) for that field, else its @AutoSave.
+   * `typing` = a keystroke (rawValue): only the auto-save (debounced by the caller) listens to it.
+   * Returns null when the surface is not in the registry (the caller falls back to the host's draft),
+   * else { registry, actionId, debounceMillis, changed }.
+   */
+  function surfaceFieldEditOf(reg, surfaceId, fieldId, value, { typing = false } = {}) {
+    const ctx = surfaceId && reg && reg.contexts ? reg.contexts[surfaceId] : null
+    if (!ctx || !fieldId || surfaceId === HOST_ID) return null
+    const state = ctx.state || {}
+    // one END of a date range (`<field>#from|to`): the field's value is the whole {from, to}
+    const range = rangeEditOf(fieldId, state, state, value)
+    const id = range ? range.fieldId : fieldId
+    const next = range ? range.value : value
+    const changed = JSON.stringify(state[id] === undefined ? null : state[id]) !== JSON.stringify(next === undefined ? null : next)
+    const nextState = { ...state, [id]: next }
+    const registry = changed
+      ? { ...reg, contexts: { ...reg.contexts, [surfaceId]: { ...ctx, state: nextState } } }
+      : reg
+    const auto = autoSaveOf(ctx)
+    // a keystroke only matters to an auto-save (the value lands on blur/Enter anyway)
+    if (typing) return auto ? { registry, changed, actionId: changed ? auto.actionId : '', debounceMillis: auto.debounceMillis } : { registry: reg, changed: false, actionId: '', debounceMillis: 0 }
+    // the OnValueChange trigger fires on every committed change, like the host's (hostInputChanged)
+    const vc = valueChangeActionOf(ctx, id, nextState)
+    return { registry, changed, actionId: vc || (changed && auto ? auto.actionId : ''), debounceMillis: 0 }
+  }
+
   function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
     const contexts = (reg && reg.contexts) || {}
     const stack = (reg && reg.stack) || []
@@ -19559,6 +19709,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       panel.dispatchEvent(new CustomEvent('mateuDrawerLeave', { bubbles: false }))
     }, true)
   }
+
 
 
   // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
@@ -19676,7 +19827,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!rowId) return
       const [a, b] = [Math.min(d.anchor, d.current), Math.max(d.anchor, d.current)]
       const base = Date.parse(d.start + 'Z')
-      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, {})
+      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, surfaceAtomOf(d.gantt))
     }, true)
   }
 
@@ -19764,6 +19915,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
 
@@ -19964,7 +20116,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!r) return
       const state = refreshMerge(r)
       if (state && state.spec.mergeActionId && recordMergeSink) {
-        recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom))
+        recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom), surfaceAtomOf(r))
       }
     }, true)
   }
@@ -20463,6 +20615,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // KEYBOARD of the VB shell: the declared shortcuts and the ACCESS KEYS.
   //  - @Action(shortcut) of the current screen: the shortcut launches the action (through the Element
   //    channel), as in the web renderer; only combinations with Ctrl/Alt/Meta — a bare key
@@ -20500,12 +20653,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
   /** The current screen (afterReduce): its actions with a modifier or function-key shortcut. */
   function setShortcutContext(hostCtx) {
-    const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
-    shortcutActions = actions
-      .filter((a) => a && a.id && a.shortcut
-        && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
-      .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+    shortcutActions = shortcutsOf(hostCtx, '')
   }
+  const shortcutsOf = (ctx, surfaceId) => ((ctx && ctx.tree && ctx.tree.actions) || [])
+    .filter((a) => a && a.id && a.shortcut
+      && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
+    .map((a) => (surfaceId ? { id: a.id, shortcut: String(a.shortcut).toLowerCase(), surfaceId } : { id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+  /** The current screen and the SURFACES painted in it (an inline island — a Java example embedded in
+   *  a page —, a MicroFrontend): each one's @Action(shortcut)s, the surface's carrying its id so the
+   *  action goes back to it. A surface's only count while it is on screen (shortcutLive). The host's
+   *  win over a surface's with the same keys; the overlays' (a drawer) are not the page's. */
+  function setShortcutContexts(reg, hostId = '__root__') {
+    const contexts = (reg && reg.contexts) || {}
+    const stack = new Set((reg && reg.stack) || [])
+    const out = shortcutsOf(contexts[hostId], '')
+    for (const [id, ctx] of Object.entries(contexts)) {
+      if (id === hostId || stack.has(id)) continue
+      for (const a of shortcutsOf(ctx, id)) if (!out.some((o) => o.shortcut === a.shortcut && !o.surfaceId)) out.push(a)
+    }
+    shortcutActions = out
+  }
+  /** A surface's shortcut only while the surface has something painted (its atoms carry its id). */
+  const shortcutLive = (doc, a) => !a.surfaceId || !!doc.querySelector('[data-mateu-surface-id="' + attrSelectorValue(a.surfaceId) + '"]')
   const currentShortcutActions = () => shortcutActions
 
   let keysSink = null
@@ -20529,11 +20698,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
 
+  /** A JET element's `disabled` is its PROPERTY: the template's `disabled="[[ … ]]"` attribute stays
+   *  on the element whatever it is bound to — read as an attribute, every bound button counted as
+   *  disabled and only the tabs got a key. */
+  const isDisabledTarget = (el) => (typeof el.disabled === 'boolean' ? el.disabled : el.hasAttribute('disabled'))
+
   /** What can be pressed with an access key: buttons (not disabled) and tabs. */
   function accessCandidates(doc) {
     const out = []
     for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
-      if (!keyTargetVisible(el) || el.hasAttribute('disabled') || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
+      if (!keyTargetVisible(el) || isDisabledTarget(el) || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
       const label = labelOf(el)
       if (!label) continue
       const actionId = el.getAttribute('data-action-id')
@@ -20631,10 +20805,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
       if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
       // 1. an action of the screen
-      const action = shortcutActions.find((a) => matches(a.shortcut, e))
+      const action = shortcutActions.find((a) => matches(a.shortcut, e) && shortcutLive(doc, a))
       if (action && keysSink) {
         e.preventDefault(); e.stopPropagation()
-        keysSink(action.id, {}, {})
+        keysSink(action.id, {}, action.surfaceId ? { surfaceId: action.surfaceId } : {})
         return
       }
       if (paletteSink && isPaletteKey(e)) {
@@ -20782,6 +20956,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
 
@@ -20938,7 +21113,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!ids.length || !dropSink) return
       let params = {}
       try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
-      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, surfaceAtomOf(zone))
     }, true)
   }
 
@@ -20966,7 +21141,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
     const send = (board, move) => {
       if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
-      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+      // the board's surface (an inline island's board moves through the island)
+      const surfaceId = surfaceAtomOf(board).surfaceId
+      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move, ...(surfaceId ? { surfaceId } : {}) })
     }
     const clearMarks = () => {
       for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
@@ -21035,6 +21212,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     (ojBeforeEditEnd) the new value, if it changed, goes out through editActionId;
   //   - a linking cell: click → cellActionId. Both with { _rowId, _columnId, _value }.
 
+
   let matrixSink = null
   /** Who runs the action (the shell reuses the Elements' sink). */
   function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
@@ -21071,17 +21249,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const before = input.getAttribute('data-mx-value')
       const after = input.value
       if (!matrixEditChanged(before, after)) return
-      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), {})
+      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), surfaceAtomOf(grid))
     }, true)
     doc.addEventListener('click', (e) => {
       const link = e.target && e.target.closest ? e.target.closest('[data-mx-link="true"]') : null
       const grid = gridOf(link)
       if (!link || !grid || !matrixSink || !grid.dataset.cellAction) return
-      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), {})
+      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), surfaceAtomOf(grid))
     }, true)
   }
 
   void panelExpanded
+
 
 
 
@@ -21199,7 +21378,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }).addTo(map)
       if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
       const hover = [m.label, m.description].filter(Boolean).join(' · ')
-      const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) } : null
+      const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), surfaceAtomOf(el)) } : null
       if (run) pin.on('click', run)
       // the marker's SVG path exists only once the map has a view (Leaflet adds layers whenReady, and
       // the view is set below): decorate it when the layer is ADDED — read right here, getElement()
@@ -21267,6 +21446,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-map-spec'] })
   }
+
+
 
 
   // Listing ROW TONES (@RowStatus) and GROUP rows (@GroupBy) on JET's oj-table.
@@ -21351,6 +21532,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const now = win.scrollY > 48
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
     }, { passive: true })
+  }
+
+  // ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the
+  // declared base combination plus a number key (ctrl+shift+2 = the second row, top row or keypad) —
+  // runs the field's onItemSelectionActionId with the row in `_clickedRow`, as the web grid does.
+  // Read-only grids too: this is the master/detail idiom. The grid's root carries the action, the
+  // shortcut and its rows (data-row-select-*, the isGrid atom); the action goes back to the grid's
+  // SURFACE (an inline island's).
+  let rowSelectSink = null
+  function setRowSelectSink(fn) { rowSelectSink = typeof fn === 'function' ? fn : null }
+
+  const rowsOfSelectHost = (host) => {
+    try { const rows = JSON.parse(host.getAttribute('data-row-select-rows') || '[]'); return Array.isArray(rows) ? rows : [] } catch (e) { return [] }
+  }
+
+  /** The row (0-based) a base combination + number key selects, or null: the shortcut is the BASE
+   *  combination («ctrl+shift»), the number (top row or keypad) is the row's position. */
+  function rowShortcutIndexOf(shortcut, e) {
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(String((e && e.code) || '')) || /^([1-9])$/.exec(String((e && e.key) || ''))
+    if (!shortcut || !m) return null
+    const combo = String(shortcut).toLowerCase().replace(/\s+/g, '')
+    return shortcutMatches(combo + '+' + m[1], e) ? Number(m[1]) - 1 : null
+  }
+
+  function installRowSelection(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowSelection) return
+    doc.__mateuRowSelection = true
+    const select = (host, index) => {
+      const rows = rowsOfSelectHost(host)
+      if (!rowSelectSink || index == null || index < 0 || index >= rows.length) return false
+      rowSelectSink(host.getAttribute('data-row-select-action'), { _clickedRow: rows[index] }, surfaceAtomOf(host))
+      return true
+    }
+    doc.addEventListener('click', (e) => {
+      const target = e.target && e.target.closest ? e.target : null
+      const host = target && target.closest('[data-row-select-action]')
+      if (!host || !host.getAttribute('data-row-select-action')) return
+      // a control inside a cell does its own thing
+      if (target.closest('oj-button, button, a, input, oj-input-text, oj-select-single, oj-switch')) return
+      const table = target.closest('oj-table')
+      const ctx = table && typeof table.getContextByNode === 'function' ? table.getContextByNode(target) : null
+      if (!ctx || ctx.rowIndex == null || (ctx.subId && ctx.subId !== 'oj-table-cell')) return
+      select(host, ctx.rowIndex)
+    })
+    doc.addEventListener('keydown', (e) => {
+      if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+      for (const host of doc.querySelectorAll('[data-row-select-shortcut]')) {
+        const sc = host.getAttribute('data-row-select-shortcut')
+        if (!sc || !(host.getClientRects && host.getClientRects().length)) continue
+        const index = rowShortcutIndexOf(sc, e)
+        if (index != null && select(host, index)) { e.preventDefault(); e.stopPropagation(); return }
+      }
+    }, true)
   }
 
 
@@ -23336,6 +23570,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** An absolute base url on another origin than the page's (false outside a browser). */
   function isForeignBase(base) {
     if (!base || !/^https?:\/\//i.test(String(base))) return false
@@ -24101,13 +24336,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const ctx = reg && reg.contexts && reg.contexts[surfaceId]
     if (!ctx || !actionId) return reg
     const outbound = ctx.outbound || {}
-    const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
-      { ...extra, parameters: parameters || {} })
+    // OWNER FIRST, then the app's action catalogue: a flow (`steps`) the surface declares — or the
+    // catalogue's, when it does not declare the id — runs HERE, with no round trip (like the host's,
+    // runMateuAction's pageFlowOf): a catalogue «Go to the home» inside an embedded page navigated
+    // nowhere, the server got it instead
+    const flow = pageFlowOf(reg, actionId, { state: { ...(ctx.state || {}), ...(parameters || {}) }, appState: extra.appState || {} }, surfaceId)
+    const increment = flow
+      ? { commands: flow, fragments: [], messages: [] }
+      : await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+        { ...extra, parameters: parameters || {} })
     if (!increment) return reg
     // the increment is reduced AS the surface's (initiator): its MarkAsClean/Dirty land on it and the
     // bus events it emits carry it as their source
     let next = reduceContexts(reg, increment, { initiator: surfaceId })
     const toasts = [...(next.effects.toasts || [])]
+    // where the surface's answer (or flow) sends the page: the reductions below must not lose it
+    const navigate = next.effects.navigate || null
     // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
     // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
     const delivered = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
@@ -24118,7 +24362,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const returnedConfirms = returnedConfirmDialogsOf(increment)
     // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
     next = await ensureInlineIslands(outbound.baseUrl, next, extra)
-    return { ...next, effects: { ...next.effects, toasts, returnedConfirms } }
+    return { ...next, effects: { ...next.effects, toasts, returnedConfirms, navigate: navigate || next.effects.navigate || null } }
   }
 
   /**
@@ -24191,6 +24435,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const inline of inlineIslandsOf(host && host.tree)) {
       if (!next.contexts[inline.id]) next = await registerInlineIsland(base, next, inline, extra)
     }
+    // new surfaces on the page: their shortcuts and rules count from now on (keys.mjs, rules.mjs)
+    if (next !== reg) noteRegistry(next)
     return next
   }
 
@@ -24283,6 +24529,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         } catch (ignored) { /* the error band already reports it (onSettle) */ }
       }
     }
+    if (next !== reg) noteRegistry(next)
     return next
   }
 
@@ -26498,6 +26745,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
   // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
   // the right click of a ContextMenu, and the Chat component (a streamed conversation). Same idiom as
@@ -26958,7 +27206,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!button || !factActionSink) return
       let parameters = {}
       try { parameters = JSON.parse(button.getAttribute('data-mateu-fact-parameters') || '{}') || {} } catch (err) { parameters = {} }
-      factActionSink(button.getAttribute('data-action-id'), parameters, {})
+      factActionSink(button.getAttribute('data-action-id'), parameters, surfaceAtomOf(button))
     })
     const root = doc.body || doc.documentElement
     for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
@@ -27054,7 +27302,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!host || !scoreboardSink) return
       const key = e.detail && e.detail.context ? e.detail.context.key : null
       const run = scoreboardDrillInOf(atomOf(host), key)
-      if (run) scoreboardSink(run[0], run[1], run[2])
+      if (run) scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2]))
     }, true)
     if (typeof MutationObserver === 'undefined') return
     const root = doc.body || doc.documentElement
@@ -29998,7 +30246,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter',
+    'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -30006,6 +30254,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
     'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink', 'setTaskActionSink',
+    'setRowSelectSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -30071,7 +30320,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
     }
     if (typeof b.setKanbanMoveSink === 'function') {
-      b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
+      b.setKanbanMoveSink(({ key, move, surfaceId }) => runtime.fireEvent('application:mateuKanbanMove', { key, move, surfaceId: surfaceId || '' }))
     }
     // the document-level listeners once per page; the sinks and hooks above/below follow the
     // CURRENT component (a new <mateu-ui> takes them over)
@@ -30393,7 +30642,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the periodic refresh reads its triggers' conditions against the latest state (polling.mjs)
     notePollingRegistry(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
-    setShortcutContext(reg.contexts[HOST_ID]);
+    setShortcutContexts(reg, HOST_ID);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
@@ -30451,6 +30700,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   return {
     HOST_ID,
+    // the surface (inline island / MicroFrontend) a painted node belongs to (surfaces.mjs)
+    surfaceOfNode,
+    surfaceOfEvent,
+    surfaceAtomOf,
     // live reload contra un backend en modo dev (poc/liveReload.mjs)
     installDevLiveReload,
     devEventsUrlOf,
@@ -30507,6 +30760,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     viewsMenuOf,
     listingScope,
     installRowTones,
+    // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)
+    installRowSelection,
+    setRowSelectSink,
+    rowShortcutIndexOf,
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
@@ -30721,6 +30978,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    surfaceFieldEditOf,
     selectDroppedItsValue,
     // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
     // what a navigation does with them: one question, then every overlay closes

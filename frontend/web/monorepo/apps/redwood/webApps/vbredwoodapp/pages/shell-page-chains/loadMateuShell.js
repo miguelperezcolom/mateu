@@ -156,8 +156,8 @@ define([
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
       // kanban cards: drag between/within columns or the ⋯ select → the content page's kanbanCardMoved
-      bridge.setKanbanMoveSink(({ key, move }) => Actions.fireEvent(window.__mateuShellContext || context, {
-        name: 'application:mateuKanbanMove', payload: { key, move },
+      bridge.setKanbanMoveSink(({ key, move, surfaceId }) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuKanbanMove', payload: { key, move, surfaceId: surfaceId || '' },
       }));
       bridge.installKanbans();
       bridge.setKeysActionSink(runPageAction);
@@ -166,6 +166,9 @@ define([
       // compare & merge (RecordMerge): picks are DOM state; the merge goes out as a page action
       bridge.installRecordMerges();
       bridge.setRecordMergeSink(runPageAction);
+      // @OnRowSelected on a grid field: a row click / its shortcut + the row's number
+      bridge.installRowSelection();
+      bridge.setRowSelectSink(runPageAction);
       // app shortcuts + «?» + quick launch, live header values, the idle warning (appExtras.mjs)
       bridge.installAppExtras();
 

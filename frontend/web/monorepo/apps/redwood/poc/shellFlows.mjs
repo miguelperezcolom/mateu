@@ -1,4 +1,5 @@
-import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf } from './reduceContexts.mjs'
+import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf, autoSaveOf, rangeEditOf } from './reduceContexts.mjs'
+import { valueChangeActionOf } from './rules.mjs'
 import { chromeText } from './i18n.mjs'
 import { urlOfRoute } from './mount.mjs'
 import { undoLastMove } from './historyIndex.mjs'
@@ -68,8 +69,9 @@ export function resolveFlowCommands(commands, scope) {
  * action goes to the server as before. With a `scope` the commands' placeholders are resolved
  * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
  */
-export function pageFlowOf(reg, actionId, scope) {
-  const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
+export function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
+  // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
+  const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
   const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
     .find((a) => a && a.id === actionId)
   const commands = own ? flowCommandsOf(own) : flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
@@ -353,6 +355,37 @@ export function selectDroppedItsValue(event) {
  * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
  * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
  */
+/**
+ * A value edited in a field of a SURFACE of its own (an inline island — a Java example embedded in a
+ * page —, a MicroFrontend): its painted fields sit among the host's atoms, so the host's draft took
+ * the value and the island's next request went out without it (`name: null`, a wizard refusing its
+ * step). The value goes to the SURFACE's state instead — the state runSurfaceAction posts — and the
+ * surface's own triggers follow it: its @Trigger(OnValueChange) for that field, else its @AutoSave.
+ * `typing` = a keystroke (rawValue): only the auto-save (debounced by the caller) listens to it.
+ * Returns null when the surface is not in the registry (the caller falls back to the host's draft),
+ * else { registry, actionId, debounceMillis, changed }.
+ */
+export function surfaceFieldEditOf(reg, surfaceId, fieldId, value, { typing = false } = {}) {
+  const ctx = surfaceId && reg && reg.contexts ? reg.contexts[surfaceId] : null
+  if (!ctx || !fieldId || surfaceId === HOST_ID) return null
+  const state = ctx.state || {}
+  // one END of a date range (`<field>#from|to`): the field's value is the whole {from, to}
+  const range = rangeEditOf(fieldId, state, state, value)
+  const id = range ? range.fieldId : fieldId
+  const next = range ? range.value : value
+  const changed = JSON.stringify(state[id] === undefined ? null : state[id]) !== JSON.stringify(next === undefined ? null : next)
+  const nextState = { ...state, [id]: next }
+  const registry = changed
+    ? { ...reg, contexts: { ...reg.contexts, [surfaceId]: { ...ctx, state: nextState } } }
+    : reg
+  const auto = autoSaveOf(ctx)
+  // a keystroke only matters to an auto-save (the value lands on blur/Enter anyway)
+  if (typing) return auto ? { registry, changed, actionId: changed ? auto.actionId : '', debounceMillis: auto.debounceMillis } : { registry: reg, changed: false, actionId: '', debounceMillis: 0 }
+  // the OnValueChange trigger fires on every committed change, like the host's (hostInputChanged)
+  const vc = valueChangeActionOf(ctx, id, nextState)
+  return { registry, changed, actionId: vc || (changed && auto ? auto.actionId : ''), debounceMillis: 0 }
+}
+
 export function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
   const contexts = (reg && reg.contexts) || {}
   const stack = (reg && reg.stack) || []

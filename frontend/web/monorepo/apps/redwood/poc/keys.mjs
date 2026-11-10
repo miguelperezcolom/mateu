@@ -1,3 +1,5 @@
+import { attrSelectorValue } from './rules.mjs'
+
 // KEYBOARD of the VB shell: the declared shortcuts and the ACCESS KEYS.
 //  - @Action(shortcut) of the current screen: the shortcut launches the action (through the Element
 //    channel), as in the web renderer; only combinations with Ctrl/Alt/Meta — a bare key
@@ -35,12 +37,28 @@ export const isFunctionKeyShortcut = (shortcut) =>
   FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
 /** The current screen (afterReduce): its actions with a modifier or function-key shortcut. */
 export function setShortcutContext(hostCtx) {
-  const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
-  shortcutActions = actions
-    .filter((a) => a && a.id && a.shortcut
-      && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
-    .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+  shortcutActions = shortcutsOf(hostCtx, '')
 }
+const shortcutsOf = (ctx, surfaceId) => ((ctx && ctx.tree && ctx.tree.actions) || [])
+  .filter((a) => a && a.id && a.shortcut
+    && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
+  .map((a) => (surfaceId ? { id: a.id, shortcut: String(a.shortcut).toLowerCase(), surfaceId } : { id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+/** The current screen and the SURFACES painted in it (an inline island — a Java example embedded in
+ *  a page —, a MicroFrontend): each one's @Action(shortcut)s, the surface's carrying its id so the
+ *  action goes back to it. A surface's only count while it is on screen (shortcutLive). The host's
+ *  win over a surface's with the same keys; the overlays' (a drawer) are not the page's. */
+export function setShortcutContexts(reg, hostId = '__root__') {
+  const contexts = (reg && reg.contexts) || {}
+  const stack = new Set((reg && reg.stack) || [])
+  const out = shortcutsOf(contexts[hostId], '')
+  for (const [id, ctx] of Object.entries(contexts)) {
+    if (id === hostId || stack.has(id)) continue
+    for (const a of shortcutsOf(ctx, id)) if (!out.some((o) => o.shortcut === a.shortcut && !o.surfaceId)) out.push(a)
+  }
+  shortcutActions = out
+}
+/** A surface's shortcut only while the surface has something painted (its atoms carry its id). */
+const shortcutLive = (doc, a) => !a.surfaceId || !!doc.querySelector('[data-mateu-surface-id="' + attrSelectorValue(a.surfaceId) + '"]')
 export const currentShortcutActions = () => shortcutActions
 
 let keysSink = null
@@ -64,11 +82,16 @@ const keyTargetVisible = (el) => {
 }
 const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
 
+/** A JET element's `disabled` is its PROPERTY: the template's `disabled="[[ … ]]"` attribute stays
+ *  on the element whatever it is bound to — read as an attribute, every bound button counted as
+ *  disabled and only the tabs got a key. */
+const isDisabledTarget = (el) => (typeof el.disabled === 'boolean' ? el.disabled : el.hasAttribute('disabled'))
+
 /** What can be pressed with an access key: buttons (not disabled) and tabs. */
 function accessCandidates(doc) {
   const out = []
   for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
-    if (!keyTargetVisible(el) || el.hasAttribute('disabled') || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
+    if (!keyTargetVisible(el) || isDisabledTarget(el) || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
     const label = labelOf(el)
     if (!label) continue
     const actionId = el.getAttribute('data-action-id')
@@ -166,10 +189,10 @@ export function installKeys(doc = typeof document !== 'undefined' ? document : n
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
     if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
     // 1. an action of the screen
-    const action = shortcutActions.find((a) => matches(a.shortcut, e))
+    const action = shortcutActions.find((a) => matches(a.shortcut, e) && shortcutLive(doc, a))
     if (action && keysSink) {
       e.preventDefault(); e.stopPropagation()
-      keysSink(action.id, {}, {})
+      keysSink(action.id, {}, action.surfaceId ? { surfaceId: action.surfaceId } : {})
       return
     }
     if (paletteSink && isPaletteKey(e)) {

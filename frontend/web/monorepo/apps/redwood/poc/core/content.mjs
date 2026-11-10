@@ -394,6 +394,13 @@ export function boardTwelfthsOf(weights) {
   return out
 }
 
+/** The app-wide scopes the texts interpolate (`${appState.x}`, `${appData.x}`): the reduced
+ *  registry's (reducer: an answer's appState/appData merge into it), set by the reduce hook. */
+let appScope = { appState: {}, appData: {} }
+export function setAppScope(reg) {
+  appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
+}
+
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
   // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -410,7 +417,10 @@ export function islandContentOf(ctx, opts = {}) {
   const stripsPerScope = {}
   let tabBars = 0
   const state = ctx.state || {}
-  const interp = (t) => interpolate(t, state)
+  // `${data.x}` (this component's data), `${appState.x}` / `${appData.x}` (the app's, kept by the
+  // reducer from every answer: Return AppState / AppData) — not only `${state.x}`
+  const scope = { data: ctx.data || {}, appState: appScope.appState || {}, appData: appScope.appData || {} }
+  const interp = (t) => interpolate(t, state, scope)
   const badgeOf = (b) => ({
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
@@ -853,6 +863,15 @@ export function islandContentOf(ctx, opts = {}) {
           rowEditable,
           addActionId: rowEditable ? fieldId + '_add' : '',
           addLabel: chromeText('add'),
+          // @OnRowSelected: a click on a row (or its shortcut + the row's number) runs the action with
+          // the row in _clickedRow (tables.mjs installRowSelection reads these off the grid's root)
+          ...(m.onItemSelectionActionId ? {
+            selectActionId: m.onItemSelectionActionId,
+            selectShortcut: m.rowSelectionShortcut || '',
+            // the rows as the server sent them (the client's own keys — _rowNumber, __… — left out)
+            selectRows: JSON.stringify(rows.map((r) => (r && typeof r === 'object'
+              ? Object.fromEntries(Object.entries(r).filter(([k]) => k !== '_rowNumber' && !k.startsWith('__'))) : r))),
+          } : {}),
         }, container)
         return
       }

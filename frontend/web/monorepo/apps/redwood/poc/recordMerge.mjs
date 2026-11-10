@@ -1,4 +1,5 @@
 import { chromeText } from './i18n.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 // COMPARE AND MERGE (RecordMerge on the wire): the records side by side, a pick per field, the
 // resulting record and a merge action. Same rules as the web renderer (libs/mateu recordMerge.ts):
@@ -197,7 +198,7 @@ export function installRecordMerges(doc = typeof document !== 'undefined' ? docu
     if (!r) return
     const state = refreshMerge(r)
     if (state && state.spec.mergeActionId && recordMergeSink) {
-      recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom))
+      recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom), surfaceAtomOf(r))
     }
   }, true)
 }

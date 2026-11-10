@@ -3,15 +3,33 @@ import { BADGE_CLASSES, interpolate, islandContentOf, buttonRouteOf } from './co
 import { declaresTemplate, templateFormOf } from './overviews.mjs'
 import { PANE_TYPES, findOutside, pageHeaderNodeOf, pageToolbarOf, pageSubtitleOf, isBackButton } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
-import { iconClassOf } from './display.mjs'
+import { iconClassOf, tagSurfaceActions } from './display.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
 /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
 export function foldoutContentOf(proj) {
   return proj
-    ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+    ? { overview: proj.overview, panels: proj.panels, header: proj.header, ...(proj.surfaceId ? { surfaceId: proj.surfaceId } : {}) }
     : { overview: { blocks: [] }, panels: [], header: {} }
+}
+
+/** The id of the NESTED ServerSide (another surface: an inline island) that holds `target` in
+ *  `tree`, or '' when the page itself does. */
+export function enclosingServerSideIdOf(tree, target) {
+  let found = ''
+  const walk = (n, owner) => {
+    if (found || !n || typeof n !== 'object') return false
+    if (n === target) { found = owner; return true }
+    const own = n !== tree && n.type === 'ServerSide' && n.id ? n.id : owner
+    for (const c of n.children || []) if (walk(c, own)) return true
+    const inner = n.metadata && n.metadata.content
+    if (Array.isArray(inner)) { for (const c of inner) if (walk(c, own)) return true }
+    else if (inner && typeof inner === 'object' && walk(inner, own)) return true
+    return false
+  }
+  walk(tree, '')
+  return found
 }
 
 /** Same structure → the chain updates the content in place; otherwise it remounts the foldout.
@@ -33,6 +51,10 @@ export function foldoutOf(ctx, { parent = null } = {}) {
   // …nor one inside a card (an Explorer example's): any PAGE_CLAIM_STOPS keeps it content
   const node = ctx && ctx.tree ? findPageLevelType(ctx.tree, 'FoldoutLayout') : null
   if (!node) return null
+  // a foldout an INLINE ISLAND holds (a Java example embedded in a page) is that island's: its
+  // navigation and its panels' actions go back to it (surfaceId → runMateuSurfaceAction), or the
+  // host was asked for them (403)
+  const surfaceId = enclosingServerSideIdOf(ctx.tree, node)
   const md = node.metadata
   const children = node.children || []
   const bySlot = {}
@@ -46,7 +68,7 @@ export function foldoutOf(ctx, { parent = null } = {}) {
       : null
     // same visual contract as hostContentOf: column blocks with their colClass,
     // the rest full-row
-    return (blocks || []).map((block) => ({
+    return (surfaceId ? tagSurfaceActions(blocks || [], surfaceId) : (blocks || [])).map((block) => ({
       ...block,
       blockClass: block.colClass || 'oj-flex-item oj-sm-12',
     }))
@@ -78,6 +100,7 @@ export function foldoutOf(ctx, { parent = null } = {}) {
   // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
   const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
   return {
+    ...(surfaceId ? { surfaceId } : {}),
     headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
     // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
     // the panels; 'horizontal' = the overview runs across the top, the panels below it

@@ -714,26 +714,29 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAddOns ]]">
-                      <oj-bind-for-each data="[[ $current.data.items ]]">
-                        <template>
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
-                            <div class="oj-flex-item">
-                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                      <!-- one element of its own: the rows' switches find their surface through it (data-mateu-surface-id) -->
+                      <div class="mateu-addons">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                              <div class="oj-flex-item">
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.selectable ]]">
+                                <oj-switch class="oj-flex-item oj-sm-flex-initial"
+                                  value="[[ $current.data.added ]]"
+                                  :data-item-id="[[ $current.data.id ]]"
+                                  on-value-changed="[[ $listeners.{{addonToggled}} ]]"></oj-switch>
+                              </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.selectable ]]">
+                                <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
+                              </oj-bind-if>
                             </div>
-                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
-                            <oj-bind-if test="[[ $current.data.selectable ]]">
-                              <oj-switch class="oj-flex-item oj-sm-flex-initial"
-                                value="[[ $current.data.added ]]"
-                                :data-item-id="[[ $current.data.id ]]"
-                                on-value-changed="[[ $listeners.{{addonToggled}} ]]"></oj-switch>
-                            </oj-bind-if>
-                            <oj-bind-if test="[[ !$current.data.selectable ]]">
-                              <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
-                            </oj-bind-if>
-                          </div>
-                        </template>
-                      </oj-bind-for-each>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
                       <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
@@ -958,7 +961,9 @@
                          form). The atom brings the data provider ready-made: there are several per
                          page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
-                      <div class="oj-sm-margin-4x-bottom">
+                      <div class="oj-sm-margin-4x-bottom" :data-row-select-action="[[ $current.data.selectActionId || null ]]"
+                        :data-row-select-shortcut="[[ $current.data.selectShortcut || null ]]" :data-row-select-rows="[[ $current.data.selectRows || null ]]"
+                        :class="[[ $current.data.selectActionId ? 'mateu-grid-selectable' : '' ]]">
                         <oj-table class="oj-sm-12" display="list"
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
@@ -1137,6 +1142,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDate ]]">

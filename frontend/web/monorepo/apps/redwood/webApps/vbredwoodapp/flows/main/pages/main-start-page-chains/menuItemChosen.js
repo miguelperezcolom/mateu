@@ -22,9 +22,10 @@ define([
      * @param {string} params.value    the oj-option chosen ($event.detail.selectedValue)
      * @param {string} params.variant  'host' | 'island' (which surface's atoms it belongs to)
      */
-    async run(context, { items, value, variant }) {
+    async run(context, { items, value, variant, surfaceId }) {
       const plan = bridge.dispatchOf(bridge.menuChoiceOf(items, value), variant);
       if (!plan) return;
+      if (plan.chain && surfaceId) plan.params = { ...plan.params, surfaceId };
       if (plan.chain) {
         await Actions.callChain(context, { chain: plan.chain, params: plan.params });
       } else if (plan.route) {

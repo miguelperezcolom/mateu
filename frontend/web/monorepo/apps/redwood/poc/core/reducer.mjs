@@ -2,7 +2,7 @@ import { HOST_ID, collectFields } from './tree.mjs'
 import { findByType, findFirst, pageListingNodeOf, nestedListingTriggersOf } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
 import { kanbanTriggersOf } from './kanban.mjs'
-import { literalText } from './content.mjs'
+import { literalText, setAppScope } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
 /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -184,6 +184,9 @@ export const resolveTarget = (contexts, t) => {
  * opts.initiator = contextId of the surface that launched the request (for commands without a target,
  * like the save-in-drawer's MarkAsClean).
  */
+const mergedAppScope = (kept, sent) => (sent && typeof sent === 'object' && !Array.isArray(sent)
+  ? { ...(kept || {}), ...sent } : kept || null)
+
 export function reduceContexts(reg, increment, opts = {}) {
   const contexts = { ...reg.contexts }
   const stack = [...reg.stack]
@@ -489,6 +492,14 @@ export function reduceContexts(reg, increment, opts = {}) {
   const kept = {}
   if (reg.appLevels) kept.appLevels = reg.appLevels
   if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
+  // the APP's state and data (UIIncrementDto.appState / appData: an action returning AppState /
+  // AppData): app-wide, merged answer after answer — what `${appState.x}` / `${appData.x}` read
+  const appState = mergedAppScope(reg.appState, increment.appState)
+  const appData = mergedAppScope(reg.appData, increment.appData)
+  if (appState) kept.appState = appState
+  if (appData) kept.appData = appData
+  // the projections that follow read them (content.mjs islandContentOf)
+  setAppScope(kept)
   return { ...kept, contexts, stack, shell, effects }
 }
 

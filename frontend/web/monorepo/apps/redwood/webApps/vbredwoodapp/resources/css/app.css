@@ -2274,3 +2274,5 @@ oj-sp-simple-ui-shell.mateu-chromeless .oj-sp-simple-ui-shell-globalheader { dis
 .mateu-island-banner { display: flex; align-items: center; gap: 0.5rem; }
 .mateu-island-banner > span { flex: 1 1 auto; }
 .mateu-banner-close { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0.25rem; color: inherit; }
+/* @OnRowSelected grid field (tables.mjs installRowSelection): a row click selects it */
+.mateu-grid-selectable oj-table tbody tr { cursor: pointer; }
