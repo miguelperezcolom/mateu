@@ -50,6 +50,10 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
   const setOpen = (next: Record<number, boolean>) => setToggled({ ...toggled, ...next });
   return (
     <View style={styles.foldout}>
+      {/* its headerTitle (the layout's own heading) — it was not drawn */}
+      {!!meta(component)['headerTitle'] && (
+        <Text style={styles.foldoutHeaderTitle} {...headingA11y(2)}>{interpolate(String(meta(component)['headerTitle']), { state })}</Text>
+      )}
       {!!overview && (
         <View style={styles.foldoutOverview}>
           <ComponentRenderer component={overview} state={state} />
@@ -1329,6 +1333,7 @@ export function ProcessMonitorRenderer({ component }: { component: unknown }) {
 const styles = themed(() => StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
+  foldoutHeaderTitle: { fontSize: 22, fontWeight: '700', color: theme.ink },
   foldoutOverview: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16 },
   foldoutPanel: { borderWidth: 1, borderColor: theme.border, borderRadius: 8, overflow: 'hidden' },
   foldoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: theme.background },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
+import { EmbeddedChrome } from './ScrollContext';
 import { materialIconOf } from '../ui/wireIcons';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
@@ -98,7 +99,13 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
   const { session } = useAppContext();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(() => islandSession(session, baseUrl), [baseUrl, session]);
+  // its declared chrome (NONE / COMPACT / PAGE) reaches the page inside it, and its own box style
+  // (a dashed frame, padding) is drawn around it
+  const chrome = typeof metadata['chrome'] === 'string' ? (metadata['chrome'] as string).toUpperCase() : null;
+  const box = cssToRn(String(metadata['style'] ?? ''), DIV_BOX);
   return (
+    <View style={box}>
+    <EmbeddedChrome.Provider value={chrome}>
     <MateuViewHost
       session={remoteSession}
       target={{
@@ -112,6 +119,8 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
       preview={resolvedPreviewOf(metadata)}
       silent
     />
+    </EmbeddedChrome.Provider>
+    </View>
   );
 }
 
@@ -417,7 +426,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     }
     case 'CustomField':
       // ComponentAdapter's nested island / a custom field: render its content node.
-      return metadata['content'] ? <ComponentRenderer component={metadata['content']} state={state} /> : null;
+      // ComponentAdapter's nested island / a custom field: its content node, under its label
+      if (!metadata['content']) return null;
+      return (
+        <View style={styles.customField}>
+          {!!metadata['label'] && <Text style={styles.customFieldLabel}>{interpolate(String(metadata['label']), { state })}</Text>}
+          <ComponentRenderer component={metadata['content']} state={state} />
+        </View>
+      );
     case 'MicroFrontend':
       return <MicroFrontendIsland metadata={metadata} />;
 
@@ -559,6 +575,8 @@ function ScrollerRenderer({ component, state, renderComponent }: {
 
 const styles = themed(() => StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
+  customField: { gap: 4, marginTop: 6, marginBottom: 14 },
+  customFieldLabel: { fontSize: 14, fontWeight: '500', color: theme.muted },
   error: { color: theme.danger, padding: 8, fontSize: 14 },
   text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
   heading: { fontWeight: '700', color: theme.ink, paddingTop: 8, paddingBottom: 8 },

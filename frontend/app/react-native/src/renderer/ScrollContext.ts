@@ -46,3 +46,11 @@ export interface SectionEntry { key: string; title: string; sticky: boolean; ref
 export interface SectionRegistry { register: (entry: SectionEntry) => () => void }
 export const SectionIndex = createContext<SectionRegistry | null>(null);
 export const useSectionIndex = (): SectionRegistry | null => useContext(SectionIndex);
+
+/**
+ * A MicroFrontend's `chrome` (NONE | COMPACT | PAGE) for the page inside it: NONE draws no page
+ * header, COMPACT only its actions, PAGE the header without a breadcrumb trail. Null = a page of
+ * its own (everything).
+ */
+export const EmbeddedChrome = createContext<string | null>(null);
+export const useEmbeddedChrome = (): string | null => useContext(EmbeddedChrome);

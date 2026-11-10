@@ -21,7 +21,7 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { drawsNothing, pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, SectionIndex, type SectionEntry, type SectionRegistry, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, SectionIndex, useEmbeddedChrome, type SectionEntry, type SectionRegistry, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
@@ -96,7 +96,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
   // a page template that owns the header (WelcomePage, HeroSearchPage…) draws its title in its own
   // banner: the wire still names it, for the window title, and `noHeader` says not to repeat it
-  const noHeader = metadata['noHeader'] === true;
+  // inside a MicroFrontend: its chrome decides (NONE no header, COMPACT the actions only, PAGE no trail)
+  const chrome = useEmbeddedChrome();
+  const noHeader = metadata['noHeader'] === true || chrome === 'NONE' || chrome === 'COMPACT';
   const declaredTitle = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
   // the shell's bar already names the screen (RN-22): the header does not say it twice
   const barTitle = useBarTitle();
@@ -105,16 +107,16 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   // the same button twice (a listing's toolbar folded in more than once) is one button
   // …and «Back to list» stands down when the screen already has a back arrow (RN-26)
   const screenHasBack = useScreenHasBack();
-  const toolbar = withoutRedundantBack(uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []), screenHasBack);
+  const toolbar = chrome === 'NONE' ? [] : withoutRedundantBack(uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []), screenHasBack);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
-  const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
-  const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
+  const badges = noHeader ? [] : (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
+  const kpis = noHeader ? [] : (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
   const fabs = (metadata['fabs'] as { id?: string; label?: string; actionId?: string; icon?: string }[]) ?? [];
   const children = (component['children'] as unknown[]) ?? [];
   // Record/context switcher (PageDto.switcher): a compact selector under the title.
   const switcher = switcherOf(metadata);
   // overline / title placeholder / "last updated" / previous-next record (the canonical header)
-  const extras = pageHeaderExtrasOf(metadata, declaredTitle);
+  const extras = noHeader ? pageHeaderExtrasOf({}, '') : pageHeaderExtrasOf(metadata, declaredTitle);
   const openPeer = (label: string, route: string) =>
     controller.session.openView({ label, route, consumedRoute: '', serverSideType: '' });
 
@@ -147,7 +149,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
   // the page's breadcrumb trail (BreadcrumbsSupplier / the derived trail) unless it opts out — it
   // was never drawn; and the page's HEADER components (HeaderSupplier: a listing's drop zones…)
-  const crumbs = metadata['noBreadcrumbs'] === true ? [] : ((metadata['breadcrumbs'] as Record<string, unknown>[] | undefined) ?? []);
+  const crumbs = metadata['noBreadcrumbs'] === true || chrome ? [] : ((metadata['breadcrumbs'] as Record<string, unknown>[] | undefined) ?? []);
   const headerComponents = (metadata['header'] as unknown[] | undefined) ?? [];
   // a page whose body draws nothing (only its buttons, say) gets no empty band between dividers
   const bodyEmpty = children.every(drawsNothing);

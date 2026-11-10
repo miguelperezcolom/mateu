@@ -14,7 +14,7 @@ import { MateuButton, StatusChip } from '../ui/controls';
 import { badgeLook } from '../ui/looks';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, useBarTitle, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useBarTitle, useEmbeddedChrome, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -37,7 +37,9 @@ export function FormRenderer({ component, metadata, state }: Props) {
   // a YAML page's header texts are templates over its state (`title: ${state.name}`)
   // …unless a page template owns the header (WelcomePage, HeroSearchPage…): it draws them in its own
   // banner, the wire still names them for the window title, and `noHeader` says not to repeat them
-  const noHeader = metadata['noHeader'] === true;
+  // inside a MicroFrontend: its chrome decides (NONE no header, COMPACT the actions only)
+  const chrome = useEmbeddedChrome();
+  const noHeader = metadata['noHeader'] === true || chrome === 'NONE' || chrome === 'COMPACT';
   const declaredTitle = noHeader ? '' : interpolate((metadata['title'] as string) ?? '', { state });
   // the shell's bar already names the screen (RN-22): the header does not say it twice
   const barTitle = useBarTitle();
@@ -51,7 +53,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const declared = ((metadata['actions'] as ButtonDto[]) ?? []).filter((a) => !!a?.label);
   // …and its page toolbar (a YAML Form's `toolbar:` — Edit, Delete…): navigation as much as action,
   // so shown on a read-only record too. The way back is the screen's own back arrow, not a button.
-  const toolbar = ((metadata['toolbar'] as ButtonDto[]) ?? []).filter((b) => !!b?.label && !isBackButton(b));
+  const toolbar = chrome === 'NONE' ? [] : ((metadata['toolbar'] as ButtonDto[]) ?? []).filter((b) => !!b?.label && !isBackButton(b));
   const actions = [...toolbar, ...declared];
   const children = (component['children'] as unknown[]) ?? [];
 
