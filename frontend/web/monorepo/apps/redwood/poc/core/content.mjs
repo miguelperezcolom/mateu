@@ -8,7 +8,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
-import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
