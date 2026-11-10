@@ -123,6 +123,7 @@ export const CHROME_TEXTS = {
     // ── network / errors ──
     offlineBand: "Offline — changes you make now won't be saved.",
     errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+    errUnreachable: 'Its server could not be reached. It may be down — try again later.',
     errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
     errServer: 'The server could not complete the request. Try again.',
     wireVersionMismatch: "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",
@@ -412,6 +413,7 @@ export const CHROME_TEXTS = {
     captureSignHere: 'Firme aquí',
     offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
     errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+    errUnreachable: 'No se ha podido contactar con su servidor. Puede estar caído — inténtalo más tarde.',
     errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
     errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
     wireVersionMismatch: 'El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.',

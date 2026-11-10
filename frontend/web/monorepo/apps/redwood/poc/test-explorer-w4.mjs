@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { interpolate, islandContentOf } from './core/content.mjs'
 import { fieldListOf } from './core/tree.mjs'
 import { markdownToHtml } from './richtext.mjs'
-import { runSurfaceAction } from './transport.mjs'
+import { runSurfaceAction, expandRemoteMenus, remoteRouteOf, prefixedRoute, routeForRemote, remoteHomeOf, remotePrefixOfDeepLink, isStaticBundleBase, loadRouteInto, callMateu } from './transport.mjs'
 import { ruleSurfacesOf } from './rules.mjs'
 
 let passed = 0
@@ -76,6 +76,91 @@ test('the rules of an island painted inside the host apply to its fields (@Hidde
   assert.equal(surfaces[0].surface, 'host')
   assert.equal(surfaces[0].ctx.tree, island)
   assert.deepEqual(surfaces[0].ctx.state, { company: false })
+})
+
+test('federation: a remote\'s leaves live under its prefix in the shell; the remote is asked without it', () => {
+  assert.equal(prefixedRoute('/inventory', '/stock'), '/inventory/stock')
+  assert.equal(prefixedRoute('/inventory', 'stock?x=1'), '/inventory/stock?x=1')
+  assert.equal(prefixedRoute('/inventory', '/inventory/stock'), '/inventory/stock')
+  assert.equal(prefixedRoute('', '/stock'), '/stock')
+  assert.equal(remotePrefixOfDeepLink('/inventory/stock', '/stock'), '/inventory')
+  assert.equal(remotePrefixOfDeepLink('/stock', '/stock'), '')
+  assert.ok(isStaticBundleBase('http://localhost:8643/manifest.json'))
+  assert.ok(!isStaticBundleBase('http://localhost:8641/inventory'))
+})
+
+await atest('federation: expanded remote menus carry the prefix, deep links and the requests follow it', async () => {
+  const original = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (url, init) => {
+    sent.push({ url: String(url), body: init && init.body ? JSON.parse(init.body) : null })
+    if (String(url).startsWith('http://inv.test/inventory/mateu/v3/sync/')) {
+      return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ commands: [], messages: [], fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', route: '', homeRoute: '/stock', serverSideType: 'inv.InventoryApp',
+        menu: [{ label: 'Stock', route: '/stock', path: '/stock' }, { label: 'About', route: '/about', path: '/about' }] } } }] }) }
+    }
+    throw new TypeError('Failed to fetch')
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Inventory', remote: true, baseUrl: 'http://inv.test/inventory', route: '', path: '/inventory', routePrefix: '/inventory', shellLabel: true },
+      { label: 'Help', remote: true, baseUrl: 'http://help.test/manifest.json', route: '', path: '/help', routePrefix: '/help', shellLabel: true },
+    ])
+    const inventory = menu[0]
+    assert.deepEqual(inventory.submenus.map((o) => o.route), ['/inventory/stock', '/inventory/about'])
+    assert.equal(remoteRouteOf('/inventory/stock').baseUrl, 'http://inv.test/inventory')
+    assert.equal(routeForRemote('http://inv.test/inventory', '/inventory/stock'), '/stock')
+    // a static remote is never POSTed to as a server (it used to be: …/manifest.json/mateu/v3/sync)
+    assert.ok(!sent.some((r) => r.url.includes('manifest.json/mateu')), JSON.stringify(sent.map((r) => r.url)))
+    sent.length = 0
+    await callMateu('http://inv.test/inventory', { route: '/inventory/stock', actionId: '' }, { quiet: true })
+    assert.equal(sent[0].url, 'http://inv.test/inventory/mateu/v3/sync/stock')
+    assert.equal(sent[0].body.route, '/stock')
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
+await atest('federation: a fresh deep link to a remote screen loads the content from the remote the shell names', async () => {
+  const original = globalThis.fetch
+  const sent = []
+  const shellApp = { type: 'ClientSide', metadata: { type: 'App', route: '', title: 'Fed', serverSideType: 'x.Console', menu: [],
+    homeRoute: '/whoami', homeConsumedRoute: '', homeBaseUrl: 'http://inv2.test/inv', homeServerSideType: 'inv.InventoryApp' } }
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    sent.push({ url: String(url), body })
+    const answer = String(url).startsWith('http://inv2.test/')
+      ? { commands: [], messages: [], fragments: [{ targetComponentId: body.initiatorComponentId, component: { type: 'ServerSide', id: 'who', serverSideType: 'inv.WhoAmI', children: [{ type: 'ClientSide', metadata: { type: 'Text', text: 'You are anonymous' }, children: [] }] } }] }
+      : { commands: [], messages: [], fragments: [{ component: shellApp }] }
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => answer }
+  }
+  try {
+    assert.ok(remoteHomeOf({ fragments: [{ component: shellApp }] }, 'http://shell.test/fed'))
+    const reg = await loadRouteInto('http://shell.test/fed', { contexts: {}, stack: [], shell: { serverSideType: 'x.Console' } }, '/inv/whoami', '', { appState: {} })
+    assert.equal(sent.length, 2, JSON.stringify(sent.map((r) => r.url)))
+    assert.equal(sent[1].url, 'http://inv2.test/inv/mateu/v3/sync/whoami')
+    assert.equal(sent[1].body.serverSideType, 'inv.InventoryApp')
+    assert.equal(reg.contexts.__root__.tree.serverSideType, 'inv.WhoAmI')
+    assert.equal(reg.contexts.__root__.outbound.baseUrl, 'http://inv2.test/inv')
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
+await atest('route params: a screen\'s ?query rides the request URL (the server seeds it: query > defaults), the route stays clean', async () => {
+  const original = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (url, init) => {
+    sent.push({ url: String(url), body: JSON.parse(init.body) })
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ commands: [], messages: [], fragments: [{ component: { type: 'ServerSide', id: 'rq', serverSideType: 'x.RateQuote', children: [] }, state: { currency: 'USD' } }] }) }
+  }
+  try {
+    const reg = await loadRouteInto('http://app.test', { contexts: {}, stack: [] }, '/x/rates/web/palma?currency=USD&nights=3', '', { appState: {} })
+    assert.equal(sent[0].url, 'http://app.test/mateu/v3/sync/x/rates/web/palma?currency=USD&nights=3')
+    assert.equal(sent[0].body.route, '/x/rates/web/palma')
+    assert.equal(reg.contexts.__root__.outbound.route, '/x/rates/web/palma')
+  } finally {
+    globalThis.fetch = original
+  }
 })
 
 console.log(`test-explorer-w4: ${passed} passed`)

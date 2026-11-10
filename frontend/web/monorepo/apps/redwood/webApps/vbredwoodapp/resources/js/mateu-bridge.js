@@ -128,6 +128,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // ── network / errors ──
       offlineBand: "Offline — changes you make now won't be saved.",
       errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+      errUnreachable: 'Its server could not be reached. It may be down — try again later.',
       errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
       errServer: 'The server could not complete the request. Try again.',
       wireVersionMismatch: "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",
@@ -417,6 +418,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureSignHere: 'Firme aquí',
       offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
       errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+      errUnreachable: 'No se ha podido contactar con su servidor. Puede estar caído — inténtalo más tarde.',
       errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
       errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
       wireVersionMismatch: 'El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.',
@@ -15240,6 +15242,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
         }
         if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
+        // an ISOLATED request (another origin's island, a federated remote) that did not arrive says
+        // that server is down, not that the user is offline — «You're offline» was wrong in its box
+        if (failure.kind === 'offline' && isolated && connectivity.isOnline()) failure = { ...failure, message: chromeText('errUnreachable') }
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
           // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
@@ -23084,9 +23089,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
-    const bare = (body.route || '').replace(/^\//, '')
+    // a static remote (its base names a bundle's manifest) has no server to POST to
+    if (isStaticBundleBase(base)) throw staticRemoteError(base)
+    const bare = routeForRemote(base, body.route || '').replace(/^\//, '')
     noteDocumentBase(base) // a parked Document is requested from THIS backend
-    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
+    const query = typeof options.urlQuery === 'string' && options.urlQuery[0] === '?' ? options.urlQuery : ''
+    const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -23243,6 +23251,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
    *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
    *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
+  /** loadRoute with the screen's query on the request URL (and in the bundle's lookup). */
+  function loadRouteWithQuery(base, route, initiator, extra, urlQuery) {
+    if (!urlQuery || urlQuery === '?') return loadRoute(base, route, initiator, extra)
+    return loadRoute(base, route + urlQuery, initiator, extra, { urlQuery })
+  }
+
   const loadRoute = async (base, route, initiator = '', extra = {}, callOptions = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
@@ -23265,7 +23279,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
-    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
+    // the query rides the URL (callOptions.urlQuery), never the body's route
+    const at = callOptions.urlQuery ? String(route).indexOf('?') : -1
+    return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
@@ -23382,7 +23398,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
-    const bare = effectiveRoute.replace(/^\//, '')
+    const bare = routeForRemote(base, effectiveRoute).replace(/^\//, '')
     noteDocumentBase(base)
     // No timeout: a LongTask keeps the stream open by design, so a ceiling would
     // kill it halfway. It still goes through the policy so the failure arrives classified.
@@ -23511,6 +23527,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
+  /** The remote screen a shell's App names as its content (a federated deep link), or null: an App
+   *  whose home lives on ANOTHER base than the one asked. */
+  function remoteHomeOf(increment, base) {
+    for (const fr of (increment && increment.fragments) || []) {
+      const c = fr.component
+      const md = c && c.metadata
+      if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App' || md.variant === 'MEDIATOR') continue
+      const home = md.homeBaseUrl
+      if (!home || String(home).replace(/\/+$/, '') === String(base || '').replace(/\/+$/, '')) continue
+      if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) continue
+      return {
+        baseUrl: home,
+        homeRoute: md.homeRoute || '',
+        consumedRoute: md.homeConsumedRoute || '',
+        serverSideType: md.homeServerSideType,
+        uriPrefix: md.homeUriPrefix || '',
+      }
+    }
+    return null
+  }
+
+  /** The shell prefix a deep link puts in front of the remote's route (/inventory/stock + /stock →
+   *  /inventory); '' when the link does not end with it. */
+  function remotePrefixOfDeepLink(requested, homeRoute) {
+    const r = String(requested || '').split('?')[0].replace(/\/+$/, '')
+    const h = String(homeRoute || '').split('?')[0].replace(/\/+$/, '')
+    if (!h || h === '/' || r === h || !r.endsWith(h)) return ''
+    return r.slice(0, r.length - h.length)
+  }
+
   /** Did the load answer the server's «Not found.» (a lone Text, no ServerSide)? */
   function isServerNotFound(ctx) {
     const t = ctx && ctx.tree
@@ -23578,6 +23624,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the raw INCREMENT is kept: the 1st load of a menu option arrives as a mediator App
     // (ClientSide type App), which reduceContexts routes to the CHROME (shell) and not to the context —
     // mediatorOf(host) does not see it, so the mediator has to be taken from the increment itself.
+    // the route's ?query (/x/rates/web/palma?currency=USD) is the SCREEN's parameters: the server
+    // reads them off the request URL (RouteSegmentUtils: query > defaults) — the route itself, its
+    // outbound and the menu matching stay clean, as before
+    const queryAt = String(route || '').indexOf('?')
+    const urlQuery = queryAt >= 0 ? String(route).slice(queryAt) : ''
+    if (queryAt >= 0) route = String(route).slice(0, queryAt)
+    const loadRoute = (b, r, t, e) => loadRouteWithQuery(b, r, t, e, urlQuery)
     let firstIncrement = await loadRoute(base, route, targetId, extra)
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
@@ -23611,7 +23664,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
-    if (info) {
+    // a deep link / reload of a REMOTE screen (/fed/inventory/stock): the shell answers its App aimed
+    // at it and names where it lives (homeBaseUrl + homeRoute + homeServerSideType) — the content is
+    // asked to THAT remote, as a menu click would. The shell used to stop there: a blank page.
+    const remoteHome = targetId === '' ? remoteHomeOf(firstIncrement, base) : null
+    if (remoteHome) {
+      registerRemotePrefix(remoteHome.baseUrl, remotePrefixOfDeepLink(effectiveRoute, remoteHome.homeRoute))
+      registerRemoteRoute(effectiveRoute, remoteHome)
+      outbound = { route: effectiveRoute, consumedRoute: remoteHome.consumedRoute, serverSideType: remoteHome.serverSideType, baseUrl: remoteHome.baseUrl }
+      next = reduceContexts(next, await loadRoute(remoteHome.baseUrl, remoteHome.homeRoute, targetId, {
+        ...extra,
+        consumedRoute: remoteHome.consumedRoute,
+        serverSideType: remoteHome.serverSideType,
+      }))
+    } else if (info) {
       // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
       // the route of its content — the crud's own path
       if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
@@ -23958,6 +24024,55 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Menu route → where it really lives. Filled by expandRemoteMenus; read by navigation. */
   const remoteRoutes = new Map()
 
+  // A remote's screens live UNDER its mount's prefix in the shell (`routePrefix`: /inventory), as the
+  // shell's server reads a deep link (/fed/inventory/stock → the Inventory remote's /stock): its menu
+  // leaves are spliced with the prefix in front (adoptRemote), so the address, a reload and a shared
+  // link name the remote — they used to lose it (/fed/stock) and a reload broke. The remote itself
+  // knows its routes WITHOUT the prefix: it is taken off every request sent to that base.
+  const remotePrefixes = new Map()
+
+  /** `route` with `prefix` in front, unless it already lives under it (or there is no prefix). */
+  function prefixedRoute(prefix, route) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    const r = String(route == null ? '' : route)
+    if (!p || p === '/') return r
+    const path = r.split('?')[0]
+    const norm = path && path[0] !== '/' ? '/' + path : path
+    if (norm === p || norm.indexOf(p + '/') === 0) return r
+    const rest = r && r[0] !== '/' ? '/' + r : r
+    return p + (rest === '/' ? '' : rest)
+  }
+
+  /** The route as the remote at `base` knows it: its prefix in the shell taken off. */
+  function routeForRemote(base, route) {
+    const prefix = remotePrefixes.get(String(base || ''))
+    const r = String(route == null ? '' : route)
+    if (!prefix) return r
+    const lead = r[0] === '/' ? r : '/' + r
+    if (lead === prefix || lead.indexOf(prefix + '?') === 0) return lead.slice(prefix.length) || ''
+    return lead.indexOf(prefix + '/') === 0 ? lead.slice(prefix.length) : r
+  }
+
+  /** Records the prefix a remote's screens live under in the shell (no-op without one). */
+  function registerRemotePrefix(base, prefix) {
+    const p = String(prefix || '').replace(/\/+$/, '')
+    if (base && p && p !== '/') remotePrefixes.set(String(base), p[0] === '/' ? p : '/' + p)
+  }
+
+  /** A base url that names a static bundle's MANIFEST (a RemoteMenu to a statically deployed
+   *  domain), not a Mateu server — the web's bundleStore.isStaticBundleUrl. */
+  function isStaticBundleBase(base) {
+    const path = String(base || '').split('#')[0].split('?')[0]
+    return /\.json$/i.test(path)
+  }
+
+  /** What a request to a static remote fails with: it is not a server. */
+  function staticRemoteError(base) {
+    const error = new Error('mateu: ' + base + ' is a static bundle, not a Mateu server')
+    error.mateuStaticRemote = true
+    return error
+  }
+
   /**
    * Where a route lives, or undefined if the shell itself serves it.
    *
@@ -24033,8 +24148,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function adoptRemote(menu, option, app) {
     const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
+    // only the prefix the SERVER declares (routePrefix: where it reads the remote's deep links), not
+    // the option's path — a remote mounted as a menu path keeps its routes as they come
+    const prefix = option.routePrefix ? mountPrefix(option) : ''
+    registerRemotePrefix(option.baseUrl, prefix)
     for (const child of menu || []) {
       if (child.baseUrl) continue
+      // under the mount's prefix in the shell (see remotePrefixes); the raw route stays registered too
+      const raw = child.route || child.path || ''
+      if (prefix) {
+        if (child.route) child.route = prefixedRoute(prefix, child.route)
+        if (child.path) child.path = prefixedRoute(prefix, child.path)
+      }
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
         // The group belongs to the pod too: whatever hangs from its route and is none of its leaves —the
@@ -24063,6 +24188,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = child.route || child.path || ''
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
+      if (raw && raw !== route && !remoteRoutes.has(raw)) {
+        remoteRoutes.set(raw, descriptor)
+        remoteRoutes.set(String(raw).replace(/^\//, ''), descriptor)
+      }
     }
   }
 
