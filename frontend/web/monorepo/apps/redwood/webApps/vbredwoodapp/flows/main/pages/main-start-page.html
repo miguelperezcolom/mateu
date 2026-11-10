@@ -1081,6 +1081,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -3707,6 +3716,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -5691,6 +5709,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -7712,6 +7739,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -9696,6 +9732,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -11745,6 +11790,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -13785,6 +13839,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -15775,6 +15838,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -17778,6 +17850,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -19805,6 +19886,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -21800,6 +21890,15 @@
                                 on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                             </template>
                           </oj-bind-for-each>
+                        </div>
+                      </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -23817,6 +23916,15 @@
                           </oj-bind-for-each>
                         </div>
                       </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
                         <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -25817,6 +25925,15 @@
                                     on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                 </template>
                               </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
+                          <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                          <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                            <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                              <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                              <oj-bind-if test="[[ $current.data.closeable ]]">
+                                <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                              </oj-bind-if>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -28076,6 +28193,15 @@
                                 </oj-bind-for-each>
                               </div>
                             </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
                               <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                                 <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -30076,6 +30202,15 @@
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
                                 </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -32103,6 +32238,15 @@
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
                                 </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
+                            <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                            <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                              <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                                <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                                <oj-bind-if test="[[ $current.data.closeable ]]">
+                                  <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                                </oj-bind-if>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -34354,6 +34498,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -36345,6 +36498,15 @@
                           </oj-bind-for-each>
                         </div>
                       </oj-bind-if>
+                      <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                      <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                        <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                          <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.closeable ]]">
+                            <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                          </oj-bind-if>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isBullets ]]">
                         <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -38334,6 +38496,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -40352,6 +40523,15 @@
                   </oj-bind-for-each>
                 </div>
               </oj-bind-if>
+              <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+              <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                  <oj-bind-if test="[[ $current.data.closeable ]]">
+                    <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                  </oj-bind-if>
+                </div>
+              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isBullets ]]">
                 <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                   <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -42352,6 +42532,15 @@
                         on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                     </template>
                   </oj-bind-for-each>
+                </div>
+              </oj-bind-if>
+              <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+              <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                  <oj-bind-if test="[[ $current.data.closeable ]]">
+                    <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                  </oj-bind-if>
                 </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -44368,6 +44557,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -46716,6 +46914,15 @@
                                   on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                               </template>
                             </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -49122,6 +49329,15 @@
                             </oj-bind-for-each>
                           </div>
                         </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
                           <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -51512,6 +51728,15 @@
                             </oj-bind-for-each>
                           </div>
                         </oj-bind-if>
+                        <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                        <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                          <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.closeable ]]">
+                              <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                            </oj-bind-if>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isBullets ]]">
                           <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -53881,6 +54106,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -55863,6 +56097,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -58679,6 +58922,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -60661,6 +60913,15 @@
                               on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -62726,6 +62987,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -64710,6 +64980,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -66712,6 +66991,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -68696,6 +68984,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -70748,6 +71045,15 @@
                                     on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                 </template>
                               </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
+                          <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                          <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                            <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                              <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                              <oj-bind-if test="[[ $current.data.closeable ]]">
+                                <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                              </oj-bind-if>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isBullets ]]">
@@ -73016,6 +73322,15 @@
                       </oj-bind-for-each>
                     </div>
                   </oj-bind-if>
+                  <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                  <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                    <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                      <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      <oj-bind-if test="[[ $current.data.closeable ]]">
+                        <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                      </oj-bind-if>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBullets ]]">
                     <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -75020,6 +75335,15 @@
                       </oj-bind-for-each>
                     </div>
                   </oj-bind-if>
+                  <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                  <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                    <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                      <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      <oj-bind-if test="[[ $current.data.closeable ]]">
+                        <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                      </oj-bind-if>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isBullets ]]">
                     <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -77006,6 +77330,15 @@
                         </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">
                       <ul class="oj-sm-margin-2x-bottom mateu-atom-bullets">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
@@ -78990,6 +79323,15 @@
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <!-- an island page's banner: its ✕ when closeable, its timeout (notify.mjs installBannerDismissal) -->
+                    <oj-bind-if test="[[ $current.data.isIslandBanner ]]">
+                      <div :class="[[ $current.data.noticeClass ]]" role="status" :data-mateu-banner="[[ $current.data.bannerKey ]]" :data-mateu-banner-timeout="[[ $current.data.timeoutMs ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-if test="[[ $current.data.closeable ]]">
+                          <button type="button" class="mateu-banner-close" :aria-label="[[ $current.data.closeLabel ]]" :title="[[ $current.data.closeLabel ]]" :data-mateu-banner-close="[[ $current.data.bannerKey ]]">✕</button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBullets ]]">

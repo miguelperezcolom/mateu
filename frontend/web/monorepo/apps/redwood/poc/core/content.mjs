@@ -335,6 +335,10 @@ export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'fu
  *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
 export const panelState = {}
 export function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+// the island banners dismissed this session (their ✕ or their timeout): not painted again
+const dismissedBanners = new Set()
+export function dismissBanner(key) { if (key) dismissedBanners.add(String(key)) }
+export function isBannerDismissed(key) { return dismissedBanners.has(String(key)) }
 export function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
 // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
 // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
@@ -1178,10 +1182,23 @@ export function islandContentOf(ctx, opts = {}) {
       // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
       if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
       if (surfacePage) {
-        for (const banner of m.banners || []) {
-          const text = [banner && banner.title, banner && banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
-          if (text) atom({ isNotice: true, text, noticeClass: NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info, buttons: [] }, container)
-        }
+        // its banners, under its header: a closeable one gets its ✕ and a timed one goes by itself
+        // (notify.mjs installBannerDismissal); one the user (or its timeout) dismissed stays dismissed
+        ;(m.banners || []).forEach((banner, i) => {
+          if (!banner) return
+          const text = [banner.title, banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+          const bannerKey = scoped('banner:' + i + ':' + (banner.title || ''))
+          if (!text || isBannerDismissed(bannerKey)) return
+          atom({
+            isIslandBanner: true,
+            text,
+            noticeClass: (NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info) + ' mateu-island-banner',
+            bannerKey,
+            closeable: !!(banner.hasCloseButton || banner.closeable),
+            closeLabel: chromeText('close'),
+            timeoutMs: banner.timeoutSeconds > 0 ? String(Math.round(banner.timeoutSeconds * 1000)) : '',
+          }, container)
+        })
       }
       for (const child of kidsOf(node)) visit(child, container)
       // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
@@ -1991,7 +2008,7 @@ export function tabOnlyActionIdsOf(tree) {
     if (n.actionId && n.label && !n.fieldId) (tab ? inside : outside)[n.actionId] = true
     for (const [k, v] of Object.entries(n)) {
       if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-      if (k === 'fabs' && n.type === 'Form') continue
+      if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
       if (v && typeof v === 'object') walk(v, false, tab)
     }
   }

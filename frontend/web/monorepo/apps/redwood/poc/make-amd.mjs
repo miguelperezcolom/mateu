@@ -178,6 +178,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
+    installBannerDismissal,
     installRules,
     setPanelExpanded,
     panelExpanded,

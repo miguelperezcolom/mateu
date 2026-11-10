@@ -150,6 +150,8 @@ define([
       bridge.setScoreboardActionSink(runPageAction);
       // a FileList's oj-sp-attachment-chip downloads its file's URL (local data, no Oracle REST)
       bridge.installAttachmentChips();
+      // an island page's closeable / timed banners (notify.mjs)
+      bridge.installBannerDismissal();
       // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);

@@ -17,7 +17,8 @@ export function walkWithinSurface(node, visit) {
       // content: its actionId + label made a stray «Customer» button in the form's action row. A
       // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
       if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-      if (k === 'fabs' && n.type === 'Form') continue
+      // (a reflected Page carries them the same way: drawn as FABs AND as a «Mark clean» row button)
+      if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
       // nor are an EntityHeader's facts: one with an action ({label, value, actionId}) has a
       // button's shape, and «BALANCE» and «EMPRESA» showed up again as a row under the content —
       // the header draws their actions beside their values (factActions)

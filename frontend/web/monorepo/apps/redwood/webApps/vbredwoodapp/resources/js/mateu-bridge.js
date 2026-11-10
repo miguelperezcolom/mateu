@@ -2320,7 +2320,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // content: its actionId + label made a stray «Customer» button in the form's action row. A
         // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
         if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-        if (k === 'fabs' && n.type === 'Form') continue
+        // (a reflected Page carries them the same way: drawn as FABs AND as a «Mark clean» row button)
+        if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
         // nor are an EntityHeader's facts: one with an action ({label, value, actionId}) has a
         // button's shape, and «BALANCE» and «EMPRESA» showed up again as a row under the content —
         // the header draws their actions beside their values (factActions)
@@ -3954,7 +3955,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
     // a MicroFrontend embedding a whole app: the app framed (content.mjs withSubresources)
-    'isAppFrame',
+    'isAppFrame', 'isIslandBanner',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
   ]
@@ -5494,6 +5495,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
   const panelState = {}
   function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+  // the island banners dismissed this session (their ✕ or their timeout): not painted again
+  const dismissedBanners = new Set()
+  function dismissBanner(key) { if (key) dismissedBanners.add(String(key)) }
+  function isBannerDismissed(key) { return dismissedBanners.has(String(key)) }
   function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
   // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
   // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
@@ -6337,10 +6342,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
         if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
         if (surfacePage) {
-          for (const banner of m.banners || []) {
-            const text = [banner && banner.title, banner && banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
-            if (text) atom({ isNotice: true, text, noticeClass: NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info, buttons: [] }, container)
-          }
+          // its banners, under its header: a closeable one gets its ✕ and a timed one goes by itself
+          // (notify.mjs installBannerDismissal); one the user (or its timeout) dismissed stays dismissed
+          ;(m.banners || []).forEach((banner, i) => {
+            if (!banner) return
+            const text = [banner.title, banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+            const bannerKey = scoped('banner:' + i + ':' + (banner.title || ''))
+            if (!text || isBannerDismissed(bannerKey)) return
+            atom({
+              isIslandBanner: true,
+              text,
+              noticeClass: (NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info) + ' mateu-island-banner',
+              bannerKey,
+              closeable: !!(banner.hasCloseButton || banner.closeable),
+              closeLabel: chromeText('close'),
+              timeoutMs: banner.timeoutSeconds > 0 ? String(Math.round(banner.timeoutSeconds * 1000)) : '',
+            }, container)
+          })
         }
         for (const child of kidsOf(node)) visit(child, container)
         // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
@@ -7150,7 +7168,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (n.actionId && n.label && !n.fieldId) (tab ? inside : outside)[n.actionId] = true
       for (const [k, v] of Object.entries(n)) {
         if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-        if (k === 'fabs' && n.type === 'Form') continue
+        if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
         if (v && typeof v === 'object') walk(v, false, tab)
       }
     }
@@ -17554,6 +17572,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
   //
   // Inbox (the App's NotificationsSupplier): the header bell with the unread count
@@ -17752,6 +17771,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
+  }
+
+  /**
+   * An island page's banners (content.mjs, isIslandBanner): a click on a closeable one's ✕ dismisses
+   * it, and one with a timeout dismisses itself after it — both remembered (dismissBanner), so a
+   * re-projection does not bring it back. Listened at document level (the banner is drawn by a
+   * template, in any surface's hole).
+   */
+  function installBannerDismissal(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuBannerDismissal) return
+    doc.__mateuBannerDismissal = true
+    const hide = (el) => {
+      if (!el) return
+      dismissBanner(el.getAttribute('data-mateu-banner'))
+      el.hidden = true
+      el.style.display = 'none'
+    }
+    doc.addEventListener('click', (e) => {
+      const close = e.target && e.target.closest ? e.target.closest('[data-mateu-banner-close]') : null
+      if (close) hide(close.closest('[data-mateu-banner]'))
+    }, true)
+    const timed = new WeakSet()
+    const arm = () => {
+      for (const el of doc.querySelectorAll('[data-mateu-banner-timeout]')) {
+        const ms = Number(el.getAttribute('data-mateu-banner-timeout'))
+        if (!(ms > 0) || timed.has(el)) continue
+        timed.add(el)
+        setTimeout(() => hide(el), ms)
+      }
+    }
+    const View = doc.defaultView
+    if (View && View.MutationObserver && doc.body) new View.MutationObserver(arm).observe(doc.body, { childList: true, subtree: true })
+    arm()
   }
 
 
@@ -29578,7 +29630,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
+    'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -30065,6 +30117,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
+    installBannerDismissal,
     installRules,
     setPanelExpanded,
     panelExpanded,
