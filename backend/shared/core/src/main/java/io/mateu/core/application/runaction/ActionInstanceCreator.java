@@ -558,10 +558,18 @@ public class ActionInstanceCreator {
             command.componentState(), pathOnly, resolved, httpRequest);
     // a field hidden from the caller (eyesOnly:/access:) never gets a value from the route either:
     // a `state:`/`defaultParams:`/`fixedParams:` seed of it would otherwise travel to that caller
-    // (a read-only field keeps its seed: it is drawn, with its value)
-    if (hiddenFields != null && !hiddenFields.isEmpty() && state != null) {
+    // (a read-only field keeps its seed: it is drawn, with its value). So does one a business
+    // component (components.yaml) or partial the layout names hides: those are composed while
+    // the page is mapped, after this seeding
+    var hidden = new java.util.LinkedHashSet<String>();
+    if (hiddenFields != null) {
+      hidden.addAll(hiddenFields);
+    }
+    hidden.addAll(
+        io.mateu.core.infra.security.ClientLockedFields.hiddenByPiecesOf(layout, httpRequest));
+    if (!hidden.isEmpty() && state != null) {
       var narrowed = new java.util.LinkedHashMap<String, Object>(state);
-      hiddenFields.forEach(narrowed::remove);
+      hidden.forEach(narrowed::remove);
       state = narrowed;
     }
     return new SeededYamlPage(
