@@ -18,11 +18,11 @@
                               <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.rowButton ]]">
-                              <oj-button chroming="[[ $current.data.chroming ]]"
+                              <oj-button :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
                                 disabled="[[ !!$current.data.disabled ]]"
                                 :data-mateu-hover="[[ $current.data.tooltip ]]"
                                 :data-action-id="[[ $current.data.actionId ]]"
-                                on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-if test="[[ !!$current.data.iconLeftClass ]]"><span slot="startIcon" :class="[[ $current.data.iconLeftClass ]]"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconRightClass ]]"><span slot="endIcon" :class="[[ $current.data.iconRightClass ]]"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.rowBadge ]]">
                               <span :class="[[ $current.data.badgeClass ]]"><oj-bind-if test="[[ $current.data.iconLeftClass ]]"><span :class="[[ $current.data.iconLeftClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ $current.data.iconRightClass ]]"><span :class="[[ $current.data.iconRightClass ]]" aria-hidden="true"></span></oj-bind-if></span>
@@ -33,6 +33,25 @@
                             <oj-bind-if test="[[ $current.data.rowIcon ]]">
                               <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
                             </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isCells ]]">
+                      <!-- a LAYOUT BOX (core/content.mjs cellsAtomOf): a HorizontalLayout whose children are not
+                           inline pieces (stacks, KPIs, offers, charts, cards…), a styled Container / Div / Scroller,
+                           an aligned VerticalLayout. One flex box (direction, gap, alignment, wrap, the wire style)
+                           of CELLS, each a column of atoms painted by the cell subset of this template -->
+                      <div class="mateu-cells oj-sm-margin-2x-bottom" :class="[[ $current.data.boxClass ]]" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.cells ]]">
+                          <template>
+                            <div class="mateu-cell" :class="[[ $current.data.cellClass ]]" :style="[[ $current.data.style || {} ]]">
+                              <oj-bind-for-each data="[[ $current.data.items ]]">
+                                <template>
+                                  <!-- @cell-atoms -->
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
                           </template>
                         </oj-bind-for-each>
                       </div>
@@ -640,14 +659,14 @@
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
-                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
+                      <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : ($current.data.barClass || 'oj-sm-justify-content-flex-end') ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
-                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                            <oj-button class="oj-sm-margin-1x-start" :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
                               disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
-                              on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-if test="[[ !!$current.data.iconLeftClass ]]"><span slot="startIcon" :class="[[ $current.data.iconLeftClass ]]"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconRightClass ]]"><span slot="endIcon" :class="[[ $current.data.iconRightClass ]]"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                           </template>
                         </oj-bind-for-each>
                       </div>

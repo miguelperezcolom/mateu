@@ -1,3 +1,4 @@
+import { VAADIN_TO_OJ } from './iconMap.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from '../navTree.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
 
@@ -56,7 +57,10 @@ export const OJ_ICONS = {
 export function ojIconOf(icon) {
   if (!icon) return undefined
   if (icon.indexOf('oj-ux-') === 0) return icon
-  return OJ_ICONS[icon] || undefined
+  if (OJ_ICONS[icon]) return OJ_ICONS[icon]
+  // the whole Vaadin set (and lumo:), translated to the gallery font's names (core/iconMap.mjs)
+  const m = /^(?:vaadin|lumo):([a-z0-9-]+)$/.exec(String(icon))
+  return m && VAADIN_TO_OJ[m[1]] ? 'oj-ux-ico-' + VAADIN_TO_OJ[m[1]] : undefined
 }
 
 /** The generic icon for a DECLARED icon that has no Redwood translation. */

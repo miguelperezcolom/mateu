@@ -2258,3 +2258,45 @@ oj-progress-bar[class*="mateu-tone-"] .oj-progress-bar-value { background-color:
 .mateu-buttons-full > oj-button + oj-button {
   margin-inline-start: var(--oj-core-spacing-1x, 4px);
 }
+
+/* LAYOUT BOX (isCells, core/content.mjs cellsAtomOf): a HorizontalLayout of block pieces, a styled
+   Container / Scroller, an aligned VerticalLayout. The box is a flex container (direction, gap,
+   alignment and wrap come from the wire as an inline style); each cell is a column of atoms. */
+.mateu-cells {
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+}
+.mateu-cells.mateu-cells-column {
+  flex-direction: column;
+}
+.mateu-cell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mateu-cell > * {
+  max-width: 100%;
+}
+/* a cell drawn as a card (a Card inside the row) */
+.mateu-cell.mateu-cell-card {
+  padding: var(--oj-core-spacing-4x, 1rem);
+}
+
+/* A Button's COLOUR (core/content.mjs buttonLookOf): success / error / warning / contrast tint the
+   outlined and borderless chromings (text + border) and fill the call-to-action one. */
+oj-button.mateu-btn-success { --mateu-btn-tone: #508223; }
+oj-button.mateu-btn-error { --mateu-btn-tone: #c74634; }
+oj-button.mateu-btn-warning { --mateu-btn-tone: #ac630c; }
+oj-button.mateu-btn-contrast { --mateu-btn-tone: #161513; }
+oj-button.mateu-btn-success, oj-button.mateu-btn-error, oj-button.mateu-btn-warning, oj-button.mateu-btn-contrast {
+  --oj-button-outlined-chrome-text-color: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-text-color-hover: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-border-color: var(--mateu-btn-tone);
+  --oj-button-outlined-chrome-border-color-hover: var(--mateu-btn-tone);
+  --oj-button-borderless-chrome-text-color: var(--mateu-btn-tone);
+  --oj-button-borderless-chrome-text-color-hover: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-bg-color: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-bg-color-hover: var(--mateu-btn-tone);
+  --oj-button-call-to-action-chrome-border-color: var(--mateu-btn-tone);
+}

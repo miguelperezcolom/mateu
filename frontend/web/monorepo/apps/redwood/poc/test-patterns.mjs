@@ -26,6 +26,7 @@ import {
 import { drawerHasUnsavedChanges, noteDrawerUnsaved, installDrawerGuard, isDrawerUnsaved } from './drawers.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -207,14 +208,14 @@ test('A4: a foldout inside a tab shows a FOLDED panel\'s summary in place of its
   // two tabs: a lone tab is drawn as its content, without a tab scope
   const tabs = node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'Detail', active: true }, [fold]), node({ type: 'Tab', label: 'Other' }, [text('other')])])
   const texts = (islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tabs]), state: {}, data: {} }) || [])
-    .flatMap((b) => b.items || []).filter((a) => a.isText).map((a) => a.text)
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isText).map((a) => a.text)
   assert.ok(texts.includes('Charges'))
   assert.ok(!texts.includes('€ 120 due'))
   // fold the first panel: its summary stands in
   setPanelExpanded('fold:fold:0', false)
   // (the summary is a HorizontalLayout of a text and a badge: ONE inline row atom, its pieces inside)
   const folded = (islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tabs]), state: {}, data: {} }) || [])
-    .flatMap((b) => b.items || []).flatMap((a) => (a.isRow ? a.items : [a])).filter((a) => a.isText).map((a) => a.text)
+    .flatMap((b) => flatAtoms(b.items)).flatMap((a) => (a.isRow ? a.items : [a])).filter((a) => a.isText).map((a) => a.text)
   setPanelExpanded('fold:fold:0', true)
   assert.ok(!folded.includes('Charges'))
   assert.ok(folded.includes('€ 120 due'))
@@ -229,7 +230,7 @@ const crudTree = (preSearch) => page({}, [node({
 test('A4: a foldout drawn from the generic visit does not paint its summaries as content', () => {
   const fold = foldoutTree().children[0].children[0]
   const texts = (islandContentOf({ tree: node({ type: 'VerticalLayout' }, [fold]), state: {}, data: {} }) || [])
-    .flatMap((b) => b.items || []).filter((a) => a.isText).map((a) => a.text)
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isText).map((a) => a.text)
   assert.ok(texts.includes('Charges'))
   assert.ok(!texts.includes('€ 120 due'))
 })
@@ -240,7 +241,7 @@ test('A5: before the first search the preSearch content stands in for the result
   assert.equal(before.showPreSearch, true)
   assert.match(before.tableClass, /oj-helper-hidden/)
   assert.equal(before.paging.visible, false)
-  const atoms = before.headerBlocks.flatMap((b) => b.items || [])
+  const atoms = before.headerBlocks.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.text === 'Search for a hotel to begin'))
 })
 
@@ -254,7 +255,7 @@ test('A5: once a search answers (even empty) the results replace it for good', (
   const after = listingOf(contexts[HOST_ID])
   assert.equal(after.showPreSearch, false)
   assert.doesNotMatch(after.tableClass, /oj-helper-hidden/)
-  assert.ok(!after.headerBlocks.flatMap((b) => b.items || []).some((a) => a.text === 'Search for a hotel to begin'))
+  assert.ok(!after.headerBlocks.flatMap((b) => flatAtoms(b.items)).some((a) => a.text === 'Search for a hotel to begin'))
   assert.equal(after.isEmpty, true) // the normal empty state, not the pre-search content
 })
 
@@ -400,7 +401,7 @@ test('SUT search: before the first search only the pre-search content (an EmptyS
   const l = listingOf(ctx)
   assert.equal(l.showPreSearch, true)
   assert.match(l.tableClass, /oj-helper-hidden/) // the table — and its «No data.» — hidden
-  const atoms = l.headerBlocks.flatMap((b) => b.items || [])
+  const atoms = l.headerBlocks.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isEmptyStateAtom))
   // the pre-search EmptyState is not the PAGE's empty state (painted under the table before)
   assert.equal(emptyStateOf(ctx.tree), null)
@@ -707,7 +708,7 @@ test('fact action hoisted into the page header: oj-sp gets {label, value}, the a
 })
 
 test('fact action in the content: the EntityHeader atom keeps it on its fact, and a nested island marks it', () => {
-  const atom = islandContentOf(host(stayPage())).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  const atom = islandContentOf(host(stayPage())).flatMap((b) => flatAtoms(b.items)).find((a) => a.isEntityHeader)
   assert.equal(atom.facts[0].hasAction, undefined)
   assert.equal(atom.facts[1].actionId, 'changeCompany')
   assert.equal(atom.facts[1].iconClass, 'oj-ux-ico-edit')

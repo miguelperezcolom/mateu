@@ -19,6 +19,7 @@ import {
 } from './appExtras.mjs'
 import { applyDomEffects } from './files.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -77,7 +78,7 @@ test('RecordMerge: the atom has a radio group per field with accessible names, d
 
 test('RecordMerge: the content projection paints it as an atom, and coverage + template know it', () => {
   const blocks = islandContentOf({ id: HOST_ID, tree: { type: 'ServerSide', id: 'p', children: [{ type: 'ClientSide', id: 'profiles', metadata: merge, children: [] }] }, state: {}, data: {} })
-  const atoms = blocks.flatMap((b) => b.items || [])
+  const atoms = blocks.flatMap((b) => flatAtoms(b.items))
   assert.equal(atoms.filter((a) => a.isRecordMerge).length, 1)
   assert.equal(REDWOOD_COVERAGE.RecordMerge.status, 'full')
   assert.match(readFileSync(join(here, 'templates', 'atoms.html'), 'utf8'), /isRecordMerge[\s\S]*data-rm-merge/)

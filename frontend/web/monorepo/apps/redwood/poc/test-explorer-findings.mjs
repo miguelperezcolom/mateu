@@ -8,13 +8,14 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { islandContentOf } from './reduceContexts.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
 const test = (name, fn) => { fn(); passed++; console.log('  ✓ ' + name) }
 const node = (metadata, children = [], id = '') => ({ type: 'ClientSide', id: id || metadata.id || '', metadata, children })
 const atomsOf = (tree, state = {}, data = {}) =>
-  (islandContentOf({ tree, state, data }) || []).flatMap((b) => b.items || [])
+  (islandContentOf({ tree, state, data }) || []).flatMap((b) => flatAtoms(b.items))
 const page = () => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
 const template = () => readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
 

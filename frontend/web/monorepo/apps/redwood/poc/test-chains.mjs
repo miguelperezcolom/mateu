@@ -25,6 +25,7 @@ import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { applyLightTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
 import { listingUrlOf, listingUrlPagingOf } from './core/listing.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -596,7 +597,7 @@ test('@Tab: the buttons of a tab stay in it and the toolbar of the header is not
   const host = { tree, state: {}, data: {} }
   // plus a footer button of the form (what the generic form would have drawn)
   const actions = [...actionsOf(tree), { actionId: 'save', label: 'Save' }]
-  const rowOf = (blocks) => blocks.filter((b) => b.fromFormActions).flatMap((b) => b.items).flatMap((a) => a.buttons.map((x) => x.actionId))
+  const rowOf = (blocks) => blocks.filter((b) => b.fromFormActions).flatMap((b) => flatAtoms(b.items)).flatMap((a) => a.buttons.map((x) => x.actionId))
   const blocks = hostContentOf(host, null, { title: 'Caja' })
   assert.deepEqual(Object.keys(tabOnlyActionIdsOf(tree)).sort((a, b) => a.localeCompare(b)), ['cancelarCredito', 'cobrar', 'fijarLimite'])
   // the bug: every button of the tree not drawn by the active tab went to the row
@@ -730,7 +731,7 @@ test('a Dialog that shows more than lines is painted from its content (EntityHea
     node({ type: 'Meter', label: 'Attendance', value: 98, max: 100 }),
   ]))
   assert.equal(rich.hasRichContent, true)
-  const atoms = rich.content.flatMap((b) => b.items)
+  const atoms = rich.content.flatMap((b) => flatAtoms(b.items))
   assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isMeter))
   assert.deepEqual(rich.texts, [], 'the lines are in the content: not painted twice')
   // a plain message dialog is still its lines

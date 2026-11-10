@@ -4,7 +4,7 @@ import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
-import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
+import { CELL_ATOM_FLAGS, RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
@@ -272,6 +272,96 @@ export function badgeIconsOf(m) {
   return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
 }
 
+/** A Button's LOOK on oj-button: its style → chroming (primary = callToAction, tertiary =
+ *  borderless, else outlined; a primary error/danger = JET's own `danger` chroming), its colour
+ *  (success / error / warning / contrast, app.css .mateu-btn-*) and size (oj-button-sm / -lg) as
+ *  classes, and its icons as the startIcon / endIcon slots (the Vaadin name translated, generic
+ *  when the font has none). */
+export function buttonLookOf(m) {
+  const style = m && m.buttonStyle
+  const danger = m && (m.color === 'error' || m.variant === 'danger' || m.variant === 'error')
+  const chroming = style === 'primary' ? (danger ? 'danger' : 'callToAction')
+    : (style === 'tertiary' || style === 'tertiaryInline') ? 'borderless' : 'outlined'
+  const color = m && (m.color === 'success' || m.color === 'error' || m.color === 'warning' || m.color === 'contrast')
+    ? m.color : (m && m.variant === 'warning' ? 'warning' : danger ? 'error' : '')
+  const classes = []
+  if (color && chroming !== 'danger') classes.push('mateu-btn-' + color)
+  if (m && m.size === 'small') classes.push('oj-button-sm')
+  if (m && m.size === 'large') classes.push('oj-button-lg')
+  const look = { chroming, buttonClass: classes.join(' ') }
+  if (m && m.iconOnLeft) look.iconLeftClass = ojIconOrGenericOf(m.iconOnLeft)
+  if (m && m.iconOnRight) look.iconRightClass = ojIconOrGenericOf(m.iconOnRight)
+  return look
+}
+
+// ── LAYOUT BOXES (isCells) ──
+const FLEX_OF = { START: 'flex-start', CENTER: 'center', END: 'flex-end', STRETCH: 'stretch', BASELINE: 'baseline',
+  BETWEEN: 'space-between', AROUND: 'space-around', EVENLY: 'space-evenly' }
+/** The JET class that justifies a button bar laid out by a HorizontalLayout (start by default, as on the web). */
+export const BAR_JUSTIFY = { START: 'oj-sm-justify-content-flex-start', CENTER: 'oj-sm-justify-content-center',
+  END: 'oj-sm-justify-content-flex-end', BETWEEN: 'oj-sm-justify-content-space-between',
+  AROUND: 'oj-sm-justify-content-space-around', EVENLY: 'oj-sm-justify-content-space-around' }
+/** The wire types a layout box may hold (anything else keeps the stacked projection): the boxes
+ *  themselves, a Card (a cell of its own) and the pieces whose atoms the cell template paints. */
+export const BOX_CONTENT_TYPES = new Set(['HorizontalLayout', 'VerticalLayout', 'Container', 'Div', 'Scroller',
+  'FullWidth', 'Card', 'Text', 'Badge', 'Button', 'Anchor', 'Icon', 'Image', 'Avatar', 'AvatarGroup', 'Notice',
+  'BulletedList', 'Separator', 'Stat', 'Meter', 'ProgressBar', 'OfferCard', 'Chart', 'TrendChart', 'CalloutCard',
+  'StatusList', 'Ledger', 'TaskProgress', 'MetricCard', 'Scoreboard', 'EntityHeader', 'Skeleton', 'Markdown'])
+/** Box types that lend their style to the cell they make (their children are the cell's content). */
+export const BOX_TYPES = new Set(['Container', 'Div', 'Scroller', 'VerticalLayout', 'HorizontalLayout'])
+
+/** The flex style of a layout box: a HorizontalLayout's row (gap when spacing, its vertical
+ *  alignment, justification, wrap, padding) or a VerticalLayout's column (horizontal alignment) —
+ *  on top of the node's own (filtered) wire style. */
+export function boxStyleOf(m, nodeStyle, direction) {
+  const out = {}
+  if (m.spacing) out.gap = '0.75rem'
+  if (m.padding) out.padding = '1rem'
+  if (m.wrap) out.flexWrap = 'wrap'
+  if (direction === 'row') {
+    if (FLEX_OF[m.verticalAlignment]) out.alignItems = FLEX_OF[m.verticalAlignment]
+    if (FLEX_OF[m.justification]) out.justifyContent = FLEX_OF[m.justification]
+  } else {
+    if (FLEX_OF[m.horizontalAlignment]) out.alignItems = FLEX_OF[m.horizontalAlignment]
+    if (FLEX_OF[m.justification]) out.justifyContent = FLEX_OF[m.justification]
+  }
+  return { ...out, ...styleObjectOf(nodeStyle || m.style) }
+}
+
+/** A block's atoms with every layout box opened up (its cells' atoms in order): what a reader
+ *  looking for an atom by its flag wants, whatever row it sits in. */
+export function flatAtoms(items) {
+  return (items || []).flatMap((a) => (a && a.isCells ? a.cells.flatMap((c) => c.items) : [a]))
+}
+
+/** Does a box node need painting as a box of its own (not just its children stacked)? A
+ *  Scroller always (its height / scrolling), a Container / Div / VerticalLayout with a style that
+ *  survives the filter, a VerticalLayout aligned anywhere but STRETCH or with padding. */
+export function boxWanted(node) {
+  const m = node.metadata || {}
+  const t = m.type
+  if (t === 'Scroller') return true
+  // only a style that SHOWS (a zone column's flex / min-width is its parent's business)
+  const st = styleObjectOf(node.style || m.style)
+  const SHOWS = /^(background|backgroundColor|border\w*|padding\w*|height|maxHeight|minHeight|overflow\w*|color|font\w*|textAlign)$/
+  if (Object.keys(st).some((k) => SHOWS.test(k)) || (st.width && st.width !== '100%')) return true
+  if (t === 'VerticalLayout') return !!m.padding || (!!m.horizontalAlignment && m.horizontalAlignment !== 'STRETCH')
+  return false
+}
+
+/** Only wire types a cell can paint, all the way down (no island, no form, no grid…). */
+export function fitsInBox(node, depth = 0) {
+  if (!node || typeof node !== 'object') return true
+  if (node.type === 'ServerSide' && depth > 0) return false
+  const t = node.metadata && node.metadata.type
+  if (t && !BOX_CONTENT_TYPES.has(t)) return false
+  const kids = [...(node.children || [])]
+  const inner = node.metadata && node.metadata.content
+  if (Array.isArray(inner)) kids.push(...inner)
+  else if (inner && typeof inner === 'object') kids.push(inner)
+  return kids.every((k) => fitsInBox(k, depth + 1))
+}
+
 /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
 export function withTextVariants(m, styled) {
   const variants = Array.isArray(m && m.variants) ? m.variants : []
@@ -419,7 +509,7 @@ export function islandContentOf(ctx, opts = {}) {
       actionId: m.actionId,
       label: m.label || m.actionId,
       disabled: !!m.disabled || (!!m.route && route == null),
-      chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      ...buttonLookOf(m),
       parameters: m.parameters || {},
       ...(route ? { route } : {}),
     }
@@ -606,6 +696,111 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(panel)) visit(child, card)
     plain = null
   }
+  // ── LAYOUT BOXES: a node projected into a scratch container (never into a block); null when it
+  // made a block or an atom a cell cannot paint (the caller keeps the stacked projection)
+  const atomsInto = (nodes) => {
+    const scratch = { items: [] }
+    const before = blocks.length
+    const savedPlain = plain
+    for (const n of nodes) visit(n, scratch)
+    plain = savedPlain
+    if (blocks.length !== before) { blocks.splice(before); return null }
+    // a box inside a cell cannot be another box (VB does not recurse into a template): its cells
+    // are laid one after another inside this one
+    const flat = scratch.items.flatMap((a) => (a && a.isCells ? a.cells.flatMap((c) => c.items) : [a]))
+    return flat.every((a) => a && CELL_ATOM_FLAGS.some((f) => a[f])) ? flat : null
+  }
+  // a Card's parts in order: media, header (prefix, title, subtitle, suffix), body, footer
+  const cardPartNodes = (m) => {
+    const asNodes = (v) => (Array.isArray(v) ? v : v && typeof v === 'object' ? [v] : [])
+    return { media: asNodes(m.media), prefix: asNodes(m.headerPrefix), header: asNodes(m.header),
+      suffix: asNodes(m.headerSuffix), subtitle: asNodes(m.subtitle), footer: asNodes(m.footer) }
+  }
+  const cardTitleOf = (m) => m.title && (typeof m.title === 'string' ? m.title
+    : (m.title.metadata && m.title.metadata.text) || m.title.text || collectTexts(m.title)[0] || '')
+  // one cell of a box: a box kid lends it its style, a Card makes a card cell, anything else is its content
+  const cellOf = (kid, flexGrow) => {
+    const km = (kid && kid.metadata) || {}
+    const kt = km.type
+    let items
+    let style = {}
+    let cellClass = ''
+    if (kt === 'Card') {
+      const parts = cardPartNodes(km)
+      const title = cardTitleOf(km)
+      const head = atomsInto([...parts.media, ...parts.prefix, ...parts.header])
+      const titleAtoms = title ? [{ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-1x-bottom' }] : []
+      const sub = atomsInto(parts.subtitle)
+      const suffix = atomsInto(parts.suffix)
+      const kids = kidsOf(kid)
+      const body = atomsInto(kids)
+      const foot = atomsInto(parts.footer)
+      if ([head, sub, suffix, body, foot].some((x) => x == null)) return null
+      items = [...head, ...titleAtoms, ...suffix, ...sub.map((a) => (a.isText ? { ...a, cls: ((a.cls || '') + ' oj-text-color-secondary').trim() } : a)), ...body, ...foot]
+      const variants = Array.isArray(km.variants) ? km.variants : []
+      cellClass = 'mateu-cell-card' + (variants.includes('outlined') ? ' mateu-card-outlined' : ' oj-panel')
+        + (variants.includes('elevated') ? ' oj-panel-shadow-md' : '') + (variants.includes('horizontal') ? ' mateu-card-horizontal' : '')
+      style = styleObjectOf(kid.style || km.style)
+    } else if (BOX_TYPES.has(kt)) {
+      const direction = kt === 'HorizontalLayout' ? 'row' : 'column'
+      items = kt === 'Div' && typeof km.content === 'string'
+        ? [{ isText: true, text: interp(km.content), cls: '' }, ...(atomsInto(kid.children || []) || [])]
+        : atomsInto(kidsOf(kid))
+      if (!items) return null
+      style = boxStyleOf(km, kid.style, direction)
+      if (direction === 'row') { style = { ...style, flexDirection: 'row', flexWrap: style.flexWrap || 'wrap' }; if (!style.alignItems) style.alignItems = 'center' }
+      if (kt === 'Scroller') style = { overflow: 'auto', ...style }
+    } else {
+      items = atomsInto([kid])
+      if (!items) return null
+    }
+    if (flexGrow != null && style.flexGrow == null) style.flexGrow = String(flexGrow)
+    // a cell grows when told to (flexGrows / flex-grow in its style) or when it holds wide pieces
+    // (a chart, a notice, a card…); a small piece (a badge, a stat) keeps its natural width
+    const wide = kt === 'Card' || items.some((a) => a.isChart || a.isNotice || a.isRichText || a.isEntityHeader
+      || a.isStatusList || a.isLedger || a.isCallout || a.isScoreboard || a.isTaskProgress || a.isSeparator)
+    if (style.flexGrow != null) style = { flexBasis: '0', ...style }
+    else if (wide && !style.width && !style.flex) style = { flex: '1 1 16rem', ...style }
+    return { cellClass, style, items: items.map((a, i) => ({ ...a, key: a.key || String(i) })) }
+  }
+  // a box of cells (isCells): `row` = a HorizontalLayout's children side by side, `single` = the node
+  // itself as one cell (a styled Container, a Scroller, an aligned VerticalLayout)
+  const cellsAtomOf = (node, mode) => {
+    if (!fitsInBox(node)) return null
+    const m = node.metadata || {}
+    if (mode === 'single') {
+      const cell = cellOf(node, null)
+      if (!cell || !cell.items.length) return null
+      return { isCells: true, boxClass: 'mateu-cells-column', style: {}, cells: [{ ...cell, key: '0' }],
+        ...(cell.items.some(isRichAtom) ? { isCellsRich: true } : {}) }
+    }
+    const kids = kidsOf(node).filter(Boolean)
+    const grows = Array.isArray(m.flexGrows) ? m.flexGrows : []
+    const cells = []
+    for (let i = 0; i < kids.length; i++) {
+      const cell = cellOf(kids[i], grows[i] != null ? grows[i] : null)
+      if (!cell) return null
+      if (cell.items.length) cells.push({ ...cell, key: String(i) })
+    }
+    if (!cells.length) return null
+    const style = boxStyleOf(m, node.style, 'row')
+    if (!style.gap) style.gap = '0.5rem 1rem'
+    if (style.flexWrap == null) style.flexWrap = 'wrap'
+    return { isCells: true, boxClass: '', style, cells,
+      ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+  }
+  // a HorizontalLayout of buttons only: its own bar, justified like the row (START by default)
+  const buttonRowOf = (node) => {
+    const kids = kidsOf(node).filter(Boolean)
+    if (!kids.length || !kids.every((k) => k.metadata && k.metadata.type === 'Button')) return null
+    const buttons = kids.flatMap((k) => groupMembersOf(k.metadata).map((b) => {
+      const button = buttonOf(b)
+      if (editorNodeIds && k.id) button.nodeId = String(k.id)
+      return button
+    }))
+    const j = node.metadata.justification
+    return { isButtons: true, fromRow: true, buttons, barClass: BAR_JUSTIFY[j] || BAR_JUSTIFY.START }
+  }
   const visit = (node, container) => {
     if (!editorNodeIds || !node || typeof node !== 'object' || !node.id) { visitNode(node, container); return }
     const outer = editorNode
@@ -672,6 +867,24 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'HorizontalLayout') {
       const row = inlineRowOf(node)
       if (row) { atom(row, container); return }
+      // a row of buttons only: ITS OWN bar, start-aligned like the web's (it used to join the next
+      // buttons in one right-aligned bar — three rows of buttons came out as one)
+      const bar = buttonRowOf(node)
+      if (bar) { atom(bar, container); return }
+      // any other row (stacks, KPIs, offers, charts, cards…): a layout box, its children side by side
+      const box = cellsAtomOf(node, 'row')
+      if (box) { atom(box, container); return }
+    }
+    // a styled Container / Div, a Scroller, an aligned VerticalLayout: a box of one cell
+    if (BOX_TYPES.has(t) && t !== 'HorizontalLayout' && !isRoot && boxWanted(node)) {
+      const box = cellsAtomOf(node, 'single')
+      if (box) { atom(box, container); return }
+    }
+    // a Div whose content is a plain string (no children): its text
+    if (t === 'Div' && typeof m.content === 'string' && m.content.trim()) {
+      atom({ isText: true, text: interp(m.content), cls: '' }, container)
+      for (const child of node.children || []) visit(child, container)
+      return
     }
     // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
     // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
@@ -1700,7 +1913,7 @@ export function islandContentOf(ctx, opts = {}) {
       // and no action of its own: its buttons join the row, as a toolbar group's join the header
       const buttons = groupMembersOf(m).map(buttonOf)
       if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
-      if (last && last.isButtons && !last.fullWidth) last.buttons.push(...buttons)
+      if (last && last.isButtons && !last.fullWidth && !last.fromRow) last.buttons.push(...buttons)
       else atom({ isButtons: true, buttons }, container)
       return
     }

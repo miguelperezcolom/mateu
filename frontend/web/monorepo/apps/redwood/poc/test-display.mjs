@@ -37,13 +37,14 @@ import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns,
   kanbanDropIndexOf, setPendingKanbanMove, addPendingKanbanMove, dropPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
 import { onLoadTriggers } from './core/reducer.mjs'
 import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf, readOnlyDisplayOf } from './core/rowEditor.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
 const test = (name, fn) => { fn(); passed++; console.log('  ✓ ' + name) }
 const node = (metadata, children = [], id = '') => ({ type: 'ClientSide', id: id || metadata.id || '', metadata, children })
 const atomsOf = (tree, state = {}, data = {}, extra = {}) =>
-  (islandContentOf({ tree, state, data, ...extra }) || []).flatMap((b) => b.items || [])
+  (islandContentOf({ tree, state, data, ...extra }) || []).flatMap((b) => flatAtoms(b.items))
 const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')
 
 test('every wire type is classified and none is left unrendered', () => {
@@ -606,7 +607,7 @@ test('a wizard step leaves Next to the guided process but keeps Back and Save', 
   ])
   const tree = { type: 'ServerSide', id: 'w', children: [row] }
   const buttons = hostContentOf({ tree, state: {}, data: {} }, null, { forWizard: true })
-    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId))
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId))
   assert.deepEqual(buttons, ['back', 'saveDraft'])
   // and the guided process's Continue is Next, not the first button that is not Back
   assert.equal(wizardForwardOf({ tree, state: {}, data: {} }).actionId, 'next')
@@ -616,7 +617,7 @@ test('a wizard step leaves Next to the guided process but keeps Back and Save', 
     node({ type: 'Button', actionId: 'checkIn', label: 'Check in' }),
   ])] }
   assert.deepEqual(hostContentOf({ tree: last, state: {}, data: {} }, null, { forWizard: true })
-    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId)), ['back', 'saveDraft'])
+    .flatMap((b) => flatAtoms(b.items)).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId)), ['back', 'saveDraft'])
   assert.equal(wizardForwardOf({ tree: last, state: {}, data: {} }).actionId, 'checkIn')
 })
 
@@ -732,7 +733,7 @@ test('HeroSection, EmptyState, ProgressBar and custom components in the content'
   assert.equal(progressBarAtomOf({ indeterminate: true }, {}).value, -1)
   // the host's first EmptyState is the page-level band, not repeated in the content
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'None' }), node({ type: 'Text', text: 't' })])
-  assert.ok(!(islandContentOf({ tree, state: {}, kind: 'host' }) || []).flatMap((b) => b.items).some((a) => a.isEmptyStateAtom))
+  assert.ok(!(islandContentOf({ tree, state: {}, kind: 'host' }) || []).flatMap((b) => flatAtoms(b.items)).some((a) => a.isEmptyStateAtom))
   // a custom component: placeholder until the app registers a view, then its slot
   const cc = node({ type: 'CustomComponent', name: 'acme-gauge', props: { v: 1 } }, [], 'cc1')
   assert.ok(atomsOf(cc).some((a) => a.isNotice))
@@ -799,7 +800,7 @@ test('a composed page is headed by its OWN title (@Title, the window title), not
   assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
   // the page's own heading Text says the same: the content drops it (no title twice)
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summarizeHost(reg, '/gantt').title })
-  const texts = blocks.flatMap((b) => b.items).filter((a) => a.isText).map((a) => a.text)
+  const texts = blocks.flatMap((b) => flatAtoms(b.items)).filter((a) => a.isText).map((a) => a.text)
   assert.deepEqual(texts, ['Body'])
   // an action answer carries no SetWindowTitle: the title stays
   reg = { ...reduceContexts(reg, { commands: [], messages: [], fragments: [{ targetComponentId: '', action: 'Replace', component: null, state: { x: 1 } }] }), shell }
@@ -894,7 +895,7 @@ test('what a composed page puts before its listing (the HeroSearch hero) is pain
     node({ type: 'HeroSection', title: 'Find your hotel' }),
     node({ type: 'Crud', columns: [] })])] }
   const blocks = listingHeaderBlocksOf({ tree, state: {}, data: {} })
-  assert.ok(blocks.flatMap((b) => b.items).some((a) => a.isHero && a.title === 'Find your hotel'))
+  assert.ok(blocks.flatMap((b) => flatAtoms(b.items)).some((a) => a.isHero && a.title === 'Find your hotel'))
 })
 
 test('a SmartSearchPage intro line is the page subtitle (the listing page shows only the table)', () => {
@@ -992,7 +993,7 @@ test('a page of only buttons paints them; under fields the generic form does', (
   const button = node({ type: 'Button', label: 'Go', actionId: 'go' })
   const tooltip = node({ type: 'Tooltip', text: 'Saves', wrapped: node({ type: 'Button', label: 'Save', actionId: 'save' }) })
   const lone = islandContentOf({ tree: node({ type: 'VerticalLayout' }, [button]), state: {}, data: {} })
-  assert.deepEqual(lone.flatMap((b) => b.items).flatMap((a) => a.buttons || []).map((b) => b.label), ['Go'])
+  assert.deepEqual(lone.flatMap((b) => flatAtoms(b.items)).flatMap((a) => a.buttons || []).map((b) => b.label), ['Go'])
   assert.ok(islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tooltip]), state: {}, data: {} }))
   const withField = node({ type: 'VerticalLayout' }, [node({ type: 'FormField', fieldId: 'born', dataType: 'date' }), button])
   assert.equal(islandContentOf({ tree: withField, state: {}, data: {} }), null)
@@ -1063,7 +1064,7 @@ test('a button route resolves its ${state.x}; a missing or blank value disables 
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Button', label: 'Open', actionId: 'open', route: '/p/${state.id}' })])
   const open = (state) => {
     const ctx = { id: HOST_ID, kind: 'host', tree, state, data: {} }
-    return (islandContentOf(ctx) || []).flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons)[0]
+    return (islandContentOf(ctx) || []).flatMap((b) => flatAtoms(b.items)).filter((a) => a.isButtons).flatMap((a) => a.buttons)[0]
   }
   assert.deepEqual([open({ id: 3 }).route, open({ id: 3 }).disabled], ['/p/3', false])
   assert.deepEqual([open({}).route, open({}).disabled], [undefined, true])
