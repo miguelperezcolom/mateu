@@ -89,14 +89,36 @@ and the operating system's `prefers-color-scheme`.
 
 **Workaround:** use the Vaadin renderer if your users need a dark theme.
 
-### Redwood: federation does not know static remotes or remote custom elements
+### Redwood: a static remote that ships raw definitions is not loaded
 
-On Redwood, a federated menu (`RemoteMenu`) works against a remote that is a running Mateu backend.
-A remote that is a **static bundle**, and a remote screen that uses its own **custom web
-components**, are not loaded.
+On Redwood, a federated menu (`RemoteMenu`) works against a remote that is a running Mateu backend,
+deep links and reloads of its screens included. A remote that is a **`specsOnly` static bundle**
+(raw YAML definitions, expanded in the browser) is shown disabled: Redwood has no client-side
+expander.
 
 **Workaround:** serve the remote from a backend, or use the Vaadin renderer for that shell. See
 [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
+
+### Redwood: inside an embedded island, no `@Toc` index and no app state sent back
+
+An island (an embedded view or a `MicroFrontend` drawn inside a page) is laid out by Redwood as part
+of its host, and two things of a standalone page do not carry over:
+
+- a `@Toc` on the island's view draws no index (the island's sections are not page sections);
+- `appState` an island's answer carries is shown (`${appState.x}`), but it is not sent back with
+  later requests.
+
+**Workaround:** open the screen on its own route when it needs its index, and keep cross-request
+state in the component state instead of `appState`.
+
+### React Native: an embedded app shows its content without its shell
+
+When a page embeds a whole Mateu app (a `MicroFrontend` or island answering an `App`), React Native
+draws the app's screens but not its shell extras: its app-context selectors, header actions and
+notification bell are not there.
+
+**Workaround:** open that app on its own (as a separate UI in the hub, or its own fixed build) when
+its users need those controls.
 
 ### A remote screen's own scripts need CORS from the remote
 
