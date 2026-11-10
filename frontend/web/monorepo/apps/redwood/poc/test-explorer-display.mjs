@@ -8,9 +8,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { islandContentOf, planningAtomOf, ganttAtomOf, chartAtomOf, orgChartAtomOf, setOrgHierarchyProviderFactory, GROUP_ROW_PREFIX, planningActionOf } from './reduceContexts.mjs'
+import { islandContentOf, planningAtomOf, ganttAtomOf, chartAtomOf, orgChartAtomOf, setOrgHierarchyProviderFactory, GROUP_ROW_PREFIX, planningActionOf,
+  GRID_ACTION_CELL_SUFFIX, withSubresources, filterDescriptorOf, smartFiltersMetadataOf, smartFilterIdOf, smartFilterSuggestionsOf, filterStateOfSmartFilters,
+  labelColumn, valueLabelOf, numberConverterOf, bpmnDiagramOf, bpmnAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, spCalendarElsewhere } from './calendar.mjs'
-import { paymentParametersOf } from './displayDom.mjs'
+import { paymentParametersOf, bpmnFlowLabelPointOf, installRowClickSelectionGuard, selectionIsRowOpen } from './displayDom.mjs'
+import { listHeaderVarsOf, listPrimaryForSelection } from './pageProjection.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -188,6 +191,140 @@ test('Calendar: two calendars on a page never share an id, and only ONE mounts S
   const doc = { querySelectorAll: () => [first, second] }
   assert.equal(spCalendarElsewhere(doc, second), true)
   assert.equal(spCalendarElsewhere(doc, first), false)
+})
+
+// ── listings & grids ─────────────────────────────────────────────────────────────────────────
+
+test('Grid: an actionId column is a link cell with the row\'s values; money formatted, align, sortable only where declared, stripes', () => {
+  const g = one({ type: 'Grid', rowStripes: true, content: [
+    { type: 'GridColumn', id: 'title', label: 'Title', actionId: 'openWork' },
+    { type: 'GridColumn', id: 'artist', label: 'Artist', sortable: true },
+    { type: 'GridColumn', id: 'insurance', label: 'Insured', dataType: 'money', align: 'end' },
+  ], page: { content: [{ title: 'The Bedroom', artist: 'Van Gogh', insurance: 82000000 }] } }, 'isGrid')
+  const [title, artist, insurance] = g.columns
+  assert.deepEqual([title.template, title.field], ['cellGridAction', 'title' + GRID_ACTION_CELL_SUFFIX])
+  assert.deepEqual(g.rows[0][title.field], { text: 'The Bedroom', actionId: 'openWork', parameters: { title: 'The Bedroom', artist: 'Van Gogh', insurance: 82000000 } })
+  assert.deepEqual([title.sortable, artist.sortable, insurance.sortable], ['disabled', 'enabled', 'disabled'])
+  assert.equal(insurance.className, 'oj-helper-text-align-end')
+  assert.match(String(g.rows[0][insurance.field]), /82[.,  ]?000[.,  ]?000/)
+  assert.match(g.gridClass, /mateu-grid-stripes/)
+  assert.match(template(), /<template slot="cellGridAction">/)
+})
+
+const surfaceOf = (tree, data) => ({ contexts: { s: { tree, data, state: {} } }, blocks: [{ items: [{ isSubresource: true, islandId: 's', subresource: { id: 's', surface: true } }] }] })
+const crudNode = (md) => ({ type: 'ClientSide', id: 'crud', metadata: { type: 'Crud', columns: [
+  { type: 'GridColumn', id: 'name', label: 'Name', identifier: true, priority: 1 },
+  { type: 'GridColumn', id: 'type', label: 'Type', priority: 2 },
+  { type: 'GridColumn', id: 'moons', label: 'Moons', dataType: 'integer' },
+], ...md }, children: [] })
+const planets = { crud: { page: { content: [{ name: 'Mercury', type: 'Rocky', moons: 0 }, { name: 'Jupiter', type: 'Gas giant', moons: 95 }] } } }
+
+test('a surface\'s listing is ONE part of it: its DropZones and its page\'s header are drawn too, the table where it sits', () => {
+  const tree = { type: 'ServerSide', id: 'p', metadata: { type: 'Page', header: [node({ type: 'Text', text: 'Drop here' })] }, children: [
+    node({ type: 'HorizontalLayout' }, [crudNode({ title: 'Artworks', rowsSelectionEnabled: true, dragType: 'artwork' }),
+      node({ type: 'DropZone', accept: 'artwork', actionId: 'pack', title: 'Crate A' })]),
+  ] }
+  const { contexts, blocks } = surfaceOf(tree, planets)
+  const items = withSubresources(blocks, contexts)[0].items
+  const grid = items.find((a) => a.isGrid)
+  assert.ok(grid, 'the table')
+  assert.equal(grid.label, 'Artworks')
+  assert.deepEqual(grid.selectionMode, { row: 'multiple' })
+  assert.deepEqual(grid.dragTypes, ['application/x-mateu-artwork'])
+  const zone = items.find((a) => a.isDropZone)
+  assert.ok(zone, 'the drop zone beside it')
+  assert.equal(zone.surfaceId, 's', 'its drop goes back to the surface')
+  assert.ok(items.some((a) => a.isText && a.text === 'Drop here'), 'the HeaderSupplier header')
+  assert.match(template(), /:data-drop-surface="\[\[ \$current\.data\.surfaceId \|\| '' \]\]"/)
+})
+
+test('a surface\'s listing in its gridLayout: cards, list (identifier + priorities), master/detail, tree', () => {
+  const lay = (gridLayout, data = planets) => {
+    const { contexts, blocks } = surfaceOf({ type: 'ServerSide', id: 'p', metadata: { type: 'Page' }, children: [crudNode({ gridLayout, title: 'Planets' })] }, data)
+    return withSubresources(blocks, contexts)[0].items[0]
+  }
+  const cards = lay('cards')
+  assert.deepEqual([cards.isNestedListing, cards.asCards, cards.isGrid], [true, true, false])
+  assert.equal(cards.cards[1].title, 'Jupiter')
+  const list = lay('list')
+  assert.deepEqual(list.cards[1].lines.map((l) => l.value), ['Gas giant'])
+  assert.match(list.cards[0].cellClass, /oj-sm-12/)
+  const md = lay('masterDetail')
+  assert.equal(md.hasDetail, true)
+  assert.equal(md.cards[1].uiKey, 'listingPick:s')
+  assert.deepEqual(md.detail.map((d) => d.value), ['Mercury', 'Rocky', '0'])
+  const tree = lay('tree', { crud: { page: { content: [{ name: 'Furniture', moons: 41, children: [{ name: 'Chairs', moons: 18 }] }] } } })
+  assert.equal(tree.columns[0].template, 'cellTreeToggle')
+  assert.equal(tree.rows.length, 1, 'collapsed at first')
+  assert.equal(tree.rows[0].__hasChildren, true)
+  assert.equal(lay('').isGrid, true, 'a table stays a table')
+})
+
+test('smart filters: a field named `items` does not answer Spectra\'s propertyPath probe (every popup opened its editor)', () => {
+  const filters = [filterDescriptorOf({ fieldId: 'status', stereotype: 'multiSelect', options: [{ value: 'OPEN', label: 'Open' }] }),
+    filterDescriptorOf({ fieldId: 'items', dataType: 'integer' })]
+  const meta = smartFiltersMetadataOf(filters)
+  assert.equal(meta.polymorphicTypes.items, undefined)
+  assert.ok(meta.polymorphicTypes[smartFilterIdOf('items')])
+  assert.deepEqual(smartFilterSuggestionsOf(filters).map((c) => c.filter), ['status', smartFilterIdOf('items')])
+  assert.deepEqual(filterStateOfSmartFilters(filters, [{ filter: smartFilterIdOf('items'), value: 3 }]).values, { items: 3 })
+})
+
+test('listing: a totalled number column reads like its totals; a rows-required primary is off without a selection', () => {
+  const c = { id: 'amount', dataType: 'integer', aggregate: 'sum' }
+  assert.equal(labelColumn(c), true)
+  assert.equal(valueLabelOf(c, 1122), new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(1122))
+  assert.equal(labelColumn({ id: 'year', dataType: 'integer' }), false, 'an untotalled number is left alone')
+  const vars = listHeaderVarsOf({ toolbar: [{ actionId: 'ship', label: 'Mark as shipped', rowsSelectedRequired: true }], selectionRequired: [] })
+  assert.equal(vars.mateuListPrimary.display, 'disabled')
+  assert.equal(listPrimaryForSelection(vars.mateuListPrimary, { keys: [1] }).display, undefined)
+})
+
+test('an integer field is ungrouped (a year read «1,906»); a decimal keeps JET\'s default', () => {
+  assert.deepEqual(numberConverterOf('integer').options, { style: 'decimal', useGrouping: false, maximumFractionDigits: 0 })
+  assert.deepEqual(numberConverterOf('number').options, { style: 'decimal' })
+  assert.equal(numberConverterOf('integer'), numberConverterOf('long'), 'one instance per kind')
+  for (const markup of [template(), readFileSync(join(here, 'templates', 'drawer-body.html'), 'utf8')]) {
+    assert.match(markup, /<oj-input-number[^>]*converter="\[\[ \$current\.data\.converter \]\]"/)
+  }
+})
+
+test('a long VirtualList is virtualised in its own height; a short one stays inline', () => {
+  const rows = Array.from({ length: 200 }, (_, i) => ({ type: 'ClientSide', metadata: { type: 'HorizontalLayout' }, children: [
+    node({ type: 'Text', text: 'ACC-' + i }), node({ type: 'Badge', text: 'in store', color: 'success' })] }))
+  const v = atomsOf(node({ type: 'VerticalLayout' }, [{ type: 'ClientSide', id: 'v', style: 'height: 18rem;', metadata: { type: 'VirtualList', page: { content: rows } }, children: [] }])).find((a) => a.isVirtualList)
+  assert.equal(v.rows.length, 200)
+  assert.deepEqual([v.rows[3].primary, v.rows[3].badges[0].text], ['ACC-3', 'in store'])
+  assert.equal(v.listStyle.height, '18rem')
+  assert.match(template(), /<oj-list-view class="mateu-virtual-list[^>]*scroll-policy="loadMoreOnScroll"/)
+  const short = atomsOf(node({ type: 'VerticalLayout' }, [node({ type: 'VirtualList', page: { content: ['a', 'b'] } })]))
+  assert.equal(short.some((a) => a.isVirtualList), false)
+})
+
+test('BPMN: a name under a shape widens the box (not clipped); a flow name at its middle segment', () => {
+  const xml = '<definitions><process><startEvent id="s" name="Loan requested"/><task id="t" name="Review"/><sequenceFlow id="f" name="yes" sourceRef="s" targetRef="t"/></process>'
+    + '<BPMNDiagram><BPMNPlane><BPMNShape bpmnElement="s"><Bounds x="40" y="82" width="36" height="36"/></BPMNShape>'
+    + '<BPMNShape bpmnElement="t"><Bounds x="130" y="60" width="110" height="80"/></BPMNShape>'
+    + '<BPMNEdge bpmnElement="f"><waypoint x="76" y="100"/><waypoint x="130" y="100"/></BPMNEdge></BPMNPlane></BPMNDiagram></definitions>'
+  const d = bpmnDiagramOf(xml)
+  assert.ok(d.minX < 58 - 14 * 3.6 + 1, 'the label\'s left edge is inside the box')
+  assert.deepEqual(bpmnFlowLabelPointOf([[76, 100], [130, 100]]), [103, 100, false])
+  assert.equal(bpmnFlowLabelPointOf([[320, 125], [320, 200]])[2], true, 'vertical: beside it')
+  assert.deepEqual(bpmnAtomOf({ xml }, 'b', 'height: 18rem; width: 100%;').bpmnStyle, { height: '18rem', width: '100%' })
+})
+
+test('a click on a row that OPENS is no selection; the checkbox still selects', () => {
+  const doc = { listeners: {}, addEventListener(type, fn) { this.listeners[type] = fn } }
+  installRowClickSelectionGuard(doc)
+  const cell = { closest: (sel) => (/oj-table-data-cell/.test(sel) ? cell : null) }
+  const box = { closest: (sel) => (/oj-selector/.test(sel) ? box : /oj-table-data-cell/.test(sel) ? box : null) }
+  const table = { getAttribute: () => 'oj-sm-12 mateu-rows-open', contains: () => true }
+  doc.listeners.pointerdown({ target: cell })
+  assert.equal(selectionIsRowOpen(table), true)
+  doc.listeners.pointerdown({ target: box })
+  assert.equal(selectionIsRowOpen(table), false)
+  doc.listeners.pointerdown({ target: cell })
+  assert.equal(selectionIsRowOpen({ ...table, getAttribute: () => 'oj-sm-12' }), false, 'a listing whose rows do not open keeps the click')
 })
 
 await Promise.all(pending)

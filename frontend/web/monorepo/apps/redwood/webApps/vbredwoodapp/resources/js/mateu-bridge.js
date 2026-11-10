@@ -26397,8 +26397,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the target's shape covered them («yes» out of the gateway was never seen)
     for (const f of spec.flows || []) {
       if (!f.label || !f.points || f.points.length < 2) continue
-      const [mx, my] = bpmnFlowLabelPointOf(f.points)
-      const t = el2('text', { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
+      const [mx, my, vertical] = bpmnFlowLabelPointOf(f.points)
+      // beside a vertical segment (to its right), above a horizontal one
+      const t = el2('text', vertical
+        ? { x: mx + 6, y: my, 'text-anchor': 'start', 'dominant-baseline': 'middle', class: 'mateu-bpmn-flow-label' }
+        : { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
       t.textContent = f.label
     }
     // a box with its own height: the diagram scales into it
@@ -26412,7 +26415,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const i = Math.max(0, Math.floor((points.length - 1) / 2))
     const a = points[i]
     const b = points[i + 1] || a
-    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])]
   }
 
   function installBpmn(doc = typeof document !== 'undefined' ? document : null) {
