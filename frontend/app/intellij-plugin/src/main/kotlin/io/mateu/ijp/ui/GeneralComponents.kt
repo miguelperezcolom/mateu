@@ -204,10 +204,10 @@ fun renderTitledChildren(r: ComponentRenderer, component: JsonNode, metadata: Js
 
 // ── navigation ─────────────────────────────────────────────────────────────────────────────
 
-/** Breadcrumbs: linked trail, then the current item in bold. A single Breadcrumb is a link. */
+/** Breadcrumbs: linked trail, then the current item in bold. */
 fun renderBreadcrumbs(ctx: AppContext, metadata: JsonNode): JComponent {
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0)).apply { isOpaque = false }
-    val crumbs = if (metadata.text("type") == "Breadcrumb") listOf(metadata) else metadata.path("breadcrumbs").items()
+    val crumbs = metadata.path("breadcrumbs").items()
     crumbs.forEachIndexed { i, b ->
         if (i > 0) row.add(muted("›", smaller = false))
         val link = b.text("link")

@@ -27,6 +27,16 @@ test('el primer hello sólo apunta el bootId; uno distinto (reinicio) repinta la
   assert.equal(restarted.bootId, 'b')
 })
 
+test('the client conformance corpus (conformance/client/live-reload.json) decides the same', () => {
+  const corpus = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'conformance', 'client', 'live-reload.json'), 'utf8'))
+  assert.ok(corpus.cases.length > 10)
+  for (const c of corpus.cases) {
+    const decision = liveReloadDecision(c.message, c.known)
+    assert.equal(decision.action, c.expect.action, c.name)
+    assert.equal(decision.bootId ?? null, c.expect.bootId, c.name)
+  }
+})
+
 test('specs-changed y reload respetan su scope; ping y basura no hacen nada', () => {
   assert.equal(liveReloadDecision({ type: 'specs-changed', scope: 'page', files: ['specs/ui/a.yaml'] }, 'x').reason, 'a.yaml')
   assert.equal(liveReloadDecision({ type: 'specs-changed', scope: 'app' }, 'x').action, 'app')
