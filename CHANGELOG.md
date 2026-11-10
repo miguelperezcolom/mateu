@@ -96,7 +96,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Page level**: page width, `@Compact`, `@Toc` index with Ctrl+Alt+N, labels aside, banner close
   and timeout, drawer subtitle / size / maximize / peer arrows / bottom dock.
 - **Widgets**: charts by kind, card anatomy, badge looks, button colours / sizes / icons and live
-  `${…}` labels, wire icons, SVG images, grid formats / alignment / widths and tree rows, listing cards,
+  `${…}` labels, wire icons, grid formats / alignment / widths and tree rows, listing cards,
   responsive-grid tracks and areas, accordions and foldouts that fold, hero, timeline, BPMN; fields
   (file chooser, list box, checkbox groups, time / date-time pickers, markup preview, lookup labels,
   placeholders, `@Help`, whole numbers without `.0`).
