@@ -14,6 +14,7 @@ import { MateuButton } from '../ui/controls';
 import { FAB } from 'react-native-paper';
 import { FAB_MARGIN, FAB_SIZE, fabBottom } from '../core/uxRules';
 import { materialIconOf } from '../ui/wireIcons';
+import { SkeletonRenderer } from './DisplayRenderer';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -94,6 +95,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   }, [session]);
   const fits = useFitsContent();
   const [view, setView] = useState<RenderedView>(controller.rendered);
+  const windowlessView = !!embedded || !!serverSideNode;
 
   useEffect(() => {
     const kept = islandKey ? islands.get(islandKey) : undefined;
@@ -153,11 +155,9 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   }, [controller]);
 
   if (view.loading && !view.component) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
+    // nothing on screen yet: the shape of what is coming, after a short delay (a fast answer shows
+    // no flash) — the web's skeleton; a reload keeps the content it has under the small spinner
+    return <LoadingSkeleton embedded={windowlessView} />;
   }
   if (view.error && !view.component) {
     // RN-05: a load that failed before anything was shown used to leave the raw transport text
@@ -187,7 +187,6 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
       'type'
     ] as string | undefined;
   const selfScrolling = rootType === 'Page' || rootType === 'Form' || rootType === 'Crud';
-  const windowlessView = !!embedded || !!serverSideNode;
   const content = (
     <ComponentRenderer component={view.component} state={view.state} data={view.data} />
   );
@@ -236,6 +235,20 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   );
 }
 
+/** The first load's placeholder: a form-shaped skeleton once the answer takes more than 400 ms. */
+function LoadingSkeleton({ embedded }: { embedded: boolean }) {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShown(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
+  return (
+    <View style={embedded ? styles.skeletonEmbedded : styles.skeletonScreen} accessibilityLabel="Loading" accessibilityRole="progressbar">
+      {shown && <SkeletonRenderer metadata={{ variant: embedded ? 'text' : 'form', count: embedded ? 3 : 1 } as never} />}
+    </View>
+  );
+}
+
 /** How many FABs the page itself floats (the app's go above them). */
 function pageFabCount(component: unknown): number {
   const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
@@ -266,6 +279,8 @@ function AppFabs({ controller, pageFabs }: { controller: MateuViewController; pa
 }
 
 const styles = themed(() => StyleSheet.create({
+  skeletonScreen: { flex: 1, padding: 16 },
+  skeletonEmbedded: { padding: 8, minHeight: 48 },
   appFabs: { position: 'absolute', right: FAB_MARGIN, gap: 12, alignItems: 'flex-end', zIndex: 40 },
   host: { flex: 1 },
   // a bare-layout root (e.g. a wizard) gets the same 16pt gutter as Page/Form roots — it was flush

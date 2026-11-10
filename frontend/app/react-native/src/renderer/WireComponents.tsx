@@ -758,7 +758,17 @@ export function ElementRenderer({ metadata, state, data }: { metadata: Dict; sta
   const openHref = useOpenHref();
   // `on: {click: action}` runs the action with the event, as the web serializes it (its scalar
   // fields: type, clientX/Y…) — an empty `{}` made the handler answer "null at x=null, y=null"
-  const press = on['click'] ? (e?: GestureResponderEvent) => void controller.runAction(on['click']!, { event: pressEventOf(e) }) : undefined;
+  // a second press within 300 ms is a double click (`on: {dblclick: …}`), after its click, as in a browser
+  const lastPress = useRef(0);
+  const press = on['click'] || on['dblclick']
+    ? (e?: GestureResponderEvent) => {
+        const now = Date.now();
+        const double = now - lastPress.current < 300;
+        lastPress.current = double ? 0 : now;
+        if (on['click']) void controller.runAction(on['click']!, { event: pressEventOf(e) });
+        if (double && on['dblclick']) void controller.runAction(on['dblclick']!, { event: { ...pressEventOf(e), type: 'dblclick', detail: 2 } });
+      }
+    : undefined;
   if (name.toLowerCase() === 'iframe') return <FramedPage src={str(attrs['src'])} title={str(attrs['title'])} />;
   let node: React.ReactNode;
   switch (kind) {
