@@ -1982,7 +1982,7 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
    padding, at the header's own title indent (24px inside the header box), so it reads as part of it. */
 .mateu-header-overline { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
 /* a page's DECLARED trail (BreadcrumbsSupplier) above its header, aligned with the title */
-.mateu-header-crumbs { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
+.mateu-header-crumbs { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-12x, 48px) 0; line-height: 1rem; }
 oj-bind-if:has(> .mateu-header-crumbs) + oj-bind-if:has(> .mateu-header-overline) .mateu-header-overline { padding-top: var(--oj-core-spacing-2x, 8px); }
 oj-bind-if:has(> .mateu-header-crumbs) ~ oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
