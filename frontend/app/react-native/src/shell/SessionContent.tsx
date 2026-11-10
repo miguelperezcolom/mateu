@@ -13,7 +13,7 @@ import { IconButton, Snackbar, Surface, Text as PaperText } from 'react-native-p
 import { MateuButton } from '../ui/controls';
 import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
-import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
+import { drawerSheetLook, overlayContentWithData, pageHeaderExtrasOf, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
 import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
@@ -215,21 +215,78 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
     );
   }
 
-  return (
+  const openPeer = (label: string, route: string) => { session.closeTopOverlay(); session.openView({ label, route, consumedRoute: '', serverSideType: '' }); };
+  return <DrawerSheet key={`${overlayIdOf(top.component)}#${overlays.length}`} meta={meta} title={title} subtitle={interpolate(String(meta['subtitle'] ?? ''), { state: top.state })} closeButton={closeButton} body={hostOf(false)} onClose={() => session.closeTopOverlay()} onPeer={openPeer} />;
+}
+
+/**
+ * A Drawer on a phone: a Material bottom sheet (every position docks at the bottom — a side panel
+ * would leave no room for the screen it covers). Its wire options, as a sheet can take them:
+ * `subtitle` under the title; `size` (s/m/l/xl) its starting height; `maximizable` a ⤢ that takes
+ * it to the full height and back; `collapsible` a ▾/▴ handle folding it to its header; `modeless`
+ * no dimmed backdrop and the screen behind stays usable.
+ */
+function DrawerSheet({ meta, title, subtitle, closeButton, body, onClose, onPeer }: {
+  meta: Record<string, unknown>; title: string; subtitle: string; closeButton: React.ReactNode; body: React.ReactNode; onClose: () => void;
+  onPeer: (label: string, route: string) => void;
+}) {
+  const look = drawerSheetLook(meta);
+  // the General Drawer's previous/next object (PeerNav): arrows in its header
+  const peers = pageHeaderExtrasOf({ peerNav: meta['peerNav'] }, title).peers;
+  const [maximized, setMaximized] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const sheet = (
     // a drawer: screen readers stop at its edge, and its ✕ is a named button (it was announced as
     // bare text, unreachable as a control)
-    <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
-      <View style={styles.overlayBackdrop}>
-        {/* a Material bottom sheet: drag handle, title, close */}
-        <View style={styles.overlaySheet}>
-          <View style={styles.overlayHandle} />
-          <View style={styles.overlayHeader}>
-            <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
-            {closeButton}
-          </View>
-          {hostOf(false)}
+    <View style={[styles.overlaySheet, { minHeight: collapsed ? 0 : look.minHeight }, maximized && !collapsed ? styles.overlaySheetMax : null, look.modeless ? styles.overlaySheetFloating : null]}>
+      {look.collapsible ? (
+        <IconButton
+          icon={collapsed ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          style={styles.overlayFold}
+          accessibilityLabel={collapsed ? 'Expand' : 'Collapse'}
+          accessibilityState={{ expanded: !collapsed }}
+          onPress={() => setCollapsed(!collapsed)}
+        />
+      ) : <View style={styles.overlayHandle} />}
+      <View style={styles.overlayHeader}>
+        <View style={styles.overlayTitleBox}>
+          <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+          {!!subtitle && <PaperText variant="bodyMedium" style={styles.overlaySubtitle} numberOfLines={2}>{subtitle}</PaperText>}
         </View>
+        {!!peers && (['prev', 'next'] as const).map((side) => {
+          const peer = peers[side];
+          if (!peer) return null;
+          const name = side === 'prev' ? 'Previous' : 'Next';
+          return (
+            <IconButton
+              key={side}
+              icon={side === 'prev' ? 'chevron-left' : 'chevron-right'}
+              disabled={!peer.route}
+              accessibilityLabel={peer.label ? `${name}: ${peer.label}` : name}
+              onPress={() => peer.route && onPeer(peer.label, peer.route)}
+            />
+          );
+        })}
+        {look.maximizable && !collapsed && (
+          <IconButton icon={maximized ? 'arrow-collapse' : 'arrow-expand'} accessibilityLabel={maximized ? 'Restore' : 'Maximize'} onPress={() => setMaximized(!maximized)} />
+        )}
+        {closeButton}
       </View>
+      {/* folded: the body stays mounted (its typed values survive) but takes no room */}
+      <View style={collapsed ? styles.overlayFolded : styles.overlayBody}>{body}</View>
+    </View>
+  );
+  if (look.modeless) {
+    return (
+      <View style={styles.modelessHost} pointerEvents="box-none" accessibilityViewIsModal={false}>
+        {sheet}
+      </View>
+    );
+  }
+  return (
+    <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.overlayBackdrop}>{sheet}</View>
     </Modal>
   );
 }
@@ -364,6 +421,14 @@ const styles = themed(() => StyleSheet.create({
   dialog: { width: '100%', maxWidth: 560, maxHeight: '85%', borderRadius: theme.radiusLg, paddingTop: 12, paddingBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
   overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, maxHeight: '88%', minHeight: '50%', overflow: 'hidden' },
   overlayHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 10 },
+  overlaySheetMax: { maxHeight: '100%', height: '100%', borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+  overlaySheetFloating: { elevation: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: -2 }, borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.border },
+  overlayFold: { alignSelf: 'center', margin: 0 },
+  overlayTitleBox: { flex: 1 },
+  overlaySubtitle: { color: theme.muted },
+  overlayBody: { flexShrink: 1 },
+  overlayFolded: { height: 0, overflow: 'hidden' },
+  modelessHost: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'flex-end' },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },
   overlayTitle: { flex: 1, color: theme.ink },
 }));

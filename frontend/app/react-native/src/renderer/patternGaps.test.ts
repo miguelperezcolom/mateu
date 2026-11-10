@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  accordionLook, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
+  accordionLook, drawerSheetLook, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
   showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, withOverlayState, type RecordSwitcher,
 } from './patternGaps.ts';
 import { cssLengthPx, gridTrackSizes, orderByAreas, responsiveColumns } from './wireWidgets.ts';
@@ -165,6 +165,14 @@ test('a LongTask step updates the open progress dialog it targets, and nothing e
   assert.equal(next[0], other);
   assert.equal(withOverlayState([other, dialog], 'nope', { x: 1 }), null);
   assert.equal(withOverlayState([dialog], '', { x: 1 }), null);
+});
+
+test('a drawer`s options shape the bottom sheet', () => {
+  assert.deepEqual(drawerSheetLook({}), { minHeight: '50%', maximizable: false, collapsible: false, modeless: false });
+  assert.equal(drawerSheetLook({ modeless: true }).minHeight, '35%');
+  assert.deepEqual(drawerSheetLook({ size: 'l', maximizable: true, collapsible: true, modeless: true }),
+    { minHeight: '70%', maximizable: true, collapsible: true, modeless: true });
+  assert.equal(drawerSheetLook({ size: 's' }).minHeight, '35%');
 });
 
 test('TabLayout and Accordion variants', () => {

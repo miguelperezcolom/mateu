@@ -236,6 +236,22 @@ export function tabLayoutLook(variant: unknown): { bordered: boolean; small: boo
 }
 
 /** An AccordionLayout's `variant` (Vaadin details themes): filled, small. */
+/** How a Drawer's wire options shape the phone's bottom sheet (DrawerSheet). `size` s/m/l/xl → the
+ *  sheet's starting height (its width would be the whole screen anyway). */
+export function drawerSheetLook(meta: Record<string, unknown>): {
+  minHeight: `${number}%`; maximizable: boolean; collapsible: boolean; modeless: boolean;
+} {
+  const size = String(meta['size'] ?? '').toLowerCase();
+  // a modeless sheet leaves the screen behind it room to be used
+  const minHeight = size === 's' ? '35%' : size === 'l' ? '70%' : size === 'xl' ? '88%' : size === 'm' ? '50%' : meta['modeless'] === true ? '35%' : '50%';
+  return {
+    minHeight,
+    maximizable: meta['maximizable'] === true,
+    collapsible: meta['collapsible'] === true,
+    modeless: meta['modeless'] === true,
+  };
+}
+
 export function accordionLook(variant: unknown): { filled: boolean; small: boolean } {
   const v = new Set(String(variant ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean));
   return { filled: v.has('filled'), small: v.has('small') };
