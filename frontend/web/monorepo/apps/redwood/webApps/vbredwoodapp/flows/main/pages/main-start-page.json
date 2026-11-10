@@ -822,8 +822,9 @@
     "hostPaymentConfirm": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "paymentConfirmed",
           "parameters": {
+            "event": "{{ $event }}",
             "actionId": "{{ $current.data.confirmActionId }}",
             "parameters": "{{ $current.data.confirmParameters }}"
           }

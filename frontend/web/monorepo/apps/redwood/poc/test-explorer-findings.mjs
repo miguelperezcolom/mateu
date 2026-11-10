@@ -61,7 +61,8 @@ test('a ProgressBar\'s theme tints its fill (the class was stamped and nothing p
   assert.match(bars[1].barClass, /mateu-tone-danger/)
   assert.doesNotMatch(bars[2].barClass, /mateu-tone-/)
   const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
-  assert.match(css, /oj-progress-bar\[class\*="mateu-tone-"\] \.oj-progress-bar-value \{ background-color: var\(--mateu-tone\)/)
+  // the bar is oj-c-progress-bar (the legacy oj-progress-bar never upgraded: 0px): its value div takes the tone
+  assert.match(css, /oj-c-progress-bar\[class\*="mateu-tone-"\] \[role="progressbar"\] > div \{ background-color: var\(--mateu-tone\)/)
   // every tone the projection stamps has its colour
   for (const tone of ['success', 'danger', 'warning', 'info']) assert.match(css, new RegExp('\\.mateu-tone-' + tone + ' \\{ --mateu-tone:'))
 })

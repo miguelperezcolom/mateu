@@ -651,6 +651,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setFactActionSink,
     // the KPI band (oj-sp-scoreboard): a card's icon and its drill-in (actionId)
     installScoreboards,
+    showAddOnTotal,
+    installPaymentPickers,
+    paymentParametersOf,
     setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,

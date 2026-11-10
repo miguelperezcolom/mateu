@@ -1,4 +1,4 @@
-import { chromeText } from './i18n.mjs'
+import { chromeText, moneyNumberText } from './i18n.mjs'
 import { streamChat, buildChatBody, chatMarkdownToHtml, chatStatusText, chatTurnTextOf, chatUsageTextOf, dispatchChatEvent, latestUsage, mergeTurnUsage, uploadChatFiles } from './chat.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { authHeadersOf, askForReauthentication } from './resilience.mjs'
@@ -472,6 +472,45 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
   }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
 }
 
+// ── AddOnPicker: the running total follows the switches at once (the web's header does) ─────────
+/** Writes the picker's new total next to the switch that changed it (before the server answers). */
+export function showAddOnTotal(target, total, currency) {
+  const picker = target && target.closest ? target.closest('.mateu-addons') : null
+  const out = picker ? picker.querySelector('.mateu-addons-total-value') : null
+  if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
+}
+
+// ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
+/** Marks `id` as the picked method of a picker's methods row (its button takes the callToAction). */
+export function pickPaymentMethod(methods, id) {
+  if (!methods) return
+  methods.setAttribute('data-selected', id)
+  for (const b of Array.from(methods.querySelectorAll('[data-payment-method]'))) {
+    const chroming = b.getAttribute('data-payment-method') === id ? 'callToAction' : 'outlined'
+    try { b.chroming = chroming } catch (e) { /* not upgraded */ }
+    b.setAttribute('chroming', chroming)
+  }
+}
+/** The confirm's parameters: the picked method over the server's `selected`. */
+export function paymentParametersOf(target, parameters) {
+  const picker = target && target.closest ? target.closest('.mateu-payment') : null
+  const methods = picker ? picker.querySelector('.mateu-payment-methods') : null
+  const picked = methods ? methods.getAttribute('data-selected') : ''
+  return picked ? { ...(parameters || {}), _method: picked } : { ...(parameters || {}) }
+}
+/** Installs (once) the method pick: a click marks it; a method WITHOUT methodActionId stays on the
+ *  client (it used to send an empty action), one with it still tells the server. */
+export function installPaymentPickers(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuPaymentPickers) return
+  doc.__mateuPaymentPickers = true
+  doc.addEventListener('click', (e) => {
+    const button = e.target && e.target.closest ? e.target.closest('[data-payment-method]') : null
+    if (!button) return
+    pickPaymentMethod(button.closest('.mateu-payment-methods'), button.getAttribute('data-payment-method'))
+    if (button.getAttribute('data-payment-local') === 'true') e.stopPropagation()
+  }, true)
+}
+
 // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
 // The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
 // items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
@@ -528,13 +567,30 @@ export function installScoreboards(doc = typeof document !== 'undefined' ? docum
   const atomOf = (host) => {
     try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
   }
-  // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+  // capture: the list's item action does not have to bubble out of the scoreboard to be heard.
+  // The card's TEXTS (its title, its metric) swallow the click before the list turns it into an
+  // item action — only the card's padding drilled in —, so a click anywhere in an actionable card
+  // runs it here, and the item action that may follow the same click is not run twice.
+  let lastClick = { key: null, at: 0 }
+  const runKey = (host, key) => {
+    if (key === lastClick.key && Date.now() - lastClick.at < 800) return false
+    const run = scoreboardDrillInOf(atomOf(host), key)
+    if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], run[2]) }
+    return !!run
+  }
+  doc.addEventListener('click', (e) => {
+    const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+    if (!host || !scoreboardSink) return
+    let card = e.target
+    while (card && card !== host && scoreboardIndexOf(card) < 0) card = card.parentElement
+    if (!card || card === host) return
+    runKey(host, 'k' + scoreboardIndexOf(card))
+  }, true)
   doc.addEventListener('ojItemAction', (e) => {
     const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
     if (!host || !scoreboardSink) return
     const key = e.detail && e.detail.context ? e.detail.context.key : null
-    const run = scoreboardDrillInOf(atomOf(host), key)
-    if (run) scoreboardSink(run[0], run[1], run[2])
+    runKey(host, key)
   }, true)
   if (typeof MutationObserver === 'undefined') return
   const root = doc.body || doc.documentElement

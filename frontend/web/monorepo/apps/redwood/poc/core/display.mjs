@@ -157,7 +157,9 @@ export function pricingAtomOf(m, interp = (x) => x) {
       features: (p.features || []).map((f) => interp(str(f))),
       featured: !!p.featured,
       cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
-      hasCta: !!p.actionId,
+      // the web draws the CTA whenever it has a label (inert without an actionId) — it was dropped
+      hasCta: !!p.actionId || !!p.ctaLabel,
+      ctaDisabled: !p.actionId,
       ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
       chroming: p.featured ? 'callToAction' : 'outlined',
       colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
@@ -182,7 +184,10 @@ export function setOrgHierarchyProviderFactory(factory) { orgHierarchyProviderFa
 export const ORG_CARD_TEMPLATE = 'mateuOrgCard'
 
 export function orgChartAtomOf(m, interp = (x) => x) {
-  if (orgHierarchyProviderFactory) return orgHierarchyAtomOf(m, interp)
+  // `display: focus` → Spectra's hierarchy viewer (one person, managers above, reports below). The
+  // DEFAULT `tree` shows the WHOLE tree: the viewer shows only two levels (grandchildren were lost), so
+  // it is the outline, every node at its depth, clickable, in its accent colour
+  if (orgHierarchyProviderFactory && str(m.display).toLowerCase() === 'focus') return orgHierarchyAtomOf(m, interp)
   const nodes = []
   const walk = (node, depth, last) => {
     if (!node) return
@@ -191,6 +196,8 @@ export function orgChartAtomOf(m, interp = (x) => x) {
     nodes.push({
       depth,
       rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+      // the node's accent colour (it was dropped): a bar along the card's start edge
+      cardStyle: cssColorOf(node.color) ? { borderInlineStart: '4px solid ' + cssColorOf(node.color) } : {},
       rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
       title: interp(str(node.title)),
       subtitle: interp(str(node.subtitle)),
@@ -485,6 +492,8 @@ export function checklistAtomOf(m, interp = (x) => x) {
       label: interp(str(it.label)),
       value: it.done ? ['done'] : [],
       labelClass: it.done ? 'mateu-checklist-done' : '',
+      iconClass: it.done ? 'mateu-checklist-box mateu-checklist-box-done' : 'mateu-checklist-box',
+      srStatus: it.done ? ', done' : ', not done',
       readonly: !it.actionId,
       actionId: it.actionId || '',
       parameters: { _item: it, _done: !it.done },
@@ -1165,6 +1174,76 @@ export function progressBarAtomOf(m, state, interp = (x) => x) {
     text: interp(str(m.text)),
     ariaLabel: interp(str(m.text)) || 'Progress',
     barClass: 'oj-sm-margin-1x-vertical' + (toneOf(m.theme) ? ' mateu-tone-' + toneOf(m.theme) : ''),
+  }
+}
+
+/** ProgressSteps → oj-train (horizontal, no descriptions): a done step is VISITED with JET's
+ *  confirmation mark (it read «Status: Not visited» and looked upcoming). With descriptions or
+ *  `vertical` (oj-train draws neither) → our own step list, same done / current / upcoming states. */
+export function progressStepsAtomOf(m, interp = (x) => x) {
+  const raw = m.steps || []
+  const current = raw.find((step) => step.status === 'current')
+  const titleOf = (step) => interp(str(step.title || step.label || step.id))
+  const steps = raw.map((step) => ({
+    id: step.id,
+    label: titleOf(step),
+    ...(step.status === 'done' ? { visited: true, messageType: 'confirmation' } : {}),
+  }))
+  const own = !!m.vertical || raw.some((step) => step.description)
+  return {
+    isProgress: true,
+    steps,
+    selectedId: current ? current.id : (steps[0] && steps[0].id),
+    trainSteps: !own,
+    ownSteps: own,
+    stepsClass: 'mateu-steps' + (m.vertical ? ' mateu-steps-vertical' : ''),
+    stepItems: raw.map((step, i) => {
+      const status = step.status === 'done' || step.status === 'current' ? step.status : 'upcoming'
+      return {
+        key: str(step.id || i),
+        number: status === 'done' ? '✓' : String(i + 1),
+        title: titleOf(step),
+        description: interp(str(step.description)),
+        hasDescription: !!step.description,
+        cls: 'mateu-step mateu-step-' + status,
+        ariaCurrent: status === 'current' ? 'step' : null,
+        srStatus: ', ' + (status === 'done' ? 'done' : status === 'current' ? 'current step' : 'upcoming'),
+      }
+    }),
+  }
+}
+
+/** The points of a sparkline (an SVG polyline in a 100×24 box); '' under two finite points. */
+export function sparkPointsOf(values, w = 100, h = 24, pad = 2) {
+  const vals = (values || []).map(Number).filter(Number.isFinite)
+  if (vals.length < 2) return ''
+  const min = Math.min(...vals)
+  const span = Math.max(...vals) - min || 1
+  const step = (w - pad * 2) / (vals.length - 1)
+  return vals.map((v, i) => (pad + i * step).toFixed(1) + ',' + (pad + (h - pad * 2) * (1 - (v - min) / span)).toFixed(1)).join(' ')
+}
+
+const STAT_TREND = {
+  up: { glyph: '▲', cls: 'oj-text-color-success', stroke: 'var(--oj-core-success-3, #508223)' },
+  down: { glyph: '▼', cls: 'oj-text-color-danger', stroke: 'var(--oj-core-danger-3, #c74634)' },
+  flat: { glyph: '→', cls: 'oj-text-color-secondary', stroke: 'var(--oj-core-neutral-3, #8a8582)' },
+}
+/** Stat → a KPI tile: label, value + unit, the delta coloured by its trend and a sparkline (only the
+ *  label and the value were drawn). Like the web's mateu-stat: an absent trend reads as up. */
+export function statAtomOf(m, interp = (x) => x) {
+  const trend = STAT_TREND[str(m.trend).toLowerCase()] || STAT_TREND[m.trend === 'neutral' ? 'flat' : 'up']
+  const points = sparkPointsOf(m.spark)
+  const delta = interp(str(m.delta))
+  return {
+    isStat: true,
+    label: interp(str(m.label)),
+    value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
+    hasDelta: !!delta,
+    deltaText: delta ? trend.glyph + ' ' + delta : '',
+    deltaClass: 'oj-typography-body-sm ' + trend.cls,
+    hasSpark: !!points,
+    sparkPoints: points,
+    sparkStroke: trend.stroke,
   }
 }
 

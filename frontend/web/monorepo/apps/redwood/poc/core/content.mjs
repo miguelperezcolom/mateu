@@ -12,7 +12,7 @@ import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, stat
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, progressStepsAtomOf, statAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -1291,9 +1291,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'ProgressSteps') {
-      const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-      const current = (m.steps || []).find((step) => step.status === 'current')
-      atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+      atom(progressStepsAtomOf(m, interp), container)
       return
     }
     if (t === 'EntityHeader') {
@@ -1503,7 +1501,10 @@ export function islandContentOf(ctx, opts = {}) {
           statusLabel: it.statusLabel || '',
           statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           note: it.note || '',
-          recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+          // the note in its colour (noteColor), as the web paints it
+          noteClass: 'oj-typography-body-xs ' + (STATUS_TEXT[it.noteColor] || 'oj-text-color-secondary'),
+          // a recommended card carries a FLAG (the web's tag; «Recommended» without a label)
+          recommendedLabel: it.recommended ? (m.recommendedLabel || chromeText('recommended')) : '',
           enabled: !it.disabled,
           disabled: !!it.disabled,
           actionId: m.actionId,
@@ -1518,9 +1519,18 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isOffer: true,
         tag: interp(m.tag || ''),
+        // its image header (16:9) with the tag floating over it; without an image the tag is a chip
+        // above the title — and the features are chips, as on the web (they were joined by «·»)
+        image: m.image ? elementModuleUrl(interp(m.image)) : '',
+        hasImage: !!m.image,
+        tagOnImage: !!(m.tag && m.image),
+        tagInline: !!(m.tag && !m.image),
         title: interp(m.title || ''),
         subtitle: interp(m.subtitle || ''),
         features: (m.features || []).map(interp).join(' · '),
+        featureChips: (m.features || []).map((f, i) => ({ key: String(i), text: interp(f) })),
+        // its own style (`width: 17rem`): it was drawn full width
+        offerStyle: styleObjectOf(node.style || m.style),
         currentLabel: m.current ? (m.currentLabel || '') : '',
         addedLabel: m.added ? (m.addedLabel || '') : '',
         priceLabel: interp(m.priceLabel || ''),
@@ -1535,18 +1545,23 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'AddOnPicker') {
+      // the running total of what is added, under its label (the web's header: it was not drawn)
+      const addOnTotal = (m.items || []).filter((it) => it.added && !it.includedLabel)
+        .reduce((sum, it) => sum + (Number(it.price) || 0), 0)
       atom({
         isAddOns: true,
         actionId: m.actionId,
         currency: m.currency || '€',
         totalLabel: m.totalLabel || 'Total',
+        totalText: money(addOnTotal, m.currency),
         items: (m.items || []).map((it) => ({
           id: it.id,
           icon: it.icon || '',
           title: interp(it.title),
           description: interp(it.description || ''),
           price: it.price || 0,
-          priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+          // an INCLUDED extra shows only its label (it also read «€ 0.00»); no price, no price line
+          priceText: it.includedLabel || it.price == null ? '' : money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
           includedLabel: it.includedLabel || '',
           selectable: !it.includedLabel,
           added: !!it.added,
@@ -1634,10 +1649,13 @@ export function islandContentOf(ctx, opts = {}) {
         lines: (m.lines || []).map((line) => ({
           concept: interp(line.concept),
           amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
-          amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+          // a NEGATIVE amount (a deposit, a refund) is drawn in the danger tone, as the web does
+          amountClass: !line.included && (line.amount || 0) < 0 ? 'oj-text-color-danger' : '',
         })),
         totalLabel: m.totalLabel || 'Total',
-        totalText: money(m.total, m.currency),
+        // absent total = the sum of the non-included lines (the web's contract: it read € 0.00)
+        totalText: money(m.total != null ? m.total
+          : (m.lines || []).filter((line) => !line.included).reduce((sum, line) => sum + (Number(line.amount) || 0), 0), m.currency),
       }, container)
       return
     }
@@ -1646,10 +1664,15 @@ export function islandContentOf(ctx, opts = {}) {
         isPayment: true,
         contextLabel: m.contextLabel || '',
         contextValue: interp(m.contextValue || ''),
+        // the pick is kept ON THE CLIENT (like the web's picker): installPaymentPickers marks the
+        // chosen button and the confirm sends it — it sent the server's `selected` whatever was clicked
+        selected: m.selected || '',
         methods: (m.methods || []).map((method) => ({
+          id: method.id,
           label: method.label,
           chroming: method.id === m.selected ? 'callToAction' : 'outlined',
-          actionId: m.methodActionId,
+          actionId: m.methodActionId || '',
+          local: !m.methodActionId,
           parameters: { _method: method.id },
         })),
         confirmLabel: m.confirmLabel || chromeText('confirm'),
@@ -1684,11 +1707,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Stat') {
-      atom({
-        isStat: true,
-        label: interp(m.label || ''),
-        value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
-      }, container)
+      atom(statAtomOf(m, interp), container)
       // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
       if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
       return

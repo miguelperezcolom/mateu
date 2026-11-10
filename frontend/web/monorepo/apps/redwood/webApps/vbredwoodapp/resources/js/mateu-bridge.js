@@ -1360,6 +1360,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
   }
 
+  let calendarSeq = 0
   /** The calendar atom, with the four views precomputed. */
   function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
     const anchor = m.month || today
@@ -1412,7 +1413,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       spSpec: JSON.stringify(spCalendarSpecOf(m, nav, today)),
       // a CalendarPage's toolbar folded into the calendar: the fallback grid keeps it as plain buttons
       navButtons: nav ? nav.buttons : [],
-      calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
+      // unique on the page: two calendars of one id (a YAML one and a Java island's, both «calendar»)
+      // swapped their events, views and periods
+      calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_') + '-' + (++calendarSeq),
       view,
       dayActionId: dayAction,
       hasSwitcher: views.length > 1,
@@ -1666,6 +1669,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return 'mateu-cal-sp' + (nav ? '' : ' mateu-cal-sp-fixed') + (nav && nav.goTo ? '' : ' mateu-cal-sp-nopick')
   }
 
+  let spCalendarSeq = 0
   function buildSpCalendar(doc, cal, spec, ADP) {
     const old = cal.querySelector(':scope > .mateu-cal-sp')
     if (old) old.remove()
@@ -1675,6 +1679,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     host.className = spCalendarHostClassOf(spec)
     host.setAttribute('data-oj-binding-provider', 'none')
     const el = doc.createElement('oj-sp-calendar')
+    // its OWN id: Spectra keys its FullCalendar parts by the element's id, and two calendars on one
+    // page without one shared them — one showed the other's events, view and period
+    el.id = 'mateuSpCal' + (++spCalendarSeq)
     el.calendarEvents = new ADP(spec.events, { keyAttributes: 'id' })
     el.calendarProviders = spec.providers
     el.visibleCalendars = spec.providers.map((p) => p.name)
@@ -1743,12 +1750,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ready()
   }
 
+  /** Is a Spectra calendar already mounted (or mounting) in ANOTHER calendar of the page? */
+  function spCalendarElsewhere(doc, cal) {
+    for (const other of Array.from(doc.querySelectorAll('.mateu-cal'))) {
+      if (other !== cal && other.isConnected && other.__mateuSpCal) return true
+    }
+    return false
+  }
+
   function mountSpCalendars(doc) {
     if (typeof MutationObserver === 'undefined' || typeof window === 'undefined' || typeof window.require !== 'function') return
     const fill = (cal) => {
       const raw = cal.getAttribute('data-cal-sp') || ''
       if (!raw || cal.__mateuSpCal === raw) return
       cal.__mateuSpCal = raw
+      // ONE Spectra calendar per page: a second oj-sp-calendar draws the FIRST one's events (filtered by
+      // its own providers) and the first draws none — the others keep the drawn grid, which has every view
+      if (spCalendarElsewhere(doc, cal)) return
       let spec
       try { spec = JSON.parse(raw) } catch (e) { return }
       window.require(['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'], (ADP) => {
@@ -3884,16 +3902,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
     const pie = spec.type === 'pie'
     const items = []
+    // a TrendChart's `color` is its line's (it was drawn in the default palette)
+    const color = trend && m.color ? String(m.color) : null
     datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
       const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+      const num = value == null || value === '' ? null : Number(value)
       items.push({
         _rowNumber: items.length,
         id: si + ':' + i,
-        value: value == null ? null : Number(value),
+        // a non-number (NaN) made oj-chart write `<path d="MNaN…">`: a gap instead
+        value: Number.isFinite(num) ? num : null,
         series: pie ? label : (d.label || 'Series ' + (si + 1)),
         group: pie ? (d.label || 'Total') : label,
+        ...(color ? { color } : {}),
       })
     }))
+    // a pie's slice labels: JET formats percentages to 3 significant digits («9.00%» beside «21.0%»);
+    // ours carry one decimal at most, the same for every slice
+    if (pie) {
+      const totals = {}
+      for (const it of items) totals[it.group] = (totals[it.group] || 0) + (it.value || 0)
+      for (const it of items) {
+        const pct = totals[it.group] ? (100 * (it.value || 0)) / totals[it.group] : 0
+        it.label = (Math.round(pct * 10) / 10).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '%'
+      }
+    }
     return {
       isChart: true,
       title: trend ? interp(m.title || '') : '',
@@ -3902,9 +3935,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       innerRadius: spec.innerRadius || 0,
       lineType: spec.markersOnly ? 'none' : 'auto',
       markerDisplayed: spec.markersOnly ? 'on' : 'auto',
-      legend: datasets.length > 1 || pie ? 'on' : 'off',
-      chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
-      items,
+      // a Chart names its datasets in a legend even when there is one (Chart.js / the web does);
+      // a TrendChart is a single unnamed line: no legend
+      legend: !trend && (datasets.length > 1 || pie || !!(datasets[0] && datasets[0].label)) ? 'on' : 'off',
+      // a TrendChart is the compact trend line the web draws, not a full chart: no axes, short
+      axisRendered: trend ? 'off' : 'on',
+      chartStyle: { width: '100%', height: trend ? '7rem' : pie ? '18rem' : '16rem' },
+      color: color || '',
+      // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
+      colors: color ? [color] : undefined,    items,
       provider: dataProviderFactory ? dataProviderFactory(items) : null,
     }
   }
@@ -6418,9 +6457,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'ProgressSteps') {
-        const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-        const current = (m.steps || []).find((step) => step.status === 'current')
-        atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+        atom(progressStepsAtomOf(m, interp), container)
         return
       }
       if (t === 'EntityHeader') {
@@ -6630,7 +6667,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             statusLabel: it.statusLabel || '',
             statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
             note: it.note || '',
-            recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+            // the note in its colour (noteColor), as the web paints it
+            noteClass: 'oj-typography-body-xs ' + (STATUS_TEXT[it.noteColor] || 'oj-text-color-secondary'),
+            // a recommended card carries a FLAG (the web's tag; «Recommended» without a label)
+            recommendedLabel: it.recommended ? (m.recommendedLabel || chromeText('recommended')) : '',
             enabled: !it.disabled,
             disabled: !!it.disabled,
             actionId: m.actionId,
@@ -6645,9 +6685,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isOffer: true,
           tag: interp(m.tag || ''),
+          // its image header (16:9) with the tag floating over it; without an image the tag is a chip
+          // above the title — and the features are chips, as on the web (they were joined by «·»)
+          image: m.image ? elementModuleUrl(interp(m.image)) : '',
+          hasImage: !!m.image,
+          tagOnImage: !!(m.tag && m.image),
+          tagInline: !!(m.tag && !m.image),
           title: interp(m.title || ''),
           subtitle: interp(m.subtitle || ''),
           features: (m.features || []).map(interp).join(' · '),
+          featureChips: (m.features || []).map((f, i) => ({ key: String(i), text: interp(f) })),
+          // its own style (`width: 17rem`): it was drawn full width
+          offerStyle: styleObjectOf(node.style || m.style),
           currentLabel: m.current ? (m.currentLabel || '') : '',
           addedLabel: m.added ? (m.addedLabel || '') : '',
           priceLabel: interp(m.priceLabel || ''),
@@ -6662,18 +6711,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'AddOnPicker') {
+        // the running total of what is added, under its label (the web's header: it was not drawn)
+        const addOnTotal = (m.items || []).filter((it) => it.added && !it.includedLabel)
+          .reduce((sum, it) => sum + (Number(it.price) || 0), 0)
         atom({
           isAddOns: true,
           actionId: m.actionId,
           currency: m.currency || '€',
           totalLabel: m.totalLabel || 'Total',
+          totalText: money(addOnTotal, m.currency),
           items: (m.items || []).map((it) => ({
             id: it.id,
             icon: it.icon || '',
             title: interp(it.title),
             description: interp(it.description || ''),
             price: it.price || 0,
-            priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+            // an INCLUDED extra shows only its label (it also read «€ 0.00»); no price, no price line
+            priceText: it.includedLabel || it.price == null ? '' : money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
             includedLabel: it.includedLabel || '',
             selectable: !it.includedLabel,
             added: !!it.added,
@@ -6761,10 +6815,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           lines: (m.lines || []).map((line) => ({
             concept: interp(line.concept),
             amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
-            amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+            // a NEGATIVE amount (a deposit, a refund) is drawn in the danger tone, as the web does
+            amountClass: !line.included && (line.amount || 0) < 0 ? 'oj-text-color-danger' : '',
           })),
           totalLabel: m.totalLabel || 'Total',
-          totalText: money(m.total, m.currency),
+          // absent total = the sum of the non-included lines (the web's contract: it read € 0.00)
+          totalText: money(m.total != null ? m.total
+            : (m.lines || []).filter((line) => !line.included).reduce((sum, line) => sum + (Number(line.amount) || 0), 0), m.currency),
         }, container)
         return
       }
@@ -6773,10 +6830,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isPayment: true,
           contextLabel: m.contextLabel || '',
           contextValue: interp(m.contextValue || ''),
+          // the pick is kept ON THE CLIENT (like the web's picker): installPaymentPickers marks the
+          // chosen button and the confirm sends it — it sent the server's `selected` whatever was clicked
+          selected: m.selected || '',
           methods: (m.methods || []).map((method) => ({
+            id: method.id,
             label: method.label,
             chroming: method.id === m.selected ? 'callToAction' : 'outlined',
-            actionId: m.methodActionId,
+            actionId: m.methodActionId || '',
+            local: !m.methodActionId,
             parameters: { _method: method.id },
           })),
           confirmLabel: m.confirmLabel || chromeText('confirm'),
@@ -6811,11 +6873,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Stat') {
-        atom({
-          isStat: true,
-          label: interp(m.label || ''),
-          value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
-        }, container)
+        atom(statAtomOf(m, interp), container)
         // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
         if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
         return
@@ -11830,6 +11888,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { start: s, end: e < s ? s : e }
   }
 
+  /** The id prefix of a resource GROUP's header row (no resource: nothing is dropped onto it). */
+  const GROUP_ROW_PREFIX = '__mateuGroup:'
+  /** Today's line on a gantt (Redwood's danger ink, as the web's marker). */
+  const TODAY_INK = '#c74634' // design-token-ok: oj-gantt referenceObjects svgStyle is a DVT style object painted onto SVG, not a CSS cascade — a var() is not resolved there
+
   function planningAtomOf(m, id) {
     const columns = m.attributeColumns || []
     const blocks = (m.blocks || []).map((b) => {
@@ -11842,10 +11905,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // an inverted window (from after to) is read as the same days the other way round: the time
     // axis of oj-gantt must end after it starts
     if (to < from) [from, to] = [to, from]
-    const rows = (m.resources || []).map((r, i) => {
+    const resourceRows = (m.resources || []).map((r) => {
       const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
       return {
-        _rowNumber: i,
         id: r.id,
         // the row label carries the attributes: oj-gantt's row axis only paints text
         label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
@@ -11865,8 +11927,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         })),
       }
     })
+    // resource GROUPS (Fleet / Storage…): a header row before each group's first resource, as the
+    // web's swimlane band (they were not shown). Its id is no resource's: nothing moves onto it.
+    const rows = []
+    let lastGroup = ''
+    for (const row of resourceRows) {
+      if (row.group && row.group !== lastGroup) {
+        rows.push({ id: GROUP_ROW_PREFIX + row.group, label: row.group, group: row.group, iconClass: '', tasks: [], isGroup: true,
+          labelStyle: { fontWeight: 'bold' } })
+      }
+      lastGroup = row.group
+      rows.push(row)
+    }
+    rows.forEach((row, i) => { row._rowNumber = i })
+    // today, as the web marks it (a line across the chart), when it falls in the window
+    const today = isoDay(new Date(Date.now() - new Date().getTimezoneOffset() * 60000))
+    const inWindow = today >= from && today <= to
     return {
       isPlanning: true,
+      referenceObjects: inWindow ? [{ value: today + 'T12:00:00', svgStyle: { stroke: TODAY_INK, strokeWidth: '2px' }, shortDesc: 'Today' }] : [],
+      // as tall as its rows (a fixed 34rem left a large empty area under a short plan)
+      ganttStyle: { height: Math.max(192, 104 + rows.length * 48) + 'px' },
       planningId: id || 'planning',
       attributeColumns: columns,
       start: from + 'T00:00:00',
@@ -11884,7 +11965,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rangeAction: m.rangeSelectActionId || '',
       startDay: from,
       endDay: plusDays(to, 1),
-      rowIds: rows.map((r) => r.id).join('\u001f'),
+      rowIds: rows.map((r) => (r.isGroup ? '' : r.id)).join('\u001f'),
+      // ONE header row, the days (the web's board has no other: a weeks band read as a stray row);
+      // no majorScale = oj-gantt draws no major axis
+      majorScale: undefined,
+      minorScale: 'days',
       rowLabels: rows.map((r) => r.label).join('\u001f'),
       dndMove: m.moveActionId ? 'enabled' : 'disabled',
       taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
@@ -11907,6 +11992,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
       })),
       selectActionId: m.onTaskSelectionActionId || '',
+      // a little air after the last bar: a one-day task at the end sat flush on the chart's edge
+      ...(tasks.length ? { to: plusDays(tasks.map((t) => t.end).sort().pop(), 2) } : {}),
     }, id || 'gantt')
     const progress = {}
     const colors = {}
@@ -12009,6 +12096,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (kind === 'move' && atom.moveActionId && taskId) {
       const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
         : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+      // a group's header row is no resource
+      if (String(rowId || '').startsWith(GROUP_ROW_PREFIX)) return null
       return { actionId: atom.moveActionId, parameters: {
         // start/end: the bar's new bounds (value is the instant under the pointer)
         _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
@@ -12517,7 +12606,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         features: (p.features || []).map((f) => interp(str(f))),
         featured: !!p.featured,
         cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
-        hasCta: !!p.actionId,
+        // the web draws the CTA whenever it has a label (inert without an actionId) — it was dropped
+        hasCta: !!p.actionId || !!p.ctaLabel,
+        ctaDisabled: !p.actionId,
         ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
         chroming: p.featured ? 'callToAction' : 'outlined',
         colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
@@ -12542,7 +12633,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const ORG_CARD_TEMPLATE = 'mateuOrgCard'
 
   function orgChartAtomOf(m, interp = (x) => x) {
-    if (orgHierarchyProviderFactory) return orgHierarchyAtomOf(m, interp)
+    // `display: focus` → Spectra's hierarchy viewer (one person, managers above, reports below). The
+    // DEFAULT `tree` shows the WHOLE tree: the viewer shows only two levels (grandchildren were lost), so
+    // it is the outline, every node at its depth, clickable, in its accent colour
+    if (orgHierarchyProviderFactory && str(m.display).toLowerCase() === 'focus') return orgHierarchyAtomOf(m, interp)
     const nodes = []
     const walk = (node, depth, last) => {
       if (!node) return
@@ -12551,6 +12645,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       nodes.push({
         depth,
         rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+        // the node's accent colour (it was dropped): a bar along the card's start edge
+        cardStyle: cssColorOf(node.color) ? { borderInlineStart: '4px solid ' + cssColorOf(node.color) } : {},
         rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
         title: interp(str(node.title)),
         subtitle: interp(str(node.subtitle)),
@@ -12845,6 +12941,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: interp(str(it.label)),
         value: it.done ? ['done'] : [],
         labelClass: it.done ? 'mateu-checklist-done' : '',
+        iconClass: it.done ? 'mateu-checklist-box mateu-checklist-box-done' : 'mateu-checklist-box',
+        srStatus: it.done ? ', done' : ', not done',
         readonly: !it.actionId,
         actionId: it.actionId || '',
         parameters: { _item: it, _done: !it.done },
@@ -13525,6 +13623,76 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       text: interp(str(m.text)),
       ariaLabel: interp(str(m.text)) || 'Progress',
       barClass: 'oj-sm-margin-1x-vertical' + (toneOf(m.theme) ? ' mateu-tone-' + toneOf(m.theme) : ''),
+    }
+  }
+
+  /** ProgressSteps → oj-train (horizontal, no descriptions): a done step is VISITED with JET's
+   *  confirmation mark (it read «Status: Not visited» and looked upcoming). With descriptions or
+   *  `vertical` (oj-train draws neither) → our own step list, same done / current / upcoming states. */
+  function progressStepsAtomOf(m, interp = (x) => x) {
+    const raw = m.steps || []
+    const current = raw.find((step) => step.status === 'current')
+    const titleOf = (step) => interp(str(step.title || step.label || step.id))
+    const steps = raw.map((step) => ({
+      id: step.id,
+      label: titleOf(step),
+      ...(step.status === 'done' ? { visited: true, messageType: 'confirmation' } : {}),
+    }))
+    const own = !!m.vertical || raw.some((step) => step.description)
+    return {
+      isProgress: true,
+      steps,
+      selectedId: current ? current.id : (steps[0] && steps[0].id),
+      trainSteps: !own,
+      ownSteps: own,
+      stepsClass: 'mateu-steps' + (m.vertical ? ' mateu-steps-vertical' : ''),
+      stepItems: raw.map((step, i) => {
+        const status = step.status === 'done' || step.status === 'current' ? step.status : 'upcoming'
+        return {
+          key: str(step.id || i),
+          number: status === 'done' ? '✓' : String(i + 1),
+          title: titleOf(step),
+          description: interp(str(step.description)),
+          hasDescription: !!step.description,
+          cls: 'mateu-step mateu-step-' + status,
+          ariaCurrent: status === 'current' ? 'step' : null,
+          srStatus: ', ' + (status === 'done' ? 'done' : status === 'current' ? 'current step' : 'upcoming'),
+        }
+      }),
+    }
+  }
+
+  /** The points of a sparkline (an SVG polyline in a 100×24 box); '' under two finite points. */
+  function sparkPointsOf(values, w = 100, h = 24, pad = 2) {
+    const vals = (values || []).map(Number).filter(Number.isFinite)
+    if (vals.length < 2) return ''
+    const min = Math.min(...vals)
+    const span = Math.max(...vals) - min || 1
+    const step = (w - pad * 2) / (vals.length - 1)
+    return vals.map((v, i) => (pad + i * step).toFixed(1) + ',' + (pad + (h - pad * 2) * (1 - (v - min) / span)).toFixed(1)).join(' ')
+  }
+
+  const STAT_TREND = {
+    up: { glyph: '▲', cls: 'oj-text-color-success', stroke: 'var(--oj-core-success-3, #508223)' },
+    down: { glyph: '▼', cls: 'oj-text-color-danger', stroke: 'var(--oj-core-danger-3, #c74634)' },
+    flat: { glyph: '→', cls: 'oj-text-color-secondary', stroke: 'var(--oj-core-neutral-3, #8a8582)' },
+  }
+  /** Stat → a KPI tile: label, value + unit, the delta coloured by its trend and a sparkline (only the
+   *  label and the value were drawn). Like the web's mateu-stat: an absent trend reads as up. */
+  function statAtomOf(m, interp = (x) => x) {
+    const trend = STAT_TREND[str(m.trend).toLowerCase()] || STAT_TREND[m.trend === 'neutral' ? 'flat' : 'up']
+    const points = sparkPointsOf(m.spark)
+    const delta = interp(str(m.delta))
+    return {
+      isStat: true,
+      label: interp(str(m.label)),
+      value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
+      hasDelta: !!delta,
+      deltaText: delta ? trend.glyph + ' ' + delta : '',
+      deltaClass: 'oj-typography-body-sm ' + trend.cls,
+      hasSpark: !!points,
+      sparkPoints: points,
+      sparkStroke: trend.stroke,
     }
   }
 
@@ -26416,6 +26584,45 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
   }
 
+  // ── AddOnPicker: the running total follows the switches at once (the web's header does) ─────────
+  /** Writes the picker's new total next to the switch that changed it (before the server answers). */
+  function showAddOnTotal(target, total, currency) {
+    const picker = target && target.closest ? target.closest('.mateu-addons') : null
+    const out = picker ? picker.querySelector('.mateu-addons-total-value') : null
+    if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
+  }
+
+  // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
+  /** Marks `id` as the picked method of a picker's methods row (its button takes the callToAction). */
+  function pickPaymentMethod(methods, id) {
+    if (!methods) return
+    methods.setAttribute('data-selected', id)
+    for (const b of Array.from(methods.querySelectorAll('[data-payment-method]'))) {
+      const chroming = b.getAttribute('data-payment-method') === id ? 'callToAction' : 'outlined'
+      try { b.chroming = chroming } catch (e) { /* not upgraded */ }
+      b.setAttribute('chroming', chroming)
+    }
+  }
+  /** The confirm's parameters: the picked method over the server's `selected`. */
+  function paymentParametersOf(target, parameters) {
+    const picker = target && target.closest ? target.closest('.mateu-payment') : null
+    const methods = picker ? picker.querySelector('.mateu-payment-methods') : null
+    const picked = methods ? methods.getAttribute('data-selected') : ''
+    return picked ? { ...(parameters || {}), _method: picked } : { ...(parameters || {}) }
+  }
+  /** Installs (once) the method pick: a click marks it; a method WITHOUT methodActionId stays on the
+   *  client (it used to send an empty action), one with it still tells the server. */
+  function installPaymentPickers(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPaymentPickers) return
+    doc.__mateuPaymentPickers = true
+    doc.addEventListener('click', (e) => {
+      const button = e.target && e.target.closest ? e.target.closest('[data-payment-method]') : null
+      if (!button) return
+      pickPaymentMethod(button.closest('.mateu-payment-methods'), button.getAttribute('data-payment-method'))
+      if (button.getAttribute('data-payment-local') === 'true') e.stopPropagation()
+    }, true)
+  }
+
   // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
   // The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
   // items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
@@ -26472,13 +26679,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const atomOf = (host) => {
       try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
     }
-    // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+    // capture: the list's item action does not have to bubble out of the scoreboard to be heard.
+    // The card's TEXTS (its title, its metric) swallow the click before the list turns it into an
+    // item action — only the card's padding drilled in —, so a click anywhere in an actionable card
+    // runs it here, and the item action that may follow the same click is not run twice.
+    let lastClick = { key: null, at: 0 }
+    const runKey = (host, key) => {
+      if (key === lastClick.key && Date.now() - lastClick.at < 800) return false
+      const run = scoreboardDrillInOf(atomOf(host), key)
+      if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], run[2]) }
+      return !!run
+    }
+    doc.addEventListener('click', (e) => {
+      const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+      if (!host || !scoreboardSink) return
+      let card = e.target
+      while (card && card !== host && scoreboardIndexOf(card) < 0) card = card.parentElement
+      if (!card || card === host) return
+      runKey(host, 'k' + scoreboardIndexOf(card))
+    }, true)
     doc.addEventListener('ojItemAction', (e) => {
       const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
       if (!host || !scoreboardSink) return
       const key = e.detail && e.detail.context ? e.detail.context.key : null
-      const run = scoreboardDrillInOf(atomOf(host), key)
-      if (run) scoreboardSink(run[0], run[1], run[2])
+      runKey(host, key)
     }, true)
     if (typeof MutationObserver === 'undefined') return
     const root = doc.body || doc.documentElement
@@ -29382,7 +29606,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers',
     'installDrawerGuard', 'installAttachmentChips', 'installKanbans', 'installTaskCenter',
   ])
 
@@ -30343,6 +30567,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setFactActionSink,
     // the KPI band (oj-sp-scoreboard): a card's icon and its drill-in (actionId)
     installScoreboards,
+    showAddOnTotal,
+    installPaymentPickers,
+    paymentParametersOf,
     setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,

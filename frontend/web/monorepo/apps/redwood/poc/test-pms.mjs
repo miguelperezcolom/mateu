@@ -664,8 +664,11 @@ test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, re
   const reg = reduceContexts(empty(), fixture('room-diary'))
   const atom = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => b.items || []).find((a) => a.isPlanning)
   assert.ok(atom, 'el tape chart no se proyectó')
-  assert.equal(atom.rows.length, 40)
-  assert.match(atom.rows[0].label, /^101 · STD · (CL|IP|DI|PU|OS|OO)$/)
+  // the resources, and a header row before each resource group (the floors)
+  const resourceRows = atom.rows.filter((r) => !r.isGroup)
+  assert.equal(resourceRows.length, 40)
+  assert.ok(atom.rows[0].isGroup && atom.rows[0].tasks.length === 0, 'the first floor heads its rooms')
+  assert.match(resourceRows[0].label, /^101 · STD · (CL|IP|DI|PU|OS|OO)$/)
   assert.deepEqual([atom.dndMove, atom.taskResizable], ['enabled', 'enabled'])
   assert.deepEqual([atom.moveActionId, atom.resizeActionId, atom.openActionId, atom.rangeSelectActionId],
     ['moveStay', 'resizeStay', 'openStay', 'newStay'])
@@ -705,7 +708,7 @@ test('Planning/Gantt: degenerate dates never give oj-gantt a negative length', (
     { id: 'd', title: 'D', start: '2026-01-31', end: '2026-01-31' },
   ] }, 'g')
   assert.deepEqual(g.rows.map((r) => r.id), ['a', 'b', 'd'])
-  assert.deepEqual([g.start, g.end], ['2026-01-31T00:00:00', '2026-10-13T00:00:00'])
+  assert.deepEqual([g.start, g.end], ['2026-01-31T00:00:00', '2026-10-15T00:00:00']) // two days of air after the last bar
   for (const t of g.rows.flatMap((r) => r.tasks)) assert.ok(Date.parse(t.end) > Date.parse(t.start), t.id)
   for (const t of p.rows[0].tasks) assert.ok(Date.parse(t.end) > Date.parse(t.start), t.id)
   assert.ok(Date.parse(g.end) > Date.parse(g.start) && Date.parse(p.end) > Date.parse(p.start))
