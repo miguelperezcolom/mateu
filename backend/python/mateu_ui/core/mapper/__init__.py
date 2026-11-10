@@ -299,6 +299,8 @@ class ReflectionMapper(
         self.adapters: dict = {}
         #: The listing exporters (set by the SyncHandler); default = the built-in CSV writer only.
         self.exporters: Any = Exporters()
+        #: an EmbeddedView island's own data (its lookup labels); set by the SyncHandler
+        self.island_data: Any = None
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
         self.translations: Any = None
         #: Live UI push is on (set by SyncHandler.enable_agent_push): the app says so on the wire.

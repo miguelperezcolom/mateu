@@ -60,7 +60,7 @@ class CrudFeaturesRenderTest : RenderTestCase() {
         val t = table(crud(crudContext(), """{"type":"Crud","columns":[{"metadata":{"id":"guest","label":"Guest"}},
             {"metadata":{"id":"amount","label":"Amount","aggregate":"avg"}}]}""",
             """{"page":{"content":[{"guest":"Ada","amount":1},{"guest":"Grace","amount":2}],"totalElements":2},"aggregates":{"amount":1.5}}"""))
-        assertEquals(listOf("Total", "1.5".replace(".", java.text.DecimalFormatSymbols.getInstance().decimalSeparator.toString())), cells(t).last())
+        assertEquals(listOf("Total", "1.5".replace(".", java.text.DecimalFormatSymbols.getInstance(io.mateu.ijp.ui.MoneyValues.uiLocale()).decimalSeparator.toString())), cells(t).last())
     }
 
     fun testCommittingAnEditedCellSavesTheRowAndANoOpCommitDoesNot() {
