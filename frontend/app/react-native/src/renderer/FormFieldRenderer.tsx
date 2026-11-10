@@ -3,7 +3,7 @@ import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { HelperText, SegmentedButtons, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
-import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger, StatusChip } from '../ui/controls';
+import { DenseFields, MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger, StatusChip } from '../ui/controls';
 import { optionLabelOf, readOnlyFieldText, readOnlyStatus } from '../core/readOnlyDisplay';
 import { Text, TextInput } from '../ui/Text';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
@@ -122,6 +122,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   const ruleAttrs = controller.fieldAttributes[fieldId] ?? {};
   const label = interpolate(metadata.label ?? '', { state, appState: controller.session.appState });
   const required = ruleAttrs['required'] !== undefined ? Boolean(ruleAttrs['required']) : metadata.required === true;
+  const dense = React.useContext(DenseFields);
   if (ruleAttrs['hidden']) return null;
 
   const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
@@ -536,7 +537,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, dense && styles.containerDense]}>
       {(() => {
         const input = renderInput();
         return (
@@ -960,6 +961,7 @@ const styles = themed(() => StyleSheet.create({
   bulletedFieldText: { flex: 1, color: theme.ink, fontSize: 14, lineHeight: 20 },
   // the top margin keeps an outlined field's floating label clear of a tight caption above it
   container: { marginTop: 6, marginBottom: 14 },
+  containerDense: { marginTop: 2, marginBottom: 6 },
   label: { color: theme.muted, marginBottom: 4 },
   input: {
     borderWidth: 1,

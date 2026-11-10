@@ -36,3 +36,13 @@ export const useScreenHasBack = (): boolean => useContext(ScreenHasBack);
  */
 export const BarTitle = createContext<string | null>(null);
 export const useBarTitle = (): string | null => useContext(BarTitle);
+
+/**
+ * The page's @Toc sections registry: a section card registers its title, whether it is pinned, and
+ * a way to scroll the page to it; the page draws the index from what registered. Null outside a
+ * page that keeps one.
+ */
+export interface SectionEntry { key: string; title: string; sticky: boolean; ref: { current: unknown } }
+export interface SectionRegistry { register: (entry: SectionEntry) => () => void }
+export const SectionIndex = createContext<SectionRegistry | null>(null);
+export const useSectionIndex = (): SectionRegistry | null => useContext(SectionIndex);

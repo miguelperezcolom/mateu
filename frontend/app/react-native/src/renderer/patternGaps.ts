@@ -279,7 +279,8 @@ export function drawsNothing(node: unknown): boolean {
   const m = n?.metadata ?? {};
   const children = Array.isArray(n?.children) ? n!.children! : [];
   if (m['type'] === 'CustomField') return !m['content'] && children.every(drawsNothing);
-  if (!CONTAINERS.has(String(m['type']))) return false;
+  // a node with no type is drawn as a plain column of its children: a container too
+  if (m['type'] != null && !CONTAINERS.has(String(m['type']))) return false;
   if (m['title'] || m['label']) return false;
   // a card's content, header and footer are nodes too: what they hold decides
   for (const slot of ['content', 'header', 'footer']) {

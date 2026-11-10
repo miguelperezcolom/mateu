@@ -18,6 +18,8 @@ import { badgeIconsOf } from './displayFigures';
 import { progressBarColor } from './displayTones';
 import { badgeLook } from '../ui/looks';
 import { BOX_SIZES, cssToRn } from '../core/cssStyle';
+import { isSectionCard, isStickySection, sectionTitleOf } from './sectionIndex';
+import { useSectionIndex } from './ScrollContext';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -83,6 +85,15 @@ function CardSlotText({ value, state, variant, style }: { value: unknown; state:
  */
 export function CardRenderer({ component, state }: { component: unknown; state: Dict }) {
   const m = meta(component);
+  // an @Section card on a page keeping a @Toc index: it registers itself as an index entry
+  const sections = useSectionIndex();
+  const sectionRef = React.useRef<View>(null);
+  const sectionTitle = isSectionCard(component) ? sectionTitleOf(component) : '';
+  const sticky = isStickySection(component);
+  React.useEffect(() => {
+    if (!sections || !sectionTitle) return undefined;
+    return sections.register({ key: `${sectionTitle}#${String((component as Dict)?.['id'] ?? '')}`, title: sectionTitle, sticky, ref: sectionRef });
+  }, [sections, sectionTitle, sticky, component]);
   if (drawsNothing(component)) return null;
   const variants = new Set(((m['variants'] as string[] | undefined) ?? []).map(String));
   const elevated = variants.has('elevated');
@@ -112,7 +123,8 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
     </View>
   );
   return (
-    <Card mode={elevated ? 'elevated' : 'outlined'} style={[styles.card, elevated ? styles.cardElevated : null, box, { maxWidth: '100%' }]}>
+    <View ref={sectionRef} collapsable={false} style={[cssToRn(((component as Dict)?.['style'] as string) ?? '', BOX_SIZES), { maxWidth: '100%' }]}>
+    <Card mode={elevated ? 'elevated' : 'outlined'} style={[styles.card, elevated ? styles.cardElevated : null, box]}>
       {horizontal ? (
         <View style={styles.cardRow}>
           {media && <View style={styles.cardMediaStart}><ComponentRenderer component={media} state={state} /></View>}
@@ -125,11 +137,12 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
         </>
       )}
     </Card>
+    </View>
   );
 }
 
 /** What a card takes from its own style: sizes and looks (never its flex: that is its row's). */
-const CARD_BOX = new Set([...BOX_SIZES, 'background', 'background-color', 'border-radius']);
+const CARD_BOX = new Set(['background', 'background-color', 'border-radius']);
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 export function TabsRenderer({ component, state }: { component: unknown; state: Dict }) {

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  accordionLook, drawerSheetLook, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
+  accordionLook, drawerSheetLook, drawsNothing, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
   showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, withOverlayState, type RecordSwitcher,
 } from './patternGaps.ts';
 import { cssLengthPx, gridTrackSizes, orderByAreas, responsiveColumns } from './wireWidgets.ts';
@@ -180,4 +180,11 @@ test('TabLayout and Accordion variants', () => {
   assert.deepEqual(tabLayoutLook('small minimal'), { bordered: false, small: true, minimal: true, centered: false });
   assert.deepEqual(tabLayoutLook(null), { bordered: false, small: false, minimal: false, centered: false });
   assert.deepEqual(accordionLook('filled'), { filled: true, small: false });
+});
+
+test('nodes that draw nothing: an untyped empty wrapper, containers of such; a Div with text draws', () => {
+  assert.equal(drawsNothing({ type: 'ClientSide', children: [] }), true);
+  assert.equal(drawsNothing({ metadata: { type: 'VerticalLayout' }, children: [{ type: 'ClientSide', children: [] }] }), true);
+  assert.equal(drawsNothing({ metadata: { type: 'Div', content: 'Hello' }, children: [] }), false);
+  assert.equal(drawsNothing({ metadata: { type: 'Text', text: '' } }), false);
 });

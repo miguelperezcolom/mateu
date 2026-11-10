@@ -10,14 +10,15 @@ import { useViewController } from './MateuViewHost';
 import { BreadcrumbsRenderer } from './WireComponents';
 import { ComponentRenderer } from './ComponentRenderer';
 import { theme, themed } from '../theme';
-import { FAB, IconButton, Text as PaperText } from 'react-native-paper';
-import { MateuButton, StatusChip } from '../ui/controls';
+import { Chip, FAB, IconButton, Text as PaperText } from 'react-native-paper';
+import { showsSectionIndex } from './sectionIndex';
+import { DenseFields, MateuButton, StatusChip } from '../ui/controls';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
-import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
+import { drawsNothing, pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, SectionIndex, type SectionEntry, type SectionRegistry, useBarTitle, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
@@ -120,11 +121,36 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
     ((children[0] as Record<string, unknown>)?.['metadata'] as Record<string, unknown> | undefined)?.['type'] === 'Crud';
   const pressButton = useButtonPress();
 
+  // @Toc: the @Section cards register here; the index (a row of chips ABOVE the scrolling body, so
+  // it never scrolls away — the phone's take on the web's sticky side index and pinned sections,
+  // which on a 360dp screen would cover the content) jumps to a section
+  const scrollRef = React.useRef<ScrollView>(null);
+  const contentRef = React.useRef<View>(null);
+  const [sections, setSections] = useState<SectionEntry[]>([]);
+  const registry = React.useMemo<SectionRegistry>(() => ({
+    register: (entry) => {
+      setSections((all) => [...all.filter((e) => e.key !== entry.key), entry]);
+      return () => setSections((all) => all.filter((e) => e.key !== entry.key));
+    },
+  }), []);
+  const jumpTo = (entry: SectionEntry) => {
+    const target = entry.ref.current as View | null;
+    const content = contentRef.current;
+    if (!target || !content) return;
+    target.measureLayout(content, (_x, y) => scrollRef.current?.scrollTo({ y: Math.max(0, y - 8), animated: true }), () => {});
+  };
+  const indexEntries = [...sections.filter((s) => s.sticky), ...sections.filter((s) => !s.sticky)];
+  const showIndex = !onlyListing && showsSectionIndex(metadata['toc'], sections.length);
+
   // the page's breadcrumb trail (BreadcrumbsSupplier / the derived trail) unless it opts out — it
   // was never drawn; and the page's HEADER components (HeaderSupplier: a listing's drop zones…)
   const crumbs = metadata['noBreadcrumbs'] === true ? [] : ((metadata['breadcrumbs'] as Record<string, unknown>[] | undefined) ?? []);
   const headerComponents = (metadata['header'] as unknown[] | undefined) ?? [];
+  // a page whose body draws nothing (only its buttons, say) gets no empty band between dividers
+  const bodyEmpty = children.every(drawsNothing);
   return (
+    // @Compact (the page style's --mateu-compact marker): dense fields, tighter rows
+    <DenseFields.Provider value={/--mateu-compact:\s*1/.test(String(component['style'] ?? ''))}>
     <View style={[styles.root, fits && FIT_CONTENT]}>
       {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers || crumbs.length > 0) && (
         <View style={styles.header}>
@@ -208,19 +234,34 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <PageShowsToolbar.Provider value={toolbar.length > 0}>
           <ComponentRenderer component={children[0]} state={state} data={data} />
         </PageShowsToolbar.Provider>
-      ) : (
-        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      ) : bodyEmpty ? null : (
+        <>
+        {showIndex && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tocBar} contentContainerStyle={styles.tocBarContent} accessibilityRole="toolbar" accessibilityLabel="Sections">
+            {indexEntries.map((s) => (
+              <Chip key={s.key} compact icon={s.sticky ? 'pin-outline' : undefined} onPress={() => jumpTo(s)} style={styles.tocChip} accessibilityLabel={`Go to ${s.title}`}>
+                {s.title}
+              </Chip>
+            ))}
+          </ScrollView>
+        )}
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <View ref={contentRef} collapsable={false}>
+          <SectionIndex.Provider value={registry}>
           <InsideVerticalScroll.Provider value><PageShowsToolbar.Provider value={toolbar.length > 0}>
           {children.map((child, i) => (
             <ComponentRenderer key={i} component={child} state={state} data={data} />
           ))}
           </PageShowsToolbar.Provider></InsideVerticalScroll.Provider>
+          </SectionIndex.Provider>
+          </View>
         </ScrollView>
+        </>
       )}
 
 
       {buttons.length > 0 && (
-        <View style={styles.bottomBar}>
+        <View style={[styles.bottomBar, bodyEmpty && styles.bottomBarFlush]}>
           {buttons.map((btn, i) => {
             const id = btn.actionId ?? btn.id ?? '';
             const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
@@ -245,6 +286,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         </View>
       )}
     </View>
+    </DenseFields.Provider>
   );
 }
 
@@ -273,6 +315,10 @@ const styles = themed(() => StyleSheet.create({
   kpiText: { fontSize: 22, fontWeight: '700', color: theme.ink },
   kpiTitle: { fontSize: 11, color: theme.faint },
   fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 12, alignItems: 'flex-end' },
+  bottomBarFlush: { borderTopWidth: 0 },
+  tocBar: { flexGrow: 0, flexShrink: 0, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider, backgroundColor: theme.surface },
+  tocBarContent: { gap: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center' },
+  tocChip: { backgroundColor: theme.background },
   bottomBar: {
     flexDirection: 'row',
     flexWrap: 'wrap',

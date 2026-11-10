@@ -125,6 +125,9 @@ export function SelectBox({ checked, label, onToggle, style, disabled }: { check
 
 type PaperInputProps = React.ComponentProps<typeof TextInput>;
 
+/** @Compact: the fields of a compact page are DENSE (smaller outlined boxes, tighter rows). */
+export const DenseFields = React.createContext(false);
+
 /** The outline of every outlined field (text inputs and picker triggers alike). */
 const fieldOutline = () => (theme.scheme === 'dark' ? '#8D9199' : '#73777F');
 
@@ -139,6 +142,7 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
   error?: string;
   a11y?: Record<string, unknown>;
 }) {
+  const dense = React.useContext(DenseFields);
   return (
     <View>
       <TextInput
@@ -150,7 +154,8 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
         outlineColor={fieldOutline()}
         activeOutlineColor={theme.primary}
         outlineStyle={styles.outline}
-        style={[styles.input, style]}
+        dense={dense}
+        style={[styles.input, dense && styles.inputDense, style]}
         {...rest}
         {...(a11y as object)}
       />
@@ -203,6 +208,7 @@ export function OutlinedTrigger({ label, required, value, placeholder, icon = 'm
   accessibilityLabel?: string;
   expanded?: boolean;
 }) {
+  const dense = React.useContext(DenseFields);
   return (
     <View>
       <Pressable
@@ -216,7 +222,7 @@ export function OutlinedTrigger({ label, required, value, placeholder, icon = 'm
       >
         {/* drawn like Paper's outlined field (label in the notch), but as plain views: a read-only
             native input wraps a long value onto a second line inside a narrow column */}
-        <View style={[styles.trigger, !!error && { borderColor: theme.danger }, disabled && styles.triggerDisabled]}>
+        <View style={[styles.trigger, dense && styles.triggerDense, !!error && { borderColor: theme.danger }, disabled && styles.triggerDisabled]}>
           <Text variant="bodyLarge" numberOfLines={1} style={[styles.triggerValue, !value && { color: theme.faint }]}>
             {value || placeholder || ''}
           </Text>
@@ -252,6 +258,8 @@ const styles = themed(() =>
     chipPill: { borderRadius: 999, paddingHorizontal: 12 },
     chipSmall: { paddingHorizontal: 7, paddingVertical: 1 },
     input: { backgroundColor: theme.surface, fontSize: 16 },
+    inputDense: { fontSize: 14 },
+    triggerDense: { minHeight: 40 },
     outline: { borderRadius: 8 },
     helper: { paddingHorizontal: 4 },
     trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: fieldOutline(), borderRadius: 8, backgroundColor: theme.surface, gap: 8 },
