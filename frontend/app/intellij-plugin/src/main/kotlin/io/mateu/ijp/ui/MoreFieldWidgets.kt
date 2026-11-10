@@ -44,7 +44,8 @@ object FieldValues {
         if (!value.startsWith("data:")) return value
         val head = value.substringBefore(',')
         val name = Regex(";name=([^;,]+)").find(head)?.groupValues?.get(1)?.let { java.net.URLDecoder.decode(it, Charsets.UTF_8) }
-        val bytes = (value.length - head.length - 1) * 3 / 4
+        val body = value.substringAfter(",")
+        val bytes = body.length * 3 / 4 - body.takeLast(2).count { it == '=' }
         val size = if (bytes >= 1024) "${bytes / 1024} KB" else "$bytes B"
         return "${name ?: head.removePrefix("data:").substringBefore(';').ifBlank { "File" }} ($size)"
     }

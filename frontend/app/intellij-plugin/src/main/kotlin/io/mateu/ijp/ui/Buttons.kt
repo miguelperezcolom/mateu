@@ -68,7 +68,7 @@ internal fun styleButton(button: JButton, metadata: JsonNode) {
     // made a docked panel's ✕ 122px wide)
     if (isGlyphLabel(metadata.text("label"))) {
         button.putClientProperty("JButton.buttonType", "square")
-        button.toolTipText = button.toolTipText ?: plainTip(metadata.text("actionId").ifBlank { null })
+        if (button.toolTipText == null) button.toolTipText = plainTip(metadata.text("actionId").ifBlank { null })
     }
     val (icon, text) = buttonFace(button.text, metadata.text("iconOnLeft"), metadata.text("iconOnRight"))
     if (icon != null) {

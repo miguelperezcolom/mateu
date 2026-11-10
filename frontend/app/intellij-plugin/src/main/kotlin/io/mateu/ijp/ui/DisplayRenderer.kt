@@ -250,7 +250,7 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
             if (open[pv.index]) {
                 val col = column(pv.title, pv.subtitle, pv.content, pv.summary)
                 val fold = javax.swing.JButton("‹").apply {
-                    toolTipText = "Fold ${pv.title}"
+                    toolTipText = plainTip("Fold ${pv.title}")
                     accessibleName("Fold ${pv.title}")
                     putClientProperty("JButton.buttonType", "square")
                     addActionListener { open[pv.index] = false; rebuild() }
@@ -288,9 +288,9 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
     bar.add(left, BorderLayout.CENTER)
     val right = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(4), 0)).apply { isOpaque = false }
     fun peer(actionId: String, glyph: String, name: String) {
-        right.add(javax.swing.JButton(glyph).apply {
+        right.add(javax.swing.JButton(plain(glyph)).apply {
             putClientProperty("JButton.buttonType", "square")
-            toolTipText = name
+            toolTipText = plainTip(name)
             accessibleName(name)
             isEnabled = actionId.isNotBlank()
             addActionListener { r.ctx.runAction(actionId, null) }

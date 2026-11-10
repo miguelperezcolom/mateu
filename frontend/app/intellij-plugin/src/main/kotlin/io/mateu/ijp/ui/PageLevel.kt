@@ -121,12 +121,12 @@ object PageLevel {
         sections.forEachIndexed { i, (title, _) ->
             val shortcut = if (i < 9) "Ctrl+Alt+${i + 1}" else null
             val link = ActionLink(plain(title)) { select(i) }
-            link.toolTipText = shortcut
+            link.toolTipText = plainTip(shortcut)
             link.accessibleName(title).accessibleDescription(shortcut ?: "")
             links += link
             val row = JPanel(BorderLayout(JBUI.scale(6), 0)).apply { isOpaque = false }
             row.add(link, BorderLayout.CENTER)
-            if (shortcut != null) row.add(JBLabel("${i + 1}").apply { foreground = ToneColors.secondaryText(); font = JBUI.Fonts.smallFont() }, BorderLayout.EAST)
+            if (shortcut != null) row.add(JBLabel(plain("${i + 1}")).apply { foreground = ToneColors.secondaryText(); font = JBUI.Fonts.smallFont() }, BorderLayout.EAST)
             panel.addStacked(row, 2)
             if (i < 9) {
                 host.registerKeyboardAction({ select(i) },

@@ -80,6 +80,8 @@ object BpmnDiagrams {
      * The process as outline lines, depth first from the start: each line is (indent, text). A node
      * with several outgoing flows lists each branch indented under it, headed by the flow's name.
      */
+    private const val CHAIN = "\u0000chain"
+
     fun outline(model: Model): List<Pair<Int, String>> {
         val out = ArrayList<Pair<Int, String>>()
         val seen = HashSet<String>()
@@ -91,11 +93,16 @@ object BpmnDiagrams {
         }
         fun walk(id: String, depth: Int, via: String?) {
             val node = model.nodes[id] ?: return
-            val prefix = if (via.isNullOrBlank()) "" else "$via → "
+            val prefix = when {
+                via == null -> ""
+                via == CHAIN -> "↓ "
+                else -> "$via → "
+            }
             if (!seen.add(id)) { out += depth to "$prefix↪ ${node.name}"; return }
             out += depth to "$prefix${glyph(node.kind)} ${node.name}"
             val next = model.flows.filter { it.source == id }
-            if (next.size == 1) walk(next[0].target, depth, next[0].name.takeIf { it.isNotBlank() })
+            // a chain reads down with arrows; a fork lists each branch indented, headed by its flow
+            if (next.size == 1) walk(next[0].target, depth, next[0].name.ifBlank { CHAIN })
             else next.forEach { walk(it.target, depth + 1, it.name.ifBlank { "branch" }) }
         }
         val starts = model.nodes.values.filter { it.kind == "startEvent" }.ifEmpty { model.nodes.values.take(1) }

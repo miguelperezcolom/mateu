@@ -52,7 +52,7 @@ object DrawerChrome {
         }
         val right = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(4), 0)).apply { isOpaque = false }
         meta.path("peerNav").takeIf { it.isObject }?.let { peer ->
-            fun arrow(glyph: String, label: String, route: String) = JButton(glyph).apply {
+            fun arrow(glyph: String, label: String, route: String) = JButton(plain(glyph)).apply {
                 putClientProperty("JButton.buttonType", "square")
                 toolTipText = plainTip(label.ifBlank { null })
                 accessibleName(if (label.isBlank()) glyph else label)

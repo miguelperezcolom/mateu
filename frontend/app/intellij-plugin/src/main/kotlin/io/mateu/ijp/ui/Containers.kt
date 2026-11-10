@@ -175,7 +175,7 @@ private fun badgeInk(c: Color): Color =
     if (c.red > 200 && c.green > 150) Color(0x8A, 0x5A, 0x00) else c
 
 /** A label painting a rounded background (a pill: radius = height). */
-private class BadgeLabel(text: String, private val pill: Boolean) : JBLabel(text) {
+private class BadgeLabel(text: String, private val pill: Boolean) : JBLabel(plain(text)) {
     init { isOpaque = false }
     // a chip keeps its own width in a stack (a vertical layout stretched it into a full-width bar)
     override fun getMaximumSize(): java.awt.Dimension = preferredSize

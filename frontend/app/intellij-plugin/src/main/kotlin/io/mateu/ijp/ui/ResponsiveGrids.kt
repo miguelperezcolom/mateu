@@ -96,7 +96,13 @@ fun renderResponsiveGridTracks(r: ComponentRenderer, children: List<JsonNode>, m
     children.forEachIndexed { i, child ->
         val cell = child.text("slot").takeIf { it.isNotBlank() }?.let { ResponsiveGrids.cellOf(areas, it) } ?: run {
             // not in an area: the next free cells after the areas, in order (with its colSpan)
-            val span = colSpans.getOrNull(i)?.coerceIn(1, columns) ?: 1
+            // a KPI band spans the row; a dashboard panel its own colSpan (a dashboard's grid)
+            val meta = child.path("metadata")
+            val span = (colSpans.getOrNull(i) ?: when (meta.text("type")) {
+                "Scoreboard" -> columns
+                "DashboardPanel" -> meta.text("colSpan").toIntOrNull()
+                else -> null
+            } ?: 1).coerceIn(1, columns)
             if (col + span > columns) { col = 0; row++ }
             ResponsiveGrids.Cell(row, col, 1, span).also { col += span; if (col >= columns) { col = 0; row++ } }
         }
