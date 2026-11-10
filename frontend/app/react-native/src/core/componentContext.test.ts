@@ -57,7 +57,20 @@ test('the trigger plan: AutoSave defaults, custom-event subscriptions, the rest 
   assert.deepEqual(p.autoSave, { actionId: 'save', debounceMillis: 800 });
   assert.deepEqual(p.subscriptions, [{ eventName: 'saved', actionId: 'load', from: 'list', scope: 'COMPONENT' }]);
   assert.deepEqual(triggerPlanOf([{ type: 'autosave', actionId: 'draft', debounceMillis: 200 }]).autoSave, { actionId: 'draft', debounceMillis: 200 });
-  assert.deepEqual(triggerPlanOf(undefined), { autoSave: null, subscriptions: [] });
+  assert.deepEqual(triggerPlanOf(undefined), { autoSave: null, subscriptions: [], valueChanges: [] });
+});
+
+test('OnValueChange: an edit of the named field (or any, when unnamed) runs the action whose condition holds', async () => {
+  const { valueChangeActionsOf } = await import('./componentContext.ts');
+  const { valueChanges } = triggerPlanOf([
+    { type: 'OnValueChange', actionId: 'countryChanged', propertyName: 'country', condition: '' },
+    { type: 'OnValueChange', actionId: 'recalculate', propertyName: 'quantity' },
+    { type: 'OnValueChange', actionId: 'anyEdit' },
+    { type: 'OnValueChange', actionId: 'onlyBig', propertyName: 'quantity', condition: 'state.quantity > 10' },
+  ]);
+  const holds = (c: string) => c !== 'state.quantity > 10';
+  assert.deepEqual(valueChangeActionsOf(valueChanges, 'country', holds), ['countryChanged', 'anyEdit']);
+  assert.deepEqual(valueChangeActionsOf(valueChanges, 'quantity', holds), ['recalculate', 'anyEdit']);
 });
 
 test('a subscription filters COMPONENT-scoped events by the emitter, passes the rest', () => {

@@ -131,6 +131,9 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
 
   const metadata = (component['metadata'] as Record<string, unknown>) ?? {};
   const metaType = (metadata['type'] as string) ?? '';
+  // what a `${…}` in a text or a label reads: the state, the view's data, the app's state and data
+  // (`${data.lastUpdate}` / `${appState.language}` stayed empty — only the state was offered)
+  const textCtx = { state, data: data ?? controller.rendered.data, appState: controller.session.appState, appData: controller.session.appData };
 
   const renderComponent = (comp: unknown, st: Record<string, unknown>, onStateChange: (id: string, v: unknown) => void) => (
     <ComponentRenderer component={comp} state={st} />
@@ -199,7 +202,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
         );
       }
       const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
-      const label = interpolate((metadata['label'] as string) ?? id, { state });
+      const label = interpolate((metadata['label'] as string) ?? id, textCtx);
       // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
@@ -234,7 +237,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     }
 
     case 'Text': {
-      const text = interpolate((metadata['text'] as string) ?? '', { state });
+      const text = interpolate((metadata['text'] as string) ?? '', textCtx);
       // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
       const TEXT_SIZES: Record<string, number> = { xl: 22, l: 18, s: 12.5, xs: 11 };
       const size = TEXT_SIZES[(metadata['size'] as string) ?? ''];

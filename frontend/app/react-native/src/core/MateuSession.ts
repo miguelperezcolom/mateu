@@ -76,6 +76,8 @@ export interface ScreenBack {
 export class MateuSession {
   readonly api: MateuApiClient;
   readonly appState: Record<string, unknown>;
+  /** What the server put in the app's data (`UIIncrementDto.appData`): `${appData.x}` reads it. */
+  readonly appData: Record<string, unknown> = {};
   /** Where this app's credentials may go: its own backend + the islands it names (an island
    *  shares its host's scope). */
   readonly credentials: CredentialScope;

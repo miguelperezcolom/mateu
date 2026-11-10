@@ -3,7 +3,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificationToastOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -178,6 +178,8 @@ export class MateuViewController {
 
   /** @Emits name stamped as __source on dispatched events. */
   private emitsName = '';
+  /** OnValueChange triggers of the current component. */
+  private valueChanges: ValueChangeTrigger[] = [];
   /** @AutoSave: debounced action fired after edits. */
   private autoSave: { actionId: string; debounceMillis: number } | null = null;
   private autoSaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -647,10 +649,20 @@ export class MateuViewController {
   // ── field state ─────────────────────────────────────────────────────────────────────
 
   putState(fieldId: string, value: unknown): void {
+    const changed = !sameValue(this.currentComponentState[fieldId], value);
     this.currentComponentState[fieldId] = value;
     this.markUserEdit();
-    // Rules react to edits (observed fields, conditional visibility/disabling).
-    this.applyRulesAndRepublish();
+    // Rules react to edits (observed fields, conditional visibility/disabling); without a rule change
+    // the tree still re-renders against the edited state — a `${state.x}` title, label or button
+    // label follows what is typed (it was evaluated once). Same version: nothing is remounted.
+    if (!this.applyRulesAndRepublish()) this.publish({ ...this.view, state: { ...this.currentComponentState } });
+    // OnValueChange: the edited field's triggers run their actions (Total recomputes, the City
+    // options follow the Country) — like every trigger, silent on failure and never held back
+    if (changed) {
+      for (const actionId of valueChangeActionsOf(this.valueChanges, fieldId, (c) => this.evalValidationCondition(c))) {
+        void this.runAction(actionId, undefined, true);
+      }
+    }
     // @AutoSave: fire the configured action once the user has been idle for the debounce window.
     if (this.autoSave) {
       if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
@@ -703,6 +715,7 @@ export class MateuViewController {
     // the emitter's __source); @AutoSave → debounced save on every edit.
     const plan = triggerPlanOf(sscNode['triggers']);
     this.autoSave = plan.autoSave;
+    this.valueChanges = plan.valueChanges;
     this.session.unsubscribeAll(this);
     for (const sub of plan.subscriptions) {
       this.session.subscribe(this, sub.eventName, (payload) => {
@@ -732,10 +745,12 @@ export class MateuViewController {
     });
   }
 
-  private applyRulesAndRepublish(): void {
+  private applyRulesAndRepublish(): boolean {
     if (this.applyRules()) {
       this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
+      return true;
     }
+    return false;
   }
 
   private ownsAction(actionId: string): boolean {
@@ -828,10 +843,22 @@ export class MateuViewController {
       this.publish({ ...this.view, version: this.view.version + 1 });
     }
 
+    // app state / app data an answer carries: `${appState.x}` / `${appData.x}` on screen follow it
     const newAppState = increment['appState'];
-    if (newAppState && typeof newAppState === 'object') {
+    const newAppData = increment['appData'];
+    let appChanged = false;
+    if (newAppState && typeof newAppState === 'object' && Object.keys(newAppState).length) {
       Object.assign(this.session.appState, newAppState);
+      appChanged = true;
     }
+    if (newAppData && typeof newAppData === 'object') {
+      const visible = Object.fromEntries(Object.entries(newAppData as Json).filter(([k]) => !k.startsWith('_')));
+      if (Object.keys(visible).length) {
+        Object.assign(this.session.appData, visible);
+        appChanged = true;
+      }
+    }
+    if (appChanged && this.view.component) this.publish({ ...this.view });
   }
 
   private applyFragment(fragment: Json): void {
@@ -882,6 +909,11 @@ export class MateuViewController {
         }
         const handler = this.dataHandlers[targetId || 'ux_main'] ?? this.dataHandlers['crud'];
         if (handler) handler(data);
+        else if (typeof data === 'object' && !Array.isArray(data)) {
+          // data for the view itself: `${data.lastUpdate}` reads it (it was dropped)
+          const merged = { ...((this.view.data && typeof this.view.data === 'object' && !Array.isArray(this.view.data)) ? this.view.data as Json : {}), ...(data as Json) };
+          this.publish({ ...this.view, data: merged, loading: false });
+        }
         return;
       }
       if (!state || typeof state !== 'object') return;
@@ -1263,6 +1295,19 @@ export class MateuViewController {
   private windowTitle = '';
 }
 
+
+/** Whether an edit changed a value (arrays/objects by content: a multi-select re-sends a new array). */
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 /** A restAction's body against ctx: when the request declares JSON, every scope is JSON-escaped first
  *  (a quote or a newline in a value broke the body: 400), as on the web (libs/mateu jsonTemplate.ts). */

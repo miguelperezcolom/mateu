@@ -72,12 +72,36 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
+/**
+ * The live controller of each island NODE on screen. A host view re-rendered for its own reasons (a
+ * state-only answer bumps its version, remounting its subtree) hands the island the SAME node: the
+ * island keeps its controller — its state, its subscriptions — instead of starting again from its
+ * initialData. (A listener island that had just heard an event went back to "heard 0" when its host
+ * re-rendered in the same instant; the web's nested mateu-component keeps its state the same way.)
+ * A new node (a fresh answer from the server) is a new island.
+ */
+const islands = new WeakMap<object, { controller: MateuViewController; mounted: boolean; release?: ReturnType<typeof setTimeout> }>();
+
 export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, embedded, chrome, onController }: Props) {
-  const controller = useMemo(() => new MateuViewController(session), [session]);
+  const islandKey = serverSideNode && typeof serverSideNode === 'object' ? (serverSideNode as object) : null;
+  const controller = useMemo(() => {
+    const kept = islandKey ? islands.get(islandKey) : undefined;
+    if (kept && kept.controller.session === session) return kept.controller;
+    const created = new MateuViewController(session);
+    if (islandKey) islands.set(islandKey, { controller: created, mounted: false });
+    return created;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
   const fits = useFitsContent();
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
   useEffect(() => {
+    const kept = islandKey ? islands.get(islandKey) : undefined;
+    if (kept?.release) {
+      // the same island, remounted in the same commit: it stays alive
+      clearTimeout(kept.release);
+      kept.release = undefined;
+    }
     controller.onRender = (v) => setView({ ...v });
     controller.windowless = !!embedded || !!serverSideNode;
     controller.embeddedChrome = chrome;
@@ -93,7 +117,11 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
         controller.currentConsumedRoute = overlayOpener.consumedRoute;
         controller.currentServerSideType = overlayOpener.serverSideType;
       }
-      controller.mountServerSide(serverSideNode);
+      if (kept?.controller === controller && kept.mounted) setView({ ...controller.rendered });
+      else {
+        controller.mountServerSide(serverSideNode);
+        if (kept) kept.mounted = true;
+      }
     } else if (preview) {
       controller.currentRoute = preview.route;
       controller.currentConsumedRoute = preview.consumedRoute;
@@ -106,8 +134,20 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
     }
     return () => {
       controller.onRender = () => {};
-      controller.session.unsubscribeAll(controller);
-      controller.dispose(); // pending periodic refreshes die with the screen
+      const release = () => {
+        controller.session.unsubscribeAll(controller);
+        controller.dispose(); // pending periodic refreshes die with the screen
+      };
+      const island = islandKey ? islands.get(islandKey) : undefined;
+      if (island) {
+        // released only if the island does not come straight back (see `islands`)
+        island.release = setTimeout(() => {
+          islands.delete(islandKey!);
+          release();
+        }, 0);
+        return;
+      }
+      release();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controller]);

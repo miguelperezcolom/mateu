@@ -94,15 +94,31 @@ export interface EventSubscription {
   scope: string;
 }
 
-/** The component's @AutoSave and @SubscribeTo/OnCustomEvent triggers (others are ignored here). */
+/** An OnValueChange trigger: runs `actionId` when `propertyName` (any field when blank) is edited
+ *  and its `condition` (if any) holds — a dependent field recomputes (Total), a select's options
+ *  follow another (City after Country). */
+export interface ValueChangeTrigger {
+  actionId: string;
+  propertyName: string;
+  condition: string;
+}
+
+/** The component's @AutoSave, @SubscribeTo/OnCustomEvent and OnValueChange triggers. */
 export function triggerPlanOf(triggers: unknown): {
   autoSave: { actionId: string; debounceMillis: number } | null;
   subscriptions: EventSubscription[];
+  valueChanges: ValueChangeTrigger[];
 } {
   let autoSave: { actionId: string; debounceMillis: number } | null = null;
   const subscriptions: EventSubscription[] = [];
+  const valueChanges: ValueChangeTrigger[] = [];
   for (const trigger of asArray(triggers)) {
     const type = String(trigger['type']).toLowerCase();
+    if (type === 'onvaluechange') {
+      const actionId = str(trigger['actionId']);
+      if (actionId) valueChanges.push({ actionId, propertyName: str(trigger['propertyName']), condition: str(trigger['condition']) });
+      continue;
+    }
     if (type === 'autosave') {
       autoSave = { actionId: str(trigger['actionId']) || 'save', debounceMillis: Number(trigger['debounceMillis']) || 800 };
       continue;
@@ -113,7 +129,12 @@ export function triggerPlanOf(triggers: unknown): {
     if (!eventName || !actionId) continue;
     subscriptions.push({ eventName, actionId, from: str(trigger['from']), scope: str(trigger['source']).toUpperCase() });
   }
-  return { autoSave, subscriptions };
+  return { autoSave, subscriptions, valueChanges };
+}
+
+/** The OnValueChange actions an edit of `fieldId` runs (the web's mateu-component rule). */
+export function valueChangeActionsOf(triggers: ValueChangeTrigger[], fieldId: string, holds: (condition: string) => boolean): string[] {
+  return triggers.filter((t) => (!t.propertyName || t.propertyName === fieldId) && (!t.condition || holds(t.condition))).map((t) => t.actionId);
 }
 
 /** The action parameters an event delivers to a subscription, or null when a COMPONENT-scoped

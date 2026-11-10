@@ -814,6 +814,32 @@ test('no double submit: a second press of an action in flight is dropped; its co
   assert.deepEqual(heard, [true, false]);
 });
 
+test('an edit re-renders what reads the state (no remount) and runs the field\'s OnValueChange action', async () => {
+  const { c, calls, renders } = harness([fragment(ssc({
+    triggers: [{ type: 'OnValueChange', actionId: 'recalculate', propertyName: 'quantity' }],
+  }), { quantity: 1 }), {}]);
+  await c.initialLoad('/orders');
+  const version = renders.at(-1)!.version;
+  c.putState('quantity', 3);
+  await tick();
+  assert.equal(renders.at(-1)!.state.quantity, 3);
+  assert.equal(renders.at(-1)!.version, version, 'same version: fields keep their focus');
+  assert.equal(calls.at(-1)!.actionId, 'recalculate');
+  // the same value again changes nothing
+  const sent = calls.length;
+  c.putState('quantity', 3);
+  assert.equal(calls.length, sent);
+});
+
+test('data / appState / appData an answer carries reach the screen', async () => {
+  const { c, session, renders } = harness([fragment(ssc()), { fragments: [{ targetComponentId: 'cmp1', data: { lastUpdate: '22:23' } }], appState: { language: 'es' }, appData: { museum: 'Rijks', _restfetch: 1 } }]);
+  await c.initialLoad('/orders');
+  await c.runAction('newData');
+  assert.deepEqual(renders.at(-1)!.data, { lastUpdate: '22:23' });
+  assert.equal(session.appState.language, 'es');
+  assert.deepEqual(session.appData, { museum: 'Rijks' });
+});
+
 test('an action sends its declared timeout and idempotency', async () => {
   const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'slowCheck', timeoutMillis: 1500, idempotent: true }] })), {}]);
   await c.initialLoad('/orders');

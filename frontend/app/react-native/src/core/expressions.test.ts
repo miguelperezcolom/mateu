@@ -125,3 +125,11 @@ test('interpolateUrl: values percent-encoded by position; refused values fall ba
   assert.equal(interpolateUrl('https://api.x/items?q=${1 +}', c), 'https://api.x/items?q=');
   assert.equal(interpolateUrl('https://api.x/plain', c), 'https://api.x/plain');
 });
+
+test('`\\${…}` is the literal text `${…}` (a page that shows a placeholder), `\\\\` a backslash', () => {
+  const c = { state: { x: 'X' } };
+  assert.equal(interpolate('A YAML page with \\${i18n.x}', c), 'A YAML page with ${i18n.x}');
+  assert.equal(interpolate('Proxied sources and \\${secret.X}', c), 'Proxied sources and ${secret.X}');
+  assert.equal(interpolate('\\\\${state.x}', c), '\\X');
+  assert.equal(interpolate('${state.x} and \\${state.x}', c), 'X and ${state.x}');
+});
