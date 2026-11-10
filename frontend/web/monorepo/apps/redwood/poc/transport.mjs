@@ -4,7 +4,7 @@
 // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withSubresources, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf, findByType, pageListingNodeOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
@@ -656,6 +656,15 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
     if (!sub.windowless || isStaleResponse(error)) throw error
     return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
   }
+  // a WHOLE APP answers (a MicroFrontend embedding an app: its shell App, not a page) — it is not
+  // this page's shell (reduced, it replaced the host's menu and chrome) and its shell features (context
+  // pickers, header actions, shortcuts, idle warning…) are its own — or a PAGE that only a whole page
+  // can draw (a crud or any mediator, a listing page, a page template): shown as itself, on its own
+  // page, framed (embeddedAppOf → the content's app frame)
+  const app = sub.resolved || !sub.windowless ? null : embeddedAppOf(answer, sub)
+  if (app) {
+    return { ...reg, contexts: { ...reg.contexts, [sub.id]: { id: sub.id, kind: 'island', tree: { type: 'ServerSide', id: sub.id, children: [] }, state: {}, data: {}, dirty: false, outbound, embeddedApp: app } } }
+  }
   let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
   next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
   for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
@@ -669,6 +678,26 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   // title (nor its history push) away from the chains that apply them after loading the blocks
   if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
   return next
+}
+
+/** The app a MicroFrontend's answer is (its fragment is a ClientSide App: the app's shell), or null:
+ *  {src, title, height} — src is the app's own page (where "Open this app on its own" goes). */
+export function embeddedAppOf(answer, sub) {
+  const frames = ((answer && answer.fragments) || []).map((f) => f && f.component).filter(Boolean)
+  const app = frames.find((c) => c.type === 'ClientSide' && c.metadata && c.metadata.type === 'App' && c.metadata.variant !== 'MEDIATOR')
+  const page = frames.find((c) => c.type === 'ServerSide')
+  const first = page && (page.children || [])[0]
+  const form = page && findByType(page, 'Form')
+  const wholePage = !!page && (
+    !!(first && first.metadata && first.metadata.type === 'App' && first.metadata.variant === 'MEDIATOR')
+    || !!(form && form.metadata && form.metadata.template)
+    || !!pageListingNodeOf(page))
+  if (!app && !wholePage) return null
+  const base = String((sub && sub.baseUrl) || '').replace(/\/+$/, '')
+  const route = String((sub && sub.route) || '')
+  const raw = app ? (base || route || app.metadata.route || '/') : base + (route.startsWith('/') || !route ? route : '/' + route)
+  const src = /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '/' + raw
+  return { src: src || '/', title: (app && app.metadata.title) || '', height: app ? '36rem' : '40rem' }
 }
 
 /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
@@ -721,7 +750,8 @@ export async function runSurfaceAction(reg, surfaceId, actionId, parameters, ext
  */
 export async function registerInlineIsland(base, reg, sub, extra = {}) {
   const node = sub.inline
-  const host = (reg.contexts || {})[HOST_ID] || {}
+  // an island inside another surface talks to the backend of that surface, under its route
+  const host = (sub.parentId && (reg.contexts || {})[sub.parentId]) || (reg.contexts || {})[HOST_ID] || {}
   const hostOutbound = host.outbound || {}
   const outbound = {
     route: hostOutbound.route || '',
@@ -859,10 +889,19 @@ export async function deliverBusEvents(reg, events, { base, appState, skipHost =
 
 export async function loadSubresources(base, reg, blocks, extra = {}) {
   let next = reg
-  for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
-    try {
-      next = await loadSubresource(base, next, sub, extra)
-    } catch (ignored) { /* the error band already reports it (onSettle) */ }
+  // a loaded surface may hold surfaces of its own (withSubresources marks them with their parent):
+  // a few rounds, each one over the content as filled so far — every surface asked once
+  const tried = new Set()
+  for (let round = 0; round < 5; round++) {
+    const shown = round === 0 ? blocks : withSubresources(blocks, next.contexts)
+    const pending = pendingSubresourcesOf(shown, next.contexts).filter((sub) => !tried.has(sub.id))
+    if (!pending.length) break
+    for (const sub of pending) {
+      tried.add(sub.id)
+      try {
+        next = await loadSubresource(base, next, sub, extra)
+      } catch (ignored) { /* the error band already reports it (onSettle) */ }
+    }
   }
   return next
 }

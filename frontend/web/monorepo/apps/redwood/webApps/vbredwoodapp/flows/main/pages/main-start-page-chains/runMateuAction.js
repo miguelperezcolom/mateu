@@ -355,7 +355,8 @@ define([
         $page.variables.mateuModalOpen = false;
         await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
       }
-      if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
+      // (a Dialog stacked OVER the drawer is not another drawer: what was typed in it stays)
+      if (bridge.drawerChangedBetween(before, reg)) {
         $page.variables.mateuDrawerDraft = {};
         // another drawer (or none): its Spectra template starts at its size, nothing pending
         $page.variables.mateuDrawerState = 'auto';

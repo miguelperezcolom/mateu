@@ -57,7 +57,7 @@ define([
         $application.variables.mateuDrawer = overlay.drawer;
         $application.variables.mateuDialog = overlay.dialog;
         $application.variables.mateuDrawerOpen = overlay.drawerOpen;
-        if (overlay.fresh) {
+        if (bridge.drawerChangedBetween(before, reg)) {
           $page.variables.mateuDrawerDraft = {};
           $page.variables.mateuDrawerState = 'auto';
           $page.variables.mateuDrawerLeaving = null;

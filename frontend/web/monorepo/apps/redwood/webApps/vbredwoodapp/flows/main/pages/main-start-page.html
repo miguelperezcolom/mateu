@@ -1205,6 +1205,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -3827,6 +3831,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -5808,6 +5816,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -7824,6 +7836,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -9805,6 +9821,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -11849,6 +11869,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -13885,6 +13909,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -15872,6 +15900,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -17871,6 +17903,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -19893,6 +19929,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -21885,6 +21925,10 @@
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                      </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -23897,6 +23941,10 @@
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
                       </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                           <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -25894,6 +25942,10 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isSeparator ]]">
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                          </oj-bind-if>
+                          <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                          <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                            <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
                             <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -28148,6 +28200,10 @@
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
                             </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                                 <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -30145,6 +30201,10 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                            </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -32168,6 +32228,10 @@
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSeparator ]]">
                               <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                            </oj-bind-if>
+                            <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                            <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                              <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isButtons ]]">
                               <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -34414,6 +34478,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -36401,6 +36469,10 @@
                       <oj-bind-if test="[[ $current.data.isSeparator ]]">
                         <hr class="mateu-separator oj-sm-margin-3x-vertical">
                       </oj-bind-if>
+                      <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                      <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                        <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isButtons ]]">
                         <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                           <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -38387,6 +38459,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -40400,6 +40476,10 @@
               <oj-bind-if test="[[ $current.data.isSeparator ]]">
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
               </oj-bind-if>
+              <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+              <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+              </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
                 <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                   <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -42397,6 +42477,10 @@
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isSeparator ]]">
                 <hr class="mateu-separator oj-sm-margin-3x-vertical">
+              </oj-bind-if>
+              <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+              <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isButtons ]]">
                 <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -44409,6 +44493,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -46753,6 +46841,10 @@
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                        </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -49154,6 +49246,10 @@
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
                         </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                             <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -51540,6 +51636,10 @@
                         <oj-bind-if test="[[ $current.data.isSeparator ]]">
                           <hr class="mateu-separator oj-sm-margin-3x-vertical">
                         </oj-bind-if>
+                        <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                        <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                          <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isButtons ]]">
                           <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                             <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -53905,6 +54005,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -55884,6 +55988,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -58695,6 +58803,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -60674,6 +60786,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -62734,6 +62850,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -64715,6 +64835,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -66712,6 +66836,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -68693,6 +68821,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -70741,6 +70873,10 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isSeparator ]]">
                             <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                          </oj-bind-if>
+                          <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                          <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                            <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isButtons ]]">
                             <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
@@ -73004,6 +73140,10 @@
                   <oj-bind-if test="[[ $current.data.isSeparator ]]">
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
                   </oj-bind-if>
+                  <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                  <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                    <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
                     <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                       <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -75004,6 +75144,10 @@
                   <oj-bind-if test="[[ $current.data.isSeparator ]]">
                     <hr class="mateu-separator oj-sm-margin-3x-vertical">
                   </oj-bind-if>
+                  <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                  <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                    <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isButtons ]]">
                     <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                       <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -76986,6 +77130,10 @@
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
                     </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
@@ -78967,6 +79115,10 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
+                    </oj-bind-if>
+                    <!-- a MicroFrontend embedding a whole app: the app on its own page, framed -->
+                    <oj-bind-if test="[[ $current.data.isAppFrame ]]">
+                      <iframe class="mateu-app-frame" loading="lazy" :src="[[ $current.data.src ]]" :title="[[ $current.data.title ]]" :style="[[ $current.data.frameStyle ]]"></iframe>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isButtons ]]">
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : 'oj-sm-justify-content-flex-end' ]]">

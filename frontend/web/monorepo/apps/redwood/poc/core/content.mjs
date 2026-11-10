@@ -12,7 +12,7 @@ import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, stat
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -2109,7 +2109,7 @@ export function pendingSubresourcesOf(blocks, contexts) {
 
 /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
  *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
-export function withSubresources(blocks, contexts) {
+export function withSubresources(blocks, contexts, depth = 0) {
   if (!blocks) return blocks
   return blocks.map((block) => ({
     ...block,
@@ -2117,11 +2117,27 @@ export function withSubresources(blocks, contexts) {
       if (!a || !a.isSubresource) return [a]
       const ctx = contexts && contexts[a.islandId]
       if (!ctx || !ctx.tree) return [a]
+      // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
+      // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
+      if (ctx.embeddedApp) {
+        const href = safeHref(ctx.embeddedApp.src)
+        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+      }
       const crud = findByType(ctx.tree, 'Crud')
       // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
       const chrome = (a.subresource && a.subresource.chrome) || null
       if (!crud) {
-        const inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
+        let inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
+        // a surface holds surfaces of its own (an example island with component fields, a
+        // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
+        // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
+        if (inner && depth < 4) {
+          inner = withSubresources(inner.map((b) => ({
+            ...b,
+            items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
+              ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
+          })), contexts, depth + 1)
+        }
         // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
         // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
         const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []

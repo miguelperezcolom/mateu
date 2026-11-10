@@ -3923,6 +3923,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
     'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+    // a MicroFrontend embedding a whole app: the app framed (content.mjs withSubresources)
+    'isAppFrame',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
   ]
@@ -7236,7 +7238,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
    *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
-  function withSubresources(blocks, contexts) {
+  function withSubresources(blocks, contexts, depth = 0) {
     if (!blocks) return blocks
     return blocks.map((block) => ({
       ...block,
@@ -7244,11 +7246,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!a || !a.isSubresource) return [a]
         const ctx = contexts && contexts[a.islandId]
         if (!ctx || !ctx.tree) return [a]
+        // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
+        // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
+        if (ctx.embeddedApp) {
+          const href = safeHref(ctx.embeddedApp.src)
+          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+        }
         const crud = findByType(ctx.tree, 'Crud')
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
         const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
+          let inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
+          // a surface holds surfaces of its own (an example island with component fields, a
+          // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
+          // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
+          if (inner && depth < 4) {
+            inner = withSubresources(inner.map((b) => ({
+              ...b,
+              items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
+                ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
+            })), contexts, depth + 1)
+          }
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -13664,7 +13682,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const out = {}
     // (the parameters travel to the server as they are)
     for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-    if ('actionId' in out) out.surfaceId = surfaceId
+    // a surface nested in this one already tagged ITS actions (withSubresources fills inside out)
+    if ('actionId' in out && !out.surfaceId) out.surfaceId = surfaceId
     return out
   }
 
@@ -23653,6 +23672,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!sub.windowless || isStaleResponse(error)) throw error
       return reduceContexts(reg, surfaceFailureIncrement(sub.id, error))
     }
+    // a WHOLE APP answers (a MicroFrontend embedding an app: its shell App, not a page) — it is not
+    // this page's shell (reduced, it replaced the host's menu and chrome) and its shell features (context
+    // pickers, header actions, shortcuts, idle warning…) are its own — or a PAGE that only a whole page
+    // can draw (a crud or any mediator, a listing page, a page template): shown as itself, on its own
+    // page, framed (embeddedAppOf → the content's app frame)
+    const app = sub.resolved || !sub.windowless ? null : embeddedAppOf(answer, sub)
+    if (app) {
+      return { ...reg, contexts: { ...reg.contexts, [sub.id]: { id: sub.id, kind: 'island', tree: { type: 'ServerSide', id: sub.id, children: [] }, state: {}, data: {}, dirty: false, outbound, embeddedApp: app } } }
+    }
     let next = reduceContexts(reg, sub.chrome || sub.windowless ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
@@ -23666,6 +23694,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // title (nor its history push) away from the chains that apply them after loading the blocks
     if (sub.chrome || sub.windowless) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
+  }
+
+  /** The app a MicroFrontend's answer is (its fragment is a ClientSide App: the app's shell), or null:
+   *  {src, title, height} — src is the app's own page (where "Open this app on its own" goes). */
+  function embeddedAppOf(answer, sub) {
+    const frames = ((answer && answer.fragments) || []).map((f) => f && f.component).filter(Boolean)
+    const app = frames.find((c) => c.type === 'ClientSide' && c.metadata && c.metadata.type === 'App' && c.metadata.variant !== 'MEDIATOR')
+    const page = frames.find((c) => c.type === 'ServerSide')
+    const first = page && (page.children || [])[0]
+    const form = page && findByType(page, 'Form')
+    const wholePage = !!page && (
+      !!(first && first.metadata && first.metadata.type === 'App' && first.metadata.variant === 'MEDIATOR')
+      || !!(form && form.metadata && form.metadata.template)
+      || !!pageListingNodeOf(page))
+    if (!app && !wholePage) return null
+    const base = String((sub && sub.baseUrl) || '').replace(/\/+$/, '')
+    const route = String((sub && sub.route) || '')
+    const raw = app ? (base || route || app.metadata.route || '/') : base + (route.startsWith('/') || !route ? route : '/' + route)
+    const src = /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '/' + raw
+    return { src: src || '/', title: (app && app.metadata.title) || '', height: app ? '36rem' : '40rem' }
   }
 
   /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
@@ -23718,7 +23766,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   async function registerInlineIsland(base, reg, sub, extra = {}) {
     const node = sub.inline
-    const host = (reg.contexts || {})[HOST_ID] || {}
+    // an island inside another surface talks to the backend of that surface, under its route
+    const host = (sub.parentId && (reg.contexts || {})[sub.parentId]) || (reg.contexts || {})[HOST_ID] || {}
     const hostOutbound = host.outbound || {}
     const outbound = {
       route: hostOutbound.route || '',
@@ -23856,10 +23905,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   async function loadSubresources(base, reg, blocks, extra = {}) {
     let next = reg
-    for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
-      try {
-        next = await loadSubresource(base, next, sub, extra)
-      } catch (ignored) { /* the error band already reports it (onSettle) */ }
+    // a loaded surface may hold surfaces of its own (withSubresources marks them with their parent):
+    // a few rounds, each one over the content as filled so far — every surface asked once
+    const tried = new Set()
+    for (let round = 0; round < 5; round++) {
+      const shown = round === 0 ? blocks : withSubresources(blocks, next.contexts)
+      const pending = pendingSubresourcesOf(shown, next.contexts).filter((sub) => !tried.has(sub.id))
+      if (!pending.length) break
+      for (const sub of pending) {
+        tried.add(sub.id)
+        try {
+          next = await loadSubresource(base, next, sub, extra)
+        } catch (ignored) { /* the error band already reports it (onSettle) */ }
+      }
     }
     return next
   }
@@ -26674,19 +26732,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** Whether the DRAWER on screen is another one (opened, closed, replaced) — the drawer's draft and
+   *  its Spectra template state start over. A Dialog stacked over it is not a new drawer: resetting on
+   *  any change of the stack's top lost what was typed in a drawer the moment a nested dialog opened. */
+  function drawerChangedBetween(before, reg) {
+    const id = (r) => { const d = drawerOverlayOf(r); return d ? d.id : null }
+    return id(before) !== id(reg)
+  }
+
   /**
    * The overlays after an action of a SURFACE of the content (an inline island, a MicroFrontend —
    * runMateuSurfaceAction): a Dialog / Drawer it returned is pushed on the registry's stack like a
    * page action's, and has to be painted the same way (overlayVarsOf). `changed`: there is something
-   * to (re)paint — an overlay opened, closed or refreshed; `fresh`: the top overlay is another one
-   * (its draft and its Spectra template state start over).
+   * to (re)paint — an overlay opened, closed or refreshed.
    */
   function surfaceOverlayVarsOf(before, reg) {
     const stackOf = (r) => ((r && r.stack) || []).join('|')
-    const top = (r) => { const s = (r && r.stack) || []; return s.length ? s[s.length - 1] : null }
     const vars = overlayVarsOf(reg, null)
     const changed = stackOf(before) !== stackOf(reg) || ((reg && reg.stack) || []).length > 0
-    return { ...vars, changed, fresh: top(before) !== top(reg) }
+    return { ...vars, changed }
   }
 
   /**
@@ -30059,6 +30123,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     overlayVarsOf,
     overlaysClosedVarsOf,
     surfaceOverlayVarsOf,
+    drawerChangedBetween,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,

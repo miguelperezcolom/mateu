@@ -287,6 +287,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlayVarsOf,
     overlaysClosedVarsOf,
     surfaceOverlayVarsOf,
+    drawerChangedBetween,
     // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
     withListingPeers,
     drawerHasUnsavedChanges,
