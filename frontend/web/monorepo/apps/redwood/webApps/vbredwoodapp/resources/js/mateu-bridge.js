@@ -9820,6 +9820,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     fieldId): the editor of each filter's value.
 
   const KEYWORD_FILTER = 'keyword'
+  /**
+   * The chip id (`filter`) of a field. A field named like a property Spectra probes in the editors'
+   * metadata — `items`: the component asks getMetadata({propertyPath: 'items'}) to choose the edit
+   * path — answered that probe, and EVERY filter's popup opened the `items` editor (an Orders listing
+   * with an Items column: Status showed a number box, Date an empty popup). Those names get a suffix.
+   */
+  const SMART_FILTER_RESERVED = ['items']
+  const smartFilterIdOf = (fieldId) => (SMART_FILTER_RESERVED.includes(fieldId) ? fieldId + '__mateuFilter' : fieldId)
   /** A boolean filter's two choices, in the interface's language. */
   const boolChoices = () => [{ value: 'true', label: chromeText('yes') }, { value: 'false', label: chromeText('no') }]
 
@@ -9864,7 +9872,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function smartFiltersMetadataOf(filters) {
     const polymorphicTypes = {}
     for (const f of filters || []) {
-      polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
+      polymorphicTypes[smartFilterIdOf(f.fieldId)] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
     }
     // the selection-by-ids chip can also open its editor: a text (comma-separated ids)
     if (!declaresIds(filters)) {
@@ -9887,7 +9895,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The `suggestionFilters` chips: one per declared filter, without a value. */
   function smartFilterSuggestionsOf(filters) {
     return (filters || []).map((f) => {
-      const chip = { filter: f.fieldId, label: f.label }
+      const chip = { filter: smartFilterIdOf(f.fieldId), label: f.label }
       if (usesFilterLabel(f)) chip.filterLabel = f.label
       // the popup form takes its fields from the value's keys: without them, a range
       // opens an empty popup
@@ -9913,7 +9921,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const from = v[f.fromKey]
         const to = v[f.toKey]
         if (isBlank(from) && isBlank(to)) continue
-        out.push({ filter: f.fieldId, label: f.label,
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label,
           value: { gte: isBlank(from) ? null : from, lte: isBlank(to) ? null : to } })
         continue
       }
@@ -9922,14 +9930,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (f.isMulti) {
         const selected = multiValuesOf(value)
         if (!selected.length) continue
-        out.push({ filter: f.fieldId, label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
       } else if (f.isBool) {
         const bool = value === true || value === 'true' ? 'true' : 'false'
-        out.push({ filter: f.fieldId, label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
       } else if (f.isOptions) {
-        out.push({ filter: f.fieldId, label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
       } else {
-        out.push({ filter: f.fieldId, label: f.label, value })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label, value })
       }
     }
     return out
@@ -9942,7 +9950,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function filterStateOfSmartFilters(filters, chips) {
     const byId = {}
-    for (const f of filters || []) byId[f.fieldId] = f
+    for (const f of filters || []) byId[smartFilterIdOf(f.fieldId)] = f
     const values = {}
     const keywords = []
     for (const chip of chips || []) {
