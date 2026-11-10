@@ -7,9 +7,11 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
+import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
 import java.awt.Font
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JSeparator
 
 /**
@@ -22,6 +24,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     // Through the CONTEXT: the navigator's App title reaches the tool window (session fallback),
     // while a crud MEDIATOR's App title stays within its view (its tab title), not the navigator's.
     r.ctx.setWindowTitle(metadata.text("title", "Mateu App"))
+    // an app shell EMBEDDED in a page: its screens open in the box, beside its navigator
+    val embedded = if (r.ctx.embedsApps && metadata.text("variant") != "MEDIATOR") EmbeddedAppContent(r, metadata) else null
     if (r.ctx.appShell) {
         // Publish the app menu/title for the IDE hosts (toolbar widget, Search Everywhere actions)
         // and nudge the action system so they pick it up.
@@ -127,7 +131,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         }
         sidebar.addStacked(JSeparator(), 4)
     }
-    sidebar.addStacked(buildSidebar(session, metadata.path("menu")), 0)
+    sidebar.addStacked(buildSidebar(session, metadata.path("menu"), embedded?.let { e -> { item: JsonNode -> e.open(item) } }), 0)
     // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
     val sseUrl = metadata.text("sseUrl")
     if (r.ctx.appShell) {
@@ -146,10 +150,57 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     if (r.ctx.appShell && session.agentPush) {
         sidebar.addStacked(connectAiLink(session), 2)
     }
+    if (embedded != null) return embedded.compose(sidebar)
     return JBScrollPane(sidebar)
 }
 
-private fun buildSidebar(session: AppSession, menu: JsonNode): JComponent {
+/**
+ * A whole app EMBEDDED in a page (a micro frontend or an app preview whose answer is an app shell):
+ * on the web it is drawn as the app — its menu and its home screen in the box. In the IDE an app
+ * shell is a NAVIGATOR whose entries open editor tabs, so an embedded one used to draw only its menu
+ * tree (in a 20px scroll pane) and nothing of its screens. Here it is its menu on the left and its
+ * content on the right: the home route first, and each menu entry opens IN the box.
+ */
+internal class EmbeddedAppContent(r: ComponentRenderer, private val metadata: JsonNode) {
+    private val session = r.ctx.session
+    private val content = AppContext(session)
+    private val slot = content.newSlot()
+
+    init {
+        content.titleConsumer = {}
+        content.silentErrors = true
+        content.embeddedChrome = r.ctx.embeddedChrome
+        content.contentPane = slot
+        content.onIslandFailure = { reason -> showIslandFailure(slot, session.baseUrl, reason) }
+        r.ctx.adoptIsland(content, slot)
+        // a context selector picked inside the box reloads the box's screen, not the host page
+        if (r.ctx.ownsSession) session.onAppContextChanged = { content.reload() }
+    }
+
+    /** A menu entry of the embedded app, opened in the box. */
+    fun open(item: JsonNode) {
+        content.navigate(item.text("route"), item.text("consumedRoute"), item.text("serverSideType").ifBlank { null }, item.text("actionId"))
+    }
+
+    /** The navigator ([sidebar]) left, the content right — the home route first. */
+    fun compose(sidebar: JComponent): JComponent {
+        val root = JPanel(java.awt.BorderLayout(JBUI.scale(12), 0)).apply { isOpaque = false }
+        sidebar.border = JBUI.Borders.compound(
+            JBUI.Borders.customLineRight(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
+            JBUI.Borders.emptyRight(8),
+        )
+        root.add(sidebar, java.awt.BorderLayout.WEST)
+        root.add(slot, java.awt.BorderLayout.CENTER)
+        val home = metadata.text("homeRoute")
+        val homeSst = metadata.text("homeServerSideType")
+        if (home.isNotBlank() || homeSst.isNotBlank()) {
+            content.navigate(home, metadata.text("homeConsumedRoute"), homeSst.ifBlank { null }, "")
+        }
+        return root.accessibleName(metadata.text("title").ifBlank { "Embedded app" })
+    }
+}
+
+private fun buildSidebar(session: AppSession, menu: JsonNode, open: ((JsonNode) -> Unit)? = null): JComponent {
     val panel = verticalPanel(4)
     panel.border = JBUI.Borders.empty(4, 0)
     // Consecutive plain entries form one TREE — the IDE's navigator idiom (IJ-13: they were a column
@@ -157,7 +208,7 @@ private fun buildSidebar(session: AppSession, menu: JsonNode): JComponent {
     // `display: cards` group keeps its cards between them.
     val pending = ArrayList<JsonNode>()
     fun flush() {
-        if (pending.isNotEmpty()) panel.addStacked(MenuTree.build(pending.toList()) { openMenuEntry(session, it) }, 0)
+        if (pending.isNotEmpty()) panel.addStacked(MenuTree.build(pending.toList()) { open?.invoke(it) ?: openMenuEntry(session, it) }, 0)
         pending.clear()
     }
     if (menu.isArray) for (item in menu) {

@@ -19,6 +19,8 @@ object Expressions {
 
     /** `i18n.orders.title` — the translation scope the server resolves (TranslationRegistry). */
     private val I18N_KEY = Regex("^i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)$")
+    private val EXPRESSION = Regex("\\$\\{([^}]+)}")
+    private val ESCAPE_OR_EXPRESSION = Regex("(\\\\\\\\|\\\\\\$\\{)|\\$\\{([^}]+)}")
 
     /**
      * A request BODY template: when the request declares JSON (a `Content-Type` naming json), every
@@ -54,13 +56,20 @@ object Expressions {
 
     private fun interpolate(template: String?, ctx: Map<String, Any?>, json: Boolean): String {
         if (template == null || !template.contains("\${")) return template ?: ""
-        return Regex("\\$\\{([^}]+)}").replace(template) { m ->
+        // A shown text honours the literal escapes the server writes around data
+        // (`Templates.literal`): `\${` is a literal `${`, `\\` a backslash — the web's parseTemplate.
+        // A body template (json) keeps its backslashes: they are JSON's own escapes there.
+        return (if (json) EXPRESSION else ESCAPE_OR_EXPRESSION).replace(template) { m ->
+            if (!json && m.groupValues[1].isNotEmpty()) {
+                return@replace if (m.groupValues[1] == "\\\\") "\\" else "\${"
+            }
+            val expr = m.groupValues[if (json) 1 else 2]
             // `${i18n.key}` is resolved by the SERVER for the caller's language; one that reaches the
             // plugin unresolved (no catalogue on the server for it) shows as its key, never as blank.
-            val i18n = I18N_KEY.matchEntire(m.groupValues[1].trim())
+            val i18n = I18N_KEY.matchEntire(expr.trim())
             if (i18n != null && ctx["i18n"] == null) return@replace i18n.groupValues[1]
             try {
-                when (val v = evaluate(m.groupValues[1].trim(), ctx)) {
+                when (val v = evaluate(expr.trim(), ctx)) {
                     null -> ""
                     is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
                     is String -> if (json) jsonEscape(v) else v

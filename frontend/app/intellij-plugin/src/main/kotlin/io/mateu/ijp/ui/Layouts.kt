@@ -143,8 +143,26 @@ private class FixedWidth(private val width: Int, child: JComponent) : JPanel(jav
 }
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
+/**
+ * A tabbed pane as tall as its SELECTED tab (plus the tab strip), like a web tab sheet: a Swing
+ * tabbed pane asks for the height of its TALLEST tab, so a short code sample sat over a band of
+ * blank space as tall as the longest sample of the entry. Switching tab re-lays the page out.
+ */
+internal class SelectedHeightTabbedPane : JBTabbedPane() {
+    init {
+        addChangeListener { revalidate(); repaint() }
+    }
+
+    override fun getPreferredSize(): java.awt.Dimension {
+        val full = super.getPreferredSize()
+        val selected = selectedComponent ?: return full
+        val tallest = (0 until tabCount).maxOfOrNull { getComponentAt(it)?.preferredSize?.height ?: 0 } ?: 0
+        return java.awt.Dimension(full.width, (full.height - tallest + selected.preferredSize.height).coerceAtLeast(0))
+    }
+}
+
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val tabs = JBTabbedPane()
+    val tabs = SelectedHeightTabbedPane()
     val children = component.path("children")
     if (children.isArray) {
         for ((i, tab) in children.withIndex()) {

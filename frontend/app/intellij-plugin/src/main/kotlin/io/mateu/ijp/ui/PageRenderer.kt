@@ -23,7 +23,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // Header (NORTH): title / subtitle / toolbar / banners — shared with the Form (PageChrome).
     val exprCtx = mapOf<String, Any?>("state" to r.ctx.currentComponentState, "appState" to r.ctx.appState)
-    PageChrome.header(r, metadata, exprCtx)?.let { root.add(it, BorderLayout.NORTH) }
+    PageChrome.header(r, metadata, exprCtx, state, data)?.let { root.add(it, BorderLayout.NORTH) }
 
     // Body (CENTER): a single child fills; several stack vertically.
     val children = if (component.path("children").isArray) component.path("children").toList() else emptyList()
@@ -37,11 +37,18 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     root.add(body, BorderLayout.CENTER)
 
     // Bottom button bar (SOUTH).
+    // ...preceded by the page's footer components (HeaderSupplier's footer)
+    val footer = PageChrome.footer(r, metadata, state, data)
     val buttons = metadata.arr("buttons")
-    if (buttons.isNotEmpty()) {
-        val row = buttonRow(r, buttons)
-        row.border = JBUI.Borders.emptyTop(JBGap)
-        root.add(row, BorderLayout.SOUTH)
+    if (buttons.isNotEmpty() || footer != null) {
+        val south = verticalPanel(0)
+        footer?.let { south.addStacked(it, if (buttons.isNotEmpty()) JBGap else 0) }
+        if (buttons.isNotEmpty()) {
+            val row = buttonRow(r, buttons)
+            row.border = JBUI.Borders.emptyTop(JBGap)
+            south.addStacked(row, 0)
+        }
+        root.add(south, BorderLayout.SOUTH)
     }
     // The page's own CSS style caps the content width (e.g. `max-width:900px;margin:auto`, how the
     // web keeps forms readable) — anchored left, the IDE way, instead of centered.

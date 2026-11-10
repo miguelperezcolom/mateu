@@ -132,7 +132,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Ledger" -> renderLedger(metadata)
             "PaymentPicker" -> renderPaymentPicker(this, metadata)
             "ProcessMonitor" -> renderProcessMonitor(this, metadata)
-            "Image" -> renderStandaloneImage(metadata)
+            "Image" -> renderStandaloneImage(metadata, ctx.session.baseUrl)
             // ── layouts ──
             "MasterDetailLayout" -> renderMasterDetail(this, component, state, data)
             "CarouselLayout" -> renderCarousel(this, component, metadata, state, data)
@@ -225,14 +225,20 @@ internal const val ASSUMED_COLUMN_PX = 360
  * room and the rest of the paragraph was cut; measured for a column, it stays visible.
  */
 internal fun wrappedPreferredSize(c: JComponent, natural: () -> java.awt.Dimension): java.awt.Dimension {
-    val unwrapped = natural()
-    val w = if (c.width > 0) c.width else com.intellij.util.ui.JBUI.scale(ASSUMED_COLUMN_PX)
-    if (unwrapped.width <= w) return unwrapped
+    // Once it has a width, it is always measured AT that width: an HTML pane's "natural" size is
+    // the one of its LAST layout, so after a first measure in the assumed column it kept reporting
+    // that narrow, tall shape (a 160px description wrapped at 360px on a 1400px page).
+    val hasWidth = c.width > 0
+    val w = if (hasWidth) c.width else com.intellij.util.ui.JBUI.scale(ASSUMED_COLUMN_PX)
+    if (!hasWidth) {
+        val unwrapped = natural()
+        if (unwrapped.width <= w) return unwrapped
+    }
     val keep = c.size
     c.setSize(w, Short.MAX_VALUE.toInt())
     val wrapped = natural()
     if (keep.width > 0) c.size = keep
-    return java.awt.Dimension(w, wrapped.height)
+    return java.awt.Dimension(if (hasWidth) minOf(wrapped.width, w) else w, wrapped.height)
 }
 
 internal fun paragraph(text: String, size: String = ""): JComponent = object : com.intellij.ui.components.JBTextArea(text) {
@@ -253,7 +259,7 @@ internal fun paragraph(text: String, size: String = ""): JComponent = object : c
         }
     }
     foreground = com.intellij.util.ui.UIUtil.getLabelForeground()
-    accessibleContext.accessibleName = text
+    getAccessibleContext().accessibleName = text
 }
 
 /** Per component type, the metadata texts that may carry `${…}` and are interpolated before rendering. */
@@ -261,7 +267,8 @@ internal val INTERPOLATED_KEYS: Map<String, List<String>> = mapOf(
     "Text" to listOf("text"),
     "Image" to listOf("src", "alt"),
     "Avatar" to listOf("name", "image"),
-    "Markdown" to listOf("markdown"),
+    // NOT Markdown: the web does not interpolate it, and code samples are full of `${…}` that must
+    // show as written (`"Tips today: ${state.tips} €"` came out as "Tips today:  €")
     "Badge" to listOf("text"),
     "Anchor" to listOf("text", "url"),
     "Notice" to listOf("text"),

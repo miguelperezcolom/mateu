@@ -70,7 +70,7 @@ class ViewBlock {
 
     /** What the overlay shows: the most recent blocking task, or null when the view is free. */
     @Synchronized
-    fun overlay(locale: Locale = Locale.getDefault()): ViewBlockOverlay? {
+    fun overlay(locale: Locale = io.mateu.ijp.ui.MoneyValues.uiLocale()): ViewBlockOverlay? {
         val task = blocking.values.lastOrNull() ?: return null
         return ViewBlockOverlay(
             taskId = task.taskId,
