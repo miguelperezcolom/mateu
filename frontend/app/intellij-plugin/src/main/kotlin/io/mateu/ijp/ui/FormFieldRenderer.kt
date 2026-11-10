@@ -113,7 +113,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // from the field's state value. Read-only view → plain table; editable form → editable cells
     // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
     // that the form's save round-trips.
-    if (stereotype == "grid" || (dataType == "array" && stereotype != "multiSelect" && stereotype != "bulletedList")) {
+    // (a collection with choice stereotypes — checkbox, listBox — is a choice of its options, not a grid)
+    if (stereotype == "grid" || (dataType == "array" && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox"))) {
         if (label.isNotBlank()) {
             val caption = JBLabel(plain(label))
             caption.alignmentX = Component.LEFT_ALIGNMENT
@@ -172,6 +173,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     val caption = JBLabel(plain(if (required && readOnlyText == null) "$label *" else label))
     if (readOnlyText != null) caption.foreground = ToneColors.secondaryText()
     caption.alignmentX = Component.LEFT_ALIGNMENT
+    caption.putClientProperty(FIELD_CAPTION_MARK, true)
     container.add(caption)
 
     val options = metadata.arr("options")
@@ -183,8 +185,13 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         // a status: its tone chip (a plain word toned by its meaning, labelled by its option)
         dataType == "status" -> ReadOnlyFieldDisplay.status(metadata, rawValue)
             ?.let { statusBadge(it.first, it.second) } ?: JBLabel("—")
+        // the button shows the picked option's LABEL (the server sends it as `<field>-label`), not its id
         stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
-            lookupField(ctx, fieldId, metadata, value, enabled)
+            lookupField(ctx, fieldId, metadata, value, enabled, FieldValues.lookupLabel(data, fieldId, value))
+        stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, value, enabled, label)
+        // a collection as checkboxes (`checkbox`), a list box (`listBox`, one pick or several)
+        stereotype == "checkbox" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
+        stereotype == "listBox" && options.isNotEmpty() -> listBoxField(ctx, fieldId, options, rawValue, dataType == "array", enabled)
         stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
         stereotype == "radio" && options.isNotEmpty() -> radioField(ctx, fieldId, options, value, enabled)
         stereotype == "multiSelect" -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
@@ -197,15 +204,19 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         stereotype == "link" && !enabled -> linkField(value)
         stereotype in setOf("markdown", "html", "richText") && !enabled ->
             richTextField(value, stereotype)
-        stereotype == "textarea" || (stereotype in setOf("markdown", "html", "richText") && enabled) ->
-            textArea(ctx, fieldId, value, enabled)
+        // an editable markup field: its source and a Preview (the web's markup editor)
+        stereotype in setOf("markdown", "html", "richText") && enabled -> markupEditorField(ctx, fieldId, value, stereotype, enabled)
+        stereotype == "textarea" -> textArea(ctx, fieldId, value, enabled)
         metadata.path("optionsSource").isObject -> restOptionsCombo(ctx, fieldId, metadata.path("optionsSource"), value, enabled)
         // read-only: the option's LABEL as text (a disabled combo read as a field you could open)
         options.isNotEmpty() && !enabled -> JBLabel(plain(ReadOnlyFieldDisplay.text(metadata, rawValue).ifBlank { "—" }))
         options.isNotEmpty() -> optionsCombo(ctx, fieldId, options, value, enabled)
         dataType == "reference" -> referenceCombo(ctx, fieldId, data, enabled)
         stereotype == "password" -> passwordField(ctx, fieldId, value, enabled)
-        dataType in DATE_TYPES || dataType == "datetime" -> dateField(ctx, fieldId, value, enabled)
+        dataType in DATE_TYPES -> dateField(ctx, fieldId, value, enabled)
+        // time and date-time get their pickers (they were plain text fields showing raw ISO)
+        dataType in setOf("time", "LocalTime") -> timeField(ctx, fieldId, value, enabled)
+        dataType in setOf("datetime", "dateTime", "LocalDateTime") -> dateTimeField(ctx, fieldId, value, enabled)
         dataType in INT_TYPES && metadata.bool("stepButtonsVisible") -> stepperField(ctx, fieldId, metadata, value, enabled)
         dataType in INT_TYPES -> numberField(ctx, fieldId, value, enabled, integer = true)
         MoneyValues.isAmount(rawValue) && !enabled -> JBLabel(plain(MoneyValues.text(rawValue)))
@@ -213,10 +224,12 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         (dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES) && !enabled ->
             JBLabel(plain(formatMoney(value)))
         dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES ->
-            numberField(ctx, fieldId, value, enabled, integer = false)
+            numberField(ctx, fieldId, FieldValues.numberInputText(value), enabled, integer = false)
         else -> plainField(ctx, fieldId, value, enabled)
     }
     input.alignmentX = Component.LEFT_ALIGNMENT
+    // the field's placeholder as the input's empty text (it was never shown)
+    applyPlaceholder(input, metadata.text("placeholder"))
     container.add(input)
 
     // Bind the caption to the control it names. Until this existed the two were unrelated in the
@@ -234,6 +247,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         help.ifBlank { null },
     ).joinToString(". ")
     if (baseDescription.isNotBlank()) input.accessibleDescription(baseDescription)
+    // @Help: visible under the field, as the web's helper text (it lived only in the a11y description)
+    if (help.isNotBlank() && readOnlyText == null) container.add(helperText(help).apply { alignmentX = Component.LEFT_ALIGNMENT })
 
     val error = ctx.currentFieldErrors[fieldId]
     if (error != null) {

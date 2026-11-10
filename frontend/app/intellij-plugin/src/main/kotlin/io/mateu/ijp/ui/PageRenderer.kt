@@ -19,7 +19,9 @@ import javax.swing.JPanel
  */
 fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val root = JPanel(BorderLayout(0, JBUI.scale(JBGap)))
-    root.border = JBUI.Borders.empty(PageChrome.GUTTER)
+    // `pageWidth`: fixed keeps a reading measure, fullWidth / edgeToEdge lift it (gutters 24 / 0)
+    val widthPlan = PageLevel.widthPlan(PageLevel.pageWidthOf(metadata), parseMaxWidth(component.text("style")), JBUI.scale(1392))
+    root.border = JBUI.Borders.empty(widthPlan.gutter)
 
     // Header (NORTH): title / subtitle / toolbar / banners — shared with the Form (PageChrome).
     val exprCtx = mapOf<String, Any?>("state" to r.ctx.currentComponentState, "appState" to r.ctx.appState)
@@ -34,7 +36,16 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         for (child in children) stack.addStacked(r.render(child, state, data), JBGap)
         stack
     }
-    root.add(body, BorderLayout.CENTER)
+    // @Toc: an index of the page's sections beside it, with Ctrl+Alt+1..9 jumps (auto past 4 sections)
+    val sections = PageLevel.sections(body)
+    if (PageLevel.showsToc(metadata.path("toc"), sections.size)) {
+        val withIndex = JPanel(BorderLayout(JBUI.scale(16), 0)).apply { isOpaque = false }
+        withIndex.add(body, BorderLayout.CENTER)
+        withIndex.add(PageLevel.tocPanel(root, sections), BorderLayout.EAST)
+        root.add(withIndex, BorderLayout.CENTER)
+    } else {
+        root.add(body, BorderLayout.CENTER)
+    }
 
     // Bottom button bar (SOUTH).
     // ...preceded by the page's footer components (HeaderSupplier's footer)
@@ -52,7 +63,9 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     }
     // The page's own CSS style caps the content width (e.g. `max-width:900px;margin:auto`, how the
     // web keeps forms readable) — anchored left, the IDE way, instead of centered.
-    parseMaxWidth(component.text("style"))?.let { return MaxWidthPanel(it, root) }
+    // @Compact: the denser spacing / captions / rows of `--mateu-compact`
+    if (PageLevel.isCompact(component.text("style"))) PageLevel.compact(root)
+    widthPlan.maxWidth?.let { return MaxWidthPanel(it, root) }
     return root
 }
 
@@ -91,7 +104,35 @@ internal fun renderBanner(banner: JsonNode): JComponent {
         l.alignmentX = Component.LEFT_ALIGNMENT
         panel.add(l)
     }
-    return panel
+    val closeable = banner.path("hasCloseButton").asBoolean(false)
+    val timeout = banner.path("timeoutSeconds").asInt(0)
+    if (!closeable && timeout <= 0) return panel
+    // `hasCloseButton` → a ✕ that dismisses it; `timeoutSeconds` → it goes on its own (both ignored before)
+    val host = JPanel(BorderLayout(JBUI.scale(8), 0))
+    host.background = bg
+    host.isOpaque = true
+    host.border = panel.border
+    panel.border = null
+    host.add(panel, BorderLayout.CENTER)
+    fun dismiss() {
+        val parent = host.parent ?: return
+        host.isVisible = false
+        parent.revalidate()
+        parent.repaint()
+    }
+    if (closeable) {
+        val close = javax.swing.JButton("✕").apply {
+            putClientProperty("JButton.buttonType", "square")
+            isContentAreaFilled = false
+            isBorderPainted = false
+            toolTipText = "Dismiss"
+            accessibleName("Dismiss ${bTitle.ifBlank { "banner" }}")
+            addActionListener { dismiss() }
+        }
+        host.add(JPanel(BorderLayout()).apply { isOpaque = false; add(close, BorderLayout.NORTH) }, BorderLayout.EAST)
+    }
+    if (timeout > 0) javax.swing.Timer(timeout * 1000) { dismiss() }.apply { isRepeats = false; start() }
+    return host
 }
 
 

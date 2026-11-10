@@ -89,7 +89,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Scoreboard" -> renderScoreboard(this, component, state, data)
             "MetricCard" -> renderMetricCard(this, metadata)
             "DashboardPanel" -> renderDashboardPanel(this, component, metadata, state, data)
-            "Chart" -> renderChart(metadata)
+            "Chart" -> renderChart(metadata, component.text("style"))
             "Markdown" -> renderMarkdown(metadata)
             "HeroSection" -> renderHeroSection(this, component, metadata, state, data)
             "EmptyState" -> renderEmptyState(this, metadata)
@@ -132,7 +132,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Ledger" -> renderLedger(metadata)
             "PaymentPicker" -> renderPaymentPicker(this, metadata)
             "ProcessMonitor" -> renderProcessMonitor(this, metadata)
-            "Image" -> renderStandaloneImage(metadata, ctx.session.baseUrl)
+            "Image" -> renderStandaloneImage(metadata, ctx.session.baseUrl, component.text("style"))
             // ── layouts ──
             "MasterDetailLayout" -> renderMasterDetail(this, component, state, data)
             "CarouselLayout" -> renderCarousel(this, component, metadata, state, data)

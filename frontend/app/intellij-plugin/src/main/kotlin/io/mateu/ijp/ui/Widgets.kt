@@ -217,3 +217,20 @@ internal class MaxWidthPanel(private val maxWidth: Int, private val content: jav
 internal fun parseMaxWidth(style: String): Int? =
     Regex("max-width:\\s*(\\d+)px").find(style)?.groupValues?.get(1)?.toIntOrNull()
         ?.let { com.intellij.util.ui.JBUI.scale(it) }
+
+/**
+ * A CSS length property of an inline style in UNSCALED px (`height: 240px` → 240, `width: 22rem` →
+ * 352, `1.5em` → 24); null when absent or not a plain length (`auto`, `%`, `calc(…)`).
+ */
+internal fun cssPx(style: String?, name: String): Int? {
+    if (style.isNullOrBlank()) return null
+    val value = Regex("""(?:^|;)\s*${Regex.escape(name)}\s*:\s*([^;]+)""").find(style)?.groupValues?.get(1)?.trim() ?: return null
+    return cssLengthPx(value)
+}
+
+/** A bare CSS length in unscaled px: `12px`, `1.5rem`, `2em`, `40` → px; anything else → null. */
+internal fun cssLengthPx(value: String?): Int? {
+    val m = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)?$""").matchEntire(value?.trim() ?: return null) ?: return null
+    val n = m.groupValues[1].toDouble()
+    return (if (m.groupValues[2] == "rem" || m.groupValues[2] == "em") n * 16 else n).toInt()
+}

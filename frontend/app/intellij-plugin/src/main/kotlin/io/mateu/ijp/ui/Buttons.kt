@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
+import io.mateu.ijp.state.Expressions
+import com.intellij.util.ui.JBUI
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JMenuItem
@@ -19,8 +21,19 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     if (isButtonGroup(metadata)) return renderButtonGroup(ctx, metadata)
     val id = metadata.text("id")
     val actionId = metadata.text("actionId", id)
-    val label = metadata.text("label", actionId)
-    val button = JButton(plain(label))
+    val template = metadata.text("label", actionId)
+    // `${state.x}` in a button's label is interpolated, and again on every edit (the web's label
+    // follows the state; the desktop showed the raw "Charge ${state.nights} nights")
+    val label = if (template.contains("\${")) Expressions.interpolate(template, PageChrome.exprContext(ctx, null)) else template
+    // a button keeps its own width in a vertical stack (the web lays it out at its content width)
+    val button = object : JButton(plain(label)) {
+        override fun getMaximumSize(): java.awt.Dimension = preferredSize
+    }
+    if (template.contains("\${")) {
+        button.putClientProperty(LABEL_TEMPLATE, template)
+        ctx.registerLiveLabel(button)
+    }
+    styleButton(button, metadata)
     // A label rendered as a glyph or an icon leaves the accessible name empty; setting it from
     // the wire label makes every Mateu button announce what it does, whatever it looks like.
     button.accessibleName(label)
@@ -41,6 +54,95 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     }
     return button
 }
+
+/** Client property holding a button label's `${…}` template. */
+const val LABEL_TEMPLATE = "mateu.labelTemplate"
+
+/**
+ * The wire's look of a button on Swing: `iconOnLeft` / `iconOnRight` (the IDE glyph, or a symbol),
+ * `size` small / large (font and padding), `color` success / error / warning / contrast (the text in
+ * that tone, a primary one filled with it) — every button was the same blue default.
+ */
+internal fun styleButton(button: JButton, metadata: JsonNode) {
+    // a glyph-only button (✕, ‹, +) is a square icon button, not a 72px text button (the L&F minimum
+    // made a docked panel's ✕ 122px wide)
+    if (isGlyphLabel(metadata.text("label"))) {
+        button.putClientProperty("JButton.buttonType", "square")
+        if (button.toolTipText == null) button.toolTipText = plainTip(metadata.text("actionId").ifBlank { null })
+    }
+    val (icon, text) = buttonFace(button.text, metadata.text("iconOnLeft"), metadata.text("iconOnRight"))
+    if (icon != null) {
+        button.icon = icon.first
+        if (icon.second) button.horizontalTextPosition = javax.swing.SwingConstants.LEADING
+    }
+    if (text != button.text) button.text = text
+    when (metadata.text("size").lowercase()) {
+        "small" -> {
+            button.font = button.font.deriveFont(button.font.size2D * 0.85f)
+            button.putClientProperty("ActionToolbar.smallVariant", true)
+            button.putClientProperty("JComponent.sizeVariant", "small")
+        }
+        "large" -> {
+            button.font = button.font.deriveFont(button.font.size2D * 1.2f)
+            button.putClientProperty("JComponent.sizeVariant", "large")
+            button.margin = JBUI.insets(6, 16)
+        }
+    }
+    val tone = when (metadata.text("color").lowercase()) {
+        "success" -> ToneColors.Tone.SUCCESS
+        "error", "danger" -> ToneColors.Tone.DANGER
+        "warning" -> ToneColors.Tone.WARNING
+        else -> null
+    }
+    if (tone != null) {
+        val solid = ToneColors.solid(tone).first
+        if (isPrimary(metadata)) {
+            // a primary button in a tone is FILLED with it
+            button.putClientProperty("JButton.backgroundColor", solid)
+            button.putClientProperty("JButton.focusedBackgroundColor", solid)
+            button.putClientProperty("JButton.borderColor", solid)
+            button.putClientProperty("JButton.focusedBorderColor", solid)
+            button.background = solid
+            button.foreground = java.awt.Color.WHITE
+        } else {
+            // amber text on a light button needs the darker ink to read
+            button.foreground = if (tone == ToneColors.Tone.WARNING) java.awt.Color(0x8A, 0x5A, 0x00) else solid
+        }
+        button.putClientProperty(BUTTON_TONE, tone.name)
+    } else if (metadata.text("color").equals("contrast", ignoreCase = true)) {
+        button.putClientProperty(BUTTON_TONE, "CONTRAST")
+        button.font = button.font.deriveFont(java.awt.Font.BOLD)
+    }
+}
+
+/**
+ * A button's face from its label and its two icon tokens: the IDE glyph of ONE of them as the Swing
+ * icon (left wins; `true` = after the text), and the text with the other side's symbol added — a
+ * Swing button holds one icon, the web's holds both.
+ */
+internal fun buttonFace(text: String, left: String, right: String): Pair<Pair<javax.swing.Icon, Boolean>?, String> {
+    var t = text
+    var icon: Pair<javax.swing.Icon, Boolean>? = null
+    if (left.isNotBlank()) {
+        val i = wireIcon(left)
+        if (i != null) icon = i to false else wireIconText(left)?.let { t = "$it $t" }
+    }
+    if (right.isNotBlank()) {
+        val i = wireIcon(right)
+        if (i != null && icon == null) icon = i to true
+        else (wireIconText(right) ?: ARROW_GLYPHS[WireIcons.bareName(right)])?.let { t = "$t $it" }
+    }
+    return icon to t
+}
+
+private val ARROW_GLYPHS = mapOf(
+    "arrow-right" to "→", "angle-right" to "›", "chevron-right" to "›",
+    "arrow-left" to "←", "angle-left" to "‹", "chevron-left" to "‹",
+    "arrow-up" to "↑", "arrow-down" to "↓",
+)
+
+/** Client property naming a button's tone (SUCCESS / DANGER / WARNING / CONTRAST), for tests and probes. */
+const val BUTTON_TONE = "mateu.buttonTone"
 
 internal fun isPrimary(metadata: JsonNode) = metadata.text("buttonStyle").equals("Primary", ignoreCase = true)
 
@@ -78,4 +180,10 @@ private fun renderButtonGroup(ctx: AppContext, metadata: JsonNode): JComponent {
     trigger.isEnabled = !metadata.bool("disabled")
     trigger.addActionListener { menu.show(trigger, 0, trigger.height) }
     return trigger
+}
+
+/** A label of one or two symbols and no letters or digits (✕, ‹, ›, +, ⋯). */
+internal fun isGlyphLabel(label: String): Boolean {
+    val t = label.trim()
+    return t.isNotEmpty() && t.codePointCount(0, t.length) <= 2 && t.none { it.isLetterOrDigit() }
 }

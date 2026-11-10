@@ -103,6 +103,7 @@ class AppContext(val session: AppSession) {
     fun putState(fieldId: String, value: Any?) {
         currentComponentState[fieldId] = value
         markUserEdit()
+        refreshLiveLabels()
         // Rules react to edits (conditional visibility/disabling); re-render only on real changes.
         if (applyRules()) rerenderCurrentForm()
         // @AutoSave: fire the configured action once the user has been idle for the debounce window.
@@ -115,6 +116,30 @@ class AppContext(val session: AppSession) {
     }
 
     private var autoSaveDebounceMillis = 800
+
+    /**
+     * Buttons whose label is a `${…}` template ("Charge ${state.nights} nights"): re-interpolated on
+     * every edit, as the web re-renders them. Weakly held — a re-rendered screen drops its buttons.
+     */
+    private val liveLabels = ArrayList<java.lang.ref.WeakReference<javax.swing.AbstractButton>>()
+
+    fun registerLiveLabel(button: javax.swing.AbstractButton) {
+        liveLabels.removeAll { it.get() == null }
+        liveLabels.add(java.lang.ref.WeakReference(button))
+    }
+
+    private fun refreshLiveLabels() {
+        if (liveLabels.isEmpty()) return
+        val exprCtx = io.mateu.ijp.ui.PageChrome.exprContext(this, null)
+        liveLabels.removeAll { ref ->
+            val button = ref.get() ?: return@removeAll true
+            val template = button.getClientProperty(io.mateu.ijp.ui.LABEL_TEMPLATE) as? String ?: return@removeAll true
+            val label = io.mateu.ijp.state.Expressions.interpolate(template, exprCtx)
+            button.text = io.mateu.ijp.ui.plain(label)
+            button.accessibleContext.accessibleName = label
+            false
+        }
+    }
 
     /**
      * Evaluates the component's rules against the live state (same semantics as the web's
@@ -285,6 +310,9 @@ class AppContext(val session: AppSession) {
 
     private val registry: MutableMap<String, JComponent> = HashMap()
     private val dataHandlers: MutableMap<String, (JsonNode) -> Unit> = HashMap()
+
+    /** The plain island whose body is being rendered (its listing registers its data under its id). */
+    var currentIslandId: String? = null
 
     // ── slot helpers ────────────────────────────────────────────────────────────────
     /**
@@ -598,11 +626,17 @@ class AppContext(val session: AppSession) {
             )
             return
         }
+        // read the context NOW, on the EDT: the work runs later on a pool thread, by when another
+        // island's OnLoad may have re-aimed it (its search then went out as the other island)
+        val rqRoute = currentRoute
+        val rqConsumedRoute = currentConsumedRoute
+        val rqComponentId = currentComponentId
+        val rqState = HashMap(currentComponentState)
         background(
             work = {
                 apiClient.runAction(
-                    currentRoute, currentConsumedRoute, actionId, serverSideType,
-                    currentComponentId, currentComponentState, appState, parameters ?: emptyMap(), embeddedChrome,
+                    rqRoute, rqConsumedRoute, actionId, serverSideType,
+                    rqComponentId, rqState, appState, parameters ?: emptyMap(), embeddedChrome,
                 )
             },
             onOk = { increment ->
@@ -1112,6 +1146,7 @@ class AppContext(val session: AppSession) {
             // no window can exist (a headless render probe or test): the overlay's body is drawn
             // into the content pane instead, so what it shows is still rendered and inspectable
             contentPane?.let { pane ->
+                io.mateu.ijp.ui.DrawerChrome.header(meta, {}, {})?.let { pane.add(it) }
                 pane.add(overlayBody(component, overlayState, data))
                 pane.revalidate()
             }
@@ -1120,6 +1155,27 @@ class AppContext(val session: AppSession) {
         val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
         var shown: JsonNode = component
         val dialog = javax.swing.JDialog(owner, OverlayState.title(meta, overlayState), java.awt.Dialog.ModalityType.MODELESS)
+        // the drawer's size (s/m/l/xl, or its width), stepped up by ⤢ (local, no round trip)
+        var size = meta.text("size")
+        fun drawerWidth(m: JsonNode): Int = com.intellij.util.ui.JBUI.scale(io.mateu.ijp.ui.DrawerChrome.widthPx(m.text("width"), size, owner?.width ?: 1200))
+        fun place(m: JsonNode) {
+            val w = drawerWidth(m)
+            if (owner == null) { dialog.setSize(w, 600); return }
+            if (m.text("position") == "bottom") {
+                // a bottom drawer docks full width along the window's bottom edge
+                val h = (owner.height / 2).coerceAtLeast(240)
+                dialog.setBounds(owner.x + 10, owner.y + owner.height - h - 10, owner.width - 20, h)
+                return
+            }
+            val h = (owner.height - 80).coerceAtLeast(300)
+            dialog.setSize(minOf(w, owner.width - 20), h)
+            val x = if (m.text("position") == "start") owner.x + 10 else owner.x + owner.width - dialog.width - 10
+            dialog.setLocation(x, owner.y + 60)
+        }
+        fun chromeOf(m: JsonNode): JComponent? = io.mateu.ijp.ui.DrawerChrome.header(m,
+            onMaximize = { size = io.mateu.ijp.ui.DrawerChrome.nextSize(size); place(shown.path("metadata")) },
+            onPeer = { route -> dialog.dispose(); openRoute(route) })
+        chromeOf(meta)?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
         dialog.contentPane.add(overlayBody(component, overlayState, data))
         val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
             if (!dialog.isDisplayable) {
@@ -1129,6 +1185,7 @@ class AppContext(val session: AppSession) {
                 overlayState = OverlayState.seed(st, c.path("metadata"))
                 dialog.title = OverlayState.title(c.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
+                chromeOf(c.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(c, overlayState, d))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
@@ -1140,6 +1197,7 @@ class AppContext(val session: AppSession) {
                 overlayState = OverlayState.merge(overlayState, st)
                 dialog.title = OverlayState.title(shown.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
+                chromeOf(shown.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(shown, overlayState, data))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
@@ -1147,15 +1205,7 @@ class AppContext(val session: AppSession) {
         }
         if (key != null) session.openOverlays[key] = refresh
         if (key != null) session.overlayStateUpdaters[key] = updateState
-        val width = ScreenShapes.remToPx(meta.text("width"), 448)
-        if (owner != null) {
-            val h = (owner.height - 80).coerceAtLeast(300)
-            dialog.setSize(width, h)
-            val x = if (meta.text("position") == "start") owner.x + 10 else owner.x + owner.width - width - 10
-            dialog.setLocation(x, owner.y + 60)
-        } else {
-            dialog.setSize(width, 600)
-        }
+        place(meta)
         val close: () -> Unit = { dialog.dispose() }
         session.pushOverlay(close)
         dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
@@ -1400,7 +1450,21 @@ class AppContext(val session: AppSession) {
                     container.border = com.intellij.util.ui.JBUI.Borders.empty(io.mateu.ijp.ui.PageChrome.GUTTER)
                 }
                 SwingUtilities.invokeLater {
-                    putChildren(container, ComponentRenderer(this), children, state, state)
+                    // Several plain islands share this context, and their bodies are put LATER: by
+                    // then the context points at the LAST island loaded. Re-aim it at this one, so
+                    // its listing registers for, and its OnLoad search runs as, THIS island — three
+                    // listings on one page all searched as the last and only it got rows.
+                    if (id.isNotBlank()) currentComponentId = id
+                    if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
+                    currentIslandId = id.ifBlank { null }
+                    try {
+                        putChildren(container, ComponentRenderer(this), children, state, state)
+                    } finally {
+                        currentIslandId = null
+                    }
+                    // the island's own crud moved currentComponentId to its "crud" id while rendering
+                    if (id.isNotBlank()) currentComponentId = id
+                    if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
                     if (triggers.isArray) fireOnLoadTriggers(triggers)
                 }
             }

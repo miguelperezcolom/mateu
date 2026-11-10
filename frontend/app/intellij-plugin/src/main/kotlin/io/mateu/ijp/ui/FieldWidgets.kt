@@ -56,9 +56,9 @@ import javax.swing.tree.TreeSelectionModel
  * runs the field's `search-<fieldId>` action and the options arrive as a field-keyed data-only
  * fragment through [AppContext.registerFieldDataHandler].
  */
-fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean): JComponent {
+fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean, display: String = value): JComponent {
     val action = metadata.path("remoteCoordinates").text("action").ifBlank { "search-$fieldId" }
-    val button = JButton(plain(if (value.isBlank()) "Select…" else value))
+    val button = JButton(plain(if (value.isBlank()) "Select…" else display.ifBlank { value }))
     button.isEnabled = enabled
     button.horizontalAlignment = javax.swing.SwingConstants.LEFT
 

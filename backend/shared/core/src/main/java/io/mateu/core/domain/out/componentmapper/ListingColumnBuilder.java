@@ -119,7 +119,8 @@ final class ListingColumnBuilder {
     Double weight = null;
     if (MetaAnnotations.isPresent(field, Weight.class)) {
       weight = MetaAnnotations.find(field, Weight.class).value();
-    } else if (MetaAnnotations.isPresent(field, ColumnWidth.class)) {
+    } else if (MetaAnnotations.isPresent(field, ColumnWidth.class)
+        && !"auto".equalsIgnoreCase(MetaAnnotations.find(field, ColumnWidth.class).value())) {
       weight = WEIGHT_ESTIMATOR.parsePx(MetaAnnotations.find(field, ColumnWidth.class).value());
     } else {
       // sin anotación: estima el peso con el TIPO FINO del campo — el dataType de columna
@@ -129,10 +130,15 @@ final class ListingColumnBuilder {
       weight =
           WEIGHT_ESTIMATOR.base(FieldTypeMapper.getDataType(field), getStereotypeForColumn(field));
     }
-    String columnWidth =
+    String rawWidth =
         MetaAnnotations.isPresent(field, ColumnWidth.class)
             ? MetaAnnotations.find(field, ColumnWidth.class).value()
             : null;
+    // @ColumnWidth("auto") sizes the column to its content (header + widest cell), as in a form's
+    // grid (GridColumnBuilder): it is autoWidth, not a CSS width of "auto" — which every renderer
+    // read as a fixed width it could not parse, while the unannotated column got the autoWidth.
+    boolean autoWidth = "auto".equalsIgnoreCase(rawWidth);
+    String columnWidth = autoWidth ? null : rawWidth;
     // Inline row editing: when the listing class is annotated @InlineEditing, every data column
     // (except @ReadOnly ones) is edited in place; commits dispatch the crud's update-row action.
     boolean editable =
@@ -155,8 +161,9 @@ final class ListingColumnBuilder {
         // @ColumnWidth is a width here too, as in a form's grid (GridColumnBuilder): the column
         // keeps it instead of growing with its longest cell, which pushed the columns to its
         // right off the screen. What the width cuts is read on hover.
+        .autoWidth(autoWidth)
         .width(columnWidth)
-        .flexGrow(columnWidth != null ? "0" : null)
+        .flexGrow(autoWidth || columnWidth != null ? "0" : null)
         // @Tooltip("otherField"): hovering the cell shows another field of the row (a breakdown);
         // without it, a fixed-width column shows its own text, which the width may cut
         .tooltipPath(tooltipPathOf(field, columnWidth))
