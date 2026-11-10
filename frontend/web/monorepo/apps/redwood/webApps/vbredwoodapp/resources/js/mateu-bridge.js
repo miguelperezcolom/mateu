@@ -5555,7 +5555,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
     // NESTED strips (a TabLayout inside a tab): each strip has its key, derived from
     // the tab that contains it (tabScope) and its ordinal among siblings — see tabStripKeyOf.
-    let tabScope = ''
+    // another surface's strips and panels live in ITS scope (opts.keyScope = its id): two islands —
+    // or an island and the page — each have a top-level strip, an accordion with no id… whose keys
+    // were the same, so a click in one switched the other (the page's Code tabs, the twin accordion)
+    const keyScope = opts.keyScope ? String(opts.keyScope) : ''
+    const scoped = (key) => (keyScope ? keyScope + '|' + key : key)
+    let tabScope = keyScope
     const stripsPerScope = {}
     let tabBars = 0
     const state = ctx.state || {}
@@ -6084,7 +6089,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isTabs: true,
           // the first strip keeps the usual id (the chains refresh it by selector)
-          barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
+          barId: keyScope ? 'mateuContentTabs-' + keyScope.replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + tabBars++
+            : tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
           stripKey,
           selectedId: ids[current],
           tabs: tabs.map((tab, i) => ({
@@ -6416,7 +6422,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
         ;(m.panels || []).forEach((panel, i) => {
-          const key = 'fold:' + (node.id || 'foldout') + ':' + i
+          const key = scoped('fold:' + (node.id || 'foldout') + ':' + i)
           const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
@@ -6439,7 +6445,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'AccordionLayout') {
         kidsOf(node).forEach((panel, i) => {
           const pm = panel.metadata || {}
-          const key = 'acc:' + (node.id || 'accordion') + ':' + i
+          const key = scoped('acc:' + (node.id || 'accordion') + ':' + i)
           const expanded = panelExpanded(key, !!pm.active)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
           if (expanded) for (const child of kidsOf(panel)) visit(child, container)
@@ -6454,7 +6460,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const title = interp(m.headerTitle || m.title || '')
         const pieces = kidsOf(node)
         if (m.collapsible) {
-          const key = 'drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer'))
+          const key = scoped('drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer')))
           const expanded = panelExpanded(key, m.opened !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title, expanded, disabled: false }, container)
           if (expanded) for (const child of pieces) visit(child, container)
@@ -6466,7 +6472,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'Details') {
         const summaryTexts = m.summary ? collectTexts(m.summary) : []
-        const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+        const key = scoped('det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details')))
         const expanded = panelExpanded(key, !!m.opened)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
         if (expanded && m.content) visit(m.content, container)
@@ -6992,7 +6998,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Faq') {
         // like an accordion: a collapsible header per question, the answer after it when open
         ;(m.items || []).forEach((item, i) => {
-          const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+          const key = scoped('faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i)
           const expanded = panelExpanded(key, !!item.open)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
           if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
@@ -7051,7 +7057,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // at a time with its pager — the slide shown is client state (uiValueChanged)
         const slides = kidsOf(node)
         if (slides.length > 1) {
-          const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+          const key = scoped('carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel'))
           const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
           atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
           visit(slides[current], container)
@@ -7278,7 +7284,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
    *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
-  function withSubresources(blocks, contexts, depth = 0) {
+  function withSubresources(blocks, contexts, opts = {}) {
+    const depth = (opts && opts.depth) || 0
+    const activeTabs = (opts && opts.activeTabs) || {}
     if (!blocks) return blocks
     return blocks.map((block) => ({
       ...block,
@@ -7296,7 +7304,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
         const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          let inner = islandContentOf(ctx, chrome ? { chrome, surface: true } : { surface: true })
+          let inner = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), surface: true, keyScope: a.islandId, activeTabs })
           // a surface holds surfaces of its own (an example island with component fields, a
           // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
           // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
@@ -7305,7 +7313,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               ...b,
               items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
                 ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
-            })), contexts, depth + 1)
+            })), contexts, { depth: depth + 1, activeTabs })
           }
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
@@ -26094,7 +26102,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // the header band already paints the host's EntityHeader: without this it came back in the content
         dropEntityHeader: !!entityHeaderOf(host),
       }) || []
-      hostContent = withSubresources(projected, contexts)
+      hostContent = withSubresources(projected, contexts, { activeTabs: vars.mateuActiveTabs })
     }
     let island = null
     const islandCtx = vars.mateuIslandId ? contexts[vars.mateuIslandId] : null

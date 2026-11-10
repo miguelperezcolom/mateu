@@ -515,7 +515,7 @@ define([
       if (hostBlocks2) {
         reg = await bridge.loadSubresources(base, reg, hostBlocks2, { appState });
         $application.variables.mateuRegistry = reg;
-        hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts);
+        hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts, { activeTabs: vars.mateuActiveTabs });
       }
       // the blocks WIN when they are rich (EntityHeader/Meter/Ledger, tabs, tables…): the
       // generic form and the plain text are suppressed — same rule as the archetypes. Also
