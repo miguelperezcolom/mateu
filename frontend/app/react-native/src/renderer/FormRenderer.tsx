@@ -11,6 +11,7 @@ import { Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
+import { ToolbarButton } from './ToolbarButton';
 import { FIT_CONTENT, headerPartsOf, InsideVerticalScroll, useBarTitle, useEmbeddedChrome, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
@@ -69,15 +70,12 @@ export function FormRenderer({ component, metadata, state }: Props) {
           {!!subtitle && <PaperText variant="bodyMedium" style={styles.subtitle}>{subtitle}</PaperText>}
           {(toolbar.length > 0 || (!readOnly && actions.length > 0)) && (
             <View style={styles.actionBar}>
-              {(readOnly ? toolbar : actions).map((a, i) => {
-                const id = a.actionId ?? a.id ?? '';
+              {(readOnly ? toolbar : actions).map((a, i) => (
                 // Only a button the server marks primary looks primary: a row of equally loud
-                // buttons has no hierarchy (Refactoring UI, "not every button is primary").
-                const press = pressButton(a as Record<string, unknown>, { state }, () => handleAction(id), a.label ?? id);
-                return (
-                  <MateuButton key={i} label={a.label ?? id} buttonStyle={a.buttonStyle} color={(a as { color?: string }).color} disabled={press.disabled} onPress={press.onPress} />
-                );
-              })}
+                // buttons has no hierarchy (Refactoring UI, "not every button is primary"). A
+                // ButtonGroup is one trigger opening its buttons as a menu.
+                <ToolbarButton key={i} button={a as Record<string, unknown>} ctx={{ state }} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+              ))}
             </View>
           )}
         </View>
@@ -93,13 +91,9 @@ export function FormRenderer({ component, metadata, state }: Props) {
 
       {!readOnly && buttons.length > 0 && (
         <View style={styles.bottomBar}>
-          {buttons.map((btn, i) => {
-            const id = btn.actionId ?? btn.id ?? '';
-            const press = pressButton(btn as Record<string, unknown>, { state }, () => handleAction(id), btn.label ?? id);
-            return (
-              <MateuButton key={i} label={btn.label ?? id} buttonStyle={btn.buttonStyle} color={(btn as { color?: string }).color} disabled={press.disabled} onPress={press.onPress} />
-            );
-          })}
+          {buttons.map((btn, i) => (
+            <ToolbarButton key={i} button={btn as Record<string, unknown>} ctx={{ state }} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+          ))}
         </View>
       )}
     </View>

@@ -21,6 +21,8 @@ import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction }
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } from './taskCenter.ts';
 import { inboxChangeOf } from './inbox.ts';
+import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
+import { connectivity } from './connectivity.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -118,6 +120,55 @@ export class MateuViewController {
   /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
    *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
   private actionRestData: Record<string, Json> = {};
+  private actionTimeout: Record<string, number> = {};
+  private actionIdempotent: Record<string, boolean> = {};
+  /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
+  private pending = new Set<string>();
+  private pendingListeners = new Set<() => void>();
+
+  /** The @Fab buttons of the App shell this view was opened through (see renderComponentFragment). */
+  appFabs: { fabs: Json[]; route: string; consumedRoute: string; serverSideType: string } | null = null;
+
+  /** Runs an app-level @Fab action against the app class that declared it; its answer applies here. */
+  async runAppFab(actionId: string): Promise<void> {
+    const app = this.appFabs;
+    if (!app || !actionId) return;
+    try {
+      const increment = await this.session.api.runAction({
+        route: app.route,
+        consumedRoute: app.consumedRoute,
+        actionId,
+        serverSideType: app.serverSideType || null,
+        initiatorComponentId: 'ux_main',
+        embeddedChrome: this.embeddedChrome,
+        componentState: {},
+        appState: this.session.appState,
+        parameters: {},
+      });
+      this.applyIncrement({ ...(increment as Json), fragments: [] });
+    } catch (e) {
+      this.session.notify(null, describeFailure(e, connectivity.isOnline), 'error');
+    }
+  }
+
+  /** Whether `actionId` is waiting for its answer (its control shows busy). */
+  isPending(actionId: string): boolean {
+    return this.pending.has(actionId);
+  }
+
+  /** Listens to the in-flight set (usePendingAction); returns the unsubscribe. */
+  subscribePending(listener: () => void): () => void {
+    this.pendingListeners.add(listener);
+    return () => {
+      this.pendingListeners.delete(listener);
+    };
+  }
+
+  private setPending(actionId: string, on: boolean): void {
+    if (on) this.pending.add(actionId);
+    else this.pending.delete(actionId);
+    for (const l of [...this.pendingListeners]) l();
+  }
   private currentValidations: Json[] = [];
   /** Client-side rules of the current component (RuleMapper wire shape). */
   private currentRules: Json[] = [];
@@ -291,6 +342,20 @@ export class MateuViewController {
 
   /** Runs an action; resolves whether it went through (a kanban move puts its card back otherwise). */
   async runAction(actionId: string, parameters?: Json, silent = false): Promise<boolean> {
+    // No double submit: a second press of an action still in flight is dropped (a slow Save sent
+    // twice saved twice). Triggers (silent) and reads (a type-ahead search) are never held back.
+    const exclusive = !silent && !isIdempotentAction(actionId, this.actionIdempotent[actionId]);
+    if (exclusive && this.pending.has(actionId)) return false;
+    if (!exclusive) return this.runActionNow(actionId, parameters, silent);
+    this.setPending(actionId, true);
+    try {
+      return await this.runActionNow(actionId, parameters, silent);
+    } finally {
+      this.setPending(actionId, false);
+    }
+  }
+
+  private async runActionNow(actionId: string, parameters: Json | undefined, silent: boolean): Promise<boolean> {
     // Dirty guard on discarding actions (Cancel on an edit form).
     // The host may confirm asynchronously; a synchronous confirm hook keeps it simple here.
     if (this.trackDirty && this.dirty && isLeaveAction(actionId, this.currentComponentActions)) {
@@ -413,6 +478,8 @@ export class MateuViewController {
         componentState: this.actionState(),
         appState: this.session.appState,
         parameters: parameters ?? {},
+        timeoutMillis: this.actionTimeout[actionId],
+        idempotent: this.actionIdempotent[actionId],
       });
       this.applyIncrement(increment as Json);
       // The server answers a handler that threw with an error message (its error boundary), not an
@@ -425,7 +492,14 @@ export class MateuViewController {
     } catch (e) {
       // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
       if (silent || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
-      else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
+      else {
+        // in plain words, with a Retry when sending it again could work (the web's mateu-api-caller)
+        const failure = classifyFailure(e, connectivity.isOnline);
+        devLog('[Mateu] action failed:', actionId, errorText(e));
+        this.session.notify(null, failure.message, 'error', failure.retryable
+          ? { actions: [{ label: 'Retry', onPress: () => void this.runAction(actionId, parameters) }] }
+          : undefined);
+      }
       return false;
     }
   }
@@ -535,7 +609,7 @@ export class MateuViewController {
     } catch (e) {
       // a screen-load fetch (@RestData) fails like a load: logged; a pressed action says so
       if (actionId === '__restdata__') devLog('[Mateu] rest data failed:', errorText(e));
-      else this.session.notify(null, `Request failed: ${errorText(e)}`, 'error');
+      else this.session.notify(null, describeFailure(e, connectivity.isOnline), 'error');
       return false;
     }
   }
@@ -564,8 +638,8 @@ export class MateuViewController {
     const appData = (increment?.['appData'] as Json) ?? {};
     const failure = appData['_restfetchError'] as Json | undefined;
     if (failure) {
-      const status = typeof failure['status'] === 'number' && failure['status'] > 0 ? ` (HTTP ${failure['status']})` : '';
-      throw new Error(`The request failed${status}`);
+      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new HttpStatusError(failure['status'], '');
+      throw new Error('The request failed');
     }
     return appData['_restfetch'] ?? {};
   }
@@ -606,6 +680,8 @@ export class MateuViewController {
     this.actionSse = { ...this.inheritedSse, ...flags.sse };
     this.actionBubble = flags.bubble;
     this.actionRestData = flags.restData;
+    this.actionTimeout = flags.timeoutMillis;
+    this.actionIdempotent = flags.idempotent;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -894,6 +970,12 @@ export class MateuViewController {
       const same = homeRoute === this.currentRoute && homeSst === this.currentServerSideType;
       if ((homeRoute || homeSst) && !same && this.appShellHops < 2) {
         this.appShellHops++;
+        // the app's own @Fab buttons float over its screens (they belong to the app class, so they
+        // run against it): an app opened inside another shell kept its content and lost them
+        const fabs = asArray(meta['fabs']);
+        this.appFabs = fabs.length
+          ? { fabs, route: homeRoute, consumedRoute: homeConsumed, serverSideType: str(meta['serverSideType']) }
+          : null;
         void this.navigate(homeRoute, homeConsumed, homeSst);
         return;
       }

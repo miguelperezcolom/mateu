@@ -259,7 +259,9 @@ test('a failed action toasts unless it is a silent trigger', async () => {
   await c.runAction('go', undefined, true);
   assert.equal(notes.length, 0);
   await c.runAction('go');
-  assert.equal(notes[0].text, 'Action failed: HTTP 503');
+  // in plain words, with a Retry (a 5xx may pass)
+  assert.equal(notes[0].text, 'The server could not complete the request (error 503). Please try again.');
+  assert.equal(notes[0].options.actions[0].label, 'Retry');
   assert.equal(notes[0].variant, 'error');
 });
 
@@ -485,7 +487,7 @@ test('@RestAction runs against the endpoint in the client and merges the result 
     assert.equal(c.currentComponentState['city'], 'Palma');
     assert.equal(notes.at(-1)!.text, 'Found Palma');
     await c.runAction('bad');
-    assert.equal(notes.at(-1)!.text, 'Request failed: HTTP 500');
+    assert.equal(notes.at(-1)!.text, 'The server could not complete the request (error 500). Please try again.');
     assert.equal(calls.filter((x) => x.kind === 'action').length, 0, 'no Mateu round trip');
   } finally {
     globalThis.fetch = realFetch;
@@ -535,7 +537,7 @@ test('a write whose proxied call fails says so — not its success message', asy
   await c.initialLoad('/orders');
   await c.runAction('remove');
   assert.notEqual(notes.at(-1)!.text, 'Deleted');
-  assert.match(notes.at(-1)!.text, /Request failed.*HTTP 500/);
+  assert.match(notes.at(-1)!.text, /could not complete the request \(error 500\)/);
 });
 
 test('forEachSelectedRow: a proxied source loops on the server (one call), a direct one per checked row', async () => {
@@ -789,6 +791,35 @@ test('an island behind a mediator carries what its host seeded: on its loads, it
   await c.runAction('scan');
   assert.equal(streamed.length, 1, 'the mediator declared the scan as a stream');
   assert.equal(streamed[0]!.componentState.stayId, 'st-1');
+});
+
+test('no double submit: a second press of an action in flight is dropped; its control knows it is busy', async () => {
+  const { session, c, calls } = harness();
+  let release: (v: unknown) => void = () => {};
+  (session as any).api.runAction = (rq: Json) => {
+    calls.push(rq);
+    return rq.actionId === 'save' ? new Promise((r) => (release = r)) : Promise.resolve({});
+  };
+  const heard: boolean[] = [];
+  c.subscribePending(() => heard.push(c.isPending('save')));
+  const first = c.runAction('save');
+  await tick();
+  assert.equal(await c.runAction('save'), false);
+  // a read (a type-ahead search) is never held back
+  await c.runAction('search');
+  await c.runAction('search');
+  release({});
+  assert.equal(await first, true);
+  assert.deepEqual(calls.map((x) => x.actionId), ['save', 'search', 'search']);
+  assert.deepEqual(heard, [true, false]);
+});
+
+test('an action sends its declared timeout and idempotency', async () => {
+  const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'slowCheck', timeoutMillis: 1500, idempotent: true }] })), {}]);
+  await c.initialLoad('/orders');
+  await c.runAction('slowCheck');
+  assert.equal(calls.at(-1)!.timeoutMillis, 1500);
+  assert.equal(calls.at(-1)!.idempotent, true);
 });
 
 test('a Notification / ConfirmDialog an island action returns floats: the island keeps its content', async () => {

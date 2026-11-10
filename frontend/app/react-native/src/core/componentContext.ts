@@ -18,11 +18,15 @@ export interface ActionFlags {
   bubble: Record<string, boolean>;
   /** @RestAction/@RestData descriptors: the client fetches the endpoint itself. */
   restData: Record<string, Json>;
+  /** `@Action(timeoutMillis)`: how long the client waits for the answer. */
+  timeoutMillis: Record<string, number>;
+  /** `@Action(idempotent)`: safe to repeat after a timeout / 5xx. */
+  idempotent: Record<string, boolean>;
 }
 
 /** Reads the flags of the wire `actions` list; entries without an id are skipped. */
 export function actionFlagsOf(actions: unknown): ActionFlags {
-  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {} };
+  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {} };
   for (const a of asArray(actions)) {
     const id = str(a['id']);
     if (!id) continue;
@@ -34,6 +38,9 @@ export function actionFlagsOf(actions: unknown): ActionFlags {
     if (a['sse'] === true) flags.sse[id] = true;
     flags.bubble[id] = a['bubble'] === true;
     if (a['restAction'] && typeof a['restAction'] === 'object') flags.restData[id] = a['restAction'] as Json;
+    const timeout = Number(a['timeoutMillis']);
+    if (timeout > 0) flags.timeoutMillis[id] = timeout;
+    if (a['idempotent'] === true) flags.idempotent[id] = true;
   }
   return flags;
 }

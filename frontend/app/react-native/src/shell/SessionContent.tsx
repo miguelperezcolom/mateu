@@ -19,6 +19,7 @@ import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } 
 import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
+import { ConnectivityStrip } from './ConnectivityStrip';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -36,6 +37,7 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
       <OverlayHost visible={visible} />
       <TaskHost visible={visible} />
       <ToastHost visible={visible} />
+      <ConnectivityStrip visible={visible} />
       <DirtyGuardHost />
     </>
   );

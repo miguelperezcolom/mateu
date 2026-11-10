@@ -11,10 +11,16 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
 import { MateuButton } from '../ui/controls';
+import { FAB } from 'react-native-paper';
+import { FAB_MARGIN, FAB_SIZE, fabBottom } from '../core/uxRules';
+import { materialIconOf } from '../ui/wireIcons';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
 const ViewControllerContext = createContext<MateuViewController | null>(null);
+
+/** The controller context, for hooks that tolerate its absence (usePendingAction). */
+export const ViewControllerContextForHooks = ViewControllerContext;
 
 /** Renders a subtree against an EXISTING controller (an overlay's footer runs on its opener). */
 export const ViewControllerProvider = ViewControllerContext.Provider;
@@ -141,6 +147,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
       'type'
     ] as string | undefined;
   const selfScrolling = rootType === 'Page' || rootType === 'Form' || rootType === 'Crud';
+  const windowlessView = !!embedded || !!serverSideNode;
   const content = (
     <ComponentRenderer component={view.component} state={view.state} data={view.data} />
   );
@@ -161,6 +168,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
           </InsideVerticalScroll.Provider>
         </ScrollView>
       )}
+      {!windowlessView && <AppFabs controller={controller} pageFabs={pageFabCount(view.component)} />}
     </View>
   );
 
@@ -188,7 +196,37 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   );
 }
 
+/** How many FABs the page itself floats (the app's go above them). */
+function pageFabCount(component: unknown): number {
+  const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
+  return Array.isArray(meta['fabs']) ? (meta['fabs'] as unknown[]).length : 0;
+}
+
+/**
+ * The @Fab buttons of an App shell this screen was opened through (an app inside another shell):
+ * stacked above the page's own FABs, run against the app class that declared them.
+ */
+function AppFabs({ controller, pageFabs }: { controller: MateuViewController; pageFabs: number }) {
+  const app = controller.appFabs;
+  if (!app) return null;
+  return (
+    <View style={[styles.appFabs, { bottom: fabBottom(false) + pageFabs * (FAB_SIZE + 12) }]} pointerEvents="box-none">
+      {app.fabs.map((fab, i) => {
+        const f = fab as { id?: string; label?: string; actionId?: string; icon?: string };
+        const actionId = f.actionId ?? f.id ?? '';
+        const icon = materialIconOf(f.icon);
+        return f.label ? (
+          <FAB key={i} label={f.label} icon={icon} accessibilityLabel={f.label} onPress={() => void controller.runAppFab(actionId)} />
+        ) : (
+          <FAB key={i} icon={icon ?? 'plus'} accessibilityLabel={actionId || 'Action'} onPress={() => void controller.runAppFab(actionId)} />
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = themed(() => StyleSheet.create({
+  appFabs: { position: 'absolute', right: FAB_MARGIN, gap: 12, alignItems: 'flex-end', zIndex: 40 },
   host: { flex: 1 },
   // a bare-layout root (e.g. a wizard) gets the same 16pt gutter as Page/Form roots — it was flush
   // against the screen edges (RN-17)

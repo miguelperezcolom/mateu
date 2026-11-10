@@ -15,6 +15,8 @@ import {
   type SkewNotice,
 } from '../core/buildSkew.ts';
 import { uiLocale } from '../core/money.ts';
+import { classifyFailure, DEFAULT_TIMEOUT_MS, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from '../core/requestPolicy.ts';
+import { connectivity } from '../core/connectivity.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -35,6 +37,10 @@ export interface RunActionParams {
   /** The chrome of the embedded micro frontend this request comes from (MicroFrontend.chrome): the
    *  server then sends it no window commands (title, favicon, history). */
   embeddedChrome?: string;
+  /** `@Action(timeoutMillis)`: give up after this long (else DEFAULT_TIMEOUT_MS). */
+  timeoutMillis?: number;
+  /** `@Action(idempotent)`: the action may be repeated after a timeout / 5xx, like a load or a search. */
+  idempotent?: boolean;
 }
 
 declare const __DEV__: boolean | undefined;
@@ -279,27 +285,64 @@ export class MateuApiClient {
     devLog('[Mateu] --> POST', url);
     devLog('[Mateu]     body:', payload.slice(0, 500));
 
-    // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
-    const doFetch = async () =>
-      fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue() }, body: payload });
-
-    let response = await doFetch();
-    // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
-    // (only against a backend trusted with the credentials: an anonymous island's 401 is not ours to fix)
-    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth, this.mayPrompt()))) {
-      response = await doFetch();
+    const timeoutMillis = params.timeoutMillis && params.timeoutMillis > 0 ? params.timeoutMillis : DEFAULT_TIMEOUT_MS;
+    // a route load, a search or an @Action(idempotent) is repeated after a timeout / 5xx (twice, with
+    // backoff); anything else is sent EXACTLY once — a save that timed out may still have happened
+    const idempotent = isIdempotentAction(params.actionId ?? '', params.idempotent);
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.postOnce(url, payload, timeoutMillis);
+      } catch (e) {
+        if (e instanceof StaleScreenError) throw e;
+        if (!shouldRetry(classifyFailure(e, connectivity.isOnline), attempt, idempotent)) throw e;
+        devLog('[Mateu] retrying', params.actionId || '(load)', 'attempt', attempt + 1);
+        await new Promise((r) => setTimeout(r, retryDelayMs(attempt)));
+      }
     }
-    const text = await response.text();
-    devLog('[Mateu] <--', response.status, text.slice(0, 500));
-    this.observeBuild(url, response, text);
+  }
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${text}`);
+  /** One POST, bounded by `timeoutMillis` (fetch has no timeout of its own: an answer that never
+   *  came left the screen waiting forever). Reports reachability to `connectivity`. */
+  private async postOnce(url: string, payload: string, timeoutMillis: number): Promise<unknown> {
+    const abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timedOut = false;
+    const timer = abort ? setTimeout(() => { timedOut = true; abort.abort(); }, timeoutMillis) : undefined;
+    try {
+      // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
+      const doFetch = async () =>
+        fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue() }, body: payload, ...(abort ? { signal: abort.signal } : {}) });
+      let response: Response;
+      try {
+        response = await doFetch();
+        // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
+        // (only against a backend trusted with the credentials: an anonymous island's 401 is not ours to fix)
+        if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth, this.mayPrompt()))) {
+          response = await doFetch();
+        }
+      } catch (e) {
+        if (timedOut) throw new RequestTimeoutError(timeoutMillis);
+        // the request never reached the network
+        if (e instanceof TypeError) connectivity.noteUnreachable();
+        throw e;
+      }
+      connectivity.noteReachable();
+      const text = await response.text();
+      devLog('[Mateu] <--', response.status, text.slice(0, 500));
+      this.observeBuild(url, response, text);
+
+      if (!response.ok) {
+        throw new HttpStatusError(response.status, text);
+      }
+
+      const json = JSON.parse(text);
+      this.checkWire(json);
+      return json;
+    } catch (e) {
+      if (timedOut && !(e instanceof RequestTimeoutError)) throw new RequestTimeoutError(timeoutMillis);
+      throw e;
+    } finally {
+      if (timer) clearTimeout(timer);
     }
-
-    const json = JSON.parse(text);
-    this.checkWire(json);
-    return json;
   }
 
   /**

@@ -391,7 +391,7 @@ export function GridRenderer({ component, state, data }: { component: unknown; s
               const indent = tree && ci === 0 ? depth * 14 : 0;
               const cellStyle = [styles.td, { width: colW, paddingLeft: 6 + indent, textAlign: (c.align === 'end' || c.align === 'right' ? 'right' : 'left') as 'left' | 'right' }];
               return c.actionId ? (
-                <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, { _clickedRow: row })}>
+                <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, gridCellParameters(c.actionId!, row))}>
                   <Text style={[...cellStyle, styles.link]} numberOfLines={1}>{text}</Text>
                 </TouchableOpacity>
               ) : (
@@ -831,6 +831,12 @@ function FramedPage({ src, title }: { src: string; title: string }) {
       </TouchableOpacity>
     </View>
   );
+}
+
+/** A grid cell's action parameters, as mateu-table sends them: the ROW itself (`openWork` reads
+ *  its fields), a crud row action (`action-on-row-*`) the row under `_clickedRow`. */
+export function gridCellParameters(actionId: string, row: Record<string, unknown>): Record<string, unknown> {
+  return actionId.startsWith('action-on-row-') ? { _clickedRow: row } : { ...row };
 }
 
 /** A press as the web's element events serialize it (its scalar fields). */

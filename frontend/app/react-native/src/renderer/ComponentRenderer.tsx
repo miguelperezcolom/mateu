@@ -7,6 +7,7 @@ import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { wireButtonAlignSelf } from '../core/phoneLayout';
 import { useButtonPress } from './useButtonPress';
+import { PendingAware } from './usePendingAction';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { buttonGroupMembers } from '../core/buttonGroup';
@@ -215,14 +216,20 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           }
         : press.onPress;
       return (
-        <MateuButton
-          label={label}
-          buttonStyle={metadata['buttonStyle'] as string | undefined}
-          color={metadata['color'] as string | undefined}
-          disabled={disabled}
-          onPress={onPress}
-          style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
-        />
+        // while its action is in flight the button shows busy and takes no second press
+        <PendingAware actionId={id}>
+          {(pending) => (
+            <MateuButton
+              label={label}
+              buttonStyle={metadata['buttonStyle'] as string | undefined}
+              color={metadata['color'] as string | undefined}
+              disabled={disabled || pending}
+              loading={pending}
+              onPress={onPress}
+              style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
+            />
+          )}
+        </PendingAware>
       );
     }
 

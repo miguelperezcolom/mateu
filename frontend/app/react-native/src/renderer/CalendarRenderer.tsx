@@ -83,7 +83,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
       </View>
     );
     return e.actionId ? (
-      <TouchableOpacity key={key} {...buttonA11y({ label: eventA11yLabel(e) })} onPress={() => void controller.runAction(e.actionId!)}>
+      <TouchableOpacity key={key} {...buttonA11y({ label: eventA11yLabel(e) })} onPress={() => void controller.runAction(e.actionId!, { _clickedEvent: e })}>
         {body}
       </TouchableOpacity>
     ) : (

@@ -15,6 +15,8 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom, withoutRedundantBack } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
+import { ToolbarButton } from './ToolbarButton';
+import { materialIconOf } from '../ui/wireIcons';
 import { FIT_CONTENT, headerPartsOf, InsideVerticalScroll, PageShowsToolbar, useBarTitle, useEmbeddedChrome, useFitsContent, useScreenHasBack } from './ScrollContext';
 import { uniqueButtons } from './patternGaps';
 
@@ -175,14 +177,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           )}
           {toolbar.length > 0 && (
             <View style={styles.toolbar}>
-              {toolbar.map((btn, i) => {
-                const id = btn.actionId ?? btn.id ?? '';
-                const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
-                const disabled = !!btn.disabled || press.disabled;
-                return (
-                  <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
-                );
-              })}
+              {toolbar.map((btn, i) => (
+                // a ButtonGroup is one trigger opening its buttons as a menu; a pressed button shows busy
+                <ToolbarButton key={i} button={btn as Record<string, unknown>} ctx={ctx} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+              ))}
             </View>
           )}
         </View>
@@ -210,14 +208,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
       {buttons.length > 0 && (
         <View style={styles.bottomBar}>
-          {buttons.map((btn, i) => {
-            const id = btn.actionId ?? btn.id ?? '';
-            const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
-            const disabled = !!btn.disabled || press.disabled;
-            return (
-              <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
-            );
-          })}
+          {buttons.map((btn, i) => (
+            <ToolbarButton key={i} button={btn as Record<string, unknown>} ctx={ctx} runAction={(id, parameters) => void controller.runAction(id, parameters)} />
+          ))}
         </View>
       )}
       {/* AFTER the bottom bar and lifted above it: drawn before it (and at the same height) the
@@ -226,9 +219,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <View style={[styles.fabStack, { bottom: fabBottom(buttons.length > 0) }]} pointerEvents="box-none">
           {fabs.map((fab, i) => (
             fab.label ? (
-              <FAB key={i} label={interpolate(fab.label, ctx)} accessibilityLabel={interpolate(fab.label, ctx)} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+              <FAB key={i} label={interpolate(fab.label, ctx)} icon={materialIconOf(fab.icon)} accessibilityLabel={interpolate(fab.label, ctx)} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
             ) : (
-              <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+              <FAB key={i} icon={materialIconOf(fab.icon) ?? 'plus'} accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
             )
           ))}
         </View>
