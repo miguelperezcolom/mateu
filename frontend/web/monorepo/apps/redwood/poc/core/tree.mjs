@@ -1,4 +1,4 @@
-import { islandContentOf, subresourceIslandOf, inlineIslandOf, editorNodeIds } from './content.mjs'
+import { islandContentOf, subresourceIslandOf, inlineIslandOf, editorNodeIds, interpolate } from './content.mjs'
 import { fieldWidgetOf, isExtraLayoutField, isListingOverlay, plainValueOf } from './rowEditor.mjs'
 import { findFirst } from './listing.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
@@ -185,7 +185,10 @@ export function fieldListOf(tree, state, data) {
       const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
       value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
     }
-    out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
+    // a label is a template like a section title (`Price per night (${state.currency})`)
+    const label = typeof widget.label === 'string' && widget.label.includes('${')
+      ? interpolate(widget.label, s, { data: data || {} }) : widget.label
+    out.push({ ...widget, label, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
   }
   return out
 }
