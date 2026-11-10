@@ -1357,7 +1357,7 @@ test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () =
   assert.match(zoned[0].blockClass, /oj-md-4/) // 36% → 4/12 (guests, card)
   assert.ok(zoned[0].isCard)
   assert.match(zoned[1].blockClass, /oj-md-8/) // 64% → 8/12 (operativa)
-  assert.ok(zoned[1].items.some((a) => a.isTaskProgress))
+  assert.ok(flatAtoms(zoned[1].items).some((a) => a.isTaskProgress))
   assert.ok(blocks.every((b) => b.blockClass))
 })
 
@@ -4664,7 +4664,8 @@ test('P1: barra de contenido — claves de ruta y contador; con una sola pestañ
     { md: { label: 'Gateways', routeKey: 'gateways' }, text: 'b' },
   ]))
   const bar = blocks.flatMap((b) => flatAtoms(b.items)).find((a) => a.isTabs)
-  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Subnets (12)', 'subnets'], ['Gateways', 'gateways']])
+  // the count is a chip after the label (it was glued to it: «Subnets (12)»)
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.badge, t.routeKey]), [['Subnets', '12', 'subnets'], ['Gateways', '', 'gateways']])
   const single = p1IslandContentOf(p1Tabs([{ md: { label: 'Policies', routeKey: 'all-policies' }, text: 'only' }]))
   assert.ok(!single.flatMap((b) => flatAtoms(b.items)).some((a) => a.isTabs), 'una sola pestaña: sin barra')
 })
@@ -4779,7 +4780,7 @@ test('P1: una página-formulario con la pestaña de los @Subresource activa cons
   const atoms = p1Atoms(blocks)
   const bar = atoms.find((a) => a.isTabs)
   assert.ok(bar, 'la barra de pestañas sigue ahí')
-  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
+  assert.deepEqual(bar.tabs.map((t) => [t.label + (t.badge ? ' (' + t.badge + ')' : ''), t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
   assert.equal(bar.selectedId, 'tab-2')
   // only those of the tab in view, stacked with their title and their help
   assert.deepEqual(atoms.filter((a) => a.isSubresource).map((a) => a.islandId), ['_invoices', '_payments'])
@@ -6853,10 +6854,15 @@ test('a column grid nested in a card is hoisted to the page level, in order', ()
     ] },
     { type: 'ClientSide', metadata: { type: 'Text', text: 'after' } },
   ] }
+  // …but a grid a cell can paint (texts, badges, notices…) stays IN PLACE as a CSS grid box (isCells):
+  // the card is not cut (the Explorer's examples came out split, a card per heading)
   const out = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
-  assert.deepEqual(out.map((b) => b.items.map((a) => a.text).join(',')), ['Card,before', 'left', 'right', 'after'])
-  assert.deepEqual(out.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '12'), ['12', '6', '6', '12'])
-  assert.ok(out[3].isCard, 'the continuation is still the card')
+  assert.equal(out.length, 1)
+  assert.ok(out[0].isCard)
+  const box = out[0].items.find((a) => a.isCells)
+  assert.deepEqual(out[0].items.map((a) => a.text || (a.isCells ? 'grid' : '')), ['Card', 'before', 'grid', 'after'])
+  assert.equal(box.style.gridTemplateColumns, '1fr 1fr')
+  assert.deepEqual(box.cells.map((c) => c.items[0].text), ['left', 'right'])
   // a grid with ONE track stays where it was
   card.children[1].metadata.gridTemplateColumns = '1fr'
   const single = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})

@@ -478,7 +478,7 @@
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- header of a collapsible panel (AccordionPanel / Details): its content follows,
                            as atoms, when it is open; collapsing re-projects (panelToggled) -->
-                      <oj-collapsible class="mateu-collapsible" expanded="[[ $current.data.expanded ]]"
+                      <oj-collapsible class="mateu-collapsible" :class="[[ $current.data.variantClass ]]" expanded="[[ $current.data.expanded ]]"
                         disabled="[[ $current.data.disabled ]]"
                         :data-collapsible-key="[[ $current.data.collapsibleKey ]]"
                         on-expanded-changed="[[ $listeners.panelToggled ]]">
@@ -967,13 +967,13 @@
                            Redwood's tab strip: the tabs at their own width from the start (layout
                            condense — JET's default, stretch, spreads them over the whole width) over
                            a full-width divider line (JET's oj-divider-bottom utility) -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" :class="[[ $current.data.variantClass ]]" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
                           <oj-bind-for-each data="[[ $current.data.tabs ]]">
                             <template>
-                              <li :id="[[ $current.data.id ]]" :data-shortcut="[[ $current.data.shortcut ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                              <li :id="[[ $current.data.id ]]" :data-shortcut="[[ $current.data.shortcut ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text><oj-bind-if test="[[ !!$current.data.badge ]]"><span class="oj-badge oj-badge-neutral oj-badge-subtle mateu-tab-badge"><oj-bind-text value="[[ $current.data.badge ]]"></oj-bind-text></span></oj-bind-if></a></li>
                             </template>
                           </oj-bind-for-each>
                         </ul>

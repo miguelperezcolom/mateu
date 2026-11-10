@@ -455,7 +455,7 @@ export const CELL_ATOM_FLAGS = [
   'isText', 'isHeading', 'isRow', 'isAnchor', 'isBadge', 'isButtons', 'isIcon', 'isImage', 'isAvatar',
   'isNotice', 'isBullets', 'isSeparator', 'isStat', 'isMeter', 'isProgressBar', 'isProgress', 'isOffer',
   'isChart', 'isCallout', 'isStatusList', 'isLedger', 'isTaskProgress', 'isScoreboard', 'isPropertyRow',
-  'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText',
+  'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText', 'isChecklist', 'isComments',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

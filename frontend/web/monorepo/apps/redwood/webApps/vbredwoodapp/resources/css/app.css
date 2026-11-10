@@ -2338,3 +2338,19 @@ oj-button.mateu-btn-success, oj-button.mateu-btn-error, oj-button.mateu-btn-warn
 /* a chip in a cell keeps its natural width (the cell column stretches its block children) */
 .mateu-cell > span { align-self: flex-start; }
 .mateu-card-outlined { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-lg, 6px); }
+/* a DashboardLayout as a grid box (dashboardGridOf): columns + colSpan / rowSpan */
+.mateu-cells.mateu-cells-grid { display: grid; gap: 0.75rem; }
+.mateu-cells-grid > .mateu-cell { min-width: 0; }
+/* a ResponsiveGrid box stacks to one column on a narrow screen (its stackBelow, 40rem by default) */
+@media (max-width: 40rem) { .mateu-cells-grid-stack { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: none !important; } .mateu-cells-grid-stack > .mateu-cell { grid-area: auto !important; grid-column: auto !important; } }
+/* SplitLayout box: two panes with a divider (the second pane starts after it) */
+.mateu-cells.mateu-split { gap: 0; border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); }
+.mateu-split > .mateu-split-pane { padding: .75rem; }
+.mateu-split > .mateu-split-pane + .mateu-split-pane { border-inline-start: 4px solid var(--oj-core-divider-color, #e0ddd9); }
+.mateu-split.mateu-split-vertical > .mateu-split-pane + .mateu-split-pane { border-inline-start: 0; border-top: 4px solid var(--oj-core-divider-color, #e0ddd9); }
+/* Tab badge (a count chip) and the tab / accordion VARIANTS */
+.mateu-tab-badge { margin-inline-start: .375rem; }
+oj-tab-bar.mateu-tabs-bordered { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px) var(--oj-core-border-radius-md, 4px) 0 0; padding-inline: .5rem; }
+oj-tab-bar.mateu-tabs-filled { background: var(--oj-core-bg-color-hover, #f1efed); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; }
+oj-collapsible.mateu-collapsible-filled { background: var(--oj-core-bg-color-hover, #f1efed); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; margin-bottom: .25rem; }
+oj-collapsible.mateu-collapsible-bordered { border: 1px solid var(--oj-core-divider-color, #e0ddd9); border-radius: var(--oj-core-border-radius-md, 4px); padding-inline: .5rem; margin-bottom: .25rem; }

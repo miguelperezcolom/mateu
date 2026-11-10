@@ -4496,7 +4496,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isText', 'isHeading', 'isRow', 'isAnchor', 'isBadge', 'isButtons', 'isIcon', 'isImage', 'isAvatar',
     'isNotice', 'isBullets', 'isSeparator', 'isStat', 'isMeter', 'isProgressBar', 'isProgress', 'isOffer',
     'isChart', 'isCallout', 'isStatusList', 'isLedger', 'isTaskProgress', 'isScoreboard', 'isPropertyRow',
-    'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText',
+    'isEntityHeader', 'isEmptyStateAtom', 'isSkeleton', 'isRichText', 'isChecklist', 'isComments',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -6018,7 +6018,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const BOX_CONTENT_TYPES = new Set(['HorizontalLayout', 'VerticalLayout', 'Container', 'Div', 'Scroller',
     'FullWidth', 'Card', 'Text', 'Badge', 'Button', 'Anchor', 'Icon', 'Image', 'Avatar', 'AvatarGroup', 'Notice',
     'BulletedList', 'Separator', 'Stat', 'Meter', 'ProgressBar', 'OfferCard', 'Chart', 'TrendChart', 'CalloutCard',
-    'StatusList', 'Ledger', 'TaskProgress', 'MetricCard', 'Scoreboard', 'EntityHeader', 'Skeleton', 'Markdown'])
+    'StatusList', 'Ledger', 'TaskProgress', 'MetricCard', 'Scoreboard', 'EntityHeader', 'Skeleton', 'Markdown',
+    'BoardLayoutItem', 'DashboardPanel', 'Checklist', 'CommentThread'])
   /** Box types that lend their style to the cell they make (their children are the cell's content). */
   const BOX_TYPES = new Set(['Container', 'Div', 'Scroller', 'VerticalLayout', 'HorizontalLayout'])
 
@@ -6266,6 +6267,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const blocks = []
     let plain = null
     let elementOrdinal = 0
+    let accordionOrdinal = 0
     // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
     let embeddedPageSeen = false
     // the wire node being projected (editor mode only): what an atom or a block made now came from
@@ -6463,7 +6465,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let items
       let style = {}
       let cellClass = ''
-      if (kt === 'Card') {
+      if (kt === 'DashboardPanel') {
+        // a dashboard tile: a card cell with its title and subtitle over its content
+        const body = atomsInto(kidsOf(kid))
+        if (!body) return null
+        items = [
+          ...(km.title ? [{ isText: true, text: interp(km.title), cls: 'oj-typography-subheading-xs' }] : []),
+          ...(km.subtitle ? [{ isText: true, text: interp(km.subtitle), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' }] : []),
+          ...body,
+        ]
+        cellClass = 'mateu-cell-card oj-panel'
+        style = styleObjectOf(kid.style || km.style)
+      } else if (kt === 'BoardLayoutItem') {
+        items = atomsInto(kidsOf(kid))
+        if (!items) return null
+      } else if (kt === 'Card') {
         const parts = cardPartNodes(km)
         const title = cardTitleOf(km)
         const head = atomsInto([...parts.media, ...parts.prefix, ...parts.header])
@@ -6502,7 +6518,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         || a.isStatusList || a.isLedger || a.isCallout || a.isScoreboard || a.isTaskProgress || a.isSeparator)
       if (style.flexGrow != null) style = { flexBasis: '0', ...style }
       else if (wide && !style.width && !style.flex) style = { flex: '1 1 16rem', ...style }
-      return { cellClass, style, items: items.map((a, i) => ({ ...a, key: a.key || String(i) })) }
+      return { cellClass, style, items: items.map((a, i) => ({ ...a, key: a.key || String(i) })),
+        // editor mode: the cell is its node's (the canvas selects a panel, a card, a column by it)
+        ...(editorNodeIds && kid && kid.id ? { nodeId: String(kid.id) } : {}) }
     }
     // a box of cells (isCells): `row` = a HorizontalLayout's children side by side, `single` = the node
     // itself as one cell (a styled Container, a Scroller, an aligned VerticalLayout)
@@ -6528,6 +6546,71 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!style.gap) style.gap = '0.5rem 1rem'
       if (style.flexWrap == null) style.flexWrap = 'wrap'
       return { isCells: true, boxClass: '', style, cells,
+        ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+    }
+    // a DashboardLayout as a CSS GRID box: `columns` tracks (auto-fit 16rem when 0), each tile
+    // spanning its colSpan / rowSpan — a block grid (oj-flex) has no row spans
+    const dashboardGridOf = (node) => {
+      const m = node.metadata || {}
+      const kids = kidsOf(node).filter(Boolean)
+      if (!kids.every((k) => fitsInBox(k))) return null
+      const columns = m.columns > 0 ? m.columns : 0
+      const cells = []
+      for (let i = 0; i < kids.length; i++) {
+        const cell = cellOf(kids[i], null)
+        if (!cell) return null
+        const km = kids[i].metadata || {}
+        const colSpan = Math.max(1, Math.min(columns || 12, Number(km.colSpan) || 1))
+        const rowSpan = Math.max(1, Number(km.rowSpan) || 1)
+        const { flex, ...rest } = cell.style
+        cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
+          ...(colSpan > 1 ? { gridColumn: 'span ' + colSpan } : {}), ...(rowSpan > 1 ? { gridRow: 'span ' + rowSpan } : {}) } })
+      }
+      if (!cells.length) return null
+      return { isCells: true, boxClass: 'mateu-cells-grid', cells,
+        style: { gridTemplateColumns: columns ? 'repeat(' + columns + ', minmax(0, 1fr))' : 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))' },
+        ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+    }
+    // a ResponsiveGrid as a CSS GRID box: the wire's own grid-template-columns / -areas / gap, each
+    // child placed in its named area (slot) or spanning its colSpan — in place, inside a card too
+    const responsiveGridOf = (node) => {
+      const m = node.metadata || {}
+      const kids = kidsOf(node).filter(Boolean)
+      if (!kids.length || !kids.every((k) => fitsInBox(k)) || m.reorderable) return null
+      const columns = String(m.gridTemplateColumns || '').trim()
+      const areas = String(m.gridTemplateAreas || '').trim()
+      const SAFE_TRACKS = /^[\w\s.,%()+-]*$/
+      const SAFE_AREAS = /^[\w\s".-]*$/
+      if (!SAFE_TRACKS.test(columns) || !SAFE_AREAS.test(areas) || /url|expression/i.test(columns)) return null
+      const named = new Set(areas.replace(/"/g, ' ').split(/\s+/).filter((a) => a && a !== '.'))
+      const cells = []
+      for (let i = 0; i < kids.length; i++) {
+        const cell = cellOf(kids[i], null)
+        if (!cell) return null
+        const slot = kids[i].slot || (kids[i].metadata && kids[i].metadata.slot)
+        const span = (m.colSpans && m.colSpans[i]) || 0
+        const { flex, ...rest } = cell.style
+        cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
+          ...(slot && named.has(slot) ? { gridArea: slot } : span > 1 ? { gridColumn: 'span ' + span } : {}) } })
+      }
+      const gap = /^[\w\s.%]*$/.test(String(m.gap || '')) && m.gap ? m.gap : '1rem'
+      return { isCells: true, boxClass: 'mateu-cells-grid mateu-cells-grid-stack', cells,
+        style: { gap, gridTemplateColumns: columns || (areas ? 'none' : 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))'),
+          ...(areas ? { gridTemplateAreas: areas } : {}) },
+        ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+    }
+    // a BoardLayoutRow as a row box: its items share the row by their boardCols
+    const boardRowOf = (row) => {
+      const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+      if (!items.length || !items.every((it) => fitsInBox(it))) return null
+      const cells = []
+      for (let i = 0; i < items.length; i++) {
+        const cell = cellOf(items[i], null)
+        if (!cell) return null
+        const cols = Number(items[i].metadata && items[i].metadata.boardCols) || 1
+        cells.push({ ...cell, key: String(i), style: { ...cell.style, flex: cols + ' 1 0', minWidth: 'min(12rem, 100%)' } })
+      }
+      return { isCells: true, boxClass: '', style: { gap: '0.75rem', flexWrap: 'wrap' }, cells,
         ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
     }
     // a HorizontalLayout of buttons only: its own bar, justified like the row (START by default)
@@ -6632,6 +6715,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // left, detail on the right, 5/12 + 7/12), which stack below md — like OPERA's
       // Console view. Vertical (SplitLayout orientation vertical) → one below the other. Inside
       // another block there are no columns to share out: it is projected in place, in order.
+      // SPLIT LAYOUT of pieces a cell can paint: one box of two panes side by side (one above the
+      // other when vertical) with a divider between them, its height / style honoured, each pane
+      // scrolling on its own — in place, inside a card too
+      if (t === 'SplitLayout') {
+        const kids = kidsOf(node).filter(Boolean).slice(0, 2)
+        const vertical = String(m.orientation || '').toLowerCase() === 'vertical'
+        if (kids.length === 2 && kids.every((k) => fitsInBox(k))) {
+          const cells = kids.map((k) => cellOf(k, null))
+          if (cells.every(Boolean)) {
+            atom({ isCells: true, boxClass: 'mateu-split' + (vertical ? ' mateu-cells-column mateu-split-vertical' : ''),
+              style: { ...styleObjectOf(node.style || m.style) },
+              cells: cells.map((c, i) => ({ ...c, key: String(i), cellClass: ((c.cellClass || '') + ' mateu-split-pane').trim(),
+                style: { flex: '1 1 0', minWidth: '0', minHeight: '0', overflow: 'auto', ...c.style } })),
+              ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }, container)
+            return
+          }
+        }
+      }
       if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
         const kids = (node.children || []).filter(Boolean)
         if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
@@ -6854,11 +6955,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
           stripKey,
           selectedId: ids[current],
+          // its variant (bordered / filled…): app.css .mateu-tabs-<variant>
+          variantClass: m.variant ? 'mateu-tabs-' + String(m.variant).toLowerCase().replace(/[^a-z-]/g, '') : '',
           tabs: tabs.map((tab, i) => ({
             id: ids[i],
             // the count of its EAGER @Subresource travels with the tab («Subnets (12)»)
-            label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1))
-              + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
+            label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
+            // its badge (a count): a chip after the label
+            badge: tab.metadata.badge != null && String(tab.metadata.badge) !== '' ? interp(String(tab.metadata.badge)) : '',
             // @Tab(key): selecting it pushes its URL (see contentTabSelected)
             routeKey: tab.metadata.routeKey || '',
             // @Tab(shortcut): selects it by keyboard (keys.mjs)
@@ -6928,6 +7032,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // grid in a field): a block cannot hold columns, so the grid is HOISTED — the block is cut, the
       // grid's columns follow it at the page's level and a continuation block takes the rest. Only a
       // full-width block is cut (one that is already a column keeps its grid stacked inside).
+      // ResponsiveGrid whose children a cell can paint: a CSS grid box, laid out by the wire's own
+      // tracks and named areas, in place (it used to cut the card it sat in: the grid hoisted out)
+      // (at the page's level the column blocks keep the job: templates mark them fromTemplate)
+      if (t === 'ResponsiveGrid' && container) {
+        const grid = responsiveGridOf(node)
+        if (grid) { atom(grid, container); return }
+      }
       if (t === 'ResponsiveGrid' && container && !live(container).colClass && blocks.includes(live(container))
           && (gridTrackWeights(m.gridTemplateColumns).length >= 2
             || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() && !m.gridTemplateColumns))) {
@@ -6986,6 +7097,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (classes && projectSized(kids, classes, allTags)) return
       }
       if (t === 'DashboardLayout') {
+        // a CSS grid box first (columns, colSpan AND rowSpan, in place inside a card); blocks otherwise
+        const grid = dashboardGridOf(node)
+        if (grid) { atom(grid, container); return }
         const columns = m.columns > 0 ? m.columns : 3
         const kids = kidsOf(node)
         if (projectSized(kids, kids.map((k) => panelColClass(k && k.metadata && k.metadata.colSpan, columns)))) return
@@ -7000,6 +7114,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
       // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
       // another block there are no columns to share out: stacked, in order.
+      // inside a block: each row a row box (its items side by side by their boardCols)
+      if (t === 'BoardLayout' && container) {
+        const rows = kidsOf(node).filter(Boolean).map(boardRowOf)
+        if (rows.length && rows.every(Boolean)) { rows.forEach((r) => atom(r, container)); return }
+      }
       if (t === 'BoardLayout' && !container) {
         const rows = kidsOf(node).filter(Boolean)
         const before = blocks.length
@@ -7216,11 +7335,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'AccordionLayout') {
         kidsOf(node).forEach((panel, i) => {
           const pm = panel.metadata || {}
-          const key = 'acc:' + (node.id || 'accordion') + ':' + i
+          // keyed by its SURFACE too: two id-less accordions on one page (two islands) shared their state
+          const key = 'acc:' + (node.id || ('accordion' + accordionOrdinal) + '@' + ((ctx.tree && ctx.tree.id) || '')) + ':' + i
           const expanded = panelExpanded(key, !!pm.active)
-          atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled,
+            // its variant (filled / bordered…): app.css .mateu-collapsible-<variant>
+            variantClass: m.variant ? 'mateu-collapsible-' + String(m.variant).toLowerCase().replace(/[^a-z-]/g, '') : '' }, container)
           if (expanded) for (const child of kidsOf(panel)) visit(child, container)
         })
+        if (!node.id) accordionOrdinal++
         return
       }
       // a DRAWER placed IN the page (not returned by an action: a GanttPage's bottom panel, a docked
