@@ -83,11 +83,20 @@ object PageChrome {
      * header badges, KPIs, toolbar (published to the host's native toolbar when there is one), FABs
      * and banners. Null when the metadata declares none of them.
      */
-    fun header(r: ComponentRenderer, metadata: JsonNode, exprCtx: Map<String, Any?>): JComponent? {
+    fun header(
+        r: ComponentRenderer,
+        metadata: JsonNode,
+        exprCtx: Map<String, Any?>,
+        state: JsonNode? = null,
+        data: JsonNode? = null,
+    ): JComponent? {
         val header = verticalPanel(4)
-        val title = Expressions.interpolate(metadata.text("title", metadata.text("pageTitle")), exprCtx)
-        val switcher = PageSlots.switcherOf(metadata)
-        val overline = Expressions.interpolate(metadata.text("overline"), exprCtx)
+        // an embedded micro frontend's own header: NONE = none, COMPACT = its actions only
+        val parts = io.mateu.ijp.state.EmbeddedChrome.header(r.ctx.embeddedChrome)
+        fun shown(text: String) = if (parts.texts) text else ""
+        val title = shown(Expressions.interpolate(metadata.text("title", metadata.text("pageTitle")), exprCtx))
+        val switcher = if (parts.texts) PageSlots.switcherOf(metadata) else null
+        val overline = shown(Expressions.interpolate(metadata.text("overline"), exprCtx))
         if (overline.isNotBlank()) {
             header.addStacked(JBLabel(plain(overline.uppercase())).apply {
                 foreground = ToneColors.secondaryText()
@@ -95,7 +104,7 @@ object PageChrome {
             }, 2)
         }
         // While there is no title yet, the placeholder stands in its place, dimmed (PageDto.titlePlaceholder).
-        val placeholder = metadata.text("titlePlaceholder")
+        val placeholder = shown(metadata.text("titlePlaceholder"))
         if (title.isBlank() && placeholder.isNotBlank()) {
             header.addStacked(JBLabel(plain(placeholder)).apply {
                 font = titleFont(font)
@@ -115,18 +124,18 @@ object PageChrome {
             if (switcher != null) titleRow.add(renderRecordSwitcher(r, switcher))
             header.addStacked(titleRow, 4)
         }
-        val subtitle = Expressions.interpolate(metadata.text("subtitle"), exprCtx)
+        val subtitle = shown(Expressions.interpolate(metadata.text("subtitle"), exprCtx))
         if (subtitle.isNotBlank()) {
             header.addStacked(JBLabel(plain(subtitle)).apply { foreground = ToneColors.secondaryText() }, 8)
         }
         // "Last updated …" under the subtitle (PageDto.timestamp).
-        val timestamp = metadata.text("timestamp")
+        val timestamp = shown(metadata.text("timestamp"))
         if (timestamp.isNotBlank()) {
             header.addStacked(JBLabel(plain(timestamp)).apply { foreground = ToneColors.secondaryText() }, 6)
         }
         // Previous / next record (PageDto.peerNav): a side without a route is disabled.
         val peerNav = metadata.path("peerNav")
-        if (peerNav.isObject) {
+        if (parts.texts && peerNav.isObject) {
             val row = JPanel(FlushFlowLayout(JBUI.scale(8)))
             row.isOpaque = false
             for ((labelKey, routeKey, previous) in listOf(Triple("prevLabel", "prevRoute", true), Triple("nextLabel", "nextRoute", false))) {
@@ -142,14 +151,14 @@ object PageChrome {
             if (row.componentCount > 0) header.addStacked(row, 8)
         }
         // @BadgeInHeader chips + KPI band under the title.
-        val badges = metadata.arr("badges")
+        val badges = if (parts.texts) metadata.arr("badges") else emptyList()
         if (badges.isNotEmpty()) {
             val row = JPanel(FlushFlowLayout(JBUI.scale(6)))
             row.isOpaque = false
             for (b in badges) row.add(headerBadge(b, exprCtx))
             header.addStacked(row, 6)
         }
-        val kpis = metadata.arr("kpis")
+        val kpis = if (parts.texts) metadata.arr("kpis") else emptyList()
         if (kpis.isNotEmpty()) {
             val row = JPanel(FlushFlowLayout(JBUI.scale(18)))
             row.isOpaque = false
@@ -167,15 +176,32 @@ object PageChrome {
         }
         // Toolbar actions go to the native host toolbar (editor header / tool window title) when the
         // host provides one — the IntelliJ-idiomatic spot; otherwise the inline button row.
-        val toolbar = metadata.arr("toolbar")
+        val toolbar = if (parts.actions) metadata.arr("toolbar") else emptyList()
         if (toolbar.isNotEmpty() && !r.ctx.publishToolbar(toolbar)) header.addStacked(buttonRow(r, toolbar), 8)
         // @Fab actions surface as header buttons — the desktop has no floating layer over the editor.
-        val fabs = metadata.arr("fabs")
+        val fabs = if (parts.actions) metadata.arr("fabs") else emptyList()
         if (fabs.isNotEmpty()) header.addStacked(buttonRow(r, fabs), 8)
         for (banner in metadata.arr("banners")) header.addStacked(renderBanner(banner), 8)
         // Action-returned banners (UIIncrementDto.banners) render after the static ones.
         for (banner in r.ctx.actionBanners) header.addStacked(renderBanner(banner), 8)
+        // The page's own header COMPONENTS (HeaderSupplier: a listing's drop zones, a summary band)
+        // under the header texts — they were never drawn (drag-rows lost its three drop zones).
+        val empty = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode()
+        for (c in slotComponents(metadata, "header")) header.addStacked(r.render(c, state ?: empty, data ?: empty), 8)
         return if (header.componentCount > 0) header else null
+    }
+
+    /** The components a Page/Form carries in `metadata.<slot>` (`header` / `footer`). */
+    internal fun slotComponents(metadata: JsonNode, slot: String): List<JsonNode> =
+        metadata.path(slot).takeIf { it.isArray }?.filter { it.isObject && it.path("type").isTextual }.orEmpty()
+
+    /** A page's footer components (HeaderSupplier's footer), stacked; null when it declares none. */
+    fun footer(r: ComponentRenderer, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent? {
+        val items = slotComponents(metadata, "footer")
+        if (items.isEmpty()) return null
+        val panel = verticalPanel(0)
+        items.forEachIndexed { i, c -> panel.addStackedBetween(r.render(c, state, data), JBGap, first = i == 0) }
+        return panel
     }
 
     /** Whether a page template owns the header (Form.noHeader — the Welcome page's hero, …). */

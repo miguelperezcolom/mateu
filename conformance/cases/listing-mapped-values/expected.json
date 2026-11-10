@@ -1,0 +1,30 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "data" : {
+      "crud" : {
+        "page" : {
+          "content" : [ {
+            "state" : {
+              "message" : "Open",
+              "type" : "WARNING",
+              "value" : "OPEN"
+            },
+            "urgency" : "High"
+          }, {
+            "_rowNumber" : 1,
+            "state" : {
+              "message" : "Done",
+              "type" : "SUCCESS",
+              "value" : "DONE"
+            },
+            "urgency" : "Normal"
+          } ],
+          "pageSize" : 2,
+          "totalElements" : 2
+        }
+      }
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

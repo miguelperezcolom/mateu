@@ -6,7 +6,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
-import { BarTitle, EmbeddedChrome, type EmbeddedChromeMode, FIT_CONTENT, InsideVerticalScroll, useFitsContent, ScreenHasBack } from './ScrollContext';
+import { BarTitle, EmbeddedChrome, FIT_CONTENT, InsideVerticalScroll, useFitsContent, ScreenHasBack } from './ScrollContext';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
@@ -63,7 +63,7 @@ interface Props {
    */
   embedded?: boolean;
   /** An embedded micro frontend's declared chrome (NONE | COMPACT | PAGE). */
-  chrome?: EmbeddedChromeMode;
+  chrome?: string | null;
   /** Hands the live controller to the host (dirty checks on back navigation). */
   onController?: (controller: MateuViewController) => void;
 }
@@ -106,7 +106,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
     }
     controller.onRender = (v) => setView({ ...v });
     controller.windowless = !!embedded || !!serverSideNode;
-    controller.embeddedChrome = chrome;
+    controller.embeddedChrome = chrome ?? undefined;
     controller.detailOpener = onOpenDetail ?? null;
     controller.stackNavigator = onStackNavigate ?? null;
     controller.confirmDiscard = () => session.confirmDiscard();
@@ -217,7 +217,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
       {windowless ? (
         // nothing in an embedded view repeats the app bar's title (it is not its title), and only a
         // micro frontend's own page is under its declared chrome
-        <BarTitle.Provider value={null}><EmbeddedChrome.Provider value={chrome}>
+        <BarTitle.Provider value={null}><EmbeddedChrome.Provider value={chrome ?? null}>
         {/* an island (an embedded crud, an overlay's content) is not the pushed screen: ITS «Back to
             list» goes back inside the island, which the screen's arrow does not — it keeps it (RN-26) */}
         <ScreenHasBack.Provider value={false}>{body}</ScreenHasBack.Provider>

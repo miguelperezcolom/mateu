@@ -518,6 +518,19 @@ internal static class MateuCatalogs
         return locked;
     }
 
+    /// <summary>The ids of the fields the business components <paramref name="names"/> (and the ones
+    /// they nest) REMOVE for the caller (eyesOnly:/access:, a composition hidden as a whole or under a
+    /// section the caller may not see) — the read-only ones excluded: they are drawn, with their
+    /// value. What a definition-only page drops from its route seeds (Java's
+    /// <c>ClientLockedFields.hiddenByPiecesOf</c>): the compositions are resolved while the page is
+    /// mapped, after the route seeded its state. Fails closed like <see cref="LockedBy"/>.</summary>
+    internal static IReadOnlySet<string> HiddenBy(IEnumerable<string> names)
+    {
+        var hidden = new Dictionary<string, string>();
+        foreach (var name in names) Lock(name, [], hidden, lockAll: false, hiddenOnly: true);
+        return hidden.Keys.ToHashSet();
+    }
+
     /// <summary>Every field of the business components <paramref name="names"/> (nested ones
     /// included), field id → the component: they sit where the caller may not see them.</summary>
     internal static IReadOnlyDictionary<string, string> AllFieldsOf(IEnumerable<string> names)
@@ -562,7 +575,8 @@ internal static class MateuCatalogs
     internal static IEnumerable<string> RestrictedNames() =>
         Components.Components.Where(e => AuthoredSources.Of(e) is not null).Select(e => e.Name);
 
-    private static void Lock(string name, string[] chain, Dictionary<string, string> lockedBy, bool lockAll)
+    private static void Lock(string name, string[] chain, Dictionary<string, string> lockedBy, bool lockAll,
+        bool hiddenOnly = false)
     {
         if (chain.Contains(name) || chain.Length >= 20) return;
         if (Components.Get(name) is not { } entry) return;
@@ -574,7 +588,7 @@ internal static class MateuCatalogs
             // parent piece) the caller may not see, where none of it (nested pieces included) does
             if (!lockAll) return;
             locked.UnionWith(AuthoredSources.FieldIdsInTree(entry.Component));
-            foreach (var child in AuthoredSources.RefsInTree(entry.Component)) Lock(child, chain, lockedBy, lockAll: true);
+            foreach (var child in AuthoredSources.RefsInTree(entry.Component)) Lock(child, chain, lockedBy, lockAll: true, hiddenOnly);
             return;
         }
         var nested = AuthoredSources.RefsIn(source.Node);
@@ -589,7 +603,7 @@ internal static class MateuCatalogs
             try
             {
                 var applied = YamlAccess.Apply(source.Node, ActionGuard.Authorized);
-                locked.UnionWith(applied.LockedFields);
+                locked.UnionWith(hiddenOnly ? applied.HiddenFields : applied.LockedFields);
                 if (applied.Tree is null)
                 {
                     locked.UnionWith(AuthoredSources.FieldIdsIn(source.Node));
@@ -604,7 +618,7 @@ internal static class MateuCatalogs
                 visible = new HashSet<string>();
             }
         }
-        foreach (var child in nested) Lock(child, chain, lockedBy, lockAll: !visible.Contains(child));
+        foreach (var child in nested) Lock(child, chain, lockedBy, lockAll: !visible.Contains(child), hiddenOnly);
     }
 
     /// <summary>A field-id sink recording the component that locks each field (first wins).</summary>

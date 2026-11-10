@@ -1,4 +1,5 @@
 import { chromeText } from './i18n.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 // Map on Leaflet: JET has no street map (oj-thematic-map paints GeoJSON geography, not
 // tiles), so the `isMap` atom is a container this fills, once per document like the
 // rich text or the MatrixGrid:
@@ -113,7 +114,7 @@ function drawMap(L, el, spec) {
     }).addTo(map)
     if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
     const hover = [m.label, m.description].filter(Boolean).join(' · ')
-    const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) } : null
+    const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), surfaceAtomOf(el)) } : null
     if (run) pin.on('click', run)
     // the marker's SVG path exists only once the map has a view (Leaflet adds layers whenReady, and
     // the view is set below): decorate it when the layer is ADDED — read right here, getElement()

@@ -96,6 +96,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Row actions live in the right-click context menu (the IDE way) — no button column in the table.
     val actionSpecs = allSpecs.filter { it.kind == ColKind.ACTIONS }
     val specs = allSpecs.filterNot { it.kind == ColKind.ACTIONS }
+    // each shown column's wire metadata (width / autoWidth / flexGrow), by model index like specs
+    val specColumns = metadata.leafColumns().map { c -> c.path("metadata").takeIf { it.isObject } ?: c }.filterIndexed { i, _ -> allSpecs[i].kind != ColKind.ACTIONS }
 
     // @RestListing: the rows are fetched WHOLE (the plugin does not honour totalPath, and a source
     // answered from its SAMPLE cannot honour `${'$'}{state.page}` either), so search, filters, sort and
@@ -358,7 +360,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // ── search bar: the IDE's SearchTextField (magnifier, clear button, history popup) plus a
     //    collapsible "Filter by" panel with a type-specific widget per filter (smart search port) ──
-    if (metadata.bool("searchable")) {
+    // a Filterable listing that is not Searchable still has its filter bar (no search box): the whole
+    // bar used to hang on `searchable`, so its typed filters (ranges, multi-selects) had no widget
+    val searchable = metadata.bool("searchable")
+    if (searchable || metadata.arr("filters").isNotEmpty()) {
         val searchField = SearchTextField(true)
         searchField.textEditor.emptyText.text = "Search…"
         searchField.textEditor.columns = 24
@@ -380,7 +385,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         searchField.textEditor.addActionListener { doSearch() }
         val searchBar = JPanel(FlushFlowLayout(JBUI.scale(JBGap))).apply {
             isOpaque = false
-            add(searchField)
+            if (searchable) add(searchField)
         }
 
         val north = verticalPanel(0)
@@ -479,6 +484,16 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         splitter.firstComponent = JBScrollPane(table)
         splitter.secondComponent = detail
         resultsHost.add(splitter, BorderLayout.CENTER)
+    } else if (ListingCards.isCardLayout(metadata.text("gridLayout"))) {
+        // GridLayout.cards / list: the rows as cards (a hero search's results); the table stays the
+        // model, so search, paging and sort keep working on it
+        val open: ((Int) -> Unit)? = when {
+            rowOpen != null -> { i -> model.rowAt(i)?.let(openRow) }
+            rowLinkActionId.isNotBlank() -> { i -> model.rowAt(i)?.let { ctx.runAction(rowLinkActionId, rowAsParams(ctx, it)) } }
+            else -> null
+        }
+        val cards = ListingCards.panel(model, metadata.text("gridLayout") == "list", { !model.isSynthetic(it) }, open)
+        resultsHost.add(JBScrollPane(cards).apply { border = null }, BorderLayout.CENTER)
     } else {
         resultsHost.add(JBScrollPane(table), BorderLayout.CENTER)
     }
@@ -521,6 +536,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val eff = listing.path("page").let { if (!it.isMissingNode && !it.isNull) it else d }
         val rows = extractRows(eff)
         model.setEntries(buildEntries(rows, specs, groupBy, listing))
+        // `width` / `@ColumnWidth("auto")` (autoWidth) / flexGrow 0 — the desktop ignored them all;
+        // an auto column needs its rows to measure, so the plan is applied on every page
+        GridTables.applyWidths(table, specColumns)
         val total = eff.path("totalElements").asLong(rows.size.toLong())
         val pageNumber = eff.path("pageNumber").asInt(0)
         val pageSize = eff.path("pageSize").asInt(10).coerceAtLeast(1)
@@ -530,6 +548,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         next.isEnabled = pageNumber + 1 < totalPages
     }
     ctx.registerDataHandler("crud") { applyData(it) }
+    // inside a plain island the search answer targets the island: register under its id too, or
+    // the last listing on the page took every island's rows
+    ctx.currentIslandId?.let { islandId -> ctx.registerDataHandler(islandId) { applyData(it) } }
     // Seed with any data already present on this fragment.
     if (!data.isNull && !data.isMissingNode) applyData(data)
 
@@ -611,7 +632,7 @@ internal fun pagerButton(icon: javax.swing.Icon, name: String, onPress: () -> Un
     putClientProperty("JButton.buttonType", "square")
     isFocusable = true
     toolTipText = plainTip(name)
-    accessibleContext.accessibleName = name
+    getAccessibleContext().accessibleName = name
     addActionListener { onPress() }
 }
 
@@ -684,9 +705,9 @@ private fun formatAggregate(value: Double, spec: ColSpec): String {
         return MoneyValues.numberText(value)
     }
     if (spec.aggregate == "count") {
-        return java.text.NumberFormat.getIntegerInstance().format(Math.round(value))
+        return java.text.NumberFormat.getIntegerInstance(MoneyValues.uiLocale()).format(Math.round(value))
     }
-    val nf = java.text.NumberFormat.getNumberInstance()
+    val nf = java.text.NumberFormat.getNumberInstance(MoneyValues.uiLocale())
     nf.maximumFractionDigits = 2
     return nf.format(value)
 }

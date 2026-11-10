@@ -42,6 +42,10 @@ class Applied:
     tree: Any
     refused_actions: frozenset[str] = field(default_factory=frozenset)
     locked_fields: frozenset[str] = field(default_factory=frozenset)
+    #: The fields REMOVED for the caller (eyesOnly:/access:) — a subset of ``locked_fields``, which
+    #: also holds the read-only ones: a hidden field's value must not travel at all (not even as a
+    #: route seed), a read-only one's does (it is drawn, with its value).
+    hidden_fields: frozenset[str] = field(default_factory=frozenset)
 
 
 def _strings(node: Any) -> tuple[str, ...]:
@@ -100,11 +104,15 @@ def apply(
     walker = _Walker(authorized, route_reachable)
     walker.refused.update(also_refused or ())
     if walker.removes(tree, None):
-        return Applied(None, frozenset(walker.refused), frozenset(walker.locked))
+        return Applied(
+            None, frozenset(walker.refused), frozenset(walker.locked), frozenset(walker.hidden)
+        )
     walker.walk(tree, None, False)
     if walker.refused:
         _disable_buttons_for(tree, walker.refused)
-    return Applied(tree, frozenset(walker.refused), frozenset(walker.locked))
+    return Applied(
+        tree, frozenset(walker.refused), frozenset(walker.locked), frozenset(walker.hidden)
+    )
 
 
 class _Walker:
@@ -113,6 +121,7 @@ class _Walker:
         self.route_reachable = route_reachable
         self.refused: set[str] = set()
         self.locked: set[str] = set()
+        self.hidden: set[str] = set()
 
     def granted(self, access: Access | None) -> bool:
         return access is None or bool(self.authorized(access))
@@ -133,7 +142,7 @@ class _Walker:
             return False
         if container_key == "actions" and node.get("id") is not None:
             self.refused.add(str(node["id"]))
-        self._lock_fields_under(node)
+        self._lock_fields_under(node, hide=True)
         return True
 
     def walk(self, node: Any, container_key: str | None, read_only: bool) -> None:
@@ -184,15 +193,17 @@ class _Walker:
         if f.get("id") is not None:
             self.locked.add(str(f["id"]))
 
-    def _lock_fields_under(self, node: Any) -> None:
+    def _lock_fields_under(self, node: Any, hide: bool = False) -> None:
         if isinstance(node, dict):
             if node.get("type") == "FormField":
                 self._lock(node)
+                if hide and node.get("id") is not None:
+                    self.hidden.add(str(node["id"]))
             for v in node.values():
-                self._lock_fields_under(v)
+                self._lock_fields_under(v, hide)
         elif isinstance(node, list):
             for v in node:
-                self._lock_fields_under(v)
+                self._lock_fields_under(v, hide)
 
 
 def _disable_buttons_for(node: Any, refused: set[str]) -> None:

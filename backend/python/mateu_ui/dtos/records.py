@@ -92,6 +92,13 @@ class GridColumnMeta(Wire):
     width: str | None = None
     #: flex-grow of the column ("0" for fixed/auto columns).
     flex_grow: str | None = None
+    #: The column's priority (lower = more important) — Priority() on the row field (mirrors
+    #: GridColumnDto.priority).
+    priority: int | None = None
+    #: The line of a multi-line list item the column goes on — Line() (mirrors GridColumnDto.line).
+    line: int | None = None
+    #: The column's own inline CSS — Style() on the row field (mirrors GridColumnDto.style).
+    style: str | None = None
     #: The text of a button-stereotype cell (e.g. a grid field's "Edit" column).
     text: str | None = None
     #: value → badge tone (success|warning|danger|info|neutral) for a status cell, usually from a
@@ -111,6 +118,13 @@ class GridColumn(Wire):
     type: Literal["ClientSide"] = "ClientSide"
     metadata: GridColumnMeta
     id: str | None = None
+    #: The column component's style: the column's own (Java's GridColumnMapper hands the column
+    #: style to the component too).
+    style: str | None = None
+
+    def model_post_init(self, __context) -> None:  # noqa: D401 - pydantic hook
+        if self.style is None and self.metadata.style:
+            object.__setattr__(self, "style", self.metadata.style)
 
 
 class MenuItem(Wire):
@@ -173,7 +187,8 @@ class Fab(Wire):
     icon: str
     action_id: str
     label: str | None = None
-    order: int = 0
+    #: Sort key only: FABs travel already in order, and Java's FabDto has no such member.
+    order: int = Field(default=0, exclude=True)
     #: The button emphasis (Java's FabDto.buttonStyle, "primary" for a FAB).
     button_style: str = "primary"
     #: The FAB's id (a data-declared FAB carries its action id here, like Java's FabDto.id).

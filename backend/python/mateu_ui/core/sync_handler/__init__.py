@@ -277,6 +277,8 @@ class SyncHandler(
         self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources, self.components)
         self.mapper.action_catalog = self.action_catalog
         self.mapper.adapters = getattr(registry, "adapters", {})
+        #: an EmbeddedView island's own data (its lookup labels), computed like a routed page's
+        self.mapper.island_data = lambda view: self.lookup_labels(type(view), view, view)
         #: The listing exporters (the app's ListingExporter subclasses + the built-in CSV writer).
         self.mapper.exporters = Exporters(getattr(registry, "exporters", []))
         #: The translation catalogue: TranslationsSupplier classes (code) under the

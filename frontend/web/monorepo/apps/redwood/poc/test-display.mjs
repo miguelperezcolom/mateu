@@ -1312,7 +1312,7 @@ test('OrgChart over Spectra\'s hierarchy viewer: the root in focus, a picked per
   const { setOrgHierarchyProviderFactory, orgChartAtomOf, orgFocusOf, orgCardActionOf, ORG_CARD_TEMPLATE } = await import('./core/display.mjs')
   setOrgHierarchyProviderFactory((rows) => ({ rows }))
   try {
-    const atom = orgChartAtomOf({ root: { id: 'p:rosa', title: 'Rosa Camps', subtitle: 'CEO', actionId: 'open', children: [
+    const atom = orgChartAtomOf({ display: 'focus', root: { id: 'p:rosa', title: 'Rosa Camps', subtitle: 'CEO', actionId: 'open', children: [
       { id: 'p:elena', title: 'Elena Rodríguez', actionId: 'open', children: [{ id: 'p:carlos', title: 'Carlos Díaz', actionId: 'open' }] },
       { title: 'Recepción' },
     ] } })
@@ -1342,11 +1342,11 @@ test('OrgChart over Spectra\'s hierarchy viewer: the root in focus, a picked per
     assert.equal(recepcion.navigation, 'off')
     assert.equal(orgCardActionOf(recepcion), null)
     // OrgChart.focus opens on that node, by its id; an unknown one falls back to the root
-    const onCarlos = orgChartAtomOf({ focus: 'p:carlos', root: { id: 'p:rosa', title: 'Rosa', children: [
+    const onCarlos = orgChartAtomOf({ display: 'focus', focus: 'p:carlos', root: { id: 'p:rosa', title: 'Rosa', children: [
       { id: 'p:elena', title: 'Elena', children: [{ id: 'p:carlos', title: 'Carlos' }] }] } })
     assert.deepEqual(onCarlos.current.rows.map((c) => c.title), ['Carlos'])
     assert.deepEqual(onCarlos.hierarchy.rows.map((c) => c.title), ['Rosa', 'Elena'])
-    assert.deepEqual(orgChartAtomOf({ focus: 'nobody', root: { title: 'Rosa' } }).current.rows.map((c) => c.title), ['Rosa'])
+    assert.deepEqual(orgChartAtomOf({ display: 'focus', focus: 'nobody', root: { title: 'Rosa' } }).current.rows.map((c) => c.title), ['Rosa'])
     const call = orgCardActionOf(carlos)
     assert.equal(call.actionId, 'open')
     assert.equal(call.parameters._clickedNode.id, 'p:carlos')

@@ -1,0 +1,14 @@
+# A page that FILLS a template: the item overview's avatar and body/footer slots, its content the
+# template's main slot.
+type: Form
+title: ${state.name}
+subtitle: Character
+template:
+  type: ItemOverviewPage
+  avatar: {initials: LS}
+  body:
+    - {type: FormField, id: gender, label: Gender, readOnly: true, propertyRow: true}
+  footer:
+    - {type: Text, text: From the archive}
+content:
+  - {type: FormField, id: height, label: Height (cm), readOnly: true, propertyRow: true}

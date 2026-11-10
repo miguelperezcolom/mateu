@@ -174,6 +174,19 @@ class ComponentRegistry:
         names = self.restricted_names()
         return self.locked_by(names, authorized) if names else {}
 
+    def hidden_for(self, names, authorized: Callable[[Any], bool] | None) -> set[str]:
+        """The ids of the fields the business components ``names`` (and the ones they nest) REMOVE
+        for the caller (eyesOnly:/access:, a composition hidden as a whole or under a section the
+        caller may not see) — the read-only ones excluded: they are drawn, with their value. What a
+        definition-only page drops from its route seeds (Java's
+        ``ClientLockedFields.hiddenByPiecesOf``): the compositions are resolved while the page is
+        mapped, after the route seeded its state. Fails closed like :meth:`locked_for`."""
+        self.catalog()
+        out: dict[str, str] = {}
+        for name in names:
+            self._locked(str(name).strip(), authorized, (), out, lock_all=False, hidden_only=True)
+        return set(out)
+
     def all_fields_of(self, names) -> dict[str, str]:
         """Every field of the business components ``names`` (nested ones included), field id → the
         component: they sit where the caller may not see them."""
@@ -183,7 +196,15 @@ class ComponentRegistry:
             self._locked(str(name).strip(), None, (), out, lock_all=True)
         return out
 
-    def _locked(self, name, authorized, chain, out_by: dict[str, str], lock_all: bool) -> None:
+    def _locked(
+        self,
+        name,
+        authorized,
+        chain,
+        out_by: dict[str, str],
+        lock_all: bool,
+        hidden_only: bool = False,
+    ) -> None:
         if name in chain or len(chain) >= 20:
             return
         out = _Locking(out_by, name)
@@ -196,7 +217,7 @@ class ComponentRegistry:
             if entry is not None:
                 out.update(component_field_ids_in(entry.component))
                 for child in component_refs_in(entry.component):
-                    self._locked(child, authorized, chain, out_by, lock_all=True)
+                    self._locked(child, authorized, chain, out_by, lock_all=True, hidden_only=hidden_only)
             return
         nested = _refs_in_yaml(source)
         visible = nested
@@ -206,7 +227,7 @@ class ComponentRegistry:
         else:
             try:
                 applied = yaml_access.apply(source, authorized or _nobody)
-                out.update(applied.locked_fields)
+                out.update(applied.hidden_fields if hidden_only else applied.locked_fields)
                 if applied.tree is None:
                     out.update(_field_ids_in(source))
                     visible = set()
@@ -217,7 +238,9 @@ class ComponentRegistry:
                 out.update(_field_ids_in(source))
                 visible = set()
         for child in nested:
-            self._locked(child, authorized, chain, out_by, lock_all=child not in visible)
+            self._locked(
+                child, authorized, chain, out_by, lock_all=child not in visible, hidden_only=hidden_only
+            )
 
 
 class _Locking:

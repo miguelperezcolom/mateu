@@ -1,0 +1,9 @@
+# The `pre` deployment (request.json's "environment"): one source rebased (path and query kept),
+# one re-pointed outright and proxied. A merge key over an anchor, resolved on every backend.
+api: &api {baseUrl: "https://pre.api.example/gateway/"}
+sources:
+  products:
+    <<: *api
+  categories:
+    url: https://pre.example/cats
+    proxy: true

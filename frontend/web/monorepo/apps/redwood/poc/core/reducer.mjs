@@ -2,7 +2,7 @@ import { HOST_ID, collectFields } from './tree.mjs'
 import { findByType, findFirst, pageListingNodeOf, nestedListingTriggersOf } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
 import { kanbanTriggersOf } from './kanban.mjs'
-import { literalText } from './content.mjs'
+import { literalText, setAppScope } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
 /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -184,6 +184,9 @@ export const resolveTarget = (contexts, t) => {
  * opts.initiator = contextId of the surface that launched the request (for commands without a target,
  * like the save-in-drawer's MarkAsClean).
  */
+const mergedAppScope = (kept, sent) => (sent && typeof sent === 'object' && !Array.isArray(sent)
+  ? { ...(kept || {}), ...sent } : kept || null)
+
 export function reduceContexts(reg, increment, opts = {}) {
   const contexts = { ...reg.contexts }
   const stack = [...reg.stack]
@@ -274,6 +277,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         osNotifications: !!md.osNotifications,
         // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
         globalSearchEnabled: !!md.globalSearchEnabled,
+        // @App(commandCenter) / @App(chromeless): the Ask palette is the way around (no nav chrome)
+        commandCenterEnabled: !!md.commandCenterEnabled || !!md.chromeless,
+        chromeless: !!md.chromeless,
         // a data-authored shell's inbox and palette search from REST sources (type: AppShell
         // notifications.source/markRead, globalSearch.source) instead of the app-level actions
         notificationsSource: md.notificationsSource || null,
@@ -298,6 +304,14 @@ export function reduceContexts(reg, increment, opts = {}) {
         // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
         widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
       }
+      continue
+    }
+
+    // a Notification an ACTION returned is a TOAST (its title and text), not new content: it used to
+    // replace the surface it was aimed at — an Explorer example lost its buttons and showed a band
+    if (fr.component?.type === 'ClientSide' && md.type === 'Notification') {
+      const text = [md.title, md.text].filter((x) => x != null && String(x).trim()).join(' — ')
+      if (text) effects.toasts.push({ text, variant: 'info' })
       continue
     }
 
@@ -478,6 +492,14 @@ export function reduceContexts(reg, increment, opts = {}) {
   const kept = {}
   if (reg.appLevels) kept.appLevels = reg.appLevels
   if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
+  // the APP's state and data (UIIncrementDto.appState / appData: an action returning AppState /
+  // AppData): app-wide, merged answer after answer — what `${appState.x}` / `${appData.x}` read
+  const appState = mergedAppScope(reg.appState, increment.appState)
+  const appData = mergedAppScope(reg.appData, increment.appData)
+  if (appState) kept.appState = appState
+  if (appData) kept.appData = appData
+  // the projections that follow read them (content.mjs islandContentOf)
+  setAppScope(kept)
   return { ...kept, contexts, stack, shell, effects }
 }
 

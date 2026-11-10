@@ -35,6 +35,11 @@ export function daySpanOf(start, end) {
   return { start: s, end: e < s ? s : e }
 }
 
+/** The id prefix of a resource GROUP's header row (no resource: nothing is dropped onto it). */
+export const GROUP_ROW_PREFIX = '__mateuGroup:'
+/** Today's line on a gantt (Redwood's danger ink, as the web's marker). */
+export const TODAY_INK = '#c74634' // design-token-ok: oj-gantt referenceObjects svgStyle is a DVT style object painted onto SVG, not a CSS cascade — a var() is not resolved there
+
 export function planningAtomOf(m, id) {
   const columns = m.attributeColumns || []
   const blocks = (m.blocks || []).map((b) => {
@@ -47,10 +52,9 @@ export function planningAtomOf(m, id) {
   // an inverted window (from after to) is read as the same days the other way round: the time
   // axis of oj-gantt must end after it starts
   if (to < from) [from, to] = [to, from]
-  const rows = (m.resources || []).map((r, i) => {
+  const resourceRows = (m.resources || []).map((r) => {
     const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
     return {
-      _rowNumber: i,
       id: r.id,
       // the row label carries the attributes: oj-gantt's row axis only paints text
       label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
@@ -70,8 +74,27 @@ export function planningAtomOf(m, id) {
       })),
     }
   })
+  // resource GROUPS (Fleet / Storage…): a header row before each group's first resource, as the
+  // web's swimlane band (they were not shown). Its id is no resource's: nothing moves onto it.
+  const rows = []
+  let lastGroup = ''
+  for (const row of resourceRows) {
+    if (row.group && row.group !== lastGroup) {
+      rows.push({ id: GROUP_ROW_PREFIX + row.group, label: row.group, group: row.group, iconClass: '', tasks: [], isGroup: true,
+        labelStyle: { fontWeight: 'bold' } })
+    }
+    lastGroup = row.group
+    rows.push(row)
+  }
+  rows.forEach((row, i) => { row._rowNumber = i })
+  // today, as the web marks it (a line across the chart), when it falls in the window
+  const today = isoDay(new Date(Date.now() - new Date().getTimezoneOffset() * 60000))
+  const inWindow = today >= from && today <= to
   return {
     isPlanning: true,
+    referenceObjects: inWindow ? [{ value: today + 'T12:00:00', svgStyle: { stroke: TODAY_INK, strokeWidth: '2px' }, shortDesc: 'Today' }] : [],
+    // as tall as its rows (a fixed 34rem left a large empty area under a short plan)
+    ganttStyle: { height: Math.max(192, 104 + rows.length * 48) + 'px' },
     planningId: id || 'planning',
     attributeColumns: columns,
     start: from + 'T00:00:00',
@@ -89,7 +112,11 @@ export function planningAtomOf(m, id) {
     rangeAction: m.rangeSelectActionId || '',
     startDay: from,
     endDay: plusDays(to, 1),
-    rowIds: rows.map((r) => r.id).join('\u001f'),
+    rowIds: rows.map((r) => (r.isGroup ? '' : r.id)).join('\u001f'),
+    // ONE header row, the days (the web's board has no other: a weeks band read as a stray row);
+    // no majorScale = oj-gantt draws no major axis
+    majorScale: undefined,
+    minorScale: 'days',
     rowLabels: rows.map((r) => r.label).join('\u001f'),
     dndMove: m.moveActionId ? 'enabled' : 'disabled',
     taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
@@ -112,6 +139,8 @@ export function ganttAtomOf(m, id) {
       summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
     })),
     selectActionId: m.onTaskSelectionActionId || '',
+    // a little air after the last bar: a one-day task at the end sat flush on the chart's edge
+    ...(tasks.length ? { to: plusDays(tasks.map((t) => t.end).sort().pop(), 2) } : {}),
   }, id || 'gantt')
   const progress = {}
   const colors = {}
@@ -214,6 +243,8 @@ export function planningActionOf(atom, kind, detail) {
   if (kind === 'move' && atom.moveActionId && taskId) {
     const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
       : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+    // a group's header row is no resource
+    if (String(rowId || '').startsWith(GROUP_ROW_PREFIX)) return null
     return { actionId: atom.moveActionId, parameters: {
       // start/end: the bar's new bounds (value is the instant under the pointer)
       _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }

@@ -10,7 +10,11 @@ import org.junit.jupiter.api.Test;
 
 class ListingColumnWidthTest {
 
-  record Row(String since, @ColumnWidth("420px") String title, boolean seen) {}
+  record Row(
+      String since,
+      @ColumnWidth("420px") String title,
+      @ColumnWidth("auto") String carrier,
+      boolean seen) {}
 
   GridColumn column(String id) {
     return ListingColumnBuilder.getColumns(
@@ -36,5 +40,23 @@ class ListingColumnWidthTest {
     assertThat(since.width()).isNull();
     assertThat(since.flexGrow()).isNull();
     assertThat(since.tooltipPath()).isNull();
+  }
+
+  @Test
+  void anAutoColumnWidthSizesToItsContentInsteadOfBeingACssWidth() {
+    var carrier = column("carrier");
+    assertThat(carrier.width()).isNull();
+    assertThat(carrier.autoWidth()).isTrue();
+    assertThat(carrier.flexGrow()).isEqualTo("0");
+    assertThat(carrier.tooltipPath()).isNull();
+
+    var wire =
+        (io.mateu.dtos.GridColumnDto)
+            io.mateu.core.domain.out.fragmentmapper.mappers.GridColumnMapper.mapGridColumnToDto(
+                    carrier, "", "", new FakeHttpRequest(RunActionRqDto.builder().build()))
+                .metadata();
+    assertThat(wire.width()).isNull();
+    assertThat(wire.autoWidth()).isTrue();
+    assertThat(wire.flexGrow()).isEqualTo("0");
   }
 }

@@ -58,7 +58,20 @@ public final class YamlAccess {
    * @param refusedActions ids of declared actions the caller may not run
    * @param lockedFields ids of the fields hidden or made read-only for the caller
    */
-  public record Applied(JsonNode tree, Set<String> refusedActions, Set<String> lockedFields) {}
+  public record Applied(
+      JsonNode tree,
+      Set<String> refusedActions,
+      Set<String> lockedFields,
+      Set<String> hiddenFields) {
+
+    public Applied {
+      hiddenFields = hiddenFields == null ? Set.of() : hiddenFields;
+    }
+
+    public Applied(JsonNode tree, Set<String> refusedActions, Set<String> lockedFields) {
+      this(tree, refusedActions, lockedFields, Set.of());
+    }
+  }
 
   /** An {@code access:}-shaped node as a restriction, or null when absent/empty. */
   public static Access accessOf(JsonNode node) {
@@ -157,7 +170,7 @@ public final class YamlAccess {
     var copy = root.deepCopy();
     var walker = new Walker(httpRequest, routeReachable);
     if (walker.removes(copy, null)) {
-      return new Applied(null, walker.refused, walker.locked);
+      return new Applied(null, walker.refused, walker.locked, walker.hidden);
     }
     walker.walk(copy, null, false);
     if (alsoRefused != null) {
@@ -166,7 +179,8 @@ public final class YamlAccess {
     if (!walker.refused.isEmpty()) {
       disableButtonsFor(copy, walker.refused);
     }
-    return new Applied(copy, Set.copyOf(walker.refused), Set.copyOf(walker.locked));
+    return new Applied(
+        copy, Set.copyOf(walker.refused), Set.copyOf(walker.locked), Set.copyOf(walker.hidden));
   }
 
   private static final class Walker {
@@ -175,6 +189,9 @@ public final class YamlAccess {
     private final Predicate<String> routeReachable;
     private final Set<String> refused = new LinkedHashSet<>();
     private final Set<String> locked = new LinkedHashSet<>();
+    // the fields REMOVED for the caller (eyesOnly:/access:) — a subset of locked, which also holds
+    // the read-only ones: a hidden field's value must not travel at all, a read-only one's does
+    private final Set<String> hidden = new LinkedHashSet<>();
 
     Walker(HttpRequest httpRequest, Predicate<String> routeReachable) {
       this.httpRequest = httpRequest;
@@ -205,6 +222,7 @@ public final class YamlAccess {
         refused.add(object.get("id").asText());
       }
       lockFieldsUnder(object);
+      hideFieldsUnder(object);
       return true;
     }
 
@@ -265,6 +283,17 @@ public final class YamlAccess {
     private void lock(ObjectNode field) {
       if (field.hasNonNull("id")) {
         locked.add(field.get("id").asText());
+      }
+    }
+
+    private void hideFieldsUnder(JsonNode node) {
+      if (node instanceof ObjectNode object
+          && "FormField".equals(object.path("type").asText())
+          && object.hasNonNull("id")) {
+        hidden.add(object.get("id").asText());
+      }
+      if (node != null && node.isContainerNode()) {
+        node.elements().forEachRemaining(this::hideFieldsUnder);
       }
     }
 

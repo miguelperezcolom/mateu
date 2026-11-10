@@ -150,6 +150,20 @@ export interface ColDef {
   leadingPath?: string;
   /** A primary column's secondary line (GridColumn.captionPath): the row field to read. */
   captionPath?: string;
+  /** @Priority: 1–2 are the columns a compact list item shows. */
+  priority?: number;
+}
+
+/**
+ * The columns a list item (and a master/detail rail) shows: the compact set — the identifier and
+ * the @Priority 1–2 columns, by priority — when the model marks one, else every column (the web's
+ * railColumns; a listing with no priorities keeps showing what it always did).
+ */
+export function listColumns<T extends { identifier?: boolean; priority?: number }>(cols: T[]): T[] {
+  const compact = cols
+    .filter((c) => c.identifier || (c.priority ?? Number.MAX_SAFE_INTEGER) <= 2)
+    .sort((a, b) => (a.identifier === b.identifier ? 0 : a.identifier ? -1 : 1) || (a.priority ?? Number.MAX_SAFE_INTEGER) - (b.priority ?? Number.MAX_SAFE_INTEGER));
+  return compact.length > 0 ? compact : cols;
 }
 
 /** The columns the listing renders as cells (the row-action columns become the row's menu). */
@@ -181,6 +195,7 @@ export function columnDefsOf(
         tones: (cm['tones'] as Record<string, string> | null | undefined) ?? null,
         leadingPath: (cm['leadingPath'] as string) || undefined,
         captionPath: (cm['captionPath'] as string) || undefined,
+        priority: typeof cm['priority'] === 'number' ? (cm['priority'] as number) : undefined,
       };
     })
     .filter((c) => !ACTION_COLUMN_TYPES.has(c.dataType));

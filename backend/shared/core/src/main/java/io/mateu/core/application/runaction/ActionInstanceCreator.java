@@ -375,7 +375,13 @@ public class ActionInstanceCreator {
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
       var page =
-          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), spec.pageType(), command);
+          seedBareLayout(
+              spec.layout(),
+              spec.actions(),
+              spec.triggers(),
+              spec.pageType(),
+              spec.hiddenFields(),
+              command);
       if (page != null) {
         nameTheWindow(spec.layout(), page, command);
       }
@@ -497,6 +503,7 @@ public class ActionInstanceCreator {
       java.util.List<io.mateu.uidl.fluent.Action> actions,
       java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
       String pageType,
+      java.util.Set<String> hiddenFields,
       RunActionCommand command) {
     if (layout == null) {
       return null;
@@ -549,6 +556,22 @@ public class ActionInstanceCreator {
     var state =
         RouteSegmentUtils.addParameterValues(
             command.componentState(), pathOnly, resolved, httpRequest);
+    // a field hidden from the caller (eyesOnly:/access:) never gets a value from the route either:
+    // a `state:`/`defaultParams:`/`fixedParams:` seed of it would otherwise travel to that caller
+    // (a read-only field keeps its seed: it is drawn, with its value). So does one a business
+    // component (components.yaml) or partial the layout names hides: those are composed while
+    // the page is mapped, after this seeding
+    var hidden = new java.util.LinkedHashSet<String>();
+    if (hiddenFields != null) {
+      hidden.addAll(hiddenFields);
+    }
+    hidden.addAll(
+        io.mateu.core.infra.security.ClientLockedFields.hiddenByPiecesOf(layout, httpRequest));
+    if (!hidden.isEmpty() && state != null) {
+      var narrowed = new java.util.LinkedHashMap<String, Object>(state);
+      hidden.forEach(narrowed::remove);
+      state = narrowed;
+    }
     return new SeededYamlPage(
         layout, state, declaredActions, declaredTriggers, restSourceRegistry.catalog(), pageType);
   }

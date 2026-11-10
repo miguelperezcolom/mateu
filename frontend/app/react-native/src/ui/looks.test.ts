@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buttonLook, toneColors, toneOf } from './looks.ts';
+import { badgeLook, buttonLook, toneColors, toneOf } from './looks.ts';
 import { applyTheme, contrast } from '../theme.ts';
 
 test('wire button styles map to Material emphasis', () => {
@@ -30,4 +30,15 @@ test('every chip tone reads (AA) in both schemes', () => {
     }
   }
   applyTheme('light');
+});
+
+test('badges: normal is the primary tint, contrast the ink one, primary is filled, pill and small are kept', () => {
+  applyTheme('light');
+  assert.equal(badgeLook({ color: 'normal' }).background, toneColors('info').background);
+  assert.notEqual(badgeLook({ color: 'contrast' }).background, badgeLook({ color: 'normal' }).background);
+  assert.equal(badgeLook({ color: 'success' }).ink, toneColors('success').ink);
+  const vip = badgeLook({ color: 'success', primary: true, pill: true });
+  assert.equal(vip.background, toneColors('success').ink);
+  assert.equal(vip.pill, true);
+  assert.equal(badgeLook({ small: true }).small, true);
 });

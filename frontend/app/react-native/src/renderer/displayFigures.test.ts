@@ -68,10 +68,14 @@ test('ledger total: the declared one wins, else the non-included lines', () => {
 });
 
 test('file icons by type, avatars, card widths, skeleton count and offer label', () => {
-  assert.equal(fileIcon('PDF'), '📕');
-  assert.equal(fileIcon('xlsx'), '📗');
-  assert.equal(fileIcon('exe'), '📄');
-  assert.equal(fileIcon(undefined), '📄');
+  assert.equal(fileIcon('PDF'), 'file-pdf-box');
+  assert.equal(fileIcon('application/pdf'), 'file-pdf-box');
+  assert.equal(fileIcon('image/svg+xml'), 'file-image-outline');
+  assert.equal(fileIcon('spreadsheet'), 'file-excel-outline');
+  assert.equal(fileIcon('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'file-excel-outline');
+  assert.equal(fileIcon('xlsx'), 'file-excel-outline');
+  assert.equal(fileIcon('exe'), 'file-outline');
+  assert.equal(fileIcon(undefined), 'file-outline');
   assert.equal(isImageAvatar('https://x/a.png'), true);
   assert.equal(isImageAvatar('data:image/png;base64,AA'), true);
   assert.equal(isImageAvatar('👩'), false);
@@ -81,6 +85,9 @@ test('file icons by type, avatars, card widths, skeleton count and offer label',
   assert.equal(commentAvatar({}), '?');
   assert.equal(resourceCardWidth(4), '25%');
   assert.equal(resourceCardWidth(0), '33.333%');
+  // a phone (388dp) fits two ~150dp cards, whatever the grid declares
+  assert.equal(resourceCardWidth(4, 388), '50%');
+  assert.equal(resourceCardWidth(4, 1024), '25%');
   assert.equal(skeletonCount(undefined), 3);
   assert.equal(skeletonCount(0), 3);
   assert.equal(skeletonCount(5), 5);

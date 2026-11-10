@@ -35,14 +35,22 @@ libraries do) pins its carrier thread, and a burst of requests can stall.
 **Workaround:** run on JDK 24 or later, or set `micronaut.executors.blocking.virtual=false`. See
 [Micronaut](/java-create-your-project/micronaut/).
 
-### Helidon MP: streamed actions, MCP and YAML mounts see no principal
+### Helidon MP: an app that authenticates only in JAX-RS
 
-On Helidon MP, Mateu's streamed actions (`LongTask`), the MCP endpoint and YAML mounts run on
-Helidon's own routing, which does not carry the JAX-RS `SecurityContext`. Without extra wiring they
-see an anonymous caller, so `@EyesOnly` and YAML `access:` refuse them.
+On Helidon MP, Mateu's streamed actions (`LongTask`), the MCP endpoint, YAML mounts and the client
+log run on Helidon's own routing, ahead of Jersey. With **helidon-security** they see its principal,
+roles and scope grants included, and an app that requires a login
+(`mateu.helidon.authentication-required`) answers an anonymous caller 401 on the MCP endpoint and
+the YAML mounts. Two cases are still limited:
 
-**Workaround:** register a `PrincipalResolver` bean that builds the caller from the request. See
-[Security](/java-user-manual/advanced/security/).
+- An app that authenticates only in JAX-RS — MicroProfile JWT, or a JAX-RS `ContainerRequestFilter`,
+  without helidon-security — is not seen on the MCP endpoint and the YAML mounts: they get an
+  anonymous caller, so `@EyesOnly` and YAML `access:` refuse it.
+- A streamed action whose request carries credentials that only JAX-RS reads is handed to Jersey,
+  which authenticates it but buffers the stream: the progress arrives at the end, all at once.
+
+**Workaround:** use helidon-security for authentication, or register a `PrincipalResolver` bean that
+builds the caller from the request. See [Security](/java-user-manual/advanced/security/).
 
 ### Micronaut and Quarkus are stricter than the JSON-body rule
 
@@ -136,6 +144,21 @@ React Native has no hover (popovers and tooltips open on press / long-press), no
 "Move to…" picker), no hardware keyboard shortcuts (app quick-launch codes only), and shows
 `Workflow`, `FormEditor` and `Bpmn` read only. IntelliJ shows `Workflow` and `FormEditor` read only,
 uses a file picker for photo capture and searches only the loaded options of a searchable picker.
+
+On a phone the React Native app also lays a few things out for the screen size:
+
+- a `Drawer` is a bottom sheet whatever its position (`size` sets its starting height,
+  `maximizable` takes it to full height, `modeless` keeps the screen behind usable);
+- a horizontal `SplitLayout` stacks its panes, with no drag handle;
+- the `@Toc` index is a row of section chips above the page, which stays on screen, instead of a
+  sticky side index, and `@Section(sticky = true)` cards are not pinned (a pinned card would cover
+  most of the screen; the index lists them first);
+- labels stay above the fields (`labelsAside` is not applied: an outlined field carries its label
+  in its outline);
+- a `masterDetail` listing shows the pressed row's detail under it;
+- a row (`HorizontalLayout`) wraps rather than running off the screen;
+- `@FileUpload` offers the photo library on a device (any file in the web build); an `accept`
+  list with no image or video type says so instead of offering a picker.
 
 **Workaround:** edit workflows and forms on the web. The full list is in the
 [renderer coverage tables](/reference/parity/#renderers).

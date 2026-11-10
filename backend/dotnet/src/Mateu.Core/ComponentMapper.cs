@@ -88,6 +88,7 @@ internal static class ComponentMapper
             Step = ff.Step,
             OptionsColumns = ff.OptionsColumns,
             OptionsSource = ff.OptionsSource is null ? null : MateuCatalogs.ToDto(ff.OptionsSource),
+            PropertyRow = ff.PropertyRow,
         }) with { Id = ff.Id ?? ff.FieldId },
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
@@ -324,6 +325,11 @@ internal static class ComponentMapper
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
+        // Java's fluent FormLayout: no declared max = 100 (auto-responsive off, columns not expanded)
+        FormLayout fl => Dto(fl, new FormLayoutMetadataDto
+        {
+            MaxColumns = fl.MaxColumns > 0 ? fl.MaxColumns : 100, AutoResponsive = false, ExpandColumns = false,
+        }, fl.Content.Select(Map)),
         TabLayout tl => Dto(tl,
             new TabLayoutMetadataDto { GroupRelationship = LowerName(tl.GroupRelationship), Adaptable = tl.Adaptable },
             // The tab selected on first render is the first one flagged Active, else the first tab.
@@ -413,7 +419,7 @@ internal static class ComponentMapper
     /// a wizard's step navigation — route back to itself, not the host); an EmbeddedView wrapping a
     /// plain fluent component maps it directly; anything else maps as a client-side component.
     /// Mirrors Java's ComponentToFragmentDtoMapper EmbeddedView branch.</summary>
-    private static ComponentDto MapContent(IComponent content) => content switch
+    internal static ComponentDto MapContent(IComponent content) => content switch
     {
         EmbeddedView ev when ev.View is IComponent c => Map(c),
         EmbeddedView ev => ReflectionMapper.MapEmbedded(ev.View),
@@ -564,6 +570,7 @@ internal static class ComponentMapper
             case Card card when card.Content is not null: Collect(card.Content, ids); break;
             case HorizontalLayout hl: foreach (var i in hl.Content) Collect(i, ids); break;
             case VerticalLayout vl: foreach (var i in vl.Content) Collect(i, ids); break;
+            case FormLayout fl: foreach (var i in fl.Content) Collect(i, ids); break;
             case TabLayout tl: foreach (var t in tl.Tabs) Collect(t.Content, ids); break;
             default: foreach (var child in MoreComponentMapper.ChildrenOf(c, ids)) Collect(child, ids); break;
         }

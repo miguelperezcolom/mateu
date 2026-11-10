@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
+  accordionLook, drawerSheetLook, drawsNothing, tabLayoutLook, filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
   showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, withOverlayState, type RecordSwitcher,
 } from './patternGaps.ts';
 import { cssLengthPx, gridTrackSizes, orderByAreas, responsiveColumns } from './wireWidgets.ts';
@@ -151,6 +151,9 @@ test('the page header extras: overline, a placeholder only while untitled, times
   assert.deepEqual(extras.peers, { prev: { label: 'Record 1', route: '/records/1' }, next: { label: 'Record 3', route: null } });
   assert.equal(pageHeaderExtrasOf({ titlePlaceholder: 'New booking…' }, 'Booking 7').placeholder, '');
   assert.equal(pageHeaderExtrasOf({}, 'x').peers, null);
+  // the first record: no previous one, but its arrow is still drawn (disabled)
+  assert.deepEqual(pageHeaderExtrasOf({ peerNav: { nextLabel: 'Record 2', nextRoute: '/records/2' } }, 'x').peers,
+    { prev: { label: '', route: null }, next: { label: 'Record 2', route: '/records/2' } });
 });
 
 test('a LongTask step updates the open progress dialog it targets, and nothing else', () => {
@@ -162,4 +165,26 @@ test('a LongTask step updates the open progress dialog it targets, and nothing e
   assert.equal(next[0], other);
   assert.equal(withOverlayState([other, dialog], 'nope', { x: 1 }), null);
   assert.equal(withOverlayState([dialog], '', { x: 1 }), null);
+});
+
+test('a drawer`s options shape the bottom sheet', () => {
+  assert.deepEqual(drawerSheetLook({}), { minHeight: '50%', maximizable: false, collapsible: false, modeless: false });
+  assert.equal(drawerSheetLook({ modeless: true }).minHeight, '35%');
+  assert.deepEqual(drawerSheetLook({ size: 'l', maximizable: true, collapsible: true, modeless: true }),
+    { minHeight: '70%', maximizable: true, collapsible: true, modeless: true });
+  assert.equal(drawerSheetLook({ size: 's' }).minHeight, '35%');
+});
+
+test('TabLayout and Accordion variants', () => {
+  assert.deepEqual(tabLayoutLook('bordered'), { bordered: true, small: false, minimal: false, centered: false });
+  assert.deepEqual(tabLayoutLook('small minimal'), { bordered: false, small: true, minimal: true, centered: false });
+  assert.deepEqual(tabLayoutLook(null), { bordered: false, small: false, minimal: false, centered: false });
+  assert.deepEqual(accordionLook('filled'), { filled: true, small: false });
+});
+
+test('nodes that draw nothing: an untyped empty wrapper, containers of such; a Div with text draws', () => {
+  assert.equal(drawsNothing({ type: 'ClientSide', children: [] }), true);
+  assert.equal(drawsNothing({ metadata: { type: 'VerticalLayout' }, children: [{ type: 'ClientSide', children: [] }] }), true);
+  assert.equal(drawsNothing({ metadata: { type: 'Div', content: 'Hello' }, children: [] }), false);
+  assert.equal(drawsNothing({ metadata: { type: 'Text', text: '' } }), false);
 });

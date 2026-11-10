@@ -103,6 +103,31 @@ class AdapterParityTest {
   }
 
   @Test
+  void answersADottedIdDeepLinkWithTheIndex() {
+    contract.answersADottedIdDeepLinkWithTheIndex();
+  }
+
+  @Test
+  void warnsAboutARendererOfAnotherWireMajor() {
+    contract.warnsAboutARendererOfAnotherWireMajor();
+  }
+
+  @Test
+  void rateLimitsClientLogs() {
+    contract.rateLimitsClientLogs();
+  }
+
+  @Test
+  void servesAYamlMount() {
+    contract.servesAYamlMount();
+  }
+
+  @Test
+  void servesAYamlMountsInstallableApp() {
+    contract.servesAYamlMountsInstallableApp();
+  }
+
+  @Test
   void doesNotAnswerADataFetchWithTheIndex() {
     contract.doesNotAnswerADataFetchWithTheIndex();
   }

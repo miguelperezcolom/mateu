@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Menu } from 'react-native-paper';
+import React from 'react';
+import { GroupMenuButton } from './GroupMenuButton';
 import { MateuButton } from '../ui/controls';
 import { interpolate } from '../core/expressions';
 import { buttonGroupMembers } from '../core/buttonGroup';
@@ -16,36 +16,12 @@ type Dict = Record<string, unknown>;
  */
 export function ToolbarButton({ button, ctx, runAction }: { button: Dict; ctx: { state?: unknown; data?: unknown; appState?: unknown }; runAction: (actionId: string, parameters?: Dict) => void }) {
   const pressButton = useButtonPress();
-  const [open, setOpen] = useState(false);
   const members = buttonGroupMembers(button);
   const id = String(button['actionId'] ?? button['id'] ?? '');
   const label = interpolate(String(button['label'] ?? id), ctx as never);
   const pending = usePendingAction(id);
   if (members) {
-    return (
-      <Menu
-        visible={open}
-        onDismiss={() => setOpen(false)}
-        anchor={<MateuButton label={label} icon="chevron-down" buttonStyle={button['buttonStyle'] as string | undefined} onPress={() => setOpen(true)} accessibilityHint="Opens a menu" />}
-      >
-        {members.map((member, i) => {
-          const memberId = String(member['actionId'] ?? member['id'] ?? '');
-          const memberLabel = interpolate(String(member['label'] ?? memberId), ctx as never);
-          const press = pressButton(member, ctx, () => runAction(memberId, (member['parameters'] as Dict | undefined) ?? undefined), memberLabel);
-          return (
-            <Menu.Item
-              key={i}
-              title={memberLabel}
-              disabled={member['disabled'] === true || press.disabled}
-              onPress={() => {
-                setOpen(false);
-                press.onPress();
-              }}
-            />
-          );
-        })}
-      </Menu>
-    );
+    return <GroupMenuButton group={button} members={members} ctx={ctx as never} run={(a, p) => runAction(a, p)} />;
   }
   const press = pressButton(button, ctx, () => runAction(id, (button['parameters'] as Dict | undefined) ?? undefined), label);
   return (

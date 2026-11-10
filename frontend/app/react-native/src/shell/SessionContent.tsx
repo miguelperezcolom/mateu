@@ -15,7 +15,7 @@ import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost, ViewControllerProvider } from '../renderer/MateuViewHost';
 import { ComponentRenderer } from '../renderer/ComponentRenderer';
 import type { MateuViewController } from '../core/MateuViewController';
-import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
+import { drawerSheetLook, overlayContentWithData, pageHeaderExtrasOf, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
 import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
@@ -186,11 +186,18 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   // ONE modal holds every open overlay as a layer: the lower ones stay MOUNTED under the top one, so
   // a drawer under a nested dialog keeps what was typed in it (only the top was drawn: closing the
   // dialog remounted the drawer from its initialData — its next request sent an empty state)
+  const layers = overlays.map((entry, i) => (
+    <OverlayLayer key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
+  ));
+  // only modeless drawers open: no modal at all — the screen behind them stays usable
+  const allModeless = overlays.every((o) => {
+    const m = ((o.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
+    return m['type'] === 'Drawer' && m['modeless'] === true;
+  });
+  if (allModeless) return <View style={StyleSheet.absoluteFill} pointerEvents="box-none">{layers}</View>;
   return (
     <Modal {...modalA11y(overlayTitleOf(overlays[overlays.length - 1]) || 'Dialog')} accessibilityViewIsModal animationType="fade" transparent statusBarTranslucent onRequestClose={() => session.closeTopOverlay()}>
-      {overlays.map((entry, i) => (
-        <OverlayLayer key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
-      ))}
+      {layers}
     </Modal>
   );
 }
@@ -217,9 +224,6 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
   const title = overlayTitleOf(entry);
   const subtitle = interpolate(String(meta['subtitle'] ?? ''), { state: entry.state });
   const close = () => session.closeTopOverlay();
-  // a drawer's own header controls, all local (no round trip): ⤢ maximize, ▾/▴ fold a bottom drawer
-  const [maximized, setMaximized] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
 
   /** What the overlay draws OUTSIDE its content (a footer, a header, a ConfirmDialog's body) runs on
    *  the view that opened it, with its state — the web's actions bubble to the opener. */
@@ -241,12 +245,6 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
         <MateuViewHost session={session} serverSideNode={content} overlaid overlayOpener={entry.opener} />
       </FitsContent.Provider>
     ) : null;
-  const peerNav = (meta['peerNav'] as Record<string, string | null> | null | undefined) ?? null;
-  const peers = peerNav
-    ? (['prev', 'next'] as const)
-        .map((side) => ({ side, label: String(peerNav[`${side}Label`] ?? ''), route: String(peerNav[`${side}Route`] ?? '') }))
-        .filter((p) => p.label || p.route)
-    : [];
   const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={close} />;
   // a lower layer stays drawn (dimmed by the one above) but takes no touches
   const layer = StyleSheet.absoluteFill;
@@ -296,42 +294,85 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
     );
   }
 
-  return (
+  const openPeer = (label: string, route: string) => { session.closeTopOverlay(); session.openView({ label, route, consumedRoute: '', serverSideType: '' }); };
+  // its header/footer run on the opener; its content is its own view
+  const body = (
+    <>
+      {onOpener(meta['header'])}
+      <View style={styles.sheetBody}>{host(false)}</View>
+      {!!meta['footer'] && <View style={styles.sheetFooter}>{onOpener(meta['footer'])}</View>}
+    </>
+  );
+  return <DrawerSheet meta={meta} title={title} subtitle={subtitle} closeButton={closeButton} body={body} top={top} onPeer={openPeer} />;
+}
+
+/**
+ * A Drawer on a phone: a Material bottom sheet (every position docks at the bottom — a side panel
+ * would leave no room for the screen it covers). Its wire options, as a sheet can take them:
+ * `subtitle` under the title; `size` (s/m/l/xl) its starting height; `maximizable` a ⤢ that takes
+ * it to the full height and back; `collapsible` a ▾/▴ handle folding it to its header; `modeless`
+ * no dimmed backdrop and the screen behind stays usable.
+ */
+function DrawerSheet({ meta, title, subtitle, closeButton, body, top, onPeer }: {
+  meta: Record<string, unknown>; title: string; subtitle: string; closeButton: React.ReactNode; body: React.ReactNode; top: boolean;
+  onPeer: (label: string, route: string) => void;
+}) {
+  const look = drawerSheetLook(meta);
+  // the General Drawer's previous/next object (PeerNav): arrows in its header
+  const peers = pageHeaderExtrasOf({ peerNav: meta['peerNav'] }, title).peers;
+  const [maximized, setMaximized] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const sheet = (
     // a drawer: screen readers stop at its edge, and its ✕ is a named button (it was announced as
     // bare text, unreachable as a control)
-    <View style={[layer, styles.overlayBackdrop, meta['modeless'] === true && styles.clearBackdrop]} pointerEvents={top ? 'auto' : 'none'}>
-      {/* a Material bottom sheet: drag handle, title, close */}
-      <View style={[styles.overlaySheet, maximized && styles.sheetMaximized, collapsed && styles.sheetCollapsed]}>
-        <View style={styles.overlayHandle} />
-        <View style={styles.overlayHeader}>
-          <View style={styles.overlayTitle}>
-            <PaperText variant="titleLarge" {...headingA11y(2)} numberOfLines={2}>{title}</PaperText>
-            {!!subtitle && <PaperText variant="bodyMedium" style={styles.overlaySubtitle}>{subtitle}</PaperText>}
-          </View>
-          {peers.map((peer) => (
-            <IconButton
-              key={peer.side}
-              icon={peer.side === 'prev' ? 'chevron-left' : 'chevron-right'}
-              disabled={!peer.route}
-              accessibilityLabel={`${peer.side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`}
-              onPress={() => {
-                close();
-                session.openView({ label: peer.label, route: peer.route, consumedRoute: '', serverSideType: '' });
-              }}
-            />
-          ))}
-          {meta['maximizable'] === true && (
-            <IconButton icon={maximized ? 'arrow-collapse' : 'arrow-expand'} accessibilityLabel={maximized ? 'Restore size' : 'Maximize'} onPress={() => setMaximized((m) => !m)} />
-          )}
-          {meta['collapsible'] === true && (
-            <IconButton icon={collapsed ? 'chevron-up' : 'chevron-down'} accessibilityLabel={collapsed ? 'Expand' : 'Collapse'} accessibilityState={{ expanded: !collapsed }} onPress={() => setCollapsed((c) => !c)} />
-          )}
-          {closeButton}
+    <View style={[styles.overlaySheet, { minHeight: collapsed ? 0 : look.minHeight }, maximized && !collapsed ? styles.overlaySheetMax : null, look.modeless ? styles.overlaySheetFloating : null]}>
+      {look.collapsible ? (
+        <IconButton
+          icon={collapsed ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          style={styles.overlayFold}
+          accessibilityLabel={collapsed ? 'Expand' : 'Collapse'}
+          accessibilityState={{ expanded: !collapsed }}
+          onPress={() => setCollapsed(!collapsed)}
+        />
+      ) : <View style={styles.overlayHandle} />}
+      <View style={styles.overlayHeader}>
+        <View style={styles.overlayTitleBox}>
+          <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+          {!!subtitle && <PaperText variant="bodyMedium" style={styles.overlaySubtitle} numberOfLines={2}>{subtitle}</PaperText>}
         </View>
-        {!collapsed && onOpener(meta['header'])}
-        {!collapsed && <View style={styles.sheetBody}>{host(false)}</View>}
-        {!collapsed && !!meta['footer'] && <View style={styles.sheetFooter}>{onOpener(meta['footer'])}</View>}
+        {!!peers && (['prev', 'next'] as const).map((side) => {
+          const peer = peers[side];
+          if (!peer) return null;
+          const name = side === 'prev' ? 'Previous' : 'Next';
+          return (
+            <IconButton
+              key={side}
+              icon={side === 'prev' ? 'chevron-left' : 'chevron-right'}
+              disabled={!peer.route}
+              accessibilityLabel={peer.label ? `${name}: ${peer.label}` : name}
+              onPress={() => peer.route && onPeer(peer.label, peer.route)}
+            />
+          );
+        })}
+        {look.maximizable && !collapsed && (
+          <IconButton icon={maximized ? 'arrow-collapse' : 'arrow-expand'} accessibilityLabel={maximized ? 'Restore' : 'Maximize'} onPress={() => setMaximized(!maximized)} />
+        )}
+        {closeButton}
       </View>
+      {/* folded: the body stays mounted (its typed values survive) but takes no room */}
+      <View style={collapsed ? styles.overlayFolded : styles.overlayBody}>{body}</View>
+    </View>
+  );
+  // a layer of the overlay host: dimmed backdrop, or none at all when modeless (the screen behind
+  // stays usable — the host itself is then no modal); a lower layer takes no touches
+  return (
+    <View
+      style={look.modeless ? styles.modelessHost : [StyleSheet.absoluteFill, styles.overlayBackdrop]}
+      pointerEvents={look.modeless ? 'box-none' : top ? 'auto' : 'none'}
+      accessibilityViewIsModal={!look.modeless}
+    >
+      {sheet}
     </View>
   );
 }
@@ -466,14 +507,19 @@ const styles = themed(() => StyleSheet.create({
   dialog: { width: '100%', maxWidth: 560, maxHeight: '85%', borderRadius: theme.radiusLg, paddingTop: 12, paddingBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
   overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, maxHeight: '88%', minHeight: '50%', overflow: 'hidden' },
   overlayHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 10 },
+  overlaySheetMax: { maxHeight: '100%', height: '100%', borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+  overlaySheetFloating: { elevation: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: -2 }, borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.border },
+  overlayFold: { alignSelf: 'center', margin: 0 },
+  overlayTitleBox: { flex: 1 },
+  overlaySubtitle: { color: theme.muted },
+  overlayBody: { flexShrink: 1 },
+  overlayFolded: { height: 0, overflow: 'hidden' },
+  modelessHost: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'flex-end' },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },
   overlayTitle: { flex: 1, color: theme.ink },
-  overlaySubtitle: { color: theme.muted, marginTop: 2 },
   clearBackdrop: { backgroundColor: 'transparent' },
   dialogBody: { paddingHorizontal: 24, paddingVertical: 8, gap: 8 },
   dialogFooter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
   sheetBody: { flexShrink: 1, flexGrow: 1 },
-  sheetMaximized: { maxHeight: '100%', minHeight: '100%', borderTopLeftRadius: 0, borderTopRightRadius: 0 },
-  sheetCollapsed: { minHeight: 0 },
   sheetFooter: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, padding: 12 },
 }));

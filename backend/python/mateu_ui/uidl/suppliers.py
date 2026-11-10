@@ -95,6 +95,86 @@ class BreadcrumbsSupplier:
         raise NotImplementedError
 
 
+class OverlineSupplier:
+    """Implemented by a page to supply its overline (the line above the title) per request; wins
+    over ``@overline``. The Python analogue of Java's ``OverlineSupplier``."""
+
+    def overline(self) -> str | None:
+        raise NotImplementedError
+
+
+class TitlePlaceholderSupplier:
+    """Implemented by a page to supply its title placeholder per request; wins over
+    ``@title_placeholder``. The Python analogue of Java's ``TitlePlaceholderSupplier``."""
+
+    def title_placeholder(self) -> str | None:
+        raise NotImplementedError
+
+
+class VisibilitySupplier:
+    """Implemented by a form to hide fields per request: ``is_hidden(field_name)`` (the Python
+    attribute name) True leaves the field out of the form. Java's ``VisibilitySupplier``."""
+
+    def is_hidden(self, field_name: str) -> bool:
+        return False
+
+
+class ReadOnlySupplier:
+    """Implemented by a form to lock fields per request (``is_read_only(field_name)``); a locked
+    field is drawn read-only. Java's ``ReadOnlySupplier``."""
+
+    def is_read_only(self, field_name: str) -> bool:
+        return False
+
+
+class RequiredSupplier:
+    """Implemented by a form to make fields required per request (``is_required(field_name)``).
+    Java's ``RequiredSupplier``."""
+
+    def is_required(self, field_name: str) -> bool:
+        return False
+
+
+class ColspanSupplier:
+    """Implemented by a form to size fields per request: ``colspan(field_name)`` > 0 wins over a
+    ``Colspan()`` marker. Java's ``ColspanSupplier``."""
+
+    def colspan(self, field_name: str) -> int:
+        return 0
+
+
+class PostHydrationHandler:
+    """Implemented by a view to run code once its state was bound from the request (derived
+    fields, normalisation): ``on_hydrated()``. Java's ``PostHydrationHandler``."""
+
+    def on_hydrated(self) -> None:
+        return None
+
+
+class HeaderSupplier:
+    """Implemented by a page to supply its header blocks in code (wins over ``Header()`` fields);
+    returns fluent components. The Python analogue of Java's ``HeaderSupplier``."""
+
+    def header(self) -> list:
+        raise NotImplementedError
+
+
+class FooterSupplier:
+    """Implemented by a page to supply its footer blocks in code (wins over ``Footer()`` fields).
+    The Python analogue of Java's ``FooterSupplier``."""
+
+    def footer(self) -> list:
+        raise NotImplementedError
+
+
+class AvatarSupplier:
+    """Implemented by a page to supply its avatar block in code (wins over an ``Avatar()``
+    field). The Python analogue of Java's ``AvatarSupplier``."""
+
+    def avatar(self):
+        raise NotImplementedError
+
+
 @dataclass
 class AppNotification:
     """One entry of the app shell's notification inbox (the header bell): a title, an optional

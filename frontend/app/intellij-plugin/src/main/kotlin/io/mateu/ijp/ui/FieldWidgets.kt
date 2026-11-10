@@ -56,9 +56,9 @@ import javax.swing.tree.TreeSelectionModel
  * runs the field's `search-<fieldId>` action and the options arrive as a field-keyed data-only
  * fragment through [AppContext.registerFieldDataHandler].
  */
-fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean): JComponent {
+fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean, display: String = value): JComponent {
     val action = metadata.path("remoteCoordinates").text("action").ifBlank { "search-$fieldId" }
-    val button = JButton(plain(if (value.isBlank()) "Select…" else value))
+    val button = JButton(plain(if (value.isBlank()) "Select…" else display.ifBlank { value }))
     button.isEnabled = enabled
     button.horizontalAlignment = javax.swing.SwingConstants.LEFT
 
@@ -409,11 +409,11 @@ fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boo
     buttons.alignmentX = Component.LEFT_ALIGNMENT
     canvas.accessibleContext.accessibleName = "$what drawing area"
     buttons.add(JButton("Clear").apply {
-        accessibleContext.accessibleName = "Clear $what"
+        getAccessibleContext().accessibleName = "Clear $what"
         addActionListener { strokes.clear(); canvas.repaint() }
     })
     buttons.add(JButton("Accept").apply {
-        accessibleContext.accessibleName = "Accept $what"
+        getAccessibleContext().accessibleName = "Accept $what"
         addActionListener {
             val img = BufferedImage(canvas.width.coerceAtLeast(1), canvas.height.coerceAtLeast(1), BufferedImage.TYPE_INT_RGB)
             val g = img.createGraphics()

@@ -6,7 +6,7 @@ import { Text, TextInput } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { OutlinedTrigger } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
-import { committedValue, displayValue, MONTHS, monthWeeks, parseIso, shiftedMonth, today, WEEKDAYS, type Ymd } from './dateCalendar';
+import { committedValue, displayValue, minuteChoices, MONTHS, monthWeeks, parseIso, shiftedMonth, timeText, today, WEEKDAYS, type Ymd } from './dateCalendar';
 
 /**
  * Dependency-free date / datetime picker (like the IntelliJ and Compose renderers' own
@@ -144,7 +144,76 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
   );
 }
 
+/**
+ * A LocalTime field: an outlined trigger showing "HH:MM" that opens an hour / minute picker (it
+ * was a plain text box holding the raw "09:30:00"). Commits "HH:MM".
+ */
+export function TimeField({ value, editable, onChange, label, required, error, placeholder }: Omit<Props, 'withTime'>) {
+  const [open, setOpen] = useState(false);
+  const shown = timeText(value);
+  const [hour, setHour] = useState(shown.slice(0, 2) || '09');
+  const pick = (h: string, m: string) => { onChange(`${h}:${m}`); setOpen(false); };
+  return (
+    <View>
+      <OutlinedTrigger
+        label={label}
+        required={required}
+        error={error}
+        value={shown}
+        placeholder={placeholder || 'HH:MM'}
+        icon="clock-outline"
+        disabled={!editable}
+        accessibilityLabel={`${label ?? 'Time'}: ${shown || 'not set'}`}
+        onPress={() => { if (!editable) return; setHour(shown.slice(0, 2) || '09'); setOpen(true); }}
+      />
+      {open && (
+        <Modal accessibilityViewIsModal accessibilityLabel="Time picker" animationType="fade" transparent onRequestClose={() => setOpen(false)}>
+          <TouchableOpacity {...buttonA11y()} style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
+            <TouchableOpacity {...buttonA11y()} activeOpacity={1} style={styles.calendar} onPress={() => {}}>
+              <Text style={styles.monthTitle}>Hour</Text>
+              <View style={styles.timeGrid}>
+                {Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0')).map((h) => (
+                  <TouchableOpacity {...buttonA11y({ selected: h === hour, label: `${h} hours` })} key={h} style={[styles.timeChip, h === hour && styles.selectedCell]} onPress={() => setHour(h)}>
+                    <Text style={[styles.dayText, h === hour && styles.selectedText]}>{h}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={[styles.monthTitle, { marginTop: 12 }]}>Minutes</Text>
+              <View style={styles.timeGrid}>
+                {minuteChoices(value).map((m) => {
+                  const on = shown === `${hour}:${m}`;
+                  return (
+                    <TouchableOpacity {...buttonA11y({ selected: on, label: `${hour}:${m}` })} key={m} style={[styles.timeChip, on && styles.selectedCell]} onPress={() => pick(hour, m)}>
+                      <Text style={[styles.dayText, on && styles.selectedText]}>:{m}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={styles.footer}>
+                {!!value && (
+                  <TouchableOpacity {...buttonA11y()} style={styles.footerButton} onPress={() => { onChange(''); setOpen(false); }}>
+                    <Text style={styles.footerText}>Clear</Text>
+                  </TouchableOpacity>
+                )}
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity {...buttonA11y()} style={styles.footerButton} onPress={() => {
+                  const now = new Date();
+                  pick(String(now.getHours()).padStart(2, '0'), String(now.getMinutes()).padStart(2, '0'));
+                }}>
+                  <Text style={styles.footerText}>Now</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </View>
+  );
+}
+
 const styles = themed(() => StyleSheet.create({
+  timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  timeChip: { width: 48, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 16 },
   input: {
     borderWidth: 1,
     borderColor: theme.border,

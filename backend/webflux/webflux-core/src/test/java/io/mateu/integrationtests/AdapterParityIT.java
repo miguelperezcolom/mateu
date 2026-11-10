@@ -117,6 +117,26 @@ class AdapterParityIT {
     }
 
     @Test
+    void answersADottedIdDeepLinkWithTheIndex() {
+      contract.answersADottedIdDeepLinkWithTheIndex();
+    }
+
+    @Test
+    void warnsAboutARendererOfAnotherWireMajor() {
+      contract.warnsAboutARendererOfAnotherWireMajor();
+    }
+
+    @Test
+    void rateLimitsClientLogs() {
+      contract.rateLimitsClientLogs();
+    }
+
+    @Test
+    void revalidatesFixedNameAssets() {
+      contract.revalidatesFixedNameAssets("/assets/fixed.js");
+    }
+
+    @Test
     void doesNotAnswerADataFetchWithTheIndex() {
       contract.doesNotAnswerADataFetchWithTheIndex();
     }

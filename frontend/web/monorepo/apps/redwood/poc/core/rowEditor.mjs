@@ -428,7 +428,10 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   // oj-select-one, JET answered with the first option and the form saved it unasked.
   const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
   const raw = s[fieldId] != null ? s[fieldId] : fromData
-  const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+  const built = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
+  // a label is a template like a section title (`Price per night (${state.currency})`)
+  const widget = typeof built.label === 'string' && built.label.includes('${')
+    ? { ...built, label: interpolate(built.label, s, { data: d }) } : built
   let value = raw == null || raw === '' ? null : raw
   // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
   if (widget.isMoney && value != null && typeof value === 'object') value = value.value
@@ -923,10 +926,26 @@ function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
     isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
     isEmail: false, isUrl: false, currency: '',
-    // a date field writes and reads dates in the UI's locale, not in the one JET booted with
-    converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : null,
+    // a date field writes and reads dates in the UI's locale, not in the one JET booted with; an
+    // INTEGER field reads as typed, without thousands separators (a year showed «1,906»)
+    converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : isNumber ? numberConverterOf(f.dataType) : null,
     captureMode: '', accept: '',
   }
+}
+
+/** Whole-number types: no grouping, no decimals (a year, a count, a room number). */
+export const INTEGER_TYPES = { integer: true, int: true, long: true }
+const numberConverters = new Map()
+/** The converter of a number field: integers ungrouped, the rest JET's default decimal one; one
+ *  instance per kind, so a re-projection does not hand JET a new converter on every keystroke. */
+export function numberConverterOf(dataType) {
+  const kind = INTEGER_TYPES[dataType] ? 'integer' : 'decimal'
+  if (!numberConverters.has(kind)) {
+    numberConverters.set(kind, converterOf({ type: 'number', options: kind === 'integer'
+      ? { style: 'decimal', useGrouping: false, maximumFractionDigits: 0 }
+      : { style: 'decimal' } }))
+  }
+  return numberConverters.get(kind)
 }
 
 /** The row's empty required fields → { fieldId: message }; {} if it is fine. */

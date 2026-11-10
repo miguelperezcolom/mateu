@@ -11,10 +11,11 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { type GestureResponderEvent, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, type GestureResponderEvent, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useOpenHref } from './useOpenHref';
 import { hrefIntent } from '../core/linkTarget';
 import { Image } from './BackendImage';
+import { cssToRn } from '../core/cssStyle';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
@@ -30,8 +31,11 @@ import {
   cellText,
   contentSlots,
   elementKind,
-  flattenTree,
-  gridColumnsOf,
+  gridCellText,
+  gridHeader,
+  visibleTreeRows,
+  type GridLeaf,
+
   gridRowsOf,
   initials,
   menuIntent,
@@ -370,33 +374,62 @@ export function DirectoryRenderer({ metadata }: { metadata: Dict }) {
 
 export function GridRenderer({ component, state, data }: { component: unknown; state: Dict; data?: unknown }) {
   const controller = useViewController();
-  const columns = gridColumnsOf(component);
-  const rows = flattenTree(gridRowsOf(component, state, data));
-  const tree = meta(component)['tree'] === true;
-  const colW = 140;
+  const m = meta(component);
+  const { leaves: columns, groups } = gridHeader(component);
+  const tree = m['tree'] === true;
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const allRows = gridRowsOf(component, state, data);
+  const rows = tree ? visibleTreeRows(allRows, expanded) : allRows.map((row, i) => ({ row, depth: 0, key: String(i), hasChildren: false }));
+  const stripes = m['rowStripes'] === true;
+  const colW = (c: GridLeaf) => c.width ?? 140;
+  const toggle = (key: string) => setExpanded((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
   return (
     <ScrollView horizontal style={styles.gridBox}>
       <View>
+        {groups && (
+          <View style={[styles.gridRow, styles.gridHead]}>
+            {groups.map((g, gi) => {
+              const start = groups.slice(0, gi).reduce((n, x) => n + x.span, 0);
+              const width = columns.slice(start, start + g.span).reduce((n, c) => n + colW(c), 0);
+              return <Text key={gi} style={[styles.th, styles.thGroup, { width }]} numberOfLines={1}>{g.label}</Text>;
+            })}
+          </View>
+        )}
         <View style={[styles.gridRow, styles.gridHead]}>
           {columns.map((c) => (
-            <Text key={c.id} style={[styles.th, { width: colW }]} numberOfLines={1}>
+            <Text key={c.id} style={[styles.th, { width: colW(c), textAlign: c.align === 'end' || c.align === 'right' ? 'right' : 'left' }]} numberOfLines={1}>
               {c.label}
             </Text>
           ))}
         </View>
         {rows.length === 0 && <Text style={styles.empty}>No data.</Text>}
-        {rows.map(({ row, depth }, r) => (
-          <View key={r} style={styles.gridRow}>
+        {rows.map(({ row, depth, key, hasChildren }, r) => (
+          <View key={key} style={[styles.gridRow, stripes && r % 2 === 1 ? styles.gridStripe : null]}>
             {columns.map((c, ci) => {
-              const text = cellText(row, c.id);
-              const indent = tree && ci === 0 ? depth * 14 : 0;
-              const cellStyle = [styles.td, { width: colW, paddingLeft: 6 + indent, textAlign: (c.align === 'end' || c.align === 'right' ? 'right' : 'left') as 'left' | 'right' }];
+              // money in the UI's locale, dates as dates — the column's dataType, like a listing
+              const text = gridCellText(row[c.id], c);
+              const indent = tree && ci === 0 ? depth * 16 : 0;
+              const cellStyle = [styles.td, { width: colW(c), paddingLeft: 6 + indent, textAlign: (c.align === 'end' || c.align === 'right' ? 'right' : 'left') as 'left' | 'right' }];
+              if (tree && ci === 0 && hasChildren) {
+                const open = expanded.has(key);
+                return (
+                  <TouchableOpacity key={c.id} {...buttonA11y({ expanded: open, label: text })} style={[styles.treeCell, { width: colW(c), paddingLeft: indent }]} onPress={() => toggle(key)}>
+                    <MIcon name={open ? 'chevron-down' : 'chevron-right'} size={18} color={theme.muted} />
+                    <Text style={styles.treeCellText} numberOfLines={1}>{text}</Text>
+                  </TouchableOpacity>
+                );
+              }
+              const leafPad = tree && ci === 0 ? { paddingLeft: 6 + indent + 18 } : null;
               return c.actionId ? (
                 <TouchableOpacity key={c.id} {...buttonA11y({ role: 'link' })} onPress={() => void controller.runAction(c.actionId!, gridCellParameters(c.actionId!, row))}>
-                  <Text style={[...cellStyle, styles.link]} numberOfLines={1}>{text}</Text>
+                  <Text style={[...cellStyle, leafPad, styles.link]} numberOfLines={1}>{text}</Text>
                 </TouchableOpacity>
               ) : (
-                <Text key={c.id} style={cellStyle} numberOfLines={1}>{text}</Text>
+                <Text key={c.id} style={[...cellStyle, leafPad]} numberOfLines={1}>{text}</Text>
               );
             })}
           </View>
@@ -406,19 +439,33 @@ export function GridRenderer({ component, state, data }: { component: unknown; s
   );
 }
 
-/** Every item through the component renderer, in a plain column (the host view scrolls). */
-export function VirtualListRenderer({ metadata, state, data }: { metadata: Dict; state: Dict; data?: unknown }) {
+/**
+ * A VirtualList: a box of its declared height (`height: 18rem`, else 400) that scrolls by itself and
+ * only draws the rows near the viewport (FlatList windowing) — it used to draw all its 2,000 rows
+ * down the page. Nested in the screen's scroll (nestedScrollEnabled, for Android).
+ */
+export function VirtualListRenderer({ component, metadata, state, data }: { component?: unknown; metadata: Dict; state: Dict; data?: unknown }) {
   const items = (((metadata['page'] as Dict)?.['content'] as unknown[]) ?? []);
+  const declared = cssToRn(((component as Dict)?.['style'] as string) ?? '', new Set(['height', 'max-height']));
+  const height = typeof declared['height'] === 'number' ? declared['height'] : typeof declared['maxHeight'] === 'number' ? declared['maxHeight'] : 400;
   return (
-    <View style={styles.stack}>
-      {items.map((item, i) =>
+    <FlatList
+      style={[styles.virtualList, { height: height as number }]}
+      data={items}
+      nestedScrollEnabled
+      initialNumToRender={20}
+      maxToRenderPerBatch={20}
+      windowSize={7}
+      removeClippedSubviews
+      keyExtractor={(_, i) => String(i)}
+      renderItem={({ item }) =>
         item && typeof item === 'object' && ('type' in (item as Dict) || 'metadata' in (item as Dict)) ? (
-          <ComponentRenderer key={i} component={item} state={state} data={data} />
+          <View style={styles.virtualRow}><ComponentRenderer component={item} state={state} data={data} /></View>
         ) : (
-          <Text key={i} style={styles.text}>{str(item)}</Text>
-        ),
-      )}
-    </View>
+          <Text style={[styles.text, styles.virtualRow]}>{str(item)}</Text>
+        )
+      }
+    />
   );
 }
 
@@ -720,7 +767,12 @@ export function CookieConsentRenderer({ metadata }: { metadata: Dict }) {
   }, [key]);
   if (dismissed !== false) return null;
   const learnMoreLink = str(metadata['learnMoreLink']);
+  // it FLOATS over the screen at its declared edge (Top*/Bottom*, default bottom), like the web's
+  // fixed banner — drawn inline it sat in the middle of the content
+  const top = /^top/i.test(str(metadata['position']));
   return (
+    <Modal transparent animationType="fade" visible onRequestClose={() => setDismissed(true)}>
+      <View style={[styles.consentHost, top ? styles.consentHostTop : styles.consentHostBottom]} pointerEvents="box-none">
     <View style={styles.consent} accessibilityRole="alert">
       <Text style={styles.consentText}>{str(metadata['message']) || 'This app uses cookies to ensure you get the best experience.'}</Text>
       <View style={[styles.row, { gap: 12, marginTop: 8 }]}>
@@ -741,6 +793,8 @@ export function CookieConsentRenderer({ metadata }: { metadata: Dict }) {
         </TouchableOpacity>
       </View>
     </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -985,6 +1039,8 @@ export function FormEditorRenderer({ metadata }: { metadata: Dict }) {
 
 const styles = themed(() => StyleSheet.create({
   stack: { gap: 8 },
+  virtualList: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusSm, flexGrow: 0 },
+  virtualRow: { paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   row: { flexDirection: 'row', alignItems: 'center' },
   wrap: { flexWrap: 'wrap' },
   flex1: { flex: 1, minWidth: 0 },
@@ -1038,6 +1094,10 @@ const styles = themed(() => StyleSheet.create({
   gridRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   gridHead: { backgroundColor: theme.background },
   th: { fontWeight: '600', color: theme.muted, fontSize: 14, padding: 8 },
+  thGroup: { textAlign: 'center', color: theme.ink, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: theme.border },
+  gridStripe: { backgroundColor: theme.background },
+  treeCell: { flexDirection: 'row', alignItems: 'center', minHeight: 36, paddingRight: 6 },
+  treeCellText: { flex: 1, fontSize: 14, color: theme.ink },
   td: { color: theme.ink, fontSize: 14, padding: 8 },
   // stepper
   // carousel
@@ -1057,7 +1117,10 @@ const styles = themed(() => StyleSheet.create({
   outcomeMessage: { fontSize: 14, color: theme.muted, textAlign: 'center', maxWidth: 420 },
   // overlays in place
   notification: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: theme.background, borderRadius: theme.radiusMd, padding: 12 },
-  consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14 },
+  consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14, maxWidth: 560, width: '100%', elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
+  consentHost: { flex: 1, padding: 16, alignItems: 'center' },
+  consentHostTop: { justifyContent: 'flex-start', paddingTop: 48 },
+  consentHostBottom: { justifyContent: 'flex-end', paddingBottom: 32 },
   consentText: { color: theme.onFill, fontSize: 14 },
   consentLink: { color: theme.onFill, textDecorationLine: 'underline', fontSize: 14 },
   consentBtn: { backgroundColor: theme.white, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 6 },

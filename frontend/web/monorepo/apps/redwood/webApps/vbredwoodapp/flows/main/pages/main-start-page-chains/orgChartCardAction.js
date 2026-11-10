@@ -26,7 +26,8 @@ define([
       if (!call) return;
       await Actions.callChain(context, {
         chain: 'dispatchHostBlockAction',
-        params: { actionId: call.actionId, parameters: call.parameters },
+        // the chart's surface (an inline island's OrgChart goes back to the island)
+        params: { actionId: call.actionId, parameters: call.parameters, surfaceId: bridge.surfaceOfNode(card) },
       });
     }
   }

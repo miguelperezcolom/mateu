@@ -38,22 +38,19 @@ export const BarTitle = createContext<string | null>(null);
 export const useBarTitle = (): string | null => useContext(BarTitle);
 
 /**
- * The chrome of the embedded micro frontend whose OWN page this is (MicroFrontend.chrome): NONE draws
- * no page header, COMPACT only its actions, PAGE all of it (no breadcrumb of its own). Undefined: a
- * page of its own (or an island, which draws its header as it is). The web's embeddedChrome.ts.
+ * The page's @Toc sections registry: a section card registers its title, whether it is pinned, and
+ * a way to scroll the page to it; the page draws the index from what registered. Null outside a
+ * page that keeps one.
  */
-export type EmbeddedChromeMode = 'NONE' | 'COMPACT' | 'PAGE';
-export const EmbeddedChrome = createContext<EmbeddedChromeMode | undefined>(undefined);
-export const useEmbeddedChrome = (): EmbeddedChromeMode | undefined => useContext(EmbeddedChrome);
+export interface SectionEntry { key: string; title: string; sticky: boolean; ref: { current: unknown } }
+export interface SectionRegistry { register: (entry: SectionEntry) => () => void }
+export const SectionIndex = createContext<SectionRegistry | null>(null);
+export const useSectionIndex = (): SectionRegistry | null => useContext(SectionIndex);
 
-/** A wire chrome value, or undefined for anything else. */
-export function chromeOf(value: unknown): EmbeddedChromeMode | undefined {
-  const v = typeof value === 'string' ? value.trim().toUpperCase() : '';
-  return v === 'NONE' || v === 'COMPACT' || v === 'PAGE' ? v : undefined;
-}
-
-/** What of its page header an embedded micro frontend draws: its texts (title, subtitle, badges…)
- *  and its actions. NONE neither, COMPACT the actions only, PAGE / not embedded both. */
-export function headerPartsOf(chrome: EmbeddedChromeMode | undefined): { texts: boolean; actions: boolean } {
-  return { texts: chrome !== 'NONE' && chrome !== 'COMPACT', actions: chrome !== 'NONE' };
-}
+/**
+ * A MicroFrontend's `chrome` (NONE | COMPACT | PAGE) for the page inside it: NONE draws no page
+ * header, COMPACT only its actions, PAGE the header without a breadcrumb trail. Null = a page of
+ * its own (everything).
+ */
+export const EmbeddedChrome = createContext<string | null>(null);
+export const useEmbeddedChrome = (): string | null => useContext(EmbeddedChrome);

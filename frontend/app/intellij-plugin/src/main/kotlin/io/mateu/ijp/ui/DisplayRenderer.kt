@@ -24,8 +24,15 @@ import javax.swing.SwingConstants
 /** Display components (HeroSection, EmptyState, Skeleton, FoldoutLayout, Gantt) on Swing. */
 
 fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val panel = verticalPanel(6)
+    // `height` (14rem) is the band's height; `image` its background, covered by a dark veil so the
+    // white title stays readable (the web's hero) — both were ignored
+    val minHeight = cssLengthPx(metadata.text("height"))?.let { JBUI.scale(it) } ?: 0
+    val panel = HeroPanel(minHeight)
+    panel.layout = javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS)
     panel.border = JBUI.Borders.empty(28, 16)
+    metadata.text("image").takeIf { it.isNotBlank() }?.let { src -> panel.loadBackground(heroImageUrl(r.ctx.session.baseUrl, src)) }
+    val centered = !metadata.has("centered") || metadata.path("centered").isNull || metadata.path("centered").asBoolean(true)
+    val textAlign = if (centered) SwingConstants.CENTER else SwingConstants.LEADING
     // `tone` (ocean, pine, …): a dark tinted band with light ink; absent/unknown → the default look.
     val tone = PageSlots.heroToneColor(metadata.text("tone"))
     panel.background = tone ?: Color(0x2B, 0x3A, 0x55)
@@ -33,18 +40,18 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     // `overline`: a short quiet line above the title (the Redwood welcome page's overline).
     val overline = metadata.text("overline")
     if (overline.isNotBlank()) {
-        val o = JBLabel(plain(overline), SwingConstants.CENTER)
+        val o = JBLabel(plain(overline), textAlign)
         o.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         o.font = o.font.deriveFont(Font.PLAIN, o.font.size2D * 0.9f)
         panel.addStacked(o, 2)
     }
-    val title = JBLabel(plain(metadata.text("title")), SwingConstants.CENTER)
+    val title = JBLabel(plain(metadata.text("title")), textAlign)
     title.font = title.font.deriveFont(Font.BOLD, PageChrome.fontSize(24f))
     title.foreground = Color.WHITE
     panel.addStacked(title, 6)
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(plain(subtitle), SwingConstants.CENTER)
+        val l = JBLabel(plain(subtitle), textAlign)
         l.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         panel.addStacked(l, 10)
     }
@@ -55,7 +62,7 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     var ctas: JPanel? = null
     for (child in component.path("children")) {
         if (child.path("metadata").text("type") == "Button") {
-            val row = ctas ?: JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(8), 0)).also {
+            val row = ctas ?: JPanel(FlowLayout(if (centered) FlowLayout.CENTER else FlowLayout.LEFT, JBUI.scale(8), 0)).also {
                 it.isOpaque = false
                 blocks.add(it)
                 ctas = it
@@ -68,6 +75,45 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     }
     for (block in blocks) panel.addStacked(block, 6)
     return panel
+}
+
+/** A hero's image url: a root-relative path resolves against the app's own origin. */
+internal fun heroImageUrl(baseUrl: String, src: String): String =
+    if (src.startsWith("data:")) src else io.mateu.ijp.api.Urls.resolve(baseUrl, src)
+
+/** The hero band: at least [minHeight] tall, painting an optional background image (cover + veil). */
+internal class HeroPanel(private val minHeight: Int) : JPanel() {
+    @Volatile var image: java.awt.image.BufferedImage? = null
+        private set
+
+    override fun getPreferredSize(): java.awt.Dimension = super.getPreferredSize().let { java.awt.Dimension(it.width, maxOf(it.height, minHeight)) }
+
+    fun loadBackground(url: String) {
+        Thread {
+            val svg = SvgImages.isSvg(url)
+            val img = runCatching {
+                val bytes = if (url.startsWith("data:")) (if (svg) SvgImages.dataUriBytes(url) else java.util.Base64.getDecoder().decode(url.substringAfter("base64,")))
+                else java.net.URI(url).toURL().openStream().use { it.readBytes() }
+                bytes?.let { decodeImage(it, svg) }
+            }.getOrNull() ?: return@Thread
+            javax.swing.SwingUtilities.invokeLater { image = img; repaint() }
+        }.apply { isDaemon = true; name = "mateu-hero-image" }.start()
+    }
+
+    override fun paintComponent(g: java.awt.Graphics) {
+        super.paintComponent(g)
+        val img = image ?: return
+        val g2 = g.create() as java.awt.Graphics2D
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        // object-fit: cover
+        val s = maxOf(width.toDouble() / img.width, height.toDouble() / img.height)
+        val w = (img.width * s).toInt()
+        val h = (img.height * s).toInt()
+        g2.drawImage(img, (width - w) / 2, (height - h) / 2, w, h, null)
+        g2.color = Color(0, 0, 0, 110)
+        g2.fillRect(0, 0, width, height)
+        g2.dispose()
+    }
 }
 
 fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
@@ -120,7 +166,7 @@ fun renderSkeleton(metadata: JsonNode): JComponent {
 
 /** Foldout: overview stays visible on the left; panels unfold as vertical accordion strips. */
 fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    // The VB/Redwood foldout anatomy: a HORIZONTAL row of always-expanded columns — the
+    // The VB/Redwood foldout anatomy: a HORIZONTAL row of columns (a folded panel is a strip) — the
     // overview first, then one column per panel, each with its own heading ("Operaciones ·
     // 2 de 7") and widths proportional to the wire's FoldoutPanel.width (rem units; the
     // overview weighs the renderer default, 22).
@@ -142,8 +188,7 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
             if (summary == null) {
                 col.add(heading, BorderLayout.NORTH)
             } else {
-                // The panel's `summary` slot — what a FOLDED panel shows. These columns never fold,
-                // so it reads as a compact digest line under the heading.
+                // the panel's `summary` slot: a compact digest line under the heading (a folded panel shows it as its tooltip)
                 val top = verticalPanel(2)
                 top.addStacked(heading, 2)
                 top.addStacked(summary, 0)
@@ -182,24 +227,107 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
 
     val overview = children.firstOrNull { it.text("slot") == "overview" }
         ?: children.firstOrNull { !it.text("slot").startsWith("summary-") && !it.text("slot").startsWith("panel-") }
-    if (overview != null) {
-        add(widthPx("22rem"), column(metadata.text("headerTitle"), "", r.render(overview, state, data)))
+    val overviewColumn = overview?.let { column(metadata.text("headerTitle"), "", r.render(it, state, data)) }
+    // Each panel is rendered ONCE; folding swaps its column for a strip and back (local state, no
+    // round trip — the web's foldout). `open: false` starts folded: it used to render expanded.
+    data class PanelView(val index: Int, val title: String, val subtitle: String, val width: Int, val content: JComponent, val summary: JComponent?, val summaryText: String)
+    val panels = panelsInfo.withIndex().mapNotNull { (i, info) ->
+        val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: return@mapNotNull null
+        val summaryNode = PageSlots.foldoutSummary(children, i)
+        PanelView(i, info.text("title", "Panel ${i + 1}"), info.text("subtitle"), widthPx(info.text("width", "22rem")),
+            r.render(content, state, data),
+            summaryNode?.let { node -> r.render(node, state, data).apply { foreground = uxMuted() } },
+            summaryNode?.path("metadata")?.text("text").orEmpty())
     }
-    for ((i, info) in panelsInfo.withIndex()) {
-        val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: continue
-        val summary = PageSlots.foldoutSummary(children, i)?.let { node ->
-            r.render(node, state, data).apply { foreground = uxMuted() }
+    val open = BooleanArray(panelsInfo.size) { panelsInfo[it].path("open").asBoolean(true) }
+    fun rebuild() {
+        row.removeAll()
+        overviewColumn?.let { add(widthPx("22rem"), it) }
+        for (pv in panels) {
+            if (open[pv.index]) {
+                val col = column(pv.title, pv.subtitle, pv.content, pv.summary)
+                val fold = javax.swing.JButton("‹").apply {
+                    toolTipText = plainTip("Fold ${pv.title}")
+                    accessibleName("Fold ${pv.title}")
+                    putClientProperty("JButton.buttonType", "square")
+                    addActionListener { open[pv.index] = false; rebuild() }
+                }
+                val withFold = JPanel(BorderLayout()).apply {
+                    isOpaque = false
+                    add(col, BorderLayout.CENTER)
+                    add(JPanel(BorderLayout()).apply { isOpaque = false; add(fold, BorderLayout.NORTH) }, BorderLayout.EAST)
+                }
+                add(pv.width, withFold)
+            } else {
+                add(JBUI.scale(44), FoldedStrip(pv.title, pv.summaryText) { open[pv.index] = true; rebuild() })
+            }
         }
-        add(widthPx(info.text("width", "22rem")),
-            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data), summary))
+        row.revalidate()
+        row.repaint()
     }
+    rebuild()
     val scroll = ContentHeightScrollPane(row)
     scroll.border = JBUI.Borders.empty()
     scroll.isOpaque = false
     scroll.viewport.isOpaque = false
     scroll.verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
     scroll.accessibleContext.accessibleName = metadata.text("headerTitle").ifBlank { "Record" }
-    return scroll
+    // `navigation`: the record's own header — back to its parent, previous / next record. It was
+    // in the wire and never drawn, so those actions could not be reached.
+    val nav = metadata.path("navigation").takeIf { it.isObject } ?: return scroll
+    val bar = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false; border = JBUI.Borders.emptyBottom(8) }
+    val left = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
+    nav.text("parentActionId").takeIf { it.isNotBlank() }?.let { actionId ->
+        left.add(com.intellij.ui.components.ActionLink(plain("‹ " + nav.text("parentLabel", "Back"))) { r.ctx.runAction(actionId, null) }
+            .apply { accessibleName("Back to ${nav.text("parentLabel", "parent")}") })
+    }
+    nav.text("title").takeIf { it.isNotBlank() }?.let { left.add(JBLabel(plain(it)).apply { font = font.deriveFont(Font.BOLD, font.size2D + 2f) }) }
+    bar.add(left, BorderLayout.CENTER)
+    val right = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(4), 0)).apply { isOpaque = false }
+    fun peer(actionId: String, glyph: String, name: String) {
+        right.add(javax.swing.JButton(plain(glyph)).apply {
+            putClientProperty("JButton.buttonType", "square")
+            toolTipText = plainTip(name)
+            accessibleName(name)
+            isEnabled = actionId.isNotBlank()
+            addActionListener { r.ctx.runAction(actionId, null) }
+        })
+    }
+    peer(nav.text("previousActionId"), "‹", "Previous")
+    peer(nav.text("nextActionId"), "›", "Next")
+    bar.add(right, BorderLayout.EAST)
+    val wrapper = verticalPanel(0)
+    wrapper.addStacked(bar, 0)
+    wrapper.addStacked(scroll, 0)
+    return wrapper
+}
+
+/** A folded foldout panel: a narrow strip with its title written vertically; a click unfolds it. */
+internal class FoldedStrip(private val title: String, summary: String, private val onUnfold: () -> Unit) : JPanel() {
+    init {
+        isOpaque = false
+        toolTipText = plainTip(if (summary.isNotBlank()) "$title — $summary" else title)
+        activatable("Unfold $title") { onUnfold() }
+    }
+
+    override fun getPreferredSize() = Dimension(JBUI.scale(36), JBUI.scale(40) + getFontMetrics(font.deriveFont(Font.BOLD)).stringWidth(title))
+
+    override fun paintComponent(g: Graphics) {
+        val g2 = g.create() as Graphics2D
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g2.color = SurfaceColors.placeholder
+        g2.fillRoundRect(0, 0, width - JBUI.scale(4), height, JBUI.scale(6), JBUI.scale(6))
+        g2.font = font.deriveFont(Font.BOLD)
+        g2.color = ToneColors.foreground()
+        val fm = g2.fontMetrics
+        g2.drawString("›", (width - JBUI.scale(4) - fm.stringWidth("›")) / 2, fm.ascent + JBUI.scale(6))
+        // the title rotated a quarter turn, read top to bottom
+        g2.translate(((width - JBUI.scale(4)) / 2 - fm.height / 2 + fm.ascent).toDouble(), (fm.height + JBUI.scale(14)).toDouble())
+        g2.rotate(Math.PI / 2)
+        g2.translate(0.0, -fm.ascent.toDouble())
+        g2.drawString(title, 0, fm.ascent)
+        g2.dispose()
+    }
 }
 
 /** Gantt: labels column + proportional bars over the tasks' date range, with a today marker. */
@@ -288,17 +416,21 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
 }
 
 /** A standalone Image component (metadata.src — data URI or URL). */
-fun renderStandaloneImage(metadata: JsonNode): JComponent {
-    val src = metadata.text("src")
+fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null, style: String = ""): JComponent {
+    // a root-relative src (`/assets/logo.png`) is the app backend's, as the browser reads it
+    val src = metadata.text("src").let { if (it.startsWith("data:")) it else io.mateu.ijp.api.Urls.resolve(baseUrl, it) }
+    val svg = SvgImages.isSvg(src)
+    // the image's CSS width / max-width (`max-width: 24rem`) caps it, as on the web; else 360px
+    val capPx = JBUI.scale(cssPx(style, "width") ?: cssPx(style, "max-width") ?: 360)
     // the declared text alternative (Image.alt) is the accessible name a screen reader reads
     val alt = metadata.text("alt").trim()
     if (src.isBlank()) return JPanel().apply { isOpaque = false }
     fun iconOf(img: java.awt.image.BufferedImage): javax.swing.Icon {
-        val scale = minOf(1.0, JBUI.scale(360).toDouble() / img.width)
+        val scale = minOf(1.0, capPx.toDouble() / img.width)
         return javax.swing.ImageIcon(img.getScaledInstance(
             (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))
     }
-    // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be the
+    // An image Swing cannot decode (a broken url, an unreachable host): a named placeholder. It used to be the
     // src itself — a data URI dumped as a wall of base64 across the page.
     val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
     val label = JBLabel(plain("🖼 ${alt.ifEmpty { shown }}"))
@@ -313,14 +445,17 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
         label.repaint()
     }
     if (src.startsWith("data:")) {
-        val base64 = src.substringAfter("base64,", "")
-        runCatching { javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) }.getOrNull()?.let(::show)
+        // an SVG data URI may be percent-encoded instead of base64
+        (if (svg) SvgImages.dataUriBytes(src) else runCatching { java.util.Base64.getDecoder().decode(src.substringAfter("base64,", "")) }.getOrNull())
+            ?.let { decodeImage(it, svg) }?.let(::show)
     } else if (isRemoteImage(src)) {
         // Off the EDT: the url used to be fetched WHILE rendering, so a slow image host froze the
         // whole IDE until it answered (or timed out). Meanwhile a short status, not the raw url.
         label.text = plain(if (alt.isNotEmpty()) "🖼 $alt" else "Loading image…")
         Thread {
-            val img = runCatching { javax.imageio.ImageIO.read(java.net.URI.create(src.trim()).toURL()) }.getOrNull()
+            // SVGs (ImageIO reads none) through the platform's SVG renderer
+            val img = runCatching { java.net.URI.create(src.trim()).toURL().openStream().use { it.readBytes() } }.getOrNull()
+                ?.let { decodeImage(it, svg) }
             javax.swing.SwingUtilities.invokeLater {
                 if (img != null) show(img) else if (alt.isEmpty()) label.text = "Image unavailable"
             }

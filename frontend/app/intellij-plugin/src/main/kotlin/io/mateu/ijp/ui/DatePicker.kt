@@ -53,7 +53,7 @@ private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) :
     }
 
     private fun rebuild() {
-        header.text = "${ym.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${ym.year}"
+        header.text = "${ym.month.getDisplayName(TextStyle.FULL, MoneyValues.uiLocale())} ${ym.year}"
         grid.removeAll()
         for (d in listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")) {
             grid.add(JBLabel(plain(d), SwingConstants.CENTER).apply { foreground = ToneColors.secondaryText() })

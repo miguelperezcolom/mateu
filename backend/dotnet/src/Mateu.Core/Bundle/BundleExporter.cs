@@ -33,7 +33,7 @@ internal sealed class BundleExporter(SyncHandler handler, string? specsDir = nul
     public static readonly IReadOnlySet<string> ClientExpandableTypes = new HashSet<string>
     {
         "AppShell", "Listing", "Crudl", "Crud", "Form", "VerticalLayout", "HorizontalLayout", "Div",
-        "FlexLayout", "Card", "CustomComponent",
+        "Card", "CustomComponent",
     };
 
     private static readonly ILogger Log = MateuLogging.For("Mateu.Bundle");

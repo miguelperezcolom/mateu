@@ -9,6 +9,7 @@ export const displayIcon = (icon?: string): string => (icon && !icon.includes(':
 /** Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer. */
 export const PALETTE: Record<string, string> = themed(() => ({
   success: theme.success, warning: theme.warning, error: theme.danger, danger: theme.danger, contrast: theme.ink, normal: theme.muted,
+  info: theme.info, primary: theme.primary,
 }));
 
 /** A chip/note color by its palette name; unknown → muted. */
@@ -51,9 +52,11 @@ const NOTICE_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warn
 /** A Notice's look: the theme (unknown → info), its colors and the icon (a declared one wins). */
 export function noticeLook(themeName: unknown, icon?: unknown): {
   theme: string; colors: { bg: string; ink: string; badge: string }; icon: string;
+  /** a DECLARED icon (an emoji): drawn at its natural size, without the severity circle */
+  custom: boolean;
 } {
   const name = (['info', 'success', 'warning', 'danger'].includes(themeName as string) ? themeName : 'info') as string;
-  return { theme: name, colors: NOTICE_COLORS[name], icon: (icon as string) || NOTICE_ICONS[name] };
+  return { theme: name, colors: NOTICE_COLORS[name], icon: (icon as string) || NOTICE_ICONS[name], custom: !!icon };
 }
 
 /** A Meter's fill ratio (0..1), its color (thresholds when declared, else the accent) and caption. */

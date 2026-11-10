@@ -403,16 +403,31 @@ export function chartAtomOf(m, t, interp = (x) => x) {
   const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
   const pie = spec.type === 'pie'
   const items = []
+  // a TrendChart's `color` is its line's (it was drawn in the default palette)
+  const color = trend && m.color ? String(m.color) : null
   datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
     const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+    const num = value == null || value === '' ? null : Number(value)
     items.push({
       _rowNumber: items.length,
       id: si + ':' + i,
-      value: value == null ? null : Number(value),
+      // a non-number (NaN) made oj-chart write `<path d="MNaN…">`: a gap instead
+      value: Number.isFinite(num) ? num : null,
       series: pie ? label : (d.label || 'Series ' + (si + 1)),
       group: pie ? (d.label || 'Total') : label,
+      ...(color ? { color } : {}),
     })
   }))
+  // a pie's slice labels: JET formats percentages to 3 significant digits («9.00%» beside «21.0%»);
+  // ours carry one decimal at most, the same for every slice
+  if (pie) {
+    const totals = {}
+    for (const it of items) totals[it.group] = (totals[it.group] || 0) + (it.value || 0)
+    for (const it of items) {
+      const pct = totals[it.group] ? (100 * (it.value || 0)) / totals[it.group] : 0
+      it.label = (Math.round(pct * 10) / 10).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '%'
+    }
+  }
   return {
     isChart: true,
     title: trend ? interp(m.title || '') : '',
@@ -421,9 +436,15 @@ export function chartAtomOf(m, t, interp = (x) => x) {
     innerRadius: spec.innerRadius || 0,
     lineType: spec.markersOnly ? 'none' : 'auto',
     markerDisplayed: spec.markersOnly ? 'on' : 'auto',
-    legend: datasets.length > 1 || pie ? 'on' : 'off',
-    chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
-    items,
+    // a Chart names its datasets in a legend even when there is one (Chart.js / the web does);
+    // a TrendChart is a single unnamed line: no legend
+    legend: !trend && (datasets.length > 1 || pie || !!(datasets[0] && datasets[0].label)) ? 'on' : 'off',
+    // a TrendChart is the compact trend line the web draws, not a full chart: no axes, short
+    axisRendered: trend ? 'off' : 'on',
+    chartStyle: { width: '100%', height: trend ? '7rem' : pie ? '18rem' : '16rem' },
+    color: color || '',
+    // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
+    colors: color ? [color] : undefined,    items,
     provider: dataProviderFactory ? dataProviderFactory(items) : null,
   }
 }
@@ -442,8 +463,12 @@ export const RICH_ATOM_FLAGS = [
   'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
   'isWorkflow', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isCarouselPager',
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+  // a MicroFrontend embedding a whole app: the app framed (content.mjs withSubresources)
+  'isAppFrame', 'isIslandBanner',
   // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
   'isNestedListing',
+  // a long VirtualList (JET's virtualised oj-list-view)
+  'isVirtualList',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

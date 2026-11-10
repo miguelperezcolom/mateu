@@ -55,7 +55,6 @@ CLIENT_EXPANDABLE_TYPES = frozenset(
         "VerticalLayout",
         "HorizontalLayout",
         "Div",
-        "FlexLayout",
         "Card",
         "CustomComponent",
     }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
-import { drawsNothing, segmentsFit } from './patternGaps';
+import { accordionLook, drawsNothing, segmentsFit, tabLayoutLook } from './patternGaps';
 import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
@@ -16,6 +16,10 @@ import { popoverOpensOnPress } from './hoverDetails';
 import { useOpenHref } from './useOpenHref';
 import { badgeIconsOf } from './displayFigures';
 import { progressBarColor } from './displayTones';
+import { badgeLook } from '../ui/looks';
+import { BOX_SIZES, cssToRn } from '../core/cssStyle';
+import { isSectionCard, isStickySection, sectionTitleOf } from './sectionIndex';
+import { useSectionIndex } from './ScrollContext';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -55,57 +59,151 @@ export function SubSectionRenderer({ component, state }: { component: unknown; s
   );
 }
 
+const node = (v: unknown): Dict | null => (v && typeof v === 'object' ? (v as Dict) : null);
+
+/** A title/subtitle slot: a plain string, or a component (a Text, usually) drawn in the slot's look. */
+function CardSlotText({ value, state, variant, style }: { value: unknown; state: Dict; variant: 'titleMedium' | 'bodyMedium'; style: unknown }) {
+  if (typeof value === 'string') {
+    return value ? <PaperText variant={variant} style={style as never} {...(variant === 'titleMedium' ? headingA11y(2) : {})}>{interpolate(value, { state })}</PaperText> : null;
+  }
+  const n = node(value);
+  if (!n) return null;
+  const m = meta(n);
+  // a plain Text in the slot takes the slot's look (the title's weight, the subtitle's muted ink)
+  if (m['type'] === 'Text' && !m['container']?.toString().match(/^h[1-6]$/)) {
+    return <PaperText variant={variant} style={style as never} {...(variant === 'titleMedium' ? headingA11y(2) : {})}>{interpolate(String(m['text'] ?? ''), { state })}</PaperText>;
+  }
+  return <ComponentRenderer component={n} state={state} />;
+}
+
+/**
+ * A Card as vaadin-card draws it: `media` (an image on top, or at the start of a `horizontal`
+ * card), a header row — `headerPrefix` (an avatar), the title over the `subtitle`, `headerSuffix`
+ * (a price badge) — or a custom `header`, then the content and the footer. `variants`: `elevated`
+ * (a raised Material card instead of an outlined one), `horizontal`, `stretchMedia`/`coverMedia`
+ * (the media spans the card). Its own `style` width (`18rem`) is kept, bounded by the screen.
+ */
 export function CardRenderer({ component, state }: { component: unknown; state: Dict }) {
   const m = meta(component);
+  // an @Section card on a page keeping a @Toc index: it registers itself as an index entry
+  const sections = useSectionIndex();
+  const sectionRef = React.useRef<View>(null);
+  const sectionTitle = isSectionCard(component) ? sectionTitleOf(component) : '';
+  const sticky = isStickySection(component);
+  React.useEffect(() => {
+    if (!sections || !sectionTitle) return undefined;
+    return sections.register({ key: `${sectionTitle}#${String((component as Dict)?.['id'] ?? '')}`, title: sectionTitle, sticky, ref: sectionRef });
+  }, [sections, sectionTitle, sticky, component]);
   if (drawsNothing(component)) return null;
-  const title = m['title'];
+  const variants = new Set(((m['variants'] as string[] | undefined) ?? []).map(String));
+  const elevated = variants.has('elevated');
+  const horizontal = variants.has('horizontal');
+  const media = node(m['media']);
+  const prefix = node(m['headerPrefix']);
+  const suffix = node(m['headerSuffix']);
+  const header = node(m['header']);
+  const hasTitle = (typeof m['title'] === 'string' && !!m['title']) || !!node(m['title']);
+  const hasSubtitle = (typeof m['subtitle'] === 'string' && !!m['subtitle']) || !!node(m['subtitle']);
+  const box = cssToRn(((component as Dict)?.['style'] as string) ?? '', CARD_BOX);
+  const body = (
+    <View style={styles.cardBody}>
+      {header ? <ComponentRenderer component={header} state={state} /> : (hasTitle || hasSubtitle || prefix || suffix) ? (
+        <View style={styles.cardHeader}>
+          {prefix && <View style={styles.cardHeaderSide}><ComponentRenderer component={prefix} state={state} /></View>}
+          <View style={styles.cardHeaderText}>
+            <CardSlotText value={m['title']} state={state} variant="titleMedium" style={styles.cardTitle} />
+            <CardSlotText value={m['subtitle']} state={state} variant="bodyMedium" style={styles.cardSubtitle} />
+          </View>
+          {suffix && <View style={styles.cardHeaderSide}><ComponentRenderer component={suffix} state={state} /></View>}
+        </View>
+      ) : null}
+      {!!node(m['content']) && <ComponentRenderer component={m['content']} state={state} />}
+      <Children component={component} state={state} />
+      {!!node(m['footer']) && <View style={styles.cardFooter}><ComponentRenderer component={m['footer']} state={state} /></View>}
+    </View>
+  );
   return (
-    <Card mode="outlined" style={styles.card}>
-      <Card.Content style={styles.cardContent}>
-        {typeof title === 'string' && !!title && <PaperText variant="titleMedium" style={styles.cardTitle} {...headingA11y(2)}>{interpolate(title, { state })}</PaperText>}
-        {typeof title === 'object' && title && <ComponentRenderer component={title} state={state} />}
-        {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
-        <Children component={component} state={state} />
-        {!!m['footer'] && typeof m['footer'] === 'object' && <ComponentRenderer component={m['footer']} state={state} />}
-      </Card.Content>
+    <View ref={sectionRef} collapsable={false} style={[cssToRn(((component as Dict)?.['style'] as string) ?? '', BOX_SIZES), { maxWidth: '100%' }]}>
+    <Card mode={elevated ? 'elevated' : 'outlined'} style={[styles.card, elevated ? styles.cardElevated : null, box]}>
+      {horizontal ? (
+        <View style={styles.cardRow}>
+          {media && <View style={styles.cardMediaStart}><ComponentRenderer component={media} state={state} /></View>}
+          <View style={styles.cardRowBody}>{body}</View>
+        </View>
+      ) : (
+        // a View, not a fragment: Paper's Card hands its children an `index` prop
+        <View>
+          {media && <View style={styles.cardMediaTop}><ComponentRenderer component={media} state={state} /></View>}
+          {body}
+        </View>
+      )}
     </Card>
+    </View>
   );
 }
 
+/** What a card takes from its own style: sizes and looks (never its flex: that is its row's). */
+const CARD_BOX = new Set(['background', 'background-color', 'border-radius']);
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 export function TabsRenderer({ component, state }: { component: unknown; state: Dict }) {
+  const m = meta(component);
   const tabs = childrenOf(component);
   // @Tab(open=true) marks the initially-selected tab (first-declared wins, else index 0)
   const [selected, setSelected] = useState(() => Math.max(0, tabs.findIndex((t) => meta(t)['active'] === true)));
   const active = tabs[selected] as Dict | undefined;
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
+  // the width the tab strip really has (a TabLayout inside a card has less than the window): the
+  // window width made segments look like they fit and then cut the labels ("Cont…", "Prefe…")
+  const [width, setWidth] = useState(windowWidth - 64);
+  const labels = tabs.map((t) => interpolate((meta(t)['label'] as string) ?? '', { state }));
+  const badges = tabs.map((t) => meta(t)['badge']).map((b) => (b == null || b === '' ? '' : String(b)));
+  const look = tabLayoutLook(m['variant']);
+  // a lone tab, or tabs carrying badges: the underlined tab bar (a lone segment is a full-width
+  // pill, and a segment has no room for a badge)
+  const segments = !badges.some(Boolean) && segmentsFit(labels, width);
   return (
-    <View>
-      {segmentsFit(tabs.map((t) => interpolate((meta(t)['label'] as string) ?? '', { state })), width) ? (
+    <View style={look.bordered ? styles.tabsBordered : null} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      {segments ? (
         // a handful of tabs: Material segmented buttons (each a tab with its selected state)
         <SegmentedButtons
           style={styles.segments}
           value={String(selected)}
           onValueChange={(v) => setSelected(Number(v))}
+          density={look.small ? 'small' : undefined}
           buttons={tabs.map((t, i) => ({
             value: String(i),
-            label: interpolate((meta(t)['label'] as string) ?? '', { state }),
-            accessibilityLabel: interpolate((meta(t)['label'] as string) ?? '', { state }),
+            label: labels[i],
+            accessibilityLabel: labels[i],
             showSelectedCheck: false,
             labelStyle: styles.segmentLabel,
           }))}
         />
       ) : (
         // more: a scrollable underlined tab bar (segments would squeeze the labels)
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} accessibilityRole="tablist">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.tabBar, look.minimal ? styles.tabBarMinimal : null]}
+          contentContainerStyle={look.centered ? styles.tabBarCentered : null}
+          accessibilityRole="tablist"
+        >
           {tabs.map((t, i) => (
-            <TouchableOpacity {...buttonA11y({ role: 'tab', selected: i === selected })} key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
-              <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{interpolate((meta(t)['label'] as string) ?? '', { state })}</Text>
+            <TouchableOpacity
+              {...buttonA11y({ role: 'tab', selected: i === selected, label: badges[i] ? `${labels[i]}, ${badges[i]}` : undefined })}
+              key={i}
+              style={[styles.tab, look.small ? styles.tabSmall : null, i === selected && styles.tabActive]}
+              onPress={() => setSelected(i)}
+            >
+              <View style={styles.tabInner}>
+                <Text style={[styles.tabText, look.small ? styles.tabTextSmall : null, i === selected && styles.tabTextActive]}>{labels[i]}</Text>
+                {!!badges[i] && <StatusChip label={badges[i]} tone={i === selected ? 'primary' : ''} style={styles.tabBadge} />}
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
       )}
-      <View style={styles.tabContent}>
+      <View style={[styles.tabContent, look.bordered ? styles.tabContentBordered : null]}>
         {active && <Children component={active} state={state} />}
       </View>
     </View>
@@ -115,46 +213,79 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
 // ── Accordion ────────────────────────────────────────────────────────────────
 export function AccordionRenderer({ component, state }: { component: unknown; state: Dict }) {
   const panels = childrenOf(component);
+  const look = accordionLook(meta(component)['variant']);
   const [open, setOpen] = useState<Record<number, boolean>>(() => {
     const o: Record<number, boolean> = {};
-    panels.forEach((p, i) => { if (meta(p)['active']) o[i] = true; });
+    panels.forEach((p, i) => { if (meta(p)['active'] && meta(p)['disabled'] !== true) o[i] = true; });
     return o;
   });
   return (
     <View>
-      {panels.map((p, i) => (
-        <View key={i} style={styles.panel}>
-          <List.Accordion
-            title={interpolate((meta(p)['label'] as string) ?? '', { state })}
-            expanded={!!open[i]}
-            onPress={() => setOpen({ ...open, [i]: !open[i] })}
-            style={styles.panelHeader}
-            titleStyle={styles.panelTitle}
-          >
-            <View style={styles.panelBody}><Children component={p} state={state} /></View>
-          </List.Accordion>
-        </View>
-      ))}
+      {panels.map((p, i) => {
+        // a disabled panel is shown (dimmed) but never opens — like vaadin-details[disabled]
+        const disabled = meta(p)['disabled'] === true;
+        const expanded = !disabled && !!open[i];
+        return (
+          <View key={i} style={[styles.panel, look.filled ? styles.panelFilled : null, disabled ? styles.panelDisabled : null]}>
+            <List.Accordion
+              title={interpolate((meta(p)['label'] as string) ?? '', { state })}
+              expanded={expanded}
+              onPress={disabled ? undefined : () => setOpen({ ...open, [i]: !open[i] })}
+              style={[styles.panelHeader, look.filled ? styles.panelHeaderFilled : null]}
+              titleStyle={[styles.panelTitle, look.small ? styles.panelTitleSmall : null, disabled ? styles.panelTitleDisabled : null]}
+              accessibilityLabel={disabled ? `${interpolate((meta(p)["label"] as string) ?? "", { state })}, unavailable` : undefined}
+            >
+              <View style={styles.panelBody}><Children component={p} state={state} /></View>
+            </List.Accordion>
+          </View>
+        );
+      })}
     </View>
   );
 }
 
 // ── Split ────────────────────────────────────────────────────────────────────
+/**
+ * A SplitLayout: its two panes with the divider between them. With a declared height (`height:
+ * 12rem`) the box keeps it and each pane scrolls its own content, as on the web. On a phone a
+ * horizontal split stacks (two panes side by side in 360dp are each too narrow to read): the
+ * panes share the height then. No drag handle — resizing by dragging a 1dp line is no touch target.
+ */
 export function SplitRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const vertical = (meta(component)['orientation'] as string) === 'vertical';
+  const { width } = useWindowDimensions();
+  const declaredVertical = (meta(component)['orientation'] as string) === 'vertical';
+  const vertical = declaredVertical || width < 600;
+  const box = cssToRn(((component as Dict)?.['style'] as string) ?? '', SPLIT_BOX);
+  const bounded = typeof box['height'] === 'number';
+  const panes = childrenOf(component);
   return (
-    <View style={{ flexDirection: vertical ? 'column' : 'row', gap: 12 }}>
-      {childrenOf(component).map((c, i) => (
-        <View key={i} style={{ flex: 1 }}><ComponentRenderer component={c} state={state} /></View>
+    <View style={[styles.split, { flexDirection: vertical ? 'column' : 'row' }, box, vertical && bounded && !declaredVertical ? { height: undefined } : null]}>
+      {panes.map((c, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <View style={vertical ? styles.splitDividerH : styles.splitDividerV} />}
+          {bounded ? (
+            <ScrollView
+              style={vertical && !declaredVertical ? { maxHeight: box['height'] as number } : styles.flex1}
+              contentContainerStyle={styles.splitPane}
+              nestedScrollEnabled
+            >
+              <ComponentRenderer component={c} state={state} />
+            </ScrollView>
+          ) : (
+            <View style={[styles.flex1, styles.splitPane]}><ComponentRenderer component={c} state={state} /></View>
+          )}
+        </React.Fragment>
       ))}
     </View>
   );
 }
 
+const SPLIT_BOX = new Set(['height', 'max-height', 'background', 'background-color', 'border', 'border-radius']);
+
 // ── Badge / Anchor / ProgressBar ────────────────────────────────────────────────
 export function BadgeRenderer({ metadata }: { metadata: Dict }) {
   // its iconOnLeft / iconOnRight inside the chip (they were never drawn)
-  return <StatusChip label={(metadata['text'] as string) ?? ''} tone={(metadata['color'] as string) ?? ''} {...badgeIconsOf(metadata)} />;
+  return <StatusChip label={(metadata['text'] as string) ?? ''} look={badgeLook(metadata)} {...badgeIconsOf(metadata)} />;
 }
 
 export function AnchorRenderer({ metadata }: { metadata: Dict }) {
@@ -182,10 +313,10 @@ export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={text || undefined}
-      accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100) }}
+      accessibilityValue={metadata['indeterminate'] === true ? undefined : { min: 0, max: 100, now: Math.round(frac * 100) }}
     >
       {!!text && <Text style={styles.progressText}>{text}</Text>}
-      <ProgressBar progress={frac} color={progressBarColor(metadata['theme'] as string | undefined)} style={styles.progressTrack} />
+      <ProgressBar progress={frac} indeterminate={metadata['indeterminate'] === true} color={progressBarColor(metadata['theme'] as string | undefined)} style={styles.progressTrack} />
     </View>
   );
 }
@@ -264,6 +395,22 @@ const styles = themed(() => StyleSheet.create({
   card: { backgroundColor: theme.surface, borderColor: theme.border, borderRadius: theme.radiusMd, marginBottom: 16 },
   cardContent: { gap: 10, paddingTop: 16, paddingBottom: 16 },
   cardTitle: { color: theme.ink, fontWeight: '600', marginBottom: 2 },
+  cardElevated: { borderWidth: 0 },
+  split: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
+  splitPane: { padding: 10 },
+  splitDividerV: { width: 1, backgroundColor: theme.border },
+  splitDividerH: { height: 1, backgroundColor: theme.border },
+  flex1: { flex: 1 },
+  cardBody: { gap: 10, padding: 16 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardHeaderSide: { flexShrink: 0 },
+  cardHeaderText: { flex: 1, minWidth: 0 },
+  cardSubtitle: { color: theme.muted },
+  cardFooter: { marginTop: 4 },
+  cardRow: { flexDirection: 'row' },
+  cardRowBody: { flex: 1, minWidth: 0 },
+  cardMediaTop: { overflow: 'hidden', borderTopLeftRadius: theme.radiusMd, borderTopRightRadius: theme.radiusMd },
+  cardMediaStart: { overflow: 'hidden', borderTopLeftRadius: theme.radiusMd, borderBottomLeftRadius: theme.radiusMd, maxWidth: '40%' },
   subsection: { gap: 6, marginVertical: 8 },
   subTitle: { color: theme.muted },
   segments: { marginBottom: 4 },
@@ -274,6 +421,19 @@ const styles = themed(() => StyleSheet.create({
   tabText: { color: theme.muted, fontWeight: '500' },
   tabTextActive: { color: theme.primary, fontWeight: '600' },
   tabContent: { paddingVertical: 12 },
+  tabsBordered: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd, overflow: 'hidden' },
+  tabContentBordered: { paddingHorizontal: 12 },
+  tabBarMinimal: { borderBottomWidth: 0 },
+  tabBarCentered: { flexGrow: 1, justifyContent: 'center' },
+  tabSmall: { paddingHorizontal: 12, paddingVertical: 8, minHeight: 40 },
+  tabTextSmall: { fontSize: 12 },
+  tabInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tabBadge: { paddingHorizontal: 6, paddingVertical: 0, minHeight: 18 },
+  panelFilled: { borderWidth: 0, backgroundColor: theme.background },
+  panelHeaderFilled: { backgroundColor: theme.background },
+  panelDisabled: { opacity: 0.55 },
+  panelTitleSmall: { fontSize: 12 },
+  panelTitleDisabled: { color: theme.faint },
   panel: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd, marginBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
   panelHeader: { backgroundColor: theme.surface, paddingVertical: 4 },
   panelTitle: { fontWeight: '600', color: theme.ink },

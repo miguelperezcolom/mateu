@@ -206,10 +206,19 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
     }
 
     fun testAnImageSwingCannotDecodeIsANamedPlaceholderNotItsDataUri() {
-        // an SVG data URI (the YAML display gallery's): ImageIO cannot read it
-        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,PHN2Zy8+"}""")
+        // bytes that are no image at all: a named placeholder, never the base64 itself
+        val image = render(context(), """{"type":"Image","src":"data:image/png;base64,AAAAAAAA"}""")
         assertTrue(texts(image).none { it.contains("base64") })
-        assertTrue(texts(image).toString(), texts(image).any { it.contains("image/svg+xml") })
+        assertTrue(texts(image).toString(), texts(image).any { it.contains("image/png") })
+    }
+
+    fun testAnSvgImageIsDrawnNotAPlaceholder() {
+        // an SVG data URI (the YAML display gallery's): ImageIO reads none, the platform's SVG renderer does
+        val svg = java.util.Base64.getEncoder().encodeToString(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><rect width='40' height='20' fill='red'/></svg>".toByteArray())
+        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$svg","alt":"Bay"}""") as javax.swing.JLabel
+        assertNotNull(image.icon)
+        assertEquals(40, image.icon.iconWidth)
     }
 
     fun testAnImageIsNamedByItsDeclaredAltText() {

@@ -16,9 +16,38 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val panel = verticalPanel(gap)
     val children = component.path("children")
+    // horizontalAlignment END / CENTER: each child at its own width on that side (a totals column
+    // aligned right) — every child was stretched to the left edge
+    val align = when (metadata.text("horizontalAlignment").uppercase()) {
+        "END", "RIGHT" -> java.awt.FlowLayout.RIGHT
+        "CENTER" -> java.awt.FlowLayout.CENTER
+        else -> null
+    }
+    // FullWidth stretches what it wraps across the row (a button keeps its own width elsewhere)
+    val stretch = metadata.text("type") == "FullWidth"
     if (children.isArray) {
         children.forEachIndexed { i, child ->
-            panel.addStackedBetween(r.render(child, state, data), gap, first = i == 0)
+            val rendered = r.render(child, state, data)
+            val placed = when {
+                stretch -> JPanel(java.awt.BorderLayout()).apply { isOpaque = false; add(rendered, java.awt.BorderLayout.CENTER) }
+                align == null -> rendered
+                else -> JPanel(java.awt.FlowLayout(align, 0, 0)).apply { isOpaque = false; add(rendered) }
+            }
+            panel.addStackedBetween(placed, gap, first = i == 0)
+        }
+    }
+    if (metadata.bool("padding")) panel.border = JBUI.Borders.empty(JBGap * 2)
+    // a Scroller with a height (`height: 9rem`) is a viewport of that height over its content
+    if (metadata.text("type") == "Scroller") {
+        cssPx(component.text("style"), "height")?.let { h ->
+            return com.intellij.ui.components.JBScrollPane(panel).apply {
+                val px = JBUI.scale(h)
+                preferredSize = java.awt.Dimension(preferredSize.width, px)
+                minimumSize = java.awt.Dimension(0, px)
+                maximumSize = java.awt.Dimension(Int.MAX_VALUE, px)
+                border = com.intellij.ui.IdeBorderFactory.createRoundedBorder()
+                horizontalScrollBarPolicy = javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+            }
         }
     }
     return panel
@@ -30,8 +59,15 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
-    val specs = children.map { FlexSpec.of(it.text("style")) }
+    // the layout's `flexGrows` ([2, 1]) or a child's `flex-grow: N` are weights too (the 2:1 columns
+    // fell back to a flow row at preferred widths)
+    val grows = metadata.path("flexGrows").let { g -> if (g.isArray) g.map { it.asDouble(0.0) } else emptyList() }
+    val specs = children.mapIndexed { i, child ->
+        FlexSpec.of(child.text("style")) ?: grows.getOrNull(i)?.takeIf { it > 0 }?.let { FlexSpec(it * 100) }
+            ?: FlexSpec.ofGrow(child.text("style"))
+    }
     if (specs.any { it != null }) {
+        val anyGrows = specs.any { (it?.weight ?: 0.0) > 0.0 }
         val row = JPanel(java.awt.GridBagLayout())
         row.isOpaque = false
         children.forEachIndexed { i, child ->
@@ -40,12 +76,18 @@ fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val gbc = java.awt.GridBagConstraints().apply {
                 gridx = i
                 gridy = 0
-                weightx = spec?.weight ?: 10.0
+                // a child with no flex keeps its content width (CSS `flex: 0 1 auto` — a ✕ button beside a
+                // `flex: 1` title was stretched to 122px), unless no child grows at all
+                weightx = spec?.weight ?: if (anyGrows) 0.0 else 10.0
                 weighty = 1.0
                 // Preferred height anchored NORTH: every column starts at the top of the row
                 // (the wire even says so: align-items: flex-start).
                 fill = java.awt.GridBagConstraints.HORIZONTAL
-                anchor = java.awt.GridBagConstraints.NORTH
+                anchor = when (metadata.text("verticalAlignment").uppercase()) {
+                    "CENTER" -> java.awt.GridBagConstraints.CENTER
+                    "END", "BOTTOM" -> java.awt.GridBagConstraints.SOUTH
+                    else -> java.awt.GridBagConstraints.NORTH
+                }
                 insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
             }
             val rendered = r.render(child, state, data)
@@ -77,6 +119,12 @@ data class FlexSpec(val weight: Double, val fixedPx: Int? = null) {
         private val LENGTH = Regex("""^(\d+(?:\.\d+)?)(px|rem|em)$""")
 
         private val PERCENT = Regex("""(\d+(?:\.\d+)?)%""")
+
+        private val FLEX_GROW = Regex("""(?:^|;)\s*flex-grow:\s*(\d+(?:\.\d+)?)""")
+
+        /** `flex-grow: N` (N > 0) as a weight; null when absent. */
+        fun ofGrow(style: String): FlexSpec? =
+            FLEX_GROW.find(style)?.groupValues?.get(1)?.toDoubleOrNull()?.takeIf { it > 0 }?.let { FlexSpec(it * 100) }
 
         fun of(style: String): FlexSpec? {
             val value = FLEX.find(style)?.groupValues?.get(1)?.trim() ?: return null
@@ -143,8 +191,26 @@ private class FixedWidth(private val width: Int, child: JComponent) : JPanel(jav
 }
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
+/**
+ * A tabbed pane as tall as its SELECTED tab (plus the tab strip), like a web tab sheet: a Swing
+ * tabbed pane asks for the height of its TALLEST tab, so a short code sample sat over a band of
+ * blank space as tall as the longest sample of the entry. Switching tab re-lays the page out.
+ */
+internal class SelectedHeightTabbedPane : JBTabbedPane() {
+    init {
+        addChangeListener { revalidate(); repaint() }
+    }
+
+    override fun getPreferredSize(): java.awt.Dimension {
+        val full = super.getPreferredSize()
+        val selected = selectedComponent ?: return full
+        val tallest = (0 until tabCount).maxOfOrNull { getComponentAt(it)?.preferredSize?.height ?: 0 } ?: 0
+        return java.awt.Dimension(full.width, (full.height - tallest + selected.preferredSize.height).coerceAtLeast(0))
+    }
+}
+
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val tabs = JBTabbedPane()
+    val tabs = SelectedHeightTabbedPane()
     val children = component.path("children")
     if (children.isArray) {
         for ((i, tab) in children.withIndex()) {
@@ -160,20 +226,63 @@ fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data:
     return tabs
 }
 
-/** AccordionLayout → each panel rendered as a titled section, stacked (v1: not collapsible). */
+/**
+ * AccordionLayout → panels with a ▸ / ▾ summary, ONE open at a time: the panel the wire marks
+ * `active`, or none (a folded "More options" of layout inference starts closed) — the web's
+ * vaadin-accordion contract. Every panel used to be drawn open, so folded options showed expanded.
+ */
 fun renderAccordion(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val panel = verticalPanel()
-    val children = component.path("children")
-    if (children.isArray) {
-        for (p in children) {
-            val body = verticalPanel()
-            body.border = IdeBorderFactory.createTitledBorder(plain(p.path("metadata").text("label")), false)
-            val inner = p.path("children")
-            if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
-            panel.addStacked(body, JBGap)
+    val panel = verticalPanel(0)
+    val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
+    val opened = intArrayOf(children.indexOfFirst { it.path("metadata").bool("active") })
+    val bodies = ArrayList<JComponent>()
+    val toggles = ArrayList<javax.swing.JButton>()
+    fun sync() {
+        bodies.forEachIndexed { i, body -> body.isVisible = i == opened[0] }
+        toggles.forEachIndexed { i, t ->
+            val label = children[i].path("metadata").text("label")
+            t.text = plain((if (i == opened[0]) "▾ " else "▸ ") + label)
+            t.accessibleContext.accessibleName = label
+            t.getAccessibleContext().accessibleDescription = if (i == opened[0]) "Expanded" else "Collapsed"
         }
+        AccordionStack.refit(panel)
     }
+    children.forEachIndexed { i, p ->
+        val meta = p.path("metadata")
+        val toggle = javax.swing.JButton().apply {
+            isBorderPainted = false
+            isContentAreaFilled = false
+            horizontalAlignment = javax.swing.SwingConstants.LEADING
+            font = font.deriveFont(java.awt.Font.BOLD)
+            isEnabled = !meta.bool("disabled")
+            border = JBUI.Borders.empty(6, 2)
+        }
+        toggle.addActionListener {
+            opened[0] = if (opened[0] == i) -1 else i
+            sync()
+        }
+        val body = verticalPanel()
+        body.border = JBUI.Borders.empty(0, 14, 8, 0)
+        val inner = p.path("children")
+        if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
+        val section = verticalPanel(0)
+        section.border = JBUI.Borders.customLineBottom(com.intellij.ui.JBColor.border())
+        section.addStacked(toggle, 0)
+        section.addStacked(body, 0)
+        toggles += toggle
+        bodies += body
+        panel.addStacked(section, 0)
+    }
+    sync()
     return panel
+}
+
+/** Re-lays a stack of accordion sections out after a panel opened or closed (StackLayout reads live heights). */
+internal object AccordionStack {
+    fun refit(c: java.awt.Container) {
+        c.revalidate()
+        c.repaint()
+    }
 }
 
 /** SplitLayout → a [JBSplitter] (2 children); more than two are stacked vertically as a fallback. */

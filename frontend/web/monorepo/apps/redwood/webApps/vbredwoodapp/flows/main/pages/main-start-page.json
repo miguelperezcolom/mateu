@@ -321,7 +321,8 @@
           "parameters": {
             "actionId": "{{ $application.variables.mateuFoldoutContent.header.parentActionId }}",
             "ctaId": "parent",
-            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}",
+            "surfaceId": "{{ $application.variables.mateuFoldoutContent.surfaceId }}"
           },
           "chain": "dispatchHostBlockAction"
         }
@@ -333,7 +334,8 @@
           "parameters": {
             "actionId": "{{ $application.variables.mateuFoldoutContent.header.previousActionId }}",
             "ctaId": "previous",
-            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}",
+            "surfaceId": "{{ $application.variables.mateuFoldoutContent.surfaceId }}"
           },
           "chain": "dispatchHostBlockAction"
         }
@@ -345,7 +347,8 @@
           "parameters": {
             "actionId": "{{ $application.variables.mateuFoldoutContent.header.nextActionId }}",
             "ctaId": "next",
-            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}",
+            "surfaceId": "{{ $application.variables.mateuFoldoutContent.surfaceId }}"
           },
           "chain": "dispatchHostBlockAction"
         }
@@ -357,7 +360,8 @@
           "parameters": {
             "actionId": "{{ $event.detail.actionId }}",
             "ctaId": "{{ $event.detail.actionId }}",
-            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}",
+            "surfaceId": "{{ $application.variables.mateuFoldoutContent.surfaceId }}"
           },
           "chain": "dispatchHostBlockAction"
         }
@@ -723,7 +727,8 @@
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
             "fromNested": "{{ $current.data.fromNested }}",
-            "route": "{{ $current.data.route }}"
+            "route": "{{ $current.data.route }}",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -789,7 +794,8 @@
           "chain": "dispatchHostBlockAction",
           "parameters": {
             "actionId": "{{ $current.data.sectionActions.primaryAction.actionId }}",
-            "parameters": "{{ $current.data.sectionActions.primaryAction.parameters }}"
+            "parameters": "{{ $current.data.sectionActions.primaryAction.parameters }}",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -800,7 +806,8 @@
           "chain": "dispatchHostBlockAction",
           "parameters": {
             "actionId": "{{ $current.data.sectionActions.viewMoreAction.actionId }}",
-            "parameters": "{{ $current.data.sectionActions.viewMoreAction.parameters }}"
+            "parameters": "{{ $current.data.sectionActions.viewMoreAction.parameters }}",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -822,10 +829,12 @@
     "hostPaymentConfirm": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "paymentConfirmed",
           "parameters": {
+            "event": "{{ $event }}",
             "actionId": "{{ $current.data.confirmActionId }}",
-            "parameters": "{{ $current.data.confirmParameters }}"
+            "parameters": "{{ $current.data.confirmParameters }}",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -978,7 +987,8 @@
           "chain": "kanbanCardMoved",
           "parameters": {
             "key": "{{ $event.key }}",
-            "move": "{{ $event.move }}"
+            "move": "{{ $event.move }}",
+            "surfaceId": "{{ $event.surfaceId }}"
           }
         }
       ]
@@ -1377,7 +1387,8 @@
           "parameters": {
             "items": "{{ $current.data.menuItems }}",
             "value": "{{ $event.detail.selectedValue }}",
-            "variant": "host"
+            "variant": "host",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1390,7 +1401,9 @@
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
             "updatedFrom": "{{ $event.detail.updatedFrom }}",
-            "variant": "host"
+            "variant": "host",
+            "surfaceId": "{{ $current.data.surfaceId }}",
+            "event": "{{ $event }}"
           }
         }
       ]
@@ -1402,7 +1415,8 @@
           "parameters": {
             "inputId": "{{ $current.data.inputId }}",
             "actionId": "{{ $current.data.actionId }}",
-            "variant": "host"
+            "variant": "host",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1415,7 +1429,8 @@
             "inputId": "{{ $current.data.inputId }}",
             "actionId": "{{ $current.data.actionId }}",
             "key": "{{ $event.key }}",
-            "variant": "host"
+            "variant": "host",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1427,7 +1442,8 @@
           "parameters": {
             "items": "{{ $current.data.menuItems }}",
             "value": "{{ $event.detail.selectedValue }}",
-            "variant": "island"
+            "variant": "island",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1440,7 +1456,9 @@
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
             "updatedFrom": "{{ $event.detail.updatedFrom }}",
-            "variant": "island"
+            "variant": "island",
+            "surfaceId": "{{ $current.data.surfaceId }}",
+            "event": "{{ $event }}"
           }
         }
       ]
@@ -1452,7 +1470,8 @@
           "parameters": {
             "inputId": "{{ $current.data.inputId }}",
             "actionId": "{{ $current.data.actionId }}",
-            "variant": "island"
+            "variant": "island",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1465,7 +1484,8 @@
             "inputId": "{{ $current.data.inputId }}",
             "actionId": "{{ $current.data.actionId }}",
             "key": "{{ $event.key }}",
-            "variant": "island"
+            "variant": "island",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -1741,6 +1761,9 @@
       },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
+      },
+      "oj-list-view": {
+        "path": "ojs/ojlistview"
       },
       "oj-sp-general-overview-page": {
         "path": "oj-sp/general-overview-page/loader"

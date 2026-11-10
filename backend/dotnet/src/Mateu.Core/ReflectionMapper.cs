@@ -82,8 +82,38 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // [AppContext] properties are the shell header's selectors, never form fields (Java's
         // FormFieldFilter) — they leaked into the page an app without a home renders.
         && member.Find<AppContextAttribute>() == null
+        // [Avatar] / [Header] / [Footer] properties are the PAGE's blocks (Java's
+        // FormFieldFilter.isPageDecoration), never form fields
+        && !IsPageDecoration(member)
         // [HiddenInView] / [HiddenInEditor] / [HiddenInCreate] on the crud form being mapped
         && !HiddenInCurrentForm(member);
+
+    /// <summary>An [Avatar], [Header] or [Footer] property: one of the page's own blocks.</summary>
+    internal static bool IsPageDecoration(MemberInfo member) =>
+        member.Find<Mateu.Uidl.AvatarAttribute>() is not null
+        || member.Find<Mateu.Uidl.HeaderAttribute>() is not null
+        || member.Find<Mateu.Uidl.FooterAttribute>() is not null;
+
+    /// <summary>The page's avatar, header and footer blocks (Java's PageSectionExtractor): a
+    /// supplier wins over the annotated properties; the avatar is sized by the page (Java's
+    /// PageMapper appends "width: 4rem;height: 4rem;" to its style).</summary>
+    private static (ComponentDto? Avatar, List<ComponentDto> Header, List<ComponentDto> Footer) PageBlocks(
+        Type type, object instance)
+    {
+        List<IComponent> Of<TA>() where TA : Attribute =>
+            type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.Find<TA>() is not null)
+                .Select(p => p.GetValue(instance)).OfType<IComponent>().ToList();
+        var header = instance is IHeaderSupplier hs ? hs.Header().ToList() : Of<Mateu.Uidl.HeaderAttribute>();
+        var footer = instance is IFooterSupplier fs ? fs.Footer().ToList() : Of<Mateu.Uidl.FooterAttribute>();
+        var avatar = instance is IAvatarSupplier avs ? avs.Avatar() : Of<Mateu.Uidl.AvatarAttribute>().FirstOrDefault();
+        ComponentDto? avatarDto = null;
+        if (avatar is not null && ComponentMapper.Map(avatar) is ClientSideComponentDto mapped)
+            avatarDto = mapped with { Style = (mapped.Style ?? "") + ";width: 4rem;height: 4rem;" };
+        return (avatarDto,
+            header.Select(c => (ComponentDto)ComponentMapper.Map(c)).ToList(),
+            footer.Select(c => (ComponentDto)ComponentMapper.Map(c)).ToList());
+    }
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
@@ -256,7 +286,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         var treeSupplierView = tree is not null && layoutOverride is null;
         if (tree is not null)
         {
-            content = [ComponentMapper.Map(tree)];
+            // an EmbeddedView tree is an island of its own (Java's EmbeddedView branch)
+            content = [ComponentMapper.MapContent(tree)];
             // The tree's action ids are advertised so the web client sends them (it only sends what
             // the component advertises). A tree-supplier view advertises the ones it has a handler
             // method for — an id it cannot handle may be an ancestor's and must not be captured
@@ -308,6 +339,7 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // name emits two distinct header strings (mirrors ReflectionPageMapper).
         // a routed tab's own page does not repeat the tab's label (Java's PageMapper +
         // RouteChains.dedupeTitle)
+        var blocks = PageBlocks(type, instance);
         var pageMeta = new PageMetadataDto(
             RoutedTabs.DedupeTitle(title), T(Naming.Humanize(type.Name)),
             OptT(type.Find<SubtitleAttribute>()?.Value), toolbar, buttons)
@@ -324,8 +356,13 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             PeerNav = PeerNavOf(instance),
             Switcher = SwitcherOf(instance),
             Timestamp = TimestampOf(type, instance),
-            Overline = OptT(type.Find<OverlineAttribute>()?.Value),
-            TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
+            Overline = (instance as IOverlineSupplier)?.Overline() is { Length: > 0 } suppliedOverline
+                ? T(suppliedOverline) : OptT(type.Find<OverlineAttribute>()?.Value),
+            TitlePlaceholder = (instance as ITitlePlaceholderSupplier)?.TitlePlaceholder() is { Length: > 0 } suppliedPlaceholder
+                ? T(suppliedPlaceholder) : OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
+            Avatar = blocks.Avatar,
+            Header = blocks.Header,
+            Footer = blocks.Footer,
             TitleIsText = TitledByData(type, instance) ? true : null,
             Breadcrumbs = BreadcrumbsOf(type, instance),
             NoBreadcrumbs = type.Find<NoBreadcrumbsAttribute>() is not null ? true : null,
@@ -357,8 +394,12 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         }
         else
         {
+            // the class [Style] / [CssClasses] dress the page component (Java's ReflectionPageMapper)
+            var classStyle = type.Find<Mateu.Uidl.StyleAttribute>()?.Value;
             var page = new ClientSideComponentDto(
-                pageMeta, null, content, compact ? CompactStyle : null, null, null);
+                pageMeta, null, content,
+                compact ? (classStyle ?? "") + CompactStyle : classStyle,
+                type.Find<Mateu.Uidl.CssClassesAttribute>()?.Value, null);
             children = [page];
             containerStyle = null;
         }
@@ -509,10 +550,14 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
     public ServerSideComponentDto MapEmbeddedView(object view)
     {
         var type = view.GetType();
-        var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
+        // a routed view answers on its own route; a view with none is a block of the host page and
+        // answers on the host's (Java's EmbeddedView branch: the consumed route, "_empty" on a load)
+        var route = type.GetCustomAttribute<UIAttribute>() is { } ui ? "/" + ui.Route.Trim('/') : "_empty";
         // A wizard opens on its first step; any other routed view maps as its own page.
         if (typeof(Wizard).IsAssignableFrom(type)) return MapWizard(type, view, route, 1);
-        var mapped = MapView(type, view, route);
+        // what a page of its own carries in its fragment's data (a lookup's label…): the island has
+        // no fragment, so it travels WITH it (Java's islandData)
+        var mapped = MapView(type, view, route) with { Data = SyncHandler.LookupLabels(type, view, view) };
         // an island is a block of the host page, not a page: the automatic breadcrumb trail would
         // trace the HOST's menu and address above it (a trail the view DECLARES is still drawn) —
         // Java's EmbeddedView branch; a composed (tree-supplier) view gets no page of its own there

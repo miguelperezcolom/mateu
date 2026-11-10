@@ -1547,7 +1547,7 @@
                           <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.progressText ]]"></oj-bind-text></span>
                         </div>
                       </oj-bind-if>
-                      <oj-progress-bar class="oj-sm-margin-2x-vertical" value="[[ $current.data.progressValue ]]" max="100"></oj-progress-bar>
+                      <oj-c-progress-bar class="oj-sm-margin-2x-vertical" style="width: 100%;" value="[[ $current.data.progressValue ]]" max="100"></oj-c-progress-bar>
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-checkboxset value="[[ $current.data.value ]]" readonly="[[ $current.data.readonly ]]" :class="[[ $current.data.labelClass ]]"
@@ -1800,7 +1800,7 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isProgressBar ]]">
                     <div class="oj-sm-margin-2x-bottom">
-                      <oj-progress-bar :class="[[ $current.data.barClass ]]" value="[[ $current.data.value ]]" max="100" :aria-label="[[ $current.data.ariaLabel ]]"></oj-progress-bar>
+                      <oj-c-progress-bar :class="[[ $current.data.barClass ]]" style="width: 100%;" value="[[ $current.data.value ]]" max="100" :aria-label="[[ $current.data.ariaLabel ]]"></oj-c-progress-bar>
                       <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </div>
                   </oj-bind-if>

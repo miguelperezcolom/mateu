@@ -195,9 +195,11 @@ class kpi:
         return fn
 
 
-def fab(icon: str, label: str | None = None, order: int = 0):
+def fab(icon: str, label: str | None = None, order: int = 0, button_style: str = "primary"):
+    """A floating action button for the method (page-level, or app-level on the app class);
+    ``button_style``: primary (default) | secondary | tertiary | none — Java's ``@Fab``."""
     def deco(fn):
-        setattr(fn, "__mateu_fab__", _Fab(icon, label, order))
+        setattr(fn, "__mateu_fab__", _Fab(icon, label, order, button_style or "primary"))
         return fn
 
     return deco
@@ -259,11 +261,18 @@ def action_options(
     return deco
 
 
-def banner(theme: BannerTheme = BannerTheme.INFO, title_: str | None = None):
+def banner(
+    theme: BannerTheme = BannerTheme.INFO,
+    title_: str | None = None,
+    closeable: bool = False,
+    timeout_seconds: int = 0,
+):
+    """A page banner whose description is the method's return; ``closeable`` adds a dismiss
+    button, ``timeout_seconds`` dismisses it on its own (Java's ``@Banner``)."""
     theme = coerce_enum(theme, BannerTheme, "@banner(theme)")
 
     def deco(fn):
-        setattr(fn, "__mateu_banner__", _Banner(theme, title_))
+        setattr(fn, "__mateu_banner__", _Banner(theme, title_, closeable, timeout_seconds))
         return fn
 
     return deco
