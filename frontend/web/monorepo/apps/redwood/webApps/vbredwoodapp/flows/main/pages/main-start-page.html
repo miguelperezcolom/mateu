@@ -366,8 +366,7 @@
                       value="[[ $current.data.value ]]"
                       required="[[ $current.data.required ]]"
                       readonly="[[ $current.data.readonly ]]"
-                      class="oj-choice-direction-row"
-                      :class="[[ $current.data.fieldClass ]]"
+                      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"
                       on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -2252,7 +2251,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -2376,8 +2375,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -3506,8 +3504,7 @@
                 value="[[ $current.data.value ]]"
                 required="[[ $current.data.required ]]"
                 readonly="[[ $current.data.readonly ]]"
-                class="oj-choice-direction-row"
-                :class="[[ $current.data.fieldClass ]]"
+                :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                 :data-field-id="[[ $current.data.fieldId ]]"
                 on-value-changed="[[ $listeners.mateuRowFieldChanged ]]">
               <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -5535,7 +5532,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -5659,8 +5656,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -8151,7 +8147,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -8275,8 +8271,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -10800,7 +10795,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -10924,8 +10919,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -13416,7 +13410,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -13540,8 +13534,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -16093,7 +16086,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -16217,8 +16210,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -18763,7 +18755,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -18887,8 +18879,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -21385,7 +21376,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -21509,8 +21500,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -24018,7 +24008,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -24142,8 +24132,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -26673,7 +26662,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -26797,8 +26786,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -29300,7 +29288,7 @@
                               <oj-bind-if test="[[ $current.data.isNumber ]]">
                                 <oj-input-number
                                     :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                    step="[[ $current.data.numberStep || null ]]"
+                                    step="[[ $current.data.numberStep || 0 ]]"
                                     label-hint="[[ $current.data.label ]]"
                                     help.instruction="[[ $current.data.help ]]"
                                     placeholder="[[ $current.data.placeholder || '' ]]"
@@ -29424,8 +29412,7 @@
                                     value="[[ $current.data.value ]]"
                                     required="[[ $current.data.required ]]"
                                     readonly="[[ $current.data.readonly ]]"
-                                    class="oj-choice-direction-row"
-                                    :class="[[ $current.data.fieldClass ]]"
+                                    :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                     :data-field-id="[[ $current.data.fieldId ]]"
                                     on-value-changed="[[ $listeners.hostInputChanged ]]">
                                   <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -31945,7 +31932,7 @@
                               <oj-bind-if test="[[ $current.data.isNumber ]]">
                                 <oj-input-number
                                     :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                    step="[[ $current.data.numberStep || null ]]"
+                                    step="[[ $current.data.numberStep || 0 ]]"
                                     label-hint="[[ $current.data.label ]]"
                                     help.instruction="[[ $current.data.help ]]"
                                     placeholder="[[ $current.data.placeholder || '' ]]"
@@ -32069,8 +32056,7 @@
                                     value="[[ $current.data.value ]]"
                                     required="[[ $current.data.required ]]"
                                     readonly="[[ $current.data.readonly ]]"
-                                    class="oj-choice-direction-row"
-                                    :class="[[ $current.data.fieldClass ]]"
+                                    :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                     :data-field-id="[[ $current.data.fieldId ]]"
                                     on-value-changed="[[ $listeners.hostInputChanged ]]">
                                   <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -34577,7 +34563,7 @@
                                   <oj-bind-if test="[[ $current.data.isNumber ]]">
                                     <oj-input-number
                                         :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                        step="[[ $current.data.numberStep || null ]]"
+                                        step="[[ $current.data.numberStep || 0 ]]"
                                         label-hint="[[ $current.data.label ]]"
                                         help.instruction="[[ $current.data.help ]]"
                                         placeholder="[[ $current.data.placeholder || '' ]]"
@@ -34701,8 +34687,7 @@
                                         value="[[ $current.data.value ]]"
                                         required="[[ $current.data.required ]]"
                                         readonly="[[ $current.data.readonly ]]"
-                                        class="oj-choice-direction-row"
-                                        :class="[[ $current.data.fieldClass ]]"
+                                        :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                         :data-field-id="[[ $current.data.fieldId ]]"
                                         on-value-changed="[[ $listeners.hostInputChanged ]]">
                                       <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -37464,7 +37449,7 @@
                                     <oj-bind-if test="[[ $current.data.isNumber ]]">
                                       <oj-input-number
                                           :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                          step="[[ $current.data.numberStep || null ]]"
+                                          step="[[ $current.data.numberStep || 0 ]]"
                                           label-hint="[[ $current.data.label ]]"
                                           help.instruction="[[ $current.data.help ]]"
                                           placeholder="[[ $current.data.placeholder || '' ]]"
@@ -37588,8 +37573,7 @@
                                           value="[[ $current.data.value ]]"
                                           required="[[ $current.data.required ]]"
                                           readonly="[[ $current.data.readonly ]]"
-                                          class="oj-choice-direction-row"
-                                          :class="[[ $current.data.fieldClass ]]"
+                                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                           :data-field-id="[[ $current.data.fieldId ]]"
                                           on-value-changed="[[ $listeners.hostInputChanged ]]">
                                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -40096,7 +40080,7 @@
                                     <oj-bind-if test="[[ $current.data.isNumber ]]">
                                       <oj-input-number
                                           :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                          step="[[ $current.data.numberStep || null ]]"
+                                          step="[[ $current.data.numberStep || 0 ]]"
                                           label-hint="[[ $current.data.label ]]"
                                           help.instruction="[[ $current.data.help ]]"
                                           placeholder="[[ $current.data.placeholder || '' ]]"
@@ -40220,8 +40204,7 @@
                                           value="[[ $current.data.value ]]"
                                           required="[[ $current.data.required ]]"
                                           readonly="[[ $current.data.readonly ]]"
-                                          class="oj-choice-direction-row"
-                                          :class="[[ $current.data.fieldClass ]]"
+                                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                           :data-field-id="[[ $current.data.fieldId ]]"
                                           on-value-changed="[[ $listeners.hostInputChanged ]]">
                                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -42753,7 +42736,7 @@
                                     <oj-bind-if test="[[ $current.data.isNumber ]]">
                                       <oj-input-number
                                           :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                          step="[[ $current.data.numberStep || null ]]"
+                                          step="[[ $current.data.numberStep || 0 ]]"
                                           label-hint="[[ $current.data.label ]]"
                                           help.instruction="[[ $current.data.help ]]"
                                           placeholder="[[ $current.data.placeholder || '' ]]"
@@ -42877,8 +42860,7 @@
                                           value="[[ $current.data.value ]]"
                                           required="[[ $current.data.required ]]"
                                           readonly="[[ $current.data.readonly ]]"
-                                          class="oj-choice-direction-row"
-                                          :class="[[ $current.data.fieldClass ]]"
+                                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                           :data-field-id="[[ $current.data.fieldId ]]"
                                           on-value-changed="[[ $listeners.hostInputChanged ]]">
                                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -45632,7 +45614,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -45756,8 +45738,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -48253,7 +48234,7 @@
                               <oj-bind-if test="[[ $current.data.isNumber ]]">
                                 <oj-input-number
                                     :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                    step="[[ $current.data.numberStep || null ]]"
+                                    step="[[ $current.data.numberStep || 0 ]]"
                                     label-hint="[[ $current.data.label ]]"
                                     help.instruction="[[ $current.data.help ]]"
                                     placeholder="[[ $current.data.placeholder || '' ]]"
@@ -48377,8 +48358,7 @@
                                     value="[[ $current.data.value ]]"
                                     required="[[ $current.data.required ]]"
                                     readonly="[[ $current.data.readonly ]]"
-                                    class="oj-choice-direction-row"
-                                    :class="[[ $current.data.fieldClass ]]"
+                                    :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                     :data-field-id="[[ $current.data.fieldId ]]"
                                     on-value-changed="[[ $listeners.hostInputChanged ]]">
                                   <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -50874,7 +50854,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -50998,8 +50978,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -53520,7 +53499,7 @@
                       <oj-bind-if test="[[ $current.data.isNumber ]]">
                         <oj-input-number
                             :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                            step="[[ $current.data.numberStep || null ]]"
+                            step="[[ $current.data.numberStep || 0 ]]"
                             label-hint="[[ $current.data.label ]]"
                             help.instruction="[[ $current.data.help ]]"
                             placeholder="[[ $current.data.placeholder || '' ]]"
@@ -53644,8 +53623,7 @@
                             value="[[ $current.data.value ]]"
                             required="[[ $current.data.required ]]"
                             readonly="[[ $current.data.readonly ]]"
-                            class="oj-choice-direction-row"
-                            :class="[[ $current.data.fieldClass ]]"
+                            :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                             :data-field-id="[[ $current.data.fieldId ]]"
                             on-value-changed="[[ $listeners.hostInputChanged ]]">
                           <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -56152,7 +56130,7 @@
                       <oj-bind-if test="[[ $current.data.isNumber ]]">
                         <oj-input-number
                             :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                            step="[[ $current.data.numberStep || null ]]"
+                            step="[[ $current.data.numberStep || 0 ]]"
                             label-hint="[[ $current.data.label ]]"
                             help.instruction="[[ $current.data.help ]]"
                             placeholder="[[ $current.data.placeholder || '' ]]"
@@ -56276,8 +56254,7 @@
                             value="[[ $current.data.value ]]"
                             required="[[ $current.data.required ]]"
                             readonly="[[ $current.data.readonly ]]"
-                            class="oj-choice-direction-row"
-                            :class="[[ $current.data.fieldClass ]]"
+                            :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                             :data-field-id="[[ $current.data.fieldId ]]"
                             on-value-changed="[[ $listeners.hostInputChanged ]]">
                           <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -58798,7 +58775,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -58922,8 +58899,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -61776,7 +61752,7 @@
                                 <oj-bind-if test="[[ $current.data.isNumber ]]">
                                   <oj-input-number
                                       :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                      step="[[ $current.data.numberStep || null ]]"
+                                      step="[[ $current.data.numberStep || 0 ]]"
                                       label-hint="[[ $current.data.label ]]"
                                       help.instruction="[[ $current.data.help ]]"
                                       placeholder="[[ $current.data.placeholder || '' ]]"
@@ -61900,8 +61876,7 @@
                                       value="[[ $current.data.value ]]"
                                       required="[[ $current.data.required ]]"
                                       readonly="[[ $current.data.readonly ]]"
-                                      class="oj-choice-direction-row"
-                                      :class="[[ $current.data.fieldClass ]]"
+                                      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                       :data-field-id="[[ $current.data.fieldId ]]"
                                       on-value-changed="[[ $listeners.hostInputChanged ]]">
                                     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -62839,8 +62814,7 @@
                           value="[[ $current.data.value ]]"
                           required="[[ $current.data.required ]]"
                           readonly="[[ $current.data.readonly ]]"
-                          class="oj-choice-direction-row"
-                          :class="[[ $current.data.fieldClass ]]"
+                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                           :data-field-id="[[ $current.data.fieldId ]]"
                           on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -64826,7 +64800,7 @@
                                 <oj-bind-if test="[[ $current.data.isNumber ]]">
                                   <oj-input-number
                                       :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                      step="[[ $current.data.numberStep || null ]]"
+                                      step="[[ $current.data.numberStep || 0 ]]"
                                       label-hint="[[ $current.data.label ]]"
                                       help.instruction="[[ $current.data.help ]]"
                                       placeholder="[[ $current.data.placeholder || '' ]]"
@@ -64950,8 +64924,7 @@
                                       value="[[ $current.data.value ]]"
                                       required="[[ $current.data.required ]]"
                                       readonly="[[ $current.data.readonly ]]"
-                                      class="oj-choice-direction-row"
-                                      :class="[[ $current.data.fieldClass ]]"
+                                      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                       :data-field-id="[[ $current.data.fieldId ]]"
                                       on-value-changed="[[ $listeners.hostInputChanged ]]">
                                     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -65889,8 +65862,7 @@
                           value="[[ $current.data.value ]]"
                           required="[[ $current.data.required ]]"
                           readonly="[[ $current.data.readonly ]]"
-                          class="oj-choice-direction-row"
-                          :class="[[ $current.data.fieldClass ]]"
+                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                           :data-field-id="[[ $current.data.fieldId ]]"
                           on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -67862,7 +67834,7 @@
                                 <oj-bind-if test="[[ $current.data.isNumber ]]">
                                   <oj-input-number
                                       :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                      step="[[ $current.data.numberStep || null ]]"
+                                      step="[[ $current.data.numberStep || 0 ]]"
                                       label-hint="[[ $current.data.label ]]"
                                       help.instruction="[[ $current.data.help ]]"
                                       placeholder="[[ $current.data.placeholder || '' ]]"
@@ -67986,8 +67958,7 @@
                                       value="[[ $current.data.value ]]"
                                       required="[[ $current.data.required ]]"
                                       readonly="[[ $current.data.readonly ]]"
-                                      class="oj-choice-direction-row"
-                                      :class="[[ $current.data.fieldClass ]]"
+                                      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                       :data-field-id="[[ $current.data.fieldId ]]"
                                       on-value-changed="[[ $listeners.hostInputChanged ]]">
                                     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -68925,8 +68896,7 @@
                           value="[[ $current.data.value ]]"
                           required="[[ $current.data.required ]]"
                           readonly="[[ $current.data.readonly ]]"
-                          class="oj-choice-direction-row"
-                          :class="[[ $current.data.fieldClass ]]"
+                          :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                           :data-field-id="[[ $current.data.fieldId ]]"
                           on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                         <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -70877,7 +70847,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -71001,8 +70971,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -73491,7 +73460,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -73615,8 +73584,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -74596,8 +74564,7 @@
                         value="[[ $current.data.value ]]"
                         required="[[ $current.data.required ]]"
                         readonly="[[ $current.data.readonly ]]"
-                        class="oj-choice-direction-row"
-                        :class="[[ $current.data.fieldClass ]]"
+                        :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                       <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -75006,8 +74973,7 @@
                         value="[[ $current.data.value ]]"
                         required="[[ $current.data.required ]]"
                         readonly="[[ $current.data.readonly ]]"
-                        class="oj-choice-direction-row"
-                        :class="[[ $current.data.fieldClass ]]"
+                        :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                       <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -76967,7 +76933,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -77091,8 +77057,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -79581,7 +79546,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -79705,8 +79670,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -82274,7 +82238,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -82398,8 +82362,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -84890,7 +84853,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -85014,8 +84977,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -87520,7 +87482,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -87644,8 +87606,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -90136,7 +90097,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -90260,8 +90221,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -92818,7 +92778,7 @@
                                   <oj-bind-if test="[[ $current.data.isNumber ]]">
                                     <oj-input-number
                                         :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                        step="[[ $current.data.numberStep || null ]]"
+                                        step="[[ $current.data.numberStep || 0 ]]"
                                         label-hint="[[ $current.data.label ]]"
                                         help.instruction="[[ $current.data.help ]]"
                                         placeholder="[[ $current.data.placeholder || '' ]]"
@@ -92942,8 +92902,7 @@
                                         value="[[ $current.data.value ]]"
                                         required="[[ $current.data.required ]]"
                                         readonly="[[ $current.data.readonly ]]"
-                                        class="oj-choice-direction-row"
-                                        :class="[[ $current.data.fieldClass ]]"
+                                        :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                         :data-field-id="[[ $current.data.fieldId ]]"
                                         on-value-changed="[[ $listeners.hostInputChanged ]]">
                                       <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -95714,7 +95673,7 @@
                           <oj-bind-if test="[[ $current.data.isNumber ]]">
                             <oj-input-number
                                 :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                step="[[ $current.data.numberStep || null ]]"
+                                step="[[ $current.data.numberStep || 0 ]]"
                                 label-hint="[[ $current.data.label ]]"
                                 help.instruction="[[ $current.data.help ]]"
                                 placeholder="[[ $current.data.placeholder || '' ]]"
@@ -95838,8 +95797,7 @@
                                 value="[[ $current.data.value ]]"
                                 required="[[ $current.data.required ]]"
                                 readonly="[[ $current.data.readonly ]]"
-                                class="oj-choice-direction-row"
-                                :class="[[ $current.data.fieldClass ]]"
+                                :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]">
                               <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -98348,7 +98306,7 @@
                           <oj-bind-if test="[[ $current.data.isNumber ]]">
                             <oj-input-number
                                 :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                step="[[ $current.data.numberStep || null ]]"
+                                step="[[ $current.data.numberStep || 0 ]]"
                                 label-hint="[[ $current.data.label ]]"
                                 help.instruction="[[ $current.data.help ]]"
                                 placeholder="[[ $current.data.placeholder || '' ]]"
@@ -98472,8 +98430,7 @@
                                 value="[[ $current.data.value ]]"
                                 required="[[ $current.data.required ]]"
                                 readonly="[[ $current.data.readonly ]]"
-                                class="oj-choice-direction-row"
-                                :class="[[ $current.data.fieldClass ]]"
+                                :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]">
                               <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -100964,7 +100921,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -101088,8 +101045,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -103580,7 +103536,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
@@ -103704,8 +103660,7 @@
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
-                                  class="oj-choice-direction-row"
-                                  :class="[[ $current.data.fieldClass ]]"
+                                  :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]">
                                 <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -104694,8 +104649,7 @@
                       value="[[ $current.data.value ]]"
                       required="[[ $current.data.required ]]"
                       readonly="[[ $current.data.readonly ]]"
-                      class="oj-choice-direction-row"
-                      :class="[[ $current.data.fieldClass ]]"
+                      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"
                       on-value-changed="[[ $listeners.mateuFieldChanged ]]">
                     <oj-bind-for-each data="[[ $current.data.options ]]">
@@ -105050,8 +105004,7 @@
                         value="[[ $current.data.value ]]"
                         required="[[ $current.data.required ]]"
                         readonly="[[ $current.data.readonly ]]"
-                        class="oj-choice-direction-row"
-                        :class="[[ $current.data.fieldClass ]]"
+                        :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]">
                       <oj-bind-for-each data="[[ $current.data.options ]]">

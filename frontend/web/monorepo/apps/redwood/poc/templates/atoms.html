@@ -1121,7 +1121,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   :data-mateu-span="[[ $current.data.colspanAttr || null ]]"
-                                  step="[[ $current.data.numberStep || null ]]"
+                                  step="[[ $current.data.numberStep || 0 ]]"
                                   label-hint="[[ $current.data.label ]]"
                                   help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"

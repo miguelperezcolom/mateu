@@ -457,7 +457,7 @@ export function layoutFieldOf(md, state, data, columns = 1) {
     ...widget,
     value,
     // stepButtonsVisible: JET's oj-input-number draws its − / + buttons when it has a step
-    numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : null,
+    numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : 0,
     // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
     colspan,
     colspanAttr,
@@ -473,7 +473,7 @@ export function layoutFieldOf(md, state, data, columns = 1) {
 export function helpAsMessageOf(widget) {
   const BOUND = widget.isText || widget.isNumber || widget.isTextArea || widget.isDate || widget.isDateTime || widget.isSelect
   if (!widget.help || !BOUND || widget.readonly) return { messagesCustom: [] }
-  return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: '' }] }
+  return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: widget.help }] }
 }
 
 // ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────

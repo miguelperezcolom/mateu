@@ -18,8 +18,7 @@
       value="[[ $current.data.value ]]"
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
-      class="oj-choice-direction-row"
-      :class="[[ $current.data.fieldClass ]]"
+      :class="[[ $current.data.fieldClass || 'oj-choice-direction-row' ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
       on-value-changed="[[ $listeners.{{change}} ]]">
     <oj-bind-for-each data="[[ $current.data.options ]]">

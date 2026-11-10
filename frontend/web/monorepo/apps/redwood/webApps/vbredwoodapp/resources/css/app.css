@@ -2385,3 +2385,5 @@ oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox
 .mateu-vstep-done .mateu-vstep-marker { border-color: #508223; background: #508223; color: #fff; }
 /* full-width / edge-to-edge pages (pageLayoutOf): the inner containers lose their own 48px gutters */
 .mateu-page-edge .oj-sm-padding-12x-horizontal, .mateu-page-full .oj-sm-padding-12x-horizontal { padding-left: 0 !important; padding-right: 0 !important; }
+/* @PlainText inside an EDITABLE form: text, not a read-only box */
+oj-input-text.mateu-plain-ellipsis .oj-text-field-container, oj-input-text.mateu-plain-multiline .oj-text-field-container { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }

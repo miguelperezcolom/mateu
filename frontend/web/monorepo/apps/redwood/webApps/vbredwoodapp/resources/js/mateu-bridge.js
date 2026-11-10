@@ -6599,8 +6599,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const colSpan = Math.max(1, Math.min(columns || 12, Number(km.colSpan) || 1))
         const rowSpan = Math.max(1, Number(km.rowSpan) || 1)
         const { flex, ...rest } = cell.style
+        const kt = km.type
         cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
-          ...(colSpan > 1 ? { gridColumn: 'span ' + colSpan } : {}), ...(rowSpan > 1 ? { gridRow: 'span ' + rowSpan } : {}) } })
+          ...((kt === 'Scoreboard') ? { gridColumn: '1 / -1' } : colSpan > 1 ? { gridColumn: 'span ' + colSpan } : {}),
+          ...(rowSpan > 1 ? { gridRow: 'span ' + rowSpan } : {}) } })
       }
       if (!cells.length) return null
       return { isCells: true, boxClass: 'mateu-cells-grid', cells,
@@ -6624,10 +6626,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const cell = cellOf(kids[i], null)
         if (!cell) return null
         const slot = kids[i].slot || (kids[i].metadata && kids[i].metadata.slot)
-        const span = (m.colSpans && m.colSpans[i]) || 0
+        const kt = kids[i].metadata && kids[i].metadata.type
+        // its span: the wire's colSpans, a DashboardPanel's own colSpan; the KPI band takes the whole row
+        const span = (m.colSpans && m.colSpans[i]) || (kt === 'DashboardPanel' ? Number(kids[i].metadata.colSpan) || 0 : 0)
         const { flex, ...rest } = cell.style
         cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
-          ...(slot && named.has(slot) ? { gridArea: slot } : span > 1 ? { gridColumn: 'span ' + span } : {}) } })
+          ...(slot && named.has(slot) ? { gridArea: slot } : (kt === 'Scoreboard' || kt === 'MetricCard') ? { gridColumn: '1 / -1' }
+            : span > 1 ? { gridColumn: 'span ' + span } : {}),
+          ...(kt === 'DashboardPanel' && Number(kids[i].metadata.rowSpan) > 1 ? { gridRow: 'span ' + Number(kids[i].metadata.rowSpan) } : {}) } })
       }
       const gap = /^[\w\s.%]*$/.test(String(m.gap || '')) && m.gap ? m.gap : '1rem'
       return { isCells: true, boxClass: 'mateu-cells-grid mateu-cells-grid-stack', cells,
@@ -12035,7 +12041,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ...widget,
       value,
       // stepButtonsVisible: JET's oj-input-number draws its − / + buttons when it has a step
-      numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : null,
+      numberStep: md.stepButtonsVisible ? (Number(md.step) > 0 ? Number(md.step) : 1) : 0,
       // the wire's, clamped to the layout's columns: the template sets it as the child's colspan
       colspan,
       colspanAttr,
@@ -12051,7 +12057,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function helpAsMessageOf(widget) {
     const BOUND = widget.isText || widget.isNumber || widget.isTextArea || widget.isDate || widget.isDateTime || widget.isSelect
     if (!widget.help || !BOUND || widget.readonly) return { messagesCustom: [] }
-    return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: '' }] }
+    return { help: '', messagesCustom: [{ severity: 'info', summary: widget.help, detail: widget.help }] }
   }
 
   // ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────
