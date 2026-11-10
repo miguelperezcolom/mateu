@@ -155,7 +155,12 @@ export function listHeaderVarsOf(listingSummary, selection = null) {
   // while nothing is checked — as Spectra's collection actions are — and comes on with the first
   // checked row (listSecondaryForSelection, from the selection chain)
   return {
-    mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
+    // the primary too: an action that needs rows (rowsSelectedRequired) is off until one is checked
+    mateuListPrimary: primaryToolbar
+      ? listPrimaryForSelection({ label: primaryToolbar.label,
+        ...(primaryToolbar.disabled ? { inert: true } : {}),
+        ...((primaryToolbar.rowsSelectedRequired || required.indexOf(primaryToolbar.actionId) >= 0) ? { needsSelection: true } : {}) }, selection)
+      : { label: '', display: 'off' },
     mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
     // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
     mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
@@ -170,6 +175,13 @@ export function listHeaderVarsOf(listingSummary, selection = null) {
 /** Whether a listing selection (selectionOfKeySet) holds at least one row. */
 export function hasSelectedRows(selection) {
   return !!selection && (selection.all || (selection.keys || []).length > 0)
+}
+
+/** The listing header's primary action for a selection (the same rule as the secondary ones). */
+export function listPrimaryForSelection(primary, selection) {
+  if (!primary || primary.display === 'off') return primary
+  const { display, ...rest } = primary
+  return (primary.inert || (primary.needsSelection && !hasSelectedRows(selection))) ? { ...rest, display: 'disabled' } : rest
 }
 
 /** The listing header's secondary actions with their `display` for a selection: an inert one is

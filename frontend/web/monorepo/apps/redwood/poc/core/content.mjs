@@ -8,11 +8,11 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
-import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf, nestedListingKeyOf, valueLabelOf } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, progressStepsAtomOf, statAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -29,6 +29,47 @@ function advertisedIdsOf(tree) {
   walk(tree)
   return ids
 }
+
+/** Up to this many rows (and no style of its own) a VirtualList is painted inline, item by item. */
+export const VIRTUAL_LIST_INLINE_MAX = 50
+let virtualListSeq = 0
+/** A VirtualList as JET's virtualised oj-list-view: each row its texts and its badges. */
+export function virtualListAtomOf(items, node, interp = (x) => x) {
+  const rowOf = (item, i) => {
+    const texts = []
+    const badges = []
+    const walk = (n) => {
+      if (n == null) return
+      if (typeof n !== 'object') { texts.push(String(n)); return }
+      const md = n.metadata || n
+      if (md.type === 'Badge') { badges.push({ text: interp(String(md.text || md.label || '')), cls: (BADGE_CLASSES[md.color] || 'oj-badge oj-badge-neutral oj-badge-subtle') + ' oj-sm-margin-1x-start' }); return }
+      if (md.type === 'Text' || md.type === 'Element') { if (md.text != null && md.text !== '') texts.push(interp(String(md.text))) }
+      else if (!md.type) {
+        // plain data: its title-ish value, then the rest
+        for (const [k, v] of Object.entries(md)) if (v != null && typeof v !== 'object') texts.push(String(v))
+        return
+      }
+      for (const k of n.children || []) walk(k)
+      for (const k of md.content || []) walk(k)
+    }
+    walk(item)
+    return { id: i, _rowNumber: i, primary: texts[0] || '', rest: texts.slice(1).join(' · '), badges }
+  }
+  const rows = items.map(rowOf)
+  const style = styleObjectOf(node.style || (node.metadata && node.metadata.style)) || {}
+  return {
+    isVirtualList: true,
+    ariaLabel: chromeText('calendarList'),
+    vlId: 'mateuVirtualList' + (++virtualListSeq),
+    rows,
+    provider: dataProviderFactory ? dataProviderFactory(rows) : null,
+    // its own height (it was ignored); without one, a box of a sensible height so it scrolls
+    listStyle: { height: '18rem', ...style, width: '100%' },
+  }
+}
+
+/** A fluent Grid column with an actionId: its cell reads <id>__actionCell = {text, actionId, parameters}. */
+export const GRID_ACTION_CELL_SUFFIX = '__actionCell'
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
 export const BADGE_CLASSES = {
@@ -1418,9 +1459,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'ProgressSteps') {
-      const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-      const current = (m.steps || []).find((step) => step.status === 'current')
-      atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+      atom(progressStepsAtomOf(m, interp), container)
       return
     }
     if (t === 'EntityHeader') {
@@ -1485,14 +1524,38 @@ export function islandContentOf(ctx, opts = {}) {
         : raw
       // PAGING: Grid.size rows per page (client side, the rows travel inline)
       const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
-      const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+      // a column's actionId makes its cells LINKS that run it with the row's values (the web's
+      // contract); the cell reads <id>__actionCell = {text, actionId, parameters}
+      const actionCols = leafColumns.filter((c) => c.actionId && !(tree && c === leafColumns[0]))
+      const rows = labelCellRows(paging.rows, leafColumns).map((r, i) => {
+        const out = { ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }
+        for (const c of actionCols) {
+          const values = {}
+          for (const k of Object.keys(r)) if (!k.startsWith('__') && k !== 'children' && !k.endsWith(LABEL_CELL_SUFFIX)) values[k] = r[k]
+          const shown = labelColumn(c) ? out[c.id + LABEL_CELL_SUFFIX] : r[c.id]
+          out[c.id + GRID_ACTION_CELL_SUFFIX] = { text: shown == null ? '' : String(shown), actionId: c.actionId, parameters: values }
+        }
+        return out
+      })
       const columns = leafColumns.map((c, i) => {
-        const def = { headerText: interp(c.label || c.id), field: c.id }
+        // sortable ONLY where declared (every column showed a sort icon)
+        const def = { headerText: interp(c.label || c.id), field: c.id, sortable: c.sortable ? 'enabled' : 'disabled' }
         if (tree && i === 0) def.template = 'cellTreeToggle'
+        else if (c.actionId) { def.field = c.id + GRID_ACTION_CELL_SUFFIX; def.template = 'cellGridAction'; def.sortable = 'disabled' }
+        // money formatted in the UI's locale, booleans Yes/No, dates localised (the raw value was shown)
+        else if (labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
+        // its `align` (and numbers / amounts at the end), as the listings do
+        const align = alignOf(c)
+        if (align) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+        const width = columnWidthOf(c)
+        Object.assign(def, width)
+        if (c.frozen) def.frozenEdge = 'start'
         return def
       })
       atom({
         isGrid: true,
+        // Grid.rowStripes / columnBorders: the table's own look (oj-table draws neither by itself)
+        gridClass: 'oj-sm-margin-4x-bottom' + (m.rowStripes ? ' mateu-grid-stripes' : '') + (m.columnBorders ? ' mateu-grid-column-borders' : ''),
         fieldId: node.id || 'grid',
         label: '',
         columns,
@@ -1633,7 +1696,10 @@ export function islandContentOf(ctx, opts = {}) {
           statusLabel: it.statusLabel || '',
           statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           note: it.note || '',
-          recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+          // the note in its colour (noteColor), as the web paints it
+          noteClass: 'oj-typography-body-xs ' + (STATUS_TEXT[it.noteColor] || 'oj-text-color-secondary'),
+          // a recommended card carries a FLAG (the web's tag; «Recommended» without a label)
+          recommendedLabel: it.recommended ? (m.recommendedLabel || chromeText('recommended')) : '',
           enabled: !it.disabled,
           disabled: !!it.disabled,
           actionId: m.actionId,
@@ -1648,9 +1714,18 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isOffer: true,
         tag: interp(m.tag || ''),
+        // its image header (16:9) with the tag floating over it; without an image the tag is a chip
+        // above the title — and the features are chips, as on the web (they were joined by «·»)
+        image: m.image ? elementModuleUrl(interp(m.image)) : '',
+        hasImage: !!m.image,
+        tagOnImage: !!(m.tag && m.image),
+        tagInline: !!(m.tag && !m.image),
         title: interp(m.title || ''),
         subtitle: interp(m.subtitle || ''),
         features: (m.features || []).map(interp).join(' · '),
+        featureChips: (m.features || []).map((f, i) => ({ key: String(i), text: interp(f) })),
+        // its own style (`width: 17rem`): it was drawn full width
+        offerStyle: styleObjectOf(node.style || m.style),
         currentLabel: m.current ? (m.currentLabel || '') : '',
         addedLabel: m.added ? (m.addedLabel || '') : '',
         priceLabel: interp(m.priceLabel || ''),
@@ -1665,18 +1740,23 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'AddOnPicker') {
+      // the running total of what is added, under its label (the web's header: it was not drawn)
+      const addOnTotal = (m.items || []).filter((it) => it.added && !it.includedLabel)
+        .reduce((sum, it) => sum + (Number(it.price) || 0), 0)
       atom({
         isAddOns: true,
         actionId: m.actionId,
         currency: m.currency || '€',
         totalLabel: m.totalLabel || 'Total',
+        totalText: money(addOnTotal, m.currency),
         items: (m.items || []).map((it) => ({
           id: it.id,
           icon: it.icon || '',
           title: interp(it.title),
           description: interp(it.description || ''),
           price: it.price || 0,
-          priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+          // an INCLUDED extra shows only its label (it also read «€ 0.00»); no price, no price line
+          priceText: it.includedLabel || it.price == null ? '' : money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
           includedLabel: it.includedLabel || '',
           selectable: !it.includedLabel,
           added: !!it.added,
@@ -1764,10 +1844,13 @@ export function islandContentOf(ctx, opts = {}) {
         lines: (m.lines || []).map((line) => ({
           concept: interp(line.concept),
           amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
-          amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+          // a NEGATIVE amount (a deposit, a refund) is drawn in the danger tone, as the web does
+          amountClass: !line.included && (line.amount || 0) < 0 ? 'oj-text-color-danger' : '',
         })),
         totalLabel: m.totalLabel || 'Total',
-        totalText: money(m.total, m.currency),
+        // absent total = the sum of the non-included lines (the web's contract: it read € 0.00)
+        totalText: money(m.total != null ? m.total
+          : (m.lines || []).filter((line) => !line.included).reduce((sum, line) => sum + (Number(line.amount) || 0), 0), m.currency),
       }, container)
       return
     }
@@ -1776,10 +1859,15 @@ export function islandContentOf(ctx, opts = {}) {
         isPayment: true,
         contextLabel: m.contextLabel || '',
         contextValue: interp(m.contextValue || ''),
+        // the pick is kept ON THE CLIENT (like the web's picker): installPaymentPickers marks the
+        // chosen button and the confirm sends it — it sent the server's `selected` whatever was clicked
+        selected: m.selected || '',
         methods: (m.methods || []).map((method) => ({
+          id: method.id,
           label: method.label,
           chroming: method.id === m.selected ? 'callToAction' : 'outlined',
-          actionId: m.methodActionId,
+          actionId: m.methodActionId || '',
+          local: !m.methodActionId,
           parameters: { _method: method.id },
         })),
         confirmLabel: m.confirmLabel || chromeText('confirm'),
@@ -1814,11 +1902,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Stat') {
-      atom({
-        isStat: true,
-        label: interp(m.label || ''),
-        value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
-      }, container)
+      atom(statAtomOf(m, interp), container)
       // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
       if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
       return
@@ -1856,7 +1940,7 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
     if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
     if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
-    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id, node.style), container); return }
     if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
@@ -1864,6 +1948,11 @@ export function islandContentOf(ctx, opts = {}) {
     // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
     // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
     // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+    // a @Subresource / MicroFrontend surface's own listing, already projected (withSubresources)
+    if (t === 'Crud' && opts.crudAtom) {
+      atom(opts.crudAtom, container)
+      return
+    }
     // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
     if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
       atom(nestedListingAtomOf(node, ctx), container)
@@ -1947,8 +2036,17 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'VirtualList') {
-      // every item through the same visitor (a component), or as a line of text (plain data)
       const items = (m.page && m.page.content) || []
+      // VIRTUALISED, as the component promises: JET's oj-list-view paints only the rows in view
+      // (loadMoreOnScroll) in a box of the list's own height — all 2,000 rows were drawn and the
+      // page grew 57,000px tall. A row is its texts and badges, in a line (an oj-list-view item
+      // template cannot hold arbitrary components: VB templates do not recurse).
+      if (items.length > VIRTUAL_LIST_INLINE_MAX || (node.style || m.style)) {
+        atom(virtualListAtomOf(items, node, interp), container)
+        return
+      }
+      // a short list, unstyled: every item through the same visitor (a component), or as a line
+      // of text (plain data)
       for (const item of items) {
         if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
         else if (item && typeof item === 'object') {
@@ -2242,15 +2340,20 @@ export function withSubresources(blocks, contexts, opts = {}) {
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}
       const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-      return [{
+      const grid = {
         isGrid: true,
         isSubresourceGrid: true,
         fieldId: a.islandId,
         // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
         label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
-        columns: wire.map((c) => (c.dataType === 'status'
-          ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+        columns: wire.map((c) => {
+          const def = c.dataType === 'status'
+            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
+          const align = alignOf(c)
+          if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+          return def
+        }),
         rows,
         adp: dataProviderFactory ? dataProviderFactory(rows) : null,
         isEmpty: rows.length === 0,
@@ -2258,9 +2361,76 @@ export function withSubresources(blocks, contexts, opts = {}) {
         rowEditable: false,
         addActionId: '',
         addLabel: '',
-      }]
+        // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
+        selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
+        dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
+      }
+      // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
+      Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
+      // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
+      // drawn too, the table where the listing sits — only the table was kept, the zones were lost
+      const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
+      // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
+      const pageNode = findByType(ctx.tree, 'Page')
+      const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+      const head = declared.length
+        ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
+        : []
+      const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
+      if (items.length <= 1) return [grid]
+      const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+      return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
     }),
   }))
+}
+
+/**
+ * A surface's listing in its declared gridLayout — what to lay over its table atom: `cards` (a grid
+ * of cards: the identifier as title, the other columns as lines), `list` (one card per line, the
+ * identifier and the @Priority 1–2 columns), `masterDetail` (that list beside the picked row's
+ * fields; the pick is client state) or `tree` (rows with `children`, the first column disclosing
+ * them). {} for a table (auto / table).
+ */
+export function subresourceLayoutOf(crud, ctx, page, grid, surfaceKey) {
+  const md = (crud && crud.metadata) || {}
+  const layout = String(md.gridLayout || '')
+  const raw = page.content || []
+  if (layout === 'tree') {
+    if (!raw.some((r) => Array.isArray(r && r.children) && r.children.length)) return {}
+    const key = 'listingTree:' + surfaceKey
+    const flat = flattenTreeRows(raw, (k) => !!uiValueOf(key + ':open:' + k, false)).map((r) => ({
+      ...r,
+      ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+        uiKey: key + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
+    }))
+    const wire = leafColumnsOf(md.columns).filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+    const rows = labelCellRows(flat, wire).map((r, i) => ({ ...r, _rowNumber: i }))
+    const columns = grid.columns.map((c, i) => (i === 0 ? { ...c, template: 'cellTreeToggle', sortable: 'disabled' } : { ...c, sortable: 'disabled' }))
+    return { rows, columns, adp: dataProviderFactory ? dataProviderFactory(rows) : null, isEmpty: rows.length === 0 }
+  }
+  if (layout !== 'cards' && layout !== 'list' && layout !== 'masterDetail') return {}
+  const node = { ...crud, metadata: { ...md, gridLayout: 'cards' } }
+  const nested = nestedListingAtomOf(node, { ...ctx, data: { ...(ctx.data || {}), [nestedListingKeyOf(node)]: { page } } })
+  const out = { ...nested, isGrid: false, title: grid.label || nested.title }
+  if (layout === 'cards') return out
+  // list / master-detail: the identifier titles each line, its @Priority 1–2 columns are its caption
+  const columns = leafColumnsOf(md.columns).map((c) => c.metadata || c).filter((c) => c.id && c.dataType !== 'actionGroup')
+  const captionIds = columns.filter((c) => !c.identifier && (c.priority === 1 || c.priority === 2)).map((c) => c.id)
+  const pickKey = 'listingPick:' + surfaceKey
+  const picked = uiValueOf(pickKey, 0)
+  const cards = nested.cards.map((card, i) => ({
+    ...card,
+    lines: captionIds.length ? card.lines.filter((l) => columns.some((c) => captionIds.includes(c.id) && (c.label || c.id) === l.label)) : card.lines.slice(0, 1),
+    cellClass: 'oj-flex-item oj-sm-12 oj-sm-padding-2x-bottom',
+    ...(layout === 'masterDetail' ? { uiKey: pickKey, uiValue: i, cardClass: 'mateu-nested-card' + (i === picked ? ' mateu-nested-card-picked' : '') } : {}),
+  }))
+  if (layout === 'list') return { ...out, cards }
+  const row = raw[picked] || null
+  const detail = row ? columns.map((c) => {
+    const shown = labelColumn(c) ? valueLabelOf(c, row[c.id]) : row[c.id]
+    return { label: c.label || c.id, value: shown == null ? '' : String(typeof shown === 'object' ? (shown.value ?? shown.message ?? '') : shown) }
+  }) : []
+  return { ...out, cards, hasDetail: true, detail, layoutClass: 'mateu-nested-md' }
 }
 
 /** Merges the content of the NESTED island into the blocks of the parent island:

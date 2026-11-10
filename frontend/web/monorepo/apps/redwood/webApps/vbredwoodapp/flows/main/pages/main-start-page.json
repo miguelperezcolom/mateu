@@ -829,8 +829,9 @@
     "hostPaymentConfirm": {
       "chains": [
         {
-          "chain": "dispatchHostBlockAction",
+          "chain": "paymentConfirmed",
           "parameters": {
+            "event": "{{ $event }}",
             "actionId": "{{ $current.data.confirmActionId }}",
             "parameters": "{{ $current.data.confirmParameters }}",
             "surfaceId": "{{ $current.data.surfaceId }}"
@@ -1760,6 +1761,9 @@
       },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
+      },
+      "oj-list-view": {
+        "path": "ojs/ojlistview"
       },
       "oj-sp-general-overview-page": {
         "path": "oj-sp/general-overview-page/loader"

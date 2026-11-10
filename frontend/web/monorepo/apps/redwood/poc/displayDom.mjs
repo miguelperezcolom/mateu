@@ -1,8 +1,8 @@
-import { chromeText } from './i18n.mjs'
+import { chromeText, moneyNumberText } from './i18n.mjs'
 import { streamChat, buildChatBody, chatMarkdownToHtml, chatStatusText, chatTurnTextOf, chatUsageTextOf, dispatchChatEvent, latestUsage, mergeTurnUsage, uploadChatFiles } from './chat.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { authHeadersOf, askForReauthentication } from './resilience.mjs'
-import { hasConsentCookie, customComponentMountOf } from './reduceContexts.mjs'
+import { hasConsentCookie, customComponentMountOf, rowActionIsRows } from './reduceContexts.mjs'
 import { surfaceAtomOf } from './surfaces.mjs'
 
 // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
@@ -52,11 +52,6 @@ export function drawBpmn(el, spec, doc = el.ownerDocument) {
   el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
   for (const f of spec.flows || []) {
     el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
-    if (f.label) {
-      const mid = f.points[Math.floor(f.points.length / 2)]
-      const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
-      t.textContent = f.label
-    }
   }
   for (const n of spec.nodes || []) {
     const cx = n.x + n.w / 2
@@ -91,8 +86,29 @@ export function drawBpmn(el, spec, doc = el.ownerDocument) {
       })
     }
   }
+  // the flows' names last, at the middle of their middle segment: drawn first, at the end point,
+  // the target's shape covered them («yes» out of the gateway was never seen)
+  for (const f of spec.flows || []) {
+    if (!f.label || !f.points || f.points.length < 2) continue
+    const [mx, my, vertical] = bpmnFlowLabelPointOf(f.points)
+    // beside a vertical segment (to its right), above a horizontal one
+    const t = el2('text', vertical
+      ? { x: mx + 6, y: my, 'text-anchor': 'start', 'dominant-baseline': 'middle', class: 'mateu-bpmn-flow-label' }
+      : { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
+    t.textContent = f.label
+  }
+  // a box with its own height: the diagram scales into it
+  if (el.style && el.style.height) { svg.setAttribute('height', '100%'); svg.style.maxHeight = 'none' }
   el.textContent = ''
   el.appendChild(svg)
+}
+
+/** Where a flow's name goes: the middle of its middle segment. */
+export function bpmnFlowLabelPointOf(points) {
+  const i = Math.max(0, Math.floor((points.length - 1) / 2))
+  const a = points[i]
+  const b = points[i + 1] || a
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])]
 }
 
 export function installBpmn(doc = typeof document !== 'undefined' ? document : null) {
@@ -499,6 +515,66 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
   }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
 }
 
+// ── AddOnPicker: the running total follows the switches at once (the web's header does) ─────────
+/** Writes the picker's new total next to the switch that changed it (before the server answers). */
+export function showAddOnTotal(target, total, currency) {
+  const picker = target && target.closest ? target.closest('.mateu-addons') : null
+  const out = picker ? picker.querySelector('.mateu-addons-total-value') : null
+  if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
+}
+
+// ── Listings whose row click OPENS the record: the click is not a selection ─────────────────────
+// oj-table selects the row a click lands on; on a listing whose rows open (the crud's view, a
+// rowRoute, a master-detail) that click also ticked its checkbox — the web selects only from the
+// checkbox. The last pointer press is remembered, and the selection chain undoes a change it caused.
+let lastRowPress = { target: null, at: 0 }
+/** Installs (once) the memory of the last pointer press. */
+export function installRowClickSelectionGuard(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuRowPress) return
+  doc.__mateuRowPress = true
+  doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
+}
+/** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
+ *  checkbox, nor from the keyboard): that change is to be undone. */
+export function selectionIsRowOpen(table, now = Date.now()) {
+  const t = lastRowPress.target
+  if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
+  const cls = String((table.getAttribute && table.getAttribute('class')) || '')
+  if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
+  return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+}
+
+// ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
+/** Marks `id` as the picked method of a picker's methods row (its button takes the callToAction). */
+export function pickPaymentMethod(methods, id) {
+  if (!methods) return
+  methods.setAttribute('data-selected', id)
+  for (const b of Array.from(methods.querySelectorAll('[data-payment-method]'))) {
+    const chroming = b.getAttribute('data-payment-method') === id ? 'callToAction' : 'outlined'
+    try { b.chroming = chroming } catch (e) { /* not upgraded */ }
+    b.setAttribute('chroming', chroming)
+  }
+}
+/** The confirm's parameters: the picked method over the server's `selected`. */
+export function paymentParametersOf(target, parameters) {
+  const picker = target && target.closest ? target.closest('.mateu-payment') : null
+  const methods = picker ? picker.querySelector('.mateu-payment-methods') : null
+  const picked = methods ? methods.getAttribute('data-selected') : ''
+  return picked ? { ...(parameters || {}), _method: picked } : { ...(parameters || {}) }
+}
+/** Installs (once) the method pick: a click marks it; a method WITHOUT methodActionId stays on the
+ *  client (it used to send an empty action), one with it still tells the server. */
+export function installPaymentPickers(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuPaymentPickers) return
+  doc.__mateuPaymentPickers = true
+  doc.addEventListener('click', (e) => {
+    const button = e.target && e.target.closest ? e.target.closest('[data-payment-method]') : null
+    if (!button) return
+    pickPaymentMethod(button.closest('.mateu-payment-methods'), button.getAttribute('data-payment-method'))
+    if (button.getAttribute('data-payment-local') === 'true') e.stopPropagation()
+  }, true)
+}
+
 // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
 // The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
 // items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
@@ -555,13 +631,31 @@ export function installScoreboards(doc = typeof document !== 'undefined' ? docum
   const atomOf = (host) => {
     try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
   }
-  // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+  // capture: the list's item action does not have to bubble out of the scoreboard to be heard.
+  // The card's TEXTS (its title, its metric) swallow the click before the list turns it into an
+  // item action — only the card's padding drilled in —, so a click anywhere in an actionable card
+  // runs it here, and the item action that may follow the same click is not run twice.
+  let lastClick = { key: null, at: 0 }
+  const runKey = (host, key) => {
+    if (key === lastClick.key && Date.now() - lastClick.at < 800) return false
+    const run = scoreboardDrillInOf(atomOf(host), key)
+    // a band of an island's goes to THAT island (surfaces.mjs)
+    if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2])) }
+    return !!run
+  }
+  doc.addEventListener('click', (e) => {
+    const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+    if (!host || !scoreboardSink) return
+    let card = e.target
+    while (card && card !== host && scoreboardIndexOf(card) < 0) card = card.parentElement
+    if (!card || card === host) return
+    runKey(host, 'k' + scoreboardIndexOf(card))
+  }, true)
   doc.addEventListener('ojItemAction', (e) => {
     const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
     if (!host || !scoreboardSink) return
     const key = e.detail && e.detail.context ? e.detail.context.key : null
-    const run = scoreboardDrillInOf(atomOf(host), key)
-    if (run) scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2]))
+    runKey(host, key)
   }, true)
   if (typeof MutationObserver === 'undefined') return
   const root = doc.body || doc.documentElement

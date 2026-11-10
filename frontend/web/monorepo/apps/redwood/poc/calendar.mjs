@@ -67,6 +67,7 @@ export function calBuiltInLabel(actionId, params, label) {
   return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
 }
 
+let calendarSeq = 0
 /** The calendar atom, with the four views precomputed. */
 export function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
   const anchor = m.month || today
@@ -119,7 +120,9 @@ export function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 
     spSpec: JSON.stringify(spCalendarSpecOf(m, nav, today)),
     // a CalendarPage's toolbar folded into the calendar: the fallback grid keeps it as plain buttons
     navButtons: nav ? nav.buttons : [],
-    calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
+    // unique on the page: two calendars of one id (a YAML one and a Java island's, both «calendar»)
+    // swapped their events, views and periods
+    calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_') + '-' + (++calendarSeq),
     view,
     dayActionId: dayAction,
     hasSwitcher: views.length > 1,
@@ -373,6 +376,7 @@ export function spCalendarHostClassOf(spec) {
   return 'mateu-cal-sp' + (nav ? '' : ' mateu-cal-sp-fixed') + (nav && nav.goTo ? '' : ' mateu-cal-sp-nopick')
 }
 
+let spCalendarSeq = 0
 function buildSpCalendar(doc, cal, spec, ADP) {
   const old = cal.querySelector(':scope > .mateu-cal-sp')
   if (old) old.remove()
@@ -382,6 +386,9 @@ function buildSpCalendar(doc, cal, spec, ADP) {
   host.className = spCalendarHostClassOf(spec)
   host.setAttribute('data-oj-binding-provider', 'none')
   const el = doc.createElement('oj-sp-calendar')
+  // its OWN id: Spectra keys its FullCalendar parts by the element's id, and two calendars on one
+  // page without one shared them — one showed the other's events, view and period
+  el.id = 'mateuSpCal' + (++spCalendarSeq)
   el.calendarEvents = new ADP(spec.events, { keyAttributes: 'id' })
   el.calendarProviders = spec.providers
   el.visibleCalendars = spec.providers.map((p) => p.name)
@@ -450,12 +457,23 @@ function buildSpCalendar(doc, cal, spec, ADP) {
   ready()
 }
 
+/** Is a Spectra calendar already mounted (or mounting) in ANOTHER calendar of the page? */
+export function spCalendarElsewhere(doc, cal) {
+  for (const other of Array.from(doc.querySelectorAll('.mateu-cal'))) {
+    if (other !== cal && other.isConnected && other.__mateuSpCal) return true
+  }
+  return false
+}
+
 function mountSpCalendars(doc) {
   if (typeof MutationObserver === 'undefined' || typeof window === 'undefined' || typeof window.require !== 'function') return
   const fill = (cal) => {
     const raw = cal.getAttribute('data-cal-sp') || ''
     if (!raw || cal.__mateuSpCal === raw) return
     cal.__mateuSpCal = raw
+    // ONE Spectra calendar per page: a second oj-sp-calendar draws the FIRST one's events (filtered by
+    // its own providers) and the first draws none — the others keep the drawn grid, which has every view
+    if (spCalendarElsewhere(doc, cal)) return
     let spec
     try { spec = JSON.parse(raw) } catch (e) { return }
     window.require(['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'], (ADP) => {

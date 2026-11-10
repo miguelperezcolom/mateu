@@ -48,6 +48,8 @@ define([
         const nowAdded = it.id === itemId ? added : it.added;
         return sum + (nowAdded ? (it.price || 0) : 0);
       }, 0);
+      // the running total follows the switch at once (the server answer re-projects it anyway)
+      bridge.showAddOnTotal(event && event.target, total, picker.currency);
       await Actions.callChain(context, {
         chain: surfaceId ? 'dispatchHostBlockAction' : 'runMateuAction',
         params: {

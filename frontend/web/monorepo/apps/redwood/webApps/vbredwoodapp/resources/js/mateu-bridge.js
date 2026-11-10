@@ -1414,6 +1414,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
   }
 
+  let calendarSeq = 0
   /** The calendar atom, with the four views precomputed. */
   function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
     const anchor = m.month || today
@@ -1466,7 +1467,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       spSpec: JSON.stringify(spCalendarSpecOf(m, nav, today)),
       // a CalendarPage's toolbar folded into the calendar: the fallback grid keeps it as plain buttons
       navButtons: nav ? nav.buttons : [],
-      calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
+      // unique on the page: two calendars of one id (a YAML one and a Java island's, both «calendar»)
+      // swapped their events, views and periods
+      calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_') + '-' + (++calendarSeq),
       view,
       dayActionId: dayAction,
       hasSwitcher: views.length > 1,
@@ -1720,6 +1723,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return 'mateu-cal-sp' + (nav ? '' : ' mateu-cal-sp-fixed') + (nav && nav.goTo ? '' : ' mateu-cal-sp-nopick')
   }
 
+  let spCalendarSeq = 0
   function buildSpCalendar(doc, cal, spec, ADP) {
     const old = cal.querySelector(':scope > .mateu-cal-sp')
     if (old) old.remove()
@@ -1729,6 +1733,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     host.className = spCalendarHostClassOf(spec)
     host.setAttribute('data-oj-binding-provider', 'none')
     const el = doc.createElement('oj-sp-calendar')
+    // its OWN id: Spectra keys its FullCalendar parts by the element's id, and two calendars on one
+    // page without one shared them — one showed the other's events, view and period
+    el.id = 'mateuSpCal' + (++spCalendarSeq)
     el.calendarEvents = new ADP(spec.events, { keyAttributes: 'id' })
     el.calendarProviders = spec.providers
     el.visibleCalendars = spec.providers.map((p) => p.name)
@@ -1797,12 +1804,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ready()
   }
 
+  /** Is a Spectra calendar already mounted (or mounting) in ANOTHER calendar of the page? */
+  function spCalendarElsewhere(doc, cal) {
+    for (const other of Array.from(doc.querySelectorAll('.mateu-cal'))) {
+      if (other !== cal && other.isConnected && other.__mateuSpCal) return true
+    }
+    return false
+  }
+
   function mountSpCalendars(doc) {
     if (typeof MutationObserver === 'undefined' || typeof window === 'undefined' || typeof window.require !== 'function') return
     const fill = (cal) => {
       const raw = cal.getAttribute('data-cal-sp') || ''
       if (!raw || cal.__mateuSpCal === raw) return
       cal.__mateuSpCal = raw
+      // ONE Spectra calendar per page: a second oj-sp-calendar draws the FIRST one's events (filtered by
+      // its own providers) and the first draws none — the others keep the drawn grid, which has every view
+      if (spCalendarElsewhere(doc, cal)) return
       let spec
       try { spec = JSON.parse(raw) } catch (e) { return }
       window.require(['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'], (ADP) => {
@@ -3998,16 +4016,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
     const pie = spec.type === 'pie'
     const items = []
+    // a TrendChart's `color` is its line's (it was drawn in the default palette)
+    const color = trend && m.color ? String(m.color) : null
     datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
       const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+      const num = value == null || value === '' ? null : Number(value)
       items.push({
         _rowNumber: items.length,
         id: si + ':' + i,
-        value: value == null ? null : Number(value),
+        // a non-number (NaN) made oj-chart write `<path d="MNaN…">`: a gap instead
+        value: Number.isFinite(num) ? num : null,
         series: pie ? label : (d.label || 'Series ' + (si + 1)),
         group: pie ? (d.label || 'Total') : label,
+        ...(color ? { color } : {}),
       })
     }))
+    // a pie's slice labels: JET formats percentages to 3 significant digits («9.00%» beside «21.0%»);
+    // ours carry one decimal at most, the same for every slice
+    if (pie) {
+      const totals = {}
+      for (const it of items) totals[it.group] = (totals[it.group] || 0) + (it.value || 0)
+      for (const it of items) {
+        const pct = totals[it.group] ? (100 * (it.value || 0)) / totals[it.group] : 0
+        it.label = (Math.round(pct * 10) / 10).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '%'
+      }
+    }
     return {
       isChart: true,
       title: trend ? interp(m.title || '') : '',
@@ -4016,9 +4049,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       innerRadius: spec.innerRadius || 0,
       lineType: spec.markersOnly ? 'none' : 'auto',
       markerDisplayed: spec.markersOnly ? 'on' : 'auto',
-      legend: datasets.length > 1 || pie ? 'on' : 'off',
-      chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
-      items,
+      // a Chart names its datasets in a legend even when there is one (Chart.js / the web does);
+      // a TrendChart is a single unnamed line: no legend
+      legend: !trend && (datasets.length > 1 || pie || !!(datasets[0] && datasets[0].label)) ? 'on' : 'off',
+      // a TrendChart is the compact trend line the web draws, not a full chart: no axes, short
+      axisRendered: trend ? 'off' : 'on',
+      chartStyle: { width: '100%', height: trend ? '7rem' : pie ? '18rem' : '16rem' },
+      color: color || '',
+      // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
+      colors: color ? [color] : undefined,    items,
       provider: dataProviderFactory ? dataProviderFactory(items) : null,
     }
   }
@@ -4041,6 +4080,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isAppFrame', 'isIslandBanner',
     // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
     'isNestedListing',
+    // a long VirtualList (JET's virtualised oj-list-view)
+    'isVirtualList',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -5303,6 +5344,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     walk(tree)
     return ids
   }
+
+  /** Up to this many rows (and no style of its own) a VirtualList is painted inline, item by item. */
+  const VIRTUAL_LIST_INLINE_MAX = 50
+  let virtualListSeq = 0
+  /** A VirtualList as JET's virtualised oj-list-view: each row its texts and its badges. */
+  function virtualListAtomOf(items, node, interp = (x) => x) {
+    const rowOf = (item, i) => {
+      const texts = []
+      const badges = []
+      const walk = (n) => {
+        if (n == null) return
+        if (typeof n !== 'object') { texts.push(String(n)); return }
+        const md = n.metadata || n
+        if (md.type === 'Badge') { badges.push({ text: interp(String(md.text || md.label || '')), cls: (BADGE_CLASSES[md.color] || 'oj-badge oj-badge-neutral oj-badge-subtle') + ' oj-sm-margin-1x-start' }); return }
+        if (md.type === 'Text' || md.type === 'Element') { if (md.text != null && md.text !== '') texts.push(interp(String(md.text))) }
+        else if (!md.type) {
+          // plain data: its title-ish value, then the rest
+          for (const [k, v] of Object.entries(md)) if (v != null && typeof v !== 'object') texts.push(String(v))
+          return
+        }
+        for (const k of n.children || []) walk(k)
+        for (const k of md.content || []) walk(k)
+      }
+      walk(item)
+      return { id: i, _rowNumber: i, primary: texts[0] || '', rest: texts.slice(1).join(' · '), badges }
+    }
+    const rows = items.map(rowOf)
+    const style = styleObjectOf(node.style || (node.metadata && node.metadata.style)) || {}
+    return {
+      isVirtualList: true,
+      ariaLabel: chromeText('calendarList'),
+      vlId: 'mateuVirtualList' + (++virtualListSeq),
+      rows,
+      provider: dataProviderFactory ? dataProviderFactory(rows) : null,
+      // its own height (it was ignored); without one, a box of a sensible height so it scrolls
+      listStyle: { height: '18rem', ...style, width: '100%' },
+    }
+  }
+
+  /** A fluent Grid column with an actionId: its cell reads <id>__actionCell = {text, actionId, parameters}. */
+  const GRID_ACTION_CELL_SUFFIX = '__actionCell'
 
   /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
   const BADGE_CLASSES = {
@@ -6692,9 +6774,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'ProgressSteps') {
-        const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-        const current = (m.steps || []).find((step) => step.status === 'current')
-        atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+        atom(progressStepsAtomOf(m, interp), container)
         return
       }
       if (t === 'EntityHeader') {
@@ -6759,14 +6839,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           : raw
         // PAGING: Grid.size rows per page (client side, the rows travel inline)
         const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
-        const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+        // a column's actionId makes its cells LINKS that run it with the row's values (the web's
+        // contract); the cell reads <id>__actionCell = {text, actionId, parameters}
+        const actionCols = leafColumns.filter((c) => c.actionId && !(tree && c === leafColumns[0]))
+        const rows = labelCellRows(paging.rows, leafColumns).map((r, i) => {
+          const out = { ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }
+          for (const c of actionCols) {
+            const values = {}
+            for (const k of Object.keys(r)) if (!k.startsWith('__') && k !== 'children' && !k.endsWith(LABEL_CELL_SUFFIX)) values[k] = r[k]
+            const shown = labelColumn(c) ? out[c.id + LABEL_CELL_SUFFIX] : r[c.id]
+            out[c.id + GRID_ACTION_CELL_SUFFIX] = { text: shown == null ? '' : String(shown), actionId: c.actionId, parameters: values }
+          }
+          return out
+        })
         const columns = leafColumns.map((c, i) => {
-          const def = { headerText: interp(c.label || c.id), field: c.id }
+          // sortable ONLY where declared (every column showed a sort icon)
+          const def = { headerText: interp(c.label || c.id), field: c.id, sortable: c.sortable ? 'enabled' : 'disabled' }
           if (tree && i === 0) def.template = 'cellTreeToggle'
+          else if (c.actionId) { def.field = c.id + GRID_ACTION_CELL_SUFFIX; def.template = 'cellGridAction'; def.sortable = 'disabled' }
+          // money formatted in the UI's locale, booleans Yes/No, dates localised (the raw value was shown)
+          else if (labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
+          // its `align` (and numbers / amounts at the end), as the listings do
+          const align = alignOf(c)
+          if (align) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+          const width = columnWidthOf(c)
+          Object.assign(def, width)
+          if (c.frozen) def.frozenEdge = 'start'
           return def
         })
         atom({
           isGrid: true,
+          // Grid.rowStripes / columnBorders: the table's own look (oj-table draws neither by itself)
+          gridClass: 'oj-sm-margin-4x-bottom' + (m.rowStripes ? ' mateu-grid-stripes' : '') + (m.columnBorders ? ' mateu-grid-column-borders' : ''),
           fieldId: node.id || 'grid',
           label: '',
           columns,
@@ -6907,7 +7011,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             statusLabel: it.statusLabel || '',
             statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
             note: it.note || '',
-            recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+            // the note in its colour (noteColor), as the web paints it
+            noteClass: 'oj-typography-body-xs ' + (STATUS_TEXT[it.noteColor] || 'oj-text-color-secondary'),
+            // a recommended card carries a FLAG (the web's tag; «Recommended» without a label)
+            recommendedLabel: it.recommended ? (m.recommendedLabel || chromeText('recommended')) : '',
             enabled: !it.disabled,
             disabled: !!it.disabled,
             actionId: m.actionId,
@@ -6922,9 +7029,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({
           isOffer: true,
           tag: interp(m.tag || ''),
+          // its image header (16:9) with the tag floating over it; without an image the tag is a chip
+          // above the title — and the features are chips, as on the web (they were joined by «·»)
+          image: m.image ? elementModuleUrl(interp(m.image)) : '',
+          hasImage: !!m.image,
+          tagOnImage: !!(m.tag && m.image),
+          tagInline: !!(m.tag && !m.image),
           title: interp(m.title || ''),
           subtitle: interp(m.subtitle || ''),
           features: (m.features || []).map(interp).join(' · '),
+          featureChips: (m.features || []).map((f, i) => ({ key: String(i), text: interp(f) })),
+          // its own style (`width: 17rem`): it was drawn full width
+          offerStyle: styleObjectOf(node.style || m.style),
           currentLabel: m.current ? (m.currentLabel || '') : '',
           addedLabel: m.added ? (m.addedLabel || '') : '',
           priceLabel: interp(m.priceLabel || ''),
@@ -6939,18 +7055,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'AddOnPicker') {
+        // the running total of what is added, under its label (the web's header: it was not drawn)
+        const addOnTotal = (m.items || []).filter((it) => it.added && !it.includedLabel)
+          .reduce((sum, it) => sum + (Number(it.price) || 0), 0)
         atom({
           isAddOns: true,
           actionId: m.actionId,
           currency: m.currency || '€',
           totalLabel: m.totalLabel || 'Total',
+          totalText: money(addOnTotal, m.currency),
           items: (m.items || []).map((it) => ({
             id: it.id,
             icon: it.icon || '',
             title: interp(it.title),
             description: interp(it.description || ''),
             price: it.price || 0,
-            priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+            // an INCLUDED extra shows only its label (it also read «€ 0.00»); no price, no price line
+            priceText: it.includedLabel || it.price == null ? '' : money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
             includedLabel: it.includedLabel || '',
             selectable: !it.includedLabel,
             added: !!it.added,
@@ -7038,10 +7159,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           lines: (m.lines || []).map((line) => ({
             concept: interp(line.concept),
             amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
-            amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+            // a NEGATIVE amount (a deposit, a refund) is drawn in the danger tone, as the web does
+            amountClass: !line.included && (line.amount || 0) < 0 ? 'oj-text-color-danger' : '',
           })),
           totalLabel: m.totalLabel || 'Total',
-          totalText: money(m.total, m.currency),
+          // absent total = the sum of the non-included lines (the web's contract: it read € 0.00)
+          totalText: money(m.total != null ? m.total
+            : (m.lines || []).filter((line) => !line.included).reduce((sum, line) => sum + (Number(line.amount) || 0), 0), m.currency),
         }, container)
         return
       }
@@ -7050,10 +7174,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isPayment: true,
           contextLabel: m.contextLabel || '',
           contextValue: interp(m.contextValue || ''),
+          // the pick is kept ON THE CLIENT (like the web's picker): installPaymentPickers marks the
+          // chosen button and the confirm sends it — it sent the server's `selected` whatever was clicked
+          selected: m.selected || '',
           methods: (m.methods || []).map((method) => ({
+            id: method.id,
             label: method.label,
             chroming: method.id === m.selected ? 'callToAction' : 'outlined',
-            actionId: m.methodActionId,
+            actionId: m.methodActionId || '',
+            local: !m.methodActionId,
             parameters: { _method: method.id },
           })),
           confirmLabel: m.confirmLabel || chromeText('confirm'),
@@ -7088,11 +7217,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Stat') {
-        atom({
-          isStat: true,
-          label: interp(m.label || ''),
-          value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
-        }, container)
+        atom(statAtomOf(m, interp), container)
         // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
         if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
         return
@@ -7130,7 +7255,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
       if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
       if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
-      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id, node.style), container); return }
       if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
@@ -7138,6 +7263,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
       // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
       // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+      // a @Subresource / MicroFrontend surface's own listing, already projected (withSubresources)
+      if (t === 'Crud' && opts.crudAtom) {
+        atom(opts.crudAtom, container)
+        return
+      }
       // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
       if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
         atom(nestedListingAtomOf(node, ctx), container)
@@ -7221,8 +7351,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'VirtualList') {
-        // every item through the same visitor (a component), or as a line of text (plain data)
         const items = (m.page && m.page.content) || []
+        // VIRTUALISED, as the component promises: JET's oj-list-view paints only the rows in view
+        // (loadMoreOnScroll) in a box of the list's own height — all 2,000 rows were drawn and the
+        // page grew 57,000px tall. A row is its texts and badges, in a line (an oj-list-view item
+        // template cannot hold arbitrary components: VB templates do not recurse).
+        if (items.length > VIRTUAL_LIST_INLINE_MAX || (node.style || m.style)) {
+          atom(virtualListAtomOf(items, node, interp), container)
+          return
+        }
+        // a short list, unstyled: every item through the same visitor (a component), or as a line
+        // of text (plain data)
         for (const item of items) {
           if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
           else if (item && typeof item === 'object') {
@@ -7516,15 +7655,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
         const page = (((ctx.data || {}).crud || {}).page) || {}
         const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-        return [{
+        const grid = {
           isGrid: true,
           isSubresourceGrid: true,
           fieldId: a.islandId,
           // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
           label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
-          columns: wire.map((c) => (c.dataType === 'status'
-            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+          columns: wire.map((c) => {
+            const def = c.dataType === 'status'
+              ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+              : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
+            const align = alignOf(c)
+            if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+            return def
+          }),
           rows,
           adp: dataProviderFactory ? dataProviderFactory(rows) : null,
           isEmpty: rows.length === 0,
@@ -7532,9 +7676,76 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           rowEditable: false,
           addActionId: '',
           addLabel: '',
-        }]
+          // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
+          selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
+          dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
+        }
+        // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
+        Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
+        // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
+        // drawn too, the table where the listing sits — only the table was kept, the zones were lost
+        const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
+        // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
+        const pageNode = findByType(ctx.tree, 'Page')
+        const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+        const head = declared.length
+          ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
+          : []
+        const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
+        if (items.length <= 1) return [grid]
+        const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+        return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
       }),
     }))
+  }
+
+  /**
+   * A surface's listing in its declared gridLayout — what to lay over its table atom: `cards` (a grid
+   * of cards: the identifier as title, the other columns as lines), `list` (one card per line, the
+   * identifier and the @Priority 1–2 columns), `masterDetail` (that list beside the picked row's
+   * fields; the pick is client state) or `tree` (rows with `children`, the first column disclosing
+   * them). {} for a table (auto / table).
+   */
+  function subresourceLayoutOf(crud, ctx, page, grid, surfaceKey) {
+    const md = (crud && crud.metadata) || {}
+    const layout = String(md.gridLayout || '')
+    const raw = page.content || []
+    if (layout === 'tree') {
+      if (!raw.some((r) => Array.isArray(r && r.children) && r.children.length)) return {}
+      const key = 'listingTree:' + surfaceKey
+      const flat = flattenTreeRows(raw, (k) => !!uiValueOf(key + ':open:' + k, false)).map((r) => ({
+        ...r,
+        ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+          uiKey: key + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
+      }))
+      const wire = leafColumnsOf(md.columns).filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+      const rows = labelCellRows(flat, wire).map((r, i) => ({ ...r, _rowNumber: i }))
+      const columns = grid.columns.map((c, i) => (i === 0 ? { ...c, template: 'cellTreeToggle', sortable: 'disabled' } : { ...c, sortable: 'disabled' }))
+      return { rows, columns, adp: dataProviderFactory ? dataProviderFactory(rows) : null, isEmpty: rows.length === 0 }
+    }
+    if (layout !== 'cards' && layout !== 'list' && layout !== 'masterDetail') return {}
+    const node = { ...crud, metadata: { ...md, gridLayout: 'cards' } }
+    const nested = nestedListingAtomOf(node, { ...ctx, data: { ...(ctx.data || {}), [nestedListingKeyOf(node)]: { page } } })
+    const out = { ...nested, isGrid: false, title: grid.label || nested.title }
+    if (layout === 'cards') return out
+    // list / master-detail: the identifier titles each line, its @Priority 1–2 columns are its caption
+    const columns = leafColumnsOf(md.columns).map((c) => c.metadata || c).filter((c) => c.id && c.dataType !== 'actionGroup')
+    const captionIds = columns.filter((c) => !c.identifier && (c.priority === 1 || c.priority === 2)).map((c) => c.id)
+    const pickKey = 'listingPick:' + surfaceKey
+    const picked = uiValueOf(pickKey, 0)
+    const cards = nested.cards.map((card, i) => ({
+      ...card,
+      lines: captionIds.length ? card.lines.filter((l) => columns.some((c) => captionIds.includes(c.id) && (c.label || c.id) === l.label)) : card.lines.slice(0, 1),
+      cellClass: 'oj-flex-item oj-sm-12 oj-sm-padding-2x-bottom',
+      ...(layout === 'masterDetail' ? { uiKey: pickKey, uiValue: i, cardClass: 'mateu-nested-card' + (i === picked ? ' mateu-nested-card-picked' : '') } : {}),
+    }))
+    if (layout === 'list') return { ...out, cards }
+    const row = raw[picked] || null
+    const detail = row ? columns.map((c) => {
+      const shown = labelColumn(c) ? valueLabelOf(c, row[c.id]) : row[c.id]
+      return { label: c.label || c.id, value: shown == null ? '' : String(typeof shown === 'object' ? (shown.value ?? shown.message ?? '') : shown) }
+    }) : []
+    return { ...out, cards, hasDetail: true, detail, layoutClass: 'mateu-nested-md' }
   }
 
   /** Merges the content of the NESTED island into the blocks of the parent island:
@@ -9391,6 +9602,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function valueLabelOf(c, value) {
     // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
     if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
+    // a TOTALLED number column (@Aggregate) reads like its total and subtotals (1,122 beside 5,432)
+    if (isTotalledNumberColumn(c) && typeof value === 'number') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
     // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
     if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
     // a date / date-time / time column reads in the UI's locale ("5/11/2026"), not as the ISO the row carries
@@ -9417,8 +9630,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return c && LISTING_NUMERIC_TYPES.indexOf(c.dataType) >= 0 ? 'end' : null
   }
 
+  const isTotalledNumberColumn = (c) => !!c && !!c.aggregate && ['integer', 'number', 'double', 'decimal', 'long', 'float'].indexOf(c.dataType) >= 0
+
   function labelColumn(c) {
-    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c))) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c) || isTemporalColumn(c) || isTotalledNumberColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -10005,6 +10220,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     fieldId): the editor of each filter's value.
 
   const KEYWORD_FILTER = 'keyword'
+  /**
+   * The chip id (`filter`) of a field. A field named like a property Spectra probes in the editors'
+   * metadata — `items`: the component asks getMetadata({propertyPath: 'items'}) to choose the edit
+   * path — answered that probe, and EVERY filter's popup opened the `items` editor (an Orders listing
+   * with an Items column: Status showed a number box, Date an empty popup). Those names get a suffix.
+   */
+  const SMART_FILTER_RESERVED = ['items']
+  const smartFilterIdOf = (fieldId) => (SMART_FILTER_RESERVED.includes(fieldId) ? fieldId + '__mateuFilter' : fieldId)
   /** A boolean filter's two choices, in the interface's language. */
   const boolChoices = () => [{ value: 'true', label: chromeText('yes') }, { value: 'false', label: chromeText('no') }]
 
@@ -10049,7 +10272,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function smartFiltersMetadataOf(filters) {
     const polymorphicTypes = {}
     for (const f of filters || []) {
-      polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
+      polymorphicTypes[smartFilterIdOf(f.fieldId)] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
     }
     // the selection-by-ids chip can also open its editor: a text (comma-separated ids)
     if (!declaresIds(filters)) {
@@ -10072,7 +10295,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The `suggestionFilters` chips: one per declared filter, without a value. */
   function smartFilterSuggestionsOf(filters) {
     return (filters || []).map((f) => {
-      const chip = { filter: f.fieldId, label: f.label }
+      const chip = { filter: smartFilterIdOf(f.fieldId), label: f.label }
       if (usesFilterLabel(f)) chip.filterLabel = f.label
       // the popup form takes its fields from the value's keys: without them, a range
       // opens an empty popup
@@ -10098,7 +10321,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const from = v[f.fromKey]
         const to = v[f.toKey]
         if (isBlank(from) && isBlank(to)) continue
-        out.push({ filter: f.fieldId, label: f.label,
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label,
           value: { gte: isBlank(from) ? null : from, lte: isBlank(to) ? null : to } })
         continue
       }
@@ -10107,14 +10330,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (f.isMulti) {
         const selected = multiValuesOf(value)
         if (!selected.length) continue
-        out.push({ filter: f.fieldId, label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
       } else if (f.isBool) {
         const bool = value === true || value === 'true' ? 'true' : 'false'
-        out.push({ filter: f.fieldId, label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
       } else if (f.isOptions) {
-        out.push({ filter: f.fieldId, label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
       } else {
-        out.push({ filter: f.fieldId, label: f.label, value })
+        out.push({ filter: smartFilterIdOf(f.fieldId), label: f.label, value })
       }
     }
     return out
@@ -10127,7 +10350,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function filterStateOfSmartFilters(filters, chips) {
     const byId = {}
-    for (const f of filters || []) byId[f.fieldId] = f
+    for (const f of filters || []) byId[smartFilterIdOf(f.fieldId)] = f
     const values = {}
     const keywords = []
     for (const chip of chips || []) {
@@ -11793,10 +12016,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       isEmail: false, isUrl: false, currency: '',
-      // a date field writes and reads dates in the UI's locale, not in the one JET booted with
-      converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : null,
+      // a date field writes and reads dates in the UI's locale, not in the one JET booted with; an
+      // INTEGER field reads as typed, without thousands separators (a year showed «1,906»)
+      converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : isNumber ? numberConverterOf(f.dataType) : null,
       captureMode: '', accept: '',
     }
+  }
+
+  /** Whole-number types: no grouping, no decimals (a year, a count, a room number). */
+  const INTEGER_TYPES = { integer: true, int: true, long: true }
+  const numberConverters = new Map()
+  /** The converter of a number field: integers ungrouped, the rest JET's default decimal one; one
+   *  instance per kind, so a re-projection does not hand JET a new converter on every keystroke. */
+  function numberConverterOf(dataType) {
+    const kind = INTEGER_TYPES[dataType] ? 'integer' : 'decimal'
+    if (!numberConverters.has(kind)) {
+      numberConverters.set(kind, converterOf({ type: 'number', options: kind === 'integer'
+        ? { style: 'decimal', useGrouping: false, maximumFractionDigits: 0 }
+        : { style: 'decimal' } }))
+    }
+    return numberConverters.get(kind)
   }
 
   /** The row's empty required fields → { fieldId: message }; {} if it is fine. */
@@ -12202,6 +12441,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { start: s, end: e < s ? s : e }
   }
 
+  /** The id prefix of a resource GROUP's header row (no resource: nothing is dropped onto it). */
+  const GROUP_ROW_PREFIX = '__mateuGroup:'
+  /** Today's line on a gantt (Redwood's danger ink, as the web's marker). */
+  const TODAY_INK = '#c74634' // design-token-ok: oj-gantt referenceObjects svgStyle is a DVT style object painted onto SVG, not a CSS cascade — a var() is not resolved there
+
   function planningAtomOf(m, id) {
     const columns = m.attributeColumns || []
     const blocks = (m.blocks || []).map((b) => {
@@ -12214,10 +12458,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // an inverted window (from after to) is read as the same days the other way round: the time
     // axis of oj-gantt must end after it starts
     if (to < from) [from, to] = [to, from]
-    const rows = (m.resources || []).map((r, i) => {
+    const resourceRows = (m.resources || []).map((r) => {
       const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
       return {
-        _rowNumber: i,
         id: r.id,
         // the row label carries the attributes: oj-gantt's row axis only paints text
         label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
@@ -12237,8 +12480,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         })),
       }
     })
+    // resource GROUPS (Fleet / Storage…): a header row before each group's first resource, as the
+    // web's swimlane band (they were not shown). Its id is no resource's: nothing moves onto it.
+    const rows = []
+    let lastGroup = ''
+    for (const row of resourceRows) {
+      if (row.group && row.group !== lastGroup) {
+        rows.push({ id: GROUP_ROW_PREFIX + row.group, label: row.group, group: row.group, iconClass: '', tasks: [], isGroup: true,
+          labelStyle: { fontWeight: 'bold' } })
+      }
+      lastGroup = row.group
+      rows.push(row)
+    }
+    rows.forEach((row, i) => { row._rowNumber = i })
+    // today, as the web marks it (a line across the chart), when it falls in the window
+    const today = isoDay(new Date(Date.now() - new Date().getTimezoneOffset() * 60000))
+    const inWindow = today >= from && today <= to
     return {
       isPlanning: true,
+      referenceObjects: inWindow ? [{ value: today + 'T12:00:00', svgStyle: { stroke: TODAY_INK, strokeWidth: '2px' }, shortDesc: 'Today' }] : [],
+      // as tall as its rows (a fixed 34rem left a large empty area under a short plan)
+      ganttStyle: { height: Math.max(192, 104 + rows.length * 48) + 'px' },
       planningId: id || 'planning',
       attributeColumns: columns,
       start: from + 'T00:00:00',
@@ -12256,7 +12518,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rangeAction: m.rangeSelectActionId || '',
       startDay: from,
       endDay: plusDays(to, 1),
-      rowIds: rows.map((r) => r.id).join('\u001f'),
+      rowIds: rows.map((r) => (r.isGroup ? '' : r.id)).join('\u001f'),
+      // ONE header row, the days (the web's board has no other: a weeks band read as a stray row);
+      // no majorScale = oj-gantt draws no major axis
+      majorScale: undefined,
+      minorScale: 'days',
       rowLabels: rows.map((r) => r.label).join('\u001f'),
       dndMove: m.moveActionId ? 'enabled' : 'disabled',
       taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
@@ -12279,6 +12545,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
       })),
       selectActionId: m.onTaskSelectionActionId || '',
+      // a little air after the last bar: a one-day task at the end sat flush on the chart's edge
+      ...(tasks.length ? { to: plusDays(tasks.map((t) => t.end).sort().pop(), 2) } : {}),
     }, id || 'gantt')
     const progress = {}
     const colors = {}
@@ -12381,6 +12649,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (kind === 'move' && atom.moveActionId && taskId) {
       const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
         : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+      // a group's header row is no resource
+      if (String(rowId || '').startsWith(GROUP_ROW_PREFIX)) return null
       return { actionId: atom.moveActionId, parameters: {
         // start/end: the bar's new bounds (value is the instant under the pointer)
         _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
@@ -12889,7 +13159,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         features: (p.features || []).map((f) => interp(str(f))),
         featured: !!p.featured,
         cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
-        hasCta: !!p.actionId,
+        // the web draws the CTA whenever it has a label (inert without an actionId) — it was dropped
+        hasCta: !!p.actionId || !!p.ctaLabel,
+        ctaDisabled: !p.actionId,
         ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
         chroming: p.featured ? 'callToAction' : 'outlined',
         colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
@@ -12914,7 +13186,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const ORG_CARD_TEMPLATE = 'mateuOrgCard'
 
   function orgChartAtomOf(m, interp = (x) => x) {
-    if (orgHierarchyProviderFactory) return orgHierarchyAtomOf(m, interp)
+    // `display: focus` → Spectra's hierarchy viewer (one person, managers above, reports below). The
+    // DEFAULT `tree` shows the WHOLE tree: the viewer shows only two levels (grandchildren were lost), so
+    // it is the outline, every node at its depth, clickable, in its accent colour
+    if (orgHierarchyProviderFactory && str(m.display).toLowerCase() === 'focus') return orgHierarchyAtomOf(m, interp)
     const nodes = []
     const walk = (node, depth, last) => {
       if (!node) return
@@ -12923,6 +13198,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       nodes.push({
         depth,
         rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+        // the node's accent colour (it was dropped): a bar along the card's start edge
+        cardStyle: cssColorOf(node.color) ? { borderInlineStart: '4px solid ' + cssColorOf(node.color) } : {},
         rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
         title: interp(str(node.title)),
         subtitle: interp(str(node.subtitle)),
@@ -13217,6 +13494,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: interp(str(it.label)),
         value: it.done ? ['done'] : [],
         labelClass: it.done ? 'mateu-checklist-done' : '',
+        iconClass: it.done ? 'mateu-checklist-box mateu-checklist-box-done' : 'mateu-checklist-box',
+        srStatus: it.done ? ', done' : ', not done',
         readonly: !it.actionId,
         actionId: it.actionId || '',
         parameters: { _item: it, _done: !it.done },
@@ -13721,7 +14000,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
     }
     let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
-    for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+    for (const n of nodes) {
+      if (n.x == null) continue
+      // a name drawn BELOW its shape (events, gateways) is centred on it and may be wider than it:
+      // «Loan requested» under a start event was clipped at the left edge
+      const below = n.label && n.kind !== 'task' && n.kind !== 'note'
+      const half = below ? Math.min(String(n.label).length, 18) * 3.6 : 0
+      maxX = Math.max(maxX, n.x + n.w, n.x + n.w / 2 + half)
+      maxY = Math.max(maxY, n.y + n.h + (below ? 48 : 20))
+      minX = Math.min(minX, n.x, n.x + n.w / 2 - half)
+      minY = Math.min(minY, n.y)
+    }
     for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
     if (!isFinite(minX)) { minX = 0; minY = 0 }
     return {
@@ -13731,10 +14020,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
     }
   }
-  function bpmnAtomOf(m, id) {
+  function bpmnAtomOf(m, id, style) {
     const diagram = bpmnDiagramOf(m.xml)
+    const box = styleObjectOf(style || m.style)
     return {
       isBpmn: true,
+      // its own size (`height: 18rem`): the diagram scales into it
+      bpmnStyle: box,
       bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
       spec: JSON.stringify(diagram),
       isEmpty: !diagram.nodes.length,
@@ -13900,6 +14192,76 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** ProgressSteps → oj-train (horizontal, no descriptions): a done step is VISITED with JET's
+   *  confirmation mark (it read «Status: Not visited» and looked upcoming). With descriptions or
+   *  `vertical` (oj-train draws neither) → our own step list, same done / current / upcoming states. */
+  function progressStepsAtomOf(m, interp = (x) => x) {
+    const raw = m.steps || []
+    const current = raw.find((step) => step.status === 'current')
+    const titleOf = (step) => interp(str(step.title || step.label || step.id))
+    const steps = raw.map((step) => ({
+      id: step.id,
+      label: titleOf(step),
+      ...(step.status === 'done' ? { visited: true, messageType: 'confirmation' } : {}),
+    }))
+    const own = !!m.vertical || raw.some((step) => step.description)
+    return {
+      isProgress: true,
+      steps,
+      selectedId: current ? current.id : (steps[0] && steps[0].id),
+      trainSteps: !own,
+      ownSteps: own,
+      stepsClass: 'mateu-steps' + (m.vertical ? ' mateu-steps-vertical' : ''),
+      stepItems: raw.map((step, i) => {
+        const status = step.status === 'done' || step.status === 'current' ? step.status : 'upcoming'
+        return {
+          key: str(step.id || i),
+          number: status === 'done' ? '✓' : String(i + 1),
+          title: titleOf(step),
+          description: interp(str(step.description)),
+          hasDescription: !!step.description,
+          cls: 'mateu-step mateu-step-' + status,
+          ariaCurrent: status === 'current' ? 'step' : null,
+          srStatus: ', ' + (status === 'done' ? 'done' : status === 'current' ? 'current step' : 'upcoming'),
+        }
+      }),
+    }
+  }
+
+  /** The points of a sparkline (an SVG polyline in a 100×24 box); '' under two finite points. */
+  function sparkPointsOf(values, w = 100, h = 24, pad = 2) {
+    const vals = (values || []).map(Number).filter(Number.isFinite)
+    if (vals.length < 2) return ''
+    const min = Math.min(...vals)
+    const span = Math.max(...vals) - min || 1
+    const step = (w - pad * 2) / (vals.length - 1)
+    return vals.map((v, i) => (pad + i * step).toFixed(1) + ',' + (pad + (h - pad * 2) * (1 - (v - min) / span)).toFixed(1)).join(' ')
+  }
+
+  const STAT_TREND = {
+    up: { glyph: '▲', cls: 'oj-text-color-success', stroke: 'var(--oj-core-success-3, #508223)' },
+    down: { glyph: '▼', cls: 'oj-text-color-danger', stroke: 'var(--oj-core-danger-3, #c74634)' },
+    flat: { glyph: '→', cls: 'oj-text-color-secondary', stroke: 'var(--oj-core-neutral-3, #8a8582)' },
+  }
+  /** Stat → a KPI tile: label, value + unit, the delta coloured by its trend and a sparkline (only the
+   *  label and the value were drawn). Like the web's mateu-stat: an absent trend reads as up. */
+  function statAtomOf(m, interp = (x) => x) {
+    const trend = STAT_TREND[str(m.trend).toLowerCase()] || STAT_TREND[m.trend === 'neutral' ? 'flat' : 'up']
+    const points = sparkPointsOf(m.spark)
+    const delta = interp(str(m.delta))
+    return {
+      isStat: true,
+      label: interp(str(m.label)),
+      value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
+      hasDelta: !!delta,
+      deltaText: delta ? trend.glyph + ' ' + delta : '',
+      deltaClass: 'oj-typography-body-sm ' + trend.cls,
+      hasSpark: !!points,
+      sparkPoints: points,
+      sparkStroke: trend.stroke,
+    }
+  }
+
   // ── CustomComponent: a registry the app fills (the VB app has no build step of its own) ────────
   const customComponents = new Map()
   /** An app registers a view for a custom component type: mount(el, props) paints it into the slot
@@ -13981,6 +14343,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // (`actionId`, or a `…ActionId` of a component: markerActionId, dayActionId, moveActionId…).
     // A surface nested in this one already tagged ITS actions (withSubresources fills inside out).
     if ((top || Object.keys(out).some(isActionKey)) && !out.surfaceId) out.surfaceId = surfaceId
+    // a table's data provider was built from the UNTAGGED rows: a cell naming an action (a Grid
+    // column's actionId link) read no surface from it and went to the host (403) — rebuilt from them
+    if (value.adp && Array.isArray(out.rows) && out.rows !== value.rows && dataProviderFactory) out.adp = dataProviderFactory(out.rows)
     return out
   }
   const isActionKey = (k) => k === 'actionId' || /ActionId$/.test(k)
@@ -26793,11 +27158,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
     for (const f of spec.flows || []) {
       el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
-      if (f.label) {
-        const mid = f.points[Math.floor(f.points.length / 2)]
-        const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
-        t.textContent = f.label
-      }
     }
     for (const n of spec.nodes || []) {
       const cx = n.x + n.w / 2
@@ -26832,8 +27192,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         })
       }
     }
+    // the flows' names last, at the middle of their middle segment: drawn first, at the end point,
+    // the target's shape covered them («yes» out of the gateway was never seen)
+    for (const f of spec.flows || []) {
+      if (!f.label || !f.points || f.points.length < 2) continue
+      const [mx, my, vertical] = bpmnFlowLabelPointOf(f.points)
+      // beside a vertical segment (to its right), above a horizontal one
+      const t = el2('text', vertical
+        ? { x: mx + 6, y: my, 'text-anchor': 'start', 'dominant-baseline': 'middle', class: 'mateu-bpmn-flow-label' }
+        : { x: mx, y: my - 6, 'text-anchor': 'middle', class: 'mateu-bpmn-flow-label' })
+      t.textContent = f.label
+    }
+    // a box with its own height: the diagram scales into it
+    if (el.style && el.style.height) { svg.setAttribute('height', '100%'); svg.style.maxHeight = 'none' }
     el.textContent = ''
     el.appendChild(svg)
+  }
+
+  /** Where a flow's name goes: the middle of its middle segment. */
+  function bpmnFlowLabelPointOf(points) {
+    const i = Math.max(0, Math.floor((points.length - 1) / 2))
+    const a = points[i]
+    const b = points[i + 1] || a
+    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])]
   }
 
   function installBpmn(doc = typeof document !== 'undefined' ? document : null) {
@@ -27240,6 +27621,66 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions', 'data-mateu-cancel-label'] })
   }
 
+  // ── AddOnPicker: the running total follows the switches at once (the web's header does) ─────────
+  /** Writes the picker's new total next to the switch that changed it (before the server answers). */
+  function showAddOnTotal(target, total, currency) {
+    const picker = target && target.closest ? target.closest('.mateu-addons') : null
+    const out = picker ? picker.querySelector('.mateu-addons-total-value') : null
+    if (out) out.textContent = (currency || '€') + ' ' + moneyNumberText(Number(total) || 0)
+  }
+
+  // ── Listings whose row click OPENS the record: the click is not a selection ─────────────────────
+  // oj-table selects the row a click lands on; on a listing whose rows open (the crud's view, a
+  // rowRoute, a master-detail) that click also ticked its checkbox — the web selects only from the
+  // checkbox. The last pointer press is remembered, and the selection chain undoes a change it caused.
+  let lastRowPress = { target: null, at: 0 }
+  /** Installs (once) the memory of the last pointer press. */
+  function installRowClickSelectionGuard(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowPress) return
+    doc.__mateuRowPress = true
+    doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
+  }
+  /** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
+   *  checkbox, nor from the keyboard): that change is to be undone. */
+  function selectionIsRowOpen(table, now = Date.now()) {
+    const t = lastRowPress.target
+    if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
+    const cls = String((table.getAttribute && table.getAttribute('class')) || '')
+    if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
+    return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+  }
+
+  // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
+  /** Marks `id` as the picked method of a picker's methods row (its button takes the callToAction). */
+  function pickPaymentMethod(methods, id) {
+    if (!methods) return
+    methods.setAttribute('data-selected', id)
+    for (const b of Array.from(methods.querySelectorAll('[data-payment-method]'))) {
+      const chroming = b.getAttribute('data-payment-method') === id ? 'callToAction' : 'outlined'
+      try { b.chroming = chroming } catch (e) { /* not upgraded */ }
+      b.setAttribute('chroming', chroming)
+    }
+  }
+  /** The confirm's parameters: the picked method over the server's `selected`. */
+  function paymentParametersOf(target, parameters) {
+    const picker = target && target.closest ? target.closest('.mateu-payment') : null
+    const methods = picker ? picker.querySelector('.mateu-payment-methods') : null
+    const picked = methods ? methods.getAttribute('data-selected') : ''
+    return picked ? { ...(parameters || {}), _method: picked } : { ...(parameters || {}) }
+  }
+  /** Installs (once) the method pick: a click marks it; a method WITHOUT methodActionId stays on the
+   *  client (it used to send an empty action), one with it still tells the server. */
+  function installPaymentPickers(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPaymentPickers) return
+    doc.__mateuPaymentPickers = true
+    doc.addEventListener('click', (e) => {
+      const button = e.target && e.target.closest ? e.target.closest('[data-payment-method]') : null
+      if (!button) return
+      pickPaymentMethod(button.closest('.mateu-payment-methods'), button.getAttribute('data-payment-method'))
+      if (button.getAttribute('data-payment-local') === 'true') e.stopPropagation()
+    }, true)
+  }
+
   // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
   // The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
   // items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
@@ -27296,13 +27737,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const atomOf = (host) => {
       try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
     }
-    // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+    // capture: the list's item action does not have to bubble out of the scoreboard to be heard.
+    // The card's TEXTS (its title, its metric) swallow the click before the list turns it into an
+    // item action — only the card's padding drilled in —, so a click anywhere in an actionable card
+    // runs it here, and the item action that may follow the same click is not run twice.
+    let lastClick = { key: null, at: 0 }
+    const runKey = (host, key) => {
+      if (key === lastClick.key && Date.now() - lastClick.at < 800) return false
+      const run = scoreboardDrillInOf(atomOf(host), key)
+      // a band of an island's goes to THAT island (surfaces.mjs)
+      if (run) { lastClick = { key, at: Date.now() }; scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2])) }
+      return !!run
+    }
+    doc.addEventListener('click', (e) => {
+      const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+      if (!host || !scoreboardSink) return
+      let card = e.target
+      while (card && card !== host && scoreboardIndexOf(card) < 0) card = card.parentElement
+      if (!card || card === host) return
+      runKey(host, 'k' + scoreboardIndexOf(card))
+    }, true)
     doc.addEventListener('ojItemAction', (e) => {
       const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
       if (!host || !scoreboardSink) return
       const key = e.detail && e.detail.context ? e.detail.context.key : null
-      const run = scoreboardDrillInOf(atomOf(host), key)
-      if (run) scoreboardSink(run[0], run[1], surfaceAtomOf(host, run[2]))
+      runKey(host, key)
     }, true)
     if (typeof MutationObserver === 'undefined') return
     const root = doc.body || doc.documentElement
@@ -27474,7 +27933,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // while nothing is checked — as Spectra's collection actions are — and comes on with the first
     // checked row (listSecondaryForSelection, from the selection chain)
     return {
-      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
+      // the primary too: an action that needs rows (rowsSelectedRequired) is off until one is checked
+      mateuListPrimary: primaryToolbar
+        ? listPrimaryForSelection({ label: primaryToolbar.label,
+          ...(primaryToolbar.disabled ? { inert: true } : {}),
+          ...((primaryToolbar.rowsSelectedRequired || required.indexOf(primaryToolbar.actionId) >= 0) ? { needsSelection: true } : {}) }, selection)
+        : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
       // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
       mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
@@ -27489,6 +27953,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Whether a listing selection (selectionOfKeySet) holds at least one row. */
   function hasSelectedRows(selection) {
     return !!selection && (selection.all || (selection.keys || []).length > 0)
+  }
+
+  /** The listing header's primary action for a selection (the same rule as the secondary ones). */
+  function listPrimaryForSelection(primary, selection) {
+    if (!primary || primary.display === 'off') return primary
+    const { display, ...rest } = primary
+    return (primary.inert || (primary.needsSelection && !hasSelectedRows(selection))) ? { ...rest, display: 'disabled' } : rest
   }
 
   /** The listing header's secondary actions with their `display` for a selection: an inert one is
@@ -30245,7 +30716,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
     'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
 
@@ -31224,6 +31695,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setFactActionSink,
     // the KPI band (oj-sp-scoreboard): a card's icon and its drill-in (actionId)
     installScoreboards,
+    showAddOnTotal,
+    installPaymentPickers,
+    installRowClickSelectionGuard,
+    selectionIsRowOpen,
+    paymentParametersOf,
     setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
@@ -31232,6 +31708,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
     listSecondaryForSelection,
+    listPrimaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,
