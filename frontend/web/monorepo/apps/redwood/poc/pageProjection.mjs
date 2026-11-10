@@ -391,6 +391,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
     // primaryId) instead of general-overview's «‹ Cancel» link
     createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
+    // Spectra's Cancel has a FIXED label (no translation, no display option): the wire's
+    // (`cancelLabel()` = «Discard») is put on it by installFactActions (displayDom relabelCancel)
+    cancelLabel: backBtn && primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')) ? String(backBtn.label || '') : '',
     showBand: showBand && !gopOn && !iopOn,
     showInline: showHeader && !showBand && !gopOn && !iopOn,
     showListBand,
