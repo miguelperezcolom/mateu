@@ -111,6 +111,79 @@ internal static class UiPage
         return html[..from] + root + DeferredBoot + html[to..];
     }
 
+    /// <summary>Whether <c>X-Forwarded-Prefix</c> is honoured, when <c>MateuOptions.ForwardedPrefixTrusted</c>
+    /// is not set (Java: <c>mateu.forwarded-prefix.trusted</c>).</summary>
+    public const string ForwardedPrefixTrustedEnvVar = "MATEU_FORWARDED_PREFIX_TRUSTED";
+
+    /// <summary>The header a prefix-stripping proxy sets.</summary>
+    public const string ForwardedPrefixHeader = "X-Forwarded-Prefix";
+
+    private static readonly System.Text.RegularExpressions.Regex SafePrefix =
+        new(@"^(/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)+$");
+
+    private static readonly System.Text.RegularExpressions.Regex RootRelative =
+        new(@"(\s(?:src|href|data-src|data-sw|data-scope)\s*=\s*)([""'])/(?!/)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    private static readonly System.Text.RegularExpressions.Regex RedwoodBase =
+        new(@"(BASE_URL\s*:\s*['""])/_redwood/");
+
+    private static readonly System.Text.RegularExpressions.Regex MateuUiBaseUrl =
+        new(@"(<mateu-ui\b[^>]*?\sbaseUrl\s*=\s*)([""'])([^""']*)\2");
+
+    public static bool ForwardedPrefixTrustedByEnvironment() =>
+        System.Environment.GetEnvironmentVariable(ForwardedPrefixTrustedEnvVar)?.Trim().ToLowerInvariant() == "true";
+
+    /// <summary>Java's <c>ForwardedPrefix.normalize</c>: "" or <c>/a/b</c> — the first value of a list, a
+    /// leading slash, no trailing one, and "" for anything that is not a plain path.</summary>
+    public static string NormalizePrefix(string? prefix)
+    {
+        if (string.IsNullOrEmpty(prefix)) return "";
+        var comma = prefix.IndexOf(',');
+        var value = (comma >= 0 ? prefix[..comma] : prefix).Trim().TrimEnd('/');
+        if (value.Length == 0) return "";
+        if (!value.StartsWith('/')) value = "/" + value;
+        return SafePrefix.IsMatch(value) && !value.Contains("/../", StringComparison.Ordinal)
+                                         && !value.EndsWith("/..", StringComparison.Ordinal)
+            ? value
+            : "";
+    }
+
+    /// <summary>Java's <c>ForwardedPrefix.of</c>: the trusted <c>X-Forwarded-Prefix</c> when there is one,
+    /// else the host's own path base (<c>HttpRequest.PathBase</c>, <c>UsePathBase</c>); "" for none.</summary>
+    public static string RequestPrefix(string? pathBase, string? forwardedPrefix, bool trusted)
+    {
+        if (trusted)
+        {
+            var forwarded = NormalizePrefix(forwardedPrefix);
+            if (forwarded.Length > 0) return forwarded;
+        }
+        return NormalizePrefix(pathBase);
+    }
+
+    /// <summary>Java's <c>IndexPage.underPrefix</c>: the page served under a public path prefix — every
+    /// root-relative URL it names (<c>src</c>, <c>href</c>, <c>data-src</c>, <c>data-sw</c>,
+    /// <c>data-scope</c>), Redwood's <c>BASE_URL</c> and the live-reload meta under the prefix, and the
+    /// <c>&lt;mateu-ui&gt;</c> base url too, which then also carries the prefix as <c>contextPath</c>.
+    /// Unchanged for no prefix.</summary>
+    public static string UnderPrefix(string html, string? prefix)
+    {
+        var p = NormalizePrefix(prefix);
+        if (string.IsNullOrEmpty(html) || p.Length == 0) return html;
+        html = RootRelative.Replace(html, m => m.Groups[1].Value + m.Groups[2].Value + p + "/");
+        html = RedwoodBase.Replace(html, m => m.Groups[1].Value + p + "/_redwood/");
+        html = html.Replace("content=\"/mateu/dev/events\"", "content=\"" + p + "/mateu/dev/events\"", StringComparison.Ordinal);
+        var root = MateuUiBaseUrl.Match(html);
+        if (root.Success)
+        {
+            var value = root.Groups[3].Value;
+            var based = value.Length == 0 || value.StartsWith('/') ? p + value : value;
+            html = html[..root.Index] + root.Groups[1].Value + root.Groups[2].Value + Attr(based)
+                   + root.Groups[2].Value + " contextPath=\"" + Attr(p) + "\"" + html[(root.Index + root.Length)..];
+        }
+        return html;
+    }
+
     /// <summary>The renderer's page aimed at <paramref name="baseUrl"/> (the mount, "" for the root) and titled.</summary>
     /// <remarks>Like Java's <c>IndexPage.render</c>: the favicon marker becomes
     /// <see cref="DefaultFavicon"/> and no template marker is left in the page. With

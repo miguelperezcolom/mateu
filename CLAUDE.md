@@ -905,8 +905,11 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   Demo poms read `mateu.version`; demos are on Boot 4 with distinct ports (front-office-evolution 8596,
   redwood-showcase 8597, explorer 8598, webflux 8092, micronaut 8093, quarkus 8094, helidon 8095,
   kotlin 8096 — `demo/README.md`). The docs site must pass `npm run verify` (build + link check). A
-  servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
-  host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
+  path prefix (servlet context path, or a TRUSTED `X-Forwarded-Prefix` — `mateu.forwarded-prefix.trusted`)
+  is applied per request by `IndexPage.underPrefix` (core `ForwardedPrefix`); every page an adapter
+  serves (class index, YAML mount index, deep links) must go through it, and MVC filters must use
+  `MateuRequestPaths.withinApp`, never the raw request URI. CHANGELOG.md, CONTRIBUTING.md (DCO),
+  SECURITY.md (GitHub advisories) exist.
 
 ## Beta integration (2026-10-18) — refactor phase 4 + Fable review fixes
 

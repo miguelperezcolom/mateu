@@ -155,6 +155,80 @@ def render_index(
     return pwa.served(html, base_url, app_type, build_id) or html
 
 
+#: Whether ``X-Forwarded-Prefix`` is honoured, when not passed to
+#: ``add_mateu(forwarded_prefix_trusted=…)`` (Java: ``mateu.forwarded-prefix.trusted``).
+FORWARDED_PREFIX_TRUSTED_ENV_VAR = "MATEU_FORWARDED_PREFIX_TRUSTED"
+
+#: The header a prefix-stripping proxy sets.
+FORWARDED_PREFIX_HEADER = "x-forwarded-prefix"
+
+_SAFE_PREFIX = re.compile(r"(/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)+")
+
+
+def forwarded_prefix_trusted_from_env() -> bool:
+    return os.environ.get(FORWARDED_PREFIX_TRUSTED_ENV_VAR, "").strip().lower() == "true"
+
+
+def normalize_prefix(prefix: str | None) -> str:
+    """Java's ``ForwardedPrefix.normalize``: ``""`` or ``/a/b`` — the first value of a list, a
+    leading slash, no trailing one, and ``""`` for anything that is not a plain path."""
+    if not prefix:
+        return ""
+    value = prefix.split(",", 1)[0].strip().rstrip("/")
+    if not value:
+        return ""
+    if not value.startswith("/"):
+        value = "/" + value
+    if not _SAFE_PREFIX.fullmatch(value) or "/../" in value or value.endswith("/.."):
+        return ""
+    return value
+
+
+def request_prefix(root_path: str | None, forwarded_prefix: str | None, trusted: bool) -> str:
+    """Java's ``ForwardedPrefix.of``: the trusted ``X-Forwarded-Prefix`` when there is one, else the
+    server's own path base (the ASGI ``root_path``); ``""`` for none."""
+    if trusted:
+        forwarded = normalize_prefix(forwarded_prefix)
+        if forwarded:
+            return forwarded
+    return normalize_prefix(root_path)
+
+
+_ROOT_RELATIVE = re.compile(r"""(\s(?:src|href|data-src|data-sw|data-scope)\s*=\s*)(["'])/(?!/)""", re.IGNORECASE)
+_REDWOOD_BASE = re.compile(r"""(BASE_URL\s*:\s*['"])/_redwood/""")
+_MATEU_UI_BASE_URL = re.compile(r"""(<mateu-ui\b[^>]*?\sbaseUrl\s*=\s*)(["'])([^"']*)\2""")
+_DEV_EVENTS = 'content="/mateu/dev/events"'
+
+
+def under_prefix(html: str, prefix: str | None) -> str:
+    """Java's ``IndexPage.underPrefix``: the page served under a public path prefix — every
+    root-relative URL it names (``src``, ``href``, ``data-src``, ``data-sw``, ``data-scope``),
+    Redwood's ``BASE_URL`` and the live-reload meta under the prefix, and the ``<mateu-ui>`` base
+    url too, which then also carries the prefix as ``contextPath``. Unchanged for no prefix."""
+    p = normalize_prefix(prefix)
+    if not html or not p:
+        return html
+    html = _ROOT_RELATIVE.sub(lambda m: m.group(1) + m.group(2) + p + "/", html)
+    html = _REDWOOD_BASE.sub(lambda m: m.group(1) + p + "/_redwood/", html)
+    html = html.replace(_DEV_EVENTS, 'content="' + p + '/mateu/dev/events"')
+    root = _MATEU_UI_BASE_URL.search(html)
+    if root:
+        value = root.group(3)
+        based = p + value if value == "" or value.startswith("/") else value
+        html = (
+            html[: root.start()]
+            + root.group(1)
+            + root.group(2)
+            + _attr(based)
+            + root.group(2)
+            + ' contextPath="'
+            + _attr(p)
+            + '"'
+            + html[root.end():]
+        )
+    return html
+
+
 #: The mirror of Oracle's CDN, when not passed to ``add_mateu(oracle_cdn_url=…)`` (Java:
 #: ``mateu.oracle-cdn.url`` / ``MATEU_ORACLE_CDN_URL``).
 ORACLE_CDN_ENV_VAR = "MATEU_ORACLE_CDN_URL"

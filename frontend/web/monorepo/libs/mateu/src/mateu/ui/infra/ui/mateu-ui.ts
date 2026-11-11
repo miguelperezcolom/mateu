@@ -77,6 +77,12 @@ export class MateuUi extends LitElement {
     @property()
     pathPrefix: string | undefined = undefined
 
+    // The public prefix the page is served under (a servlet context path, a proxy's
+    // X-Forwarded-Prefix): stamped by the server's index page (IndexPage.underPrefix). baseUrl
+    // already carries it; absolute routes are resolved below it (routeTargetUrl).
+    @property()
+    contextPath: string | undefined = undefined
+
     // Static-bundle mode: URL of a manifest.json (produced by the mateu:bundle Maven goal). When set,
     // route loads are answered from the bundle instead of the backend, so the UI runs from static
     // assets with no server (see infra/http/bundleStore.ts).
@@ -113,7 +119,7 @@ export class MateuUi extends LitElement {
 
         if (e instanceof CustomEvent) {
             if (this.top == 'true') {
-                const targetUrl = routeTargetUrl(e.detail.route, this.baseUrl, this.pathPrefix, window.location.origin)
+                const targetUrl = routeTargetUrl(e.detail.route, this.baseUrl, this.pathPrefix, window.location.origin, this.contextPath)
                 // Path AND query: a listing's filters live in the query string, so the same path
                 // with different filters is a different destination. See nextHistoryUrl.
                 const next = nextHistoryUrl(window.location, targetUrl)

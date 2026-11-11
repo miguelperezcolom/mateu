@@ -40,5 +40,9 @@ public class MateuVersionHeadersServerFilter implements Ordered {
     if (build != null) {
       response.header(AppBuild.HEADER, build);
     }
+    if (io.mateu.core.infra.SseHeaders.isStream(request.getPath())) {
+      // an event stream a buffering proxy passes on as it is written (SseHeaders)
+      io.mateu.core.infra.SseHeaders.HEADERS.forEach(response.getHeaders()::set);
+    }
   }
 }

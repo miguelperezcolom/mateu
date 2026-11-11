@@ -12,6 +12,8 @@ implemented once, in Mateu's core, so it is the same on every adapter.
 |---|---|---|
 | `mateu.cors.allowed-origins` | *(empty: no CORS)* | Comma-separated origins allowed to call Mateu's endpoints from another origin. `*` = any origin; `https://*.example.com` patterns are accepted. |
 | `mateu.cors.allow-credentials` | `false` | Adds `Access-Control-Allow-Credentials: true` for the listed origins. Never combined with `*`. |
+| `mateu.cors.paths` | *(empty)* | Extra paths the allow-list covers besides Mateu's API, comma-separated: `*` matches within a segment, `/**` any depth (`/elements/**`). For the files a shell on another origin loads from this app — an `Element`'s module. |
+| `mateu.forwarded-prefix.trusted` | `false` | Honour `X-Forwarded-Prefix` from a proxy that strips a path prefix: the page then loads its assets and calls its API under that prefix. Only turn it on behind a proxy that sets the header itself. |
 | `mateu.mcp.enabled` | `false` | Serves the native [MCP endpoint](/reference/agent-operability/) at `POST /mateu/mcp`. |
 | `mateu.mcp.task-timeout-seconds` | `120` | How long an MCP tool call waits for a `LongTask` it started; past it the task is cancelled and the agent told. |
 | `mateu.bundle.endpoint.enabled` | `false` | Serves the [runtime bundle](/deploy/static-bundle/#serving-the-bundle-at-runtime-no-build-step) at `GET /mateu/v3/bundle`; off, it answers 404. |

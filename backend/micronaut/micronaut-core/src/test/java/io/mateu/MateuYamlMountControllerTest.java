@@ -51,7 +51,7 @@ class MateuYamlMountControllerTest {
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = indexController.index(path, "text/html");
+      var response = indexController.index(path, "text/html", null);
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -61,15 +61,17 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(indexController.index(null, "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        indexController.index("elsewhere", "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
+        indexController.index(null, "text/html", null).status(), equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        indexController.index("yaml-parity/mateu/v3/x", "text/html").status(),
+        indexController.index("elsewhere", "text/html", null).status(),
+        equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        indexController.index("yaml-parity/mateu/v3/x", "text/html", null).status(),
         equalTo(HttpStatus.NOT_FOUND));
     // a data fetch is never answered the index (a REST source whose endpoint does not exist yet)
     assertThat(
-        indexController.index("yaml-parity/page", "application/json, */*").status(),
+        indexController.index("yaml-parity/page", "application/json, */*", null).status(),
         equalTo(HttpStatus.NOT_FOUND));
   }
 
@@ -102,7 +104,7 @@ class MateuYamlMountControllerTest {
 
   private void servesTheInstallableApp() {
     // the shell links it…
-    var shell = indexController.index("yaml-parity", "text/html").body();
+    var shell = indexController.index("yaml-parity", "text/html", null).body();
     assertThat(
         shell,
         containsString(
@@ -154,7 +156,7 @@ class MateuYamlMountControllerTest {
         controller
             .sync(
                 "yaml-parity/mateu/v3/sync/_no_route",
-                rq,
+                body(rq),
                 HttpRequest.POST("/yaml-parity/mateu/v3/sync/_no_route", rq))
             .block();
     var json = WireMapper.shared().writeValueAsString(increment);
@@ -169,7 +171,7 @@ class MateuYamlMountControllerTest {
         streamed(
                 controller.sse(
                     "yaml-parity/mateu/v3/sse/_no_route",
-                    rq,
+                    body(rq),
                     HttpRequest.POST("/yaml-parity/mateu/v3/sse/_no_route", rq)))
             .collectList()
             .block();
@@ -183,14 +185,16 @@ class MateuYamlMountControllerTest {
     var rq = rq("");
     assertThat(
         controller
-            .sync("other/mateu/v3/sync/x", rq, HttpRequest.POST("/other/mateu/v3/sync/x", rq))
+            .sync("other/mateu/v3/sync/x", body(rq), HttpRequest.POST("/other/mateu/v3/sync/x", rq))
             .blockOptional()
             .isPresent(),
         is(false));
     assertThat(
         streamed(
                 controller.sse(
-                    "other/mateu/v3/sse/x", rq, HttpRequest.POST("/other/mateu/v3/sse/x", rq)))
+                    "other/mateu/v3/sse/x",
+                    body(rq),
+                    HttpRequest.POST("/other/mateu/v3/sse/x", rq)))
             .collectList()
             .block(),
         empty());
@@ -201,6 +205,10 @@ class MateuYamlMountControllerTest {
   private static reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto> streamed(
       reactor.core.publisher.Mono<io.micronaut.http.HttpResponse<?>> response) {
     return (reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto>) response.block().body();
+  }
+
+  private static String body(RunActionRqDto rq) throws Exception {
+    return WireMapper.shared().writeValueAsString(rq);
   }
 
   private static RunActionRqDto rq(String consumedRoute) throws Exception {

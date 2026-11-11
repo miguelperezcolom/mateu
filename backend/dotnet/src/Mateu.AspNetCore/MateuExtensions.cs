@@ -213,7 +213,7 @@ public static class MateuExtensions
                 return UIIncrementDto.Of();
             });
             ctx.Response.ContentType = "text/event-stream";
-            ctx.Response.Headers.CacheControl = "no-cache";
+            SseHeaders(ctx.Response);
             async Task Send(UIIncrementDto increment, CancellationToken token)
             {
                 // an embedded micro frontend's stream steps never name the window either
@@ -404,6 +404,8 @@ public static class MateuExtensions
         // The PWA's head goes on LAST, as on Java (after the Oracle CDN rewrite and the markers): its
         // worker version hashes the page exactly as served.
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
+        var prefixTrusted = app.Services.GetService<MateuOptions>()?.ForwardedPrefixTrusted
+                            ?? UiPage.ForwardedPrefixTrustedByEnvironment();
         var versionSkew = app.Services.GetService<VersionSkew>();
         var signIn = SignInOf(app.Services.GetService<MateuOptions>());
         var mobileApp = MobileManifest.AppTypeOf(registry, baseUrl)?.GetCustomAttribute<MobileAppAttribute>();
@@ -416,7 +418,11 @@ public static class MateuExtensions
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
+            // the public prefix (PathBase, or a trusted X-Forwarded-Prefix): the page's URLs go under it
+            var publicPrefix = UiPage.RequestPrefix(ctx.Request.PathBase.Value,
+                ctx.Request.Headers[UiPage.ForwardedPrefixHeader].FirstOrDefault(), prefixTrusted);
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn,
+                html => UiPage.UnderPrefix(PwaHead(html), publicPrefix));
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             var path = ctx.Request.Path.Value ?? "/";
@@ -515,6 +521,20 @@ public static class MateuExtensions
         }).JsonBodiesOnly();
     }
 
+    /// <summary>The headers every event stream carries (Java's <c>SseHeaders</c>): nginx — and the
+    /// proxies that follow its convention — stops buffering the response, and nothing on the way
+    /// caches or compresses it, so each event reaches the browser when it is written.</summary>
+    internal static readonly IReadOnlyDictionary<string, string> SseHeaderValues = new Dictionary<string, string>
+    {
+        ["Cache-Control"] = "no-cache, no-transform",
+        ["X-Accel-Buffering"] = "no",
+    };
+
+    private static void SseHeaders(HttpResponse response)
+    {
+        foreach (var (name, value) in SseHeaderValues) response.Headers[name] = value;
+    }
+
     /// <summary>The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.</summary>
     internal const string JsonBodiesOnlyMessage = "Mateu endpoints accept only application/json bodies";
 
@@ -595,7 +615,7 @@ public static class MateuExtensions
         app.MapGet(DevSpecs.EventsPath, async (HttpContext ctx) =>
         {
             ctx.Response.ContentType = "text/event-stream";
-            ctx.Response.Headers.CacheControl = "no-cache";
+            SseHeaders(ctx.Response);
             var queue = System.Threading.Channels.Channel.CreateUnbounded<string>();
             queue.Writer.TryWrite(DevSpecs.Hello());
             using var subscription = DevSpecs.Subscribe(json => queue.Writer.TryWrite(json));

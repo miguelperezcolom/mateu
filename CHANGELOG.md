@@ -228,6 +228,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - A listing's `@ColumnWidth("auto")` is an auto-width column again (it was sent as a CSS width of
   `auto`).
 
+### Fixed — Deployment
+
+- **A Mateu app works under a path prefix.** Under a servlet context path
+  (`server.servlet.context-path`, `spring.webflux.base-path`) or behind a proxy that strips a prefix
+  and sends `X-Forwarded-Prefix`, the served page loads its assets, calls its API and keeps the
+  address bar under the prefix. Before, it loaded `/assets/…` from the host root: a blank page. The
+  header is honoured only with `mateu.forwarded-prefix.trusted=true` (all five adapters, .NET
+  `ForwardedPrefixTrusted`, Python `forwarded_prefix_trusted`). `<mateu-ui>` carries the prefix as
+  `contextPath`. The installable app is not available under a prefix yet (see known issues).
+- **Event streams pass through buffering proxies.** Every server-sent-event response sends
+  `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, on the five adapters and both
+  ports. nginx's default buffering no longer holds a `LongTask`'s progress until the end.
+- **Micronaut accepts an `application/*+json` body** on the sync, SSE and YAML-mount endpoints, and
+  **Quarkus accepts `application/json ;charset=UTF-8`** (blanks before the `;`). Both answered 415.
+  The five adapters are now held to the same JSON spellings by a parity test.
+- **Helidon MP: an app that authenticates only in JAX-RS** (MicroProfile JWT, a
+  `ContainerRequestFilter`) is seen by MCP and the YAML mounts too: a call bringing credentials is
+  answered through Jersey. A streamed action answered by Jersey is sent event by event through an
+  `SseEventSink` instead of a buffered `StreamingOutput`. The adapter now depends on
+  `jersey-media-sse`.
+- **`mateu.cors.paths`**: extra path patterns Mateu's CORS allow-list covers (`/elements/**`). A shell
+  on another origin can load a remote screen's `Element` module with no CORS setup of its own.
+- Micronaut logs one WARN at startup on JDK 21–23 with virtual threads (the carrier-pinning
+  limitation), and the route index is built under a lock instead of a monitor.
+
 ### Documentation
 
 - The [feature parity matrix](https://mateu.io/reference/parity/) and

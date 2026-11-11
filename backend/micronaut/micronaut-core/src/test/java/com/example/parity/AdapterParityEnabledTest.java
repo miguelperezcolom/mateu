@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 @Property(name = "mateu.mcp.enabled", value = "true")
 @Property(name = "mateu.mcp.push.enabled", value = "true")
 @Property(name = "mateu.dev", value = "true")
+@Property(name = "mateu.forwarded-prefix.trusted", value = "true")
+@Property(name = "mateu.cors.paths", value = "/elements/**,/assets/large*")
 class AdapterParityEnabledTest {
 
   @Inject EmbeddedServer server;
@@ -38,6 +40,16 @@ class AdapterParityEnabledTest {
   @Test
   void grantsCrossOriginAccessToTheAllowList() {
     contract.grantsCrossOriginAccessToTheAllowList();
+  }
+
+  @Test
+  void grantsCrossOriginAccessToTheConfiguredPaths() {
+    contract.grantsCrossOriginAccessToTheConfiguredPaths("/assets/large.js");
+  }
+
+  @Test
+  void servesThePageUnderATrustedForwardedPrefix() {
+    contract.servesThePageUnderATrustedForwardedPrefix();
   }
 
   @Test

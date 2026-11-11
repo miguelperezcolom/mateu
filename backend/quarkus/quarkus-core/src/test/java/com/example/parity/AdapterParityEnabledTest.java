@@ -23,7 +23,11 @@ class AdapterParityEnabledTest {
           "mateu.mcp.push.enabled",
           "true",
           "mateu.dev",
-          "true");
+          "true",
+          "mateu.forwarded-prefix.trusted",
+          "true",
+          "mateu.cors.paths",
+          "/elements/**,/assets/large*");
     }
   }
 
@@ -32,6 +36,16 @@ class AdapterParityEnabledTest {
   @Test
   void grantsCrossOriginAccessToTheAllowList() {
     contract.grantsCrossOriginAccessToTheAllowList();
+  }
+
+  @Test
+  void grantsCrossOriginAccessToTheConfiguredPaths() {
+    contract.grantsCrossOriginAccessToTheConfiguredPaths("/assets/large.js");
+  }
+
+  @Test
+  void servesThePageUnderATrustedForwardedPrefix() {
+    contract.servesThePageUnderATrustedForwardedPrefix();
   }
 
   @Test

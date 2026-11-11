@@ -60,6 +60,14 @@
             </exclusions>
         </dependency>
 
+        <!-- JAX-RS server-sent events (SseEventSink): a streamed action Jersey has to answer (only
+             JAX-RS can authenticate its caller) is sent event by event (io.mateu.JerseySse); the
+             version comes from the app's Helidon BOM -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-sse</artifactId>
+        </dependency>
+
         <!-- adapter parity tests: @HelidonTest boots the controllers generated (by this adapter's
              own annotation processor) for a test @UI, driven by AdapterParityITFoundation -->
         <dependency>

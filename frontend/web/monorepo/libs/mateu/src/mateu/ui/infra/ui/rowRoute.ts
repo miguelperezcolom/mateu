@@ -71,11 +71,11 @@ export function leaveToRoute(from: HTMLElement, route: string): boolean {
  * another app, or nothing). Without a `mateu-ui` around, `/<route>`.
  */
 export function appRouteHref(from: Element, route: string): string {
-    const ui = closestAcrossShadows(from, 'mateu-ui') as (Element & { baseUrl?: string, pathPrefix?: string }) | undefined
+    const ui = closestAcrossShadows(from, 'mateu-ui') as (Element & { baseUrl?: string, pathPrefix?: string, contextPath?: string }) | undefined
     const fallback = '/' + route.replace(/^\/+/, '')
     if (!ui || typeof window === 'undefined') return fallback
     try {
-        const url = routeTargetUrl(route.startsWith('/') ? route : '/' + route, ui.baseUrl, ui.pathPrefix, window.location.origin)
+        const url = routeTargetUrl(route.startsWith('/') ? route : '/' + route, ui.baseUrl, ui.pathPrefix, window.location.origin, ui.contextPath)
         return url.pathname + url.search + url.hash
     } catch {
         return fallback

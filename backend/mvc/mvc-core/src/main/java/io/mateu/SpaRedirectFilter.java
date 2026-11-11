@@ -32,7 +32,7 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return !"GET".equalsIgnoreCase(request.getMethod())
-        || !SpaFallback.candidate(request.getRequestURI())
+        || !SpaFallback.candidate(MateuRequestPaths.withinApp(request))
         || !SpaFallback.acceptsHtml(request.getHeader("Accept"));
   }
 
@@ -40,7 +40,7 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String path = request.getRequestURI();
+    String path = MateuRequestPaths.withinApp(request);
     var baseUrls = baseUrls();
     // The index of a UI is always served by its own controller.
     if (SpaFallback.isIndex(path, baseUrls) || hasHandler(request)) {

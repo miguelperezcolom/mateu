@@ -65,6 +65,11 @@ _FORBIDDEN_BODY = {
 #: The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.
 _JSON_BODIES_ONLY_MESSAGE = "Mateu endpoints accept only application/json bodies"
 
+# Every event stream carries these (Java's SseHeaders): nginx — and the proxies that follow its
+# convention — stops buffering the response, and nothing on the way caches or compresses it, so
+# each event reaches the browser when it is written.
+SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
+
 
 def _is_json_content_type(content_type: str | None) -> bool:
     """``application/json`` or any ``application/*+json``, parameters ignored."""
@@ -205,6 +210,7 @@ def add_mateu(
     sign_in: Sequence[Any] | None = None,
     login_on_start: bool | None = None,
     logout_url: str | None = None,
+    forwarded_prefix_trusted: bool | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -282,6 +288,11 @@ def add_mateu(
       ``MATEU_AUTH_PROVIDERS_<ID>_*``) wins when it names any. ``login_on_start`` (default True; env
       ``MATEU_AUTH_LOGIN_ON_START``) and ``logout_url`` (env ``MATEU_AUTH_LOGOUT_URL``) go with them.
       Mateu offers the sign-in only: your app validates the token / session (see the sign-in guide).
+    - ``forwarded_prefix_trusted`` — honour the ``X-Forwarded-Prefix`` a prefix-stripping reverse
+      proxy sets (default: the ``MATEU_FORWARDED_PREFIX_TRUSTED`` env var, else OFF: the header is a
+      claim any client can make). The served page (only with ``ui``) then loads its assets and calls
+      the API under that prefix; without it, the ASGI ``root_path`` (``uvicorn --root-path``) is
+      the prefix.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -492,12 +503,12 @@ def add_mateu(
             async def one_error():
                 yield f"data: {payload}\n\n"
 
-            return StreamingResponse(one_error(), media_type="text/event-stream")
+            return StreamingResponse(one_error(), media_type="text/event-stream", headers=SSE_HEADERS)
 
         def event(increment) -> str:
             return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
 
-        headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+        headers = {**SSE_HEADERS, CORRELATION_HEADER: mateu_request.correlation_id or ""}
         if rq.action_id == agent_push.CHANNEL_ACTION:
             return StreamingResponse(
                 _agent_stream(request, queue, channel, handler, event(first), event),
@@ -718,6 +729,11 @@ def add_mateu(
             oracle_cdn=oracle_cdn,
             app_type=presented_by(),
             build_id=lambda: skew.build_id,
+            forwarded_prefix_trusted=(
+                ui_page.forwarded_prefix_trusted_from_env()
+                if forwarded_prefix_trusted is None
+                else forwarded_prefix_trusted
+            ),
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
         if oracle_cdn:
@@ -807,7 +823,7 @@ async def _resume_response(request: Request, handler: SyncHandler, mateu_request
     def event(increment) -> str:
         return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
 
-    headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+    headers = {**SSE_HEADERS, CORRELATION_HEADER: mateu_request.correlation_id or ""}
 
     async def single():
         if first is not None:
@@ -882,8 +898,10 @@ class MateuUiMiddleware:
         oracle_cdn: str | None = None,
         app_type: type | None = None,
         build_id: Callable[[], str] | None = None,
+        forwarded_prefix_trusted: bool = False,
     ):
         self.app = app
+        self.forwarded_prefix_trusted = forwarded_prefix_trusted
         self.oracle_cdn = oracle_cdn
         self.app_type = app_type
         self.build_id = build_id
@@ -894,9 +912,12 @@ class MateuUiMiddleware:
         self.title = title
         self.debug = debug
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, prefix: str = ""
+    ) -> tuple[str, bytes, str | None] | None:
         """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
-        or None when the request is not ours."""
+        or None when the request is not ours. ``prefix``: the public path prefix the page is served
+        under (``ui_page.request_prefix``)."""
         if path != "/" and ui_page.is_asset(path):
             body = self.renderer.read(path)
             if body is None:
@@ -916,6 +937,7 @@ class MateuUiMiddleware:
             self.app_type,
             self.build_id() if self.build_id else None,
         )
+        html = ui_page.under_prefix(html, prefix)
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 
     async def __call__(self, scope, receive, send):
@@ -923,7 +945,16 @@ class MateuUiMiddleware:
             await self.app(scope, receive, send)
             return
         accept = next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept"), None)
-        answer = self.answer(scope["path"], accept)
+        root_path = scope.get("root_path") or ""
+        path = scope["path"]
+        # a server that keeps its root_path in the path (Starlette's routing does): match without it
+        if root_path and path.startswith(root_path):
+            path = path[len(root_path):] or "/"
+        forwarded = next(
+            (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"x-forwarded-prefix"), None
+        )
+        prefix = ui_page.request_prefix(root_path, forwarded, getattr(self, "forwarded_prefix_trusted", False))
+        answer = self.answer(path, accept, prefix)
         if answer is None:
             await self.app(scope, receive, send)
             return
@@ -944,7 +975,6 @@ class MateuUiMiddleware:
             return
         content_type, body, cache_control = answer
         extra = []
-        path = scope["path"]
 
         def header(name: bytes) -> str | None:
             return next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == name), None)
@@ -996,7 +1026,9 @@ class MateuApiHintMiddleware(MateuUiMiddleware):
         self.app = app
         self.base_url = "/" + mount if mount else ""
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, prefix: str = ""
+    ) -> tuple[str, bytes, str | None] | None:
         if path not in (self.base_url or "/", self.base_url + "/"):
             return None
         if not accept or "text/html" not in accept:
@@ -1031,7 +1063,7 @@ def _add_dev_endpoints(app: FastAPI) -> None:
             finally:
                 unsubscribe()
 
-        return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+        return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
 
     async def reload(request: Request) -> Response:
         dev_specs.reload(request.query_params.get("scope"))
