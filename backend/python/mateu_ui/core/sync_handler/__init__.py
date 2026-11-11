@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from mateu_ui.core import observability
 from ..page_breadcrumbs import with_back_link_breadcrumbs
 
 from ._common import (  # noqa: F401 - the public import path of every helper
@@ -501,12 +502,17 @@ class SyncHandler(
             rq = rq.model_copy(update={"route": path})
         # A class-level @eyes_only view is for the authorized only, whichever way the request names
         # it — its server-side type, its route, or a sub-route of it (a crud's /new, /{id}).
+        resolved_view = False
         for named in (
             self.registry.resolve(rq.server_side_type, None) if rq.server_side_type else None,
             self.registry.resolve(None, rq.route) if rq.route is not None else None,
             (self.registry.resolve_by_prefix(rq.route) or (None,))[0] if rq.route else None,
         ):
             action_guard.ensure_class_access(self.mapper, named)
+            if named is not None and observability.current() is not None and not resolved_view:
+                # the view the request resolved to, for its span and the audit trail
+                observability.set_view(named)
+                resolved_view = True
         # The YAML access keys (the data twin of @eyes_only & co.): a refused route / declared
         # action answers 403, and fields locked for the caller lose their client-sent values.
         rq = self._guard_yaml_access(rq)

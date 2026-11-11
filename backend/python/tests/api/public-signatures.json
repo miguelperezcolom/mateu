@@ -27,11 +27,89 @@
     "restricts": []
    }
   },
+  "ActionAuditEvent": {
+   "class": [
+    [
+     "caller",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "view",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "record_ids",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "at",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "duration_millis",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "outcome",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "correlation_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "error_reference",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "reserved_action": "property"
+   }
+  },
+  "ActionAuditListener": {
+   "class": [],
+   "members": {
+    "on_action": [
+     [
+      "event",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "ActionCatalogSupplier": {
    "class": [],
    "members": {
     "action_catalog": []
    }
+  },
+  "ActionOutcome": {
+   "enum": [
+    "ERROR",
+    "FORBIDDEN",
+    "NOT_FOUND",
+    "OK",
+    "USER_ERROR"
+   ]
   },
   "ActionRequest": {
    "class": [

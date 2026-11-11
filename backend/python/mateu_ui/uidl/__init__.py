@@ -95,6 +95,7 @@ from .markers import (  # noqa: F401
     UseRadioButtons,
     Version,
 )
+from .audit import ActionAuditEvent, ActionAuditListener, ActionOutcome  # noqa: F401
 from .remote import (  # noqa: F401
     CorrelationIdProvider,
     FragmentCachePolicy,
@@ -493,6 +494,7 @@ __all__ = [
     "ContentSlot", "cacheable_fragment", "CorrelationIdProvider", "FragmentCachePolicy",
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",
     "MicroFrontendResolutionListener", "RemoteCatalogSupplier", "RemoteDescriptor",
+    "ActionAuditEvent", "ActionAuditListener", "ActionOutcome",
     "RemoteIdentityStrategy", "RemoteRegistry", "ResolutionOutcome",
     # Editable views and master-detail views (Java's EditableView / AutoEditableView /
     # MasterDetailView orchestrators)

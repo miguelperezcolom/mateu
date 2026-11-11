@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from mateu_ui.core import observability
 from datetime import (
     date,
     datetime,
@@ -571,6 +572,8 @@ class SearchHandlerMixin(MixinBase):
     @staticmethod
     def delete(crud, id_) -> str:
         crud.delete(id_)
+        # the audit trail's "on what" (never the record's values)
+        observability.record_id(id_)
         return "Deleted"
 
     @staticmethod
