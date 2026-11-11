@@ -469,6 +469,9 @@
         "osNotifications" : {
           "type" : "boolean"
         },
+        "pushNotifications" : {
+          "type" : "boolean"
+        },
         "requiredCapabilities" : {
           "type" : "array",
           "items" : {
