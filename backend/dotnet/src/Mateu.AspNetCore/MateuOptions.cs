@@ -47,6 +47,13 @@ public sealed class MateuOptions
     /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
     public string? OracleCdnUrl { get; set; }
 
+    /// <summary>Honour the <c>X-Forwarded-Prefix</c> a prefix-stripping reverse proxy sets: the served
+    /// page (only with <c>MapMateu(ui: …)</c>) then loads its assets and calls the API under that
+    /// prefix. Null (the default) reads <c>MATEU_FORWARDED_PREFIX_TRUSTED</c>; off, the header is
+    /// ignored (any client can send it) and the request's <c>PathBase</c> (<c>UsePathBase</c>) is the
+    /// prefix. Java: <c>mateu.forwarded-prefix.trusted</c>.</summary>
+    public bool? ForwardedPrefixTrusted { get; set; }
+
     /// <summary>Serve every UI as an installable Progressive Web App: the served page links a web app
     /// manifest and registers a network-first service worker (an offline shell; never the API or the
     /// REST-source data), both under <c>{mount}/mateu/v3/pwa/</c>. Null (the default) means ON unless the
