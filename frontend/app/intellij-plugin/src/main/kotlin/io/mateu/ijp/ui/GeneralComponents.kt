@@ -41,7 +41,7 @@ import javax.swing.table.DefaultTableModel
  * carousel, board, content, responsive grid), navigation (breadcrumbs, menu bar, context menu,
  * directory), display (grid, virtual list, avatar(s), icon, details, tooltip, notification, result,
  * not-found, cookie consent, element), conversation (chat, message list/input), editors shown
- * read-only (BPMN, workflow, form editor), overlays met inline (dialog, drawer, confirm dialog) and
+ * read-only (BPMN; workflow and form editor are editable, DefinitionEditors.kt), overlays met inline (dialog, drawer, confirm dialog) and
  * the micro-frontend island. Every interactive control gets an accessible name (a bare JComponent
  * has a NULL AccessibleContext — only concrete Swing classes are named here).
  */
@@ -707,18 +707,6 @@ internal fun bpmnFlowNodes(xml: String): List<Pair<String, String>> {
     }
     byId.forEach { (id, v) -> if (id !in ordered) ordered[id] = v }
     return ordered.values.toList()
-}
-
-/** Workflow / FormEditor: their serialized value, read-only and monospaced. */
-fun renderSourceView(title: String, value: String): JComponent {
-    val area = com.intellij.ui.components.JBTextArea(value.ifBlank { "(empty)" }).apply {
-        isEditable = false
-        font = Font(Font.MONOSPACED, Font.PLAIN, font.size)
-        rows = value.lines().size.coerceIn(3, 20)
-        accessibleName(title)
-    }
-    return JBScrollPane(area).apply { border = IdeBorderFactory.createTitledBorder(plain(title), false) }
-        .let { it.fixedHeight(it.preferredSize.height) }
 }
 
 // ── conversation ───────────────────────────────────────────────────────────────────────────
