@@ -186,11 +186,12 @@ Mateu generates the UI from your model. You do not need to test what Mateu gener
 
 ---
 
-## What not to test
+## What not to test here
 
-- The generated forms and listings — Mateu handles this
-- Routing — covered by integration tests
-- UI rendering — no Mateu-specific test API required
+- The generated forms and listings — Mateu handles them; to check what YOUR screen shows (its
+  fields, buttons, rows, access rules) and how it behaves when a user types and presses, use the
+  [test harness](/quality/testing-your-uis/) (`io.mateu:mateu-test`)
+- UI rendering — layout and looks belong to the renderers' own suites
 
 ---
 
@@ -205,6 +206,7 @@ Mateu generates the UI from your model. You do not need to test what Mateu gener
 
 ## Next
 
+- [Testing your UIs](/quality/testing-your-uis/) — open a route, type, press and read the screen with no browser
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/) — understand what actions can return
 - [Security](/java-user-manual/advanced/security/) — test pages that read authorization headers
 - [Real-world patterns](/java-user-manual/real-world/) — how testing fits in hexagonal and microservices architectures

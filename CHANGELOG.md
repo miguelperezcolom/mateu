@@ -16,6 +16,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
 
+### Added
+
+- **A test harness to test your UIs without a browser** (experimental): open a route, read the
+  fields, buttons, listing rows, messages and commands, type, press, search, open or select rows,
+  follow the menu and navigation, as a user with roles for the access rules — in milliseconds, with no
+  server. Java: the new `io.mateu:mateu-test` (in `mateu-bom`; `MateuTest.builder().scan(pkg)` /
+  `.ui(…)` / `.bean(…)` / `.specs(dir)`, no Spring needed); C#: `Mateu.AspNetCore.Testing.MateuTest`;
+  Python: `mateu_ui.testing.MateuTest`. The Spring MVC starter (and the projects generated from it)
+  ships a `ProductsUiTest`. Guide: [Testing your UIs](https://mateu.io/quality/testing-your-uis/).
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

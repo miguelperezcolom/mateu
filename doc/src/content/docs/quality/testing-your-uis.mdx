@@ -1,0 +1,243 @@
+---
+title: "Testing your UIs"
+description: "Test a Mateu UI the way a user uses it — open a route, read the fields, buttons and rows, type, press, follow navigation — with no browser and no server, in Java, C# or Python."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Unit tests of your view models cover the logic of an action ([Testing](/java-user-manual/advanced/testing/)).
+They do not tell you what the user **sees**: that the listing really shows four rows, that the Save
+button of a new product creates it, that a field an admin may edit is read-only for everybody else.
+For that, Mateu ships a **test harness**: it runs Mateu in your test's process, opens a route the way
+a renderer does and lets the test read the screen and act on it.
+
+- **No browser, no server, no port.** The harness calls the same entry point the `/mateu/v3/sync`
+  endpoint calls; a test runs in milliseconds.
+- **What the renderers receive.** The test reads the very answer every renderer draws (Vaadin,
+  Redwood, the app, the IDE), so a passing test holds on all of them.
+- **A user's gestures.** `open`, read `field`/`button`/`listing`, `set` a value, `press` a button,
+  `search`, open or select a `row`, follow the menu — and the screen follows what the server answers:
+  an app shell to its home, a CRUD to its listing and to `/new` or `/{id}/edit`, a `NavigateTo`, a
+  drawer or dialog stacked over the page, the listing's first search.
+- **An identity.** Open a screen as a user with roles to test `@EyesOnly`, `@ReadOnlyUnless`,
+  `@DisabledUnless` and YAML `access:` rules.
+
+:::caution[Experimental]
+The harness is new in 3.0 and marked experimental: its API may still change in a minor release.
+:::
+
+## Set it up
+
+<Tabs syncKey="lang">
+<TabItem label="Java">
+
+Add `io.mateu:mateu-test` (managed by `io.mateu:mateu-bom`) with test scope, next to JUnit:
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-test</artifactId>
+    <version>${mateu.version}</version>
+    <scope>test</scope>
+</dependency>
+```
+
+It needs no Spring, Quarkus or Micronaut context: the harness builds Mateu's own beans and the beans
+you hand it. Failures are plain `AssertionError`s, so it works with JUnit, AssertJ or anything else.
+
+</TabItem>
+<TabItem label="C#">
+
+The harness ships in `Mateu.AspNetCore` (namespace `Mateu.AspNetCore.Testing`); reference the app
+project from your xUnit/NUnit/MSTest project. It registers Mateu exactly as `AddMateu` does — your
+services, your `MateuOptions`, your identity mapping — with no web host.
+
+</TabItem>
+<TabItem label="Python">
+
+The harness ships in `mateu-ui` as `mateu_ui.testing`. It wires Mateu exactly as `add_mateu` does
+(it takes the same arguments), with no server; use it from pytest.
+
+</TabItem>
+</Tabs>
+
+## A first test
+
+The starter's Products CRUD, tested as a user uses it:
+
+<Tabs syncKey="lang">
+<TabItem label="Java">
+
+```java
+import io.mateu.test.MateuTest;
+
+class ProductsUiTest {
+
+  @Test
+  void aNewProductIsSaved() {
+    try (var mateu = MateuTest.builder().scan("com.example.app").start()) {
+      var products = mateu.open("/products");
+      assertEquals(4, products.listing().total());
+
+      var form = products.button("New").press();      // the crud's /new form
+      form.field("id").set("P-100");
+      form.field("Name").set("Tamper");               // by id or by label
+      form.field("price").set(19.5);
+      form.field("status").set(ProductStatus.Available);
+      form.button("Save").press();
+
+      assertEquals("Tamper", ProductStore.INSTANCE.findById("P-100").orElseThrow().name());
+    }
+  }
+}
+```
+
+`scan("com.example.app")` serves every `@UI` class of the package, as the annotation processor
+registers them in the app (`ui(Shell.class, …)` lists them instead). The `specs/ui` YAML on the class
+path is served too, so a project whose shell and routes are YAML needs no class at all;
+`specs(Path)` reads it from another directory. The generated projects of the
+[New project wizards](/java-create-your-project/) include this test.
+
+</TabItem>
+<TabItem label="C#">
+
+```csharp
+using Mateu.AspNetCore.Testing;
+
+public class ProductsUiTests
+{
+    [Fact]
+    public void A_new_product_is_saved()
+    {
+        using var mateu = MateuTest.Start(typeof(Products).Assembly);
+        var products = mateu.Open("/products");
+        Assert.Equal(4, products.Listing().Total);
+
+        var form = products.Button("New").Press();
+        form.Field("id").Set("P-100");
+        form.Field("Name").Set("Tamper");
+        form.Field("price").Set(19.5);
+        form.Field("status").Set(ProductStatus.Available);
+        form.Button("Save").Press();
+
+        Assert.Contains(new Products().Fetch(null), p => p.Name == "Tamper");
+    }
+}
+```
+
+`MateuTest.Start(services => …, options => …, assemblies)` registers the services your views use
+and the options of `AddMateu`.
+
+</TabItem>
+<TabItem label="Python">
+
+```python
+from mateu_ui.testing import MateuTest
+
+import views
+
+
+def test_a_new_product_is_saved():
+    mateu = MateuTest(views)
+    products = mateu.open("/products")
+    assert products.listing().total == 4
+
+    form = products.button("New").press()
+    form.field("id").set("P-100")
+    form.field("Name").set("Tamper")
+    form.field("price").set(19.5)
+    form.field("status").set(views.ProductStatus.Available)
+    form.button("Save").press()
+
+    assert views.Products().get("P-100").name == "Tamper"
+```
+
+`MateuTest(*sources, **options)` takes what `add_mateu` takes (`translator=`, `mock_sources=`…).
+
+</TabItem>
+</Tabs>
+
+A field is found by its id or its label, a button by its label or the action it runs. When it is not
+there, the failure lists what there is (`No field "nme" on /products/new. Fields: [id, name, price,
+status]`).
+
+## What a screen offers
+
+| | Java | C# | Python |
+|---|---|---|---|
+| Where it is | `route()`, `title()`, `pageTitle()` | `Route`, `Title`, `PageTitle` | `route`, `title`, `page_title` |
+| The app shell's menu | `menu()`, `openMenu("Sales > Orders")` | `Menu` | `menu` |
+| Fields | `fields()`, `field(idOrLabel)`, `hasField(…)` | `Fields`, `Field(…)`, `HasField(…)` | `fields`, `field(…)`, `has_field(…)` |
+| A field's look | `value()`, `text()`, `readOnly()`, `required()`, `disabled()`, `options()`, `dataType()`, `stereotype()` | `Value`, `Text`, `ReadOnly`, `Required`, `Options`, `DataType`, `Stereotype` | `value`, `text`, `read_only`, `required`, `options`, `data_type`, `stereotype` |
+| Typing | `field(…).set(value)`, `clear()` | `Field(…).Set(value)` | `field(…).set(value)` |
+| Buttons | `buttons()`, `button(labelOrAction)`, `enabled()`, `press()` | `Buttons`, `Button(…)`, `Enabled`, `Press()` | `buttons`, `button(…)`, `enabled`, `press()` |
+| The listing | `listing().columns()`, `rows()`, `total()`, `row(i)`, `row("text")`, `search(…)`, `filter(id, v)`, `page(n)`, `sortBy(…)` | `Listing().Columns`, `Rows`, `Total`, `Row(…)`, `Search(…)`, `Filter(…)`, `GoToPage(n)` | `listing().columns`, `rows`, `total`, `row(…)`, `search(…)`, `filter(…)`, `page(n)` |
+| A row | `get(column)`, `open()`, `select()` | `[column]`, `Open()`, `Select()` | `[column]`, `open()`, `select()` |
+| What the last gesture showed | `messages()`, `lastMessage()`, `commands()` | `Messages`, `LastMessage`, `Commands` | `messages`, `last_message`, `commands` |
+| Overlays | `hasOverlay()`, `overlayTitle()`, `closeOverlay()` | `HasOverlay`, `OverlayTitle`, `CloseOverlay()` | `has_overlay`, `overlay_title`, `close_overlay()` |
+| Anything else | `shows(text)`, `state()`, `component()` (the wire JSON), `run(actionId, params)`, `navigate(route)` | `Shows`, `State`, `Component`, `Run`, `Navigate` | `shows`, `state`, `component`, `run`, `navigate` |
+
+`mateu.exchange(request, identity)` is the raw door: one request, the answer as wire JSON.
+
+## Access rules
+
+<Tabs syncKey="lang">
+<TabItem label="Java">
+
+```java
+var visitor = mateu.open("/greeting");
+assertFalse(visitor.hasField("note"));               // @EyesOnly(roles = "admin")
+assertTrue(visitor.field("code").readOnly());        // @ReadOnlyUnless(roles = "admin")
+assertFalse(visitor.button("reset").enabled());      // @DisabledUnless(roles = "admin")
+
+var admin = mateu.open("/greeting", Identity.withRoles("admin"));
+assertTrue(admin.hasField("note"));
+```
+
+`Identity.withClaims(Map.of("sub", "ada", "scope", "orders:write"))` reads token claims the way Mateu
+reads a token your framework verified; `Identity.of(CallerIdentity)` spells every dimension out.
+
+</TabItem>
+<TabItem label="C#">
+
+```csharp
+Assert.False(mateu.Open("/greeting").HasField("note"));
+Assert.True(mateu.Open("/greeting", MateuTest.User("ada", "admin")).HasField("note"));
+```
+
+The `ClaimsPrincipal` goes through your `MateuOptions.Identity` mapping, as `HttpContext.User` does.
+
+</TabItem>
+<TabItem label="Python">
+
+```python
+assert not mateu.open("/greeting").has_field("note")
+assert mateu.open("/greeting", MateuTest.user("admin")).has_field("note")
+```
+
+The `Identity` is bound as the request's authenticated principal, so your `identity_provider` reads
+it as in the app.
+
+</TabItem>
+</Tabs>
+
+## What it does not do
+
+The harness runs the server side of a UI. What a renderer runs **in the browser** is reported as
+declared, never evaluated:
+
+- **Client-side rules** — a field shown, hidden or disabled by an expression. `disabled()` is true
+  only for an unconditional `@Disabled` or a `@DisabledUnless` the caller fails.
+- **REST sources called from the browser** — pressing a button whose action is a direct `restAction`
+  fails with a clear message; a proxied source runs on the server and works.
+- **Client-side validation** — the server re-checks the same constraints, so a save with an empty
+  required field answers "There are validation errors", which is what the test reads.
+- **Looks** — layout, styles and themes. Screenshot tests belong to the renderers' own suites.
+
+One harness at a time per JVM in Java (the core keeps its bean provider in a static holder): do not
+run harness tests in parallel threads. A `Screen` is one user's tab and is not thread-safe.
+
+## Next
+
+- [Testing](/java-user-manual/advanced/testing/) — unit tests of actions and view models
+- [Security](/java-user-manual/advanced/security/) — the access rules the identity drives
