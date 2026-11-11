@@ -485,6 +485,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // endpoint) are app-level too (mirrors Java's KeepAlive/LiveUpdates action runners).
         if (rq.ActionId == ReflectionMapper.KeepAliveActionId) return KeepAlive(instance);
         if (rq.ActionId == ReflectionMapper.LiveUpdatesActionId) return LiveUpdatesSnapshot();
+        // Record presence: a page reports itself, the app answers who else is there (mirrors
+        // Java's PresenceActionRunner).
+        if (rq.ActionId == Presence.ActionId) return PresenceAction(type, rq);
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);

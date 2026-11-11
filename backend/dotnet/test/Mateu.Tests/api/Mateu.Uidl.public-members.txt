@@ -126,6 +126,7 @@ Mateu.Uidl.AppAttribute property System.Boolean Inbox { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean LiveUpdates { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean MobileQr { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean OsNotifications { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean Presence { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean ThemeToggle { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleTimeoutMinutes { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleWarningSeconds { get;set; }
@@ -1168,6 +1169,11 @@ Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnly
 Mateu.Uidl.IOverlineSupplier abstract method System.String Overline()
 Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
 Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
+Mateu.Uidl.IPresenceStore abstract method System.Boolean Touch(System.String, System.String, Mateu.Uidl.PresenceMember)
+Mateu.Uidl.IPresenceStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PresenceMember> Members(System.String, System.String, System.DateTimeOffset?)
+Mateu.Uidl.IPresenceStore abstract method System.Void Leave(System.String, System.String, System.String, System.String)
+Mateu.Uidl.IPresenceStore virtual method System.IDisposable OnChange(System.Action<System.String,System.String>)
+Mateu.Uidl.IPresenceStore virtual method System.Void Expire(System.DateTimeOffset)
 Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
 Mateu.Uidl.IRecordSwitcherSupplier abstract method System.Object SwitchTo(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
@@ -1802,6 +1808,13 @@ Mateu.Uidl.Popover property Mateu.Uidl.IComponent Wrapped { get;init; }
 Mateu.Uidl.Popover property Mateu.Uidl.PopoverTrigger Trigger { get;init; }
 Mateu.Uidl.PopoverTrigger enum Click
 Mateu.Uidl.PopoverTrigger enum Hover
+Mateu.Uidl.PresenceMember ctor(System.String, System.String, System.String, System.Boolean, System.DateTimeOffset, System.DateTimeOffset)
+Mateu.Uidl.PresenceMember property System.Boolean Editing { get;init; }
+Mateu.Uidl.PresenceMember property System.DateTimeOffset LastSeen { get;init; }
+Mateu.Uidl.PresenceMember property System.DateTimeOffset Since { get;init; }
+Mateu.Uidl.PresenceMember property System.String Name { get;init; }
+Mateu.Uidl.PresenceMember property System.String Principal { get;init; }
+Mateu.Uidl.PresenceMember property System.String Tab { get;init; }
 Mateu.Uidl.PricingPlan ctor()
 Mateu.Uidl.PricingPlan property System.Boolean Featured { get;init; }
 Mateu.Uidl.PricingPlan property System.Collections.Generic.IReadOnlyList<System.String> Features { get;init; }

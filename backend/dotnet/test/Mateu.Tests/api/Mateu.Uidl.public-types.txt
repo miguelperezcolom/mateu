@@ -260,6 +260,7 @@ Mateu.Uidl.IOptionsSupplier
 Mateu.Uidl.IOverlineSupplier
 Mateu.Uidl.IPageWidthSupplier
 Mateu.Uidl.IPeerNavigationSupplier
+Mateu.Uidl.IPresenceStore
 Mateu.Uidl.IRecordSwitcherSupplier
 Mateu.Uidl.IRefreshOnChange
 Mateu.Uidl.IRemoteCatalogSupplier
@@ -393,6 +394,7 @@ Mateu.Uidl.PlanningBoard
 Mateu.Uidl.PlanningResource
 Mateu.Uidl.Popover
 Mateu.Uidl.PopoverTrigger
+Mateu.Uidl.PresenceMember
 Mateu.Uidl.PricingPlan
 Mateu.Uidl.PricingTable
 Mateu.Uidl.PrimaryColumnAttribute

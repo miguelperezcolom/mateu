@@ -91,6 +91,11 @@ public record AppMetadataDto(
     /// action over the SSE endpoint). (Mirrors AppDto.liveUpdates.)</summary>
     public bool LiveUpdates { get; init; }
 
+    /// <summary>[App(Presence)]: record pages tell who else has the same record open and who edits
+    /// it (the _presence app-level action + PresenceChanged commands on the app event stream).
+    /// EXPERIMENTAL. (Mirrors AppDto.presence.)</summary>
+    public bool Presence { get; init; }
+
     /// <summary>[App(IdleTimeoutMinutes)]: the idle-session warning; null = off. (Mirrors
     /// AppDto.idleSession.)</summary>
     public IdleSessionDto? IdleSession { get; init; }

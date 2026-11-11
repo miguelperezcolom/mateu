@@ -117,6 +117,7 @@ public static class MateuExtensions
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
                 // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
                 InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
+                PresenceStore = sp.GetService<IPresenceStore>() ?? Presence.DefaultStore,
             };
         });
         return services;
@@ -279,8 +280,23 @@ public static class MateuExtensions
                 if (SyncHandler.IsFor(change, caller))
                     queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.NotificationsChangedCommand(change)]));
             });
-            using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
-                LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+            // record presence: a change of a record THIS caller has open (any tab) — never another's
+            var presenceScope = Presence.ScopeOf(prefix, rq.ServerSideType);
+            using var presence = string.IsNullOrWhiteSpace(caller)
+                                 || !SyncHandler.PresenceEnabledFor(handler.TypeNamed(rq.ServerSideType))
+                ? null
+                : handler.PresenceStore.OnChange((scope, record) =>
+                {
+                    if (scope != presenceScope || !Presence.IsOn(handler.PresenceStore, scope, record, caller)) return;
+                    queue.Writer.TryWrite(UIIncrementDto.Of(commands:
+                        [Presence.Command(Presence.Snapshot(handler.PresenceStore, scope, record, caller))]));
+                });
+            using var heartbeat = new Timer(_ =>
+            {
+                // a tab that went silent leaves its records, even if nobody else calls
+                Presence.Sweep(handler.PresenceStore);
+                queue.Writer.TryWrite(UIIncrementDto.Of());
+            }, null, LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
             try
             {
                 await foreach (var increment in queue.Reader.ReadAllAsync(lifetime.Token))

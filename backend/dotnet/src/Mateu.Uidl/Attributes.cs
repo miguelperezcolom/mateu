@@ -378,6 +378,13 @@ public sealed class AppAttribute(string title) : Attribute
     /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>
     public bool LiveUpdates { get; set; }
 
+    /// <summary>RECORD PRESENCE: on a record page each signed-in user sees who else has the same
+    /// record open — and who is EDITING it, with a warning — so two people do not overwrite each
+    /// other. The changes travel on the app event stream (one per browser). In memory per process
+    /// unless the app registers an <see cref="IPresenceStore"/>. Opt-in. (C# analogue of Java's
+    /// @App(presence).) EXPERIMENTAL.</summary>
+    public bool Presence { get; set; }
+
     /// <summary>OS-LEVEL NOTIFICATIONS: a new inbox entry and a background task that finished also
     /// raise an operating-system notification while the app is not in front (the Web Notifications
     /// API, local notifications on a phone). Permission is asked only from a user gesture in the
