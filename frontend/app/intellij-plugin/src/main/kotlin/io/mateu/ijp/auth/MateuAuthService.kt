@@ -117,6 +117,7 @@ class MateuAuthService(private val project: Project) : TokenProvider {
             scope = it.oidcScope,
             deviceAuthorizationEndpoint = it.oidcDeviceEndpoint,
             tokenEndpoint = it.oidcTokenEndpoint,
+            audience = it.oidcAudience.ifBlank { null },
         )
     }
 
@@ -138,10 +139,33 @@ class MateuAuthService(private val project: Project) : TokenProvider {
     }
 
     /**
-     * OIDC device sign-in as a cancellable background task: show the user code, open the browser on
-     * the verification page, poll until approved. [onDone] runs on the EDT with the outcome.
+     * OIDC sign-in. A UI with several sign-in providers (the desktop hub's entry) first asks which one
+     * ([io.mateu.ijp.hub.SignInChooserDialog], on the EDT); cancelling it ends here with false.
      */
     fun signIn(onDone: (Boolean) -> Unit = {}) {
+        val hub = project.getService(io.mateu.ijp.plugin.MateuProjectService::class.java)
+        val providers = hub?.signInProviders().orEmpty()
+        if (providers.size > 1) {
+            val chosen = io.mateu.ijp.hub.SignInChooserDialog.choose(project, hub!!.signInUiName(), providers, hub.lastSignInProvider())
+            if (chosen == null) {
+                onDone(false)
+                return
+            }
+            hub.useSignInProvider(chosen)
+        }
+        startSignIn { ok ->
+            if (ok) hub?.signedInWith(settings.oidcProviderId)
+            onDone(ok)
+        }
+    }
+
+    /**
+     * The sign-in itself as a cancellable background task. With a device grant (RFC 8628): show the user
+     * code, open the verification page, poll until approved. Without one (Google's web clients, Apple,
+     * most social IdPs): Authorization Code + PKCE with a loopback redirect to this machine (RFC 8252),
+     * the provider's page opened in the system browser. [onDone] runs on the EDT with the outcome.
+     */
+    private fun startSignIn(onDone: (Boolean) -> Unit) {
         val flow = OidcDeviceFlow(oidcConfig())
         val target = sessionKey()
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Signing in to Mateu", true) {
@@ -150,7 +174,19 @@ class MateuAuthService(private val project: Project) : TokenProvider {
 
             override fun run(indicator: ProgressIndicator) {
                 try {
-                    val endpoints = flow.endpoints()
+                    val discovery = flow.discovery()
+                    if (discovery.device == null) {
+                        indicator.text = "Continue the sign-in in your browser"
+                        val tokens = flow.loopback(discovery, browse = { io.mateu.ijp.ui.SafeHtml.browse(it) }, cancelled = { indicator.isCanceled })
+                        sessions.rememberAccessToken(target, tokens.accessToken)
+                        sessions.storeRefreshToken(target, tokens.refreshToken)
+                        ok = true
+                        return
+                    }
+                    val endpoints = OidcDeviceFlow.Endpoints(
+                        discovery.device,
+                        discovery.token ?: throw OidcDeviceFlow.OidcException("The provider at ${flow.issuer} does not advertise a token_endpoint."),
+                    )
                     val code = flow.start(endpoints)
                     indicator.text = "Confirm code ${code.userCode} in your browser"
                     notify(

@@ -27,6 +27,9 @@ class OidcDeviceFlow(
 
     data class Endpoints(val deviceAuthorization: String, val token: String)
 
+    /** The issuer this flow signs in with (for messages). */
+    val issuer: String? get() = config.issuer
+
     data class DeviceCode(
         val deviceCode: String,
         val userCode: String,
@@ -62,6 +65,111 @@ class OidcDeviceFlow(
             token ?: discovery.path("token_endpoint").textOrNull()
                 ?: throw OidcException("The provider at $issuer does not advertise a token_endpoint."),
         )
+    }
+
+    /**
+     * What the provider offers for an interactive sign-in. [device] null = no device grant (Google's web
+     * clients, Apple, many social IdPs): then [loopback] signs in with Authorization Code + PKCE through a
+     * redirect to this machine (RFC 8252). Explicit endpoints in the settings win over discovery.
+     */
+    data class Discovery(val device: String?, val token: String?, val authorization: String?)
+
+    fun discovery(): Discovery {
+        val device = config.deviceAuthorizationEndpoint?.ifBlank { null }
+        val token = config.tokenEndpoint?.ifBlank { null }
+        if (device != null && token != null) return Discovery(device, token, null)
+        val issuer = config.issuer?.trimEnd('/')?.ifBlank { null }
+            ?: throw OidcException("Configure an OIDC issuer (or both the device and token endpoints).")
+        val doc = getJson("$issuer/.well-known/openid-configuration")
+        return Discovery(
+            device ?: doc.path("device_authorization_endpoint").textOrNull(),
+            token ?: doc.path("token_endpoint").textOrNull(),
+            doc.path("authorization_endpoint").textOrNull(),
+        )
+    }
+
+    /**
+     * Authorization Code + PKCE with a LOOPBACK redirect (RFC 8252 §7.3), for a provider with no device
+     * grant: a one-shot listener on `http://127.0.0.1:<random port>/callback`, the authorize page opened
+     * in the system browser by [browse], the code (checked against our `state`) exchanged with the PKCE
+     * verifier. The provider must accept a loopback redirect for this client — any port (RFC 8252 §7.3:
+     * Google's desktop clients, Entra's "mobile and desktop" platform with `http://localhost`/`127.0.0.1`,
+     * Keycloak with a `http://127.0.0.1` redirect URI pattern). [cancelled] is polled; [timeoutMillis] bounds the wait.
+     */
+    fun loopback(
+        discovery: Discovery = discovery(),
+        browse: (String) -> Unit,
+        cancelled: () -> Boolean = { false },
+        timeoutMillis: Long = 5 * 60_000,
+    ): Tokens {
+        val authorize = discovery.authorization
+            ?: throw OidcException("The provider at ${config.issuer} advertises neither a device_authorization_endpoint nor an authorization_endpoint.")
+        val tokenEndpoint = discovery.token ?: throw OidcException("The provider at ${config.issuer} does not advertise a token_endpoint.")
+        val verifier = Pkce.verifier()
+        val state = Pkce.verifier()
+        val nonce = Pkce.verifier()
+        val answer = java.util.concurrent.CompletableFuture<Map<String, String>>()
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress(java.net.InetAddress.getLoopbackAddress(), 0), 0)
+        server.createContext("/callback") { ex ->
+            val params = queryOf(ex.requestURI.rawQuery)
+            // only OUR answer counts: anything else on this port (another tab, a stray request) is ignored
+            val ours = params["state"] == state
+            val html = if (ours && params["code"] != null) LOOPBACK_DONE else LOOPBACK_FAILED
+            val bytes = html.toByteArray(StandardCharsets.UTF_8)
+            ex.responseHeaders.add("Content-Type", "text/html; charset=utf-8")
+            ex.responseHeaders.add("Cache-Control", "no-store")
+            ex.sendResponseHeaders(if (ours) 200 else 400, bytes.size.toLong())
+            ex.responseBody.use { it.write(bytes) }
+            if (ours) answer.complete(params)
+        }
+        server.start()
+        try {
+            val redirectUri = "http://127.0.0.1:${server.address.port}/callback"
+            val query = linkedMapOf(
+                "response_type" to "code",
+                "client_id" to config.clientId,
+                "redirect_uri" to redirectUri,
+                "state" to state,
+                "nonce" to nonce,
+                "code_challenge" to Pkce.challenge(verifier),
+                "code_challenge_method" to "S256",
+            )
+            config.scope?.ifBlank { null }?.let { query["scope"] = it }
+            config.audience?.ifBlank { null }?.let { query["audience"] = it }
+            val separator = if (authorize.contains('?')) "&" else "?"
+            browse(authorize + separator + encode(query))
+            val deadline = System.currentTimeMillis() + timeoutMillis
+            var params: Map<String, String>? = null
+            while (params == null) {
+                if (cancelled()) throw OidcException("Sign-in cancelled.")
+                if (System.currentTimeMillis() > deadline) throw OidcException("The sign-in took too long. Try again.")
+                params = runCatching { answer.get(250, java.util.concurrent.TimeUnit.MILLISECONDS) }.getOrNull()
+            }
+            params["error"]?.let { throw OidcException(if (it == "access_denied") "Sign-in was denied." else params["error_description"] ?: it) }
+            val code = params["code"] ?: throw OidcException("The provider sent no authorization code.")
+            val form = mutableMapOf(
+                "grant_type" to "authorization_code",
+                "code" to code,
+                "redirect_uri" to redirectUri,
+                "client_id" to config.clientId,
+                "code_verifier" to verifier,
+            )
+            val (status, body) = postForm(tokenEndpoint, form)
+            if (status !in 200..299) throw OidcException(errorOf(body) ?: "Token request failed (HTTP $status).")
+            return tokensOf(body)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    private fun queryOf(raw: String?): Map<String, String> =
+        raw.orEmpty().split('&').filter { it.isNotBlank() }.associate {
+            val parts = it.split('=', limit = 2)
+            java.net.URLDecoder.decode(parts[0], StandardCharsets.UTF_8) to java.net.URLDecoder.decode(parts.getOrElse(1) { "" }, StandardCharsets.UTF_8)
+        }
+
+    private fun encode(form: Map<String, String>): String = form.entries.joinToString("&") { (k, v) ->
+        URLEncoder.encode(k, StandardCharsets.UTF_8) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8)
     }
 
     /**
@@ -181,9 +289,7 @@ class OidcDeviceFlow(
     }
 
     private fun postForm(url: String, form: Map<String, String>): Pair<Int, JsonNode> {
-        val encoded = form.entries.joinToString("&") { (k, v) ->
-            URLEncoder.encode(k, StandardCharsets.UTF_8) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8)
-        }
+        val encoded = encode(form)
         val req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("Accept", "application/json")
@@ -195,6 +301,13 @@ class OidcDeviceFlow(
 
     companion object {
         const val DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
+
+        private const val LOOPBACK_DONE =
+            "<!doctype html><html><head><meta charset=\"utf-8\"><title>Signed in</title></head>" +
+                "<body style=\"font-family:sans-serif;padding:2rem\"><p>You are signed in. You can close this tab and go back to the app.</p></body></html>"
+        private const val LOOPBACK_FAILED =
+            "<!doctype html><html><head><meta charset=\"utf-8\"><title>Sign-in</title></head>" +
+                "<body style=\"font-family:sans-serif;padding:2rem\"><p>This sign-in did not come from the app, or it failed. Go back to the app and try again.</p></body></html>"
     }
 }
 
@@ -205,6 +318,8 @@ data class OidcConfig(
     val scope: String? = "openid profile offline_access",
     val deviceAuthorizationEndpoint: String? = null,
     val tokenEndpoint: String? = null,
+    /** Extra `audience` some providers (Auth0) need to mint a JWT access token. */
+    val audience: String? = null,
 )
 
 private fun JsonNode.textOrNull(): String? = if (isTextual && asText().isNotBlank()) asText() else null

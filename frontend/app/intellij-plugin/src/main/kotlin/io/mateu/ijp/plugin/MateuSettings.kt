@@ -29,12 +29,16 @@ class MateuSettings : PersistentStateComponent<MateuSettings.State> {
         var oidcScope: String = "openid profile offline_access"
         var oidcDeviceEndpoint: String = ""
         var oidcTokenEndpoint: String = ""
+        var oidcAudience: String = ""
+        /** Which of the UI's sign-in providers (manifest `auth.providers[].id`) the OIDC fields describe;
+         *  empty for a provider typed in by hand. */
+        var oidcProviderId: String = ""
     }
 
     enum class AuthMode(val label: String) {
         NONE("No authentication"),
         TOKEN("Bearer token"),
-        OIDC("OpenID Connect (device sign-in)"),
+        OIDC("OpenID Connect (browser sign-in)"),
         ;
 
         override fun toString(): String = label

@@ -32,7 +32,18 @@ object HubManifest {
     const val MAX_ICON_DATA_URI = 200_000
     val DEFAULT_SCOPES = listOf("openid", "profile", "email", "offline_access")
 
-    data class Auth(val issuer: String, val clientId: String, val scopes: List<String>, val audience: String? = null)
+    /** One sign-in provider ([SignInProviders]): `default` for the single legacy keys. */
+    data class Auth(
+        val issuer: String,
+        val clientId: String,
+        val scopes: List<String>,
+        val audience: String? = null,
+        val id: String = "default",
+        /** What the chooser calls it; null → the issuer's host. */
+        val label: String? = null,
+        /** A brand token (SignInProviders.ICONS), drawn as a neutral initial — never brand artwork. */
+        val icon: String = "key",
+    )
 
     data class Manifest(
         val name: String,
@@ -40,10 +51,15 @@ object HubManifest {
         val icon: String? = null,
         val themeColor: String? = null,
         val wireVersion: String? = null,
+        /** The first sign-in provider the desktop can use (what a manifest meant before `providers`). */
         val auth: Auth? = null,
         val bundle: String? = null,
         /** The Mateu release serving the UI (the server sends it itself): [AppCompat] compares it with ours. */
         val mateuVersion: String? = null,
+        /** EVERY sign-in provider the desktop can use, in the UI's order: one → straight to it, several → a chooser. */
+        val providers: List<Auth> = listOfNotNull(auth),
+        /** Sign in before the first screen (default); false = only when a 401 asks. */
+        val loginOnStart: Boolean = true,
     )
 
     sealed interface Fetch {
@@ -85,6 +101,7 @@ object HubManifest {
     /** Validates a manifest answer. Never throws; a missing name falls back to the domain. */
     fun parse(raw: JsonNode?, baseUrl: String, allowInsecure: Boolean = false): Manifest {
         val r = raw?.takeIf { it.isObject }
+        val providers = providersOf(r?.get("auth"), allowInsecure, baseUrl)
         val wire = r?.get("wireVersion")?.takeIf { it.isTextual || it.isNumber }?.let { if (it.isNumber) it.numberValue().toString() else it.asText() }
         return Manifest(
             name = cleanText(r?.get("name"), MAX_NAME) ?: HubLinks.domainOf(baseUrl),
@@ -92,9 +109,11 @@ object HubManifest {
             icon = resolveIcon(r?.get("icon"), baseUrl, allowInsecure),
             themeColor = r?.get("themeColor")?.takeIf { it.isTextual && HEX_COLOUR.matches(it.asText()) }?.asText()?.lowercase(),
             wireVersion = wire,
-            auth = authOf(r?.get("auth"), allowInsecure, baseUrl),
+            auth = providers.firstOrNull(),
             bundle = r?.get("bundle")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText(),
             mateuVersion = r?.get("mateuVersion")?.takeIf { it.isTextual && AppCompat.release(it.asText()) != null }?.asText(),
+            providers = providers,
+            loginOnStart = r?.get("auth")?.get("loginOnStart")?.takeIf { it.isBoolean }?.asBoolean() ?: true,
         )
     }
 
@@ -107,24 +126,12 @@ object HubManifest {
         return !ok.secure && HubLinks.isLoopbackHost(ok.host.replace(Regex(":\\d+$"), ""))
     }
 
-    /** The manifest's sign-in, only when its identity provider is https too: the user's password goes there. */
-    private fun authOf(raw: JsonNode?, allowInsecure: Boolean, baseUrl: String = ""): Auth? {
-        if (raw == null || !raw.isObject) return null
-        if ((raw.get("type")?.asText() ?: "oidc") != "oidc") return null
-        val issuer = raw.get("issuer")?.takeIf { it.isTextual }?.asText()?.trimEnd('/').orEmpty()
-        val clientId = raw.get("clientId")?.takeIf { it.isTextual }?.asText().orEmpty()
-        if (issuer.isEmpty() || clientId.isEmpty()) return null
-        val localIssuer = isLoopbackBase(baseUrl) && isLoopbackBase(issuer)
-        val secure = issuer.startsWith("https://", true) || ((allowInsecure || localIssuer) && issuer.startsWith("http://", true))
-        if (!secure) return null
-        val scopesNode = raw.get("scopes")
-        val scopes = when {
-            scopesNode?.isArray == true -> scopesNode.filter { it.isTextual }.map { it.asText() }
-            scopesNode?.isTextual == true -> scopesNode.asText().split(Regex("[\\s,]+")).filter { it.isNotEmpty() }
-            else -> DEFAULT_SCOPES
-        }.ifEmpty { DEFAULT_SCOPES }
-        return Auth(issuer, clientId, scopes, raw.get("audience")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText())
-    }
+    /** The manifest's sign-in providers for the desktop, only those whose identity provider is https too: the user's password goes there. */
+    private fun providersOf(raw: JsonNode?, allowInsecure: Boolean, baseUrl: String = ""): List<Auth> =
+        SignInProviders.parse(raw, "desktop").filter { auth ->
+            val localIssuer = isLoopbackBase(baseUrl) && isLoopbackBase(auth.issuer)
+            auth.issuer.startsWith("https://", true) || ((allowInsecure || localIssuer) && auth.issuer.startsWith("http://", true))
+        }
 
     /** Can the desktop app render that UI at all? A static site, or what [AppCompat] says is REQUIRED,
      *  cannot. Null = it can (it may still be [compat]ibly behind: see [compat]). */
