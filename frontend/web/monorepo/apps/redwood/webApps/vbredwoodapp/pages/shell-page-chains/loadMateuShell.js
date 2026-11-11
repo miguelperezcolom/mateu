@@ -265,6 +265,10 @@ define([
         // the navigator a phone opened over a MENU_ON_TOP / TABS shell has no place once it is wide
         if (!narrow && !$application.variables.mateuMenuDrawerMode && !$application.variables.mateuMenuSections) $application.variables.mateuNavDrawerOpen = false;
       });
+      // The page declares sign-in providers (<meta name="mateu-auth">): complete a callback / sign
+      // in BEFORE the first load (bridge signIn.mjs). False while the user is sent to a provider
+      // or picks one in the chooser — nothing loads behind it. Without the meta: true at once.
+      if (!(await bridge.bootSignIn(base, document))) return;
       const boot = await bridge.bootstrapShell(base);
       // a @UI that is NOT an App (a page, a crud): no menu or route of its own — its home is the
       // mount's «fresh» load (bridge.bootstrapHasApp / setMountWithoutApp)
@@ -320,7 +324,8 @@ define([
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
-      $application.variables.mateuHeaderActions = nav.headerActions;
+      // + "Sign out" when the built-in sign-in holds a session (bridge signIn.mjs)
+      $application.variables.mateuHeaderActions = bridge.withSignOutAction(nav.headerActions);
 
       // The App's header widgets (WidgetSupplier): the user one to the profile area, the rest to
       // the actions zone. The bridge puts the HTML into the hole the template stamps; a

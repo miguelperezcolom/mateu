@@ -435,8 +435,19 @@ function raiseSessionExpired() {
     const detail = { retry: () => settle(true), giveUp: () => settle(false) }
     const claimed = !document.dispatchEvent(
       new CustomEvent('mateu-session-expired', { detail, cancelable: true, bubbles: false }))
-    if (!claimed) settle(false)
+    if (claimed) return
+    // nobody else re-authenticates: the built-in sign-in does when the page declares providers
+    // (signIn.mjs); without it the request fails as always
+    if (builtInReauthentication) builtInReauthentication(detail)
+    else settle(false)
   })
+}
+
+let builtInReauthentication = null
+
+/** The built-in sign-in's answer to a 401 nobody claimed ({retry, giveUp}); null removes it. */
+export function setBuiltInReauthentication(handler) {
+  builtInReauthentication = typeof handler === 'function' ? handler : null
 }
 
 /**

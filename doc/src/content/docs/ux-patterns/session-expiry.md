@@ -54,27 +54,43 @@ document.addEventListener('mateu-session-expired', e => {
 - A **403 is not a session problem** and never raises the event: the server knows who you are and
   refuses this (an undeclared action, a missing role). Redwood shows "No tienes permiso para hacer
   esto." instead of the session message.
-- With **no handler registered** and no [sign-in providers](/deploy/sign-in/) declared, the request
-  fails — the guard is fully opt-in. With providers declared, the built-in sign-in below handles it.
+- With **no handler registered**, behavior is exactly as before: the request fails — the guard is
+  fully opt-in. The exception is a UI that declares [sign-in providers](/deploy/sign-in/): then the
+  built-in sign-in answers (next section).
 - Because the page never navigates, everything holds: form values, wizard position, scroll,
   selection. Combine with the [dirty guard](/ux-patterns/partial-forms/) and
   [autosave](/ux-patterns/autosave/) for defense in depth.
 
-## Built-in sign-in: handled for you
+## Sign-in providers: the built-in answer
 
-A UI that declares its [sign-in providers](/deploy/sign-in/) (Keycloak, Entra ID, Okta, Auth0,
-GitHub through your framework…) needs none of the above — the client signs in itself, and a 401
-that no `onSessionExpired` handler of yours claims is handled by it:
+When the UI declares [sign-in providers](/deploy/sign-in/) (`mateu.auth.providers=…`), the served
+page carries them in `<meta name="mateu-auth">` and both web renderers (Vaadin and Redwood) sign the
+user in themselves — no bootstrap script to write:
 
-- with an **OpenID Connect** provider it refreshes the access token (its refresh token) and
-  retries the request, so the action completes; it also refreshes before the token expires;
-- if there is nothing to refresh with, or the refresh is refused (the provider's session expired
-  or was revoked), it asks the user to sign in again — the provider itself, or the sign-in chooser
-  when there are several — and brings them back to the page they were on;
-- with a **framework-owned** login (`redirect` providers: Spring `oauth2Login`, SAML, form login),
-  signing in again is the framework's page, reached with `continue=` the current address.
+- **At boot**, with `loginOnStart` (the default) and no session, one provider is followed straight
+  away and several are offered in a chooser ("Continue with Google", "Continue with Acme SSO"…).
+  Nothing loads behind it. `loginOnStart: false` loads the app and waits for the first 401.
+- **An OIDC provider** runs Authorization Code + PKCE (S256) with `state` and `nonce`: the browser
+  goes to the IdP's authorize endpoint and comes back to the mount's root (register
+  `<origin><mount>/` as the redirect URI); the code is redeemed, the URL is cleaned and put back on
+  the route the user was on. The access token goes where [the Bearer token is
+  kept](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token) and is
+  refreshed a minute before it expires.
+- **A redirect provider** (the framework owns the login: Spring's `oauth2Login`, SAML, form login…)
+  sends the browser to its `url` with `continue=<the current URL>`.
+- **A 401** that no `onSessionExpired` handler and no `mateu-session-expired` listener claimed is
+  answered by the refresh token and the request is retried, as above. Without one (or when the
+  refresh is refused), the user signs in again — straight to the only provider, coming back to this
+  URL, or through the chooser, which they may decline (the request then fails as it would have).
+- **Sign out** appears in the app header while the built-in sign-in holds a session (`signOut()`
+  from `mateu` does the same): the tokens go, then the IdP ends its session (`end_session_endpoint`
+  with `id_token_hint`, back to the mount) or the browser goes to `logoutUrl`.
+- A failed attempt (the IdP answered an error, the code could not be redeemed) always shows the
+  chooser with a message, even for a single provider — a broken IdP is never a redirect loop.
 
-A handler you register with `onSessionExpired` still wins: it is the way to keep your own flow.
+**Your own handler still wins**: an `onSessionExpired` handler, a claimed `mateu-session-expired`
+event, or `configureAuthToken({ provider })` (the app keeps the token itself, so it also owns
+sign-in) take precedence over the built-in.
 
 ## Container-managed login (basic auth / form login): the invisible 302
 

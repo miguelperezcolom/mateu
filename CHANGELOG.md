@@ -36,6 +36,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
 
+### Added — sign-in providers on the web
+
+- **The web renderers sign the user in themselves when the UI declares sign-in providers**
+  (`<meta name="mateu-auth">`, see [Sign-in providers](https://mateu.io/deploy/sign-in/)). One
+  provider is followed straight away, several are offered in an accessible chooser ("Continue with
+  …", English/Spanish, no brand artwork). OIDC providers run Authorization Code + PKCE (S256) with
+  state and nonce, come back to the route the user was on, refresh before expiry and on a 401;
+  redirect providers go to the framework's login URL with `continue=`. A 401 nobody else handles is
+  refreshed and retried, else the user signs in again; an `onSessionExpired` handler, a claimed
+  `mateu-session-expired` event or `configureAuthToken({ provider })` still take precedence.
+  "Sign out" appears in the header (and `signOut()` from `mateu`): end_session at the IdP or the
+  framework's `logoutUrl`. Vaadin (libs/mateu `infra/auth`) and Redwood (`poc/signIn.mjs`) are held
+  to the new client corpus `conformance/client/sign-in-flow.json`; browser probe
+  `e2e/sign-in-probe.mjs` (mock IdP).
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

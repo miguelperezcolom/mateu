@@ -12,6 +12,7 @@ import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTe
 import { interpolateRestUrl } from './restSources.mjs'
 import { kanbanCardsFromRows, kanbanMovedColumns, kanbanMoveParametersOf } from './core/kanban.mjs'
 import { foldoutOpenStates } from './foldouts.mjs'
+import { signInConfigOf, signInPlanOf, signInRequiredAtBoot } from './signIn.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -118,11 +119,27 @@ for (const c of foldoutAuto.cases) {
   }
 }
 
+// ── what the page's <meta name="mateu-auth"> shows (conformance/client/sign-in-flow.json) ──────
+const signInFlow = JSON.parse(readFileSync(corpusFile('sign-in-flow.json'), 'utf8'))
+const shownOf = (plan) => (plan.show === 'provider' ? 'provider:' + plan.provider.id : plan.show)
+for (const c of signInFlow.cases) {
+  try {
+    const config = signInConfigOf(c.auth)
+    assert.deepEqual(config ? config.providers.map((p) => [p.id, p.type, p.label, p.icon]) : null, c.expected.providers)
+    assert.equal(config ? config.loginOnStart : null, c.expected.loginOnStart)
+    assert.equal(shownOf(signInPlanOf(config, signInRequiredAtBoot(config, c.session))), c.expected.atBoot)
+    assert.equal(shownOf(signInPlanOf(config, true, true)), c.expected.afterFailure)
+    passed++
+  } catch (e) {
+    failures.push(`sign-in flow: ${c.name}: ${e.message}`)
+  }
+}
+
 const total = expressions.cases.length + routeParams.cases.length + routeParams.syncPaths.length
-  + sourceTemplates.cases.length + kanbanOrder.sort.length + kanbanOrder.move.length + foldoutAuto.cases.length
+  + sourceTemplates.cases.length + kanbanOrder.sort.length + kanbanOrder.move.length + foldoutAuto.cases.length + signInFlow.cases.length
 if (failures.length) {
   console.error(failures.map((f) => '  ✗ ' + f).join('\n'))
   console.error(`${failures.length} of ${total} client conformance cases FAILED`)
   process.exit(1)
 }
-console.log(`${passed} client conformance cases OK (expressions, route params, source templates, kanban order, foldout auto-open)`)
+console.log(`${passed} client conformance cases OK (expressions, route params, source templates, kanban order, foldout auto-open, sign-in flow)`)

@@ -1,0 +1,88 @@
+{
+  "description": "What a WEB client makes of the page's <meta name=\"mateu-auth\"> (the manifest's auth block, see conformance/client/sign-in.json for how a server builds it). `auth` is the block as the meta carries it; the client keeps the providers usable on the web, in declared order (a repeated id keeps its first declaration), drops what it cannot use (an unknown type, an oidc provider without issuer or clientId, a redirect one without url), defaults platforms (oidc: web+mobile+desktop, redirect: web), scopes (openid profile), icon (key; an unknown token is key) and label (the id). A block with no `providers` but `type: oidc` + issuer + clientId is provider `default`. `expected.providers` = [id, type, label, icon] per kept provider, or null when nothing is left (the client then shows nothing and loads as before). `expected.atBoot` is what boot shows for `session` (false = no token and no redirect session): `nothing` (load the app), `provider:<id>` (straight to it) or `chooser`. `afterFailure` is what it shows when the last attempt came back with an error: always the chooser, so a broken IdP never loops. Run by libs/mateu (signInConfig.conformance.test.ts) and Redwood (poc/test-conformance.mjs).",
+  "cases": [
+    {
+      "name": "one oidc provider: straight to it",
+      "auth": {"loginOnStart": true, "providers": [{"id": "acme", "type": "oidc", "label": "Acme SSO", "icon": "key", "issuer": "https://idp.acme.com/realms/acme", "clientId": "mateu-ui"}]},
+      "session": false,
+      "expected": {"providers": [["acme", "oidc", "Acme SSO", "key"]], "loginOnStart": true, "atBoot": "provider:acme", "afterFailure": "chooser"}
+    },
+    {
+      "name": "two providers: the chooser, in the declared order",
+      "auth": {"providers": [
+        {"id": "github", "type": "redirect", "label": "GitHub", "icon": "github", "url": "/oauth2/authorization/github"},
+        {"id": "google", "type": "oidc", "label": "Google", "icon": "google", "issuer": "https://accounts.google.com", "clientId": "123.apps.googleusercontent.com"}
+      ]},
+      "session": false,
+      "expected": {"providers": [["github", "redirect", "GitHub", "github"], ["google", "oidc", "Google", "google"]], "loginOnStart": true, "atBoot": "chooser", "afterFailure": "chooser"}
+    },
+    {
+      "name": "a session already there: nothing to show",
+      "auth": {"providers": [{"id": "acme", "type": "oidc", "issuer": "https://idp.acme.com", "clientId": "ui"}]},
+      "session": true,
+      "expected": {"providers": [["acme", "oidc", "acme", "key"]], "loginOnStart": true, "atBoot": "nothing", "afterFailure": "chooser"}
+    },
+    {
+      "name": "loginOnStart false: the app loads, sign-in waits for a 401",
+      "auth": {"loginOnStart": false, "providers": [{"id": "acme", "type": "oidc", "issuer": "https://idp.acme.com", "clientId": "ui"}]},
+      "session": false,
+      "expected": {"providers": [["acme", "oidc", "acme", "key"]], "loginOnStart": false, "atBoot": "nothing", "afterFailure": "chooser"}
+    },
+    {
+      "name": "providers not meant for the web are left out",
+      "auth": {"providers": [
+        {"id": "mobile-only", "type": "oidc", "issuer": "https://idp.acme.com", "clientId": "app", "platforms": ["mobile", "desktop"]},
+        {"id": "github", "type": "redirect", "label": "GitHub", "icon": "github", "url": "/oauth2/authorization/github"}
+      ]},
+      "session": false,
+      "expected": {"providers": [["github", "redirect", "GitHub", "github"]], "loginOnStart": true, "atBoot": "provider:github", "afterFailure": "chooser"}
+    },
+    {
+      "name": "unusable providers are dropped: an oidc one without client id, a redirect one without url, an unknown type",
+      "auth": {"providers": [
+        {"id": "broken", "type": "oidc", "issuer": "https://idp.acme.com"},
+        {"id": "nowhere", "type": "redirect"},
+        {"id": "saml", "type": "saml", "url": "/saml"},
+        {"id": "acme", "type": "oidc", "issuer": "https://idp.acme.com", "clientId": "ui"}
+      ]},
+      "session": false,
+      "expected": {"providers": [["acme", "oidc", "acme", "key"]], "loginOnStart": true, "atBoot": "provider:acme", "afterFailure": "chooser"}
+    },
+    {
+      "name": "a repeated id keeps its first declaration",
+      "auth": {"providers": [
+        {"id": "acme", "type": "oidc", "label": "First", "issuer": "https://idp.acme.com", "clientId": "ui"},
+        {"id": "acme", "type": "redirect", "label": "Second", "url": "/login"}
+      ]},
+      "session": false,
+      "expected": {"providers": [["acme", "oidc", "First", "key"]], "loginOnStart": true, "atBoot": "provider:acme", "afterFailure": "chooser"}
+    },
+    {
+      "name": "an unknown icon token is the generic key; the token is case-insensitive",
+      "auth": {"providers": [
+        {"id": "corp", "type": "oidc", "icon": "acme-logo", "issuer": "https://idp.corp", "clientId": "ui"},
+        {"id": "ms", "type": "oidc", "label": "Microsoft", "icon": "Microsoft", "issuer": "https://login.microsoftonline.com/common/v2.0", "clientId": "ui"}
+      ]},
+      "session": false,
+      "expected": {"providers": [["corp", "oidc", "corp", "key"], ["ms", "oidc", "Microsoft", "microsoft"]], "loginOnStart": true, "atBoot": "chooser", "afterFailure": "chooser"}
+    },
+    {
+      "name": "a block that predates providers: the single oidc issuer is provider default",
+      "auth": {"type": "oidc", "issuer": "https://idp.acme.com/realms/acme", "clientId": "mateu-ui", "scopes": ["openid", "profile"]},
+      "session": false,
+      "expected": {"providers": [["default", "oidc", "default", "key"]], "loginOnStart": true, "atBoot": "provider:default", "afterFailure": "chooser"}
+    },
+    {
+      "name": "no usable provider: nothing, the app loads as before",
+      "auth": {"providers": [{"id": "mobile-only", "type": "oidc", "issuer": "https://idp.acme.com", "clientId": "app", "platforms": ["mobile"]}]},
+      "session": false,
+      "expected": {"providers": null, "loginOnStart": null, "atBoot": "nothing", "afterFailure": "nothing"}
+    },
+    {
+      "name": "an empty block: nothing",
+      "auth": {},
+      "session": false,
+      "expected": {"providers": null, "loginOnStart": null, "atBoot": "nothing", "afterFailure": "nothing"}
+    }
+  ]
+}
