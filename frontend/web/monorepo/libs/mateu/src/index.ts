@@ -1,5 +1,6 @@
 export { onSessionExpired } from './mateu/ui/infra/http/sessionGuard.ts'
 export type { SessionExpiredContext } from './mateu/ui/infra/http/sessionGuard.ts'
+export { signOut } from './mateu/ui/infra/auth/signIn.ts'
 export { registerExternalAuthProvider } from './mateu/ui/infra/http/externalAuth.ts'
 export type { ExternalAuthProvider, ExternalAuthContext } from './mateu/ui/infra/http/externalAuth.ts'
 export { registerCustomComponent } from './mateu/ui/infra/ui/renderers/customComponentRegistry.ts'

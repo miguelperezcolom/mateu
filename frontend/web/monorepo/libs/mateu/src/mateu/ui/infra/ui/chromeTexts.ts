@@ -345,6 +345,13 @@ const en = {
     idleStay: 'Stay signed in',
     idleSignOut: 'Sign out',
     idleSigningOut: 'Signing out…',
+    // the built-in sign-in (infra/auth): the chooser and the header's Sign out
+    signInTitle: 'Sign in',
+    signInChoose: 'Choose how you want to sign in.',
+    signInHint: 'Sign in to continue.',
+    signInWith: 'Continue with {provider}',
+    signInFailed: 'Signing in did not work. Please try again.',
+    signOut: 'Sign out',
     // a diagram (Bpmn) the viewer could not import
     diagramUnavailable: 'This diagram cannot be displayed: {reason}',
     // org chart in focus (mateu-org-chart, display = focus)
@@ -666,6 +673,12 @@ const es: Catalogue = {
     idleStay: 'Seguir conectado',
     idleSignOut: 'Cerrar sesión',
     idleSigningOut: 'Cerrando sesión…',
+    signInTitle: 'Iniciar sesión',
+    signInChoose: 'Elige cómo quieres iniciar sesión.',
+    signInHint: 'Inicia sesión para continuar.',
+    signInWith: 'Continuar con {provider}',
+    signInFailed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
+    signOut: 'Cerrar sesión',
     diagramUnavailable: 'Este diagrama no se puede mostrar: {reason}',
     orgReports: 'Equipo ({count})',
     orgReportsCount: '{count} en su equipo',

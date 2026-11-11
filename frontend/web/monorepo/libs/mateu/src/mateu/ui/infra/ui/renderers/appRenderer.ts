@@ -26,6 +26,7 @@ import { isCardsGroup } from "@infra/ui/mateu-card-menu.ts";
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
 import { contentBaseUrl, contentServerSideType } from '@infra/ui/appContentTarget.ts'
+import { signOut, signOutAvailable } from '@infra/auth/signIn.ts'
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -236,6 +237,21 @@ export const renderMobileQrButton = (metadata: App, container: MateuApp) =>
     }) : nothing
 
 /**
+ * "Sign out", when the BUILT-IN sign-in (infra/auth, the page's <meta name="mateu-auth">) holds a
+ * session: it drops the tokens and ends the IdP's or the framework's session.
+ */
+export const renderSignOutButton = () =>
+    signOutAvailable() ? renderHeaderIconButton({
+        icon: 'vaadin:sign-out',
+        label: chromeText('signOut'),
+        cssClasses: 'mateu-sign-out',
+        onClick: () => {
+            if (!dirtyGuard.confirmLeave()) return
+            void signOut()
+        },
+    }) : nothing
+
+/**
  * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
  * own widgets (the inbox bell…), shown only when the app declares the chat (sseUrl). It opens and
  * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
@@ -254,7 +270,7 @@ export const renderChatToggle = (metadata: App, container: MateuApp) =>
 const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
     ${renderChatToggle(metadata, container)}
     <slot name="widgets"></slot>
-    ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}`
+    ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}${renderSignOutButton()}`
 
 /**
  * Whether the header's widget zone has anything to show: the chat toggle, an authored widget (an
@@ -266,6 +282,7 @@ const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
 export const hasHeaderWidgets = (metadata: App, container: Pick<MateuApp, 'component'>): boolean =>
     !!metadata.sseUrl
     || !!metadata.themeToggle
+    || signOutAvailable()
     || !!metadata.mobileQr
     || !!metadata.notificationsEnabled
     || !!metadata.agentPush

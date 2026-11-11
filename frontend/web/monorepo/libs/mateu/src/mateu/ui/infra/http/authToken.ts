@@ -54,6 +54,9 @@ export const authTokenStorage = (): AuthTokenStorage => configuredStorage ?? met
  */
 export const tabsShareIdentity = (): boolean => !provider && authTokenStorage() === 'localStorage'
 
+/** Whether the app supplies the token itself (`configureAuthToken({ provider })`): then it owns sign-in too. */
+export const hasAuthTokenProvider = (): boolean => !!provider
+
 export const configureAuthToken = (options: {
     storage?: AuthTokenStorage
     provider?: (() => string | null | undefined) | null
