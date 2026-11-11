@@ -147,17 +147,23 @@ persist them.
 **Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
 a user sees after a restart.
 
-### React Native: no OS notification from a suspended or closed app
+### React Native: push to a closed phone needs your FCM and APNs credentials
 
-With `@App(osNotifications = true)` the phone app posts local notifications only: nothing leaves the
-device, and there is no remote push in 3.0, by design. The OS suspends a backgrounded app soon after
-it leaves the screen, so a task that ends after that, a live inbox push, or anything sent while the
-app is closed produces no OS notification.
+A suspended or closed Mateu app is reached by a remote push
+([Push notifications to phones](/deploy/push-notifications/)). The phone gets its push token
+through Google's FCM and Apple's APNs, and those credentials belong to the owner of the store
+accounts: a Firebase `google-services.json` with its FCM V1 key, and an APNs key. A build without
+them works, but gets no token, so it shows only the notifications the app posts itself while it is
+still running. The same applies to the published Mateu app until a store build that carries the
+credentials is released: an over-the-air update cannot add them.
 
-**Workaround:** the bell catches up as soon as the app is back in front, so keep what matters in the
-inbox (`NotificationsSupplier`, or `InboxStore` for signed-in users). To alert a closed phone, send a
-push from your own backend. See
-[what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
+A push only goes out for an `inbox` message to a signed-in user, or for `PushNotifications.send`. A
+task that ends, or a `LiveNotifications` change, while the app is away produces no push of its own.
+
+**Workaround:** add the credentials as described in
+[Publishing › Push notifications](/deploy/mobile-app-stores/#push-notifications-fcm-and-apns-credentials).
+Until then the bell catches up as soon as the app is back in front, so keep what matters in the
+inbox.
 
 ### Touch and desktop adaptations
 

@@ -16,6 +16,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
 
+### Added
+
+- **Remote push to phones (experimental).** With `@App(osNotifications = true)` and a sender, an
+  `inbox` message to a signed-in user also reaches their phone while the Mateu app is suspended or
+  closed. The phone registers its Expo push token through the reserved app-level action
+  `_push-register`, and removes it with `_push-unregister` on sign-out, when the UI leaves the hub, or
+  when notifications are turned off. A tapped push opens its UI at its route, and a push that arrives
+  while the app is in front is not shown twice. Delivery is behind interfaces: `PushSender` and
+  `PushTokenStore` (in memory by default, lost on restart, with a WARN), plus
+  `PushNotifications.send(user, …)` for your own entries. Mateu's optional Expo sender is turned on
+  with `mateu.push.expo.enabled=true` (batches of 100; `DeviceNotRegistered` unregisters the token).
+  The wire adds `AppDto.pushNotifications`. The same API exists in .NET (`IPushSender`,
+  `IPushTokenStore`, `MateuOptions.ExpoPush`) and Python (`add_mateu(push_sender=…, expo_push=True)`).
+  Phone builds need your FCM `google-services.json` (`GOOGLE_SERVICES_JSON`) and an APNs key
+  (`MATEU_IOS_PUSH=true`); the "Push notifications to phones" deploy guide has the steps.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

@@ -171,30 +171,46 @@ shows as a notification of the operating system while the app is not in front:
 - **browser**: the Web Notifications API. The bell and the task center offer "Notify me on this
   device"; the browser asks the user only then, never on load. Shown while the tab is hidden; a click
   brings the tab back and opens the entry's route.
-- **phone**: a LOCAL notification (no push service, no device token — nothing leaves the app), shown
-  while the app is in the background; permission is asked from the inbox / task sheet. See
-  [what that covers](#on-a-phone-what-reaches-the-device-while-the-app-is-away) below.
+- **phone**: a LOCAL notification, posted by the app while it is in the background; permission is
+  asked from the inbox / task sheet. When your server also sends pushes, a REMOTE push reaches the
+  phone while the app is suspended or closed. See
+  [what reaches the device](#on-a-phone-what-reaches-the-device-while-the-app-is-away) below.
 - **IntelliJ / the desktop app**: a system notification while the IDE is not active (it follows
   the IDE's "Use system notifications" setting).
 
 ### On a phone: what reaches the device while the app is away
 
 A local notification can only be posted by the app itself, while its JavaScript runs. The OS suspends
-a backgrounded app soon after you leave it (within seconds on iOS; it varies on Android), and there
-is no remote push in 3.0, by design.
+a backgrounded app soon after you leave it (within seconds on iOS; it varies on Android). To reach a
+suspended or closed app, the server sends a **remote push**. Mateu ships UI only, so delivery sits
+behind two interfaces you can implement yourself. Mateu also has an optional sender for Expo's push
+service, which is the one the Mateu app uses:
+
+```properties
+# application.properties: Mateu's Expo sender (or register your own PushSender bean)
+mateu.push.expo.enabled=true
+mateu.push.expo.access-token=${EXPO_ACCESS_TOKEN}   # optional: Expo's "enhanced security"
+```
+
+Remote push is on when the app has `@App(osNotifications = true)` and a sender. The app shell then
+carries `pushNotifications: true`. The phone asks the user for permission from "Notify me on this
+device", registers its push token with your server (the reserved `_push-register` action) and
+removes it on sign-out, when the UI is removed from the phone's list, or when the user turns
+notifications off. From then on:
 
 | Situation | What the user gets |
 |---|---|
-| App in front | The bell and a toast, no OS notification |
-| A task ends (or sends an `inbox` message) in the moments after leaving the app, while it still runs | An OS notification |
-| A `LiveNotifications` push while the app is away | No OS notification: the event stream closes the moment the app leaves the foreground |
-| Anything while the app is suspended or closed | No OS notification |
+| App in front | The bell and a toast. A push arriving now is not shown by the OS, so the user is not told twice |
+| A task ends (or sends an `inbox` message) in the moments after leaving the app, while it still runs | An OS notification (local) |
+| An `inbox` message to a signed-in user, the app suspended or closed | A push. Tapping it opens that UI at the entry's route |
+| `PushNotifications.send(user, …)` from your code | A push to that user's phones |
+| A `LiveNotifications` push or a task ending while the app is away, without an inbox message | No OS notification (send it as an inbox message, or call `PushNotifications.send`) |
 | Back in the app | The bell fetches its list at once, so the badge counts what arrived meanwhile |
 
-So on a phone, treat the OS notification as a convenience and the inbox as the record. Only what the
-server holds can be caught up: entries of your `NotificationsSupplier`, or stored for a signed-in
-user (`InboxStore`). If users must be alerted on a closed phone, send it from your own backend through
-a push service.
+Without a sender, or for an anonymous user's inbox messages, only the local notifications and the
+inbox remain. The inbox is still the record: a push only points at it. The full set-up (FCM and APNs
+credentials, the token store, the .NET and Python options) is in
+[Push notifications to phones](/deploy/push-notifications/).
 
 ## In YAML
 
@@ -205,7 +221,8 @@ through the server when the source is `proxy: true`). See
 
 ## Wire
 
-`AppDto.notificationsEnabled` turns the bell on (`AppDto.osNotifications` the OS notifications); the actions answer
+`AppDto.notificationsEnabled` turns the bell on (`AppDto.osNotifications` the OS notifications,
+`AppDto.pushNotifications` the remote push registration); the actions answer
 `Data{_notifications: [{id, title, text, route, unread, when, category, variant, resolved,
 actions, hasDetail}]}` — same contract from the Java, .NET and Python servers. A push is the command
 `NotificationsChanged {notification, removedId}` (both null = refetch).

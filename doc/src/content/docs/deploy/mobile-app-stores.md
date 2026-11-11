@@ -283,6 +283,34 @@ the variables don't cover (icons, universal links on your own domain).
   saves you the export-compliance question on every upload.
 - `usesCleartextTraffic: false` keeps release builds on https.
 
+### Push notifications: FCM and APNs credentials
+
+A notification that reaches a suspended or closed app is a remote push
+([Push notifications to phones](/deploy/push-notifications/)). The app asks Expo for a push token,
+and Expo delivers through Google's FCM and Apple's APNs. Both need credentials that only the owner of
+the store accounts can create. A build without them still works: it gets no push token, and the
+phone shows only the notifications the app posts itself.
+
+1. **Android (FCM).** Create a Firebase project, add an Android app with your `package`
+   (`io.mateu.app` for the Mateu app) and download its `google-services.json`. Upload it to EAS as a
+   file environment variable named `GOOGLE_SERVICES_JSON`
+   (`eas env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json`).
+   `app.config.ts` points `android.googleServicesFile` at it only when the variable is set. Then
+   upload the FCM V1 service-account key in `eas credentials` › Android › Push Notifications, so
+   Expo can send through FCM.
+2. **iOS (APNs).** In `eas credentials` › iOS › Push Notifications, let EAS create an APNs key, or
+   upload one from your Apple Developer account. Then set `MATEU_IOS_PUSH=true` in the build profile's
+   `env` (`eas.json`). Without it, the build removes the push entitlement
+   (`plugins/with-local-notifications-only.js`), so a profile without the Push Notifications
+   capability still signs. With it, the entitlement is kept in `production` mode (`development`
+   for the development variant).
+3. **Your server** turns sending on: `mateu.push.expo.enabled=true`, plus
+   `mateu.push.expo.access-token` if you enabled Expo's enhanced push security. An app with
+   `@App(osNotifications = true)` then announces push, and phones register.
+
+A fixed (white-label) app has its own EAS project id and therefore its own Expo push tokens. It
+needs its own FCM and APNs credentials, exactly as above.
+
 ### Without the stores: an APK on GitHub
 
 The repository's own release workflow (`.github/workflows/mobile.yml`) shows how to skip EAS and its
