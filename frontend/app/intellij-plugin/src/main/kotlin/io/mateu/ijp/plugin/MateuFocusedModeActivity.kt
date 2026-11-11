@@ -6,8 +6,8 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -98,9 +98,35 @@ class MateuFocusedModeActivity : ProjectActivity {
         }
     }
 
+    /**
+     * The UI's menu is NAVIGATION, and navigation sits on the left — IntelliJ's own Project view,
+     * every desktop app, Mateu's web shells. plugin.xml anchors it on the right because in a
+     * developer's IDE the left belongs to Project; the desktop app has no Project view.
+     *
+     * Applied on EVERY start (each delayed sweep, since the platform restores the saved layout after
+     * the first pass). A one-shot app-wide flag did not hold: the window layout is saved PER PROJECT
+     * and the hub opens a project per UI, so the next one came back with plugin.xml's right anchor
+     * while the flag said "done". The desktop app's layout is fixed, like its toolbar.
+     */
+    private fun menuToTheLeft(twm: ToolWindowManager) {
+        // on 2025.2 a tool-window change before the frame's pane exists throws (see the CLAUDE.md
+        // note) — the next sweep tries again
+        runCatching {
+            val tw = twm.getToolWindow("Mateu") ?: return
+            val left = com.intellij.openapi.wm.ToolWindowAnchor.LEFT
+            if (tw.anchor != left) tw.setAnchor(left, null)
+        }
+    }
+
     private fun applyFocusedMode(project: Project) {
         val twm = ToolWindowManager.getInstance(project)
-        hideForeignToolWindows(twm)
+        // The first pass waits for the tool-window pane (see hideForeignToolWindows).
+        twm.invokeLater {
+            if (!project.isDisposed) {
+                hideForeignToolWindows(twm)
+                menuToTheLeft(twm)
+            }
+        }
         project.messageBus.connect().subscribe(
             ToolWindowManagerListener.TOPIC,
             object : ToolWindowManagerListener {
@@ -114,21 +140,26 @@ class MateuFocusedModeActivity : ProjectActivity {
                 }
 
                 override fun toolWindowShown(toolWindow: com.intellij.openapi.wm.ToolWindow) {
-                    if (toolWindow.id !in KEEP) toolWindow.setAvailable(false)
+                    if (toolWindow.id !in KEEP) runCatching {
+                        toolWindow.setAvailable(false)
+                        // stateChanged alone does not hide a window that is already OPEN
+                        if (toolWindow.id in HIDE_ONLY) toolWindow.hide()
+                    }
                 }
             },
         )
         // Late registrants (Commit on VCS detection, Run/Debug on first execution, Hierarchy…)
         // slip between events on some startups: sweep again a few times after opening.
-        for (delaySeconds in longArrayOf(2, 5, 15)) {
+        for (delaySeconds in longArrayOf(1, 2, 5, 15)) {
             com.intellij.util.concurrency.AppExecutorUtil.getAppScheduledExecutorService().schedule({
                 com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
                     if (!project.isDisposed) {
                         hideForeignToolWindows(ToolWindowManager.getInstance(project))
+                        menuToTheLeft(ToolWindowManager.getInstance(project))
                         unregisterForeignToolWindowEps()
                         unregisterForeignActivateActions()
-                        // The header toolbar is often built AFTER our first pass — hide it on each sweep.
-                        hideMainToolbar(project)
+                        // Plugins that load late add their widgets to the header toolbar — prune it on each sweep.
+                        pruneMainToolbar()
                     }
                 }
             }, delaySeconds, java.util.concurrent.TimeUnit.SECONDS)
@@ -137,28 +168,44 @@ class MateuFocusedModeActivity : ProjectActivity {
         // touch what doesn't exist yet. Unregister the foreign declarations outright.
         unregisterForeignToolWindowEps()
         unregisterForeignActivateActions()
-        hideMainToolbar(project)
+        disableBuildActions()
+        pruneMainToolbar()
         hideNavigationChrome()
         stripMainMenu()
     }
 
-    /** Hide the whole new-UI header toolbar (project "workspace" popup, Version control, run
-     *  targets, AI, search…) — individual widgets can't be removed via action groups in the New UI,
-     *  so we hide the MainToolbar Swing component itself, leaving the window controls + title. */
-    private fun hideMainToolbar(project: Project) {
+    /**
+     * Strip the new-UI header toolbar down to Mateu's own widgets (the app menu, the hub's «My UIs»)
+     * plus Search and Settings. It used to hide the whole `MainToolbar` component, which never took
+     * on 2025.2 (the project widget and «Version control» stayed) and, had it worked, would have
+     * hidden the hub switch too — so prune the GROUPS instead: the project widget, the VCS widget,
+     * the file name, the run/debug widget, Code With Me… everything a desktop app user has no use for.
+     */
+    private fun pruneMainToolbar() {
         runCatching {
-            val root = WindowManager.getInstance().getFrame(project)?.rootPane ?: return
-            hideComponentsByClass(root, "headertoolbar.MainToolbar")
+            val am = ActionManager.getInstance()
+            var changed = false
+            for (groupId in MAIN_TOOLBAR_GROUPS) {
+                val group = am.getAction(groupId) as? DefaultActionGroup ?: continue
+                for (child in group.getChildActionsOrStubs()) {
+                    val id = am.getId(child)
+                    if (id != null && (id.startsWith("io.mateu.") || id in MAIN_TOOLBAR_KEEP)) continue
+                    // An unnamed child is a separator or an anonymous group: drop it too, or the
+                    // pruned bar keeps stray dividers.
+                    group.remove(child)
+                    changed = true
+                }
+            }
+            if (changed) com.intellij.ide.ActivityTracker.getInstance().inc()
         }
     }
 
-    /** Depth-first: set every component whose class name contains [needle] invisible. */
-    private fun hideComponentsByClass(c: java.awt.Component, needle: String) {
-        if (c.javaClass.name.contains(needle)) {
-            c.isVisible = false
-            return
+    /** The IDE's build/run actions go away (their shortcuts with them): nothing to compile here. */
+    private fun disableBuildActions() {
+        runCatching {
+            val am = ActionManager.getInstance()
+            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.unregisterAction(id) }
         }
-        if (c is java.awt.Container) for (child in c.components) hideComponentsByClass(child, needle)
     }
 
     /** Reduce the native menu bar to the essentials — drop the dev-oriented top menus. */
@@ -193,7 +240,7 @@ class MateuFocusedModeActivity : ProjectActivity {
             val epName = com.intellij.openapi.wm.ToolWindowEP.EP_NAME
             val point = epName.point
             for (ext in epName.extensionList.toList()) {
-                if (ext.id in KEEP) continue
+                if (ext.id in KEEP || ext.id in HIDE_ONLY) continue
                 runCatching { unregisterExtensionInstance(point, ext) }
             }
         }
@@ -241,8 +288,15 @@ class MateuFocusedModeActivity : ProjectActivity {
                 // Fully REMOVE foreign windows (Run/Debug/Hierarchy/Commit…) so they vanish from
                 // 'More tool windows' too — setAvailable(false) only drops the stripe button.
                 // ToolWindow.remove() is the non-deprecated form of unregisterToolWindow(id).
-                if (runCatching { window.remove() }.isSuccess) continue
-                window.setAvailable(false)
+                // Each window on its own: on 2025.2, before the frame's tool-window pane exists, remove()
+                // throws ("Can't find service … LocalProjectSession") and setAvailable NPEs. Uncaught,
+                // that one window aborted the WHOLE startup activity — no sweep, no later passes, and
+                // Services / Version control stayed on the stripe. The later passes retry.
+                // The Project view is only HIDDEN: removing it disposes its content manager, and the
+                // platform's ScopeViewPane (built before this activity runs) later adds a pane to it on
+                // a scopes change → NPE "this.myUI is null" and the IDE-error balloon on every start.
+                if (id !in HIDE_ONLY && runCatching { window.remove() }.isSuccess) continue
+                runCatching { window.setAvailable(false) }
             }
         } finally {
             sweeping = false
@@ -250,7 +304,25 @@ class MateuFocusedModeActivity : ProjectActivity {
     }
 
     companion object {
-        private val KEEP = setOf("Mateu", "MateuResults")
+        private val KEEP = setOf("Mateu", MateuAssistantToolWindow.ID) // the ids declared in plugin.xml, spelled exactly
+
+        /** Foreign windows other platform code still talks to: hidden, never removed or unregistered. */
+        // Build: a compilation the IDE starts on its own (CompileDirty on a Java project) adds its
+        // output to it — removed, that threw "parent Build has already been disposed" on start.
+        private val HIDE_ONLY = setOf(
+            ToolWindowId.PROJECT_VIEW, "Build", ToolWindowId.RUN, ToolWindowId.DEBUG,
+            ToolWindowId.MESSAGES_WINDOW, ToolWindowId.PROBLEMS_VIEW, ToolWindowId.SERVICES,
+        )
+
+        /** Build and run actions a desktop app has no use for — a key press must not start a compile. */
+        private val BUILD_ACTIONS = listOf("CompileDirty", "CompileProject", "Compile", "MakeModule", "BuildArtifact", "Run", "Debug", "RunClass", "DebugClass")
+
+        /** The new-UI header toolbar's groups ([pruneMainToolbar]). */
+        private val MAIN_TOOLBAR_GROUPS = listOf("MainToolbarLeft", "MainToolbarCenter", "MainToolbarRight")
+
+        /** Platform header actions a desktop app keeps: Mateu registers its screens and menu in
+         *  Search Everywhere, and Settings is where the theme and the font size live. */
+        private val MAIN_TOOLBAR_KEEP = setOf("SearchEverywhere", "SettingsEntryPoint")
 
         @Volatile
         private var quitHooked = false

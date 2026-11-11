@@ -593,6 +593,16 @@ fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
         }
         return button
     }
+    // links in the markup must be clickable — a JLabel paints them and ignores the click
+    if (metadata.bool("html") && Regex("<a\\s[^>]*href", RegexOption.IGNORE_CASE).containsMatchIn(html)) {
+        val pane = linkingHtmlPane(if (name in setOf("h1", "h2", "h3", "h4", "b", "strong", "em", "i", "small", "code", "pre")) "<$name>$html</$name>" else html)
+        metadata.path("on").path("click").takeIf { it.isTextual && it.asText().isNotBlank() }?.let { action ->
+            pane.addMouseListener(object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent) = ctx.runAction(action.asText(), null)
+            })
+        }
+        return pane
+    }
     // trusted markup the plugin builds: the content inside it is sanitised or escaped above
     val label = JBLabel(if (name in setOf("h1", "h2", "h3", "h4", "b", "strong", "em", "i", "small", "code", "pre")) {
         "<html><$name>$html</$name></html>"

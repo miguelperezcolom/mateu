@@ -173,6 +173,15 @@ class RestSourceCatalogue {
      *  listing over it searches, filters, sorts and pages in memory. */
     fun isSampled(source: JsonNode?): Boolean = sampleOf(source) != null
 
+    /** The `totalPath` of a source that pages on the SERVER (the catalogue entry's, else the
+     *  surface's), or null: a sampled source, or one without it, is fetched whole and paged here. */
+    fun serverTotalPath(source: JsonNode?): String? {
+        if (source == null || !source.isObject || isSampled(source)) return null
+        val entry = restSource(source.path("ref").asText(""))
+        return entry?.path("totalPath")?.asText("")?.takeIf { it.isNotBlank() }
+            ?: source.path("totalPath").asText("").takeIf { it.isNotBlank() }
+    }
+
     /** Whether the fetch goes through the Mateu server: the RESOLVED `proxy`, unless sample mode
      *  answers it on the client. */
     fun viaProxy(source: JsonNode?): Boolean =

@@ -49,9 +49,7 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     // actionId is only the label's echo, and sending it answered 403.
     val route = metadata.text("route")
     val parameters = ctx.jsonToParams(metadata.path("parameters"))
-    button.addActionListener {
-        if (route.isNotBlank()) ctx.openRoute(route) else ctx.runAction(actionId, parameters.ifEmpty { null })
-    }
+    button.addActionListener { ctx.pressButton(actionId, route, parameters) }
     return button
 }
 

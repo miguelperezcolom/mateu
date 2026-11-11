@@ -118,6 +118,16 @@ class AppContextScreenTest : BasePlatformTestCase() {
         assertEquals(2, changes)
     }
 
+    fun testARouteLinkButtonKeepsItsRouteOnTheNativeToolbar() {
+        // a YAML toolbar's «New artwork»: actionable RouteLink → the wire carries its route; the
+        // actionId only echoes the label (run as an action, the server answers 403)
+        val specs = ToolbarSpecs.of(listOf(
+            json("""{"actionId":"newArtwork","label":"New artwork","route":"artworks/new"}"""),
+            json("""{"label":"Open","route":"museums/1"}"""),
+        )) { emptyMap() }
+        assertEquals(listOf("artworks/new", "museums/1"), specs.map { it.route })
+    }
+
     fun testACrudMediatorRouteOpensTheDetailThroughTheHost() {
         val ctx = context()
         ctx.currentConsumedRoute = "/products"
