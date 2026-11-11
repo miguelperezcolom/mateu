@@ -111,15 +111,6 @@ of its host, and two things of a standalone page do not carry over:
 **Workaround:** open the screen on its own route when it needs its index, and keep cross-request
 state in the component state instead of `appState`.
 
-### React Native: an embedded app shows its content without its shell
-
-When a page embeds a whole Mateu app (a `MicroFrontend` or island answering an `App`), React Native
-draws the app's screens but not its shell extras: its app-context selectors, header actions and
-notification bell are not there.
-
-**Workaround:** open that app on its own (as a separate UI in the hub, or its own fixed build) when
-its users need those controls.
-
 ### A remote screen's own scripts need CORS from the remote
 
 When a shell embeds a screen from another Mateu backend, Mateu's CORS settings
@@ -137,15 +128,6 @@ options or a remote `search-<field>` action.
 
 **Workaround:** give the field an options supplier or a `@Lookup` search on your server, which can
 call the external endpoint itself.
-
-### React Native: saved views and column choices last one session
-
-On React Native, saved listing views and the column chooser's show/hide choices are kept in memory
-and reset when the app restarts; columns cannot be reordered there. The web renderers and IntelliJ
-persist them.
-
-**Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
-a user sees after a restart.
 
 ### React Native: no OS notification from a suspended or closed app
 
@@ -222,6 +204,3 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).
-- **The `mateu-vaadin` package on npm is not maintained** (`0.0.15`, from before the 3.0 betas).
-  **Workaround:** load the renderer from a Mateu app (`/assets/mateu-vaadin.js`), as in
-  [Embedded UI](/java-user-manual/use-cases/embedded-ui/).

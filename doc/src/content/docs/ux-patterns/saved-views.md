@@ -35,6 +35,9 @@ per browser origin — the same granularity as the URL filter sync. They are per
 browser profile; for team-shared slices, share the listing URL (filters sync to it) or model the
 slice server-side.
 
+The React Native app stores them on the device, per UI (its backend) and per route and listing, so
+they survive a restart; a default view is applied once they have loaded.
+
 ## Related
 
 - [Filters & Listing](/ux-patterns/filters-and-listing/) — the smart search bar being snapshotted

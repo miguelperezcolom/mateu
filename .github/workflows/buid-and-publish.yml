@@ -557,11 +557,12 @@ jobs:
         run: |
           set -euo pipefail
           cd frontend/web/monorepo/apps/vaadin
+          # the version first: the build stamps it into the bundle (its X-Mateu-Renderer header)
+          npm pkg set version="$NPM_VERSION"
           npm run build
           # the bundle carries Lit, the Vaadin components and libs/mateu inside it: the published
           # manifest declares no dependency (the workspace's `mateu` is not an npm package) and no
           # build scripts
-          npm pkg set version="$NPM_VERSION"
           npm pkg delete dependencies devDependencies scripts
           test -f dist/assets/mateu-vaadin.js
           mkdir -p "$RUNNER_TEMP/npm"
