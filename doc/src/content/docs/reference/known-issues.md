@@ -62,6 +62,13 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
+### Redwood: light theme only
+
+By design, the Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice
+and the operating system's `prefers-color-scheme`.
+
+**Workaround:** use the Vaadin renderer if your users need a dark theme.
+
 ### Redwood: an island's `@Toc` index only when it is the page's content
 
 Redwood draws a `@Toc` index for an embedded island's sections when the island **is** the page's
@@ -70,7 +77,6 @@ mixes its own sections with an island's, or embeds two islands, indexes only its
 
 **Workaround:** give the host page the sections, or open the island's screen on its own route when
 it needs its index.
-
 
 ### React Native: no OS notification from a suspended or closed app
 

@@ -133,10 +133,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed — Redwood (known issues)
 
-- **Dark mode.** The Redwood renderer honours `@App(themeToggle = true)` (a switch in the global
-  header), a stored choice (`localStorage['mateu-theme']`, shared with the Vaadin renderer) and the
-  OS `prefers-color-scheme`. Dark is Oracle JET's own inverted colour scheme; the surfaces Mateu
-  paints follow it.
 - **A static remote that ships raw definitions loads.** A `RemoteMenu` naming a `specsOnly` static
   bundle's `manifest.json` is no longer shown disabled: its menu, screens and deep links are answered
   from the manifest, the definitions expanded in the browser by the same expander as Vaadin.

@@ -64,7 +64,7 @@ public @interface App {
 |---|---|---|---|
 | `value` | `AppVariant` | `AUTO` | Navigation layout variant for the shell |
 | `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
-| `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode (Vaadin and Redwood) |
+| `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode (ignored by the Redwood renderer, which is light only) |
 | `accentColor` | `String` | `""` | The app's brand accent (a CSS colour). Not the primary colour: see below |
 | `backLink` | `BackLink` | `BREADCRUMBS` | `PARENT` draws a single «← Parent» link (labelled with the title of the nearest screen above the app's route) and drops the breadcrumb trail inside the app — the console style for a record master |
 
@@ -104,7 +104,7 @@ public class ShellApp { ... }
 
 Set `themeToggle = true` to show a moon/sun icon button in the application header. Clicking it switches between dark and light mode and persists the choice in `localStorage`. On first load the stored preference is applied; if no preference is stored the OS `prefers-color-scheme` media query is used as the default.
 
-The Redwood renderer follows the same rules: the switch sits in its global header, the choice is kept under the same `localStorage` key (so a user's choice carries over between the Vaadin and Redwood renderers of the same origin), and without a stored choice the OS preference applies and is followed live. Its dark theme is Oracle JET's own inverted colour scheme: the JET release Redwood loads from the Oracle CDN has no separate dark theme, so the components are re-tokened by JET and Mateu only re-points the few surfaces it paints itself.
+The Redwood renderer is **light only**: it ignores `themeToggle` (no switch in its header) and always paints the light theme, whatever the OS prefers or a stored choice says. The same app class served by the Vaadin renderer keeps its switch.
 
 ```java
 @UI("/app")
