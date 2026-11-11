@@ -2604,6 +2604,9 @@
             "$ref" : "#/$defs/PairDto"
           }
         },
+        "autocomplete" : {
+          "type" : "string"
+        },
         "autofocus" : {
           "type" : "boolean"
         },

@@ -20,7 +20,7 @@ import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { materialIconOf } from '../ui/wireIcons';
-import { buttonA11y } from '../a11y/a11y';
+import { announce, buttonA11y } from '../a11y/a11y';
 import { MateuButton } from '../ui/controls';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
@@ -338,7 +338,8 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
         return (
           <View key={selector.fieldName}>
             <TouchableOpacity
-              {...buttonA11y({ label: `${selector.label ?? selector.fieldName}: ${current ? currentLabel : 'not set'}`, expanded: open })}
+              // WCAG 3.2.2: said BEFORE use — picking another value reloads the screen
+              {...buttonA11y({ label: `${selector.label ?? selector.fieldName}: ${current ? currentLabel : 'not set'}`, expanded: open, hint: 'Choosing another value reloads the screen' })}
               style={styles.contextRow}
               onPress={() => {
                 setSearchText('');
@@ -365,12 +366,15 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
                   key={i}
                   style={styles.contextOption}
                   onPress={() => {
+                    setExpanded(null);
+                    // the value already chosen changes nothing
+                    if (String(option.value ?? '') === current) return;
                     if (option.value === '' || option.value == null) {
                       delete appState[selector.fieldName];
                     } else {
                       appState[selector.fieldName] = option.value;
                     }
-                    setExpanded(null);
+                    announce(`${selector.label ?? selector.fieldName}: ${option.label ?? String(option.value)}. Reloading…`);
                     onChanged();
                   }}
                 >

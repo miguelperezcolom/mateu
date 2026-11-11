@@ -33,6 +33,7 @@ Mateu.Uidl.AutoEditableView`1
 Mateu.Uidl.AutoLayoutAttribute
 Mateu.Uidl.AutoPageAttribute
 Mateu.Uidl.AutoSaveAttribute
+Mateu.Uidl.AutocompleteAttribute
 Mateu.Uidl.Avatar
 Mateu.Uidl.AvatarAttribute
 Mateu.Uidl.AvatarGroup

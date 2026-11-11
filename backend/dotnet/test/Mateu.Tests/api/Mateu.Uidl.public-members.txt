@@ -197,6 +197,8 @@ Mateu.Uidl.AutoPageAttribute property System.Boolean Value { get; }
 Mateu.Uidl.AutoSaveAttribute ctor()
 Mateu.Uidl.AutoSaveAttribute property System.Int32 DebounceMillis { get;set; }
 Mateu.Uidl.AutoSaveAttribute property System.String Action { get;set; }
+Mateu.Uidl.AutocompleteAttribute ctor(System.String)
+Mateu.Uidl.AutocompleteAttribute property System.String Value { get; }
 Mateu.Uidl.Avatar ctor()
 Mateu.Uidl.Avatar property System.String Abbreviation { get;init; }
 Mateu.Uidl.Avatar property System.String Image { get;init; }
@@ -865,6 +867,7 @@ Mateu.Uidl.FormField property System.Int32 OptionsColumns { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMax { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMin { get;init; }
 Mateu.Uidl.FormField property System.Object InitialValue { get;init; }
+Mateu.Uidl.FormField property System.String Autocomplete { get;init; }
 Mateu.Uidl.FormField property System.String DataType { get;init; }
 Mateu.Uidl.FormField property System.String Description { get;init; }
 Mateu.Uidl.FormField property System.String FieldId { get;init; }

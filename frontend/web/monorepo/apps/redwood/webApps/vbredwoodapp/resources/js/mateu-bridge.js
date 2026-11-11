@@ -47,6 +47,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Remove',
       name: 'Name',
       skipToContent: 'Skip to content',
+      // WCAG 3.2.2: the @AppContext picker says beforehand that a change reloads the screen
+      appContextReloads: 'Choosing another one reloads the screen',
+      appContextChanging: '{label}: {value}. Reloading…',
       enterValue: 'Enter a value.',
       selectValue: 'Select a value',
       progressOf: '{done} of {total}',
@@ -345,6 +348,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Quitar',
       name: 'Nombre',
       skipToContent: 'Saltar al contenido',
+      appContextReloads: 'Elegir otro recarga la pantalla',
+      appContextChanging: '{label}: {value}. Recargando…',
       enterValue: 'Introduce un valor.',
       selectValue: 'Seleccione un valor',
       progressOf: '{done} de {total}',
@@ -7291,6 +7296,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             value: state[fieldId] == null ? '' : String(state[fieldId]),
             // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
             placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
+            autocomplete: m.autocomplete ? String(m.autocomplete) : null,
           }, container)
         }
         return
@@ -13114,7 +13120,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function fieldWidgetOf(f, data, opts) {
     const widget = widgetOf(f, data, opts)
     const help = fieldHelpOf(f)
-    return { ...widget, help, hasHelp: !!help }
+    // WCAG 1.3.5: the input's purpose — on the host as data-autocomplete, copied onto the native
+    // input by a11y.mjs installInputPurpose
+    const autocomplete = f && f.autocomplete && !f.readOnly ? String(f.autocomplete) : null
+    return { ...widget, help, hasHelp: !!help, autocomplete }
   }
 
   function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
@@ -17823,6 +17832,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const steps = wizard.querySelector('.oj-sp-guided-process-step-container')
       if (steps && steps.contains(target) && guidedProcessWheelIsNative(steps)) event.stopPropagation()
     }, { capture: true, passive: true })
+  }
+
+  // ── WCAG 1.3.5 Identify Input Purpose ─────────────────────────────────────────────────────────
+  //
+  // A field about the user carries its autocomplete token on the wire (FormFieldDto.autocomplete).
+  // The templates put it on the JET/Spectra host as `data-autocomplete` (a data attribute is safe on
+  // any element, whereas not every oj-sp input declares an `autocomplete` property) and this copies it
+  // onto the native <input>/<textarea> inside — the element the browser and assistive technologies read.
+
+  /** Copies each host's data-autocomplete onto its inner native control. Returns how many it set. */
+  function applyInputPurpose(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return 0
+    let set = 0
+    for (const host of root.querySelectorAll('[data-autocomplete]')) {
+      const token = host.getAttribute('data-autocomplete')
+      if (!token) continue
+      const inner = host.matches && host.matches('input, textarea') ? host : host.querySelector('input, textarea')
+      if (inner && inner.getAttribute('autocomplete') !== token) {
+        inner.setAttribute('autocomplete', token)
+        set++
+      }
+    }
+    return set
+  }
+
+  let inputPurposeInstalled = false
+
+  /** Keeps applyInputPurpose up to date as VB paints and repaints fields. */
+  function installInputPurpose(doc = typeof document !== 'undefined' ? document : null) {
+    if (inputPurposeInstalled || !doc || !doc.body || typeof MutationObserver === 'undefined') return
+    inputPurposeInstalled = true
+    let queued = false
+    const run = () => { queued = false; applyInputPurpose(doc.body) }
+    const schedule = () => {
+      if (queued) return
+      queued = true
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run)
+      else setTimeout(run, 0)
+    }
+    new MutationObserver(schedule).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-autocomplete'] })
+    run()
   }
 
 
@@ -31982,7 +32032,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
-    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
+    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer', 'installInputPurpose',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
     'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
@@ -32870,6 +32920,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,
+    installInputPurpose,
+    applyInputPurpose,
     installPrintSupport,
     announce,
     announceNavigation,

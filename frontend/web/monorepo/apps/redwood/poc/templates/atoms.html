@@ -1220,6 +1220,7 @@
                         placeholder="[[ $current.data.placeholder || '' ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
@@ -1245,6 +1246,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
@@ -1260,6 +1262,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
                             </oj-bind-if>
                             <!-- @Searchable: one chip per id (with ✕ if it can be removed) and the button that opens its selector
@@ -1312,6 +1315,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
                             </oj-bind-if>
@@ -1326,6 +1330,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDateTime ]]">
@@ -1339,6 +1344,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSelect ]]">

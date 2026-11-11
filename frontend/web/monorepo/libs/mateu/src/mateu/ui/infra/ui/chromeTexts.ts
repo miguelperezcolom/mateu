@@ -360,6 +360,8 @@ const en = {
     chartDataOf: 'Data of {name}',
     chartSeries: 'Series',
     chartTrend: '{name}: {count} values from {first} to {last}; lowest {min}, highest {max}',
+    appContextReloads: 'Choosing another one reloads the app',
+    appContextChanging: '{label}: {value}. Reloading the app…',
 }
 
 type Catalogue = Record<keyof typeof en, string>
@@ -683,6 +685,8 @@ const es: Catalogue = {
     chartDataOf: 'Datos de {name}',
     chartSeries: 'Serie',
     chartTrend: '{name}: {count} valores de {first} a {last}; mínimo {min}, máximo {max}',
+    appContextReloads: 'Elegir otro recarga la aplicación',
+    appContextChanging: '{label}: {value}. Recargando la aplicación…',
 }
 
 const TEXTS: Record<'en' | 'es', Catalogue> = { en, es }

@@ -9,6 +9,7 @@ export function renderNumberField(host: MateuField, _fieldId: string, value: Fie
     if (!host.field) return html``
         return html`<vaadin-number-field
                 placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     @value-changed="${host.valueChanged}"
@@ -79,6 +80,7 @@ export function renderIntegerField(host: MateuField, _fieldId: string, value: Fi
         return html`
             <vaadin-integer-field
                     placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     @value-changed="${host.valueChanged}"

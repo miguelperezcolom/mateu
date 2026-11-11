@@ -159,6 +159,16 @@ class Help:
 
 
 @dataclass(frozen=True)
+class Autocomplete:
+    """The purpose of a field about the user (Java's ``@Autocomplete``; WCAG 1.3.5): an HTML
+    autocomplete token such as ``"email"``, ``"given-name"``, ``"tel"``, ``"postal-code"`` or
+    ``"new-password"``, or ``"off"``. An email field gets ``"email"`` without it. Travels as the
+    field's ``autocomplete``."""
+
+    value: str
+
+
+@dataclass(frozen=True)
 class SliderMin:
     """Lower bound of a slider field (Java's ``@SliderMin``; 0 by default)."""
 

@@ -891,7 +891,10 @@ export function fieldHelpOf(f) {
 export function fieldWidgetOf(f, data, opts) {
   const widget = widgetOf(f, data, opts)
   const help = fieldHelpOf(f)
-  return { ...widget, help, hasHelp: !!help }
+  // WCAG 1.3.5: the input's purpose — on the host as data-autocomplete, copied onto the native
+  // input by a11y.mjs installInputPurpose
+  const autocomplete = f && f.autocomplete && !f.readOnly ? String(f.autocomplete) : null
+  return { ...widget, help, hasHelp: !!help, autocomplete }
 }
 
 function widgetOf(f, data, { lookups, value, textWhenEmpty }) {

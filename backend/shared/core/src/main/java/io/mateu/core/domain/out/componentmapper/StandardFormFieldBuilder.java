@@ -46,6 +46,13 @@ final class StandardFormFieldBuilder {
         .optionsColumns(getOptionsColumns(field))
         .multiline(isMultiline(field))
         .link(getLink(field, instance, httpRequest))
+        .autocomplete(
+            io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                    field, io.mateu.uidl.annotations.Autocomplete.class)
+                ? io.mateu.core.infra.reflection.MetaAnnotations.find(
+                        field, io.mateu.uidl.annotations.Autocomplete.class)
+                    .value()
+                : null)
         .build();
   }
 

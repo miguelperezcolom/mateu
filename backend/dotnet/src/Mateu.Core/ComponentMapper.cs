@@ -89,6 +89,7 @@ internal static class ComponentMapper
             OptionsColumns = ff.OptionsColumns,
             OptionsSource = ff.OptionsSource is null ? null : MateuCatalogs.ToDto(ff.OptionsSource),
             PropertyRow = ff.PropertyRow,
+            Autocomplete = InputPurpose.Of(ff.Autocomplete, ff.Stereotype, ff.ReadOnly),
         }) with { Id = ff.Id ?? ff.FieldId },
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(

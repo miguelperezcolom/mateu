@@ -33,7 +33,7 @@ from mateu_ui.dtos import (
     RestDataSource,
 )
 from mateu_ui.uidl import components as fluent
-from mateu_ui.uidl import Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
+from mateu_ui.uidl import Autocomplete, Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
 from mateu_ui.uidl import ContentSlot as ContentSlotMarker
@@ -65,6 +65,7 @@ from mateu_ui.uidl import (
 from mateu_ui.uidl import Section as SectionMarker
 
 from .. import form_columns_inference, layout_inference
+from ..input_purpose import input_purpose
 from ..rest_source_registry import source_dto
 from ..naming import (
     camel_case,
@@ -477,6 +478,10 @@ class FieldMapperMixin(MixinBase):
             options_columns=f.marker(OptionsLayoutMarker).columns if f.has(OptionsLayoutMarker) else 1,
             # Style(): the field's own CSS — on the field AND its component (Java's @Style)
             style=f.marker(StyleMarker).value if f.has(StyleMarker) else None,
+            # Autocomplete(): the input's purpose (WCAG 1.3.5); an editable email field infers it
+            autocomplete=input_purpose(
+                f.marker(Autocomplete).value if f.has(Autocomplete) else None, stereotype, read_only
+            ),
         )
         out = self.client(meta, field_id, [])
         if meta.style:

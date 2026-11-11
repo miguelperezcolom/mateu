@@ -1306,6 +1306,9 @@
       "name" : "link",
       "type" : "NavLink"
     }, {
+      "name" : "autocomplete",
+      "type" : "string"
+    }, {
       "name" : "fieldType",
       "type" : "string",
       "description" : "The id of a field type of the app's catalogue (specs/ui/types.yaml): its attributes are this field's defaults, and what the field declares itself wins."

@@ -25,6 +25,8 @@
   "remove": "Quitar",
   "name": "Nombre",
   "skipToContent": "Saltar al contenido",
+  "appContextReloads": "Elegir otro recarga la pantalla",
+  "appContextChanging": "{label}: {value}. Recargando…",
   "enterValue": "Introduce un valor.",
   "selectValue": "Seleccione un valor",
   "progressOf": "{done} de {total}",

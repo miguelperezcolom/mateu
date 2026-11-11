@@ -42,6 +42,9 @@ export const CHROME_TEXTS = {
     remove: 'Remove',
     name: 'Name',
     skipToContent: 'Skip to content',
+    // WCAG 3.2.2: the @AppContext picker says beforehand that a change reloads the screen
+    appContextReloads: 'Choosing another one reloads the screen',
+    appContextChanging: '{label}: {value}. Reloading…',
     enterValue: 'Enter a value.',
     selectValue: 'Select a value',
     progressOf: '{done} of {total}',
@@ -340,6 +343,8 @@ export const CHROME_TEXTS = {
     remove: 'Quitar',
     name: 'Nombre',
     skipToContent: 'Saltar al contenido',
+    appContextReloads: 'Elegir otro recarga la pantalla',
+    appContextChanging: '{label}: {value}. Recargando…',
     enterValue: 'Introduce un valor.',
     selectValue: 'Seleccione un valor',
     progressOf: '{done} de {total}',

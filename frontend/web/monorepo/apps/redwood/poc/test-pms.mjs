@@ -34,7 +34,7 @@ import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, i
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
-import { setChromeLanguage } from './i18n.mjs'
+import { setChromeLanguage, chromeText } from './i18n.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf, toastLifetimeOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
@@ -2996,4 +2996,16 @@ test('a chart carries a text alternative a screen reader reads (WCAG 1.1.1)', ()
   assert.equal(trend.textAlternative, 'Load. Mon 3, Tue 9')
   const html = readFileSync(new URL('./templates/atoms.html', import.meta.url), 'utf8')
   assert.match(html, /oj-helper-hidden-accessible"><oj-bind-text value="\[\[ \$current\.data\.textAlternative \]\]"/)
+})
+
+test('WCAG 3.2.2: the @AppContext drawer says beforehand that a change reloads; the chain announces the change', () => {
+  const page = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page.html', import.meta.url), 'utf8')
+  assert.match(page, /id="mateuContextReloadHint"[^>]*><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.appContextReloads \]\]"/)
+  assert.match(page, /:aria-describedby="\[\[ 'mateuContextReloadHint' \]\]"/)
+  const chain = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page-chains/onMateuContextChanged.js', import.meta.url), 'utf8')
+  assert.match(chain, /bridge\.announce\(bridge\.chromeText\('appContextChanging'/)
+  setChromeLanguage('es')
+  try {
+    assert.equal(chromeText('appContextChanging', { label: 'Hotel', value: 'Palma' }), 'Hotel: Palma. Recargando…')
+  } finally { setChromeLanguage('') }
 })

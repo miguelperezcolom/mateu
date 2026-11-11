@@ -25,6 +25,8 @@
   "remove": "Remove",
   "name": "Name",
   "skipToContent": "Skip to content",
+  "appContextReloads": "Choosing another one reloads the screen",
+  "appContextChanging": "{label}: {value}. Reloading…",
   "enterValue": "Enter a value.",
   "selectValue": "Select a value",
   "progressOf": "{done} of {total}",
