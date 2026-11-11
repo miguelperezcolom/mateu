@@ -227,8 +227,8 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.push` | 3 | 0 | 3 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1004** | **838** | **106** | **0** | **60** |
+| `mateu-uidl` | `io.mateu.uidl.security` | 6 | 6 | 0 | 0 | 0 |
+| **Total** | | **1008** | **842** | **106** | **0** | **60** |
 
 **Experimental types** (the whole type and its members):
 
