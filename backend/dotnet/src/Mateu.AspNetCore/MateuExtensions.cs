@@ -167,6 +167,13 @@ public static class MateuExtensions
     public static void MapMateu(this WebApplication app, string baseUrl = "", string? ui = null)
     {
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
+        // The ways to sign in the app declares in code (the environment wins); an unusable provider
+        // is reported once, now
+        var signIn = SignInOf(app.Services.GetService<MateuOptions>());
+        SignInProviders.WarnOnStartup(signIn,
+            MobileManifest.AppTypeOf(app.Services.GetRequiredService<MateuRegistry>(), baseUrl)
+                ?.GetCustomAttribute<MobileAppAttribute>(),
+            message => app.Logger.LogWarning("{Message}", message));
         // The handler gets the MOUNT path, never an absolute origin (Java's controllers pass their
         // relative baseUrl): the browser resolves it against the page, so the shell keeps working
         // behind a TLS-terminating or Host-rewriting reverse proxy — an origin built from the
@@ -315,7 +322,7 @@ public static class MateuExtensions
             foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
             // a YAML mount (no app class) is presented by its `type: AppShell` definition
             var shell = ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl);
-            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell), ctx.RequestAborted);
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell, signIn), ctx.RequestAborted);
         });
 
         // The installable web app (Mateu.Core.Pwa): its manifest, service worker, registration script
@@ -398,7 +405,10 @@ public static class MateuExtensions
         // worker version hashes the page exactly as served.
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
         var versionSkew = app.Services.GetService<VersionSkew>();
-        string PwaHead(string html) => Pwa.Served(html, prefix,
+        var signIn = SignInOf(app.Services.GetService<MateuOptions>());
+        var mobileApp = MobileManifest.AppTypeOf(registry, baseUrl)?.GetCustomAttribute<MobileAppAttribute>();
+        // the ways to sign in the web clients offer (<meta name="mateu-auth">), then the PWA's head
+        string PwaHead(string html) => Pwa.Served(SignInProviders.Head(html, signIn, mobileApp), prefix,
             MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
                 app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
         app.Use(async (ctx, next) =>
@@ -466,6 +476,10 @@ public static class MateuExtensions
         if (head is not null) html = head(html);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
+
+    /// <summary>The sign-in providers declared in <see cref="MateuOptions"/> (none when no options).</summary>
+    private static SignInDeclared SignInOf(MateuOptions? options) =>
+        options is null ? SignInDeclared.None : new SignInDeclared(options.SignIn, options.LoginOnStart, options.LogoutUrl);
 
     private static void MapMcpEndpoint(WebApplication app, string prefix)
     {

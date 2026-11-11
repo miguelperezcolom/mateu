@@ -55,6 +55,21 @@ public sealed class MateuOptions
     /// <c>mateu.pwa.enabled</c>.</summary>
     public bool? Pwa { get; set; }
 
+    /// <summary>The ways to sign in every client offers (web, phone, desktop), in display order: one
+    /// provider → straight to it, several → a sign-in chooser. Used when the environment variable
+    /// <c>MATEU_AUTH_PROVIDERS</c> names none (it wins, with <c>MATEU_AUTH_PROVIDERS_&lt;ID&gt;_*</c>).
+    /// Mateu offers the sign-in only: your authentication (JWT bearer, cookies…) validates what the
+    /// client then sends. Java: <c>mateu.auth.providers</c> / <c>SignInProvidersSupplier</c>.</summary>
+    public List<SignInProvider> SignIn { get; set; } = [];
+
+    /// <summary>Sign in before the first screen (true, the default) or only when a call is refused
+    /// with a 401 (false). <c>MATEU_AUTH_LOGIN_ON_START</c> wins.</summary>
+    public bool? LoginOnStart { get; set; }
+
+    /// <summary>Where the browser goes to sign out of a session the host owns (cookies). Null = none.
+    /// <c>MATEU_AUTH_LOGOUT_URL</c> wins.</summary>
+    public string? LogoutUrl { get; set; }
+
     /// <summary>The remotes the server may resolve micro frontends against (<c>MicroFrontend.Resolve =
     /// Resolve.Server</c>, content slots), merged over the <see cref="IRemoteCatalogSupplier"/> services
     /// (a configured remote wins on the same id). Ignored when the app registers its own

@@ -2076,6 +2076,18 @@ Mateu.Uidl.Separator ctor()
 Mateu.Uidl.SeparatorBeforeAttribute ctor()
 Mateu.Uidl.ShortcutAttribute ctor(System.String)
 Mateu.Uidl.ShortcutAttribute property System.String Keys { get; }
+Mateu.Uidl.SignInProvider ctor(System.String)
+Mateu.Uidl.SignInProvider property System.Boolean? ContinueParam { get;init; }
+Mateu.Uidl.SignInProvider property System.Collections.Generic.IReadOnlyList<System.String> Platforms { get;init; }
+Mateu.Uidl.SignInProvider property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
+Mateu.Uidl.SignInProvider property System.String Audience { get;init; }
+Mateu.Uidl.SignInProvider property System.String ClientId { get;init; }
+Mateu.Uidl.SignInProvider property System.String Icon { get;init; }
+Mateu.Uidl.SignInProvider property System.String Id { get;init; }
+Mateu.Uidl.SignInProvider property System.String Issuer { get;init; }
+Mateu.Uidl.SignInProvider property System.String Label { get;init; }
+Mateu.Uidl.SignInProvider property System.String Type { get;init; }
+Mateu.Uidl.SignInProvider property System.String Url { get;init; }
 Mateu.Uidl.SignatureAttribute ctor()
 Mateu.Uidl.SizeAttribute ctor(Mateu.Uidl.SizeMode)
 Mateu.Uidl.SizeAttribute property Mateu.Uidl.SizeMode Value { get; }

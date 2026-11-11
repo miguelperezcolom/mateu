@@ -441,6 +441,7 @@ Mateu.Uidl.SelectedItem
 Mateu.Uidl.Separator
 Mateu.Uidl.SeparatorBeforeAttribute
 Mateu.Uidl.ShortcutAttribute
+Mateu.Uidl.SignInProvider
 Mateu.Uidl.SignatureAttribute
 Mateu.Uidl.SizeAttribute
 Mateu.Uidl.SizeMode

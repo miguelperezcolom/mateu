@@ -55,6 +55,11 @@ internal static class MobileManifest
     public static string ForMount(MateuRegistry registry, string? baseUrl, IDictionary<object, object>? shell) =>
         Json(AppTypeOf(registry, baseUrl), RunningMateuVersion(), shell);
 
+    /// <summary>As <see cref="ForMount(MateuRegistry, string?, IDictionary{object, object}?)"/>, with
+    /// the sign-in providers the app declares in code (<c>MateuOptions.SignIn</c>).</summary>
+    internal static string ForMount(MateuRegistry registry, string? baseUrl, IDictionary<object, object>? shell, SignInDeclared? signIn) =>
+        Json(AppTypeOf(registry, baseUrl), RunningMateuVersion(), shell, signIn);
+
     /// <summary>The members that describe the app itself — what the web app manifest of the PWA
     /// (<see cref="Pwa"/>) is derived from too, so a rename reaches both.</summary>
     internal sealed record Derived(string Name, string ShortName, string? Icon, string? ThemeColor);
@@ -92,17 +97,18 @@ internal static class MobileManifest
     /// </summary>
     /// <remarks>With no app class, the mount's YAML app shell <paramref name="shell"/> presents it
     /// (see <see cref="Derive"/>).</remarks>
-    public static string Json(Type? appType, string? mateuVersion, IDictionary<object, object>? shell = null)
+    public static string Json(Type? appType, string? mateuVersion, IDictionary<object, object>? shell = null) =>
+        Json(appType, mateuVersion, shell, null);
+
+    internal static string Json(Type? appType, string? mateuVersion, IDictionary<object, object>? shell, SignInDeclared? signIn)
     {
         var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
         var (name, shortName, icon, themeColor) = Derive(appType, shell);
         var minAppVersion = Setting("MATEU_MOBILE_MIN_APP_VERSION") ?? Blank(mobile?.MinAppVersion)
                             ?? DefaultMinAppVersion;
-        var issuer = Setting("MATEU_MOBILE_OIDC_ISSUER") ?? Blank(mobile?.OidcIssuer);
-        var clientId = Setting("MATEU_MOBILE_OIDC_CLIENT_ID") ?? Blank(mobile?.OidcClientId);
-        var scopes = Scopes(Setting("MATEU_MOBILE_OIDC_SCOPES"))
-                     ?? NonBlank(mobile?.Scopes)
-                     ?? DefaultScopes;
+        // the ways to sign in (SignInProviders): its first oidc provider offered on mobile also fills
+        // the auth.type/issuer/clientId/scopes the published app reads
+        var auth = SignInProviders.AuthBlock(signIn, mobile);
 
         using var buffer = new MemoryStream();
         using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions
@@ -121,16 +127,10 @@ internal static class MobileManifest
             if (release is not null) w.WriteString("mateuVersion", release);
             // development mode: where the live-reload events are (the native renderers subscribe)
             if (DevSpecs.Enabled) w.WriteString("devEvents", DevSpecs.EventsPath);
-            if (issuer is not null && clientId is not null)
+            if (auth is not null)
             {
-                w.WriteStartObject("auth");
-                w.WriteString("type", "oidc");
-                w.WriteString("issuer", issuer);
-                w.WriteString("clientId", clientId);
-                w.WriteStartArray("scopes");
-                foreach (var scope in scopes) w.WriteStringValue(scope);
-                w.WriteEndArray();
-                w.WriteEndObject();
+                w.WritePropertyName("auth");
+                auth.WriteTo(w);
             }
             w.WriteEndObject();
         }
@@ -161,14 +161,4 @@ internal static class MobileManifest
     private static string? Setting(string env) => Blank(Environment.GetEnvironmentVariable(env));
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static IReadOnlyList<string>? NonBlank(string[]? values)
-    {
-        var list = values?.Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v.Trim()).ToList();
-        return list is { Count: > 0 } ? list : null;
-    }
-
-    /// <summary>A scopes setting, comma and/or space separated.</summary>
-    private static IReadOnlyList<string>? Scopes(string? setting) =>
-        setting is null ? null : NonBlank(setting.Split([',', ' ', '\t'], StringSplitOptions.RemoveEmptyEntries));
 }
