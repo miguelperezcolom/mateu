@@ -2,6 +2,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
+import { sourcedOptionsOf } from '@infra/http/sourcedOptions.ts';
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
@@ -40,7 +41,10 @@ export class MateuChoice extends LitElement {
 
     render() {
         let options = this.field?.options
-        if (this.field?.remoteCoordinates) {
+        if (this.field?.optionsSource && !this.field.remoteCoordinates) {
+            // a REST source's options (`@RestOptions`), single or multiple choice alike
+            options = sourcedOptionsOf(this as never, this.field.fieldId, this.field.fieldId, this.field.optionsSource) as never
+        } else if (this.field?.remoteCoordinates) {
             const coords = this.field.remoteCoordinates;
 
             if (this.data?.[this.field.fieldId]

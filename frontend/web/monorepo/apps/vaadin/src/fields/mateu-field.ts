@@ -302,9 +302,12 @@ export class MateuField extends LitElement {
         return []
     }
 
+    /** Options loaded into `data[id].content`: by the server (remote coordinates) or a REST source. */
+    loadsItsOptions = (): boolean => !!(this.field?.remoteCoordinates || this.field?.optionsSource)
+
     selectedIndex = (value: any) => {
         if (value) {
-            if (this.field?.remoteCoordinates) {
+            if (this.loadsItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedOption = this.data[this.id].content.find((option: any) => option.value == value)
@@ -324,7 +327,7 @@ export class MateuField extends LitElement {
 
     selectedIndexes = (value: any[]) => {
         if (value && value.length > 0) {
-            if (this.field?.remoteCoordinates) {
+            if (this.loadsItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedIndexes = this.data[this.id].content.filter((option: any) =>
@@ -353,7 +356,7 @@ export class MateuField extends LitElement {
         let value = undefined
         if (this.rendered) {
             if (e.detail.value) {
-                if (this.field?.remoteCoordinates) {
+                if (this.loadsItsOptions()) {
                     if (this.data[this.id]
                         && this.data[this.id].content) {
                         value = e.detail.value.map((index:any) => this.data[this.id].content[index].value)
@@ -378,7 +381,7 @@ export class MateuField extends LitElement {
     listItemSelected = (e: CustomEvent) => {
         let value = undefined
         if (e.detail.value || e.detail.value == 0) {
-            if (this.field?.remoteCoordinates) {
+            if (this.loadsItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedOption = this.data[this.id].content[e.detail.value]

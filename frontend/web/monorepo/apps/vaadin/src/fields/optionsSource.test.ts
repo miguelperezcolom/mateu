@@ -119,6 +119,27 @@ describe('a multiSelect reads its optionsSource', () => {
     })
 })
 
+describe('a listBox reads its optionsSource', () => {
+    it('multi-valued (array): one item per option, the current ids selected, a pick written back as ids', async () => {
+        const { root, changes } = await mount({ dataType: 'array', stereotype: 'listBox', optionsSource: source }, { f: [25] })
+        const list = root.querySelector('vaadin-list-box') as any
+        const items = Array.from(root.querySelectorAll('vaadin-item')) as any[]
+        expect(items.map(i => i.textContent.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(list.selectedValues).toEqual([1])
+        fire(list, 'selected-values-changed', { value: [0, 1] })
+        expect(changes.at(-1)?.value).toEqual([7, 25])
+    })
+
+    it('single-valued: the current id selected, a pick written back as the id', async () => {
+        const { root, changes } = await mount({ stereotype: 'listBox', optionsSource: source }, { f: 25 })
+        const list = root.querySelector('vaadin-list-box') as any
+        expect(Array.from(root.querySelectorAll('vaadin-item')).map(i => i.textContent!.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(list.getAttribute('selected')).toBe('1')
+        fire(list, 'selected-changed', { value: 0 })
+        expect(changes.at(-1)?.value).toBe(7)
+    })
+})
+
 describe('the string-keyed helpers', () => {
     it('leave string options untouched (same array) and keep one copy per numeric list', () => {
         const strings = [{ value: 'a', label: 'A' }]
