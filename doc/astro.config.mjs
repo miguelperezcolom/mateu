@@ -609,6 +609,7 @@ export default defineConfig({
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
 						{ slug: 'reference/stability-and-versioning', label: 'Stability & versioning' },
 						{ slug: 'reference/support-policy', label: 'Support policy' },
+						{ slug: 'reference/verify-downloads', label: 'Verify what you download' },
 						{ slug: 'reference/known-issues', label: 'Known issues' },
 					],
 				},
