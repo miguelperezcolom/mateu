@@ -173,9 +173,9 @@ class MoreComponentsMapperMixin(MixinBase):
                 "fieldId", [], c,
             )
         if isinstance(c, mc.FormEditor):
-            return _client(FormEditorMetadata(value=c.value), "fieldId", [], c)
+            return _client(FormEditorMetadata(value=c.value), c.id or "fieldId", [], c)
         if isinstance(c, mc.Workflow):
-            return _client(WorkflowMetadata(value=c.value), "fieldId", [], c)
+            return _client(WorkflowMetadata(value=c.value), c.id or "fieldId", [], c)
         return None
 
     def _slot(self, content) -> ClientSideComponent:

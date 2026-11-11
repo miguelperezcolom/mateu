@@ -1180,8 +1180,11 @@
     } ]
   }, {
     "type" : "FormEditor",
-    "description" : "A form-definition editor component. value is the JSON FormDefinition string.",
+    "description" : "A form-definition editor component. value is the JSON FormDefinition string. id names the state key the edited definition is written to (a field of the view model).",
     "attributes" : [ {
+      "name" : "id",
+      "type" : "string"
+    }, {
       "name" : "value",
       "type" : "string"
     } ]
@@ -2763,8 +2766,11 @@
     } ]
   }, {
     "type" : "Workflow",
-    "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string.",
+    "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string. id names the state key the edited definition is written to (a field of the view model).",
     "attributes" : [ {
+      "name" : "id",
+      "type" : "string"
+    }, {
       "name" : "value",
       "type" : "string"
     } ]

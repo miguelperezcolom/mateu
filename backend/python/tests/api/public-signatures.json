@@ -8560,6 +8560,11 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -12480,6 +12485,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

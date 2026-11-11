@@ -10,7 +10,7 @@ public class FormEditorMapper {
   public static ClientSideComponentDto mapFormEditorToDto(FormEditor formEditor) {
     return new ClientSideComponentDto(
         FormEditorDto.builder().value(formEditor.value()).build(),
-        "fieldId",
+        (formEditor.id() != null && !formEditor.id().isBlank()) ? formEditor.id() : "fieldId",
         List.of(),
         formEditor.style(),
         formEditor.cssClasses(),

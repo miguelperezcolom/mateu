@@ -149,16 +149,6 @@ cannot declare the camera permission the host app would need.
 screen's own buttons and tabs. On the desktop, take the photo with the system camera app and pick
 the file.
 
-### The definition a `Workflow` or `FormEditor` edits does not reach a view model
-
-Every renderer (web, React Native, IntelliJ) now edits a `Workflow` and a `FormEditor` and writes the
-definition's JSON into the component state under the component's id. The three servers give both
-components the fixed id `fieldId`, though, so the edited JSON travels under a key no view model
-field declares, and is not bound back on the next action.
-
-**Workaround:** design the definition in the editor and take it out with its Export button (a JSON
-file on the web, the share sheet on a phone).
-
 ## .NET and Python servers
 
 In 3.0 the .NET and Python servers are **supported with documented gaps**

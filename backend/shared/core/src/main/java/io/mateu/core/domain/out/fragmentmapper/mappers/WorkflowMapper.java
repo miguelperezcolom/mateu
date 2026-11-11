@@ -10,7 +10,7 @@ public class WorkflowMapper {
   public static ClientSideComponentDto mapWorkflowToDto(Workflow workflow) {
     return new ClientSideComponentDto(
         WorkflowDto.builder().value(workflow.value()).build(),
-        "fieldId",
+        (workflow.id() != null && !workflow.id().isBlank()) ? workflow.id() : "fieldId",
         List.of(),
         workflow.style(),
         workflow.cssClasses(),

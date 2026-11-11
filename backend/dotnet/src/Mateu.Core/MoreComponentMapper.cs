@@ -43,8 +43,8 @@ internal static class MoreComponentMapper
         MenuBar mb => Client(new MenuBarMetadataDto(Menu(mb.Options)), mb.Id ?? Guid.NewGuid().ToString(), [], mb),
         CookieConsent cc => Client(new CookieConsentMetadataDto(cc.Position?.ToString(), cc.CookieName,
             cc.Message, cc.Theme, cc.LearnMore, cc.LearnMoreLink, cc.Dismiss), "fieldId", [], cc),
-        FormEditor fe => Client(new FormEditorMetadataDto(fe.Value), "fieldId", [], fe),
-        Workflow wf => Client(new WorkflowMetadataDto(wf.Value), "fieldId", [], wf),
+        FormEditor fe => Client(new FormEditorMetadataDto(fe.Value), string.IsNullOrWhiteSpace(fe.Id) ? "fieldId" : fe.Id, [], fe),
+        Workflow wf => Client(new WorkflowMetadataDto(wf.Value), string.IsNullOrWhiteSpace(wf.Id) ? "fieldId" : wf.Id, [], wf),
         NotFound nf => Client(new NotFoundMetadataDto(nf.Title, nf.Message, nf.BackRoute, nf.BackLabel), nf.Id, [], nf),
         MessageList ml => Client(new MessageListMetadataDto(ml.Items.Select(m =>
                 new MessageListItemDto(m.Text, m.UserName, m.Time, m.UserImg, m.UserAbbr, m.UserColorIndex)).ToList()),

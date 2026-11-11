@@ -122,8 +122,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   (`_appcontext-search-<field>`) instead of only its loaded options. Photo capture keeps the file
   picker: no pure-Java webcam library exists (known issue).
 - **Every renderer writes an edited `Workflow` / `FormEditor` definition under the component's id**
-  (the web element now names it as `fieldId` in its `value-changed`). The servers give both the fixed
-  id `fieldId` today, so a view model cannot bind it yet (known issue).
+  (the web element now names it as `fieldId` in its `value-changed`), and both components take an `id`
+  in the three backends (`Workflow.builder().id("definition")`, .NET `{ Id = "definition" }`, Python
+  `Workflow(id="definition")`): the view-model field of that name receives the edited JSON. Without
+  an id they keep the filler `fieldId`.
 
 ### Removed
 
