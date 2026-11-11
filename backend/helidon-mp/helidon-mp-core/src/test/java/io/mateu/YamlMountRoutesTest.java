@@ -137,6 +137,96 @@ class YamlMountRoutesTest {
   }
 
   /**
+   * A mount under a base path answers its deep links with the SPA shell — under the prefix a
+   * trusted proxy announces — and leaves its assets, its API paths and non-page requests to the
+   * handlers behind it; a call only JAX-RS can authenticate is handed on to Jersey, never run here
+   * as nobody.
+   */
+  @Test
+  void aMountUnderABasePathAnswersItsDeepLinksAndHandsJaxRsCallersOn() {
+    var cdi = CDI.current();
+    var service = cdi.select(MateuService.class).get();
+    var routeRegistry = cdi.select(RouteRegistry.class).get();
+    var yamlAppLoader = cdi.select(YamlAppLoader.class).get();
+    var mount = new YamlMounts.Mount("back-office", "Back office");
+    var routing = HttpRouting.builder();
+    MateuHelidonRoutes.yamlMountRoutes(
+        routing,
+        java.util.List.of(mount),
+        () -> service,
+        () -> routeRegistry,
+        () -> yamlAppLoader,
+        req -> false,
+        req -> req.headers().contains(io.helidon.http.HeaderNames.AUTHORIZATION));
+    // what the handlers behind these routes (Jersey, the static content) answer: a marker
+    routing.any((req, res) -> res.status(io.helidon.http.Status.I_AM_A_TEAPOT_418).send("behind"));
+    WebServer server = WebServer.builder().port(0).routing(routing).build().start();
+    String previous = System.getProperty(io.mateu.core.infra.ForwardedPrefix.TRUSTED_PROPERTY);
+    System.setProperty(io.mateu.core.infra.ForwardedPrefix.TRUSTED_PROPERTY, "true");
+    try {
+      RestAssured.given()
+          .port(server.port())
+          .accept("text/html")
+          .header(io.mateu.core.infra.ForwardedPrefix.HEADER, "/tenant-a")
+          .get("/back-office/orders/42")
+          .then()
+          .statusCode(200)
+          .body(org.hamcrest.Matchers.containsString("<mateu-ui"))
+          .body(org.hamcrest.Matchers.containsString("/tenant-a/"));
+      for (var notAPage :
+          java.util.List.of("/back-office/assets/app.js", "/back-office/mateu/v3/whatever")) {
+        RestAssured.given()
+            .port(server.port())
+            .accept("text/html")
+            .get(notAPage)
+            .then()
+            .statusCode(418);
+      }
+      // a data fetch (no text/html) is not answered with the page
+      RestAssured.given()
+          .port(server.port())
+          .accept("application/json")
+          .get("/back-office/orders/42")
+          .then()
+          .statusCode(418);
+      // credentials only a JAX-RS filter reads: Jersey answers it (MateuJaxRsEndpoints)
+      for (var api : java.util.List.of("sync", "sse")) {
+        RestAssured.given()
+            .port(server.port())
+            .header("Authorization", "Bearer only-jersey-reads-this")
+            .contentType("application/json")
+            .body("{\"actionId\":\"\",\"route\":\"/\",\"componentState\":{}}")
+            .post(mount.apiPrefix() + "/v3/" + api + "/home")
+            .then()
+            .statusCode(418);
+      }
+    } finally {
+      if (previous == null) {
+        System.clearProperty(io.mateu.core.infra.ForwardedPrefix.TRUSTED_PROPERTY);
+      } else {
+        System.setProperty(io.mateu.core.infra.ForwardedPrefix.TRUSTED_PROPERTY, previous);
+      }
+      server.stop();
+    }
+  }
+
+  /** The registry authors a path when it matches it or one of its parents (a crud's /new). */
+  @Test
+  void aPathIsAuthoredWhenTheRegistryMatchesItOrAParent() {
+    var routeRegistry = CDI.current().select(RouteRegistry.class).get();
+    var authored =
+        routeRegistry.match("/yaml-parity/page").isPresent() ? "/yaml-parity/page" : "/page";
+    org.junit.jupiter.api.Assertions.assertTrue(
+        MateuHelidonRoutes.authoredHere(routeRegistry, authored));
+    org.junit.jupiter.api.Assertions.assertTrue(
+        MateuHelidonRoutes.authoredHere(routeRegistry, authored + "/42/edit"));
+    org.junit.jupiter.api.Assertions.assertFalse(
+        MateuHelidonRoutes.authoredHere(routeRegistry, "/nobody/authors/this"));
+    org.junit.jupiter.api.Assertions.assertFalse(
+        MateuHelidonRoutes.authoredHere(routeRegistry, "/"));
+  }
+
+  /**
    * An app that requires a login (@LoginConfig): the YAML mount's API, served outside Jersey, used
    * to run any action for an anonymous caller. Now it answers 401 when nobody authenticated.
    */
