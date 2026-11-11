@@ -1,0 +1,99 @@
+{
+  "description": "Sign-in providers on the CLIENT: a UI's `auth` block (the manifest's, or the web page's mateu-auth meta) and a platform -> the providers that platform offers, in order, and whether it goes straight to one (direct), asks (chooser) or signs in nowhere (none). Native apps (mobile, desktop) offer only `oidc` providers listing their platform: a `redirect` provider ends in a browser cookie, never a token the app could send. Without `providers`, the legacy single keys (issuer/clientId) are provider `default`, for the native apps only. An oidc provider without issuer or clientId is skipped; a duplicate id keeps the first. Run by React Native (src/core/signInFlow.conformance.test.ts) and the IntelliJ/desktop plugin (SignInFlowConformanceTest).",
+  "cases": [
+    {
+      "name": "no auth block",
+      "auth": null,
+      "platform": "mobile",
+      "expect": { "providers": [], "mode": "none" }
+    },
+    {
+      "name": "legacy single provider on mobile",
+      "auth": { "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-mobile", "scopes": ["openid"] },
+      "platform": "mobile",
+      "expect": { "providers": ["default"], "mode": "direct" }
+    },
+    {
+      "name": "legacy single provider on desktop",
+      "auth": { "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-mobile" },
+      "platform": "desktop",
+      "expect": { "providers": ["default"], "mode": "direct" }
+    },
+    {
+      "name": "one oidc provider for every platform",
+      "auth": {
+        "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui",
+        "providers": [
+          { "id": "acme", "type": "oidc", "label": "Acme SSO", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui" }
+        ]
+      },
+      "platform": "mobile",
+      "expect": { "providers": ["acme"], "mode": "direct" }
+    },
+    {
+      "name": "oidc + redirect: the phone skips the redirect one",
+      "auth": {
+        "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui",
+        "providers": [
+          { "id": "acme", "type": "oidc", "label": "Acme SSO", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui", "platforms": ["web", "mobile", "desktop"] },
+          { "id": "github", "type": "redirect", "label": "GitHub", "url": "/oauth2/authorization/github", "platforms": ["web"] }
+        ]
+      },
+      "platform": "mobile",
+      "expect": { "providers": ["acme"], "mode": "direct" }
+    },
+    {
+      "name": "a redirect provider listing mobile is still not a token flow",
+      "auth": {
+        "providers": [
+          { "id": "github", "type": "redirect", "url": "/oauth2/authorization/github", "platforms": ["web", "mobile", "desktop"] }
+        ]
+      },
+      "platform": "desktop",
+      "expect": { "providers": [], "mode": "none" }
+    },
+    {
+      "name": "several oidc providers: chooser, in the declared order",
+      "auth": {
+        "type": "oidc", "issuer": "https://accounts.google.com", "clientId": "g-client",
+        "providers": [
+          { "id": "google", "type": "oidc", "label": "Google", "icon": "google", "issuer": "https://accounts.google.com", "clientId": "g-client" },
+          { "id": "microsoft", "type": "oidc", "label": "Microsoft", "icon": "microsoft", "issuer": "https://login.microsoftonline.com/common/v2.0", "clientId": "m-client" },
+          { "id": "acme", "type": "oidc", "label": "Acme SSO", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui" }
+        ]
+      },
+      "platform": "mobile",
+      "expect": { "providers": ["google", "microsoft", "acme"], "mode": "chooser" }
+    },
+    {
+      "name": "platforms filter: a provider only for the web and the desktop",
+      "auth": {
+        "providers": [
+          { "id": "acme", "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "mateu-ui", "platforms": ["mobile"] },
+          { "id": "corp", "type": "oidc", "issuer": "https://login.corp.example", "clientId": "desk", "platforms": ["web", "desktop"] }
+        ]
+      },
+      "platform": "desktop",
+      "expect": { "providers": ["corp"], "mode": "direct" }
+    },
+    {
+      "name": "an oidc provider without clientId is skipped; a duplicate id keeps the first",
+      "auth": {
+        "providers": [
+          { "id": "broken", "type": "oidc", "issuer": "https://id.acme.com" },
+          { "id": "acme", "type": "oidc", "issuer": "https://id.acme.com/realms/acme", "clientId": "one" },
+          { "id": "acme", "type": "oidc", "issuer": "https://id.acme.com/realms/other", "clientId": "two" },
+          { "id": "okta", "type": "oidc", "issuer": "https://acme.okta.com", "clientId": "okta-client" }
+        ]
+      },
+      "platform": "mobile",
+      "expect": { "providers": ["acme", "okta"], "mode": "chooser" }
+    },
+    {
+      "name": "an empty provider list is the whole truth (no legacy fallback)",
+      "auth": { "type": "oidc", "issuer": "https://id.acme.com", "clientId": "c", "providers": [] },
+      "platform": "mobile",
+      "expect": { "providers": [], "mode": "none" }
+    }
+  ]
+}

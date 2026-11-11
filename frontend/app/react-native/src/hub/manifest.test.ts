@@ -1,6 +1,34 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchManifest, parseManifest, resolveIcon, resolveMount, versionGate } from './manifest.ts';
+import { fetchManifest, manifestProviders, parseManifest, resolveIcon, resolveMount, versionGate } from './manifest.ts';
+
+test('several sign-in providers: every https oidc one for the phone, the first is also `auth`', () => {
+  const m = parseManifest(
+    {
+      name: 'X',
+      auth: {
+        type: 'oidc', issuer: 'https://accounts.google.com', clientId: 'g',
+        providers: [
+          { id: 'google', type: 'oidc', label: 'Google', issuer: 'https://accounts.google.com', clientId: 'g' },
+          { id: 'lab', type: 'oidc', issuer: 'http://lab.acme.com', clientId: 'l' },
+          { id: 'github', type: 'redirect', url: '/oauth2/authorization/github' },
+          { id: 'acme', type: 'oidc', label: 'Acme SSO', issuer: 'https://id.acme.com/realms/acme', clientId: 'a' },
+        ],
+      },
+    },
+    'https://acme.com/crm',
+  );
+  assert.deepEqual(m.providers?.map((p) => p.id), ['google', 'acme']);
+  assert.equal(m.auth?.id, 'google');
+  assert.deepEqual(manifestProviders(m).map((p) => p.id), ['google', 'acme']);
+});
+
+test('a manifest cached by an older app (auth only) still has its provider', () => {
+  const cached = { name: 'X', auth: { type: 'oidc' as const, issuer: 'https://id.acme.com', clientId: 'c', scopes: ['openid'] } };
+  assert.deepEqual(manifestProviders(cached).map((p) => p.id), ['default']);
+  assert.deepEqual(manifestProviders({}), []);
+  assert.deepEqual(manifestProviders(undefined), []);
+});
 
 const BASE = 'https://acme.com/crm';
 

@@ -9,7 +9,9 @@ import type { KeyValueStore } from './sessionId.ts';
 // to the opener. A no-op on iOS/Android.
 WebBrowser.maybeCompleteAuthSession();
 
-const TOKENS_KEY = 'mateu.oidc.tokens';
+/** Where the single-backend app keeps its tokens (a hub UI uses its own key, uiSecretKeys). */
+export const OIDC_TOKENS_KEY = 'mateu.oidc.tokens';
+const TOKENS_KEY = OIDC_TOKENS_KEY;
 
 /** The hub's deep-link scheme (app.json `expo.scheme`) — the redirect target registered at the IdP:
  *  `mateu://auth` on devices, `<origin>/auth` on web. A fixed build has its own (MATEU_APP_SCHEME). */
