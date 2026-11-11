@@ -840,6 +840,10 @@ public class ActionInstanceCreator {
     if (actionId.startsWith(io.mateu.core.domain.act.NotificationsActionRunner.ACTION_PREFIX)) {
       return true;
     }
+    // So is the phone's push token registration (remote push, @App(osNotifications)).
+    if (actionId.startsWith(io.mateu.core.application.push.PushActionRunner.ACTION_PREFIX)) {
+      return true;
+    }
     // So is the command palette's entity search.
     if (io.mateu.core.domain.act.GlobalSearchActionRunner.ACTION_ID.equals(actionId)) {
       return true;
