@@ -191,7 +191,7 @@ export function rowFieldsOf(ctx, values, errors) {
       if (nested) out.push(nested)
       continue
     }
-    if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+    if (f.dataType === 'array' && !optionsOf(f, ctx.data).length && !f.optionsSource) continue
     const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
     const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
     const error = errors && errors[f.fieldId]
@@ -750,8 +750,12 @@ export function extraWidgetOf(f, options, value) {
   if (st === 'radio' && options.length) return { isRadio: true }
   // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
   if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
-  if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
-  if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+  // a multi-value field fed by a REST source (optionsSource) is the same widget while its options
+  // are on their way (loadRestOptions fills them into data[field]): it used to be skipped, or
+  // drawn as a text input, because only STATIC options made it a choice
+  const choices = options.length > 0 || !!f.optionsSource
+  if (f.dataType === 'array' && choices && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+  if (f.dataType === 'array' && choices && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
     return { isCheckboxSet: true }
   // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
   // format validation and, read-only, the value as a mailto: / web link
@@ -847,7 +851,7 @@ export function isExtraLayoutField(md) {
     || (md.stereotype === 'richText' && !md.readOnly)
     || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
     || CAPTURE_MODES[md.stereotype]
-    || (md.dataType === 'array' && (md.options || []).length
+    || (md.dataType === 'array' && ((md.options || []).length || md.optionsSource)
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
 }
 
