@@ -197,10 +197,15 @@ VB instance): `doc/src/content/docs/design-systems/oracle-redwood.md`.
   it with `@App(askLabel = "Ask RIU", askIcon = "R" | "/images/riu.svg" | "oj-ux-ico-…")`.
 - **The AI assistant** (`@AI(sse = …)`): a header button opens the chat drawer — streaming, tool
   steps, attachments (`@AI(upload)`), mcpUrl, menu and screen context, dictation, local agent.
-- **Light only**: dark mode makes no sense in Redwood. `@App(themeToggle = true)` is ignored (no
-  switch in the header; the Vaadin renderer of the same app keeps its own), and neither a stored
-  dark choice (`localStorage['mateu-theme']`, left untouched for Vaadin) nor the OS
-  `prefers-color-scheme` applies: `poc/theme.mjs` paints light at boot.
+- **Light / dark** (`poc/theme.mjs`): `@App(themeToggle = true)` puts the switch in the global
+  header; the stored choice (`localStorage['mateu-theme']`, the Vaadin renderer's key) wins, else the
+  OS `prefers-color-scheme`, followed live while nothing is stored. Dark is JET's own inverted colour
+  scheme (`oj-color-invert` on `<html>` — JET 18 has no separate dark theme); app.css re-points the
+  surfaces Mateu paints under `html.mateu-theme-dark`. Nothing of Oracle's is copied.
+- **Static remotes**: a `RemoteMenu` naming a static bundle's `manifest.json` is answered from it —
+  pre-rendered, or `specsOnly` definitions expanded in the browser by libs/mateu's own expander,
+  packaged by `poc/make-expander.mjs` into `poc/vendor/bundleResolver.mjs` (`npm run bridge`
+  regenerates it; `poc/staticRemotes.mjs` uses it).
 - **`@Fab`** on the app class or on a page: floating buttons stacked above the shell FAB.
 - **Language**: the renderer's own words come from `poc/i18n.mjs` in the page language
   (`<html lang>`, the browser's), English by default, Spanish complete.

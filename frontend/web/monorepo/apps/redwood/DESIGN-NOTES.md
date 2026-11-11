@@ -1933,6 +1933,13 @@ JET (`oj-color-invert`, `oj-c-colorscheme-dark`) y pone `theme="light"`, sin mir
 origen). Fuera: el chain toggleMateuTheme, su listener, la variable mateuThemeToggle, el texto
 themeToggle y las reglas `html.mateu-theme-dark` de app.css. Lo fija test-chains.mjs.
 
+**Sustituido (2026-11-11): vuelve el modo oscuro** — el contrato de Vaadin (elección guardada >
+`prefers-color-scheme`), el interruptor de `@App(themeToggle)` y, como oscuro, el esquema invertido de
+JET (`oj-color-invert`; JET 18 no trae tema oscuro). También: remotos estáticos (`specsOnly`
+expandidos con el expander de libs/mateu, `poc/make-expander.mjs`), el appState de las islas que
+vuelve en cada acción, el índice @Toc de una isla que ES el contenido y `optionsSource` en campos
+multivalor. Detalle en DESIGN-NOTES.en.md.
+
 ## Paneles de foldout plegados — `FoldoutPanel.open = false` (2026-10-18)
 
 Inspeccionado en tiempo de ejecución contra el componente del CDN: `oj-sp-foldout-layout` es un

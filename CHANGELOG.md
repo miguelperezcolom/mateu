@@ -30,6 +30,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 - `plugins-v*` releases no longer publish the plugins on their own.
 
+### Fixed — Redwood (known issues)
+
+- **Dark mode.** The Redwood renderer honours `@App(themeToggle = true)` (a switch in the global
+  header), a stored choice (`localStorage['mateu-theme']`, shared with the Vaadin renderer) and the
+  OS `prefers-color-scheme`. Dark is Oracle JET's own inverted colour scheme; the surfaces Mateu
+  paints follow it.
+- **A static remote that ships raw definitions loads.** A `RemoteMenu` naming a `specsOnly` static
+  bundle's `manifest.json` is no longer shown disabled: its menu, screens and deep links are answered
+  from the manifest, the definitions expanded in the browser by the same expander as Vaadin.
+- **An island's `appState` is sent back.** What an island's (or the page's) answer put in `appState`,
+  and a `MicroFrontend`'s declared `appState`, travel with every later action.
+- **An island that is the page's content gets its `@Toc` index.**
+- **Multi-value fields read `optionsSource`** (`multiSelect`, `listBox`, multi `combobox`) in the page
+  form, the row editor and the listing filters.
+
 ### Fixed — Redwood (from the Explorer review)
 
 - **Islands are their own surface.** An embedded island draws its own page header, toolbar, banners
