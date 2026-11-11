@@ -32,9 +32,14 @@ Pick one of the supported frameworks:
 | Micronaut | 4.x |
 | Helidon MP | 4.x |
 
-**Spring Boot 3 is not supported.** The Spring adapters are built and tested against Spring
-Boot 4 (Spring Framework 7) only; nothing builds or tests on Boot 3, and Boot 4 moved packages
-the adapters depend on. Upgrade the application to Boot 4 (Java 21) to use Mateu.
+**Spring Boot 3 is not supported, by decision.** The whole 3.x line is out of open-source support:
+its last generation, 3.5 (with Spring Framework 6.2 and Spring Security 6.5), reached its end of
+OSS support on 30 June 2026, and 3.5.16 was its last OSS release — the Spring team recommends
+moving to 4.0.x or 4.1.x ([Spring Boot 3.5.16 available now](https://spring.io/blog/2026/06/25/spring-boot-3-5-16-available-now/)).
+An application on Boot 3 no longer receives free security fixes from Spring, so Mateu 3.0 does
+not carry a second set of adapters and a CI matrix for it: the Spring adapters are built and
+tested against Spring Boot 4 (Spring Framework 7) only, and Boot 4 moved packages they depend
+on. Upgrade the application to Boot 4 (Java 21) to use Mateu.
 
 ## Next
 

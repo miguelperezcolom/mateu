@@ -131,8 +131,9 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 
 ## Tooling
 
-- **Spring Boot 3 is not supported.** The Spring adapters are built and tested against Spring
-  Boot 4 only. Upgrade to Boot 4 (see [Prerequisites](/java-create-your-project/prerequisites/)).
+- **Spring Boot 3 is not supported, by decision**: the 3.x line has had no open-source support
+  since 30 June 2026 (Spring recommends 4.0.x or 4.1.x), so the Spring adapters are built and tested
+  against Spring Boot 4 only. Upgrade to Boot 4 (why, and how: [Prerequisites](/java-create-your-project/prerequisites/)).
 - **The IntelliJ plugin supports IntelliJ IDEA 2025.2 and later** (build `252` on, no upper bound).
   Each build is checked by the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and
   2026.3; a later line installs, and joins that list once it ships.
