@@ -294,6 +294,7 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <span class="oj-helper-hidden-accessible"><oj-bind-text value="[[ $current.data.textAlternative ]]"></oj-bind-text></span>
                         <oj-chart :type="[[ $current.data.chartType ]]" data="[[ $current.data.provider ]]"
                           coordinate-system="[[ $current.data.coordinateSystem ]]"
                           style-defaults.pie-inner-radius="[[ $current.data.innerRadius ]]"

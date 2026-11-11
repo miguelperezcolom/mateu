@@ -355,6 +355,11 @@ const en = {
     orgFocusOn: 'Show {name}',
     orgFocused: 'Showing {name}',
     orgHierarchy: 'Hierarchy',
+    // accessibility gaps of the WCAG 2.2 report (2026-11)
+    chartUntitled: 'Chart',
+    chartDataOf: 'Data of {name}',
+    chartSeries: 'Series',
+    chartTrend: '{name}: {count} values from {first} to {last}; lowest {min}, highest {max}',
 }
 
 type Catalogue = Record<keyof typeof en, string>
@@ -674,6 +679,10 @@ const es: Catalogue = {
     orgFocusOn: 'Ver {name}',
     orgFocused: 'Mostrando {name}',
     orgHierarchy: 'Jerarquía',
+    chartUntitled: 'Gráfico',
+    chartDataOf: 'Datos de {name}',
+    chartSeries: 'Serie',
+    chartTrend: '{name}: {count} valores de {first} a {last}; mínimo {min}, máximo {max}',
 }
 
 const TEXTS: Record<'en' | 'es', Catalogue> = { en, es }

@@ -1,6 +1,8 @@
 import {css, html, LitElement, PropertyValues} from "lit";
 import {customElement, property, query} from 'lit/decorators.js';
 import type {Chart, ChartConfiguration, ChartTypeRegistry, ChartData, ChartOptions} from 'chart.js';
+import {chartAlternativeOf} from '@infra/a11y/chartAlternative.ts';
+import {chromeTextf} from '@infra/ui/chromeTexts.ts';
 
 
 @customElement('mateu-chart')
@@ -58,10 +60,19 @@ export class MateuChart extends LitElement {
     }
 
     render() {
+        // WCAG 1.1.1: the canvas is an image named by the chart's title, and the numbers it draws
+        // travel as a visually-hidden table next to it
+        const alt = chartAlternativeOf(this.data, this.options, this.type)
         return html`
             <div class="container">
-                <canvas id="chart"></canvas>
+                <canvas id="chart" role="img" aria-label="${alt.name}"></canvas>
             </div>
+            <table class="sr-only">
+                <caption>${chromeTextf('chartDataOf', {name: alt.name})}</caption>
+                <thead><tr>${alt.table.headers.map((h) => html`<th scope="col">${h}</th>`)}</tr></thead>
+                <tbody>${alt.table.rows.map((r) => html`<tr>${r.map((c, i) => i === 0
+                    ? html`<th scope="row">${c}</th>` : html`<td>${c}</td>`)}</tr>`)}</tbody>
+            </table>
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
@@ -77,6 +88,10 @@ export class MateuChart extends LitElement {
     .container {
         height: 100%;
         position: relative;
+    }
+    .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
     }
   `
 }

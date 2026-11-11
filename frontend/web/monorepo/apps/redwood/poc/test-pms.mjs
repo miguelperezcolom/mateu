@@ -2988,3 +2988,12 @@ test('Item overview page as in Redwood\'s examples: a stacked body, sections wit
   assert.equal(sectioned.mainItems.filter((a) => a.text === 'Physique').length, 0)
   assert.ok(sectioned.mainItems.some((a) => a.text === 'Tall'))
 })
+
+test('a chart carries a text alternative a screen reader reads (WCAG 1.1.1)', () => {
+  const atom = chartAtomOf({ chartType: 'bar', chartData: { labels: ['Jan', 'Feb'], datasets: [{ label: 'Sales', data: [10, 20] }] } }, 'Chart')
+  assert.equal(atom.textAlternative, 'Sales: Jan 10, Feb 20')
+  const trend = chartAtomOf({ title: 'Load', values: [3, 9], labels: ['Mon', 'Tue'] }, 'TrendChart')
+  assert.equal(trend.textAlternative, 'Load. Mon 3, Tue 9')
+  const html = readFileSync(new URL('./templates/atoms.html', import.meta.url), 'utf8')
+  assert.match(html, /oj-helper-hidden-accessible"><oj-bind-text value="\[\[ \$current\.data\.textAlternative \]\]"/)
+})

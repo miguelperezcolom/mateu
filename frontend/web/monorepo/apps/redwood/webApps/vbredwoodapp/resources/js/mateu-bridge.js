@@ -4565,6 +4565,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
     scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
   }
+  /** A chart's text alternative: «Name. Series: label value, label value; …» (WCAG 1.1.1). */
+  function chartTextAlternativeOf(title, datasets, labels, pie) {
+    const parts = (datasets || []).map((d, si) => {
+      const values = (d.data || []).map((v, i) => (labels[i] != null ? String(labels[i]) + ' ' : '') + (v == null ? '' : String(v)))
+      const name = d.label && d.label !== title ? d.label : (!d.label && datasets.length > 1 ? 'Series ' + (si + 1) : '')
+      return (name ? name + ': ' : '') + values.join(', ')
+    })
+    return [title, parts.join('; ')].filter(Boolean).join('. ')
+  }
+
   /** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
    *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
   function chartAtomOf(m, t, interp = (x) => x) {
@@ -4618,6 +4628,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       color: color || '',
       // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
       colors: color ? [color] : undefined,    items,
+      // WCAG 1.1.1: what the chart draws, as text a screen reader reads (a hidden span by the chart)
+      textAlternative: chartTextAlternativeOf(trend ? interp(m.title || '') : '', datasets, labels, pie),
       provider: dataProviderFactory ? dataProviderFactory(items) : null,
     }
   }
@@ -19464,17 +19476,85 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
-  /** The oj-message message object for a toast with actions. */
+  /** The shortest time a toast with an action stays, in ms (WCAG 2.2.1 — libs/mateu ACTIONABLE_TOAST_MIN_MS). */
+  const ACTION_TOAST_MIN_MS = 10000
+  /** The least time a resumed toast gets before it closes (libs/mateu dismissTimer RESUME_MIN_MS). */
+  const TOAST_RESUME_MIN_MS = 2000
+
+  /** How long a toast with actions stays, in ms; 0 = until the user closes it. An ERROR stays until
+   *  dismissed, in every renderer (owner, 2026-10-12); so does a sticky one. A declared duration
+   *  shorter than ACTION_TOAST_MIN_MS is raised to it: the action must stay reachable. */
+  function toastLifetimeOf(toast) {
+    if (toast.variant === 'error' || toast.persistence === 'sticky') return 0
+    return Math.max(toast.duration > 0 ? toast.duration : 0, ACTION_TOAST_MIN_MS)
+  }
+
+  /** The oj-message message object for a toast with actions. JET's own autoTimeout cannot pause, so
+   *  it is always 'off' and the toast closes on pausableToastClose's clock (showUndoToasts). */
   function undoMessageOf(toast) {
-    const sticky = toast.variant === 'error' || toast.persistence === 'sticky'
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
       summary: toast.title || toast.text || '',
       ...(toast.title && toast.text ? { detail: toast.text } : {}),
-      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12); so does a sticky one
-      autoTimeout: sticky ? 'off' : (toast.duration > 0 ? toast.duration : 10000),
+      autoTimeout: 'off',
       closeAffordance: 'defaults',
     }
+  }
+
+  /**
+   * Closes a toast after `ms` of it being on screen and NOT hovered, focused or in a hidden page
+   * (WCAG 2.2.1 Timing Adjustable — the twin of libs/mateu infra/notify/dismissTimer.ts): the clock
+   * stops while the user is with the toast and resumes with what was left, never less than
+   * TOAST_RESUME_MIN_MS. `ms <= 0` never closes. Returns a cancel function.
+   */
+  function pausableToastClose(el, ms, close, doc = el && el.ownerDocument) {
+    if (!el || !(ms > 0)) return () => {}
+    let remaining = ms
+    let startedAt = 0
+    let timer = null
+    let hovered = false
+    let focused = false
+    let done = false
+    const hidden = () => !!doc && doc.visibilityState === 'hidden'
+    const stop = () => {
+      if (timer === null) return
+      clearTimeout(timer)
+      timer = null
+      remaining -= Date.now() - startedAt
+    }
+    const start = (atLeast) => {
+      if (done || timer !== null || hovered || focused || hidden()) return
+      remaining = Math.max(remaining, atLeast || 0)
+      startedAt = Date.now()
+      timer = setTimeout(() => { timer = null; cancel(); close() }, Math.max(0, remaining))
+    }
+    const resume = () => start(TOAST_RESUME_MIN_MS)
+    const onEnter = () => { hovered = true; stop() }
+    const onLeave = () => { hovered = false; resume() }
+    const onFocusIn = () => { focused = true; stop() }
+    const onFocusOut = (e) => {
+      if (e && e.relatedTarget && el.contains(e.relatedTarget)) return
+      focused = false
+      resume()
+    }
+    const onVisibility = () => { if (hidden()) stop(); else resume() }
+    el.addEventListener('mouseenter', onEnter)
+    el.addEventListener('mouseleave', onLeave)
+    el.addEventListener('focusin', onFocusIn)
+    el.addEventListener('focusout', onFocusOut)
+    if (doc) doc.addEventListener('visibilitychange', onVisibility)
+    function cancel() {
+      done = true
+      if (timer !== null) clearTimeout(timer)
+      timer = null
+      el.removeEventListener('mouseenter', onEnter)
+      el.removeEventListener('mouseleave', onLeave)
+      el.removeEventListener('focusin', onFocusIn)
+      el.removeEventListener('focusout', onFocusOut)
+      if (doc) doc.removeEventListener('visibilitychange', onVisibility)
+    }
+    start(0)
+    return cancel
   }
 
   /** The actions a toast offers (its `actions`, else its legacy undo). */
@@ -19529,8 +19609,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         msg.appendChild(detail)
       }
+      // closed by time on a clock that stops while hovered or focused (pausableToastClose)
+      const stopClock = pausableToastClose(msg, toastLifetimeOf(toast), () => {
+        if (typeof msg.close === 'function') msg.close()
+        else if (msg.parentNode && typeof msg.parentNode.removeChild === 'function') msg.parentNode.removeChild(msg)
+      }, doc)
       // closed (by the user or by time), out of the DOM
-      msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
+      msg.addEventListener('ojClose', () => { stopClock(); if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
   }
