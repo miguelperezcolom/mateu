@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Callable
 
 from .class_decorators import (
@@ -220,6 +221,7 @@ def action_options(
     confirmation_text: str | None = None,
     confirmation_denial_text: str | None = None,
     confirmation_required: bool = False,
+    offline: "OfflinePolicy | str" = "FAIL",
 ):
     """Per-action transport knobs. Composes with ``@button``/``@toolbar``/``@fab`` on the same
     method — it says nothing about the UI, only how the CLIENT should call this action.
@@ -239,7 +241,13 @@ def action_options(
     run when the page opts into RunJS), ``custom_event`` / ``custom_event_detail`` (a browser
     custom event dispatched instead of a server call) and the ``confirmation_*`` texts of the
     confirmation dialog, shown when ``confirmation_required`` (the client asks before sending).
+
+    ``offline`` (experimental): what the mobile app does when the action cannot reach the server
+    (Java's ``@Action(offline)``). ``OfflinePolicy.QUEUE`` keeps it in the app's send queue and
+    sends it once when the connection is back, with an ``Idempotency-Key`` the server honours. Only
+    for writes that still make sense later, possibly after other changes.
     """
+    offline_policy = coerce_enum(offline, OfflinePolicy, "@action_options(offline)")
 
     def deco(fn):
         setattr(fn, "__mateu_action_options__", (timeout_millis, idempotent))
@@ -255,10 +263,21 @@ def action_options(
             "confirmation_text": confirmation_text,
             "confirmation_denial_text": confirmation_denial_text,
             "confirmation_required": confirmation_required,
+            "offline": offline_policy,
         })
         return fn
 
     return deco
+
+
+class OfflinePolicy(Enum):
+    """What a client without connection does with an action (Java's ``OfflinePolicy``).
+    Experimental (3.0 GA)."""
+
+    #: Fails while offline, like any other request (the default).
+    FAIL = "FAIL"
+    #: The app queues it and sends it once when the connection is back.
+    QUEUE = "QUEUE"
 
 
 def banner(

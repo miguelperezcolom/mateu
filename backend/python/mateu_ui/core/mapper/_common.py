@@ -288,6 +288,7 @@ def _action_extras(extras: dict | None) -> dict:
         "custom_event": (
             CustomEventRecord(event_name=event or "", detail=detail) if event or detail else None
         ),
+        "offline": "queue" if getattr(extras.get("offline"), "value", None) == "QUEUE" else None,
     }
 
 

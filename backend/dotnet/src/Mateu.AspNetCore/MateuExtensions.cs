@@ -181,7 +181,11 @@ public static class MateuExtensions
             {
                 rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
-                return await handler.HandleAsync(rq, prefix, ctx.RequestAborted);
+                // a request carrying an Idempotency-Key (the mobile app's offline send queue)
+                // runs once per caller, action and key: a repeat gets the first answer back
+                return await IdempotencyKeys.OnceAsync(CallerOf(ctx), rq.ActionId,
+                    ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
+                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
             });
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
@@ -604,6 +608,18 @@ public static class MateuExtensions
             DevSpecs.Reload(ctx.Request.Query["scope"].FirstOrDefault());
             return Results.NoContent();
         });
+    }
+
+    /// <summary>The caller an idempotency key is scoped to: the authenticated name and roles —
+    /// stable across tokens, so signing in again keeps the same scope.</summary>
+    internal static string CallerOf(HttpContext ctx)
+    {
+        var user = ctx.User;
+        var roles = user?.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role" || c.Type == "roles")
+            .Select(c => c.Value).Order(StringComparer.Ordinal) ?? Enumerable.Empty<string>();
+        return (user?.Identity?.IsAuthenticated == true ? user.Identity.Name ?? "" : "")
+            + "\u0001" + string.Join(",", roles);
     }
 
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error

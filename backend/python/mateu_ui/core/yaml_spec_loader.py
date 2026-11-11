@@ -337,6 +337,7 @@ def _declared_action(action_id: str, node: dict) -> DeclaredAction:
         sse=flag(node, "sse"),
         idempotent=flag(node, "idempotent"),
         timeout_millis=int(node.get("timeoutMillis") or 0),
+        offline="queue" if str(node.get("offline") or "").lower() == "queue" else None,
         shortcut=text(node, "shortcut"),
         fields_to_validate=text(node, "fieldsToValidate"),
         href=text(node, "href"),

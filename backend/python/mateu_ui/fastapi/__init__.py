@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, pwa, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, idempotency_keys, mobile_manifest, progress, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -397,8 +397,17 @@ def add_mateu(
             rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
             if not rq.route:
                 rq.route = route
+            # a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
+            # once per caller, action and key: a repeat gets the first answer back
             increment = await run_in_threadpool(
-                run_bound, mateu_request, lambda: handler.handle(rq, mateu_request.base_url)
+                run_bound,
+                mateu_request,
+                lambda: idempotency_keys.once(
+                    idempotency_keys.caller_of(mateu_request.principal),
+                    rq.action_id,
+                    request.headers.get(idempotency_keys.HEADER),
+                    lambda: handler.handle(rq, mateu_request.base_url),
+                ),
             )
         except MateuForbiddenException:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a

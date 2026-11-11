@@ -255,6 +255,22 @@ public sealed class ActionOptionsAttribute : Attribute
     /// of calling the server (Java's @Action(customEventName, customEventDetail)).</summary>
     public string? CustomEventName { get; init; }
     public string? CustomEventDetail { get; init; }
+
+    /// <summary>What the mobile app does when the action cannot reach the server (Java's
+    /// @Action(offline)): <see cref="OfflinePolicy.Queue"/> keeps it in its send queue and sends it
+    /// once when the connection is back, with an Idempotency-Key the server honours. Only for
+    /// writes that still make sense later. Experimental (3.0 GA).</summary>
+    public OfflinePolicy Offline { get; init; }
+}
+
+/// <summary>What a client without connection does with an action (Java's OfflinePolicy).
+/// Experimental (3.0 GA).</summary>
+public enum OfflinePolicy
+{
+    /// <summary>Fails while offline, like any other request (the default).</summary>
+    Fail,
+    /// <summary>The app queues it and sends it once when the connection is back.</summary>
+    Queue,
 }
 
 /// <summary>Makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
