@@ -75,6 +75,33 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   a release whose tests fail ships none of them. Their build jobs run with a read-only token; only
   small upload jobs, which check nothing out and build nothing, can write to the release.
 
+### Added
+
+- **`mateu-vaadin` is published on npm again**, by the release workflow, at each release's number
+  spelled as SemVer (`v3.0-beta.N` → `3.0.0-beta.N`; a pre-release of a later line goes out under the
+  `next` dist-tag). It is the same self-contained bundle every Mateu app serves at
+  `/assets/mateu-vaadin.js`. The job runs after the tests and is skipped while the repository has no
+  `NPM_TOKEN` secret.
+- **React Native: an embedded app has its shell extras.** A `MicroFrontend` or island answering an
+  `App` shows a compact bar above its content with its app-context selectors, up to two header
+  actions (the rest in a "More" sheet) and its notification bell.
+- **React Native: saved listing views and column choices survive a restart** (stored on the device
+  per UI, route and listing), and the column chooser reorders columns.
+
+### Fixed
+
+- **Multi-value fields read `optionsSource`.** `multiSelect`, `listBox`, checkbox groups, multi-select
+  `combobox` and `choice` fields take their options from a REST source like a select does (by `ref`
+  or inline, direct or proxied), on Vaadin, React Native and IntelliJ; the picks are written back as
+  the options' own values (numeric ids stay numbers). On IntelliJ a multi-select combobox with inline
+  options is a checkbox group instead of a single pick.
+- **IntelliJ and the desktop app draw SVG images** (`Image`, hero backgrounds, card and menu-card
+  media, image fields), rasterised with the bundled JSVG library (MIT), instead of showing the alt
+  text.
+- **Desktop app branding on every platform:** the launchers start without IntelliJ IDEA's splash
+  screen, and Help ▸ About names the app and its Mateu release. The Linux and Windows installers are
+  built on CI only, so this is first verified by the next release's installers.
+
 ### Removed
 
 - `plugins-v*` releases no longer publish the plugins on their own.

@@ -8,6 +8,10 @@ setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { setLocalNotifier } from '../core/osNotifications';
 import { platformNotifier } from '../ui/localNotifications';
 setLocalNotifier(platformNotifier());
+// saved listing views and column choices survive a restart: the device's app storage (per UI)
+import { setListingPrefsStorage } from '../renderer/persistedScopes';
+import { metaStore } from '../hub/storage';
+setListingPrefsStorage(metaStore);
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
@@ -64,5 +68,14 @@ export function MateuAppProvider({ config, children }: Props) {
     appState: session.appState,
   };
 
+  return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
+}
+
+/**
+ * The same context for ANOTHER session (an embedded app's own: a micro frontend served by another
+ * backend), so the app-level pieces it draws — context selectors, the inbox — talk to that app.
+ */
+export function SessionContextProvider({ session, children }: { session: MateuSession; children: React.ReactNode }) {
+  const value = React.useMemo<AppContextValue>(() => ({ session, api: session.api, appState: session.appState }), [session]);
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }

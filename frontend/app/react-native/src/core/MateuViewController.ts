@@ -1,4 +1,5 @@
 import { recordTiming, timed } from './timing.ts';
+import { embeddedAppExtrasOf, type EmbeddedAppExtras } from './embeddedAppExtras.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
@@ -129,6 +130,40 @@ export class MateuViewController {
 
   /** The @Fab buttons of the App shell this view was opened through (see renderComponentFragment). */
   appFabs: { fabs: Json[]; route: string; consumedRoute: string; serverSideType: string } | null = null;
+
+  /**
+   * The shell extras of an App this view was opened through (an embedded app: a MicroFrontend or an
+   * island answering an App) — its context selectors, header actions and bell, drawn by the host in
+   * a compact bar above the content (an embedded app has no drawer). See core/embeddedAppExtras.
+   */
+  appExtras: EmbeddedAppExtras | null = null;
+
+  /**
+   * Runs an APP-LEVEL action (a header action of an embedded app) against the app class, on its
+   * root route — the rail the web's header actions use; its answer (messages, commands, a drawer)
+   * applies to this view.
+   */
+  async runAppExtrasAction(actionId: string): Promise<void> {
+    const app = this.appExtras;
+    if (!app || !actionId) return;
+    const route = app.rootRoute ?? app.homeRoute ?? '';
+    try {
+      const increment = await this.session.api.runAction({
+        route,
+        consumedRoute: route || '_empty',
+        actionId,
+        serverSideType: app.serverSideType || null,
+        initiatorComponentId: 'ux_main',
+        embeddedChrome: this.embeddedChrome,
+        componentState: {},
+        appState: this.session.appState,
+        parameters: {},
+      });
+      this.applyIncrement(increment as Json);
+    } catch (e) {
+      this.session.notify(null, describeFailure(e, connectivity.isOnline), 'error');
+    }
+  }
 
   /** Runs an app-level @Fab action against the app class that declared it; its answer applies here. */
   async runAppFab(actionId: string): Promise<void> {
@@ -1053,6 +1088,8 @@ export class MateuViewController {
         // the app's own @Fab buttons float over its screens (they belong to the app class, so they
         // run against it): an app opened inside another shell kept its content and lost them
         const fabs = asArray(meta['fabs']);
+        // …and so do its context selectors, header actions and bell, when it is embedded in a page
+        this.appExtras = embeddedAppExtrasOf(meta) ?? this.appExtras;
         this.appFabs = fabs.length
           ? { fabs, route: homeRoute, consumedRoute: homeConsumed, serverSideType: str(meta['serverSideType']) }
           : null;

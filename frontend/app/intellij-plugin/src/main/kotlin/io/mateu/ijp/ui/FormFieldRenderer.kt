@@ -113,8 +113,9 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // from the field's state value. Read-only view → plain table; editable form → editable cells
     // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
     // that the form's save round-trips.
-    // (a collection with choice stereotypes — checkbox, listBox — is a choice of its options, not a grid)
-    if (stereotype == "grid" || (dataType == "array" && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox"))) {
+    // (a collection with choice stereotypes — checkbox, listBox, a multi-select combobox — is a
+    // choice of its options, not a grid)
+    if (stereotype == "grid" || (dataType == "array" && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox", "combobox"))) {
         if (label.isNotBlank()) {
             val caption = JBLabel(plain(label))
             caption.alignmentX = Component.LEFT_ALIGNMENT
@@ -190,8 +191,17 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
             lookupField(ctx, fieldId, metadata, value, enabled, FieldValues.lookupLabel(data, fieldId, value))
         stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, value, enabled, label)
         // a collection as checkboxes (`checkbox`), a list box (`listBox`, one pick or several)
+        // a multi-value field fed by a REST source (`optionsSource`): the same fetch as a select's,
+        // then its own widget — a list box, or checkboxes (multiSelect, a multi-select combobox)
+        sourcedMultiValue(stereotype, dataType) && metadata.path("optionsSource").isObject ->
+            sourcedOptionsField(ctx, fieldId, metadata.path("optionsSource")) { fetched ->
+                if (stereotype == "listBox") listBoxField(ctx, fieldId, fetched, rawValue, dataType == "array", enabled)
+                else multiSelectField(ctx, fieldId, fetched, rawValue, enabled)
+            }
         stereotype == "checkbox" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "listBox" && options.isNotEmpty() -> listBoxField(ctx, fieldId, options, rawValue, dataType == "array", enabled)
+        // a multi-select combobox (a collection) with inline options: one pick is not enough
+        stereotype == "combobox" && dataType == "array" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
         stereotype == "radio" && options.isNotEmpty() -> radioField(ctx, fieldId, options, value, enabled)
         stereotype == "multiSelect" -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
@@ -778,37 +788,68 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
     return combo
 }
 
+/** Whether a field of this stereotype/dataType holds SEVERAL values chosen among options. */
+internal fun sourcedMultiValue(stereotype: String, dataType: String): Boolean =
+    stereotype == "multiSelect" || stereotype == "listBox" ||
+        (dataType == "array" && (stereotype == "checkbox" || stereotype == "combobox"))
+
+/** A REST source's JSON → `{value, label}` option nodes, read through the RESOLVED source's paths. */
+internal fun sourcedOptionsOf(json: JsonNode?, resolved: JsonNode): List<JsonNode> {
+    val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
+    val valuePath = resolved.text("valuePath").ifBlank { "value" }
+    val labelPath = resolved.text("labelPath").ifBlank { "label" }
+    val nodes = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance
+    val list = ArrayList<JsonNode>()
+    if (arr != null && arr.isArray) for (item in arr) {
+        val v = RestFetch.valueAtPath(item, valuePath)?.asText() ?: item.asText("")
+        val l = RestFetch.valueAtPath(item, labelPath)?.asText() ?: v
+        list.add(nodes.objectNode().put("value", v).put("label", l))
+    }
+    return list
+}
+
+/**
+ * The options of a REST source (`optionsSource`), fetched CLIENT-SIDE (call it off the EDT). A
+ * catalogue `ref` is resolved so url, mapping paths and the proxy flag come from the RESOLVED
+ * source; proxy mode goes through `__restfetch__` (no CORS, secrets server-side); a sampled source
+ * (sample mode) is answered from its sample. A failure is logged and answers no options.
+ */
+internal fun fetchSourcedOptions(ctx: AppContext, fieldId: String, source: JsonNode): List<JsonNode> = try {
+    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+    val resolved = ctx.session.sources.resolveRestSource(source)
+    val json = if (ctx.session.sources.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
+               else RestFetch.fetch(ctx.apiClient, source, exprCtx, ctx.session.sources)
+    sourcedOptionsOf(json, resolved)
+} catch (t: Throwable) {
+    println("[Mateu] external options fetch failed: ${t.message}")
+    emptyList()
+}
+
+/** A widget built from a REST source's options once they arrive (built with none until then). */
+private fun sourcedOptionsField(ctx: AppContext, fieldId: String, source: JsonNode, build: (List<JsonNode>) -> JComponent): JComponent {
+    val host = JPanel(BorderLayout())
+    host.isOpaque = false
+    host.add(build(emptyList()), BorderLayout.CENTER)
+    ctx.session.executor.submit {
+        val opts = fetchSourcedOptions(ctx, fieldId, source)
+        javax.swing.SwingUtilities.invokeLater {
+            host.removeAll()
+            host.add(build(opts), BorderLayout.CENTER)
+            host.revalidate()
+            host.repaint()
+        }
+    }
+    return host
+}
+
 /** @RestOptions: a combo whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
  *  the background executor; the model + selection are set on the EDT once the fetch resolves. */
 private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode, value: String, enabled: Boolean): JComponent {
     val combo = ComboBox(DefaultComboBoxModel(arrayOf<String>()))
     combo.renderer = plainItems(combo.renderer)
     combo.isEnabled = enabled
-    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
-    // Resolve a catalogue `ref` (if any) so url, mapping paths and the proxy flag all come from the
-    // resolved source — a by-ref surface carries none of its own.
-    val resolved = ctx.session.sources.resolveRestSource(source)
     ctx.session.executor.submit {
-        val opts = try {
-            // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
-            // server-side); direct fetch otherwise. Both resolve to the same JSON.
-            // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
-            val json = if (ctx.session.sources.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
-                       else RestFetch.fetch(ctx.apiClient, source, exprCtx, ctx.session.sources)
-            val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
-            val valuePath = resolved.text("valuePath").ifBlank { "value" }
-            val labelPath = resolved.text("labelPath").ifBlank { "label" }
-            val list = ArrayList<Pair<String, String>>()
-            if (arr != null && arr.isArray) for (item in arr) {
-                val v = RestFetch.valueAtPath(item, valuePath)?.asText() ?: item.asText("")
-                val l = RestFetch.valueAtPath(item, labelPath)?.asText() ?: v
-                list.add(v to l)
-            }
-            list
-        } catch (t: Throwable) {
-            println("[Mateu] external options fetch failed: ${t.message}")
-            emptyList()
-        }
+        val opts = fetchSourcedOptions(ctx, fieldId, source).map { it.text("value") to it.text("label", it.text("value")) }
         javax.swing.SwingUtilities.invokeLater {
             val values = opts.map { it.first }
             combo.model = DefaultComboBoxModel(opts.map { it.second }.toTypedArray())

@@ -410,6 +410,38 @@ test('an App shell answer hops to its home route (bounded, so a misresolving bac
   assert.equal(navs[0].route, '/home');
 });
 
+test('an embedded App keeps its shell extras for the host bar; a header action runs app-level against the app class', async () => {
+  const app = {
+    type: 'ClientSide',
+    metadata: {
+      type: 'App', homeRoute: '/home', homeServerSideType: 'app.Home', serverSideType: 'app.Shell', rootRoute: '/fo',
+      contextSelectors: [{ fieldName: 'hotel', label: 'Hotel' }],
+      contextActions: [{ actionId: 'checkIn', label: 'Check in' }],
+      notificationsEnabled: true,
+    },
+  };
+  const { c, calls, session } = harness([fragment(app), fragment(ssc()), { messages: [] }]);
+  session.appState['hotel'] = 'PMI';
+  await c.initialLoad('/');
+  await tick(); await tick();
+  assert.equal(c.appExtras?.serverSideType, 'app.Shell');
+  assert.deepEqual(c.appExtras?.contextSelectors.map((s) => s.fieldName), ['hotel']);
+  assert.equal(c.appExtras?.notificationsEnabled, true);
+  await c.runAppExtrasAction('checkIn');
+  const run = calls.find((x) => x.actionId === 'checkIn')!;
+  assert.equal(run.route, '/fo');
+  assert.equal(run.serverSideType, 'app.Shell');
+  assert.deepEqual(run.appState, { hotel: 'PMI' });
+});
+
+test('an App with no shell extras leaves the view without a bar', async () => {
+  const app = { type: 'ClientSide', metadata: { type: 'App', homeRoute: '/home', homeServerSideType: 'app.Home' } };
+  const { c } = harness([fragment(app), fragment(ssc())]);
+  await c.initialLoad('/');
+  await tick(); await tick();
+  assert.equal(c.appExtras, null);
+});
+
 test('@AutoSave fires the configured action once the user is idle', async () => {
   const { c, calls } = harness([fragment(ssc({ triggers: [{ type: 'AutoSave', actionId: 'saveDraft', debounceMillis: 5 }] })), {}]);
   await c.initialLoad('/orders');

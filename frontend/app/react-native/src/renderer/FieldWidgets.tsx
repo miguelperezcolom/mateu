@@ -106,23 +106,28 @@ export function CheckboxGroupField({ options, value, editable, onChange }: {
   );
 }
 
-/** `@Stereotype(listBox)`: the options as an always-open list, the chosen one marked (vaadin-list-box). */
-export function ListBoxField({ options, value, editable, onChange }: {
+/** `@Stereotype(listBox)`: the options as an always-open list, the chosen one marked (vaadin-list-box);
+ *  `multiple` (a collection field): several marked, a tap toggles one. */
+export function ListBoxField(props: {
   options: WidgetOption[];
-  value: string;
   editable: boolean;
-  onChange: (v: string) => void;
-}) {
+} & ({ multiple?: false; value: string; onChange: (v: string) => void } | { multiple: true; value: string[]; onChange: (v: string[]) => void })) {
+  const { options, editable } = props;
+  const isOn = (v: string) => (props.multiple ? props.value.includes(v) : props.value === v);
+  const press = (v: string) => {
+    if (props.multiple) props.onChange(isOn(v) ? props.value.filter((x) => x !== v) : [...props.value, v]);
+    else props.onChange(v);
+  };
   return (
     <View style={styles.listBox} accessibilityRole="list">
       {options.map((opt, i) => {
-        const on = opt.value === value;
+        const on = isOn(opt.value);
         return (
-          <TouchableOpacity {...buttonA11y({ role: 'radio', selected: on, disabled: !editable, label: opt.label })}
+          <TouchableOpacity {...buttonA11y({ role: props.multiple ? 'checkbox' : 'radio', selected: on, disabled: !editable, label: opt.label })}
             key={opt.value}
             style={[styles.listBoxItem, i > 0 && styles.listBoxDivider, on && styles.listBoxItemOn]}
             disabled={!editable}
-            onPress={() => onChange(opt.value)}
+            onPress={() => press(opt.value)}
           >
             <Text style={styles.listBoxCheck}>{on ? '✓' : ' '}</Text>
             <Text style={[styles.radioLabel, on && styles.listBoxLabelOn]}>{opt.label}</Text>

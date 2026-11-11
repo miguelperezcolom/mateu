@@ -26,7 +26,7 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         else JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(11))
     val image = metadata.text("image")
     if (image.isNotBlank()) {
-        val img = runCatching { javax.imageio.ImageIO.read(java.net.URI.create(image).toURL()) }.getOrNull()
+        val img = SvgImages.load(image)
         if (img != null) {
             val scale = minOf(1.0, 320.0 / img.width)
             panel.addStacked(JBLabel(javax.swing.ImageIcon(

@@ -77,12 +77,20 @@ The renderer script comes from a Mateu app: every app that depends on `io.mateu:
 serves it at `/assets/mateu-vaadin.js`, at the version of Mateu that app runs. Load it from the app
 you embed (or from your own Mateu app), so the renderer and the backend always match.
 
-:::caution[The `mateu-vaadin` npm package is not maintained]
-The `mateu-vaadin` package on npm (last version `0.0.15`, April 2026) predates the 3.0 betas and is
-no longer published. Do not load the renderer from npm or from a CDN that mirrors it
-(`cdn.jsdelivr.net/npm/mateu-vaadin`): it is far behind the renderer of any 3.0 release and gets no
-fixes. Use the script a Mateu app serves, as above.
-:::
+### From npm
+
+The same bundle is published on npm as `mateu-vaadin`, at each Mateu release's number spelled as
+SemVer (`v3.0-beta.58` → `3.0.0-beta.58`, `v3.0.0` → `3.0.0`). A page with no Mateu app of its own to
+load it from can take it from a CDN that mirrors npm:
+
+```html
+<script type="module"
+  src="https://cdn.jsdelivr.net/npm/mateu-vaadin@<version>/dist/assets/mateu-vaadin.js"></script>
+```
+
+Replace `<version>` with the npm spelling of the Mateu release the backend runs: the renderer and the server must speak the
+same wire major. Versions before `3.0.0-beta` (the last was `0.0.15`, April 2026) predate the 3.0
+betas — do not use them; the 3.0 versions start with the release after `v3.0-beta.58`.
 
 ---
 

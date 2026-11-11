@@ -63,7 +63,7 @@ interface MenuItem {
   rules?: { action?: string; actionId?: string | null }[] | null;
 }
 
-interface AppContextSelector {
+export interface AppContextSelector {
   fieldName: string;
   label?: string;
   options?: { value: unknown; label?: string }[];
@@ -71,7 +71,7 @@ interface AppContextSelector {
   optionsSource?: Record<string, unknown> | null;
 }
 
-interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
+export interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   title?: string;
   sseUrl?: string | null;
   /** The app's MCP endpoint (@AI(mcp=…)): forwarded, absolute, with every chat message. */
@@ -260,7 +260,7 @@ const CONTEXT_SEARCHABLE_THRESHOLD = 7;
 // (persisting would need AsyncStorage, which this renderer doesn't depend on yet). With many
 // options a search box filters the loaded ones client-side and (debounced) asks the server for
 // matches beyond the loaded page via the standard `_appcontext-search-<field>` action.
-function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
+export function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
   const { api, appState, session } = useAppContext();
   // the app's @AppContext values are the user's context: an untrusted island is not given them
   for (const selector of selectors) session.appContextKeys.add(selector.fieldName);
@@ -453,7 +453,7 @@ async function runAppLevelAction(
  * Data comes from the app-level _notifications-list / _notifications-read actions; entry click
  * marks that id read and navigates to the entry's route; "Mark all read" sends {ids:"all"}.
  */
-function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
+export function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
   const { api, appState, session } = useAppContext();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<InboxFilter>('all');

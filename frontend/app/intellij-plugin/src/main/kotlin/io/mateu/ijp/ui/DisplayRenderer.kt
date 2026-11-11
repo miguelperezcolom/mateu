@@ -90,12 +90,7 @@ internal class HeroPanel(private val minHeight: Int) : JPanel() {
 
     fun loadBackground(url: String) {
         Thread {
-            val svg = SvgImages.isSvg(url)
-            val img = runCatching {
-                val bytes = if (url.startsWith("data:")) (if (svg) SvgImages.dataUriBytes(url) else java.util.Base64.getDecoder().decode(url.substringAfter("base64,")))
-                else java.net.URI(url).toURL().openStream().use { it.readBytes() }
-                bytes?.let { decodeImage(it, svg) }
-            }.getOrNull() ?: return@Thread
+            val img = SvgImages.load(url) ?: return@Thread
             javax.swing.SwingUtilities.invokeLater { image = img; repaint() }
         }.apply { isDaemon = true; name = "mateu-hero-image" }.start()
     }
@@ -453,9 +448,9 @@ fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null, style: St
         // whole IDE until it answered (or timed out). Meanwhile a short status, not the raw url.
         label.text = plain(if (alt.isNotEmpty()) "🖼 $alt" else "Loading image…")
         Thread {
-            // SVGs (ImageIO reads none) through the platform's SVG renderer
-            val img = runCatching { java.net.URI.create(src.trim()).toURL().openStream().use { it.readBytes() } }.getOrNull()
-                ?.let { decodeImage(it, svg) }
+            // SVGs (ImageIO reads none) through the bundled SVG renderer — also one served from a url
+            // that does not end in .svg
+            val img = SvgImages.load(src)
             javax.swing.SwingUtilities.invokeLater {
                 if (img != null) show(img) else if (alt.isEmpty()) label.text = "Image unavailable"
             }

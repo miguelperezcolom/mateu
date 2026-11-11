@@ -8,6 +8,7 @@ import { ActionCatalogue, sharedActionCatalogue } from './shellFlows.ts';
 import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShellExtras.ts';
 import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts';
 import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
+import { listingPrefsStorage } from '../renderer/persistedScopes.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
@@ -242,6 +243,12 @@ export class MateuSession {
     this.headerValues = storesFrom?.headerValues ?? (own ? new HeaderValuesStore() : sharedHeaderValues);
     this.columnPrefs = storesFrom?.columnPrefs ?? (own ? new ColumnPrefsStore() : sharedColumnPrefs);
     this.savedViews = storesFrom?.savedViews ?? (own ? new SavedViewsStore() : sharedSavedViews);
+    // the listing choices outlive the app: persisted per UI (its backend) on the device
+    const prefsKv = listingPrefsStorage();
+    if (prefsKv && !storesFrom) {
+      void this.columnPrefs.attach(prefsKv, baseUrl);
+      void this.savedViews.attach(prefsKv, baseUrl);
+    }
     this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
     // per app instance, never process-wide: two hub UIs are two UI sessions
     this.agent = storesFrom?.agent ?? new AgentPushState();

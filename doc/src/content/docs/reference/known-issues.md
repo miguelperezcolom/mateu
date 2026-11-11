@@ -111,15 +111,6 @@ of its host, and two things of a standalone page do not carry over:
 **Workaround:** open the screen on its own route when it needs its index, and keep cross-request
 state in the component state instead of `appState`.
 
-### React Native: an embedded app shows its content without its shell
-
-When a page embeds a whole Mateu app (a `MicroFrontend` or island answering an `App`), React Native
-draws the app's screens but not its shell extras: its app-context selectors, header actions and
-notification bell are not there.
-
-**Workaround:** open that app on its own (as a separate UI in the hub, or its own fixed build) when
-its users need those controls.
-
 ### A remote screen's own scripts need CORS from the remote
 
 When a shell embeds a screen from another Mateu backend, Mateu's CORS settings
@@ -128,24 +119,6 @@ of the remote screen imports (`import: /x.js`) is a plain static file of the rem
 
 **Workaround:** open that path to the shell's origin on the remote (on Spring, a `CorsRegistry`
 mapping). See [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
-
-### Multi-value fields do not read `optionsSource`
-
-A single-select field takes its options from a REST source (`@RestOptions`, `optionsSource`). A
-multi-value field (`multiSelect`, `listBox`, multi-select `combobox`) does not: it reads static
-options or a remote `search-<field>` action.
-
-**Workaround:** give the field an options supplier or a `@Lookup` search on your server, which can
-call the external endpoint itself.
-
-### React Native: saved views and column choices last one session
-
-On React Native, saved listing views and the column chooser's show/hide choices are kept in memory
-and reset when the app restarts; columns cannot be reordered there. The web renderers and IntelliJ
-persist them.
-
-**Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
-a user sees after a restart.
 
 ### React Native: no OS notification from a suspended or closed app
 
@@ -211,14 +184,14 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The desktop app is built on IntelliJ IDEA Open Source 2026.3.** Apps installed from 3.0-beta.53
   or earlier (on IntelliJ IDEA Community 2025.2) ask to be reinstalled once, and cannot update in
   place. Settings and the list of UIs are kept. See [Updates](/native/desktop-app/#updates).
-- **On Linux and Windows the desktop app still shows IntelliJ IDEA's splash screen and About box**,
-  and its launcher files carry IntelliJ's names. Only the macOS app is renamed throughout.
+- **On Linux and Windows the IDE launcher files inside the desktop app's folder keep IntelliJ's
+  names** (`bin/idea.sh`, `bin/idea64.exe`): the launchers you open (`mateu.sh` / `mateu.bat`, the
+  shortcuts, the `.desktop` entry) carry Mateu's name, start without IntelliJ's splash screen, and
+  Help ▸ About names the app. Opening a `mateu://` link on Windows while the app is closed still
+  shows IntelliJ's splash.
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
-- **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
-  media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
-  public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
 - **The phone and desktop apps do not offer `redirect` sign-in providers** (a login page of the host
   framework: Spring `oauth2Login` for GitHub/Facebook/X/Apple, SAML, form login), even when they list
   `mobile`/`desktop`: that login ends in a session cookie in the system browser, never a token the app
@@ -231,6 +204,3 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).
-- **The `mateu-vaadin` package on npm is not maintained** (`0.0.15`, from before the 3.0 betas).
-  **Workaround:** load the renderer from a Mateu app (`/assets/mateu-vaadin.js`), as in
-  [Embedded UI](/java-user-manual/use-cases/embedded-ui/).

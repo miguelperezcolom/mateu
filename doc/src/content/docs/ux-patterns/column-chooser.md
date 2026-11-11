@@ -22,7 +22,8 @@ the columns with:
 
 Preferences persist client-side (localStorage `mateu-column-prefs`), **per listing route** and per
 browser profile — the same scoping as [saved views](/ux-patterns/saved-views/). No annotations, no
-server code; works on every design system.
+server code; works on every design system. The React Native app keeps them per UI, per route and
+listing on the device (they survive a restart) and reorders with ↑/↓ in its column sheet.
 
 Safety rails: identifier and action columns (the view/select/menu columns the listing needs to
 function) are never offered for hiding and keep their absolute positions while reordering; totals

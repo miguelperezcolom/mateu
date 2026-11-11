@@ -11,6 +11,7 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { embeddedAppExtrasOf } from '../core/embeddedAppExtras';
 import { FlatList, type GestureResponderEvent, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useOpenHref } from './useOpenHref';
 import { hrefIntent } from '../core/linkTarget';
@@ -932,6 +933,8 @@ export function NestedAppRenderer({ metadata }: { metadata: Dict }) {
         serverSideType: str(metadata['homeServerSideType']) || str(metadata['serverSideType']),
       }}
       embedded
+      // its context selectors, header actions and bell: the bar above it (it has no drawer here)
+      appExtras={embeddedAppExtrasOf(metadata)}
     />
   );
 }

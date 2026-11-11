@@ -79,4 +79,23 @@ for (const [workflow, writers] of [['desktop.yml', ['attach']], ['mobile.yml', [
 
 test('the desktop installer releases are not framework releases', () => {
     for (const [workflow, job] of GATED) assert.equal(runs(jobIf(workflow, job), 'mateu-desktop-1.0'), false, `${workflow} ${job}`)
+    assert.equal(runs(jobIf('buid-and-publish.yml', 'npm-build'), 'mateu-desktop-1.0'), false, 'npm-build')
+})
+
+// The npm package (mateu-vaadin): built after the tests, the token only in the job that publishes.
+test('the npm package is built only after e2e passed, with no secret and no write token', () => {
+    const build = jobBlock('buid-and-publish.yml', 'npm-build')
+    assert.match(build, /\n {4}needs: e2e\n/)
+    assert.doesNotMatch(build, /secrets\.|id-token: write|contents: write/)
+})
+
+test('the npm publish job runs no third-party code and is skipped without an NPM_TOKEN', () => {
+    const publish = jobBlock('buid-and-publish.yml', 'npm')
+    assert.match(publish, /\n {4}needs: npm-build\n/)
+    assert.doesNotMatch(publish, /actions\/checkout|npm ci|npm install|npm run|contents: write/)
+    assert.match(publish, /HAS_TOKEN: \$\{\{ secrets\.NPM_TOKEN != '' \}\}/)
+    const steps = publish.split('\n      - ').slice(1).filter((s) => !s.startsWith('name: Choose the credential'))
+    assert.ok(steps.length >= 3)
+    for (const step of steps) assert.match(step, /if: steps\.auth\.outputs\.mode == 'token'/, step.split('\n')[0])
+    assert.equal((publish.match(/secrets\.NPM_TOKEN \}\}/g) ?? []).length, 1, 'the token reaches one step only')
 })

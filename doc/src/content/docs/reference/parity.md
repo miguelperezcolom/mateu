@@ -450,10 +450,10 @@ of each type and fail on a placeholder — not a string match on the source.
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | ✅ registry (`CustomComponentRegistry.register`) + placeholder and slotted children | ✅ registry (`registerCustomComponent`) + placeholder and slotted children |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, an `open=false` panel starts as a strip the layout's selection unfolds; collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
-| App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
+| App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | 🟡 in an embedded app's bar (a `MicroFrontend` or island answering an `App`: its context selectors, header actions and bell above its content); a full-screen app has a drawer shell, no top bar |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped: kept in memory, reset on app restart) |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped: kept in memory, reset on app restart; no reorder) |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | ✅ apply/save/default/delete (persisted on the device per UI, route and listing) |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | ✅ show/hide + ↑/↓ reorder (persisted on the device per UI, route and listing) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ a group header row over its columns |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup with the All / Unread / Resolved filters and category groups) | ✅ (drawer row) |
@@ -769,6 +769,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | `Directory` | sitemap of links under group headings |
 | `Avatar` / `AvatarGroup` | round initials badge (name as tooltip and accessible name); `+N` overflow |
 | `Icon` | the platform icon for known names, else the name |
+| `Image` (and hero backgrounds, card and menu-card media, image fields) | the image; an SVG (a `.svg` URL, an `image/svg+xml` data URI, or SVG content under another name) rasterised with the bundled JSVG library (MIT) |
 | `Details` | disclosure toggle (▸/▾) over its content |
 | `Tooltip` | tooltip + accessible description on the wrapped component |
 | `Notification`, `NotFound` | inline strip / not-found page with a way back |
@@ -808,14 +809,13 @@ design-to-code pipeline remains *preview*: it is not covered by the support prom
 
 **Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
-is honoured with two edges:
+is honoured; two notes:
 
-- **Multi-value `optionsSource`.** Vaadin resolves `optionsSource` on a single-select field (the
-  common reference case — a record pointing at one other entity). A **multi-value** field
-  (`multiSelect`/`listBox`/`combobox` — a record pointing at *many*) reads static `options` or a
-  remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
-  catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
-  than half-wired.
+- **Multi-value `optionsSource`.** Since 3.0 GA a multi-value field (`multiSelect`, `listBox`,
+  checkbox group, multi-select `combobox`, `choice` — a record pointing at *many*) reads its options
+  from a REST source like a single select, on Vaadin (one libs loader, `sourcedOptionsOf`), React
+  Native and IntelliJ: by `ref` or inline, direct or proxied, the picks written back as the options'
+  own values.
 - **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
   the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
   `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or
