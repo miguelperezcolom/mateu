@@ -156,6 +156,22 @@ On your identity provider (Keycloak, Entra ID, Okta, Auth0…):
    shared phone is asked for a password.
 4. Allow the scopes the manifest lists.
 
+**Several sign-in providers.** A UI can offer more than one way to sign in (its `auth.providers`,
+declared on the server — see [Sign-in providers](/deploy/sign-in/)). The app offers the `oidc` ones
+whose `platforms` include `mobile`: with one it goes straight to it, with several it shows a **Sign in to
+<UI>** screen with one *Continue with …* button each, the one used last first. A `redirect` provider
+(GitHub, Facebook, X, Apple or Google through your framework's own login page) is **not** offered by
+the app, even when it lists `mobile`: that login ends with a session cookie in the system browser, which
+never reaches the app. To let phone users sign in with Google or Microsoft, declare them as `oidc`
+providers with a **native client** of their own (Google: an iOS / Android OAuth client; Entra ID: the
+"Mobile and desktop applications" platform), each registering `mateu://auth` — or broker them through
+one IdP (Keycloak, Auth0, Okta…) that the app signs in to.
+
+Every provider is a client of its own at its IdP, registered as in the steps above. The app keeps ONE
+signed-in provider per UI: the tokens are stamped with the provider's issuer and client, and a
+provider never reads (or refreshes, or revokes) tokens another one minted. Sign out uses the
+provider that signed in, and the next sign-in asks again.
+
 The tokens are kept in the Keychain or the Android Keystore, separately for each UI, and refreshed
 as needed. Requests carry `Authorization: Bearer`: your backend's framework validates the token as
 it would for any other client, and Mateu reads the resulting principal. Signing out of one UI clears
@@ -225,7 +241,9 @@ eas build --profile production --platform all
 - `MATEU_FIXED_URL` is the UI's base URL. Instead of it, `MATEU_REGISTRY_URL` + `MATEU_APP_ID` point
   the app at an [app registry](/native/react-native/#2-the-app-registry), which lets you move the
   backend without a new build. `MATEU_FIXED_ROUTE` (optional) is the screen it opens on.
-- The sign-in comes from the UI's [manifest](#1-the-ui-manifest), as in the hub.
+- The sign-in comes from the UI's [manifest](#1-the-ui-manifest), as in the hub — one provider or a
+  chooser of several ([above](#4-sign-in-register-mateuauth-with-your-identity-provider)). A fixed build
+  registers its OWN scheme's redirect (`acmecrm://auth`) at every provider it offers.
 - `MATEU_APP_SCHEME` carries only the sign-in redirect (`acmecrm://auth`). It defaults to the bundle
   id and can never be `mateu`.
 - The camera permission stays, because photo fields use it. Its text is rewritten to say so.

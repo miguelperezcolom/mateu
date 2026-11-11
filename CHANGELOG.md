@@ -16,6 +16,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
 
+### Added — sign-in providers in the native apps
+
+- **The phone and desktop apps offer every sign-in provider a UI declares** (`auth.providers`): the
+  `oidc` ones for their platform, straight to the one there is, or a chooser ("Continue with …", the
+  provider used last first) when there are several. A `redirect` provider is not offered by a native
+  app (its login ends in a browser cookie, not a token). A manifest with only the single `auth.issuer`
+  / `clientId` keys is provider `default`, as before. One signed-in provider per UI; sign-out uses the
+  provider that signed in. Corpus `conformance/client/sign-in-flow.json`, run by both apps.
+- **The desktop app signs in without a device grant**: when the provider's discovery has no
+  `device_authorization_endpoint` (Google, Apple, most social providers), it uses Authorization Code +
+  PKCE with a loopback redirect (`http://127.0.0.1:<port>/callback`, RFC 8252). It also signs in when a
+  UI opens (the manifest's `loginOnStart`), not only on the first 401, and its settings gained an OIDC
+  `audience`.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so
