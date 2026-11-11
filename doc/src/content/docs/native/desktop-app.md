@@ -234,6 +234,16 @@ started it, with its progress and Cancel. Tasks still running when the app is cl
 again when it is reopened, if the server still has them. The bell opens the app's inbox, with the
 same filters and category groups as the web ([Notification inbox](/ux-patterns/notification-inbox/)).
 
+## Editors, pickers and the camera
+
+`Workflow` and `FormEditor` are editable: settings, then the steps or fields as a list with a
+properties form underneath (add and delete; fields also duplicate and move up or down). Each edit
+writes the definition's JSON into the screen's state. An `@AppContext` picker with more than seven
+options is a search box: it filters what it has at once and, after a short pause, asks the server
+for the rest (`_appcontext-search-<field>`, like the web). A `@PhotoCapture` field takes its
+picture from a file: there is no pure-Java webcam library to use
+([known issue](/reference/known-issues/#keyboard-shortcuts-on-phones-and-tablets-and-a-camera-on-the-desktop)).
+
 ## Trying the UI you are developing
 
 The hub app is also where a developer looks at the UI they are building, in a window of its own and
