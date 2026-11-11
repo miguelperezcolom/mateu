@@ -41,6 +41,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   [Sign-in providers](https://mateu.io/deploy/sign-in/). Mateu still validates nothing: the host
   framework does.
 
+### Fixed — UI modules built against an earlier beta (issue #1167)
+
+- **A UI module compiled against 3.0-beta.52–57 runs on this release again.** The controllers the
+  annotation processors generate are compiled into the module's jar and call
+  `IndexPage.Spec`'s constructor; beta.58 dropped the shapes carrying `IndexPage.Keycloak`, so
+  EventConductor's console (2.37.0/2.38.1) failed at startup with `NoSuchMethodError`. Both shapes
+  and the `Keycloak` record are back, deprecated (the Keycloak settings are ignored with one WARN:
+  declare the sign-in with `mateu.auth.providers`). Verified by starting `demo-eventconductor` with
+  the published EventConductor 2.37.0. To keep it from happening again, the API guard (japicmp) now
+  also covers every class the generated controllers call — `IndexPage`, `Pwa`, `MobileManifest`,
+  `SpaFallback`, `ForwardedPrefix`, `YamlMounts`, `MateuService`… in core, and the request/SSE/CORS
+  classes of the five adapters.
+- **A `URI` inside a returned list navigates.** `return List.of(Message.success("Saved"),
+  URI.create("/x"))` showed the message and dropped the navigation; it now navigates, as a `URI`
+  returned alone does. .NET gains the same (`System.Uri`, alone or in a list); Python already
+  navigated to a route string in a list.
+- **`Navigable.view(id)` may return a `URI`** (or `URL`): the row then opens that address — an
+  editable page declared in `routes.yaml`, another app — instead of failing in
+  `FormViewSerializer`.
+
 ### Security
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /

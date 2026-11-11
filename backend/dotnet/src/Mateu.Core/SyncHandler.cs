@@ -1036,6 +1036,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // whose target matches no component id).
         string route when route.StartsWith('/') =>
             UIIncrementDto.Of(commands: [new UICommandDto(rq is null ? "ux_main" : Target(rq), "NavigateTo", route)]),
+        // A Uri navigates, alone or inside a list (mirrors Java's returned URI; issue #1167).
+        Uri uri => UIIncrementDto.Of(commands:
+            [new UICommandDto(rq is null ? "ux_main" : Target(rq), "NavigateTo", uri.OriginalString)]),
         // Any other text is a message (mirrors Java): it leaves the screen as it was.
         string text => MapResult(new Message(text), rq),
         UICommandDto cmd => UIIncrementDto.Of(commands:

@@ -105,14 +105,28 @@ public class CommandMapper {
     if (instance instanceof Collection<?> collection) {
       result.addAll(
           collection.stream()
-              .filter(o -> o instanceof UICommand || o instanceof Step || o instanceof Document)
+              // a URI/URL in the list navigates, exactly as returned alone (issue #1167: an action
+              // answering List.of(message, URI) showed the message and never navigated)
+              .filter(
+                  o ->
+                      o instanceof UICommand
+                          || o instanceof Step
+                          || o instanceof Document
+                          || o instanceof URI
+                          || o instanceof URL)
               .map(
                   o ->
-                      o instanceof Document document
-                          ? mapDocument(targetComponentId, document, baseUrl)
-                          : mapCommand(
-                              targetComponentId,
-                              o instanceof Step s ? s.toCommand() : (UICommand) o))
+                      switch (o) {
+                        case Document document -> mapDocument(targetComponentId, document, baseUrl);
+                        case URI uri ->
+                            mapCommand(targetComponentId, UICommand.navigateTo(uri.toString()));
+                        case URL url ->
+                            mapCommand(
+                                targetComponentId,
+                                new UICommand(UICommandType.NavigateTo, url.toString()));
+                        case Step s -> mapCommand(targetComponentId, s.toCommand());
+                        default -> mapCommand(targetComponentId, (UICommand) o);
+                      })
               .toList());
     }
     return result;

@@ -135,6 +135,20 @@ public class Books implements Listing<Book>, Navigable<Book, String> {
 
 There is still no New, Edit, or Delete chrome — only what was declared.
 
+When the record lives on another page — an editable screen declared in `routes.yaml`, another app —
+`view` may return a `URI` (or `URL`) instead of a view model: clicking the row (or opening `/books/:id`)
+navigates there.
+
+```java
+public class ReviewTray implements Listing<Row>, Navigable<Object, String> {
+    // …
+    @Override
+    public Object view(String id, HttpRequest httpRequest) {
+        return URI.create("/review/" + id);
+    }
+}
+```
+
 ### The whole row opens the record
 
 On a navigable listing — one that implements `Navigable` (any CRUD), or declares a `rowRoute` — a click **anywhere on a row** opens the record, not only on the id link. The cells that have a click of their own keep it, and a click there never opens the row:

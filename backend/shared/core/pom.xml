@@ -183,6 +183,22 @@
                     <parameter>
                         <includes>
                             <include>io.mateu.core.infra.declarative.orchestrators.*</include>
+                            <!-- what the CONTROLLERS THE ANNOTATION PROCESSORS GENERATE call: they are
+                                 compiled into the app's or a third-party UI module's jar (EventConductor's
+                                 console), so a change here breaks a module built against an earlier
+                                 release at startup (NoSuchMethodError, issue #1167) -->
+                            <include>io.mateu.core.infra.IndexPage</include>
+                            <include>io.mateu.core.infra.IndexPage$Spec</include>
+                            <include>io.mateu.core.infra.IndexPage$Keycloak</include>
+                            <include>io.mateu.core.infra.SpaFallback</include>
+                            <include>io.mateu.core.infra.ForwardedPrefix</include>
+                            <include>io.mateu.core.infra.Pwa</include>
+                            <include>io.mateu.core.infra.MobileManifest</include>
+                            <include>io.mateu.core.infra.MateuController</include>
+                            <include>io.mateu.core.infra.YamlMounts</include>
+                            <include>io.mateu.core.infra.ClientErrorLog</include>
+                            <include>io.mateu.core.application.MateuService</include>
+                            <include>io.mateu.core.infra.reflection.DefaultInstanceFactory</include>
                         </includes>
                         <!-- the machinery behind the archetypes, public only for cross-package use:
                              not part of the promise (the "Internal" column of the stability page —
