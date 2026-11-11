@@ -84,10 +84,12 @@ test('remove clears THAT UI\'s secrets only', async () => {
   const b = (await store.add('https://b.com')).entry;
   secrets.data[uiSecretKeys(a.id).tokens] = '{"accessToken":"A"}';
   secrets.data[uiSecretKeys(b.id).tokens] = '{"accessToken":"B"}';
+  secrets.data[uiSecretKeys(a.id).signInProvider] = 'google';
   await uiSessionId(secrets, a.id);
   await store.remove(a.id);
   assert.equal(secrets.data[uiSecretKeys(a.id).tokens], undefined);
   assert.equal(secrets.data[uiSecretKeys(a.id).sessionId], undefined);
+  assert.equal(secrets.data[uiSecretKeys(a.id).signInProvider], undefined);
   assert.equal(secrets.data[uiSecretKeys(b.id).tokens], '{"accessToken":"B"}');
 });
 
@@ -173,6 +175,7 @@ test('secret keys are secure-store safe', () => {
   const k = uiSecretKeys('a/b c');
   assert.match(k.tokens, /^[A-Za-z0-9._-]+$/);
   assert.match(k.sessionId, /^[A-Za-z0-9._-]+$/);
+  assert.match(k.signInProvider, /^[A-Za-z0-9._-]+$/);
 });
 
 test('a signed-in UI offers Sign out on the hub bar (a tabs shell has no drawer to put it in)', () => {

@@ -219,6 +219,15 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
   media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
   public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
+- **The phone and desktop apps do not offer `redirect` sign-in providers** (a login page of the host
+  framework: Spring `oauth2Login` for GitHub/Facebook/X/Apple, SAML, form login), even when they list
+  `mobile`/`desktop`: that login ends in a session cookie in the system browser, never a token the app
+  can send. **Workaround:** declare the provider as `oidc` with a native client of its own (Google,
+  Microsoft), or broker it through an OIDC IdP the apps sign in to (Keycloak, Auth0, Okta…) — see
+  [Sign-in providers](/deploy/sign-in/).
+- **Signing out in the desktop app does not end the provider's browser session**: the refresh token is
+  revoked and deleted, but the provider's cookie in your browser stays, so the next sign-in may not
+  ask for a password. **Workaround:** sign out at the provider's page too on a shared computer.
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).

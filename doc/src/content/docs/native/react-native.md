@@ -104,6 +104,18 @@ it on **every** Mateu request (and on the AI chat), from a pluggable **token pro
   menu). Works with any standards-compliant provider (Keycloak,
   Entra ID, Auth0 — add `"audience"` —, Okta, Cognito…): it only needs the issuer's discovery
   document.
+- **Several sign-in providers** — a UI that declares a list (`auth.providers` in the manifest or the
+  registry entry; see [Sign-in providers](/deploy/sign-in/)) is offered as it says: the `oidc`
+  providers whose `platforms` include `mobile`, in the UI's order. One goes straight to it; several
+  show a **Sign in to &lt;UI&gt;** screen (Material, English or Spanish by the device language) with one
+  *Continue with …* button each — the provider used last first, marked "Last used" — whose mark is the
+  provider's initial or a key, never a brand's artwork. A `redirect` provider is not offered: its login
+  ends in a browser cookie the app never sees. A server older than the list (only `auth.issuer` /
+  `clientId`) is provider `default`, exactly as before. One provider is signed in per UI at a time —
+  its tokens carry its issuer and client, so another provider never reads them — and **Sign out**
+  ends that provider's session. Each provider is its own client at its IdP and registers the same
+  redirect URIs (below). Which providers the app offers for a given `auth` block is pinned by
+  `conformance/client/sign-in-flow-native.json`, shared with the desktop app.
 - **Your own login** — register any provider: `setTokenProvider({ getToken, refresh, login, logout })`
   from `src/core/auth.ts`.
 
@@ -117,7 +129,7 @@ public client serves both Mateu apps:
 |---|---|---|
 | Client authentication | **Off** (public client) | an installed app cannot keep a secret |
 | Standard flow | **On** | the phone's Authorization Code flow |
-| OAuth 2.0 Device Authorization Grant | **On** | the [desktop app](/native/desktop-app/#signing-in) signs in with the device flow |
+| OAuth 2.0 Device Authorization Grant | **On** | the [desktop app](/native/desktop-app/#signing-in) signs in with the device flow (without it, it uses a loopback redirect: add `http://127.0.0.1/*` below) |
 | Direct access grants | Off | not used |
 | Valid redirect URIs | `mateu://auth` (+ `http://localhost:8081/*` for expo web in development) | where the phone comes back |
 | Web origins | `+` | expo web (development) |
