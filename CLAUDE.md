@@ -810,7 +810,7 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   that form, `ReflectionFormFieldMapper.stateExpression`). Every server-sent URL goes through
   `safeNavigate`/`safeHref`; storage through `safeStorage`/`http/authToken.ts`; listeners that must die
   with a component through `ConnectedElement.connection` (a `ConnectionScope`). The client's own text
-  lives in `chromeTexts.ts` (en/es, chosen by `AppDto.locale` ← `Translator.locale(HttpRequest)`;
+  lives in `chromeTexts.ts` (en/es/fr/de/pt/it — the tag's PRIMARY subtag, pt-BR/pt-PT → pt, else en —, chosen by `AppDto.locale` ← `Translator.locale(HttpRequest)`; same six in Redwood `poc/i18n.mjs` `FULL_LANGUAGES`, RN `src/core/chromeLanguage.ts`, IntelliJ `ui/ChromeLanguage.kt` and Java `BuiltInTexts`/`NotFoundPage` — .NET/Python send built-in labels in English; a new key needs all six (completeness tests); RTL unsupported, assessment in `advanced/i18n.md#right-to-left-languages`;
   `chromeTexts.lint.test.ts` fails on new hard-coded UI strings). `MateuRendererApp` is gone. CI runs
   ESLint, `test:coverage` with ratcheted thresholds in libs/mateu and apps/vaadin, and the eager-bundle
   budget (`apps/vaadin/scripts/check-bundle-budget.mjs` vs `bundle-budget.json`).

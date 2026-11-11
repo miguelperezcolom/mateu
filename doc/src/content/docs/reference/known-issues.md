@@ -82,6 +82,13 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
+### Right-to-left languages are not supported
+
+No renderer mirrors its layout for Arabic, Hebrew, Persian or Urdu: nothing sets `dir="rtl"`, and an
+RTL language gets Mateu's own words in English. The chrome speaks English, Spanish, French, German,
+Portuguese and Italian. What it would take is described in
+[Right-to-left languages](/java-user-manual/advanced/i18n/#right-to-left-languages).
+
 ### Redwood: light theme only
 
 The Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice

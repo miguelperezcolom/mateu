@@ -72,8 +72,8 @@ What Reload does depends on the renderer:
 | React Native | a toast that stays until closed | reloads the current screen from scratch (the app shell and menu stay as they are) |
 | IntelliJ plugin | a sticky notification in the "Mateu errors" group | reloads the app shell and every open Mateu view on its current route; **unsaved edits are discarded** — pressing Reload is taken as consent |
 
-The texts are in English and Spanish, following the UI's language like the rest of the renderer's own
-text.
+The texts are in English, Spanish, French, German, Portuguese and Italian, following the UI's
+language like the rest of the renderer's own text.
 
 ### Choosing the build id yourself
 
