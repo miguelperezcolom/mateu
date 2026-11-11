@@ -197,6 +197,12 @@ public sealed class ToolbarAttribute(string? label = null) : Attribute
     /// <summary>Position among its siblings, ascending — reflection does not keep declaration
     /// order (Java's order).</summary>
     public int Order { get; init; }
+    /// <summary>Toolbar buttons sharing a non-blank group are collapsed into ONE dropdown labelled
+    /// with the group name (Java's group).</summary>
+    public string? Group { get; init; }
+    /// <summary>This button is its group's PRIMARY action: the group renders as a SPLIT button —
+    /// this one runs from the button, the others behind its ▾ (Java's groupPrimary).</summary>
+    public bool GroupPrimary { get; init; }
 }
 
 /// <summary>Declares a method as a server-side ACTION without rendering a button for it: the

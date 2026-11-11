@@ -35,6 +35,11 @@ class Button(Wire):
     #: A route the button NAVIGATES to on the client instead of running ``action_id`` (a
     #: RouteLink button) — mirrors ButtonDto.route.
     route: str | None = None
+    #: The buttons behind this one's ▾ — a dropdown group (no action of its own) or a SPLIT button
+    #: (``split``); mirrors ButtonDto.children.
+    children: list["Button"] | None = None
+    #: A SPLIT button: it runs its own action and its ▾ opens ``children`` (ButtonDto.split).
+    split: bool = False
 
 
 class Option(Wire):

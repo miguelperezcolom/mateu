@@ -9,7 +9,7 @@ Java backend emits.
 from __future__ import annotations
 
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace as _replace
 from datetime import date
 from datetime import date as _date
 from typing import Any, TYPE_CHECKING
@@ -211,7 +211,12 @@ class Anchor(Component):
 class Button(Component):
     """A fluent button; ``action_id`` runs the matching action method. ``parameters`` are extra
     entries merged into the dispatched action request (e.g. the optimistic-lock conflict
-    dialog's ``_forceOverwrite``)."""
+    dialog's ``_forceOverwrite``).
+
+    A button carrying ``buttons`` is a GROUP (Java's ``ButtonGroup``): with no action of its own a
+    dropdown labelled ``label`` opening them; with its own ``action_id`` a SPLIT button — it runs
+    its action from the button and an adjacent ▾ opens the rest. Build them with
+    :meth:`Button.group` and :meth:`Button.split`."""
 
     label: str = ""
     action_id: str = ""
@@ -228,6 +233,19 @@ class Button(Component):
     route: str | None = None
     #: The button colour (normal | success | error | contrast); None = the renderer's default.
     color: str | None = None
+    #: The buttons behind this one's ▾ (a dropdown group or a split button); empty = a plain button.
+    buttons: tuple = ()
+
+    @staticmethod
+    def group(label: str, *buttons: "Button") -> "Button":
+        """A dropdown: one trigger labelled ``label`` opening ``buttons`` (Java's ``ButtonGroup.of``)."""
+        return Button(label=label, action_id="", buttons=tuple(buttons))
+
+    @staticmethod
+    def split(primary: "Button", *more: "Button") -> "Button":
+        """A split button: ``primary`` runs from the button, the ▾ opens ``more`` (Java's
+        ``ButtonGroup.split``)."""
+        return _replace(primary, buttons=tuple(more))
 
 
 @dataclass(frozen=True)

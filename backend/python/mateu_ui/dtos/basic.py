@@ -174,6 +174,10 @@ class ButtonMetadata(Wire):
     color: str | None = None
     #: The keyboard shortcut the button answers (e.g. "ctrl+alt+v"; mirrors ButtonDto.shortcut).
     shortcut: str | None = None
+    #: The buttons behind this one's ▾ — a dropdown group or a SPLIT button (ButtonDto.children).
+    children: list["ButtonMetadata"] | None = None
+    #: A SPLIT button: it runs its own action and its ▾ opens ``children`` (ButtonDto.split).
+    split: bool = False
 
 
 class TabLayoutMetadata(Wire):

@@ -87,7 +87,8 @@ class ViewMapperMixin(MixinBase):
         toolbar_methods = [(n, f) for n, f in methods_with(cls, "__mateu_toolbar__") if offered(f)]
         # @toolbar(order=N) fixes the sequence (stable: equal orders keep declaration order)
         toolbar_methods.sort(key=lambda m: getattr(getattr(m[1], "__mateu_toolbar_look__", None), "order", 0))
-        toolbar = [self.map_toolbar_button(n, f) for n, f in toolbar_methods]
+        toolbar_buttons = [self.map_toolbar_button(n, f) for n, f in toolbar_methods]
+        toolbar = grouped_toolbar(toolbar_methods, toolbar_buttons)
         page_button_methods = [
             (n, f)
             for n, f in methods_with(cls, "__mateu_button__")
@@ -103,7 +104,7 @@ class ViewMapperMixin(MixinBase):
                 cls,
                 b.action_id,
             )
-            for (n, f), b in zip(button_methods, toolbar + buttons)
+            for (n, f), b in zip(button_methods, toolbar_buttons + buttons)
         ]
         # A page FAB dispatches its actionId through the page's component like any button: the
         # client only SENDS an advertised action, so an unadvertised FAB was a dead click (Java's
@@ -406,3 +407,38 @@ def _builtin_archetype_actions(instance) -> frozenset[str]:
     if isinstance(instance, ComponentTreeSupplier):
         ids |= {"selectCollectionItem", "filterCollection", "switchRecord"}
     return frozenset(ids)
+
+
+def grouped_toolbar(methods, buttons):
+    """The @toolbar buttons (already in order) grouped as Java's PageButtonsBuilder does: methods
+    sharing a non-blank ``group`` collapse into ONE entry at the first one's place — a dropdown
+    labelled with the group name, or, when a member is ``group_primary``, a SPLIT button (that
+    member with the others as children)."""
+    from ..naming import humanize_constant
+
+    order: list[str] = []
+    groups: dict[str, list] = {}
+    for (name, fn), button in zip(methods, buttons):
+        look = getattr(fn, "__mateu_toolbar_look__", None)
+        group = getattr(look, "group", None)
+        key = group if group and group.strip() else "__solo__" + name
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append((look, button))
+    out = []
+    for key in order:
+        members = groups[key]
+        first_look, first = members[0]
+        group = getattr(first_look, "group", None)
+        if not (group and group.strip()):
+            out.append(first)
+            continue
+        primary = next((b for look, b in members if getattr(look, "group_primary", False)), None)
+        rest = [b.model_copy(update={"separator_before": False}) for _, b in members if b is not primary]
+        separator = bool(getattr(first_look, "separator_before", False))
+        if primary is not None:
+            out.append(primary.model_copy(update={"children": rest, "split": True, "separator_before": separator}))
+        else:
+            out.append(type(first)(label=humanize_constant(group), action_id="", children=rest, separator_before=separator))
+    return out

@@ -39,6 +39,14 @@ public record ButtonDto(string Label, string ActionId)
     /// button whose actionable is a RouteLink). Omitted when null.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Route { get; init; }
+    /// <summary>The buttons behind this one's ▾: a dropdown group (no action of its own) or a SPLIT
+    /// button (<see cref="Split"/>). Omitted when null (Java's ButtonDto.children).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ButtonDto>? Children { get; init; }
+    /// <summary>A SPLIT button: it runs its own action and its ▾ opens <see cref="Children"/>
+    /// (Java's ButtonDto.split). Omitted when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Split { get; init; }
 }
 
 // ── ModelView bindable contract (mirrors io.mateu.dtos.ModelViewContractDto) ────
