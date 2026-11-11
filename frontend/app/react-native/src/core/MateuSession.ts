@@ -189,6 +189,10 @@ export class MateuSession {
    *  token (sign-out — core/remotePush.ts). */
   pushUnregister?: () => Promise<void>;
 
+  /** Set by the shell when the UI sends remote pushes: registers this phone's token now (right
+   *  after the user granted the permission). */
+  pushSync?: () => void;
+
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
   /** The Mateu hub app around this UI. `claimBar(true)`: the app's own top bar hosts the hub's
    *  actions (switch UI), so the hub hides its bar — one bar, not two stacked. */

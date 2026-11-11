@@ -52,7 +52,11 @@ export function NotifyOnThisDevice({ session }: { session: MateuSession }) {
     <MateuButton label="Notify me on this device" buttonStyle="tertiary" icon="bell-outline"
       accessibilityLabel="Notify me on this device when something finishes or arrives"
       // asked ONLY here, from the user's tap
-      onPress={() => void localNotifier().request().then(setPermission)} />
+      onPress={() => void localNotifier().request().then((answer) => {
+        setPermission(answer);
+        // a server that sends pushes learns this phone's token at once (core/remotePush.ts)
+        if (answer === 'granted') session.pushSync?.();
+      })} />
   );
 }
 

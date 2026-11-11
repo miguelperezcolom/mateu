@@ -53,6 +53,7 @@ export function useRemotePush(
         dispatch: { route, serverSideType },
       });
     sync();
+    session.pushSync = sync;
     session.pushUnregister = async () => {
       await unregisterPush(metaStore, baseUrl, (actionId, parameters) => run(actionId, parameters));
     };
