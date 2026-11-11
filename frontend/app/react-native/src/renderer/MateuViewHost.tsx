@@ -15,6 +15,8 @@ import { FAB } from 'react-native-paper';
 import { FAB_MARGIN, FAB_SIZE, fabBottom } from '../core/uxRules';
 import { materialIconOf } from '../ui/wireIcons';
 import { SkeletonRenderer } from './DisplayRenderer';
+import { EmbeddedAppBar } from './EmbeddedAppBar';
+import type { EmbeddedAppExtras } from '../core/embeddedAppExtras';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -66,6 +68,8 @@ interface Props {
   chrome?: string | null;
   /** Hands the live controller to the host (dirty checks on back navigation). */
   onController?: (controller: MateuViewController) => void;
+  /** An embedded App's shell extras the host already holds (a nested App component). */
+  appExtras?: EmbeddedAppExtras | null;
 }
 
 /**
@@ -83,7 +87,7 @@ interface Props {
  */
 const islands = new WeakMap<object, { controller: MateuViewController; mounted: boolean; release?: ReturnType<typeof setTimeout> }>();
 
-export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, embedded, chrome, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, embedded, chrome, onController, appExtras }: Props) {
   const islandKey = serverSideNode && typeof serverSideNode === 'object' ? (serverSideNode as object) : null;
   const controller = useMemo(() => {
     const kept = islandKey ? islands.get(islandKey) : undefined;
@@ -110,6 +114,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
     controller.detailOpener = onOpenDetail ?? null;
     controller.stackNavigator = onStackNavigate ?? null;
     controller.confirmDiscard = () => session.confirmDiscard();
+    if (appExtras) controller.appExtras = appExtras;
     onController?.(controller);
     if (serverSideNode) {
       if (overlayOpener) {
@@ -212,6 +217,14 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
   );
 
   const windowless = !!embedded || !!serverSideNode;
+  // an embedded app's context selectors, header actions and bell: a compact bar above its content
+  const extras = windowless && !overlaid ? controller.appExtras : null;
+  const framed = extras ? (
+    <View style={fits ? FIT_CONTENT : undefined}>
+      <EmbeddedAppBar controller={controller} extras={extras} />
+      {body}
+    </View>
+  ) : body;
   return (
     <ViewControllerContext.Provider value={controller}>
       {windowless ? (
@@ -220,7 +233,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
         <BarTitle.Provider value={null}><EmbeddedChrome.Provider value={chrome ?? null}>
         {/* an island (an embedded crud, an overlay's content) is not the pushed screen: ITS «Back to
             list» goes back inside the island, which the screen's arrow does not — it keeps it (RN-26) */}
-        <ScreenHasBack.Provider value={false}>{body}</ScreenHasBack.Provider>
+        <ScreenHasBack.Provider value={false}>{framed}</ScreenHasBack.Provider>
         </EmbeddedChrome.Provider></BarTitle.Provider>
       ) : (
         // RN-19: on iOS the software keyboard is laid OVER the screen — without this the bottom

@@ -70,3 +70,12 @@ export function MateuAppProvider({ config, children }: Props) {
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }
+
+/**
+ * The same context for ANOTHER session (an embedded app's own: a micro frontend served by another
+ * backend), so the app-level pieces it draws — context selectors, the inbox — talk to that app.
+ */
+export function SessionContextProvider({ session, children }: { session: MateuSession; children: React.ReactNode }) {
+  const value = React.useMemo<AppContextValue>(() => ({ session, api: session.api, appState: session.appState }), [session]);
+  return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
+}
