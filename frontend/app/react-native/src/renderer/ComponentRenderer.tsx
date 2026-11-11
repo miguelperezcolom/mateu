@@ -12,7 +12,8 @@ import { useButtonPress } from './useButtonPress';
 import { PendingAware } from './usePendingAction';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
-import { buttonGroupMembers } from '../core/buttonGroup';
+import { buttonGroupMembers, splitButtonParts } from '../core/buttonGroup';
+import { SplitMenuButton } from './SplitMenuButton';
 import { RichText } from './FieldWidgets';
 import { textEmphasis } from './displayFigures';
 import { ChartRenderer } from './ChartRenderer';
@@ -206,6 +207,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
               />
             ))}
           </View>
+        );
+      }
+      // a split button in content: the primary + a ▾ opening the rest
+      const split = splitButtonParts(metadata);
+      if (split) {
+        return (
+          <SplitMenuButton primary={split.primary} more={split.more} ctx={{ state, data }}
+            run={(a, p) => void controller.runAction(a, p)} />
         );
       }
       const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
