@@ -23,6 +23,12 @@ your framework does it, as for any other client of your API:
 X, Apple (a client-secret JWT), Google on the web. The secret stays in your server, never in a
 browser or an app.
 
+With an `oidc` provider the web client keeps the access token in a `SameSite=Strict` cookie it
+writes itself (its refresh token in `sessionStorage`) — [where and why](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token).
+A script-written cookie cannot be HttpOnly; when no token should be readable by the page at all, use
+a `redirect` provider and let your framework keep the session:
+[HttpOnly cookie](#httponly-cookie-let-the-server-keep-the-session).
+
 Mateu then reads the identity your framework established — roles, groups, scopes — for
 `@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless` and YAML `access:`
 ([how authorization works](/java-user-manual/advanced/security/#how-authorization-works)).
@@ -480,6 +486,233 @@ request.state.mateu_identity = identity_from_claims(claims)
 route returning `authorize_redirect`, a callback that stores the user in the session
 (`SessionMiddleware`), and a middleware that turns the session's user into
 `request.state.mateu_identity`. Then `MATEU_AUTH_PROVIDERS_GITHUB_URL=/login/github`.
+
+## HttpOnly cookie: let the server keep the session
+
+With an `oidc` provider the browser holds the access token, and Mateu keeps it in a cookie the
+client writes ([details](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token)).
+A cookie written by JavaScript can never be **HttpOnly** — only a server's `Set-Cookie` header can
+set that flag — so a script injected into the page could read the token. When no token may be
+readable by the page at all, move the OpenID Connect flow to the server (the "backend for
+frontend" pattern):
+
+1. The UI declares a `redirect` provider pointing at your framework's login address.
+2. Your framework runs the OIDC Authorization Code flow **server-side**: it redirects to the
+   identity provider, receives the callback, redeems the code with its client secret and keeps the
+   tokens in its own session.
+3. It answers with a session cookie `HttpOnly; Secure; SameSite=Lax`.
+4. Mateu's calls are same-origin, so the browser attaches that cookie to each of them by itself.
+   There is no token in JavaScript and no `Authorization` header; your framework authenticates the
+   request from its session and Mateu reads the identity it established.
+
+**Why `Lax` and not `Strict`.** The identity provider sends the browser back to your callback with a
+top-level navigation that starts on another site. A `Strict` cookie is not sent on that request, so
+the server cannot find the login it started (its state / PKCE record lives in the session) and
+the sign-in fails or loops; the first navigation into the app from a link elsewhere would also
+arrive without the session. `Lax` sends the cookie on top-level `GET` navigations and keeps it off
+cross-site subrequests and `POST`s.
+
+**CSRF** is already covered for Mateu's calls: on Spring, Mateu exempts its JSON calls from the
+CSRF filter because a cross-site page cannot forge them — they must be `application/json`, which
+needs a CORS preflight, and Mateu's CORS is off unless you list origins; on the other frameworks the
+same JSON-only rule refuses the forms and `text/plain` bodies a cross-site page could send
+([details](/java-user-manual/advanced/security/#wiring-each-framework)). Keep your framework's CSRF
+protection for its own endpoints (logout included).
+
+**The Mateu side** is the same for every framework:
+
+```properties
+mateu.auth.providers=sso
+mateu.auth.providers.sso.type=redirect
+mateu.auth.providers.sso.label=Sign in
+# your framework's login address (Spring's here; the others below)
+mateu.auth.providers.sso.url=/oauth2/authorization/sso
+mateu.auth.logout-url=/logout
+```
+
+The API (`<baseUrl>/mateu/v3/**`) must still answer **401** to an anonymous caller (not a redirect
+to the login page), as in [The framework side](#the-framework-side).
+
+### Spring Boot (MVC)
+
+`spring-boot-starter-oauth2-client`:
+
+```properties
+spring.security.oauth2.client.registration.sso.client-id=mateu-ui
+spring.security.oauth2.client.registration.sso.client-secret=${SSO_SECRET}
+spring.security.oauth2.client.registration.sso.scope=openid,profile
+spring.security.oauth2.client.provider.sso.issuer-uri=https://sso.example.com/realms/acme
+
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.secure=true
+server.servlet.session.cookie.same-site=lax
+```
+
+```java
+@Bean
+SecurityFilterChain security(HttpSecurity http) throws Exception {
+  RequestMatcher api = request -> request.getRequestURI().contains("/mateu/v3/");
+  return http
+      .authorizeHttpRequests(a -> a.requestMatchers(api).authenticated().anyRequest().permitAll())
+      .oauth2Login(Customizer.withDefaults())          // serves /oauth2/authorization/sso
+      .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
+          new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), api))
+      .logout(l -> l.logoutSuccessUrl("/"))
+      .build();
+}
+```
+
+Social providers (GitHub, Google…) are more `oauth2Login` registrations
+(`spring.security.oauth2.client.registration.github.*`), each with its own `redirect` provider.
+**WebFlux**: the same with `server.reactive.session.cookie.http-only|secure|same-site` and
+`ServerHttpSecurity.oauth2Login(...)`. About `GET /logout` and CSRF, see
+[Spring Boot](#spring-boot) above.
+
+### Quarkus
+
+`quarkus-oidc` as a web application:
+
+```properties
+quarkus.oidc.application-type=web-app
+quarkus.oidc.auth-server-url=https://sso.example.com/realms/acme
+quarkus.oidc.client-id=mateu-ui
+quarkus.oidc.credentials.secret=${SSO_SECRET}
+quarkus.oidc.authentication.cookie-same-site=lax
+```
+
+Its session cookie is HttpOnly (and Secure over https). The login starts when a protected path is
+visited: protect a path such as `/login` with a resource that redirects to `/`, and set
+`mateu.auth.providers.sso.url=/login`.
+
+### Micronaut
+
+`micronaut-security-oauth2` with the cookie authentication mode:
+
+```yaml
+micronaut:
+  security:
+    authentication: cookie
+    oauth2:
+      clients:
+        sso:
+          client-id: mateu-ui
+          client-secret: ${SSO_SECRET}
+          openid:
+            issuer: https://sso.example.com/realms/acme
+    token:
+      cookie:
+        cookie-same-site: Lax
+```
+
+The login starts at `/oauth/login/sso` → `mateu.auth.providers.sso.url=/oauth/login/sso`.
+
+### Helidon
+
+Helidon security's OIDC provider with `redirect: true` sends a visitor of a protected path to the
+identity provider and keeps the result in its own cookie:
+
+```yaml
+security:
+  providers:
+    - oidc:
+        identity-uri: https://sso.example.com/realms/acme
+        client-id: mateu-ui
+        client-secret: ${SSO_SECRET}
+        redirect: true
+        cookie-same-site: LAX
+```
+
+Point `mateu.auth.providers.sso.url` at a protected path that redirects to the app.
+
+### ASP.NET Core
+
+```csharp
+builder.Services.AddAuthentication(o =>
+    {
+        // the cookie answers challenges (401 below); only /login starts the OIDC flow
+        o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        o.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(o =>
+    {
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        // the API answers 401 instead of redirecting to the login
+        o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
+    })
+    .AddOpenIdConnect(o =>
+    {
+        o.Authority = "https://sso.example.com/realms/acme";
+        o.ClientId = "mateu-ui";
+        o.ClientSecret = builder.Configuration["Sso:Secret"];
+        o.ResponseType = "code";
+        o.SaveTokens = true;
+    });
+
+app.MapGet("/login", () => Results.Challenge(new AuthenticationProperties { RedirectUri = "/" },
+    [OpenIdConnectDefaults.AuthenticationScheme]));
+app.MapGet("/logout", async (HttpContext ctx) =>
+{
+    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/");
+});
+```
+
+and `MATEU_AUTH_PROVIDERS_SSO_URL=/login`. Mateu reads `HttpContext.User`.
+
+### FastAPI
+
+Authlib's Starlette client and Starlette's `SessionMiddleware` (a signed, HttpOnly cookie):
+
+```python
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+
+oauth = OAuth()
+oauth.register("sso", client_id="mateu-ui", client_secret=SSO_SECRET,
+               server_metadata_url=ISSUER + "/.well-known/openid-configuration",
+               client_kwargs={"scope": "openid profile"})
+
+@app.get("/login")
+async def login(request: Request):
+    return await oauth.sso.authorize_redirect(request, str(request.url_for("auth")))
+
+@app.get("/auth")
+async def auth(request: Request):
+    token = await oauth.sso.authorize_access_token(request)
+    request.session["user"] = dict(token["userinfo"])
+    return RedirectResponse("/")
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/")
+
+@app.middleware("http")
+async def identity(request: Request, call_next):
+    user = request.session.get("user")
+    if user:
+        request.state.mateu_identity = identity_from_claims(user)
+    return await call_next(request)
+
+# added LAST so it runs FIRST (Starlette: the last middleware added is the outermost), and the
+# identity middleware above finds the session decoded
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, https_only=True, same_site="lax")
+```
+
+and `MATEU_AUTH_PROVIDERS_SSO_URL=/login`.
+
+### Trade-offs
+
+- **Native apps cannot use this session.** The phone and desktop apps do not share the browser's
+  cookie jar: declare an `oidc` provider offered on `mobile` / `desktop` as well
+  (`mateu.auth.providers.<id>.platforms`), and have your framework accept bearer tokens on the
+  API besides its session.
+- **Spring's `oauth2Login` ignores `continue=`**, so after signing in the user lands on the root
+  (or your `defaultSuccessUrl`), not on the deep link they opened.
+- Signing out has to end the framework's session (`mateu.auth.logout-url`); ending the identity
+  provider's own session is the framework's RP-initiated logout, if you configure it.
 
 ## Related
 

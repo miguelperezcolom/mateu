@@ -20,12 +20,12 @@ completes as if nothing happened.
 Plug your re-auth flow (programmatically, from your app's bootstrap script):
 
 ```ts
-import { onSessionExpired } from 'mateu';
+import { onSessionExpired, setAuthToken } from 'mateu';
 
 onSessionExpired(async ({ retry, giveUp }) => {
     const ok = await openLoginPopup();          // your flow: popup, refresh token, SSO iframe…
     if (ok) {
-        localStorage.setItem('__mateu_auth_token', ok.token);  // where Mateu reads the Bearer
+        setAuthToken(ok.token);                 // Mateu's token store (a cookie by default)
         retry();                                // re-runs the failed request, action completes
     } else {
         giveUp();                               // fail normally (user declined)
@@ -74,8 +74,9 @@ user in themselves — no bootstrap script to write:
   goes to the IdP's authorize endpoint and comes back to the mount's root (register
   `<origin><mount>/` as the redirect URI); the code is redeemed, the URL is cleaned and put back on
   the route the user was on. The access token goes where [the Bearer token is
-  kept](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token) and is
-  refreshed a minute before it expires.
+  kept](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token) — a
+  `SameSite=Strict` cookie by default, its refresh token in `sessionStorage`, never in the cookie —
+  and is refreshed a minute before it expires.
 - **A redirect provider** (the framework owns the login: Spring's `oauth2Login`, SAML, form login…)
   sends the browser to its `url` with `continue=<the current URL>`.
 - **A 401** that no `onSessionExpired` handler and no `mateu-session-expired` listener claimed is

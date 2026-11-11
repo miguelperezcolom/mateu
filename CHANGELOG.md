@@ -35,6 +35,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   keys, so the value of an `eyesOnly:` / `access:` field reached a caller who may not see it. Fixed in
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
+- **The web clients keep the Bearer token in a cookie by default** (Vaadin/libs `authToken.ts`,
+  Redwood `poc/authStore.mjs`): `__mateu_auth_token=<token>; Path=<the mount>; SameSite=Strict`,
+  `Secure` on https, no `Domain`, `Max-Age` from the token's expiry (else a session cookie) — it was
+  `localStorage`. Requests still send `Authorization: Bearer`; servers read the header, never the
+  cookie. Cookies disabled, a write that does not read back or a token over ~3800 bytes fall back
+  to `sessionStorage` (then memory); reads look in the cookie, the configured storage,
+  `sessionStorage`, `localStorage`; writing or clearing removes every other copy.
+  `<meta name="mateu-auth-token-storage">` / `configureAuthToken({ storage, cookiePath })` accept
+  `cookie | localStorage | sessionStorage | memory` (now on Redwood too). The built-in sign-in's
+  refresh and id tokens never go into the cookie: `sessionStorage` (`__mateu_auth_session_secrets`)
+  by default, the non-secret part of the record in `localStorage`. A script-written cookie cannot be
+  HttpOnly; the docs now show how to let the framework keep an HttpOnly session instead
+  ([deploy/sign-in.md](https://mateu.io/deploy/sign-in/#httponly-cookie-let-the-server-keep-the-session)).
 
 ### Added — sign-in providers on the web
 

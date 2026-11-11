@@ -462,12 +462,40 @@ it on each request. Where it lives is a security trade-off, so it is configurabl
 
 | Storage | Survives a reload | Shared by tabs | Readable by a script injected into the page |
 |---|---|---|---|
-| `localStorage` (default) | yes | yes | yes |
+| `cookie` (default) | yes, until the token expires | yes (the tabs of the mount) | yes — a cookie written by script cannot be HttpOnly |
+| `localStorage` | yes | yes | yes |
 | `sessionStorage` | yes (same tab) | no | yes |
 | `memory` | no — set it again after every load | no | only while the page is open |
 | a `provider` function | whatever the provider does | — | the token stays inside your OIDC library |
+| an [HttpOnly session cookie](/deploy/sign-in/#httponly-cookie-let-the-server-keep-the-session) your framework sets | yes | yes | **no** — there is no token in the page at all |
 
-Declare it in the page that hosts `<mateu-ui>`:
+**The default cookie** is `__mateu_auth_token=<token>; Path=<the mount>; SameSite=Strict`, plus
+`Secure` when the page is served over https. It has no `Domain` (only the host that served the
+page gets it) and a `Max-Age` that ends when the token does (its `expires_in`, or the `exp` of a
+JWT), so an expired token is not left behind; with no known expiry it is a session cookie. The
+Path is the base url of the `<mateu-ui>` element (`configureAuthToken({ cookiePath })` changes it).
+
+The cookie is only **the client's store**. Requests still carry the token in the `Authorization`
+header, and that header is what your server validates — never the cookie. That also settles CSRF:
+`SameSite=Strict` keeps the cookie off cross-site requests, and even if one carried it, a forged
+request has no `Authorization` header, so the server sees an anonymous caller.
+
+What the cookie does **not** buy you: it is written by JavaScript, and only a server's
+`Set-Cookie` can make a cookie HttpOnly, so a script injected into the page (XSS) can read it just
+as it could read `localStorage`. To keep the token out of reach of scripts, let your framework hold
+the session in an HttpOnly cookie through a `redirect` sign-in provider
+([set up like this](/deploy/sign-in/#httponly-cookie-let-the-server-keep-the-session)) — the safest
+option.
+
+**Fallbacks** — the client never drops a token: when the cookie cannot take it (cookies disabled,
+a write that does not read back, or a token over ~3800 bytes, which with its name and attributes
+would exceed the ~4 KB a browser keeps per cookie) it goes to `sessionStorage`, and failing that
+stays in memory. Reading looks in the cookie, then the configured storage, then `sessionStorage`
+and `localStorage` (so a token left there by a fallback, or by an older Mateu version, is still
+found), then memory. Writing a token removes every other copy, and clearing it (sign-out, an
+expired session) removes it from all of them.
+
+Choose another storage in the page that hosts `<mateu-ui>`:
 
 ```html
 <meta name="mateu-auth-token-storage" content="sessionStorage">
@@ -478,22 +506,30 @@ or programmatically, before the UI boots:
 ```ts
 import { configureAuthToken, setAuthToken } from 'mateu'
 
-configureAuthToken({ storage: 'memory' })
-setAuthToken(keycloak.token)               // after login and after each refresh
+configureAuthToken({ storage: 'memory' })   // 'cookie' | 'localStorage' | 'sessionStorage' | 'memory'
+setAuthToken(keycloak.token)                 // after login and after each refresh
 // or: configureAuthToken({ provider: () => keycloak.token })
 ```
 
 The **built-in sign-in** (a UI that declares [sign-in providers](/deploy/sign-in/)) stores the
 access token it obtains from an OIDC provider exactly here, so the storage you choose applies to it
-too; the refresh token, the id token and the expiry travel beside it, in the same storage, under
-`__mateu_auth_session` (in memory with `memory`). The in-progress sign-in (state, nonce, PKCE
-verifier) is in `sessionStorage` for the trip to the IdP and is removed on the way back. Configuring
-a `provider` turns the built-in sign-in off: the app then owns the token and the login. The Redwood
-renderer keeps the token in `localStorage` only.
+too. What it keeps beside the token — the refresh token, the id token, the expiry, which provider —
+never goes into the cookie: a cookie travels with every request to its path, and the refresh and
+id tokens would push it past the 4 KB limit. With the default storage that record is split: its
+non-secret part (provider, expiry) in `localStorage` under `__mateu_auth_session`, so every tab
+that shares the cookie knows a session is there and offers Sign out; the refresh and id tokens in
+`sessionStorage` under `__mateu_auth_session_secrets` — per tab, gone with the tab. A tab opened
+later shares the access token but cannot refresh it; when it expires there, that tab signs in
+again (usually without a prompt: the identity provider still has its session). With
+`localStorage` or `sessionStorage` configured the whole record lives there; with `memory`, in
+memory. The in-progress sign-in (state, nonce, PKCE verifier) is in `sessionStorage` for the trip
+to the IdP and is removed on the way back. Configuring a `provider` turns the built-in sign-in off:
+the app then owns the token and the login.
 
-The storage key is `__mateu_auth_token`. When your backend can use them, **HttpOnly session
-cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
-throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
+The Redwood renderer applies the same policy: the default cookie with the same attributes, the
+fallbacks, the read order, `<meta name="mateu-auth-token-storage">` and the split session record.
+Storage access never throws — a browser that blocks storage (sandboxed iframe, privacy mode) just
+sends no token.
 
 ### Which origins receive it
 
