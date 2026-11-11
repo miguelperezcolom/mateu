@@ -7,8 +7,10 @@ Mateu.Core.RouteEntry
 Mateu.Uidl.AIAttribute
 Mateu.Uidl.Access
 Mateu.Uidl.ActionAttribute
+Mateu.Uidl.ActionAuditEvent
 Mateu.Uidl.ActionCatalog
 Mateu.Uidl.ActionOptionsAttribute
+Mateu.Uidl.ActionOutcome
 Mateu.Uidl.ActionPanel
 Mateu.Uidl.ActionPanelCategory
 Mateu.Uidl.ActionPanelItem
@@ -212,6 +214,7 @@ Mateu.Uidl.HiddenInEditorAttribute
 Mateu.Uidl.HiddenInListAttribute
 Mateu.Uidl.HiddenInViewAttribute
 Mateu.Uidl.HorizontalLayout
+Mateu.Uidl.IActionAuditListener
 Mateu.Uidl.IActionCatalogSupplier
 Mateu.Uidl.IAppActionsSupplier
 Mateu.Uidl.IAvatarSupplier

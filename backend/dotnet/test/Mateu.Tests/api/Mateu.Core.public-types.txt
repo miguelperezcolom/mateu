@@ -6,4 +6,5 @@ Mateu.Core.Export.BuiltInCsvExporter
 Mateu.Core.ISpecsCache
 Mateu.Core.InMemoryInboxStore
 Mateu.Core.InferenceSwitches
+Mateu.Core.Observability.MateuTelemetry
 Mateu.Core.PartialRegistry

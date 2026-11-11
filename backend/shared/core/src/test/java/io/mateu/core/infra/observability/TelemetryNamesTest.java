@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.uidl.audit.ActionOutcome;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TelemetryNamesTest {
 
+  // every observed request of the other suites in this JVM counts towards the series cap
+  @BeforeEach
   @AfterEach
   void reset() {
     TelemetryNames.reset();
