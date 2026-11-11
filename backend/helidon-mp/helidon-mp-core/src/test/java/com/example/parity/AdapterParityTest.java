@@ -133,6 +133,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void offersTheSignInProviders() {
+    contract.offersTheSignInProviders();
+  }
+
+  @Test
   void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
     contract.cancelsTheWorkWhenTheStreamsClientLeaves();
   }

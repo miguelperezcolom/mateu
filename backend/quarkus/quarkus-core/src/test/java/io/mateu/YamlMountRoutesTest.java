@@ -49,6 +49,7 @@ class YamlMountRoutesTest {
       RestAssured.port = server.actualPort();
       contract.servesAYamlMount();
       contract.servesAYamlMountsInstallableApp();
+      contract.offersTheSignInProvidersOnAYamlMount();
     } finally {
       RestAssured.port = previousPort;
       server.close().toCompletionStage().toCompletableFuture().get(20, TimeUnit.SECONDS);

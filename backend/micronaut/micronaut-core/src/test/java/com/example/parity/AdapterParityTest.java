@@ -128,6 +128,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void offersTheSignInProvidersOnAYamlMount() {
+    contract.offersTheSignInProvidersOnAYamlMount();
+  }
+
+  @Test
   void doesNotAnswerADataFetchWithTheIndex() {
     contract.doesNotAnswerADataFetchWithTheIndex();
   }
@@ -140,6 +145,11 @@ class AdapterParityTest {
   @Test
   void servesTheInstallableApp() {
     contract.servesTheInstallableApp();
+  }
+
+  @Test
+  void offersTheSignInProviders() {
+    contract.offersTheSignInProviders();
   }
 
   @Test

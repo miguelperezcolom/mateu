@@ -1,0 +1,348 @@
+{
+  "description" : "Sign-in providers: from the settings (mateu.auth.*, env MATEU_AUTH_*), the providers declared in code (Java SignInProvidersSupplier, .NET MateuOptions.SignIn, Python add_mateu(sign_in=...)) or the single provider of before (mateu.mobile.oidc.*) to the manifest's `auth` block and the served page's <meta name=\"mateu-auth\">. `auth` / `meta` null = absent. `warnings` = how many WARNs the resolution logs. Every backend (Java SignInProvidersCorpusTest = reference, regenerate with -Dsignin.corpus.write=true; .NET SignInProvidersTests; Python test_sign_in_providers.py) must produce `auth` and `meta` byte for byte. In .NET and Python a setting is read from its environment variable (the key upper-cased, '.' and '-' as '_').",
+  "cases" : [ {
+    "name" : "nothing declared: no auth block, no meta",
+    "settings" : { },
+    "auth" : null,
+    "meta" : null,
+    "warnings" : 0
+  }, {
+    "name" : "the provider of before (mateu.mobile.oidc.*) stays the native-only provider 'default'",
+    "settings" : {
+      "mateu.mobile.oidc.issuer" : "https://idp.example.com/realms/acme",
+      "mateu.mobile.oidc.client-id" : "mateu-app",
+      "mateu.mobile.oidc.scopes" : "openid profile offline_access"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "https://idp.example.com/realms/acme",
+      "clientId" : "mateu-app",
+      "scopes" : [ "openid", "profile", "offline_access" ],
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "default",
+        "type" : "oidc",
+        "label" : "Sign in",
+        "icon" : "key",
+        "issuer" : "https://idp.example.com/realms/acme",
+        "clientId" : "mateu-app",
+        "scopes" : [ "openid", "profile", "offline_access" ],
+        "platforms" : [ "mobile", "desktop" ]
+      } ]
+    },
+    "meta" : null,
+    "warnings" : 0
+  }, {
+    "name" : "one Keycloak realm on every platform",
+    "settings" : {
+      "mateu.auth.providers" : "keycloak",
+      "mateu.auth.providers.keycloak.issuer" : "https://sso.example.com/realms/acme",
+      "mateu.auth.providers.keycloak.client-id" : "mateu-ui"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "https://sso.example.com/realms/acme",
+      "clientId" : "mateu-ui",
+      "scopes" : [ "openid", "profile" ],
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "keycloak",
+        "type" : "oidc",
+        "label" : "Keycloak",
+        "icon" : "keycloak",
+        "issuer" : "https://sso.example.com/realms/acme",
+        "clientId" : "mateu-ui",
+        "scopes" : [ "openid", "profile" ],
+        "platforms" : [ "web", "mobile", "desktop" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;keycloak&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Keycloak&quot;,&quot;icon&quot;:&quot;keycloak&quot;,&quot;issuer&quot;:&quot;https://sso.example.com/realms/acme&quot;,&quot;clientId&quot;:&quot;mateu-ui&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;profile&quot;],&quot;platforms&quot;:[&quot;web&quot;,&quot;mobile&quot;,&quot;desktop&quot;]}]}\">",
+    "warnings" : 0
+  }, {
+    "name" : "presets: Google (native), Microsoft (common tenant), GitHub (framework redirect), a logout url",
+    "settings" : {
+      "mateu.auth.providers" : "google, microsoft, github",
+      "mateu.auth.providers.google.client-id" : "123-abc.apps.googleusercontent.com",
+      "mateu.auth.providers.microsoft.client-id" : "0000-1111",
+      "mateu.auth.logout-url" : "/logout"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "https://accounts.google.com",
+      "clientId" : "123-abc.apps.googleusercontent.com",
+      "scopes" : [ "openid", "profile" ],
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "google",
+        "type" : "oidc",
+        "label" : "Google",
+        "icon" : "google",
+        "issuer" : "https://accounts.google.com",
+        "clientId" : "123-abc.apps.googleusercontent.com",
+        "scopes" : [ "openid", "profile" ],
+        "platforms" : [ "mobile", "desktop" ]
+      }, {
+        "id" : "microsoft",
+        "type" : "oidc",
+        "label" : "Microsoft",
+        "icon" : "microsoft",
+        "issuer" : "https://login.microsoftonline.com/common/v2.0",
+        "clientId" : "0000-1111",
+        "scopes" : [ "openid", "profile" ],
+        "platforms" : [ "web", "mobile", "desktop" ]
+      }, {
+        "id" : "github",
+        "type" : "redirect",
+        "label" : "GitHub",
+        "icon" : "github",
+        "url" : "/oauth2/authorization/github",
+        "platforms" : [ "web" ]
+      } ],
+      "logoutUrl" : "/logout"
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;microsoft&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Microsoft&quot;,&quot;icon&quot;:&quot;microsoft&quot;,&quot;issuer&quot;:&quot;https://login.microsoftonline.com/common/v2.0&quot;,&quot;clientId&quot;:&quot;0000-1111&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;profile&quot;],&quot;platforms&quot;:[&quot;web&quot;,&quot;mobile&quot;,&quot;desktop&quot;]},{&quot;id&quot;:&quot;github&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;GitHub&quot;,&quot;icon&quot;:&quot;github&quot;,&quot;url&quot;:&quot;/oauth2/authorization/github&quot;,&quot;platforms&quot;:[&quot;web&quot;]}],&quot;logoutUrl&quot;:&quot;/logout&quot;}\">",
+    "warnings" : 0
+  }, {
+    "name" : "Entra ID with its tenant",
+    "settings" : {
+      "mateu.auth.providers" : "entra",
+      "mateu.auth.providers.entra.tenant" : "contoso.onmicrosoft.com",
+      "mateu.auth.providers.entra.client-id" : "2222-3333",
+      "mateu.auth.providers.entra.scopes" : "openid,profile,api://mateu/.default"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "https://login.microsoftonline.com/contoso.onmicrosoft.com/v2.0",
+      "clientId" : "2222-3333",
+      "scopes" : [ "openid", "profile", "api://mateu/.default" ],
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "entra",
+        "type" : "oidc",
+        "label" : "Microsoft Entra ID",
+        "icon" : "microsoft",
+        "issuer" : "https://login.microsoftonline.com/contoso.onmicrosoft.com/v2.0",
+        "clientId" : "2222-3333",
+        "scopes" : [ "openid", "profile", "api://mateu/.default" ],
+        "platforms" : [ "web", "mobile", "desktop" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;entra&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Microsoft Entra ID&quot;,&quot;icon&quot;:&quot;microsoft&quot;,&quot;issuer&quot;:&quot;https://login.microsoftonline.com/contoso.onmicrosoft.com/v2.0&quot;,&quot;clientId&quot;:&quot;2222-3333&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;profile&quot;,&quot;api://mateu/.default&quot;],&quot;platforms&quot;:[&quot;web&quot;,&quot;mobile&quot;,&quot;desktop&quot;]}]}\">",
+    "warnings" : 0
+  }, {
+    "name" : "a framework-owned SAML login with no continue parameter, escaped in the meta",
+    "settings" : {
+      "mateu.auth.providers" : "corp",
+      "mateu.auth.providers.corp.type" : "redirect",
+      "mateu.auth.providers.corp.label" : "Corporate SSO \"Acme\"",
+      "mateu.auth.providers.corp.url" : "/saml2/authenticate/corp?a=1&b=2",
+      "mateu.auth.providers.corp.continue-param" : "false"
+    },
+    "auth" : {
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "corp",
+        "type" : "redirect",
+        "label" : "Corporate SSO \"Acme\"",
+        "icon" : "key",
+        "url" : "/saml2/authenticate/corp?a=1&b=2",
+        "continueParam" : false,
+        "platforms" : [ "web" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;corp&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;Corporate SSO \\&quot;Acme\\&quot;&quot;,&quot;icon&quot;:&quot;key&quot;,&quot;url&quot;:&quot;/saml2/authenticate/corp?a=1&amp;b=2&quot;,&quot;continueParam&quot;:false,&quot;platforms&quot;:[&quot;web&quot;]}]}\">",
+    "warnings" : 0
+  }, {
+    "name" : "unusable providers are skipped with a WARN each",
+    "settings" : {
+      "mateu.auth.providers" : "okta,ldap,evil,github",
+      "mateu.auth.providers.okta.client-id" : "no-issuer",
+      "mateu.auth.providers.ldap.type" : "ldap",
+      "mateu.auth.providers.evil.type" : "redirect",
+      "mateu.auth.providers.evil.url" : "javascript:alert(1)"
+    },
+    "auth" : {
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "github",
+        "type" : "redirect",
+        "label" : "GitHub",
+        "icon" : "github",
+        "url" : "/oauth2/authorization/github",
+        "platforms" : [ "web" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;github&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;GitHub&quot;,&quot;icon&quot;:&quot;github&quot;,&quot;url&quot;:&quot;/oauth2/authorization/github&quot;,&quot;platforms&quot;:[&quot;web&quot;]}]}\">",
+    "warnings" : 3
+  }, {
+    "name" : "everything set: label, icon, scopes, audience, platforms, loginOnStart off",
+    "settings" : {
+      "mateu.auth.providers" : "my-idp",
+      "mateu.auth.providers.my-idp.label" : "Iniciar sesión",
+      "mateu.auth.providers.my-idp.icon" : "Okta",
+      "mateu.auth.providers.my-idp.issuer" : "https://acme.okta.com/oauth2/default",
+      "mateu.auth.providers.my-idp.client-id" : "0oa1",
+      "mateu.auth.providers.my-idp.scopes" : "openid email offline_access",
+      "mateu.auth.providers.my-idp.audience" : "api://default",
+      "mateu.auth.providers.my-idp.platforms" : "desktop, web",
+      "mateu.auth.login-on-start" : "false"
+    },
+    "auth" : {
+      "loginOnStart" : false,
+      "providers" : [ {
+        "id" : "my-idp",
+        "type" : "oidc",
+        "label" : "Iniciar sesión",
+        "icon" : "okta",
+        "issuer" : "https://acme.okta.com/oauth2/default",
+        "clientId" : "0oa1",
+        "scopes" : [ "openid", "email", "offline_access" ],
+        "audience" : "api://default",
+        "platforms" : [ "web", "desktop" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:false,&quot;providers&quot;:[{&quot;id&quot;:&quot;my-idp&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Iniciar sesión&quot;,&quot;icon&quot;:&quot;okta&quot;,&quot;issuer&quot;:&quot;https://acme.okta.com/oauth2/default&quot;,&quot;clientId&quot;:&quot;0oa1&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;email&quot;,&quot;offline_access&quot;],&quot;audience&quot;:&quot;api://default&quot;,&quot;platforms&quot;:[&quot;web&quot;,&quot;desktop&quot;]}]}\">",
+    "warnings" : 0
+  }, {
+    "name" : "a web-only oidc provider: no mobile provider, so no legacy keys; an unknown icon and platform are warned",
+    "settings" : {
+      "mateu.auth.providers" : "auth0",
+      "mateu.auth.providers.auth0.issuer" : "https://acme.eu.auth0.com/",
+      "mateu.auth.providers.auth0.client-id" : "abc",
+      "mateu.auth.providers.auth0.audience" : "https://api.acme.com",
+      "mateu.auth.providers.auth0.platforms" : "web,tv",
+      "mateu.auth.providers.auth0.icon" : "acme-logo"
+    },
+    "auth" : {
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "auth0",
+        "type" : "oidc",
+        "label" : "Auth0",
+        "icon" : "key",
+        "issuer" : "https://acme.eu.auth0.com/",
+        "clientId" : "abc",
+        "scopes" : [ "openid", "profile" ],
+        "audience" : "https://api.acme.com",
+        "platforms" : [ "web" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:[{&quot;id&quot;:&quot;auth0&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Auth0&quot;,&quot;icon&quot;:&quot;key&quot;,&quot;issuer&quot;:&quot;https://acme.eu.auth0.com/&quot;,&quot;clientId&quot;:&quot;abc&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;profile&quot;],&quot;audience&quot;:&quot;https://api.acme.com&quot;,&quot;platforms&quot;:[&quot;web&quot;]}]}\">",
+    "warnings" : 2
+  }, {
+    "name" : "a native-only provider gives no meta",
+    "settings" : {
+      "mateu.auth.providers" : "zitadel",
+      "mateu.auth.providers.zitadel.issuer" : "https://acme.zitadel.cloud",
+      "mateu.auth.providers.zitadel.client-id" : "777",
+      "mateu.auth.providers.zitadel.platforms" : "mobile"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "https://acme.zitadel.cloud",
+      "clientId" : "777",
+      "scopes" : [ "openid", "profile" ],
+      "loginOnStart" : true,
+      "providers" : [ {
+        "id" : "zitadel",
+        "type" : "oidc",
+        "label" : "Zitadel",
+        "icon" : "key",
+        "issuer" : "https://acme.zitadel.cloud",
+        "clientId" : "777",
+        "scopes" : [ "openid", "profile" ],
+        "platforms" : [ "mobile" ]
+      } ]
+    },
+    "meta" : null,
+    "warnings" : 0
+  }, {
+    "name" : "providers declared in code, with their login-on-start and logout url",
+    "settings" : { },
+    "code" : {
+      "providers" : [ {
+        "id" : "acme",
+        "type" : "oidc",
+        "label" : "Acme SSO",
+        "issuer" : "http://localhost:8180/realms/acme",
+        "clientId" : "mateu-ui",
+        "scopes" : [ "openid", "email" ]
+      }, {
+        "id" : "github"
+      }, {
+        "id" : "acme",
+        "type" : "redirect",
+        "url" : "/twice"
+      }, {
+        "id" : "partners",
+        "url" : "https://partners.example.com/login",
+        "platforms" : [ "web", "desktop" ],
+        "continueParam" : false
+      } ],
+      "loginOnStart" : false,
+      "logoutUrl" : "https://sso.example.com/logout"
+    },
+    "auth" : {
+      "type" : "oidc",
+      "issuer" : "http://localhost:8180/realms/acme",
+      "clientId" : "mateu-ui",
+      "scopes" : [ "openid", "email" ],
+      "loginOnStart" : false,
+      "providers" : [ {
+        "id" : "acme",
+        "type" : "oidc",
+        "label" : "Acme SSO",
+        "icon" : "key",
+        "issuer" : "http://localhost:8180/realms/acme",
+        "clientId" : "mateu-ui",
+        "scopes" : [ "openid", "email" ],
+        "platforms" : [ "web", "mobile", "desktop" ]
+      }, {
+        "id" : "github",
+        "type" : "redirect",
+        "label" : "GitHub",
+        "icon" : "github",
+        "url" : "/oauth2/authorization/github",
+        "platforms" : [ "web" ]
+      }, {
+        "id" : "partners",
+        "type" : "redirect",
+        "label" : "Partners",
+        "icon" : "key",
+        "url" : "https://partners.example.com/login",
+        "continueParam" : false,
+        "platforms" : [ "web", "desktop" ]
+      } ],
+      "logoutUrl" : "https://sso.example.com/logout"
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:false,&quot;providers&quot;:[{&quot;id&quot;:&quot;acme&quot;,&quot;type&quot;:&quot;oidc&quot;,&quot;label&quot;:&quot;Acme SSO&quot;,&quot;icon&quot;:&quot;key&quot;,&quot;issuer&quot;:&quot;http://localhost:8180/realms/acme&quot;,&quot;clientId&quot;:&quot;mateu-ui&quot;,&quot;scopes&quot;:[&quot;openid&quot;,&quot;email&quot;],&quot;platforms&quot;:[&quot;web&quot;,&quot;mobile&quot;,&quot;desktop&quot;]},{&quot;id&quot;:&quot;github&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;GitHub&quot;,&quot;icon&quot;:&quot;github&quot;,&quot;url&quot;:&quot;/oauth2/authorization/github&quot;,&quot;platforms&quot;:[&quot;web&quot;]},{&quot;id&quot;:&quot;partners&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;Partners&quot;,&quot;icon&quot;:&quot;key&quot;,&quot;url&quot;:&quot;https://partners.example.com/login&quot;,&quot;continueParam&quot;:false,&quot;platforms&quot;:[&quot;web&quot;,&quot;desktop&quot;]}],&quot;logoutUrl&quot;:&quot;https://sso.example.com/logout&quot;}\">",
+    "warnings" : 1
+  }, {
+    "name" : "the settings win over the code",
+    "settings" : {
+      "mateu.auth.providers" : "github",
+      "mateu.auth.providers.github.url" : "/login/github",
+      "mateu.auth.login-on-start" : "maybe",
+      "mateu.auth.logout-url" : "javascript:void(0)"
+    },
+    "code" : {
+      "providers" : [ {
+        "id" : "facebook"
+      } ],
+      "loginOnStart" : false
+    },
+    "auth" : {
+      "loginOnStart" : false,
+      "providers" : [ {
+        "id" : "github",
+        "type" : "redirect",
+        "label" : "GitHub",
+        "icon" : "github",
+        "url" : "/login/github",
+        "platforms" : [ "web" ]
+      } ]
+    },
+    "meta" : "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:false,&quot;providers&quot;:[{&quot;id&quot;:&quot;github&quot;,&quot;type&quot;:&quot;redirect&quot;,&quot;label&quot;:&quot;GitHub&quot;,&quot;icon&quot;:&quot;github&quot;,&quot;url&quot;:&quot;/login/github&quot;,&quot;platforms&quot;:[&quot;web&quot;]}]}\">",
+    "warnings" : 2
+  } ]
+}

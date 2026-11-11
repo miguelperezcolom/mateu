@@ -99,7 +99,12 @@ class MobileAppSyncTest {
             "{\"name\":\"Acme CRM\",\"shortName\":\"CRM\",\"icon\":\"/images/acme.svg\","
                 + "\"themeColor\":\"#1f6feb\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://auth.acme.com/realms/acme\","
-                + "\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"]}}");
+                + "\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"],"
+                // the single provider of before, now provider "default" (native only)
+                + "\"loginOnStart\":true,\"providers\":[{\"id\":\"default\",\"type\":\"oidc\","
+                + "\"label\":\"Sign in\",\"icon\":\"key\",\"issuer\":\"https://auth.acme.com/realms/acme\","
+                + "\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"],"
+                + "\"platforms\":[\"mobile\",\"desktop\"]}]}}");
   }
 
   @Test
@@ -118,7 +123,10 @@ class MobileAppSyncTest {
         .isEqualTo(
             "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\",\"clientId\":\"app\","
-                + "\"scopes\":[\"openid\",\"email\"]}}");
+                + "\"scopes\":[\"openid\",\"email\"],\"loginOnStart\":true,\"providers\":[{\"id\":\"default\","
+                + "\"type\":\"oidc\",\"label\":\"Sign in\",\"icon\":\"key\",\"issuer\":\"https://idp.example\","
+                + "\"clientId\":\"app\",\"scopes\":[\"openid\",\"email\"],"
+                + "\"platforms\":[\"mobile\",\"desktop\"]}]}}");
     System.setProperty(MobileManifest.NAME, "Acme Sales");
     System.setProperty(MobileManifest.MIN_APP_VERSION, "1.2.0");
     assertThat(MobileManifest.json(AcmeApp.class.getName()))

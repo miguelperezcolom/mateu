@@ -212,13 +212,15 @@ public final class YamlMounts {
     // the mount on them.
     return IndexPage.devHead(
         Pwa.served(
-            OracleCdn.apply(
-                IndexPage.withoutMarkers(
-                    IndexPage.mountUi(
-                        html,
-                        "<mateu-ui baseUrl=\""
-                            + uiPath(basePath)
-                            + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))),
+            io.mateu.core.infra.security.SignInProviders.head(
+                OracleCdn.apply(
+                    IndexPage.withoutMarkers(
+                        IndexPage.mountUi(
+                            html,
+                            "<mateu-ui baseUrl=\""
+                                + uiPath(basePath)
+                                + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))),
+                shell == null ? null : shell.mobileApp()),
             uiPath(basePath),
             shell));
   }

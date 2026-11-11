@@ -1016,6 +1016,65 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * The sign-in providers ({@code io.mateu.core.infra.security.SignInProviders}) reach the served
+   * page as {@code <meta name="mateu-auth">} (the web ones) and the mobile manifest as its {@code
+   * auth} block — the same on every adapter, since the page and the manifest are core's.
+   */
+  public void offersTheSignInProviders() {
+    withSignInProviders(
+        () -> {
+          given()
+              .accept("text/html")
+              .when()
+              .get("/plain")
+              .then()
+              .statusCode(200)
+              .body(containsString(SIGN_IN_META));
+          given()
+              .accept("application/json")
+              .when()
+              .get("/plain/mateu/v3/manifest")
+              .then()
+              .statusCode(200)
+              .body(containsString(SIGN_IN_MANIFEST));
+        });
+  }
+
+  /** {@link #offersTheSignInProviders()} on the YAML mount fixture ({@value #YAML_MOUNT}). */
+  public void offersTheSignInProvidersOnAYamlMount() {
+    withSignInProviders(
+        () ->
+            given()
+                .accept("text/html")
+                .when()
+                .get(YAML_MOUNT)
+                .then()
+                .statusCode(200)
+                .body(containsString(SIGN_IN_META)));
+  }
+
+  private static final String SIGN_IN_META =
+      "<meta name=\"mateu-auth\" content=\"{&quot;loginOnStart&quot;:true,&quot;providers&quot;:"
+          + "[{&quot;id&quot;:&quot;github&quot;,&quot;type&quot;:&quot;redirect&quot;,"
+          + "&quot;label&quot;:&quot;GitHub&quot;,&quot;icon&quot;:&quot;github&quot;,"
+          + "&quot;url&quot;:&quot;/oauth2/authorization/github&quot;,"
+          + "&quot;platforms&quot;:[&quot;web&quot;]}]}\">";
+
+  private static final String SIGN_IN_MANIFEST =
+      "\"auth\":{\"loginOnStart\":true,\"providers\":[{\"id\":\"github\",\"type\":\"redirect\","
+          + "\"label\":\"GitHub\",\"icon\":\"github\",\"url\":\"/oauth2/authorization/github\","
+          + "\"platforms\":[\"web\"]}]}";
+
+  private static void withSignInProviders(Runnable check) {
+    System.setProperty("mateu.auth.providers", "github");
+    try {
+      check.run();
+    } finally {
+      System.clearProperty("mateu.auth.providers");
+    }
+  }
+
+  /**
    * Every UI is an installable app ({@code io.mateu.core.infra.Pwa}): its page links the web app
    * manifest and registers the service worker, and {@code <baseUrl>/mateu/v3/pwa/} serves the
    * manifest (derived like the mobile one), the worker (allowed to control the whole UI), the

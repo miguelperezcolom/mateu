@@ -91,12 +91,16 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    // the installable-app head (manifest, theme colour, worker), last: it hashes the final page
+    var source = spec.uiId() == null ? null : MobileManifest.sourceOf(spec.uiId());
+    // the ways to sign in the web clients offer (<meta name="mateu-auth">), then the
+    // installable-app
+    // head (manifest, theme colour, worker), last: it hashes the final page
     return devHead(
         Pwa.served(
-            OracleCdn.apply(withoutMarkers(html)),
+            io.mateu.core.infra.security.SignInProviders.head(
+                OracleCdn.apply(withoutMarkers(html)), source == null ? null : source.mobileApp()),
             spec.path(),
-            spec.uiId() == null ? null : MobileManifest.sourceOf(spec.uiId())));
+            source));
   }
 
   /**

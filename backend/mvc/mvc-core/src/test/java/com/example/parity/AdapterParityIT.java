@@ -141,6 +141,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void offersTheSignInProviders() {
+      contract.offersTheSignInProviders();
+    }
+
+    @Test
     void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
       contract.cancelsTheWorkWhenTheStreamsClientLeaves();
     }
@@ -158,6 +163,11 @@ class AdapterParityIT {
     @Test
     void servesAYamlMountsInstallableApp() {
       contract.servesAYamlMountsInstallableApp();
+    }
+
+    @Test
+    void offersTheSignInProvidersOnAYamlMount() {
+      contract.offersTheSignInProvidersOnAYamlMount();
     }
 
     @Test

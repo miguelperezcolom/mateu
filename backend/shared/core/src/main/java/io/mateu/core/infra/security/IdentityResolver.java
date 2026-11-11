@@ -89,6 +89,8 @@ public final class IdentityResolver {
    * @param howToSecure the adapter's one-line hint ("add Spring Security…")
    */
   public static void warnOnStartup(boolean frameworkSecurityPresent, String howToSecure) {
+    // the sign-in providers are read once here, so an unusable one is reported at startup
+    SignInProviders.warnOnStartup();
     if (frameworkSecurityPresent || !beans(PrincipalResolver.class).isEmpty()) {
       return;
     }
