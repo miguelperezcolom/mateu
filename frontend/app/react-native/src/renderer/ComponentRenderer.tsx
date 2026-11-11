@@ -58,11 +58,12 @@ import { resolveCustomComponent } from './customComponents';
 import {
   AvatarGroupRenderer, AvatarRenderer, BoardLayoutRenderer, BoardLayoutRowRenderer, BpmnRenderer, BreadcrumbRenderer,
   BreadcrumbsRenderer, CarouselRenderer, ChatRenderer, ContentLayoutRenderer, ContextMenuRenderer, CookieConsentRenderer,
-  DetailsRenderer, DirectoryRenderer, DrawerInlineRenderer, ElementRenderer, FormEditorRenderer, GridColumnRenderer,
+  DetailsRenderer, DirectoryRenderer, DrawerInlineRenderer, ElementRenderer, GridColumnRenderer,
   GridRenderer, IconRenderer, LabelledChildrenRenderer, MasterDetailRenderer, MenuBarRenderer, MessageInputRenderer,
   MessageListRenderer, NestedAppRenderer, NotFoundRenderer, NotificationRenderer, ResponsiveGridRenderer,
-  TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
+  TooltipRenderer, VirtualListRenderer,
 } from './WireComponents';
+import { FormEditorRenderer, WorkflowEditorRenderer } from './DefinitionEditors';
 
 interface Props {
   component: unknown;
@@ -520,9 +521,9 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Bpmn':
       return <BpmnRenderer metadata={metadata} />;
     case 'Workflow':
-      return <WorkflowRenderer metadata={metadata} />;
+      return <WorkflowEditorRenderer component={component as Record<string, unknown>} />;
     case 'FormEditor':
-      return <FormEditorRenderer metadata={metadata} />;
+      return <FormEditorRenderer component={component as Record<string, unknown>} />;
 
     case 'CustomComponent': {
       // The per-renderer escape hatch (#14): a registered renderer paints it; otherwise degrade to a

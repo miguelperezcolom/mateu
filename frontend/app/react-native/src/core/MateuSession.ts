@@ -10,6 +10,7 @@ import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts'
 import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
 import { listingPrefsStorage } from '../renderer/persistedScopes.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
+import { KeyShortcutRegistry, sharedKeyShortcuts } from './keyShortcuts.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
@@ -102,6 +103,8 @@ export class MateuSession {
   readonly savedViews: SavedViewsStore;
   /** The drop zones mounted on this app's screens. */
   readonly dropZones: DropZoneRegistry;
+  /** The hardware-keyboard shortcuts on this app's screens (core/keyShortcuts.ts). */
+  readonly keyShortcuts: KeyShortcutRegistry;
   /** The UI session (id + channel secret) the assistant chat and the live-push channel share, and
    *  the paired state the channel reports (core/agentPush.ts). One per running app. */
   readonly agent: AgentPushState;
@@ -250,6 +253,7 @@ export class MateuSession {
       void this.savedViews.attach(prefsKv, baseUrl);
     }
     this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
+    this.keyShortcuts = storesFrom?.keyShortcuts ?? (own ? new KeyShortcutRegistry() : sharedKeyShortcuts);
     // per app instance, never process-wide: two hub UIs are two UI sessions
     this.agent = storesFrom?.agent ?? new AgentPushState();
     // per UI too: an island's task (its LongTask) shows in the app's task center

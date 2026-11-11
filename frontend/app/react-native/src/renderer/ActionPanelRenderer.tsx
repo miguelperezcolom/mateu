@@ -18,8 +18,8 @@ import { actionPanelView, panelLabel, type ActionPanelMeta, type PanelAction } f
  * Choosing an action closes the modal and dispatches it exactly like a `Button` does
  * (`controller.runAction(actionId, parameters)`).
  *
- * The wire `shortcut` (e.g. "ctrl+i") is NOT applicable here: a touch device has no keyboard
- * accelerators to bind it to, so it is deliberately ignored.
+ * The wire `shortcut` (e.g. "ctrl+i") opens it from a hardware keyboard where the app hears one
+ * (react-native-web — see core/keyShortcuts.ts).
  */
 export function ActionPanelRenderer({ metadata, state }: { metadata: Record<string, unknown>; state: Record<string, unknown> }) {
   const controller = useViewController();
@@ -27,6 +27,11 @@ export function ActionPanelRenderer({ metadata, state }: { metadata: Record<stri
   const [open, setOpen] = React.useState(false);
   const [expanded, setExpanded] = React.useState<Set<number>>(() => new Set());
   const [hideUnpopulated, setHideUnpopulated] = React.useState(false);
+  const shortcut = typeof meta.shortcut === 'string' ? meta.shortcut : '';
+  React.useEffect(
+    () => controller.session.keyShortcuts?.register({ shortcut, scope: 'screen', run: () => setOpen(true) }),
+    [controller, shortcut],
+  );
 
   const label = interpolate(panelLabel(meta), { state });
   const categories = actionPanelView(meta, { expanded, hideUnpopulated });

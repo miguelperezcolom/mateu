@@ -15,6 +15,7 @@ export const renderWorkflow = (component: ClientSideComponent) => {
                 class="${component.cssClasses ?? nothing}"
                 slot="${component.slot ?? nothing}"
                 value="${metadata.value ?? '{"name":"New Workflow","steps":[]}'}"
+                .fieldId="${component.id}"
         ></mateu-workflow>
     `;
 };

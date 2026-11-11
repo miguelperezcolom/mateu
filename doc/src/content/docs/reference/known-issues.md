@@ -132,31 +132,32 @@ inbox (`NotificationsSupplier`, or `InboxStore` for signed-in users). To alert a
 push from your own backend. See
 [what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
 
-### Touch and desktop adaptations
+### Keyboard shortcuts on phones and tablets, and a camera on the desktop
 
-Some interactions have no direct equivalent on a device and are adapted rather than reproduced:
-React Native has no hover (popovers and tooltips open on press / long-press), no row dragging (a
-"Move to…" picker), no hardware keyboard shortcuts (app quick-launch codes only), and shows
-`Workflow`, `FormEditor` and `Bpmn` read only. IntelliJ shows `Workflow` and `FormEditor` read only,
-uses a file picker for photo capture and searches only the loaded options of a searchable picker.
+The React Native app answers `@Action(shortcut)`, `@Tab(shortcut)`, `@AppShortcut(key)` and an
+`ActionPanel`'s shortcut only in its web build (react-native-web). On iOS and Android, a hardware
+keyboard attached to the device does nothing: React Native gives an Expo app no key events (they are
+an experimental Android flag, off by default, sent only to the focused view), so there is no key to
+match. The access keys mode (`@App(accessKeys)`) is not offered there either.
 
-On a phone the React Native app also lays a few things out for the screen size:
+The IntelliJ plugin takes a `@PhotoCapture` picture from a file, not from a webcam. No
+permissively licensed webcam library for Java is pure Java: every one ships native binaries (and the
+best known, webcam-capture, is unmaintained and has no Apple silicon build). On macOS a plugin also
+cannot declare the camera permission the host app would need.
 
-- a `Drawer` is a bottom sheet whatever its position (`size` sets its starting height,
-  `maximizable` takes it to full height, `modeless` keeps the screen behind usable);
-- a horizontal `SplitLayout` stacks its panes, with no drag handle;
-- the `@Toc` index is a row of section chips above the page, which stays on screen, instead of a
-  sticky side index, and `@Section(sticky = true)` cards are not pinned (a pinned card would cover
-  most of the screen; the index lists them first);
-- labels stay above the fields (`labelsAside` is not applied: an outlined field carries its label
-  in its outline);
-- a `masterDetail` listing shows the pressed row's detail under it;
-- a row (`HorizontalLayout`) wraps rather than running off the screen;
-- `@FileUpload` offers the photo library on a device (any file in the web build); an `accept`
-  list with no image or video type says so instead of offering a picker.
+**Workaround:** on a phone, use the quick-launch codes in the drawer for app shortcuts and the
+screen's own buttons and tabs. On the desktop, take the photo with the system camera app and pick
+the file.
 
-**Workaround:** edit workflows and forms on the web. The full list is in the
-[renderer coverage tables](/reference/parity/#renderers).
+### The definition a `Workflow` or `FormEditor` edits does not reach a view model
+
+Every renderer (web, React Native, IntelliJ) now edits a `Workflow` and a `FormEditor` and writes the
+definition's JSON into the component state under the component's id. The three servers give both
+components the fixed id `fieldId`, though, so the edited JSON travels under a key no view model
+field declares, and is not bound back on the next action.
+
+**Workaround:** design the definition in the editor and take it out with its Export button (a JSON
+file on the web, the share sheet on a phone).
 
 ## .NET and Python servers
 

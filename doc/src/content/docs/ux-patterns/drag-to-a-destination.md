@@ -64,8 +64,10 @@ reload like on opening.
   content shows as text lines. The header components of a listing page (`HeaderSupplier`) are drawn
   above the table.
 - **IntelliJ plugin** — `JTable` drag with a transfer handler, and a titled panel as the zone.
-- **React Native** — no drag on touch: with rows selected and a matching zone on screen, a
-  **Move to…** button opens a picker of the zones.
+- **React Native** — a long press lifts the row (or the selection it belongs to) and the finger
+  carries it to a zone, which lights up; with rows selected, a **Move to…** button opens a picker of
+  the zones on screen instead (a long press let go without moving opens it too), which is also the
+  screen reader's way.
 - .NET: `[DragRows("charge")]` + `DropZone`; Python: `@drag_rows("charge")` + `DropZone`.
 
 The drag type travels as a MIME type (`application/x-mateu-<type>`), so a zone can tell while the

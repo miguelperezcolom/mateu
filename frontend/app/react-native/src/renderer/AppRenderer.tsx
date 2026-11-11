@@ -1139,6 +1139,16 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       void runAppAction(shortcut.actionId);
     }
   };
+  // @AppShortcut(key): the app-wide keys (a hardware keyboard on react-native-web); a screen's own
+  // shortcut wins (core/keyShortcuts.ts)
+  const launchRef = React.useRef(launch);
+  launchRef.current = launch;
+  React.useEffect(
+    () => session.keyShortcuts?.register(...(appMeta.shortcuts ?? [])
+      .filter((s) => !!s.key && (!!s.route || !!s.actionId))
+      .map((s) => ({ shortcut: s.key!, scope: 'app' as const, run: () => launchRef.current(s) }))),
+    [session, appMeta.shortcuts],
+  );
   const goHome = React.useCallback(() => {
     setCurrentNav({
       route: appMeta.homeRoute ?? '',

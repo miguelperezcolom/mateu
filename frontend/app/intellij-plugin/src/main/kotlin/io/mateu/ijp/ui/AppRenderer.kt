@@ -100,6 +100,22 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
             row.border = JBUI.Borders.empty(4, 8)
             val caption = JBLabel(plain(selector.text("label", fieldName)))
             row.add(caption, java.awt.BorderLayout.WEST)
+            val current = session.appState[fieldName]?.let { if (it is JsonNode) it.asText() else it.toString() } ?: ""
+            // many options: a searchable picker that also asks the server (_appcontext-search-<field>)
+            val loaded = selector.path("options").map { o -> o.text("value") to o.text("label", o.text("value")) }
+            if (AppContextSearch.searchable(loaded.size)) {
+                val picker = appContextSearchPicker(
+                    session, fieldName, selector.text("label", fieldName), loaded, current,
+                    metadata.text("rootRoute", metadata.text("route")), metadata.text("serverSideType").ifBlank { null },
+                ) { picked ->
+                    if (picked.isBlank()) session.appState.remove(fieldName) else session.appState[fieldName] = picked
+                    session.onAppContextChanged?.invoke()
+                }
+                caption.labelling(picker)
+                row.add(picker, java.awt.BorderLayout.CENTER)
+                sidebar.addStacked(row, 2)
+                continue
+            }
             val combo = com.intellij.openapi.ui.ComboBox<Pair<String, String>>()
             // The caption beside the combo was only visual: a screen reader announced an unnamed
             // combo (and, under Metal, an unnamed arrow button) for the active hotel/company.
@@ -112,7 +128,6 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
                 }
             }
             combo.addItem("" to "—")
-            val current = session.appState[fieldName]?.let { if (it is JsonNode) it.asText() else it.toString() } ?: ""
             var selectedIndex = 0
             selector.path("options").forEachIndexed { i, opt ->
                 val v = opt.text("value")

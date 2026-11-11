@@ -102,6 +102,29 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   screen, and Help ▸ About names the app and its Mateu release. The Linux and Windows installers are
   built on CI only, so this is first verified by the next release's installers.
 
+### Added — touch and desktop
+
+- **React Native: drag rows onto a drop zone.** A long press lifts a `@DragRows` listing row — or the
+  selection it is part of — and carries it to a `DropZone`; the zones of its type light up, the one
+  under the finger fills in, and letting go sends the web's drop parameters (`_draggedIds`,
+  `_dragType`). A long press let go without moving opens the **Move to…** picker, which stays as the
+  screen reader's way.
+- **React Native: `Workflow` and `FormEditor` are editable**, with the web editors' operations:
+  settings, steps added / edited / deleted (deleting one clears what pointed at it), fields added /
+  duplicated / moved / edited / deleted, each one's properties in a dialog; Export shares the JSON.
+  `Bpmn` stays a read-only diagram, as on the web (whose renderer is a viewer).
+- **React Native: hardware keyboard shortcuts in the web build** — `@Action(shortcut)`,
+  `@Tab(shortcut)`, `@AppShortcut(key)` and an `ActionPanel`'s shortcut, a screen's key winning over
+  the app's. iOS and Android give an Expo app no key events, so an attached keyboard does nothing
+  there yet (known issue).
+- **IntelliJ: `Workflow` and `FormEditor` are editable** (settings, a list of steps / fields with a
+  properties form), and an `@AppContext` picker with more than seven options searches the server
+  (`_appcontext-search-<field>`) instead of only its loaded options. Photo capture keeps the file
+  picker: no pure-Java webcam library exists (known issue).
+- **Every renderer writes an edited `Workflow` / `FormEditor` definition under the component's id**
+  (the web element now names it as `fieldId` in its `value-changed`). The servers give both the fixed
+  id `fieldId` today, so a view model cannot bind it yet (known issue).
+
 ### Removed
 
 - `plugins-v*` releases no longer publish the plugins on their own.

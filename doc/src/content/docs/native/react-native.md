@@ -225,6 +225,24 @@ theme is built from them in `src/ui/MateuTheme.tsx`, and the shared Material pri
 status chip, checkbox, outlined field and picker trigger) are in `src/ui/controls.tsx`. A host app
 that needs another brand changes the tokens there.
 
+### Touch and keyboard
+
+- **Dragging.** A long press lifts a kanban card, or a `@DragRows` listing row (the whole selection
+  when the row is selected) and carries it to a `DropZone`: the zones of its type light up and the
+  one under the finger fills in. A long press let go without moving opens the **Move to…** picker,
+  which is also how a screen reader moves rows.
+- **Editors.** `Workflow` and `FormEditor` are editable, like on the web: settings, add / edit /
+  delete steps or fields (fields also duplicate and move up or down), each one's properties in a
+  dialog. **Export** shares the definition's JSON. A `Bpmn` diagram is read only, as on the web.
+- **Hardware keyboard.** In the web build, `@Action(shortcut)`, `@Tab(shortcut)`,
+  `@AppShortcut(key)` and an `ActionPanel`'s shortcut work as on the web (a screen's key wins over
+  the app's; a bare letter does nothing while you type in a field). On iOS and Android an attached
+  keyboard does not trigger them: React Native gives an Expo app no key events
+  ([known issue](/reference/known-issues/#keyboard-shortcuts-on-phones-and-tablets-and-a-camera-on-the-desktop)).
+
+The phone layouts that differ from the web on purpose (a drawer as a bottom sheet, the `@Toc` as
+chips…) are listed in [React Native: phone layouts](/reference/parity/#react-native-phone-layouts).
+
 ## 6. Compatibility
 
 The app declares the oldest wire it supports (`MIN_WIRE_VERSION = "3.0"`,

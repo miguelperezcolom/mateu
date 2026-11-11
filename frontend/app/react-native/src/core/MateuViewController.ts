@@ -24,6 +24,7 @@ import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } fro
 import { inboxChangeOf } from './inbox.ts';
 import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
+import { actionShortcutsOf } from './keyShortcuts.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -94,6 +95,7 @@ export class MateuViewController {
   private currentComponentActions: string[] = [];
   /** The full wire actions of the current component (owner of an id, before the catalogue). */
   private currentActionDefs: ShellAction[] = [];
+  private offShortcuts: (() => void) | undefined;
   /** Nesting of flows applied client-side, bounded so a flow running itself cannot loop. */
   private flowDepth = 0;
   private actionValidationRequired: Record<string, boolean> = {};
@@ -289,6 +291,8 @@ export class MateuViewController {
   /** The host unmounted this view: pending timed triggers must not fire. */
   dispose(): void {
     this.session.noteDirty(this, false);
+    this.offShortcuts?.();
+    this.offShortcuts = undefined;
     this.polling.stop();
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
   }
@@ -750,6 +754,10 @@ export class MateuViewController {
     const flags = actionFlagsOf(sscNode['actions']);
     this.currentComponentActions = flags.ids;
     this.currentActionDefs = asArray(sscNode['actions']) as ShellAction[];
+    // @Action(shortcut): the screen's keys, in the session's registry while this view shows them
+    this.offShortcuts?.();
+    this.offShortcuts = this.session.keyShortcuts?.register(...actionShortcutsOf(sscNode['actions'])
+      .map(({ actionId, shortcut }) => ({ shortcut, scope: 'screen' as const, run: () => void this.runAction(actionId) })));
     this.actionValidationRequired = flags.validationRequired;
     this.actionRowsSelectedRequired = flags.rowsSelectedRequired;
     this.actionConfirmation = flags.confirmation;

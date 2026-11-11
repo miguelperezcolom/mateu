@@ -435,16 +435,16 @@ of each type and fail on a placeholder — not a string match on the source.
 | FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ (also inside embedded islands: their triggers, autosave and row selection run against the island) | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
-| Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
+| Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | 🟡 shortcuts on the web build (react-native-web); none on iOS/Android, which give an Expo app no key events; no access keys mode |
 | "Open on mobile" (`mobileQr`: a header button whose dialog shows the QR of the `mateu.io/add` link, a link instead on a phone) | ✅ | ✅ | N/A (desktop IDE) | N/A (it is the app) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
-| Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
+| Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | ✅ long press lifts the row (or the selection it is in) onto a zone; "Move to…" picker for a screen reader |
 | AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); light only: `@App(themeToggle)` is ignored (no switch) and neither a stored dark choice nor the OS preference applies | ✅ chat (theme = the IDE's own) | ✅ |
 | [Live UI push](/reference/agent-operability/#drive-a-live-ui) (`@App` `agentPush`: "Connect AI" pairing dialog, the `_agent-channel` stream, agent status, pushed screens/navigation/events) | ✅ | ✅ | ✅ | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
+| — searchable picker w/ remote search | ✅ | ✅ | ✅ (`@AppContext` with more than 7 options: search box, `_appcontext-search-<field>`) | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |
-| Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
+| Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no pure-Java camera library: every one ships native code) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | ✅ registry (`CustomComponentRegistry.register`) + placeholder and slotted children | ✅ registry (`registerCustomComponent`) + placeholder and slotted children |
@@ -462,16 +462,16 @@ of each type and fail on a placeholder — not a string match on the source.
 | Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |
 | Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
-| Action panel ("I want to…": categorised actions, show more, hide unpopulated, shortcut) | ✅ | ✅ (`oj-dialog` + `oj-switch`) | ✅ (dialog; IDE keymap wins on a shared shortcut) | ✅ (modal; no keyboard shortcut) |
+| Action panel ("I want to…": categorised actions, show more, hide unpopulated, shortcut) | ✅ | ✅ (`oj-dialog` + `oj-switch`) | ✅ (dialog; IDE keymap wins on a shared shortcut) | ✅ (modal; its shortcut works on the web build) |
 | Matrix grid (rows × dates, collapsible sections, link cells, in-place editing) | ✅ | ✅ (`oj-data-grid`) | ✅ (`JBTable` + row header) | ✅ |
 | Compare and merge records (`RecordMerge`) | ✅ | ✅ | ✅ (Swing grid, a button group per row) | ✅ (one card per field) |
-| App shortcuts (`@AppShortcut`), `?` list, quick-launch codes | ✅ (⌘K palette + command center) | ✅ (Ask palette) | ✅ (view key bindings, dialog, "Go to code…") | 🟡 codes only (drawer field; no hardware keys) |
+| App shortcuts (`@AppShortcut`), `?` list, quick-launch codes | ✅ (⌘K palette + command center) | ✅ (Ask palette) | ✅ (view key bindings, dialog, "Go to code…") | 🟡 codes (drawer field); the keys on the web build only |
 | Live header values + `liveUpdates` stream (one per browser, tabs share it) | ✅ | ✅ | ✅ (navigator; one stream per session) | ✅ (drawer; foreground only, `expo/fetch`) |
 | Idle-session warning (countdown, stay / sign out, activity shared across tabs) | ✅ | ✅ | ✅ (IDE activity; one session) | ✅ (touches; background counts as idle) |
 | Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
 | Embedded chrome of a `MicroFrontend` (`chrome` NONE/COMPACT/PAGE: the island sends `embeddedChrome` and drops its own title/favicon/history commands and header) | ✅ | ✅ | ✅ | ✅ |
 | Banner close button and timeout (`@Banner(closeable, timeoutSeconds)` → `BannerDto.hasCloseButton`/`timeoutSeconds`) | ✅ | 🟡 the banners of an embedded island's page; the page header's own banners have neither | ✅ | ✅ |
-| Labels aside (`FormLayoutDto.labelsAside`, inferred or `@FormLayout(labelsAside)`) | ✅ | ✅ (`label-edge="start"`) | ✅ | N/A by design (an outlined field carries its label; see [Known issues](/reference/known-issues/#touch-and-desktop-adaptations)) |
+| Labels aside (`FormLayoutDto.labelsAside`, inferred or `@FormLayout(labelsAside)`) | ✅ | ✅ (`label-edge="start"`) | ✅ | N/A by design (an outlined field carries its label; see [phone layouts](#react-native-phone-layouts)) |
 | Select a grid row by keyboard (`@OnRowSelected(shortcut)` → `FormFieldDto.rowSelectionShortcut`) | ✅ | ✅ (top row and keypad digits) | — | N/A (no hardware-key model) |
 | Page level: `@Toc` index, `@Compact`, page width (fixed / full / edge-to-edge) | ✅ | ✅ | ✅ (`@Toc` with Ctrl+Alt+N) | 🟡 `@Toc` as a row of section chips, `@Compact`; no page width (the screen is the width) |
 | Drawer extras: subtitle, `size`, maximize, peer arrows, bottom position, collapsible, modeless | ✅ | ✅ (Spectra drawer templates) | ✅ (bottom dock) | 🟡 every drawer is a bottom sheet |
@@ -617,24 +617,26 @@ What the React Native renderer (iOS / Android, `frontend/app/react-native`) does
 component type of the wire. Since 2026-10-10 **every** type has a native renderer — CI fails the
 build if a new wire type is added without one (`scripts/parity-check.mjs`), so a screen never shows
 "Unsupported component" on a phone. 🟡 marks a deliberate mobile adaptation (no hover or
-right-click on touch → press / long-press; diagram editors shown read-only).
+right-click on touch → press / long-press). The phone layouts that are design, not gaps, are listed
+in [React Native: phone layouts](#react-native-phone-layouts).
 
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
-9 with a documented mobile adaptation. None is dropped.
+native renderer — 92 rendered, 11 layout containers, 6 parts of another component,
+5 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
 |---|---|---|
 | `AccordionLayout` | ✅ |  |
-| `ActionPanel` | ✅ | modal; no keyboard shortcut |
+| `ActionPanel` | ✅ | modal; its `shortcut` opens it from a hardware keyboard on the web build |
 | `AddOnPicker` | ✅ |  |
 | `Anchor` | ✅ | in-app route or OS browser |
 | `App` | ✅ | drawer / tabs shell (AppRenderer); nested App = own island at its home route |
 | `Avatar` | ✅ | image or initials |
 | `AvatarGroup` | ✅ | overlapping, +N overflow |
 | `Badge` | ✅ |  |
+| `Bpmn` | ✅ | diagram from the BPMN DI section (react-native-svg); read only, like the web's viewer |
 | `Breadcrumbs` | ✅ |  |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ |  |
@@ -650,7 +652,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `ConfirmDialog` | ✅ |  |
 | `ContentLayout` | ✅ | main / aside / footer; aside beside main ≥ 768 px, stacked on a phone |
 | `CookieConsent` | ✅ | dismissible banner, dismissal persisted on the device |
-| `Crud` | ✅ | table / list / cards / tree, smart-search panel, selection, totals, groups, inline edit, saved views |
+| `Crud` | ✅ | table / list / cards / tree, smart-search panel, selection, totals, groups, inline edit, saved views; `@DragRows` rows lift with a long press |
 | `CustomComponent` | ✅ | registry (registerCustomComponent); unregistered → a visible placeholder that still renders the slotted children |
 | `DashboardLayout` | ✅ |  |
 | `DashboardPanel` | ✅ |  |
@@ -658,6 +660,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `Dialog` | ✅ | overlay fragments open as a modal sheet |
 | `Directory` | ✅ |  |
 | `Drawer` | ✅ | overlay fragments open as a modal sheet; a Drawer in the tree is drawn in place |
+| `DropZone` | ✅ | a row lifted with a long press drops on it (it lights up); the listing's "Move to…" picker is the screen-reader way |
 | `EmptyState` | ✅ |  |
 | `EntityHeader` | ✅ | a fact with an action gets a tappable icon after its value |
 | `Faq` | ✅ |  |
@@ -665,6 +668,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `FileList` | ✅ |  |
 | `FoldoutLayout` | ✅ | overview card + accordion of panels |
 | `Form` | ✅ |  |
+| `FormEditor` | ✅ | editor: settings, fields added / duplicated / moved up-down / edited (in a dialog) / deleted |
 | `FormField` | ✅ | every stereotype, date picker, lookups, capture fields |
 | `FormSection` | ✅ |  |
 | `FormSubSection` | ✅ |  |
@@ -674,7 +678,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `Heatmap` | ✅ |  |
 | `HeroSection` | ✅ |  |
 | `Image` | ✅ |  |
-| `Kanban` | ✅ | live boards from `rowsSource`; a card moves from its "Move to…" picker (no drag on touch); a refused move puts it back |
+| `Kanban` | ✅ | live boards from `rowsSource`; a long press drags a card (the board scrolls near its edges), its "Move…" picker does the same; a refused move puts it back |
 | `Ledger` | ✅ |  |
 | `Map` | ✅ |  |
 | `Markdown` | ✅ |  |
@@ -715,6 +719,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `Timeline` | ✅ |  |
 | `TrendChart` | ✅ |  |
 | `VirtualList` | ✅ |  |
+| `Workflow` | ✅ | editor: settings, steps added / edited (in a dialog) / deleted, a layered diagram overview; Export shares the JSON |
 | `BoardLayout` | ✅ container |  |
 | `Container` | ✅ container |  |
 | `CustomField` | ✅ container | its component in place |
@@ -726,15 +731,11 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `HorizontalLayout` | ✅ container |  |
 | `Scroller` | ✅ container |  |
 | `VerticalLayout` | ✅ container |  |
-| `Bpmn` | 🟡 | read-only diagram (react-native-svg, from the BPMN DI section); edit on the web |
 | `ContextMenu` | 🟡 | long-press (no right-click on touch) opens an action sheet |
-| `DropZone` | 🟡 | "Move to…" picker (no drag on touch) |
 | `Element` | 🟡 | HTML tags map to native text / image / rule, on.click runs its action; custom elements (web components) show their text content |
-| `FormEditor` | 🟡 | read-only definition preview; edit on the web |
 | `Icon` | 🟡 | emoji / glyphs and common icon names; other design-system icons show a dot |
 | `Popover` | 🟡 | opens on press (no hover on touch) |
 | `Tooltip` | 🟡 | long-press shows it (no hover on touch); also the accessibility hint |
-| `Workflow` | 🟡 | read-only layered diagram; edit on the web |
 | `AccordionPanel` | ✅ part | of AccordionLayout |
 | `BoardLayoutItem` | ✅ part | of BoardLayout |
 | `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
@@ -742,6 +743,27 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `GridGroupColumn` | ✅ part | of Grid / Crud: its columns, headed "Group · Column" |
 | `Tab` | ✅ part | of TabLayout |
 <!-- rn-coverage:end -->
+
+### React Native: phone layouts
+
+On a phone (narrower than 600 dp) the React Native app lays some things out for the screen and the
+finger rather than copying the web. These are design decisions, not gaps:
+
+- there is no hover: popovers and tooltips open on press or long press;
+- a `Drawer` is a bottom sheet whatever its position (`size` sets its starting height,
+  `maximizable` takes it to full height, `modeless` keeps the screen behind usable);
+- a horizontal `SplitLayout` stacks its panes, with no drag handle;
+- the `@Toc` index is a row of section chips above the page, which stays on screen, instead of a
+  sticky side index, and `@Section(sticky = true)` cards are not pinned (a pinned card would cover
+  most of the screen; the index lists them first);
+- labels stay above the fields (`labelsAside` is not applied: an outlined field carries its label
+  in its outline);
+- a `masterDetail` listing shows the pressed row's detail under it;
+- a row (`HorizontalLayout`) wraps rather than running off the screen;
+- `@FileUpload` offers the photo library on a device (any file in the web build); an `accept`
+  list with no image or video type says so instead of offering a picker;
+- the `Workflow` and `FormEditor` editors open a step's or field's properties in a dialog, reorder
+  fields with up/down buttons instead of a drag handle, and share the JSON instead of downloading it.
 
 ### IntelliJ plugin component coverage
 
@@ -776,7 +798,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | `CookieConsent` | dismissible strip (the IDE has no cookies; dismissal lasts the session) |
 | `Element` | the element as HTML text; an `on.click` runs its action |
 | `Bpmn` | the process as an ordered list of its named flow nodes (start → tasks → end) |
-| `Workflow`, `FormEditor` | their value, read-only and monospaced |
+| `Workflow`, `FormEditor` | editors: settings, a list of the steps / fields with a properties form underneath (add, delete; fields also duplicate and move up or down), each edit written to the state as the definition's JSON |
 | `Chat`, `MessageList`, `MessageInput` | inline assistant (mateu-chat SSE, with the project's token), message list, input + Send (`{message}`) |
 | `Dialog`, `Drawer` met inline | opened as the usual overlay window, once per id |
 | `ConfirmDialog` | modal confirm / reject / cancel when `openedCondition` holds |

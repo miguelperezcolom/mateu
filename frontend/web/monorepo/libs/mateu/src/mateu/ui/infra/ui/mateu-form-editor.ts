@@ -81,6 +81,9 @@ export class MateuFormEditor extends LitElement {
     /** JSON string of the FormDefinition. */
     @property() value = '{"name":"New Form","fields":[]}';
 
+    /** The state key the edited definition goes to (the component's id), like a field's fieldId. */
+    @property() fieldId: string | undefined;
+
     @state() private form: FormDefinition = {name: "New Form", fields: []};
     @state() private selectedId: string | null = null;
     @state() private showMeta = false;
@@ -132,7 +135,7 @@ export class MateuFormEditor extends LitElement {
 
     private emit() {
         const json = JSON.stringify(this.form, null, 2);
-        this.dispatchEvent(new CustomEvent("value-changed", {detail: {value: json}, bubbles: true, composed: true}));
+        this.dispatchEvent(new CustomEvent("value-changed", {detail: {value: json, fieldId: this.fieldId}, bubbles: true, composed: true}));
     }
 
     private updateForm(patch: Partial<FormDefinition>) {

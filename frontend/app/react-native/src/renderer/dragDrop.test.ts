@@ -1,9 +1,61 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  accepts, canMove, draggedIds, dropOn, dropParameters, moveToLabel, registerDropZone,
-  subscribeDropZones, zoneLabel, zonesAccepting, type DropZoneMeta, type MountedDropZone,
+  DropZoneRegistry, accepts, canMove, dragPreviewLabel, draggedIds, dropOn, dropParameters, moveToLabel, registerDropZone,
+  rowsToDrag, subscribeDropZones, zoneAt, zoneLabel, zonesAccepting, type DropZoneMeta, type MountedDropZone,
 } from './dragDrop.ts';
+
+test('drag: the zone under the finger is the innermost box containing it', () => {
+  const rects = [
+    { key: 'outer', x: 0, y: 0, width: 400, height: 400 },
+    { key: 'inner', x: 50, y: 50, width: 100, height: 100 },
+    { key: 'collapsed', x: 60, y: 60, width: 0, height: 0 },
+  ];
+  assert.equal(zoneAt(rects, 70, 70), 'inner');
+  assert.equal(zoneAt(rects, 300, 300), 'outer');
+  assert.equal(zoneAt(rects, 500, 10), undefined);
+  assert.equal(zoneAt([], 1, 1), undefined);
+});
+
+test('drag: a long press lifts the selection when the row is in it, else the row alone', () => {
+  const a = { id: 1, name: 'Minibar' };
+  const b = { id: 2, name: 'Laundry' };
+  const c = { id: 3, name: 'Room' };
+  assert.deepEqual(rowsToDrag(a, [a, b]), [a, b]);
+  assert.deepEqual(rowsToDrag({ id: 2 }, [a, b]), [a, b]);
+  assert.deepEqual(rowsToDrag(c, [a, b]), [c]);
+  assert.deepEqual(rowsToDrag(c, []), [c]);
+  assert.equal(dragPreviewLabel([a, b], (r) => String(r['name'])), '2 rows');
+  assert.equal(dragPreviewLabel([a], (r) => String(r['name'])), 'Minibar');
+  assert.equal(dragPreviewLabel([{ id: 9 }], () => ''), '9');
+});
+
+test('drag: the registry carries the drag (type + hovered zone), measures the accepting zones and finds a zone by key', async () => {
+  const registry = new DropZoneRegistry();
+  let notified = 0;
+  registry.subscribe(() => notified++);
+  const meta: DropZoneMeta = { accept: 'charge', actionId: 'moveCharges' };
+  const z1: MountedDropZone = {
+    key: 'z1', meta, dispatch: () => {},
+    measure: async () => ({ key: 'z1', x: 0, y: 100, width: 300, height: 80 }),
+  };
+  const broken: MountedDropZone = { key: 'z2', meta, dispatch: () => {}, measure: async () => { throw new Error('gone'); } };
+  const other: MountedDropZone = { key: 'z3', meta: { ...meta, accept: 'room' }, dispatch: () => {}, measure: async () => ({ key: 'z3', x: 0, y: 0, width: 1, height: 1 }) };
+  registry.register(z1);
+  registry.register(broken);
+  registry.register(other);
+  assert.deepEqual(await registry.measureAccepting('charge'), [{ key: 'z1', x: 0, y: 100, width: 300, height: 80 }]);
+  const before = notified;
+  registry.setDrag({ type: 'charge' });
+  registry.setDrag({ type: 'charge' });
+  registry.setDrag({ type: 'charge', hovered: 'z1' });
+  assert.equal(notified - before, 2);
+  assert.deepEqual(registry.dragState(), { type: 'charge', hovered: 'z1' });
+  assert.equal(registry.zone('z1'), z1);
+  assert.equal(registry.zone(undefined), undefined);
+  registry.setDrag(undefined);
+  assert.equal(registry.dragState(), undefined);
+});
 
 const window2: DropZoneMeta = {
   accept: 'charge', actionId: 'moveCharges', parameters: { window: 2 }, title: 'Window 2', subtitle: 'Guest (cash)',
