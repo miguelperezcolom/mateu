@@ -2295,6 +2295,48 @@
     ]
    }
   },
+  "InMemoryPushTokenStore": {
+   "class": [
+    [
+     "max_per_principal",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_principals",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "register": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "tokens_for": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "unregister": [
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "InboxStore": {
    "class": [],
    "members": {
@@ -3662,6 +3704,173 @@
       "total",
       "KEYWORD_ONLY",
       true
+     ]
+    ]
+   }
+  },
+  "PushMessage": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "of": [
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushNotifications": {
+   "class": [],
+   "members": {
+    "send": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "send_to_session": [
+     [
+      "session_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "session_key": [
+     [
+      "session_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "subscribe": [
+     [
+      "deliver",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushResult": {
+   "class": [
+    [
+     "accepted",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unregistered_tokens",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PushSender": {
+   "class": [],
+   "members": {
+    "send": [
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tokens",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushToken": {
+   "class": [
+    [
+     "token",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "platform",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "device_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "ui",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PushTokenStore": {
+   "class": [],
+   "members": {
+    "register": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "tokens_for": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "unregister": [
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
      ]
     ]
    }

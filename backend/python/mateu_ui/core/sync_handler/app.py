@@ -177,6 +177,46 @@ class AppHandlerMixin(MixinBase):
             ]
         )
 
+    # ── Remote push: the phone registers its push token (mirrors Java's PushActionRunner) ──
+    def push_action(self, rq: RunActionRq) -> UIIncrement:
+        """``_push-register {token, platform, deviceId, ui}`` keeps the token for the caller (the
+        principal, else the anonymous session ``session:<X-Session-Id>``); ``_push-unregister
+        {token}`` forgets it (no identity needed: the token is the phone's own). Both answer Data
+        ``{_push: {registered}}`` — false when the app sends no pushes."""
+        from .. import push
+        from ..request_context import current_request
+        from mateu_ui.uidl import UserFacingException
+
+        params = rq.parameters or {}
+        token = params.get("token")
+        token = token.strip() if isinstance(token, str) else None
+        if not push.valid_token(token):
+            raise UserFacingException("A push token is needed.")
+        store = push.default_store_warned(self.push_token_store)
+        registered = False
+        if rq.action_id == push.UNREGISTER_ACTION:
+            store.unregister(token)
+        elif self.push_sender is not None:
+            in_flight = current_request()
+            owner = push.owner_of(
+                self._inbox_principal(), in_flight.header("X-Session-Id") if in_flight else None
+            )
+            if owner is not None:
+                store.register(
+                    owner,
+                    push.token_of(token, params.get("platform"), params.get("deviceId"), params.get("ui")),
+                )
+                registered = True
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=self.target(rq),
+                    data={"_push": {"registered": registered}},
+                    action="Replace",
+                )
+            ]
+        )
+
     # ── Live UI push: the UI side of the agent channel (conformance/mcp "Live UI push") ──
     def agent_push_action(self, rq: RunActionRq) -> UIIncrement:
         """``_agent-channel`` (the first increment of the stream: the session's status; the

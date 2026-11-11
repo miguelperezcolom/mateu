@@ -192,6 +192,11 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    push_sender: Any | None = None,
+    push_token_store: Any | None = None,
+    expo_push: bool | None = None,
+    expo_push_access_token: str | None = None,
+    expo_push_url: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -264,6 +269,12 @@ def add_mateu(
       task at once (the old behaviour). A finished task keeps its outcome for the same period.
     - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
       users (default: Mateu's bounded in-memory store, lost on restart).
+    - ``push_sender`` / ``push_token_store`` (EXPERIMENTAL) — remote push: a ``PushSender`` that
+      delivers pushes to phones and a ``PushTokenStore`` keeping their tokens (default: in memory,
+      lost on restart). ``expo_push=True`` (or ``MATEU_PUSH_EXPO_ENABLED=true``) uses Mateu's Expo
+      sender when no ``push_sender`` is given; ``expo_push_access_token`` (or
+      ``MATEU_PUSH_EXPO_ACCESS_TOKEN``) is its bearer token. With a sender, an ``inbox`` message to a
+      signed-in user reaches their phones while the app is suspended or closed.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -300,6 +311,15 @@ def add_mateu(
     progress.configure(progress_reattach_grace_seconds)
     if inbox_store is not None:
         handler.inbox_store = inbox_store
+    # remote push: the app's sender, else Mateu's Expo sender when switched on, else off
+    from mateu_ui.core import push as remote_push
+
+    if push_sender is None and (remote_push.expo_enabled_from_env() if expo_push is None else expo_push):
+        push_sender = remote_push.ExpoPushSender(
+            expo_push_url, expo_push_access_token or os.environ.get("MATEU_PUSH_EXPO_ACCESS_TOKEN")
+        )
+    if push_sender is not None or push_token_store is not None:
+        handler.enable_push(push_sender, push_token_store)
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app

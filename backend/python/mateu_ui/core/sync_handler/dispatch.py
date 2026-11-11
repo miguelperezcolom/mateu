@@ -23,6 +23,7 @@ from mateu_ui.uidl import (
 
 from .. import action_guard, capabilities
 from ..agent_push import ACTIONS as AGENT_PUSH_ACTIONS
+from ..push import PUSH_ACTIONS
 from ..mapper import set_current_audience
 from ..registry import normalize, type_name
 from .. import layout_delta
@@ -168,6 +169,11 @@ class DispatchMixin(MixinBase):
         # type and route (mirrors Java's agentpush runners; the stream is the adapter's SSE).
         if rq.action_id in AGENT_PUSH_ACTIONS:
             return self.agent_push_action(rq)
+
+        # 0c'''. Remote push: the phone registers / forgets its push token — app-level, whatever
+        # the type and route (mirrors Java's PushActionRunner).
+        if rq.action_id in PUSH_ACTIONS:
+            return self.push_action(rq)
 
         # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),

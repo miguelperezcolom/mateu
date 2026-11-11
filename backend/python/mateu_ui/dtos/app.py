@@ -144,6 +144,10 @@ class AppMetadata(Wire):
     #: channel (``_agent-channel`` over the SSE endpoint) and shows "Connect AI" (mirrors
     #: AppDto.agentPush; conformance/mcp/README.md "Live UI push").
     agent_push: bool = False
+    #: Remote push is on: os_notifications AND the server sends pushes (``add_mateu(push_sender=…)``
+    #: or Mateu's Expo sender) — the phone app registers its token with ``_push-register``
+    #: (EXPERIMENTAL; mirrors AppDto.pushNotifications).
+    push_notifications: bool = False
     # ── What a data-authored shell (a ``type: AppShell`` definition) also carries (AppDto) ──
     logo: str | None = None
     favicon: str | None = None
