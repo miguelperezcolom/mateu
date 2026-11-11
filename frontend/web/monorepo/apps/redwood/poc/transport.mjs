@@ -7,6 +7,7 @@ import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { heldAppState, reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withSubresources, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf, findByType, pageListingNodeOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
+import { staticRemoteLoad } from './staticRemotes.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage, mountPrefix } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
@@ -41,8 +42,20 @@ export async function callMateu(base, body, options = {}) {
   if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
   const view = options.view !== undefined ? options.view
     : (options.quiet || options.isolated) ? null : currentView()
-  // a static remote (its base names a bundle's manifest) has no server to POST to
-  if (isStaticBundleBase(base)) throw staticRemoteError(base)
+  // a static remote (its base names a bundle's manifest) has no server to POST to: its LOADS are
+  // answered from the manifest (staticRemotes.mjs — pre-rendered, or a specsOnly definition expanded
+  // here), anything else has nowhere to go
+  if (isStaticBundleBase(base)) {
+    if (body.actionId) throw staticRemoteError(base)
+    const view = options.view !== undefined ? options.view : (options.quiet || options.isolated) ? null : currentView()
+    const route = routeForRemote(base, body.route || '').split('?')[0]
+    const bundled = await staticRemoteLoad(base, route, body.consumedRoute, body.initiatorComponentId || '')
+    if (!bundled) throw staticRemoteError(base, route)
+    if (isViewStale(view)) throw staleResponseError(body.actionId)
+    const increment = answeredBy(base, bundled)
+    adoptReferencedSources(increment)
+    return increment
+  }
   const bare = routeForRemote(base, body.route || '').replace(/^\//, '')
   noteDocumentBase(base) // a parked Document is requested from THIS backend
   const query = typeof options.urlQuery === 'string' && options.urlQuery[0] === '?' ? options.urlQuery : ''
@@ -1090,8 +1103,10 @@ export function isStaticBundleBase(base) {
 }
 
 /** What a request to a static remote fails with: it is not a server. */
-export function staticRemoteError(base) {
-  const error = new Error('mateu: ' + base + ' is a static bundle, not a Mateu server')
+export function staticRemoteError(base, route) {
+  const error = new Error(route != null
+    ? 'mateu: the static bundle ' + base + ' does not answer the route "' + route + '"'
+    : 'mateu: ' + base + ' is a static bundle, not a Mateu server')
   error.mateuStaticRemote = true
   return error
 }
