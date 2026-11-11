@@ -184,6 +184,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       kanbanMoveDown: 'Move down',
       kanbanMoveFailed: 'The card could not be moved; it is back where it was',
       searchResults: 'Search results',
+      themeToggle: 'Switch light / dark theme',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Connect AI',
       agentDialogTitle: 'Connect an AI agent',
@@ -472,6 +473,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       kanbanMoveDown: 'Bajar',
       kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
       searchResults: 'Resultados',
+      themeToggle: 'Cambiar tema claro / oscuro',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Conectar IA',
       agentDialogTitle: 'Conectar un agente de IA',
@@ -30542,24 +30544,90 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // LIGHT ONLY. Dark mode makes no sense in Redwood (the framework author's decision, 2026-10-13):
-  // the Redwood renderer ignores @App(themeToggle) — no header switch — and always paints light,
-  // whatever the OS prefers (prefers-color-scheme) and whatever a previous version stored in
-  // localStorage['mateu-theme'] (left untouched: the Vaadin renderer of the same app, on the same
-  // origin, still reads it). A page that came up dark — that old choice, or an embedding host page
-  // with JET's inverted scheme on <html> — is turned back to light at boot.
+  // LIGHT / DARK — the same contract as the Vaadin renderer: the user's choice is kept in
+  // localStorage['mateu-theme'] ('light' | 'dark') and wins; without one the OS preference
+  // (prefers-color-scheme) decides, and follows it while no choice is stored. @App(themeToggle)
+  // adds the switch to the global header.
+  //
+  // Redwood's dark is JET's OWN inverted colour scheme: JET 18 (the version loaded from the Oracle
+  // CDN) ships no separate dark theme, only `oj-color-invert`, which re-tokens every --oj-core-*
+  // colour (text, content surface, hover, borders, links) of its subtree. It goes on <html>, so the
+  // whole page (Spectra templates, Core Pack, classic components) is re-tokened; `oj-c-colorscheme-dark`
+  // is the Core Pack's own marker. Only the few surfaces the shell and app.css paint themselves are
+  // overridden, under `html.mateu-theme-dark` (app.css) — no Oracle file is copied.
 
-  // the classes the old dark mode put on <html>: JET's inverted colour scheme (classic + Core Pack)
+  const THEME_KEY = 'mateu-theme'
   const DARK_CLASSES = ['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark']
 
-  /** Paints the (only) light theme on the page: no dark class on the root, `theme="light"`. */
-  function applyLightTheme(doc = typeof document !== 'undefined' ? document : null) {
-    if (!doc) return 'light'
-    const root = doc.documentElement
-    for (const cls of DARK_CLASSES) root.classList.toggle(cls, false)
-    root.setAttribute('theme', 'light')
-    return 'light'
+  /** The theme to start with: the stored choice, else the OS preference, else light. Pure. */
+  function initialThemeOf(stored, prefersDark) {
+    if (stored === 'dark' || stored === 'light') return stored
+    return prefersDark ? 'dark' : 'light'
   }
+
+  /** The other theme. */
+  const nextThemeOf = (theme) => (theme === 'dark' ? 'light' : 'dark')
+
+  const defaultDoc = () => (typeof document !== 'undefined' ? document : null)
+  const defaultWin = () => (typeof window !== 'undefined' ? window : null)
+
+  /** Paints a theme on the page (the root element's classes and its `theme` attribute). */
+  function applyTheme(theme, doc = defaultDoc()) {
+    const t = theme === 'dark' ? 'dark' : 'light'
+    if (!doc) return t
+    const root = doc.documentElement
+    for (const cls of DARK_CLASSES) root.classList.toggle(cls, t === 'dark')
+    root.setAttribute('theme', t)
+    return t
+  }
+
+  const storage = () => { try { return typeof localStorage !== 'undefined' ? localStorage : null } catch (e) { return null } }
+
+  function storedTheme() {
+    const s = storage()
+    try { return s ? s.getItem(THEME_KEY) : null } catch (e) { return null }
+  }
+
+  const darkQuery = (win) => {
+    try { return win && win.matchMedia ? win.matchMedia('(prefers-color-scheme: dark)') : null } catch (e) { return null }
+  }
+
+  let osListening = false
+
+  /**
+   * At boot: the stored choice or the OS preference, painted. While no choice is stored, a change
+   * of the OS preference repaints (registered once).
+   */
+  function applyInitialTheme(doc = defaultDoc(), win = defaultWin()) {
+    const mq = darkQuery(win)
+    const theme = applyTheme(initialThemeOf(storedTheme(), !!(mq && mq.matches)), doc)
+    if (mq && !osListening) {
+      osListening = true
+      const onChange = (e) => {
+        const stored = storedTheme()
+        if (stored === 'dark' || stored === 'light') return
+        applyTheme(e && e.matches ? 'dark' : 'light', doc)
+      }
+      if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
+      else if (typeof mq.addListener === 'function') mq.addListener(onChange)
+    }
+    return theme
+  }
+
+  /** The theme on the page now. */
+  const currentThemeOf = (doc = defaultDoc()) =>
+    (doc && doc.documentElement.getAttribute('theme') === 'dark' ? 'dark' : 'light')
+
+  /** The header switch: flips, paints and remembers. Returns the new theme. */
+  function toggleTheme(doc = defaultDoc()) {
+    const next = applyTheme(nextThemeOf(currentThemeOf(doc)), doc)
+    const s = storage()
+    try { if (s) s.setItem(THEME_KEY, next) } catch (e) { /* private mode: not remembered */ }
+    return next
+  }
+
+  /** For tests: forget the OS listener so applyInitialTheme registers again. */
+  function resetThemeListenerForTests() { osListening = false }
 
 
   // "OPEN ON MOBILE" (@App(mobileQr), design/mobile-app-hub.md): the QR of the "add this UI" link the
@@ -32925,7 +32993,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     fetchGlobalSearch,
     paletteRowsOfHits,
     runAppLevelAction,
-    applyLightTheme,
+    applyInitialTheme,
+    toggleTheme,
     // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
     mobileQrModelOf,
     isPhoneLike,

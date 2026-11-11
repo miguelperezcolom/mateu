@@ -415,6 +415,11 @@
       "defaultValue": [],
       "description": "the floating action buttons on screen (@Fab of the App and of the page): fabsOf"
     },
+    "mateuThemeToggle": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "@App(themeToggle): the header shows the light/dark switch (poc/theme.mjs)"
+    },
     "mateuMobileQr": {
       "type": "boolean",
       "defaultValue": false,
