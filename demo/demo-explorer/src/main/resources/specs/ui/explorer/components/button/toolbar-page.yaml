@@ -1,11 +1,9 @@
-# A whole page (type: Form) whose header toolbar holds buttons, a ButtonGroup — the group
-# collapses its buttons into one dropdown trigger — and a split button (a ButtonGroup with a
-# `primary:`: it runs from the button, the rest is behind its ▾). Registered as a route by the
-# entry's `pages:`.
+# A whole page (type: Form) whose header toolbar holds buttons and a ButtonGroup — the group
+# collapses its buttons into one dropdown trigger. Registered as a route by the entry's `pages:`.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Form
 title: A page toolbar
-subtitle: Buttons, a dropdown and a split button in the header
+subtitle: Buttons and a ButtonGroup in the header
 toolbar:
   - {type: Button, label: Back home, actionable: {type: RouteLink, route: home}}
   - type: ButtonGroup
@@ -13,9 +11,6 @@ toolbar:
     buttons:
       - {type: Button, label: Export, actionable: {type: RouteLink, route: home}}
       - {type: Button, label: Print, actionable: {type: RouteLink, route: home}}
-  - type: ButtonGroup
-    primary: {type: Button, label: Primary action, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
-    buttons:
-      - {type: Button, label: Another way to do it, actionable: {type: RouteLink, route: home}}
+  - {type: Button, label: Primary action, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
 content:
   - {type: Text, text: "The toolbar sits in the page header: tertiary buttons on the left, the rest on the right."}
