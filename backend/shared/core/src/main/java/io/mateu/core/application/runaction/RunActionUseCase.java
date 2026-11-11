@@ -89,6 +89,13 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
+    // a request carrying an Idempotency-Key (the mobile app's offline send queue) runs once per
+    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
+    return io.mateu.core.infra.idempotency.IdempotencyKeys.once(
+        incoming.httpRequest(), incoming.actionId(), () -> handleUnkeyed(incoming));
+  }
+
+  private Flux<UIIncrementDto> handleUnkeyed(RunActionCommand incoming) {
     log.debug("run action {}", incoming.actionId());
     final RunActionCommand command;
     // The client names the server-side type it is talking to; only types the application exposes

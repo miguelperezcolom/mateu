@@ -40,6 +40,7 @@ final class ActionDtoMapper {
         .idempotent(action.idempotent())
         .restAction(mapRestAction(action.restAction()))
         .commands(mapSteps(action.steps()))
+        .offline(action.offline() == io.mateu.uidl.annotations.OfflinePolicy.QUEUE ? "queue" : null)
         .build();
   }
 
