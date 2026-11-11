@@ -54,6 +54,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   Generated from the phone app's `src/hub/links.ts` (`HUB_LINKS_WRITE=true node --test
   src/hub/links.conformance.test.ts`), run by that test (React Native, the reference) and
   `HubLinksConformanceTest.kt` (IntelliJ).
+- `sign-in-flow.json` — `{ cases: [{ name, auth, platform: web|mobile|desktop, expect: { providers:
+  [id…], mode: none|direct|chooser } }] }`: a UI's `auth` block → the sign-in providers a platform
+  offers, in order, and whether it goes straight to one or asks. Hand-written; run by
+  `src/core/signInFlow.conformance.test.ts` (React Native) and `SignInFlowConformanceTest.kt`
+  (IntelliJ/desktop) for the native cases — native apps offer only `oidc` providers listing their
+  platform; `web` cases belong to the web renderers.
 - `source-templates.json` — a REST source's url / body template against a state: the url each `${…}`
   makes (values percent-encoded by position, encoded once, money sent as its amount, allow-listed
   calls such as `encodeURIComponent` / `String` / `Math.*`). Run by
