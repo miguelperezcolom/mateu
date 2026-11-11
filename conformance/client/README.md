@@ -43,6 +43,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   `foldoutAuto.conformance.test.ts` (libs/mateu, the reference — used by both web foldouts),
   `poc/test-conformance.mjs` (Redwood), `src/core/foldoutFit.conformance.test.ts` (React Native) and
   `FoldoutAutoConformanceTest.kt` (IntelliJ, whose desktop columns never fold today).
+- `sign-in-flow.json` — what a WEB client makes of the page's `<meta name="mateu-auth">` (the
+  sign-in providers): the providers it keeps (web only, declared order, unusable ones dropped,
+  defaults for label/icon/platforms), and what it shows at boot (nothing, straight to the only
+  provider, or the chooser) and after a failed attempt (always the chooser). Run by
+  `signInConfig.conformance.test.ts` (libs/mateu, the reference) and `poc/test-conformance.mjs`
+  (Redwood, `poc/signIn.mjs`). How a SERVER builds the block from its settings is `sign-in.json`.
 - `live-reload.json` — what a development server's live-reload event (`hello`, `specs-changed`,
   `reload`, `ping`) means for the screen on display: nothing, re-render the page or the app, and the
   boot id to remember (a new one = a restarted server). Run by `liveReload.conformance.test.ts`

@@ -465,6 +465,14 @@ setAuthToken(keycloak.token)               // after login and after each refresh
 // or: configureAuthToken({ provider: () => keycloak.token })
 ```
 
+The **built-in sign-in** (a UI that declares [sign-in providers](/deploy/sign-in/)) stores the
+access token it obtains from an OIDC provider exactly here, so the storage you choose applies to it
+too; the refresh token, the id token and the expiry travel beside it, in the same storage, under
+`__mateu_auth_session` (in memory with `memory`). The in-progress sign-in (state, nonce, PKCE
+verifier) is in `sessionStorage` for the trip to the IdP and is removed on the way back. Configuring
+a `provider` turns the built-in sign-in off: the app then owns the token and the login. The Redwood
+renderer keeps the token in `localStorage` only.
+
 The storage key is `__mateu_auth_token`. When your backend can use them, **HttpOnly session
 cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
 throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
