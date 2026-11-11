@@ -149,7 +149,16 @@ class CrudBuiltInLabelsSyncTest {
   void withNoLanguageOrOneMateuDoesNotSpeakTheyStayEnglish() {
     assertThat(labels("/books", null)).contains("New", "Delete");
     assertThat(labels("/books/b1/edit", "en-GB")).contains("Cancel", "Save");
-    assertThat(labels("/books/b1", "fr-FR")).contains("Back to list", "Edit");
+    assertThat(labels("/books/b1", "nl-NL")).contains("Back to list", "Edit");
+  }
+
+  @Test
+  void inAFrenchGermanPortugueseOrItalianUiTheyAreTooByThePrimarySubtag() {
+    assertThat(labels("/books/b1", "fr-FR")).contains("Retour à la liste", "Modifier");
+    assertThat(labels("/books/b1/edit", "de-AT")).contains("Abbrechen", "Speichern");
+    assertThat(labels("/books", "pt-BR")).contains("Novo", "Excluir");
+    assertThat(labels("/books", "pt-PT")).contains("Novo", "Excluir");
+    assertThat(labels("/books/new", "it-IT")).contains("Annulla", "Salva");
   }
 
   @Test
