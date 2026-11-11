@@ -55,14 +55,15 @@ The browser talks to two kinds of URLs:
 
 What follows from it:
 
-- Serve the app at the **root of its host** (`https://admin.example.com/`), or give the mount the
-  public path you want (`@UI("/admin")`) and route **both** `/admin/**` **and** `/assets/**` to the
-  backend.
-- A servlet **context path** (`server.servlet.context-path`) or a proxy that **strips a prefix** is
-  not supported: the generated page references `/assets/…` from the root, so the assets 404 behind a
-  prefix.
-- Several Mateu apps behind one host: give each its own `@UI` path. They all load `/assets/**` from
-  the same place, so they must run the **same Mateu release** — or live on separate hosts.
+- Serve the app at the **root of its host** (`https://admin.example.com/`), or under a **path
+  prefix**: a servlet context path (`server.servlet.context-path=/crm`, and each framework's
+  equivalent) works as it is, and behind a proxy that **strips** the prefix set
+  `mateu.public-base-path=/crm` (or trust the proxy's `X-Forwarded-Prefix`). The page is then
+  written for `/crm/…` — see [Serving the app under a path prefix](/deploy/under-a-path-prefix/).
+- Several Mateu apps behind one host: give each its own prefix (`/crm/`, `/billing/`) and each loads
+  its own `/crm/assets/…`, so they may run different Mateu releases. Apps that share the host's
+  root (each only its own `@UI` path) all load `/assets/**` from the same place, so they must run the
+  **same Mateu release**.
 - Long-running actions (`LongTask`, streamed responses) use **server-sent events**: disable response
   buffering for the action endpoint on the proxy (`proxy_buffering off;` in nginx) and raise its read
   timeout above your longest task.

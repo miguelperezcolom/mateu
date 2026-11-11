@@ -580,6 +580,7 @@ export default defineConfig({
 						{ slug: 'deploy/environments', label: 'Environments' },
 						{ slug: 'java-user-manual/build/derived-openapi', label: 'The OpenAPI your UI implies' },
 						{ slug: 'deploy/production-checklist', label: 'Production checklist' },
+						{ slug: 'deploy/under-a-path-prefix', label: 'Under a path prefix' },
 						{ slug: 'deploy/versions-across-teams', label: 'Versions across teams' },
 						{ slug: 'deploy/oracle-cdn-mirror', label: "Oracle's CDN from a mirror" },
 						{

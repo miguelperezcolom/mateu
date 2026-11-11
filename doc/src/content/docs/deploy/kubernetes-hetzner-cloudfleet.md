@@ -242,8 +242,9 @@ spec:
               service: { name: my-mateu-app, port: { number: 8080 } }
 ```
 
-Serve the app at the **root** of its host: a servlet context path is not supported (the page loads
-`/assets` from the host root).
+Serve the app at the **root** of its host, or under a path prefix — see
+[Serving the app under a path prefix](/deploy/under-a-path-prefix/) for the ingress rewrite and the
+one setting it needs.
 
 **One Ingress per host.** A single Ingress listing several hosts gets a single certificate covering
 all of them, and that certificate cannot be issued until **every** host resolves to the cluster. With
