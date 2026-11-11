@@ -371,6 +371,8 @@ const en = {
     planningPending: '{block}: {resource}, {start} to {end}',
     dropSelected: 'Move the selected rows here ({count})',
     singleKeyShortcuts: 'Single-key shortcuts (such as ?). Ctrl+/ always opens this list',
+    carouselPause: 'Pause the slides',
+    carouselPlay: 'Play the slides',
     appContextChanging: '{label}: {value}. Reloading the app…',
 }
 
@@ -706,6 +708,8 @@ const es: Catalogue = {
     planningPending: '{block}: {resource}, del {start} al {end}',
     dropSelected: 'Mover aquí las filas seleccionadas ({count})',
     singleKeyShortcuts: 'Atajos de una sola tecla (como ?). Ctrl+/ siempre abre esta lista',
+    carouselPause: 'Pausar las diapositivas',
+    carouselPlay: 'Reproducir las diapositivas',
     appContextChanging: '{label}: {value}. Recargando la aplicación…',
 }
 

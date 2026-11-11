@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { MateuCarousel, nextSlide } from './mateu-carousel'
 
 describe('nextSlide', () => {
@@ -41,5 +41,42 @@ describe('mateu-carousel', () => {
         await el.updateComplete
         expect(visible()).toEqual(['b'])
         el.remove()
+    })
+})
+
+describe('mateu-carousel autoplay (WCAG 2.2.2)', () => {
+    it('an autoplaying carousel has a visible pause button that stops it, and play resumes', async () => {
+        vi.useFakeTimers()
+        try {
+            const el = document.createElement('mateu-carousel') as MateuCarousel
+            el.auto = true
+            el.duration = 1000
+            for (const t of ['a', 'b', 'c']) {
+                const d = document.createElement('div')
+                d.textContent = t
+                el.appendChild(d)
+            }
+            document.body.appendChild(el)
+            await el.updateComplete
+            await el.updateComplete
+            const visible = () => Array.from(el.children).filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent)[0]
+            vi.advanceTimersByTime(1000)
+            await el.updateComplete
+            expect(visible()).toBe('b')
+            const play = el.shadowRoot!.querySelector('.play') as HTMLButtonElement
+            expect(play.getAttribute('aria-label')).toMatch(/Pause|Pausar/)
+            play.click()
+            await el.updateComplete
+            vi.advanceTimersByTime(5000)
+            await el.updateComplete
+            expect(visible()).toBe('b')
+            expect(play.getAttribute('aria-pressed')).toBe('false')
+            play.click()
+            await el.updateComplete
+            vi.advanceTimersByTime(1000)
+            await el.updateComplete
+            expect(visible()).toBe('c')
+            el.remove()
+        } finally { vi.useRealTimers() }
     })
 })
