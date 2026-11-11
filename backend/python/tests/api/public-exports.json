@@ -519,5 +519,16 @@
   "MateuUiMiddleware",
   "add_mateu",
   "identity_from_claims"
+ ],
+ "mateu_ui.testing": [
+  "Button",
+  "Command",
+  "Field",
+  "Listing",
+  "MateuTest",
+  "MateuTestError",
+  "Message",
+  "Row",
+  "Screen"
  ]
 }
