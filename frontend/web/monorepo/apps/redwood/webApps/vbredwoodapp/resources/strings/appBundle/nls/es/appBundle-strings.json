@@ -152,7 +152,6 @@
   "kanbanMoveDown": "Bajar",
   "kanbanMoveFailed": "No se pudo mover la tarjeta; ha vuelto a su sitio",
   "searchResults": "Resultados",
-  "themeToggle": "Cambiar tema claro / oscuro",
   "agentConnect": "Conectar IA",
   "agentDialogTitle": "Conectar un agente de IA",
   "agentPairInstruction": "Pide a tu agente que se empareje con este código (mateu_pair_session).",

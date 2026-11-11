@@ -22,7 +22,7 @@ import {
 } from './reduceContexts.mjs'
 import { hostContentBesideHeader, fabsOf, sameProjectedValue, changedOnly, stagedVariables } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
-import { initialThemeOf, nextThemeOf, applyTheme, applyInitialTheme, toggleTheme, resetThemeListenerForTests } from './theme.mjs'
+import { applyLightTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
 import { listingUrlOf, listingUrlPagingOf } from './core/listing.mjs'
 import { flatAtoms } from './reduceContexts.mjs'
@@ -459,81 +459,36 @@ test('global search: the hits of a _globalsearch answer, as palette rows grouped
   assert.deepEqual(globalSearchHitsOf({ fragments: [] }), [])
 })
 
-test('light / dark: @App(themeToggle) shows the switch in the global header, wired to its chain', () => {
+test('Redwood is light only: no light/dark switch, even with @App(themeToggle = true)', () => {
+  // the wire still says themeToggle (the Vaadin renderer of the same app shows its switch)…
   const shell = webApp('pages/shell-page.html')
-  assert.match(shell, /id="mateuThemeToggle"[\s\S]*\$listeners\.themeToggle/)
-  assert.match(shell, /\$application\.variables\.mateuThemeToggle/)
-  assert.match(webApp('pages/shell-page.json'), /"themeToggle"[\s\S]*?"chain": "toggleMateuTheme"/)
-  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuThemeToggle.type, 'boolean')
-  assert.match(webApp('pages/shell-page-chains/toggleMateuTheme.js'), /bridge\.toggleTheme\(\)/)
+  assert.ok(!/themeToggle|mateuThemeToggle|brightness/.test(shell), 'the header has no theme switch')
+  assert.ok(!/themeToggle/.test(webApp('pages/shell-page.json')), 'no listener for it')
+  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuThemeToggle, undefined)
+  // …and the shell boot does not read it: it paints light
   const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
-  assert.match(boot, /mateuThemeToggle = !!\(reg\.shell && reg\.shell\.themeToggle\)/)
-  // painted at the START of the boot chain, before the shell is drawn (no light flash)
-  assert.ok(boot.indexOf('bridge.applyInitialTheme()') > 0)
-  assert.ok(boot.indexOf('bridge.applyInitialTheme()') < boot.indexOf('bridge.initMount('))
-  const css = webApp('resources/css/app.css')
-  assert.match(css, /html\.mateu-theme-dark body/, 'the shell canvas follows the dark scheme')
-  assert.match(css, /html\.mateu-theme-dark \.oj-bg-neutral-30/, 'the page-header band too')
+  assert.ok(!/shell\.themeToggle/.test(boot))
+  assert.match(boot, /bridge\.applyLightTheme\(\)/)
+  assert.ok(!/mateu-theme-dark/.test(webApp('resources/css/app.css')), 'no dark rules left')
 })
 
-const fakeThemeDoc = () => {
-  const classes = new Set(['other'])
-  const attrs = {}
-  return {
-    classes, attrs,
-    documentElement: {
-      classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) },
-      setAttribute: (k, v) => { attrs[k] = v },
-      getAttribute: (k) => attrs[k],
-    },
-  }
-}
-
-test('light / dark: the stored choice wins, else the OS; dark is JET\'s inverted scheme on <html>', () => {
-  assert.equal(initialThemeOf('light', true), 'light')
-  assert.equal(initialThemeOf('dark', false), 'dark')
-  assert.equal(initialThemeOf(null, true), 'dark')
-  assert.equal(initialThemeOf('bogus', false), 'light')
-  assert.equal(nextThemeOf('dark'), 'light')
-  assert.equal(nextThemeOf('light'), 'dark')
-  const doc = fakeThemeDoc()
-  applyTheme('dark', doc)
-  assert.ok(doc.classes.has('oj-color-invert') && doc.classes.has('mateu-theme-dark') && doc.attrs.theme === 'dark')
-  applyTheme('light', doc)
-  assert.deepEqual([...doc.classes], ['other'])
-  assert.equal(doc.attrs.theme, 'light')
-})
-
-test('light / dark: boot reads localStorage[mateu-theme] (shared with Vaadin), the switch flips and stores it, the OS repaints only without a choice', () => {
-  const saved = globalThis.localStorage
-  const store = {}
-  globalThis.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v) }, removeItem: (k) => { delete store[k] } }
-  let osListener = null
-  const mq = { matches: true, addEventListener: (ev, fn) => { if (ev === 'change') osListener = fn } }
-  const win = { matchMedia: (q) => (/prefers-color-scheme: dark/.test(q) ? mq : { matches: false }) }
-  const doc = fakeThemeDoc()
+test('Redwood is light only: a stored dark choice and an OS that prefers dark still paint light', () => {
+  const saved = { localStorage: globalThis.localStorage, matchMedia: globalThis.matchMedia }
+  globalThis.localStorage = { getItem: (k) => (k === 'mateu-theme' ? 'dark' : null), setItem: () => {}, removeItem: () => {} }
+  globalThis.matchMedia = (q) => ({ matches: /prefers-color-scheme: dark/.test(q) })
   try {
-    resetThemeListenerForTests()
-    // no choice stored: the OS (dark) decides, and is followed
-    assert.equal(applyInitialTheme(doc, win), 'dark')
-    osListener({ matches: false })
-    assert.equal(doc.attrs.theme, 'light')
-    osListener({ matches: true })
-    assert.equal(doc.attrs.theme, 'dark')
-    // the header switch: flips, paints and remembers
-    assert.equal(toggleTheme(doc), 'light')
-    assert.equal(store['mateu-theme'], 'light')
-    assert.ok(!doc.classes.has('oj-color-invert'))
-    // with a stored choice the OS no longer repaints
-    osListener({ matches: true })
-    assert.equal(doc.attrs.theme, 'light')
-    // a later boot keeps the stored choice over the OS
-    assert.equal(applyInitialTheme(doc, win), 'light')
-    store['mateu-theme'] = 'dark'
-    assert.equal(applyInitialTheme(doc, win), 'dark')
+    // a page that came up dark (an older version's choice): every dark class goes
+    const classes = new Set(['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark', 'other'])
+    const attrs = { theme: 'dark' }
+    const doc = { documentElement: { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) }, setAttribute: (k, v) => { attrs[k] = v } } }
+    assert.equal(applyLightTheme(doc), 'light')
+    assert.deepEqual([...classes], ['other'])
+    assert.equal(attrs.theme, 'light')
+    // the stored choice is left alone: the Vaadin renderer on the same origin still reads it
+    assert.equal(globalThis.localStorage.getItem('mateu-theme'), 'dark')
   } finally {
-    globalThis.localStorage = saved
-    resetThemeListenerForTests()
+    globalThis.localStorage = saved.localStorage
+    globalThis.matchMedia = saved.matchMedia
   }
 })
 

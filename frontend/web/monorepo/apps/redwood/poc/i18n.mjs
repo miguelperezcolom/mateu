@@ -179,7 +179,6 @@ export const CHROME_TEXTS = {
     kanbanMoveDown: 'Move down',
     kanbanMoveFailed: 'The card could not be moved; it is back where it was',
     searchResults: 'Search results',
-    themeToggle: 'Switch light / dark theme',
     // ── live UI push (agentPush.mjs) ──
     agentConnect: 'Connect AI',
     agentDialogTitle: 'Connect an AI agent',
@@ -475,7 +474,6 @@ export const CHROME_TEXTS = {
     kanbanMoveDown: 'Bajar',
     kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
     searchResults: 'Resultados',
-    themeToggle: 'Cambiar tema claro / oscuro',
     // ── live UI push (agentPush.mjs) ──
     agentConnect: 'Conectar IA',
     agentDialogTitle: 'Conectar un agente de IA',

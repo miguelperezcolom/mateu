@@ -140,15 +140,6 @@
         </oj-bind-if>
         <span id="mateuAgentIndicator" class="mateu-agent-dot" role="img" hidden></span>
       </span>
-      <!-- LIGHT / DARK switch (@App(themeToggle)): JET's own inverted colour scheme on the page,
-           remembered in localStorage['mateu-theme'] (poc/theme.mjs) -->
-      <oj-bind-if test="[[ $application.variables.mateuThemeToggle ]]">
-        <oj-button id="mateuThemeToggle" chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-1x-start"
-          on-oj-action="[[ $listeners.themeToggle ]]">
-          <span slot="startIcon" class="oj-ux-ico-brightness-low"></span>
-          <oj-bind-text value="[[ $application.translations.appBundle.themeToggle ]]"></oj-bind-text>
-        </oj-button>
-      </oj-bind-if>
       <!-- OPEN ON MOBILE (@App(mobileQr)): opens the dialog with the QR of the mateu.io/add link
            (poc/qr.mjs) — the Mateu mobile app adds this UI by scanning it. display=icons: the label
            is the button's accessible name and tooltip. -->

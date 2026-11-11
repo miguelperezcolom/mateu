@@ -152,7 +152,6 @@
   "kanbanMoveDown": "Move down",
   "kanbanMoveFailed": "The card could not be moved; it is back where it was",
   "searchResults": "Search results",
-  "themeToggle": "Switch light / dark theme",
   "agentConnect": "Connect AI",
   "agentDialogTitle": "Connect an AI agent",
   "agentPairInstruction": "Ask your agent to pair with this code (mateu_pair_session).",
