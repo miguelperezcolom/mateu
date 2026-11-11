@@ -100,9 +100,30 @@ class BuildSkew {
             stale = "Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.",
             reload = "Recargar",
         )
+        private val FR = Texts(
+            updated = "Cette application a été mise à jour. Rechargez pour utiliser la dernière version.",
+            stale = "Cet écran a changé depuis que vous l'avez ouvert. Rechargez pour continuer.",
+            reload = "Recharger",
+        )
+        private val DE = Texts(
+            updated = "Diese Anwendung wurde aktualisiert. Laden Sie neu, um die neueste Version zu verwenden.",
+            stale = "Dieser Bildschirm hat sich geändert, seit Sie ihn geöffnet haben. Laden Sie neu, um fortzufahren.",
+            reload = "Neu laden",
+        )
+        private val PT = Texts(
+            updated = "Este aplicativo foi atualizado. Recarregue para usar a versão mais recente.",
+            stale = "Esta tela mudou desde que você a abriu. Recarregue para continuar.",
+            reload = "Recarregar",
+        )
+        private val IT = Texts(
+            updated = "Questa applicazione è stata aggiornata. Ricarica per usare l'ultima versione.",
+            stale = "Questa schermata è cambiata da quando l'hai aperta. Ricarica per continuare.",
+            reload = "Ricarica",
+        )
 
-        /** The notice texts in [locale] (Spanish for `es*`, English otherwise). */
-        fun texts(locale: Locale?): Texts = if (locale?.language == "es") ES else EN
+        /** The notice texts in [locale]'s language (the web's words; English for one it does not speak). */
+        fun texts(locale: Locale?): Texts =
+            io.mateu.ijp.ui.ChromeLanguage.pick(locale, mapOf("en" to EN, "es" to ES, "fr" to FR, "de" to DE, "pt" to PT, "it" to IT))
     }
 }
 

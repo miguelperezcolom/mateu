@@ -14,12 +14,16 @@ class EtaTextTest : TestCase() {
         ObjectMapper().readTree(file)
     }
 
+    fun testTheCorpusCoversEveryLanguageThePluginSpeaks() {
+        assertEquals(io.mateu.ijp.ui.ChromeLanguage.LANGUAGES.sorted(), corpus.path("texts").fieldNames().asSequence().toList().sorted())
+    }
+
     fun testTheCorpus() {
         val cases = corpus.path("cases")
         assertTrue(cases.size() > 10)
         for (case in cases) {
             val eta = case.path("etaSeconds").takeIf { it.isNumber }?.asInt()
-            for (lang in listOf("en", "es")) {
+            for (lang in corpus.path("texts").fieldNames().asSequence().toList()) {
                 val expected = case.path(lang).takeIf { it.isTextual }?.asText()
                 assertEquals("etaSeconds=$eta ($lang)", expected, NoticeTexts.eta(eta, Locale.forLanguageTag(lang)))
             }
