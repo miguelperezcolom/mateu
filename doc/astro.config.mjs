@@ -618,6 +618,7 @@ export default defineConfig({
 						{ slug: 'quality', label: 'Overview' },
 						{ slug: 'ux-patterns/how-ux-is-evaluated', label: 'How UX is evaluated' },
 						{ slug: 'ux-patterns/accessibility', label: 'Accessibility' },
+						{ slug: 'quality/accessibility-conformance', label: 'Accessibility conformance (WCAG 2.2)' },
 						{ slug: 'java-user-manual/advanced/accessibility', label: 'Accessibility in your code' },
 						{ slug: 'java-user-manual/advanced/testing', label: 'Testing your UI' },
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
