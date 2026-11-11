@@ -8,3 +8,5 @@ paths-ignore:
   - '**/*.min.js'
   - 'doc/**'
   - 'docs/**'
+  # The Redwood core's node test suites (not shipped): they plant fake tokens in storage on purpose.
+  - 'frontend/web/monorepo/apps/redwood/poc/test*.mjs'

@@ -151,7 +151,7 @@ public final class IndexPage {
   private static final Pattern REDWOOD_BASE = Pattern.compile("(BASE_URL\\s*:\\s*['\"])/_redwood/");
 
   private static final Pattern MATEU_UI_BASE_URL =
-      Pattern.compile("(<mateu-ui\\b[^>]*?\\sbaseUrl\\s*=\\s*)([\"'])([^\"']*)\\2");
+      Pattern.compile("(<mateu-ui\\b[^<>]*?\\sbaseUrl\\s*=\\s*)([\"'])([^\"']*)\\2");
 
   /**
    * The favicon a renderer page carries when the app names none (the browser tab shows Mateu's, not
