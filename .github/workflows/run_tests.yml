@@ -189,7 +189,7 @@ jobs:
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
       - name: The IDE plugins' versions follow the framework's release tag; pre-releases of a later line stay out of production
-        run: node --test scripts/plugin-versions.test.mjs scripts/release-gates.test.mjs scripts/archetype-post-generate.test.mjs
+        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/archetype-post-generate.test.mjs
 
       - name: The docs' component list is the component catalogue (uidl-catalog.json)
         run: node scripts/gen-supported-components.mjs --check
