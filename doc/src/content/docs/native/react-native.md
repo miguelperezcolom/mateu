@@ -210,6 +210,9 @@ theme is built from them in `src/ui/MateuTheme.tsx`, and the shared Material pri
 status chip, checkbox, outlined field and picker trigger) are in `src/ui/controls.tsx`. A host app
 that needs another brand changes the tokens there.
 
+Writes made without connection can wait in a send queue and go out when the connection is back,
+for the actions that declare it — see [Offline forms on the phone](/native/offline-forms/).
+
 ## 6. Compatibility
 
 The app declares the oldest wire it supports (`MIN_WIRE_VERSION = "3.0"`,

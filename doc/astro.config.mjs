@@ -538,6 +538,7 @@ export default defineConfig({
 						{ slug: 'design-systems/oracle-redwood', label: 'Web: Redwood / Visual Builder' },
 						{ slug: 'native/react-native', label: 'Mobile: the Mateu app' },
 						{ slug: 'native/android-testers', label: 'Mobile: test the Android app' },
+						{ slug: 'native/offline-forms', label: 'Mobile: offline forms (send queue)' },
 						{ slug: 'ux-patterns/mobile-app', label: 'Mobile: Open on mobile (QR)' },
 						{ slug: 'native', label: 'Desktop: IntelliJ (and native overview)' },
 						{ slug: 'native/desktop-app', label: 'Desktop: the Mateu app' },

@@ -23,6 +23,7 @@ import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } fro
 import { inboxChangeOf } from './inbox.ts';
 import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
+import { newIdempotencyKey, OUTBOX_TEXTS, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -123,6 +124,7 @@ export class MateuViewController {
   private actionTimeout: Record<string, number> = {};
   private actionIdempotent: Record<string, boolean> = {};
   private actionJs: Record<string, string> = {};
+  private actionOffline: Record<string, boolean> = {};
   /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
   private pending = new Set<string>();
   private pendingListeners = new Set<() => void>();
@@ -466,6 +468,7 @@ export class MateuViewController {
     }
 
     const generation = this.polling.currentGeneration;
+    let queueable: { request: QueuedRequest; key: string } | null = null;
     try {
       if (this.actionSse[actionId]) {
         // a LongTask: each progress increment is applied as it arrives — its Progress commands feed
@@ -497,7 +500,7 @@ export class MateuViewController {
         this.polling.actionSucceeded(generation, actionId);
         return true;
       }
-      const increment = await this.session.api.runAction({
+      const request: QueuedRequest = {
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
         actionId,
@@ -508,7 +511,16 @@ export class MateuViewController {
         appState: this.session.appState,
         parameters: parameters ?? {},
         timeoutMillis: this.actionTimeout[actionId],
+      };
+      // @Action(offline = QUEUE): the very first attempt already carries the key the queue would
+      // send again — if its answer is lost, the retry must not apply the change twice
+      queueable = this.actionOffline[actionId] === true && !!this.session.outbox && !this.session.api.local
+        ? { request, key: newIdempotencyKey() }
+        : null;
+      const increment = await this.session.api.runAction({
+        ...request,
         idempotent: this.actionIdempotent[actionId],
+        idempotencyKey: queueable?.key,
       });
       this.applyIncrement(increment as Json);
       // The server answers a handler that threw with an error message (its error boundary), not an
@@ -521,7 +533,14 @@ export class MateuViewController {
     } catch (e) {
       // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
       if (silent || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
-      else {
+      else if (queueable && shouldQueue(true, classifyFailure(e, connectivity.isOnline))) {
+        // no connection: kept in the UI's send queue, sent with the same key when it is back
+        const label = [this.windowTitle, this.actionLabelOf(actionId)].filter(Boolean).join(' · ');
+        const kept = await this.session.outbox!.enqueue(queueable.request, queueable.key, label);
+        devLog('[Mateu] action queued:', actionId, kept);
+        this.session.notify(null, kept ? OUTBOX_TEXTS.queued : OUTBOX_TEXTS.full, kept ? 'warning' : 'error');
+        if (kept) announce(OUTBOX_TEXTS.queued);
+      } else {
         // in plain words, with a Retry when sending it again could work (the web's mateu-api-caller)
         const failure = classifyFailure(e, connectivity.isOnline);
         devLog('[Mateu] action failed:', actionId, errorText(e));
@@ -531,6 +550,13 @@ export class MateuViewController {
       }
       return false;
     }
+  }
+
+  /** The label of an action, for the send queue's list (its id when it has none). */
+  private actionLabelOf(actionId: string): string {
+    const def = this.currentActionDefs.find((a) => a.id === actionId) as unknown as Json | undefined;
+    const label = def && typeof def['label'] === 'string' ? def['label'] : '';
+    return label || actionId;
   }
 
   /** Host hook: asked before a discarding action throws away unsaved changes. */
@@ -724,6 +750,7 @@ export class MateuViewController {
     this.actionTimeout = flags.timeoutMillis;
     this.actionIdempotent = flags.idempotent;
     this.actionJs = flags.js;
+    this.actionOffline = flags.offline;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
