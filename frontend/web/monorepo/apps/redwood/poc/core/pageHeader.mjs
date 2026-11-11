@@ -358,6 +358,16 @@ export function switcherPickOf(switcher, picked) {
   return pick
 }
 
+/** A toolbar entry as the header's actions: a dropdown group stands for its buttons, a split
+ *  button for its primary followed by the rest, any other button for itself. */
+export function toolbarMembersOf(b) {
+  if (!b) return []
+  const kids = Array.isArray(b.children || b.buttons) ? (b.children || b.buttons).filter(Boolean) : []
+  if (b.split && kids.length) return [{ ...b, children: [], split: false }, ...kids]
+  if (!b.actionId && kids.length) return kids
+  return [b]
+}
+
 /** The host Page's TOOLBAR (for the band header's actions):
  *  [{actionId, label, chroming}]. The primary-styled one goes to the header's primaryAction. */
 export function pageToolbarOf(ctx) {
@@ -367,8 +377,10 @@ export function pageToolbarOf(ctx) {
   if (!page) return []
   return (page.metadata.toolbar || [])
     // a ButtonGroup (a toolbar's dropdown: on the wire a Button with `children`, no action of its
-    // own) brings its buttons — the header's actions list them
-    .flatMap((b) => (b && !b.actionId && Array.isArray(b.children || b.buttons) ? (b.children || b.buttons) : [b]))
+    // own) brings its buttons — the header's actions list them; a SPLIT button (`split`: the
+    // primary with the rest as children) brings its primary first, then the rest: the Spectra
+    // header has its own primary slot and overflow, so it lays them out as its actions
+    .flatMap(toolbarMembersOf)
     .filter((b) => b && b.actionId)
     .map((b) => {
       // a Button whose actionable is a RouteLink (a YAML record's "Edit" → people/${state.id}/edit,

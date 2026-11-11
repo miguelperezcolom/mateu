@@ -1021,6 +1021,30 @@ test('a ButtonGroup in CONTENT (a Button with children) brings its buttons; it u
   assert.equal(buttons[1].route, 'home')
 })
 
+test('a SPLIT button in content is ONE button carrying its menu; in a header it lays out primary first', () => {
+  const split = { type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary', split: true, children: [
+    { type: 'Button', label: 'Save as draft', actionId: 'saveDraft', parameters: { draft: true } },
+    { type: 'Button', label: 'Home', actionId: 'home', route: 'home' },
+  ] }
+  const buttons = atomsOf(node({ type: 'VerticalLayout' }, [node(split)])).filter((a) => a.isButtons).flatMap((a) => a.buttons)
+  assert.equal(buttons.length, 1)
+  const [b] = buttons
+  assert.ok(b.isSplit)
+  assert.equal(b.actionId, 'save')
+  assert.equal(b.chroming, 'callToAction')
+  assert.equal(b.moreLabel, 'More actions')
+  assert.deepEqual(b.menuItems.map((i) => i.label), ['Save as draft', 'Home'])
+  assert.deepEqual(menuChoiceOf(b.menuItems, '0'), { kind: 'action', actionId: 'saveDraft', parameters: { draft: true } })
+  assert.deepEqual(menuChoiceOf(b.menuItems, '1'), { kind: 'navigate', route: '/home' })
+  // the Spectra header has its own primary slot and overflow: the primary first, then the rest
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Form', title: 'Order', toolbar: [split] })])
+  assert.deepEqual(pageToolbarOf({ tree, state: {} }).map((x) => x.actionId), ['save', 'saveDraft', 'home'])
+  assert.equal(pageToolbarOf({ tree, state: {} })[0].chroming, 'callToAction')
+  // and the page's atoms surfaces carry the split markup with the menu listener
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.ok(page.includes('$current.data.isSplit ]]') && page.includes('mateu-split-more'))
+})
+
 test('a RouteLink button in content keeps its route (it navigates); a plain one does not get one', () => {
   // the served wire of the starters' home.yaml: a hero holding a Button whose actionable is a
   // RouteLink — the server's ButtonMapper puts the link's route on the button
