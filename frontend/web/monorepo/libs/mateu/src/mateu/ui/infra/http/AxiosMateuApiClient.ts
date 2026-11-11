@@ -17,6 +17,7 @@ import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
+import { underPublicBase } from '@infra/http/publicBase.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
@@ -355,7 +356,9 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
         // the app-level context (@AppContext header selectors) travels with EVERY request:
         // explicit appState entries win over the persisted context
-        const uri = baseUrl + '/mateu/v3/sync/' + ((route && route != '')?route:'_no_route')
+        // a root-relative base the server named (a sibling / remote mount, `/orders`) under the
+        // app's public base (a context path, a prefix-stripping proxy — publicBase.ts)
+        const uri = underPublicBase(baseUrl) + '/mateu/v3/sync/' + ((route && route != '')?route:'_no_route')
         // …but only to an origin trusted with the user's credentials (credentialScope.ts)
         appState = mayCarryCredentials(uri) ? { ...readAppContext(), ...appState } : { ...appState }
         const payload = {

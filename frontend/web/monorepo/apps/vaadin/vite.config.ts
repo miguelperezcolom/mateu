@@ -43,6 +43,17 @@ const bypassHtml = (req: IncomingMessage) =>
     req.headers.accept?.includes('text/html') ? '/index.html' : undefined
 
 export default defineConfig({
+    // URLs the BUNDLE names (a lazy chunk's preload list, a font in a stylesheet) are written
+    // relative to the file that names them, never root-relative: an app served under a public base
+    // (a servlet context path, a prefix-stripping proxy at /crm/) fetches its assets at
+    // /crm/assets/…, and a root-relative `/assets/x.js` preload 404s there — Vite rejects the lazy
+    // import with it (vite:preloadError), so every lazy element failed. The page's own URLs (html)
+    // stay root-relative: the server writes them under the base (io.mateu.core.infra.PublicBase).
+    experimental: {
+        renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
+            return hostType === 'html' ? '/' + filename : { relative: true }
+        },
+    },
     // the renderer's own version, announced to the server in X-Mateu-Renderer (rendererIdentity.ts)
     define: {
         __MATEU_RENDERER_VERSION__: JSON.stringify(rendererVersion),
