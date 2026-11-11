@@ -260,10 +260,8 @@ fun colorField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean
 
 // ── images / signature ────────────────────────────────────────────────────────────────────────
 
-private fun decodeDataUri(value: String): BufferedImage? = runCatching {
-    val base64 = value.substringAfter("base64,", "")
-    if (base64.isBlank()) null else ImageIO.read(Base64.getDecoder().decode(base64).inputStream())
-}.getOrNull()
+private fun decodeDataUri(value: String): BufferedImage? =
+    if (value.trim().startsWith("data:")) SvgImages.load(value) else null
 
 private fun scaledIcon(img: java.awt.image.BufferedImage): javax.swing.ImageIcon {
     val scale = minOf(1.0, 280.0 / img.width)
@@ -280,7 +278,7 @@ private fun imageLabel(value: String): JBLabel {
     // a URL value is shown as the image it names (the web and the phone do), the url text meanwhile
     if (isRemoteImage(value)) {
         Thread {
-            val remote = runCatching { ImageIO.read(java.net.URI(value.trim()).toURL()) }.getOrNull()
+            val remote = SvgImages.load(value)
             if (remote != null) javax.swing.SwingUtilities.invokeLater {
                 label.text = null
                 label.icon = scaledIcon(remote)

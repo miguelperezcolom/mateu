@@ -30,6 +30,8 @@ class MateuFocusedModeActivity : ProjectActivity {
         if (!cfg.configured) return
         // The desktop app keeps itself up to date (a no-op anywhere else; see io.mateu.ijp.update).
         if (cfg.standalone) io.mateu.ijp.update.MateuUpdater.startBackgroundChecks()
+        // …and its Help ▸ About names the app, not IntelliJ IDEA (a no-op anywhere else)
+        if (cfg.standalone) MateuAbout.install(cfg.productName)
         withContext(Dispatchers.EDT) {
             if (focused) {
                 // Explicit-save UX (app-shell only): Mateu authors edit and save WHEN THEY DECIDE

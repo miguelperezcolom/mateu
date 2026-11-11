@@ -144,7 +144,7 @@ class LauncherScriptsTest {
         val (code, _) = sh(root.resolve("mateu.sh").toFile(), "mateu://add?u=x")
         assertEquals(3, code)
         val log = Files.readAllLines(root.resolve("log"))
-        assertEquals(listOf("run 88 new ${root.resolve("workspace")} mateu://add?u=x", "run 88 new ${root.resolve("workspace")}"), log)
+        assertEquals(listOf("run 88 new nosplash ${root.resolve("workspace")} mateu://add?u=x", "run 88 new nosplash ${root.resolve("workspace")}"), log)
     }
 
     // ── macos/launcher.sh: first-run install, reinstall, apply ────────────────────────────────
@@ -168,7 +168,7 @@ class LauncherScriptsTest {
         // first run: bundled plugin installed, IDE update checks off, workspace + link passed through
         val (code, out) = sh(wrapper.toFile(), "mateu://add?u=x", env = env)
         assertEquals(0, code)
-        assertTrue(out, out.contains("started $macos/../Resources/workspace mateu://add?u=x"))
+        assertTrue(out, out.contains("started nosplash $macos/../Resources/workspace mateu://add?u=x"))
         assertEquals("bundled", supportJar())
         assertTrue(Files.readString(support.resolve("config/options/updates.xml")).contains("PLUGINS_CHECK_NEEDED"))
 
