@@ -769,6 +769,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | `Directory` | sitemap of links under group headings |
 | `Avatar` / `AvatarGroup` | round initials badge (name as tooltip and accessible name); `+N` overflow |
 | `Icon` | the platform icon for known names, else the name |
+| `Image` (and hero backgrounds, card and menu-card media, image fields) | the image; an SVG (a `.svg` URL, an `image/svg+xml` data URI, or SVG content under another name) rasterised with the bundled JSVG library (MIT) |
 | `Details` | disclosure toggle (▸/▾) over its content |
 | `Tooltip` | tooltip + accessible description on the wrapped component |
 | `Notification`, `NotFound` | inline strip / not-found page with a way back |
@@ -808,14 +809,13 @@ design-to-code pipeline remains *preview*: it is not covered by the support prom
 
 **Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
-is honoured with two edges:
+is honoured; two notes:
 
-- **Multi-value `optionsSource`.** Vaadin resolves `optionsSource` on a single-select field (the
-  common reference case — a record pointing at one other entity). A **multi-value** field
-  (`multiSelect`/`listBox`/`combobox` — a record pointing at *many*) reads static `options` or a
-  remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
-  catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
-  than half-wired.
+- **Multi-value `optionsSource`.** Since 3.0 GA a multi-value field (`multiSelect`, `listBox`,
+  checkbox group, multi-select `combobox`, `choice` — a record pointing at *many*) reads its options
+  from a REST source like a single select, on Vaadin (one libs loader, `sourcedOptionsOf`), React
+  Native and IntelliJ: by `ref` or inline, direct or proxied, the picks written back as the options'
+  own values.
 - **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
   the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
   `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or
