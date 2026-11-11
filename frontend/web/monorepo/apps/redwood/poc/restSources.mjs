@@ -31,6 +31,7 @@ import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
 import { evaluateExpression } from './rules.mjs'
+import { underPublicBase } from './mount.mjs'
 
 // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
@@ -381,7 +382,8 @@ export async function fetchRestJson(declared, scope = {}, fetchImpl = defaultRes
     return restClone(sampleOf(declared))
   }
   if (!source.url) throw new Error('External REST fetch has no url' + (declared && declared.ref ? ' (unknown source "' + declared.ref + '")' : ''))
-  const url = interpolateRestUrl(source.url, scope)
+  // a root-relative url is the app's own endpoint: under its public base (mount.mjs)
+  const url = underPublicBase(interpolateRestUrl(source.url, scope))
   const headers = {}
   for (const k of Object.keys(source.headers || {})) headers[k] = interpolateRest(source.headers[k], scope)
   const init = { method, headers }

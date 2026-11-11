@@ -30,7 +30,7 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation, spelledWithTheBase, underPublicBase, currentPublicBase } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -2017,6 +2017,35 @@ test('mount: the packaged app serves an @UI at any path — API base and routes 
   assert.equal(pathOfRoute('/products', '/products'), '/products')
   // round trip
   for (const r of ['', '/a', '/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
+})
+
+test('under a public base (a context path, a prefix-stripping proxy) the server\'s spellings land under it', () => {
+  // the page: <mateu-ui baseUrl="/crm/products" pathPrefix="/crm/products" publicBase="/crm">
+  const el = { getAttribute: (n) => ({ baseUrl: '/crm/products', publicBase: '/crm' })[n] ?? null }
+  initMount({ querySelector: () => el })
+  assert.equal(currentPublicBase(), '/crm')
+  assert.equal(mateuBase('http://dev'), '/crm/products')
+  // the backend's root-served static things (images, logos) sit under the base too
+  assert.equal(mateuAssetBase('http://dev'), '/crm')
+  // a crud's inner route, spelled with the mount only, is the mount
+  assert.equal(spelledWithTheBase('/products/new', '/crm/products'), '/crm/products/new')
+  assert.equal(pathOfRoute('/products/new', '/crm/products'), '/crm/products/new')
+  assert.equal(pathOfRoute('/3/edit', '/crm/products'), '/crm/products/3/edit')
+  assert.equal(urlOfRoute('/products'), '/crm/products')
+  assert.equal(routeUnderMount('/products/home'), '/home')
+  // another mount of the app loads under the base; a sibling the server names is called under it
+  assert.equal(pathLeavingMountOf('/orders'), '/crm/orders')
+  assert.equal(pathLeavingMountOf('/products/3'), null)
+  assert.equal(underPublicBase('/orders'), '/crm/orders')
+  assert.equal(underPublicBase('/crm/orders'), '/crm/orders')
+  assert.equal(underPublicBase('https://api.example'), 'https://api.example')
+  assert.equal(underPublicBase('//cdn.example'), '//cdn.example')
+  // at the root of a host nothing changes
+  setMount('/products')
+  assert.equal(currentPublicBase(), '')
+  assert.equal(pathOfRoute('/products/new', '/products'), '/products/new')
+  assert.equal(underPublicBase('/orders'), '/orders')
+  assert.equal(mateuAssetBase('http://dev'), '')
 })
 
 test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
