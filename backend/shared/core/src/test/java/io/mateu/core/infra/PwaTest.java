@@ -158,6 +158,16 @@ class PwaTest {
   }
 
   @Test
+  void underAPublicBaseTheFoldersAreTheOnesBelowIt() {
+    var page =
+        "<head><base href=\"/crm/\"><script src=\"/crm/assets/a.js\"></script>"
+            + "<link rel=\"stylesheet\" href=\"_redwood/resources/css/app.css?v=1\">"
+            + "<script src=\"/crm/root.js\"></script></head>";
+    // never "/crm/" itself: that would be the whole app, its REST endpoints included
+    assertThat(Pwa.staticFolders(page, "/crm")).containsExactly("/crm/assets/", "/crm/_redwood/");
+  }
+
+  @Test
   void switchedOffThePageIsUntouchedAndTheWorkerUnregisters() {
     System.setProperty(Pwa.ENABLED, "false");
     assertThat(Pwa.served(VAADIN_PAGE, "", null)).isEqualTo(VAADIN_PAGE);

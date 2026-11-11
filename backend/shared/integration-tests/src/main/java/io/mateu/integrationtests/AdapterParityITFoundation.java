@@ -1026,6 +1026,82 @@ public class AdapterParityITFoundation {
     servesTheInstallableApp("/plain", "Plain form");
   }
 
+  /**
+   * Behind a reverse proxy that serves the app at {@code /crm/} and strips the prefix, the page is
+   * written for the PUBLIC path ({@code io.mateu.core.infra.PublicBase}): the renderer's assets,
+   * the root's {@code baseUrl} (every API call and the address bar derive from it) and the
+   * installable-app links carry the prefix the proxy sent in {@code X-Forwarded-Prefix} — once
+   * {@code mateu.trust-forwarded-prefix=true}; without it the header is ignored (it may come from
+   * the client). The PWA files answer the public scope too.
+   */
+  public void servesThePageUnderAForwardedPrefix() {
+    // ignored unless trusted
+    given()
+        .accept("text/html")
+        .header("X-Forwarded-Prefix", "/crm")
+        .when()
+        .get("/plain")
+        .then()
+        .statusCode(200)
+        .body(containsString("<mateu-ui baseUrl=\"/plain\""))
+        .body(not(containsString("/crm/")));
+    System.setProperty(TRUST_FORWARDED_PREFIX, "true");
+    try {
+      servesUnderTheForwardedPrefix("/plain");
+      // a value that is not a plain path never reaches the markup
+      given()
+          .accept("text/html")
+          .header("X-Forwarded-Prefix", "/\"><script>alert(1)</script>")
+          .when()
+          .get("/plain")
+          .then()
+          .statusCode(200)
+          .body(containsString("<mateu-ui baseUrl=\"/plain\""))
+          .body(not(containsString("alert(1)")));
+    } finally {
+      System.clearProperty(TRUST_FORWARDED_PREFIX);
+    }
+  }
+
+  /** {@link #servesThePageUnderAForwardedPrefix()} for the YAML mount fixture. */
+  public void servesAYamlMountUnderAForwardedPrefix() {
+    System.setProperty(TRUST_FORWARDED_PREFIX, "true");
+    try {
+      servesUnderTheForwardedPrefix(YAML_MOUNT);
+    } finally {
+      System.clearProperty(TRUST_FORWARDED_PREFIX);
+    }
+  }
+
+  private static final String TRUST_FORWARDED_PREFIX = "mateu.trust-forwarded-prefix";
+
+  private static void servesUnderTheForwardedPrefix(String baseUrl) {
+    var page =
+        given()
+            .accept("text/html")
+            .header("X-Forwarded-Prefix", "/crm")
+            .when()
+            .get(baseUrl)
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    if (!page.contains("<mateu-ui baseUrl=\"/crm" + baseUrl + "\"")
+        || !page.contains("publicBase=\"/crm\"")
+        || !page.contains("href=\"/crm/assets/mateu-icon.svg\"")
+        || page.contains("=\"/assets/")
+        || !page.contains("href=\"/crm" + baseUrl + "/mateu/v3/pwa/manifest.webmanifest\"")) {
+      throw new AssertionError("the page of " + baseUrl + " is not under /crm:\n" + page);
+    }
+    given()
+        .header("X-Forwarded-Prefix", "/crm")
+        .when()
+        .get(baseUrl + "/mateu/v3/pwa/sw.js")
+        .then()
+        .statusCode(200)
+        .header("Service-Worker-Allowed", equalTo("/crm" + baseUrl));
+  }
+
   /** {@link #servesTheInstallableApp()} for the YAML mount fixture ({@value #YAML_MOUNT}). */
   public void servesAYamlMountsInstallableApp() {
     servesTheInstallableApp(YAML_MOUNT, YAML_MOUNT_TITLE);

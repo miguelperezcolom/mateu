@@ -459,7 +459,11 @@ public class MateuQuarkusRoutes {
               rc -> {
                 var asset =
                     YamlMounts.pwaAsset(
-                        routeRegistry, yamlAppLoader, mount.basePath(), rc.pathParam("file"));
+                        routeRegistry,
+                        yamlAppLoader,
+                        mount.basePath(),
+                        rc.pathParam("file"),
+                        publicBase(rc));
                 if (asset == null) {
                   rc.response().setStatusCode(404).end();
                   return;
@@ -501,7 +505,19 @@ public class MateuQuarkusRoutes {
   }
 
   private static void index(RoutingContext rc, YamlMounts.Mount mount) {
-    rc.response().putHeader("Content-Type", "text/html;charset=UTF-8").end(mount.indexHtml());
+    rc.response()
+        .putHeader("Content-Type", "text/html;charset=UTF-8")
+        .end(mount.indexHtml(publicBase(rc)));
+  }
+
+  /**
+   * The public base of a request ({@link io.mateu.core.infra.PublicBase}): {@code
+   * quarkus.http.root-path}, a proxy's prefix.
+   */
+  private static String publicBase(RoutingContext rc) {
+    return io.mateu.core.infra.PublicBase.of(
+        io.mateu.core.infra.PublicBase.configuredContextPath(),
+        rc.request().getHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   private static void run(RoutingContext rc, YamlMounts.Mount mount, MateuService service) {

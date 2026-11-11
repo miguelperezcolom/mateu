@@ -116,7 +116,11 @@ public class MateuYamlMountController {
   /** A file of the installable app ({@link io.mateu.core.infra.Pwa}) of the mount, or a 404. */
   @Get(uri = "/{+path:.*mateu/v3/pwa/[^/]+}", produces = MediaType.ALL)
   @ExecuteOn(TaskExecutors.BLOCKING)
-  public HttpResponse<byte[]> pwa(@PathVariable("path") String path) {
+  public HttpResponse<byte[]> pwa(
+      @PathVariable("path") String path,
+      @io.micronaut.http.annotation.Header("X-Forwarded-Prefix")
+          @io.micronaut.core.annotation.Nullable
+          String forwardedPrefix) {
     var requested = "/" + path;
     var mount = YamlMounts.mountForApiPath(mounts(), requested);
     if (mount == null) {
@@ -127,7 +131,9 @@ public class MateuYamlMountController {
             routeRegistry,
             yamlAppLoader,
             mount.basePath(),
-            requested.substring(requested.lastIndexOf('/') + 1));
+            requested.substring(requested.lastIndexOf('/') + 1),
+            io.mateu.core.infra.PublicBase.of(
+                io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix));
     if (asset == null) {
       return HttpResponse.status(HttpStatus.NOT_FOUND);
     }

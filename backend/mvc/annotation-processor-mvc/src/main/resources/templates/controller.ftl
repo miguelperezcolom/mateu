@@ -48,8 +48,10 @@ public class ${simpleClassName}MateuController implements MateuController {
     // registration script and the default icons, under v3/pwa/.
     @org.springframework.web.bind.annotation.GetMapping("v3/pwa/{file}")
     public org.springframework.http.ResponseEntity<byte[]> pwa(
-            @org.springframework.web.bind.annotation.PathVariable("file") String file) {
-        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+            @org.springframework.web.bind.annotation.PathVariable("file") String file,
+            HttpServletRequest request) {
+        // the manifest's scope and the worker's allowed scope are the PUBLIC ones
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, io.mateu.core.infra.PublicBase.of(request.getContextPath(), request.getHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER)) + baseUrl);
         if (asset == null) {
             return org.springframework.http.ResponseEntity.notFound().build();
         }

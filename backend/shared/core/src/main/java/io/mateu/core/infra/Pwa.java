@@ -309,10 +309,20 @@ public final class Pwa {
    * @param source what the UI declares (theme colour, icon); null when unknown
    */
   public static String served(String html, String baseUrl, MobileManifest.Source source) {
+    return served(html, baseUrl, source, "");
+  }
+
+  /**
+   * As {@link #served(String, String, MobileManifest.Source)} for a page served under {@code
+   * publicBase} ({@link PublicBase}); {@code baseUrl} is the PUBLIC path of the UI (the base
+   * included), and the folders the worker may cache are found below the base.
+   */
+  public static String served(
+      String html, String baseUrl, MobileManifest.Source source, String publicBase) {
     if (!enabled() || html == null) {
       return html;
     }
-    return withHead(html, Links.served(baseUrl), source, AppBuild.id());
+    return withHead(html, Links.served(baseUrl), source, AppBuild.id(), publicBase);
   }
 
   /**
@@ -324,11 +334,19 @@ public final class Pwa {
    */
   public static String withHead(
       String html, Links links, MobileManifest.Source source, String buildId) {
+    return withHead(html, links, source, buildId, "");
+  }
+
+  /**
+   * As {@link #withHead(String, Links, MobileManifest.Source, String)} under {@code publicBase}.
+   */
+  public static String withHead(
+      String html, Links links, MobileManifest.Source source, String buildId, String publicBase) {
     if (html == null || !html.contains("</head>") || html.contains("rel=\"manifest\"")) {
       return html;
     }
     var query = new StringBuilder("?v=").append(version(html, buildId));
-    for (var folder : staticFolders(html)) {
+    for (var folder : staticFolders(html, publicBase)) {
       query.append("&s=").append(URLEncoder.encode(folder, StandardCharsets.UTF_8));
     }
     for (var file : links.precache()) {
@@ -392,6 +410,16 @@ public final class Pwa {
    * only what scripts and stylesheets name, so no data endpoint can slip in.
    */
   static List<String> staticFolders(String html) {
+    return staticFolders(html, "");
+  }
+
+  /**
+   * As {@link #staticFolders(String)} for a page under {@code publicBase}: a folder is the first
+   * segment BELOW the base ({@code /crm/assets/}), never the base itself — that would be the whole
+   * app, its REST endpoints included.
+   */
+  static List<String> staticFolders(String html, String publicBase) {
+    var base = PublicBase.normalize(publicBase);
     var urls = new ArrayList<String>();
     Matcher m = SCRIPT_SRC.matcher(html);
     while (m.find()) {
@@ -409,7 +437,7 @@ public final class Pwa {
     }
     var folders = new LinkedHashSet<String>();
     for (var url : urls) {
-      var folder = folderOf(url.trim());
+      var folder = folderOf(url.trim(), base);
       if (folder != null) {
         folders.add(folder);
       }
@@ -420,7 +448,7 @@ public final class Pwa {
     return List.copyOf(folders);
   }
 
-  private static String folderOf(String url) {
+  private static String folderOf(String url, String base) {
     var lower = url.toLowerCase(Locale.ROOT);
     String origin = "";
     String path;
@@ -437,7 +465,17 @@ public final class Pwa {
     } else {
       path = url.startsWith("/") ? url : "/" + (url.startsWith("./") ? url.substring(2) : url);
     }
+    // a relative url resolves against the page's <base href> (a Redwood page's "/"), which is
+    // written under the public base too
+    var relative = origin.isEmpty() && !url.startsWith("/");
     path = pathOf(path);
+    var under = "";
+    if (!base.isEmpty() && relative) {
+      under = base;
+    } else if (!base.isEmpty() && origin.isEmpty() && path.startsWith(base + "/")) {
+      under = base;
+      path = path.substring(base.length());
+    }
     var second = path.indexOf('/', 1);
     if (second < 0) {
       return null; // a file at the root is no folder
@@ -449,7 +487,7 @@ public final class Pwa {
         || segment.equals(".")) {
       return null;
     }
-    return origin + "/" + segment + "/";
+    return origin + under + "/" + segment + "/";
   }
 
   // ------------------------------------------------------------------------------------------
