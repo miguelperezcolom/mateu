@@ -89,7 +89,17 @@ menu:
 
   Mateu's CORS covers its own endpoints (`…/mateu/**`). Anything else a screen loads from its
   own server — the module of a custom element (`Element` with an `import` attribute), an image —
-  is the product's to open to your origin (on Spring, a `CorsRegistry` mapping for that path).
+  has to be listed too, with `mateu.cors.paths` (comma-separated patterns, `*` within a segment,
+  `/**` for any depth):
+
+  ```properties
+  # on the product's service
+  mateu.cors.paths=/eventconductor/**,/images/*.png
+  ```
+
+  The same allow-list then answers for those files on every Java adapter. The .NET and Python
+  servers have no CORS policy of their own: the host's CORS middleware (ASP.NET `UseCors`,
+  Starlette's `CORSMiddleware`) covers every path it serves.
   The renderer loads a remote screen's root-relative module url (`/eventconductor/graph.js`) from
   the product's origin, not from your shell's (the web renderers built on `libs/mateu`; the
   Redwood renderer does not do this yet).

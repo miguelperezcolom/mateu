@@ -139,9 +139,9 @@ micronaut:
 
 **Helidon MP** — `helidon-microprofile-jwt-auth`, with `@LoginConfig(authMethod = "MP-JWT")` on
 your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
-`mp.jwt.verify.issuer` in `microprofile-config.properties`. (Mateu's streamed actions, MCP and YAML
-mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
-`PrincipalResolver` if those need roles.)
+`mp.jwt.verify.issuer` in `microprofile-config.properties`. Mateu hands the calls that bring
+credentials to Jersey, so streamed actions, MCP and YAML mounts see the JAX-RS principal and its
+roles (see *Helidon MP: the routes served outside Jersey* below).
 
 **JSON bodies only — on every adapter.** Mateu's action endpoints (`<baseUrl>/mateu/v3/**` —
 sync, SSE, a YAML mount's API — and `/mateu/mcp`) answer **415** to a `POST` whose body is not
@@ -357,12 +357,13 @@ grants** — or the identity your `PrincipalResolver` beans resolve. When the ap
 (a JAX-RS application annotated `@LoginConfig`, a JAX-RS **authentication filter** — a
 `ContainerRequestFilter` bean at `@Priority(Priorities.AUTHENTICATION)` or `AUTHORIZATION` — or
 `mateu.helidon.authentication-required=true`) an unauthenticated call is not served there: a
-streamed action falls through to Jersey (authenticated, buffered), MCP and the YAML mounts answer
-401. An app whose filter lets anonymous callers in sets `mateu.helidon.authentication-required=false`.
-A filter's identity exists only inside Jersey, so a streamed action that brings credentials
-(`Authorization` or a cookie) the filter would read, and that Helidon security did not authenticate,
-is also handed to Jersey: it runs with the filter's roles, buffered. To keep it streaming, protect
-the routes with Helidon security or resolve the caller with a `PrincipalResolver` bean.
+streamed action falls through to Jersey, MCP and the YAML mounts answer 401. An app whose filter
+lets anonymous callers in sets `mateu.helidon.authentication-required=false`.
+A filter's identity exists only inside Jersey. So a call that brings credentials (`Authorization`
+or a cookie) the filter would read, and that Helidon security did not authenticate, is handed to
+Jersey: a streamed action, an MCP call or a YAML mount's API call. There it runs with the filter's
+principal and roles. A stream answered by Jersey is still sent event by event, through a JAX-RS
+`SseEventSink` (the adapter brings `jersey-media-sse`, at your Helidon BOM's version).
 On Quarkus, `/mateu/mcp` now runs after HTTP
 security, so the app's `quarkus.http.auth.permission` policies apply to it and its tools see the
 caller.

@@ -93,6 +93,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void ignoresAnUntrustedForwardedPrefix() {
+    contract.ignoresAnUntrustedForwardedPrefix();
+  }
+
+  @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
   }

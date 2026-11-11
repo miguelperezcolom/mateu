@@ -61,6 +61,10 @@ public class AdapterParityITFoundation {
         .then()
         .statusCode(200)
         .header("Content-Type", startsWith("text/event-stream"))
+        // a buffering proxy (nginx by default) passes each event on as it is written
+        .header("X-Accel-Buffering", equalTo("no"))
+        .header("Cache-Control", containsString("no-cache"))
+        .header("Cache-Control", containsString("no-transform"))
         .body(startsWith("data:"))
         .body(containsString("\"fragments\""));
   }
@@ -436,6 +440,153 @@ public class AdapterParityITFoundation {
         .statusCode(200)
         .header("Content-Type", startsWith("application/json"))
         .body(containsString("\"fragments\""));
+    acceptsEveryJsonSpelling("/hello/mateu/v3/sync/_no_route", "/hello/mateu/v3/sse/_no_route");
+  }
+
+  /**
+   * The JSON spellings Mateu's rule accepts, on every adapter: a structured-syntax {@code +json}
+   * type (Micronaut answered 415) and blanks around the parameters (Quarkus REST answered 415).
+   */
+  static final String[] JSON_CONTENT_TYPES = {
+    "application/json",
+    "application/json; charset=UTF-8",
+    "application/json ;charset=UTF-8",
+    "application/vnd.mateu+json"
+  };
+
+  private static void acceptsEveryJsonSpelling(String... paths) {
+    for (String path : paths) {
+      for (String contentType : JSON_CONTENT_TYPES) {
+        int status;
+        try {
+          status = postRaw(path, contentType, RQ);
+        } catch (Exception e) {
+          throw new AssertionError(path + " with Content-Type " + contentType + " failed", e);
+        }
+        if (status != 200) {
+          throw new AssertionError(
+              path + " with Content-Type " + contentType + " answered " + status + ", not 200");
+        }
+      }
+    }
+  }
+
+  /** The prefix the forwarded-prefix tests send in {@code X-Forwarded-Prefix}. */
+  public static final String FORWARDED_PREFIX = "/proxied";
+
+  /**
+   * Without {@code mateu.forwarded-prefix.trusted=true} an {@code X-Forwarded-Prefix} is a claim
+   * anybody can make: the page is served as it is.
+   */
+  public void ignoresAnUntrustedForwardedPrefix() {
+    given()
+        .accept("text/html")
+        .header("X-Forwarded-Prefix", FORWARDED_PREFIX)
+        .when()
+        .get("/hello")
+        .then()
+        .statusCode(200)
+        .body(containsString("<mateu-ui baseUrl=\"/hello\""))
+        .body(not(containsString(FORWARDED_PREFIX)));
+  }
+
+  /**
+   * With {@code mateu.forwarded-prefix.trusted=true}, behind a proxy that strips {@value
+   * #FORWARDED_PREFIX} and says so in {@code X-Forwarded-Prefix}: the page names its assets and its
+   * API under the prefix, so the browser asks the proxy for them, and the renderer keeps the prefix
+   * in the address bar ({@code contextPath}).
+   */
+  public void servesThePageUnderATrustedForwardedPrefix() {
+    for (String path : new String[] {"/hello", "/hello/some/deep/link"}) {
+      given()
+          .accept("text/html")
+          .header("X-Forwarded-Prefix", FORWARDED_PREFIX)
+          .when()
+          .get(path)
+          .then()
+          .statusCode(200)
+          .body(
+              containsString(
+                  "<mateu-ui baseUrl=\""
+                      + FORWARDED_PREFIX
+                      + "/hello\" contextPath=\""
+                      + FORWARDED_PREFIX
+                      + "\""))
+          .body(containsString("\"" + FORWARDED_PREFIX + "/assets/"))
+          .body(not(containsString("\"/assets/")));
+    }
+  }
+
+  /**
+   * With {@code mateu.cors.paths} naming {@code coveredAssetPath}: the allow-list also covers that
+   * file (the module an {@code Element} of a remote screen imports), and only for the allowed
+   * origin.
+   */
+  public void grantsCrossOriginAccessToTheConfiguredPaths(String coveredAssetPath) {
+    given()
+        .header("Origin", ALLOWED_ORIGIN)
+        .when()
+        .get(coveredAssetPath)
+        .then()
+        .statusCode(200)
+        .header("Access-Control-Allow-Origin", equalTo(ALLOWED_ORIGIN));
+    given()
+        .header("Origin", OTHER_ORIGIN)
+        .when()
+        .get(coveredAssetPath)
+        .then()
+        .header("Access-Control-Allow-Origin", nullValue());
+  }
+
+  /**
+   * The MCP endpoint and the YAML mounts' API see the caller {@code credentials} authenticate (on
+   * Helidon MP an app that authenticates only in JAX-RS: they used to run outside it, as nobody):
+   * the admin sees the {@code @EyesOnly} field over MCP and reaches the YAML route its {@code
+   * access:} restricts, which an anonymous caller does not.
+   */
+  public void mcpAndYamlMountsSeeTheCallersIdentity(java.util.Map<String, String> credentials) {
+    var describe =
+        "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":"
+            + "\"mateu_describe_screen\",\"arguments\":{\"route\":\"restricted\"}}}";
+    given()
+        .headers(credentials)
+        .contentType(ContentType.JSON)
+        .body(describe)
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200)
+        .body(containsString("adminOnlyField"));
+    var restricted =
+        "{\"route\": \"/restricted\", \"consumedRoute\": \"\", \"actionId\": \"\","
+            + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}";
+    given()
+        .contentType(ContentType.JSON)
+        .body(restricted)
+        .when()
+        .post(YAML_MOUNT + "/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(403);
+    given()
+        .headers(credentials)
+        .contentType(ContentType.JSON)
+        .body(restricted)
+        .when()
+        .post(YAML_MOUNT + "/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("YAML parity page"));
+    given()
+        .headers(credentials)
+        .contentType(ContentType.JSON)
+        .accept("text/event-stream")
+        .body(restricted)
+        .when()
+        .post(YAML_MOUNT + "/mateu/v3/sse/_no_route")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("text/event-stream"))
+        .body(containsString("YAML parity page"));
   }
 
   /**
@@ -1165,14 +1316,25 @@ public class AdapterParityITFoundation {
    * forever and notes its cancellation; {@code feedCancelled} reports it.
    */
   public void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
+    cancelsTheWorkWhenTheStreamsClientLeaves(java.util.Map.of());
+  }
+
+  /**
+   * As above, for a caller bringing {@code headers} (on Helidon MP, credentials only JAX-RS reads:
+   * the stream is answered through Jersey, and must still be LIVE — the first tick of a feed that
+   * never ends only arrives if nothing buffers it).
+   */
+  public void cancelsTheWorkWhenTheStreamsClientLeaves(java.util.Map<String, String> headers)
+      throws Exception {
     var client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
-    var request =
+    var builder =
         java.net.http.HttpRequest.newBuilder(
                 URI.create("http://localhost:" + RestAssured.port + "/echo/mateu/v3/sse/_no_route"))
             .header("Accept", "text/event-stream")
-            .header("Content-Type", "application/json")
-            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(action("liveFeed")))
-            .build();
+            .header("Content-Type", "application/json");
+    headers.forEach(builder::header);
+    var request =
+        builder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(action("liveFeed"))).build();
     ExecutorService executor = Executors.newSingleThreadExecutor();
     try {
       var response =
@@ -1287,8 +1449,27 @@ public class AdapterParityITFoundation {
         .then()
         .statusCode(200)
         .header("Content-Type", startsWith("text/event-stream"))
+        .header("X-Accel-Buffering", equalTo("no"))
         .body(startsWith("data:"))
         .body(containsString("YAML parity page"));
+    // every JSON spelling, on the mount's API too (Micronaut answered 415 to a +json type)
+    for (String path :
+        new String[] {
+          YAML_MOUNT + "/mateu/v3/sync/_no_route", YAML_MOUNT + "/mateu/v3/sse/_no_route"
+        }) {
+      for (String contentType : JSON_CONTENT_TYPES) {
+        int status;
+        try {
+          status = postRaw(path, contentType, yamlPageRq(""));
+        } catch (Exception e) {
+          throw new AssertionError(path + " with Content-Type " + contentType + " failed", e);
+        }
+        if (status != 200) {
+          throw new AssertionError(
+              path + " with Content-Type " + contentType + " answered " + status + ", not 200");
+        }
+      }
+    }
   }
 
   /** The renderer's error reports are accepted under any UI's base URL. */

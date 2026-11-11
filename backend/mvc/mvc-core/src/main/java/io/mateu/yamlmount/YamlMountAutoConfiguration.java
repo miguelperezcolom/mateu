@@ -53,7 +53,7 @@ public class YamlMountAutoConfiguration {
     for (var mount : mounts) {
       var basePath = mount.basePath();
       builder
-          .GET(mount.spaPath(), request -> index(mount))
+          .GET(mount.spaPath(), request -> index(mount, request))
           .GET(
               mount.apiPrefix() + "/v3/manifest",
               request -> manifest(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, basePath)))
@@ -77,14 +77,18 @@ public class YamlMountAutoConfiguration {
                             // a navigation, not a data fetch (see SpaFallback.acceptsHtml)
                             && io.mateu.core.infra.SpaFallback.acceptsHtml(
                                 request.headers().firstHeader("Accept"))),
-            request -> index(mount));
+            request -> index(mount, request));
       }
     }
     return builder.build();
   }
 
-  private static ServerResponse index(YamlMounts.Mount mount) {
-    return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(mount.indexHtml());
+  private static ServerResponse index(YamlMounts.Mount mount, ServerRequest request) {
+    return ServerResponse.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(
+            io.mateu.core.infra.IndexPage.underPrefix(
+                mount.indexHtml(), io.mateu.MateuRequestPaths.prefixOf(request.servletRequest())));
   }
 
   /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */

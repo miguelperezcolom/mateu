@@ -25,15 +25,18 @@ public class MateuCorsWebFilter implements WebFilter {
 
   public MateuCorsWebFilter(
       @Value("${" + CorsPolicy.ALLOWED_ORIGINS_PROPERTY + ":}") String allowedOrigins,
-      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials) {
-    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials);
+      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials,
+      @Value("${" + CorsPolicy.PATHS_PROPERTY + ":}") String paths) {
+    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials, paths);
   }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     var request = exchange.getRequest();
     String origin = request.getHeaders().getOrigin();
-    if (!policy.enabled() || origin == null || !CorsPolicy.appliesTo(request.getPath().value())) {
+    if (!policy.enabled()
+        || origin == null
+        || !policy.covers(request.getPath().pathWithinApplication().value())) {
       return chain.filter(exchange);
     }
     var response = exchange.getResponse();

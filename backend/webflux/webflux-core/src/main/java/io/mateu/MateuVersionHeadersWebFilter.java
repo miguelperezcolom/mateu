@@ -28,12 +28,17 @@ public class MateuVersionHeadersWebFilter implements WebFilter {
     }
     RendererCompatibility.check(request.getHeaders().getFirst(RendererCompatibility.HEADER));
     var response = exchange.getResponse();
+    boolean stream = io.mateu.core.infra.SseHeaders.isStream(request.getPath().value());
     // at commit time: the first request is the one that builds the wire type allow-list
     response.beforeCommit(
         () -> {
           var build = AppBuild.id();
           if (build != null) {
             response.getHeaders().set(AppBuild.HEADER, build);
+          }
+          if (stream) {
+            // an event stream a buffering proxy passes on as it is written (SseHeaders)
+            io.mateu.core.infra.SseHeaders.HEADERS.forEach(response.getHeaders()::set);
           }
           return Mono.empty();
         });

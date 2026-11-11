@@ -38,7 +38,9 @@ public class MateuYamlMountIndexController {
   @ExecuteOn(TaskExecutors.BLOCKING)
   public HttpResponse<String> index(
       @PathVariable("path") @Nullable String path,
-      @io.micronaut.http.annotation.Header("Accept") @Nullable String accept) {
+      @io.micronaut.http.annotation.Header("Accept") @Nullable String accept,
+      @io.micronaut.http.annotation.Header(io.mateu.core.infra.ForwardedPrefix.HEADER) @Nullable
+          String forwardedPrefix) {
     String requested = "/" + (path == null ? "" : path);
     if (path != null && !path.isEmpty() && !io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
       // a data fetch, not a navigation (see SpaFallback.acceptsHtml): a REST source whose endpoint
@@ -59,6 +61,9 @@ public class MateuYamlMountIndexController {
     if (best == null || requested.contains("/mateu/")) {
       return HttpResponse.status(HttpStatus.NOT_FOUND);
     }
-    return HttpResponse.ok(best.indexHtml()).contentType(MediaType.TEXT_HTML_TYPE);
+    return HttpResponse.ok(
+            io.mateu.core.infra.IndexPage.underPrefix(
+                best.indexHtml(), io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix)))
+        .contentType(MediaType.TEXT_HTML_TYPE);
   }
 }

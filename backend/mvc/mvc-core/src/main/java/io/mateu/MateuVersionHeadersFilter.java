@@ -25,7 +25,7 @@ public class MateuVersionHeadersFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    return !CorsPolicy.appliesTo(request.getRequestURI());
+    return !CorsPolicy.appliesTo(MateuRequestPaths.withinApp(request));
   }
 
   @Override
@@ -38,6 +38,10 @@ public class MateuVersionHeadersFilter extends OncePerRequestFilter {
     var build = AppBuild.id();
     if (build != null) {
       response.setHeader(AppBuild.HEADER, build);
+    }
+    if (io.mateu.core.infra.SseHeaders.isStream(MateuRequestPaths.withinApp(request))) {
+      // an event stream a buffering proxy passes on as it is written (SseHeaders)
+      io.mateu.core.infra.SseHeaders.HEADERS.forEach(response::setHeader);
     }
     filterChain.doFilter(request, response);
     if (build == null && !response.isCommitted()) {

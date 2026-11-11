@@ -61,7 +61,7 @@ public class YamlMountWebFluxAutoConfiguration {
     for (var mount : mounts) {
       var basePath = mount.basePath();
       builder
-          .GET(mount.spaPath(), request -> index(mount))
+          .GET(mount.spaPath(), request -> index(mount, request))
           .GET(
               mount.apiPrefix() + "/v3/manifest",
               request -> manifest(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, basePath)))
@@ -83,14 +83,23 @@ public class YamlMountWebFluxAutoConfiguration {
                             // a navigation, not a data fetch (see SpaFallback.acceptsHtml)
                             && io.mateu.core.infra.SpaFallback.acceptsHtml(
                                 request.headers().firstHeader("Accept"))),
-            request -> index(mount));
+            request -> index(mount, request));
       }
     }
     return builder.build();
   }
 
-  private static Mono<ServerResponse> index(YamlMounts.Mount mount) {
-    return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(mount.indexHtml());
+  private static Mono<ServerResponse> index(
+      YamlMounts.Mount mount, org.springframework.web.reactive.function.server.ServerRequest rq) {
+    var request = rq.exchange().getRequest();
+    return ServerResponse.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .bodyValue(
+            io.mateu.core.infra.IndexPage.underPrefix(
+                mount.indexHtml(),
+                io.mateu.core.infra.ForwardedPrefix.of(
+                    request.getPath().contextPath().value(),
+                    request.getHeaders().getFirst(io.mateu.core.infra.ForwardedPrefix.HEADER))));
   }
 
   /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */

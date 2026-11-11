@@ -15,61 +15,41 @@ never a public issue.
 
 ## Deployment
 
-### A servlet context path or a prefix-stripping proxy is not supported
+### Under a path prefix: no installable app, and some limits on Redwood and three adapters
 
-The generated index page loads the renderer's assets from `/assets/…` at the **root of the host**.
-Behind `server.servlet.context-path` or a reverse proxy that strips a path prefix, the page loads
-but the assets 404, so you get a blank screen.
+A Mateu page follows a servlet context path or a trusted `X-Forwarded-Prefix`: its assets, its API
+calls and the address bar all move under the prefix (see
+[Deploy to production](/deploy/production-checklist/)). What still does not follow it:
 
-**Workaround:** serve the app at the root of its host, or give the mount the public path you want
-(`@UI("/admin")`) and route both `/admin/**` and `/assets/**` to the backend. Several Mateu apps
-behind one host share `/assets/**`, so they must run the same Mateu release. See
-[Deploy to production](/deploy/production-checklist/).
+- The **installable app** (PWA). Its manifest and service worker name the mount without the
+  prefix, so the browser does not offer to install the app there.
+- **Redwood with a mount that is not the root.** A route the server sends with the mount on it (a
+  crud's `/products/new`) shows the mount twice in the address bar.
+- **Micronaut, Quarkus and Helidon MP read only the proxy's header.** Their own context-path
+  settings (`micronaut.server.context-path`, `quarkus.http.root-path`) are not applied to the page.
+
+**Workaround:** for an installable app or a Redwood app, serve the UI at the root of its host or
+give the mount the public path you want (`@UI("/admin")`). On Micronaut, Quarkus and Helidon MP,
+strip the prefix in the proxy and send `X-Forwarded-Prefix`.
 
 ### Micronaut on JDK 21–23: virtual-thread pinning under load
 
-On Java 21+ Micronaut runs the blocking executor that serves Mateu's action endpoints on virtual
-threads. On JDK 21–23 a virtual thread that blocks inside `synchronized` (verbose logging and some
-libraries do) pins its carrier thread, and a burst of requests can stall.
+On JDK 21–23 a virtual thread that blocks inside `synchronized` pins its carrier thread. Micronaut
+runs Mateu's actions on virtual threads there, so a burst of requests can stall. This is a JVM
+limitation. The adapter warns about it once at startup.
 
 **Workaround:** run on JDK 24 or later, or set `micronaut.executors.blocking.virtual=false`. See
 [Micronaut](/java-create-your-project/micronaut/).
 
-### Helidon MP: an app that authenticates only in JAX-RS
+### Long-running actions and proxy read timeouts
 
-On Helidon MP, Mateu's streamed actions (`LongTask`), the MCP endpoint, YAML mounts and the client
-log run on Helidon's own routing, ahead of Jersey. With **helidon-security** they see its principal,
-roles and scope grants included, and an app that requires a login
-(`mateu.helidon.authentication-required`) answers an anonymous caller 401 on the MCP endpoint and
-the YAML mounts. Two cases are still limited:
+Streamed actions (server-sent events) send `X-Accel-Buffering: no` and
+`Cache-Control: no-cache, no-transform`, so nginx's default buffering does not hold them. A proxy's
+**read timeout** still applies: a task that sends nothing for longer than that is cut off.
 
-- An app that authenticates only in JAX-RS — MicroProfile JWT, or a JAX-RS `ContainerRequestFilter`,
-  without helidon-security — is not seen on the MCP endpoint and the YAML mounts: they get an
-  anonymous caller, so `@EyesOnly` and YAML `access:` refuse it.
-- A streamed action whose request carries credentials that only JAX-RS reads is handed to Jersey,
-  which authenticates it but buffers the stream: the progress arrives at the end, all at once.
-
-**Workaround:** use helidon-security for authentication, or register a `PrincipalResolver` bean that
-builds the caller from the request. See [Security](/java-user-manual/advanced/security/).
-
-### Micronaut and Quarkus are stricter than the JSON-body rule
-
-Mateu's endpoints accept a body declared `application/json` or any `application/*+json`
-(everything else answers 415). Two frameworks narrow that further before Mateu sees the request:
-Micronaut's sync, SSE and YAML-mount endpoints accept only `application/json` (a
-`application/vnd.x+json` body answers 415 there, while `/mateu/mcp` and every other adapter take
-it), and Quarkus REST refuses `application/json ;charset=UTF-8` with a space before the `;`.
-
-**Workaround:** send exactly `Content-Type: application/json` (with or without `; charset=…`) — what
-every Mateu renderer, native app and the sidecar send.
-
-### Proxies must not buffer server-sent events
-
-Long-running actions stream their progress over server-sent events. A proxy that buffers the
-response (nginx does by default) delivers it all at the end, or times out.
-
-**Workaround:** disable buffering for the action endpoint (`proxy_buffering off;` in nginx) and raise
-its read timeout above your longest task.
+**Workaround:** raise the read timeout for `…/mateu/v3/sse/` above your longest silent stretch. A
+proxy that ignores `X-Accel-Buffering` also needs buffering turned off there
+(`proxy_buffering off;` in nginx terms).
 
 ### Permissions in static bundles and in Play are cosmetic
 
@@ -119,15 +99,6 @@ notification bell are not there.
 
 **Workaround:** open that app on its own (as a separate UI in the hub, or its own fixed build) when
 its users need those controls.
-
-### A remote screen's own scripts need CORS from the remote
-
-When a shell embeds a screen from another Mateu backend, Mateu's CORS settings
-(`mateu.cors.allowed-origins`) cover only its own endpoints (`…/mateu/**`). A script an `Element`
-of the remote screen imports (`import: /x.js`) is a plain static file of the remote.
-
-**Workaround:** open that path to the shell's origin on the remote (on Spring, a `CorsRegistry`
-mapping). See [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
 
 ### Multi-value fields do not read `optionsSource`
 

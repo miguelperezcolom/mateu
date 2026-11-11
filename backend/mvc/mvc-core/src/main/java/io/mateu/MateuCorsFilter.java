@@ -26,15 +26,16 @@ public class MateuCorsFilter extends OncePerRequestFilter {
 
   public MateuCorsFilter(
       @Value("${" + CorsPolicy.ALLOWED_ORIGINS_PROPERTY + ":}") String allowedOrigins,
-      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials) {
-    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials);
+      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials,
+      @Value("${" + CorsPolicy.PATHS_PROPERTY + ":}") String paths) {
+    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials, paths);
   }
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return !policy.enabled()
         || request.getHeader("Origin") == null
-        || !CorsPolicy.appliesTo(request.getRequestURI());
+        || !policy.covers(MateuRequestPaths.withinApp(request));
   }
 
   @Override

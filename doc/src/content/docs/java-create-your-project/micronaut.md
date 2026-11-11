@@ -100,8 +100,9 @@ Two settings matter for a Micronaut app that serves Mateu under concurrent load:
   logging those sections wait on logback's lock. A burst of concurrent requests on a cold server can
   then pin every carrier and the server stops answering (a thread dump shows every
   `ForkJoinPool-1-worker` "Carrying virtual thread" parked in `OutputStreamAppender.writeBytes`).
-  Mateu's own one-time loads no longer hold a monitor, and INFO logging removes the trigger, but if
-  you must stay on JDK 21 with verbose logging or other pinning libraries, either:
+  Mateu's own one-time loads no longer hold a monitor, and INFO logging removes the trigger. The
+  adapter logs one WARN at startup when it runs on JDK 21–23 with virtual threads on. If you must
+  stay on JDK 21 with verbose logging or other pinning libraries, either:
   - run on **JDK 24 or later**, where `synchronized` no longer pins
     ([JEP 491](https://openjdk.org/jeps/491)) — the recommended fix; or
   - give the blocking executor platform threads:

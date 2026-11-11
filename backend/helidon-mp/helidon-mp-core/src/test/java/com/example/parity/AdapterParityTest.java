@@ -93,6 +93,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void ignoresAnUntrustedForwardedPrefix() {
+    contract.ignoresAnUntrustedForwardedPrefix();
+  }
+
+  @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
   }
@@ -135,6 +140,14 @@ class AdapterParityTest {
   @Test
   void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
     contract.cancelsTheWorkWhenTheStreamsClientLeaves();
+  }
+
+  @Test
+  void streamsLiveThroughJerseyForACallerOnlyJaxRsAuthenticates() throws Exception {
+    // credentials only the JAX-RS filter reads: answered by the generated controller through an
+    // SseEventSink — the first tick of a never-ending feed arrives only if nothing buffers it
+    contract.cancelsTheWorkWhenTheStreamsClientLeaves(
+        java.util.Map.of("Authorization", "Parity admin"));
   }
 
   @Test

@@ -107,6 +107,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void ignoresAnUntrustedForwardedPrefix() {
+      contract.ignoresAnUntrustedForwardedPrefix();
+    }
+
+    @Test
     void answersDeepLinksWithTheIndex() {
       contract.answersDeepLinksWithTheIndex();
     }
@@ -222,7 +227,9 @@ class AdapterParityIT {
         "mateu.cors.allowed-origins=" + AdapterParityITFoundation.ALLOWED_ORIGIN,
         "mateu.mcp.enabled=true",
         "mateu.mcp.push.enabled=true",
-        "mateu.dev=true"
+        "mateu.dev=true",
+        "mateu.forwarded-prefix.trusted=true",
+        "mateu.cors.paths=/elements/**,/assets/large*"
       })
   @org.junit.jupiter.api.Order(2)
   class Enabled {
@@ -237,6 +244,16 @@ class AdapterParityIT {
     @Test
     void grantsCrossOriginAccessToTheAllowList() {
       contract.grantsCrossOriginAccessToTheAllowList();
+    }
+
+    @Test
+    void grantsCrossOriginAccessToTheConfiguredPaths() {
+      contract.grantsCrossOriginAccessToTheConfiguredPaths("/assets/large.js");
+    }
+
+    @Test
+    void servesThePageUnderATrustedForwardedPrefix() {
+      contract.servesThePageUnderATrustedForwardedPrefix();
     }
 
     @Test

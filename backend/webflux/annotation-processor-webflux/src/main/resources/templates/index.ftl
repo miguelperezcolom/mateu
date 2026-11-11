@@ -30,18 +30,25 @@ public class ${simpleClassName}Controller {
     // Any route under the UI (up to 8 segments without a dot) answers the index — the SPA fallback.
     @GetMapping(value = {"{s1}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s4:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s4:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s5:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s4:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s5:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s6:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s4:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s5:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s6:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s7:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", "{s1:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s2:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s3:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s4:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s5:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s6:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s7:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}/{s8:" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}"}, produces = MediaType.TEXT_HTML_VALUE)
     public String getIndexAlways(
-            @org.springframework.web.bind.annotation.RequestHeader(value = "Accept", required = false) String accept) {
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Accept", required = false) String accept,
+            org.springframework.http.server.reactive.ServerHttpRequest request) {
         // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
         // whose endpoint does not exist yet) must not be answered a 200 of HTML.
         if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND);
         }
-        return getIndex();
+        return getIndex(request);
     }
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndex() {
-        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug));
+    public String getIndex(org.springframework.http.server.reactive.ServerHttpRequest request) {
+        // under spring.webflux.base-path / a trusted X-Forwarded-Prefix the page names its assets
+        // and API there
+        return IndexPage.underPrefix(
+                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)),
+                io.mateu.core.infra.ForwardedPrefix.of(
+                        request.getPath().contextPath().value(),
+                        request.getHeaders().getFirst(io.mateu.core.infra.ForwardedPrefix.HEADER)));
     }
 
 }

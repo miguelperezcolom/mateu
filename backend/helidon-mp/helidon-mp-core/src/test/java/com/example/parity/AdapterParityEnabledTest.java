@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 @AddConfig(key = "mateu.mcp.enabled", value = "true")
 @AddConfig(key = "mateu.mcp.push.enabled", value = "true")
 @AddConfig(key = "mateu.dev", value = "true")
+@AddConfig(key = "mateu.forwarded-prefix.trusted", value = "true")
+@AddConfig(key = "mateu.cors.paths", value = "/elements/**,/assets/large*")
 class AdapterParityEnabledTest {
 
   final AdapterParityITFoundation contract = new AdapterParityITFoundation();
@@ -39,6 +41,16 @@ class AdapterParityEnabledTest {
   }
 
   @Test
+  void grantsCrossOriginAccessToTheConfiguredPaths() {
+    contract.grantsCrossOriginAccessToTheConfiguredPaths("/assets/large.js");
+  }
+
+  @Test
+  void servesThePageUnderATrustedForwardedPrefix() {
+    contract.servesThePageUnderATrustedForwardedPrefix();
+  }
+
+  @Test
   void mcpToolCallsApplyTheSameRbacAndErrorBoundary() {
     contract.mcpToolCallsApplyTheSameRbacAndErrorBoundary();
   }
@@ -46,6 +58,14 @@ class AdapterParityEnabledTest {
   @Test
   void grantsNoCrossOriginAccessOutsideTheMateuApi() {
     contract.grantsNoCrossOriginAccessOutsideTheMateuApi("/assets/fixed.js");
+  }
+
+  @Test
+  void mcpAndYamlMountsSeeAnIdentityOnlyJaxRsAuthenticates() {
+    // ParityRolesAuthentication is a JAX-RS ContainerRequestFilter and the app has no
+    // helidon-security: the Helidon routing hands these calls to Jersey (MateuJaxRsEndpoints)
+    contract.mcpAndYamlMountsSeeTheCallersIdentity(
+        java.util.Map.of("Authorization", "Parity admin"));
   }
 
   @Test

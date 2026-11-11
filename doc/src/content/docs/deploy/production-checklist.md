@@ -58,14 +58,27 @@ What follows from it:
 - Serve the app at the **root of its host** (`https://admin.example.com/`), or give the mount the
   public path you want (`@UI("/admin")`) and route **both** `/admin/**` **and** `/assets/**` to the
   backend.
-- A servlet **context path** (`server.servlet.context-path`) or a proxy that **strips a prefix** is
-  not supported: the generated page references `/assets/…` from the root, so the assets 404 behind a
-  prefix.
-- Several Mateu apps behind one host: give each its own `@UI` path. They all load `/assets/**` from
-  the same place, so they must run the **same Mateu release** — or live on separate hosts.
-- Long-running actions (`LongTask`, streamed responses) use **server-sent events**: disable response
-  buffering for the action endpoint on the proxy (`proxy_buffering off;` in nginx) and raise its read
-  timeout above your longest task.
+- Under a **path prefix** the page follows it: the assets, the action endpoint and the address bar
+  all move under the prefix.
+  - A servlet **context path** (`server.servlet.context-path=/app` on Spring MVC,
+    `spring.webflux.base-path` on WebFlux) needs nothing else.
+  - A proxy that **strips a prefix** must say so in `X-Forwarded-Prefix`, and the app must trust it:
+    `mateu.forwarded-prefix.trusted=true` (.NET `ForwardedPrefixTrusted`, Python
+    `add_mateu(forwarded_prefix_trusted=True)`, env `MATEU_FORWARDED_PREFIX_TRUSTED`). Mateu never
+    reads the header otherwise, because any client can send it. On Spring Boot,
+    `server.forward-headers-strategy=framework` does the same (Spring turns the header into the
+    context path).
+  - The renderer's own files and Mateu's API move under the prefix. URLs your app writes itself (an
+    `Image` source, a logo, an `Element` import) do not: write them with the prefix.
+- Several Mateu apps behind one host: give each its own `@UI` path or prefix. Apps that share
+  `/assets/**` must run the **same Mateu release**. Give each a prefix of its own and they no longer
+  share it.
+- Long-running actions (`LongTask`, streamed responses) use **server-sent events**. Every event
+  stream carries `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, so nginx's
+  default buffering is off for it and nothing compresses it on the way. A proxy that ignores those
+  headers still needs buffering turned off for `…/mateu/v3/sse/` (`proxy_buffering off;`). Either
+  way, raise the proxy's **read timeout** above your longest silent stretch: a task that sends nothing
+  for longer is cut off.
 - Sticky sessions are **not** needed — see the next section.
 
 ### Compress the responses
@@ -204,8 +217,8 @@ only where an agent should operate the app, behind the same authentication as th
 
 - [ ] `mateu.version` pinned to a release; all `io.mateu` artifacts on it
 - [ ] Generated controllers present in the artifact; every menu entry loads
-- [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend
-- [ ] SSE not buffered by the proxy (if you use long-running actions)
+- [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend, or under a prefix (context path, or `X-Forwarded-Prefix` with `mateu.forwarded-prefix.trusted=true`)
+- [ ] Proxy read timeout above your longest silent stretch of a stream (if you use long-running actions)
 - [ ] JSON responses compressed by the server or the proxy (`server.compression.enabled=true` on Spring Boot)
 - [ ] No singleton view model with mutable fields
 - [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions

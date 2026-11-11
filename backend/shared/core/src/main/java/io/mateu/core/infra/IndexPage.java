@@ -100,6 +100,56 @@ public final class IndexPage {
   }
 
   /**
+   * A rendered page served under a public path prefix ({@link ForwardedPrefix}: a servlet context
+   * path, or a trusted {@code X-Forwarded-Prefix}): every root-relative URL the page names ({@code
+   * src}, {@code href} — Redwood's {@code <base href="/">} included —, {@code data-src}, the
+   * installable app's {@code data-sw}/{@code data-scope}, the live-reload meta), Redwood's {@code
+   * vbInitConfig.BASE_URL}, and the {@code <mateu-ui>} base url, which then also carries the prefix
+   * as {@code contextPath}: the renderers call {@code <prefix>/mateu/v3/…} and keep the prefix in
+   * the address bar. {@code html} unchanged for no prefix.
+   */
+  public static String underPrefix(String html, String prefix) {
+    var p = ForwardedPrefix.normalize(prefix);
+    if (html == null || p.isEmpty()) {
+      return html;
+    }
+    var quoted = Matcher.quoteReplacement(p);
+    html = ROOT_RELATIVE.matcher(html).replaceAll("$1$2" + quoted + "/");
+    html = REDWOOD_BASE.matcher(html).replaceAll("$1" + quoted + "/_redwood/");
+    html =
+        html.replace(
+            "content=\"" + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH + "\"",
+            "content=\"" + p + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH + "\"");
+    var root = MATEU_UI_BASE_URL.matcher(html);
+    if (root.find()) {
+      var value = root.group(3);
+      var based = value.startsWith("/") || value.isEmpty() ? p + value : value;
+      html =
+          html.substring(0, root.start())
+              + root.group(1)
+              + root.group(2)
+              + attr(based)
+              + root.group(2)
+              + " contextPath=\""
+              + attr(p)
+              + "\""
+              + html.substring(root.end());
+    }
+    return html;
+  }
+
+  // src="/x", href='/x', data-src, data-sw, data-scope — never a protocol-relative "//host/x"
+  private static final Pattern ROOT_RELATIVE =
+      Pattern.compile(
+          "(\\s(?:src|href|data-src|data-sw|data-scope)\\s*=\\s*)([\"'])/(?!/)",
+          Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern REDWOOD_BASE = Pattern.compile("(BASE_URL\\s*:\\s*['\"])/_redwood/");
+
+  private static final Pattern MATEU_UI_BASE_URL =
+      Pattern.compile("(<mateu-ui\\b[^>]*?\\sbaseUrl\\s*=\\s*)([\"'])([^\"']*)\\2");
+
+  /**
    * The favicon a renderer page carries when the app names none (the browser tab shows Mateu's, not
    * a build tool's); the app's own favicon then arrives with the shell ({@code SetFavicon}). Served
    * by the renderer jar next to its assets, so it resolves on every adapter.

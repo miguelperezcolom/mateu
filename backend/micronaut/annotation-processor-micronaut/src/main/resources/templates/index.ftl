@@ -32,7 +32,8 @@ public class ${simpleClassName}Controller {
     // `~`, `:` or `@` (/stays/Jos%C3%A9) is a deep link like any other — it used to be a 404 here only.
     @Get(value = "/{+path:(?!.*mateu/v3/manifest$)" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path,
-            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept) {
+            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept,
+            @io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
         // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
         // whose endpoint does not exist yet) must not be answered a 200 of HTML.
         if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
@@ -42,14 +43,19 @@ public class ${simpleClassName}Controller {
         // catch-all and the YAML one would otherwise be equally specific
         var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
         if (yaml != null) {
-            return yaml;
+            return IndexPage.underPrefix(yaml, io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
         }
-        return getIndex();
+        return getIndex(forwardedPrefix);
     }
 
     @Get(produces = MediaType.TEXT_HTML)
-    public String getIndex() {
-        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug));
+    public String getIndex(
+            @io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
+        // behind a proxy that strips a prefix (a trusted X-Forwarded-Prefix) the page names its
+        // assets and API there
+        return IndexPage.underPrefix(
+                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)),
+                io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
     }
 
 }
