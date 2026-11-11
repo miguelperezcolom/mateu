@@ -62,7 +62,7 @@ in the same change.
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
-| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`; the Redwood renderer is light only and ignores it) | ✅ | ✅ | ✅ |
+| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`; every web renderer draws it, Redwood's dark theme is JET's inverted colour scheme) | ✅ | ✅ | ✅ |
 | [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports' manifest takes `icon`/`themeColor` only from `MobileApp`, the env vars or a YAML shell: it does not fall back to the app's logo/favicon (.NET has `[Logo]`/`[FavIcon]`) or `accentColor` (both ports have it) as Java's does | ✅ | ✅ | ✅ |
 | [Installable app (PWA)](/deploy/install-as-app/): `GET <baseUrl>/mateu/v3/pwa/{manifest.webmanifest,sw.js,register.js,icon-*.png}` and the page's manifest link + worker registration, the manifest derived like the mobile one; off with `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED=false` (.NET also `MateuOptions.Pwa`) and in dev mode | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
@@ -123,7 +123,7 @@ in the same change.
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
 | Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
 | Nested data objects in forms (`@Inline` sub-form expanded into the section, or a card sub-form without it; .NET `[Inline]` on a POCO property, Python `Inline()` on a plain-class field — the field's type tells it from an island): prefixed ids, nested toolbar/buttons dispatched as `nested-form-action-<field>-<method>`, nested + flattened state round trip, the nested object's constraints on both legs (cases `inline-form`, `inline-form-action`); a crud entity's plain nested object advertises and runs its nested actions too (`crud-nested-form`, `-action`). Client rules (`@Hidden(expr)`, `@Disabled`) apply to a view's own fields only, so a nested object's fields get none — in all three (`inline-form-rules`) | ✅ | ✅ | ✅ |
-| [Static bundle](/deploy/static-ui/) export: Java `mateu-bundle:bundle`, Python `python -m mateu_ui.bundle`, .NET `dotnet mateu-bundle` (the `Mateu.Bundle` tool, or `MateuBundle.Run` from the app). Each renders every route through its own sync handler and writes the same bundle — `manifest.json` with both loads under an app shell, `:param` templates, the authored route table and catalogues, `specsOnly`, `staticOnly` with the same static-safety rules, `environment`, `mock`; a YAML-only app's `mateu/v3/manifest` and PWA manifest come from the root mount's `type: AppShell` (title, logo, accent) — held to one golden, `conformance/bundle`. `specsOnly` (raw definitions expanded in the browser) needs the Vaadin renderer: Redwood has no client-side expander, so a Redwood bundle is always pre-rendered (the goal warns and ignores `specsOnly`; see [Choosing the renderer](/deploy/static-ui/#choosing-the-renderer)). The `openapi`/`server` goals stay Java-only (they derive a Java/Spring server) | ✅ | ✅ | ✅ |
+| [Static bundle](/deploy/static-ui/) export: Java `mateu-bundle:bundle`, Python `python -m mateu_ui.bundle`, .NET `dotnet mateu-bundle` (the `Mateu.Bundle` tool, or `MateuBundle.Run` from the app). Each renders every route through its own sync handler and writes the same bundle — `manifest.json` with both loads under an app shell, `:param` templates, the authored route table and catalogues, `specsOnly`, `staticOnly` with the same static-safety rules, `environment`, `mock`; a YAML-only app's `mateu/v3/manifest` and PWA manifest come from the root mount's `type: AppShell` (title, logo, accent) — held to one golden, `conformance/bundle`. `specsOnly` (raw definitions expanded in the browser) needs the Vaadin renderer for the bundle's own app: a Redwood bundle is always pre-rendered (the goal warns and ignores `specsOnly`; see [Choosing the renderer](/deploy/static-ui/#choosing-the-renderer)); both renderers expand a `specsOnly` bundle mounted as a static remote of their shell (`RemoteMenu` → its `manifest.json`), with the same expander. The `openapi`/`server` goals stay Java-only (they derive a Java/Spring server) | ✅ | ✅ | ✅ |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`, `followLabel`, `followingLabel`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
@@ -835,9 +835,10 @@ is honoured; two notes:
 
 - **Multi-value `optionsSource`.** Since 3.0 GA a multi-value field (`multiSelect`, `listBox`,
   checkbox group, multi-select `combobox`, `choice` — a record pointing at *many*) reads its options
-  from a REST source like a single select, on Vaadin (one libs loader, `sourcedOptionsOf`), React
-  Native and IntelliJ: by `ref` or inline, direct or proxied, the picks written back as the options'
-  own values.
+  from a REST source like a single select, on every renderer: Vaadin (one libs loader,
+  `sourcedOptionsOf`), Redwood (the page form, the row editor and the listing filters), React Native
+  and IntelliJ — by `ref` or inline, direct or proxied, the picks written back as the options' own
+  values.
 - **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
   the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
   `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or

@@ -50,6 +50,10 @@ define([
     async run(context) {
       const { $application } = context;
 
+      // light / dark before the first paint of the shell: the stored choice
+      // (localStorage['mateu-theme'], shared with the Vaadin renderer) or the OS preference (poc/theme.mjs)
+      bridge.applyInitialTheme();
+
       // the @UI's mount (<mateu-ui baseUrl>) before anything else: the API hangs off it
       bridge.initMount(document);
       const base = bridge.mateuBase($application.constants.mateuBaseUrl);
@@ -366,9 +370,9 @@ define([
       bridge.adoptShellSources(reg.shell);
       // @App(mobileQr): "Open on mobile" — the QR of the mateu.io/add link (openMateuMobileQr)
       $application.variables.mateuMobileQr = !!(reg.shell && reg.shell.mobileQr);
-      // Redwood is LIGHT ONLY: @App(themeToggle) is ignored (no switch), and neither a stored dark
-      // choice nor the OS preference applies (poc/theme.mjs)
-      bridge.applyLightTheme();
+      // @App(themeToggle): the header switch; the stored choice (or the OS preference) applies
+      // anyway — it was painted at the start of this chain (poc/theme.mjs)
+      $application.variables.mateuThemeToggle = !!(reg.shell && reg.shell.themeToggle);
       // @App(osNotifications): the bell and the task list offer "Notify me on this device" (osNotify.mjs)
       bridge.setOsNotificationsEnabled(!!(reg.shell && reg.shell.osNotifications));
       if (reg.shell && (reg.shell.notificationsEnabled || reg.shell.notificationsSource)) {

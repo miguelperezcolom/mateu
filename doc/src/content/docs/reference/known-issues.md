@@ -62,34 +62,14 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
-### Redwood: light theme only
+### Redwood: an island's `@Toc` index only when it is the page's content
 
-The Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice
-and the operating system's `prefers-color-scheme`.
+Redwood draws a `@Toc` index for an embedded island's sections when the island **is** the page's
+content: the host page has no titled section of its own and embeds that one island. A page that
+mixes its own sections with an island's, or embeds two islands, indexes only its own sections.
 
-**Workaround:** use the Vaadin renderer if your users need a dark theme.
-
-### Redwood: a static remote that ships raw definitions is not loaded
-
-On Redwood, a federated menu (`RemoteMenu`) works against a remote that is a running Mateu backend,
-deep links and reloads of its screens included. A remote that is a **`specsOnly` static bundle**
-(raw YAML definitions, expanded in the browser) is shown disabled: Redwood has no client-side
-expander.
-
-**Workaround:** serve the remote from a backend, or use the Vaadin renderer for that shell. See
-[Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
-
-### Redwood: inside an embedded island, no `@Toc` index and no app state sent back
-
-An island (an embedded view or a `MicroFrontend` drawn inside a page) is laid out by Redwood as part
-of its host, and two things of a standalone page do not carry over:
-
-- a `@Toc` on the island's view draws no index (the island's sections are not page sections);
-- `appState` an island's answer carries is shown (`${appState.x}`), but it is not sent back with
-  later requests.
-
-**Workaround:** open the screen on its own route when it needs its index, and keep cross-request
-state in the component state instead of `appState`.
+**Workaround:** give the host page the sections, or open the island's screen on its own route when
+it needs its index.
 
 
 ### React Native: no OS notification from a suspended or closed app

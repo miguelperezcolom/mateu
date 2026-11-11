@@ -12,6 +12,14 @@ Each service can expose:
 
 A shell application can compose those modules using `RemoteMenu`.
 
+A remote does not have to be a running backend: a `RemoteMenu` whose base URL names a [static
+bundle](/deploy/static-ui/)'s `manifest.json` mounts that domain with no server at all. Its menu,
+its screens and their deep links are answered from the manifest — pre-rendered, or raw YAML
+definitions (`specsOnly`) expanded in the browser — and its REST sources join the shell's
+catalogue. Its screens' actions have no server to go to, so a static remote is for screens that
+read and write through their REST sources. The Vaadin and Redwood renderers both do this, with the
+same expander.
+
 ## What this gives you
 
 - decentralized ownership

@@ -271,6 +271,13 @@
         }
       ]
     },
+    "themeToggle": {
+      "chains": [
+        {
+          "chain": "toggleMateuTheme"
+        }
+      ]
+    },
     "chatToggle": {
       "chains": [
         {

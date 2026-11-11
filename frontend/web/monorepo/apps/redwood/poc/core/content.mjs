@@ -601,6 +601,12 @@ export function setAppScope(reg) {
   appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
 }
 
+/** The app state the answers left (an action returning AppState, a route's `appState:` seed — the
+ *  host's AND an island's): what every later request sends back, like the web client's store. */
+export function heldAppState() {
+  return appScope.appState || {}
+}
+
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
   // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).

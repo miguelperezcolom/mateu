@@ -354,7 +354,7 @@ define([
       // collection header: the crud toolbar → primaryAction/secondaryActions
       assign(bridge.listHeaderVarsOf(listingSummary));
       // the floating action buttons (@Fab) of the page and of the app
-      vars.mateuFabs = bridge.fabsOf(reg.shell, host); vars.mateuToc = bridge.tocOf(host); bridge.resetToc(); // + the @Toc index, unlocked
+      vars.mateuFabs = bridge.fabsOf(reg.shell, host); vars.mateuToc = bridge.tocOf(host, reg); bridge.resetToc(); // + the @Toc index (an island that IS the content: its own), unlocked
       // If the load failed, the retry re-enters THIS chain with the same route.
       bridge.setLastRetry(null);
       // inside a master (P1) the header carries the MASTER's title (the record) and the

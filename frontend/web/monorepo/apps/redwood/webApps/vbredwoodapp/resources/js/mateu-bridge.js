@@ -184,6 +184,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       kanbanMoveDown: 'Move down',
       kanbanMoveFailed: 'The card could not be moved; it is back where it was',
       searchResults: 'Search results',
+      themeToggle: 'Switch light / dark theme',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Connect AI',
       agentDialogTitle: 'Connect an AI agent',
@@ -479,6 +480,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       kanbanMoveDown: 'Bajar',
       kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
       searchResults: 'Resultados',
+      themeToggle: 'Cambiar tema claro / oscuro',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Conectar IA',
       agentDialogTitle: 'Conectar un agente de IA',
@@ -6506,6 +6508,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
   }
 
+  /** The app state the answers left (an action returning AppState, a route's `appState:` seed — the
+   *  host's AND an island's): what every later request sends back, like the web client's store. */
+  function heldAppState() {
+    return appScope.appState || {}
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -12415,7 +12423,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (nested) out.push(nested)
         continue
       }
-      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length && !f.optionsSource) continue
       const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
       const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
@@ -12974,8 +12982,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (st === 'radio' && options.length) return { isRadio: true }
     // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
     if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
-    if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
-    if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+    // a multi-value field fed by a REST source (optionsSource) is the same widget while its options
+    // are on their way (loadRestOptions fills them into data[field]): it used to be skipped, or
+    // drawn as a text input, because only STATIC options made it a choice
+    const choices = options.length > 0 || !!f.optionsSource
+    if (f.dataType === 'array' && choices && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+    if (f.dataType === 'array' && choices && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
       return { isCheckboxSet: true }
     // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
     // format validation and, read-only, the value as a mailto: / web link
@@ -13071,7 +13083,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       || (md.stereotype === 'richText' && !md.readOnly)
       || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
-      || (md.dataType === 'array' && (md.options || []).length
+      || (md.dataType === 'array' && ((md.options || []).length || md.optionsSource)
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
   }
 
@@ -23803,10 +23815,69 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /(^|[\s"'])aside([\s"']|$)/.test(areas)
   }
 
-  /** The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }. */
-  function tocOf(host) {
+  /** The other surfaces a tree embeds (ServerSide boundaries, a MEDIATOR App), not crossed. */
+  function embeddedSurfacesOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && (n.type === 'ServerSide'
+          || (n.type === 'ClientSide' && n.metadata && n.metadata.type === 'App' && n.metadata.variant === 'MEDIATOR'))) {
+        if (n.id) out.push(n)
+        return
+      }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return out
+  }
+
+  /**
+   * The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }.
+   *
+   * An ISLAND that is the page's main content — the host has no titled section of its own and embeds
+   * exactly ONE other surface (an embedded view, an `@Inline` orchestrator, a nested mediator inside
+   * it…) — gets the index of ITS sections, read from its own context in `reg` (its @Toc declaration
+   * included; the host's, when it declares one, wins). Its sections are painted with the same
+   * `data-mateu-section` marker, so the DOM half finds them in the same order. A page with sections
+   * of its own, or with two islands, keeps the host's rule: another surface's sections are its own.
+   */
+  function tocOf(host, reg) {
     const tree = host && host.tree
     if (!tree) return TOC_EMPTY
+    const own = scanSections(tree)
+    let scan = own
+    const pageOf = findByType(tree, 'Page')
+    let islandPage = null
+    if (!own.entries.length && reg && reg.contexts) {
+      let at = tree
+      for (let depth = 0; depth < 4; depth++) {
+        const surfaces = embeddedSurfacesOf(at)
+        if (surfaces.length !== 1) break
+        const ctx = reg.contexts[surfaces[0].id]
+        const next = (ctx && ctx.tree) || ((surfaces[0].children || []).length ? surfaces[0] : null)
+        if (!next) break
+        const found = scanSections(next)
+        if (found.entries.length) { scan = found; islandPage = findByType(next, 'Page'); break }
+        at = next
+      }
+    }
+    const { entries, zoned, aside } = scan
+    // the Multimedia content page template HAS the vertical anchor navigator: always on
+    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+    const hostDeclared = pageOf && pageOf.metadata && typeof pageOf.metadata.toc === 'boolean' ? pageOf.metadata.toc : null
+    const islandDeclared = islandPage && islandPage.metadata && typeof islandPage.metadata.toc === 'boolean' ? islandPage.metadata.toc : null
+    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+      ? true : (hostDeclared != null ? hostDeclared : islandDeclared)
+    const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
+    // tri-state: declared true forces it, declared false suppresses it, absent = auto
+    const wanted = typeof declared === 'boolean' ? declared : auto
+    const on = !aside && wanted && entries.length > 0
+    return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+  }
+
+  /** The titled @Section cards of ONE surface (not crossing into another), and what forbids an index. */
+  function scanSections(tree) {
     const entries = []
     let zoned = false
     // Redwood's Advanced create and edit: the anchor navigator and the detail slot exclude each other —
@@ -23839,16 +23910,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     walk(tree, true)
-    const page = findByType(tree, 'Page')
-    // the Multimedia content page template HAS the vertical anchor navigator: always on
-    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
-    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
-      ? true : (page && page.metadata ? page.metadata.toc : null)
-    const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
-    // tri-state: declared true forces it, declared false suppresses it, absent = auto
-    const wanted = typeof declared === 'boolean' ? declared : auto
-    const on = !aside && wanted && entries.length > 0
-    return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+    return { entries, zoned, aside }
   }
 
   // ── DOM behaviour (once per document) ────────────────────────────────────────────────────────────
@@ -25395,6 +25457,2529 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // GENERATED by poc/make-expander.mjs from libs/mateu/src/mateu/ui/infra — DO NOT EDIT.
+  // http/bundleResolver.ts, expander/expandDefinition.ts, ui/layout/templatePageTypes.ts, ui/humanize.ts, expander/accessKeys.ts, expander/expandComponent.ts, expander/pageHeader.ts, expander/pageTemplates.ts, http/componentCatalogue.ts, ui/renderers/nodeIdStampFlag.ts, ui/actionCatalogue.ts, expander/fieldTypes.ts, i18n/translations.ts
+  // source sha256 28408b1bc63aad1058ceb7d525bf8f754f9ad20db088694f2d568cad0e024f27
+  // The web renderers' static-bundle resolver + YAML expander, for a static remote (transport.mjs).
+  const mateuBundleResolver = (function () {
+    'use strict'
+    const __defs = {}
+    const __cache = {}
+    function __mateuRequire(id) {
+      if (__cache[id]) return __cache[id]
+      const define = __defs[id]
+      if (!define) throw new Error('mateu: the bundled resolver has no module ' + id)
+      const exports = {}
+      __cache[id] = exports
+      define(exports, __mateuRequire)
+      return exports
+    }
+
+    // ── http/bundleResolver.ts ──
+    __defs["http/bundleResolver.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "restrictsAccess", { enumerable: true, get: () => restrictsAccess });
+      Object.defineProperty(exports, "isBundleManifest", { enumerable: true, get: () => isBundleManifest });
+      Object.defineProperty(exports, "parseBundleManifest", { enumerable: true, get: () => parseBundleManifest });
+      Object.defineProperty(exports, "matchRouteEntry", { enumerable: true, get: () => matchRouteEntry });
+      Object.defineProperty(exports, "applyRouteParams", { enumerable: true, get: () => applyRouteParams });
+      Object.defineProperty(exports, "toSyncPath", { enumerable: true, get: () => toSyncPath });
+      Object.defineProperty(exports, "bundledIncrement", { enumerable: true, get: () => bundledIncrement });
+      Object.defineProperty(exports, "bundledTemplate", { enumerable: true, get: () => bundledTemplate });
+      Object.defineProperty(exports, "appShellOf", { enumerable: true, get: () => appShellOf });
+      Object.defineProperty(exports, "expandedIncrement", { enumerable: true, get: () => expandedIncrement });
+      Object.defineProperty(exports, "rootIncrement", { enumerable: true, get: () => rootIncrement });
+      Object.defineProperty(exports, "resolveLoad", { enumerable: true, get: () => resolveLoad });
+      Object.defineProperty(exports, "withQueryParams", { enumerable: true, get: () => withQueryParams });
+      Object.defineProperty(exports, "queryOf", { enumerable: true, get: () => queryOf });
+      // How a STATIC BUNDLE answers a route load — the pure half of bundleStore.ts, shared with the native
+      // renderer (frontend/app/react-native imports this file through src/shared/mateuLib.ts).
+      //
+      // A bundle (mateu-bundle:bundle → manifest.json) carries each route's pre-rendered load, :param
+      // route templates, the authored route registry and, in specs mode, the RAW definitions the client
+      // expands. Everything here is a function of a parsed {@link BundleState}: no module state, no DOM,
+      // no Lit — the web keeps ONE state in bundleStore.ts (plus a map of static remotes), the native app
+      // one per UI it runs. Runtime imports stay RELATIVE with a `.ts` extension and types are imported
+      // with `import type`, so Metro and `node --test` (type stripping) load this closure as it is.
+      const { expandDefinition, isClientExpandable } = __mateuRequire("expander/expandDefinition.ts");
+      const { declaresAccessKeys } = __mateuRequire("expander/accessKeys.ts");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /**
+       * One entry of the mount's authored route registry (the server's RouteEntry), shipped with the
+       * bundle. A statically deployed mount has no server left to ask what a URL means, so the parameters
+       * a route pins or seeds have to travel as data.
+       */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /** Whether a route declares who may reach it: a browser has no identity to check that against. */
+      const restrictsAccess = (entry                        )          => {
+          const access = entry?.access
+          if (!access) return false
+          return [access.roles, access.groups, access.scopes, access.permissions].some(list => (list?.length ?? 0) > 0)
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /** A :param route TEMPLATE: a compiled matcher + param names + the pre-rendered structure (and,
+       *  under an app shell, its content load). */
+
+
+      /** Everything a manifest says, parsed: what the resolvers below read. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /** Resolves `${i18n.…}` in a value (a copy), or hands it back. */
+
+
+      const asIs           =     (value   )    => value
+
+      /**
+       * True when a JSON document has the shape of a bundle manifest (what `mateu-bundle:bundle` writes):
+       * an object with an `entries` list, or `definitions` and a `routes` registry. What a native client
+       * checks before treating a URL as a static UI — a web app manifest or an API answer is not one.
+       */
+      const isBundleManifest = (raw         )                        => {
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return false
+          const m = raw
+          const isObject = (v         ) => !!v && typeof v === 'object' && !Array.isArray(v)
+          if (m.entries !== undefined && !Array.isArray(m.entries)) return false
+          if (m.routes !== undefined && m.routes !== null && !isObject(m.routes)) return false
+          return Array.isArray(m.entries) || (isObject(m.definitions) && isObject(m.routes))
+      }
+
+      /** A manifest, parsed (a malformed entry is skipped with a warning, never fatal). */
+      const parseBundleManifest = (manifest                )              => {
+          const map = new Map                     ()
+          const contentMap = new Map                     ()
+          const tpls                   = []
+          for (const e of manifest.entries ?? []) {
+              if (!e || !e.ok || !e.json) continue
+              try {
+                  const inc = JSON.parse(e.json)
+                  const content = e.contentJson ? JSON.parse(e.contentJson)                : undefined
+                  if (e.routePattern) {
+                      tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames ?? [], increment: inc, content })
+                  } else {
+                      map.set(e.syncPath, inc)
+                      if (content) contentMap.set(e.syncPath, content)
+                  }
+              } catch (err) {
+                  console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
+              }
+          }
+          return {
+              increments: map,
+              contents: contentMap,
+              templates: tpls,
+              routeEntries: manifest.routes?.routes ?? [],
+              definitions: manifest.definitions ?? {},
+              catalogueSources: manifest.sources?.sources ?? [],
+              translations: manifest.translations ?? {},
+              environment: manifest.environment ?? undefined,
+          }
+      }
+
+      /** The `:name` segments of a route pattern, in order. */
+      const paramNamesOf = (route        )           =>
+          route.split('/').filter(s => s.startsWith(':') && s.length > 1).map(s => s.substring(1))
+
+      /**
+       * The registry entry answering a concrete path, plus the path params read off it. Static routes are
+       * tried before parameterised ones (so `orders/new` is never swallowed by `orders/:id`) and among
+       * parameterised matches the most specific wins — matching must not depend on declaration order.
+       * Mirrors the server's RouteTable.match.
+       */
+      const matchRouteEntry = (
+          state             ,
+          path        ,
+      )                                                                        => {
+          const targetSegments = segmentsOf(path === '_no_route' ? '' : path)
+          let best
+          for (const entry of state.routeEntries) {
+              const pathParams = pathParamsOf(segmentsOf(entry.route ?? ''), targetSegments)
+              if (!pathParams) continue
+              if (!best || paramCountOf(entry) < paramCountOf(best.entry)) best = { entry, pathParams }
+          }
+          return best
+      }
+
+      /** `s` without its leading and trailing slashes (no regex: `/\/+$/` backtracks on a long run of them). */
+      const trimSlashes = (s        )         => {
+          let start = 0
+          let end = s.length
+          while (start < end && s[start] === '/') start++
+          while (end > start && s[end - 1] === '/') end--
+          return s.substring(start, end)
+      }
+
+      /** The segments of a route or path, its leading and trailing slashes aside ('' → none). */
+      const segmentsOf = (route        )           => {
+          const trimmed = trimSlashes(route)
+          return trimmed === '' ? [] : trimmed.split('/')
+      }
+
+      const paramCountOf = (entry            )         => paramNamesOf(entry.route ?? '').length
+
+      /** The path params a route pattern's segments read off a path's, or undefined when it does not match. */
+      const pathParamsOf = (pattern          , target          )                                     => {
+          if (pattern.length !== target.length) return undefined
+          const pathParams                         = {}
+          for (let i = 0; i < pattern.length; i++) {
+              const seg = pattern[i]
+              if (seg.startsWith(':') && seg.length > 1) pathParams[seg.substring(1)] = target[i]
+              else if (seg !== target[i]) return undefined
+          }
+          return pathParams
+      }
+
+      /** `carried` with `defaults` filling every key it has no value for — a null is no value, as in the
+       *  server's `putIfAbsent` (RouteSegmentUtils.addParameterValues). */
+      const withDefaults = (defaults                         , carried                                     ) => {
+          const out                          = { ...defaults, ...carried }
+          for (const key of Object.keys(defaults)) out[key] ??= defaults[key]
+          return out
+      }
+
+      /**
+       * Applies the registry's parameters to a pre-rendered increment, in the same order the server uses:
+       *
+       *   fixed  >  path  >  what the increment already carries  >  state seeds  >  defaults
+       *
+       * Defaults only fill what nothing else supplied (a null included); fixed ones override everything,
+       * which is the whole point of pinning them. The server's order is `fixed > client state > path >
+       * query > defaults`: a statically served load has no client state yet, its increment is what the
+       * server rendered for the route, and the query level is applied on the answer (withQueryParams), so
+       * the two agree
+       * (conformance/client/route-params.json pins it, for this renderer and Redwood).
+       * Returns the increment untouched when no entry answers the path.
+       */
+      const applyRouteParams = (state             , syncPath        , increment             )              => {
+          const match = matchRouteEntry(state, syncPath)
+          if (!match) return increment
+          const { entry, pathParams } = match
+          // A route's `state:` seeds sit at the defaults' level, as on the server (it was ignored here, so
+          // a specsOnly page read `${state.x}` as blank where the served one showed the seed).
+          const defaults = withDefaults(entry.defaultParams ?? {}, entry.state)
+          const fixed = entry.fixedParams ?? {}
+          const appSeed = entry.appState ?? {}
+          if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length
+              && !Object.keys(appSeed).length) {
+              return increment
+          }
+          return {
+              ...increment,
+              // `appState:` goes UNDER what the increment (the client's app context) already carries
+              ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...increment.appState } } : {}),
+              fragments: (increment.fragments ?? []).map(f => ({
+                  ...f,
+                  state: { ...withDefaults(defaults, f.state), ...pathParams, ...fixed },
+                  data: { ...withDefaults(defaults, f.data), ...pathParams, ...fixed },
+              })),
+          }
+      }
+
+      /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors the server exporter's toSyncPath
+       *  and AxiosMateuApiClient's URL building: leading slash stripped, blank/root → `_no_route`. */
+      const toSyncPath = (route                    )         => {
+          // the query string is a listing's filters, page and sort — never part of the screen: with it a
+          // deep link (/products?status=X) or a reload of a filtered listing answered nothing at all
+          const path = route?.includes('?') ? route.substring(0, route.indexOf('?')) : route
+          const r = path?.startsWith('/') ? path.substring(1) : (path ?? '')
+          return r === '' ? '_no_route' : r
+      }
+
+      /**
+       * The pre-rendered increment for a route's sync path, or undefined. The registry's parameters are
+       * applied on the way out, so a statically served route behaves like the same route served by the
+       * backend.
+       */
+      const bundledIncrement = (state             , syncPath        )                          => {
+          const increment = state.increments.get(syncPath)
+          return increment === undefined ? undefined : applyRouteParams(state, syncPath, increment)
+      }
+
+      /** A server-side component carries the path params it was rendered with in `initialData` too — at
+       *  export time, the PLACEHOLDER. Overwrite them with the real ones, or a page that seeds its state
+       *  from initialData would ask the API for `__mateu_param__`. */
+      const withInitialData =     (component   , params                        )    => {
+          const c = component
+          if (!c?.initialData || typeof c.initialData !== 'object') return component
+          return { ...c, initialData: { ...(c.initialData                           ), ...params } }
+      }
+
+      /**
+       * Match a concrete sync path (e.g. `orders/42`) against the :param TEMPLATES and, on a hit, return
+       * the pre-rendered structure with the extracted params INJECTED into every fragment's state and data
+       * — so the screen's client-side data fetch (`@RestOptions`/`@RestData` URL with `${state.<param>}`)
+       * resolves to the real value with no backend. undefined when no template matches.
+       */
+      const bundledTemplate = (state             , syncPath        , content = false)                          => {
+          for (const t of state.templates) {
+              const m = t.regex.exec(syncPath)
+              if (!m) continue
+              const increment = content ? t.content : t.increment
+              if (!increment) return undefined
+              const params                         = {}
+              t.paramNames.forEach((name, i) => { params[name] = m[i + 1] })
+              const withPathParams = {
+                  ...increment,
+                  // params LAST so the real value wins over any placeholder captured at render time
+                  fragments: (increment.fragments ?? []).map(f => ({
+                      ...f,
+                      component: withInitialData(f.component, params),
+                      state: { ...f.state, ...params },
+                      data: { ...f.data, ...params },
+                  })),
+              }
+              // …and then the registry's own, so a pinned parameter still outranks the path.
+              return applyRouteParams(state, syncPath, withPathParams)
+          }
+          return undefined
+      }
+
+      /** The `type: App` metadata of an increment's first fragment, when the increment is an app shell. */
+      const appShellOf = (increment                         )                                      => {
+          const component = increment?.fragments?.[0]?.component
+
+          return component?.metadata?.type === 'App' ? component.metadata : undefined
+      }
+
+      /**
+       * SPECS MODE (Phase 6, #1): expand a definition-only route to the wire ON THE CLIENT. When the route
+       * entry names a `definition` the manifest shipped raw, and it is client-expandable (a layout, no
+       * `viewModel`), the client-side expander turns it into an increment — no pre-render, no backend.
+       * The registry's parameters are applied on the way out, exactly like a pre-rendered increment.
+       * undefined when there is no matching definition or it needs a backend (a `viewModel` route).
+       */
+      const expandedIncrement = (
+          state             , syncPath        , localize           = asIs,
+      )                          => {
+          const match = matchRouteEntry(state, syncPath)
+          const name = match?.entry.definition
+          if (!name) return undefined
+          // A route that declares `access:` is the server's to answer (per caller): the definition may
+          // ship for a public route that shares it, but expanding it here would show it to everybody.
+          if (restrictsAccess(match .entry)) return undefined
+          const raw = state.definitions[name]
+          if (!raw || !isClientExpandable(raw)) return undefined
+          // …and so is a definition that declares access keys: a current bundle never ships one, but one
+          // built before that rule does — rendering it would hand every visitor what the keys withhold.
+          // (The visual editor's Play expands such a definition on purpose, unrestricted, elsewhere.)
+          if (declaresAccessKeys(raw)) return undefined
+          const spec = localize(raw)
+          const expanded = expandDefinition(spec, match .entry.route, undefined, {
+              data: match .entry.data ?? undefined,
+              path: syncPath === '_no_route' ? '' : syncPath,
+          })
+          // The expander targets the harness's main id (its goldens were captured that way); on the client
+          // the fragment goes to whoever asked, so leave it untargeted and let the client aim it.
+          // An expanded app shell carries the manifest's source catalogue, as a served one carries the
+          // app's: the shell PUBLISHES its catalogue when it mounts (a replace), and one without it would
+          // wipe the table every screen resolves its `ref`s against.
+          return applyRouteParams(state, syncPath, {
+              ...expanded,
+              fragments: (expanded.fragments ?? []).map(f => {
+                  const app = appShellOf({ fragments: [f] }               )
+                  const component = app
+                      ? { ...f.component, metadata: { ...app, restSources: state.catalogueSources } }
+                      : f.component
+                  return { ...f, component, targetComponentId: undefined                      }
+              }),
+          })
+      }
+
+      /** The shell, re-aimed at `syncPath`: an app shell loads its content slot from `homeRoute`, which is
+       *  how the server answers a deep link (a fresh load of /vcns/7 is the shell with homeRoute /vcns/7). */
+      const aimedAt = (shell             , syncPath        )              => {
+          if (syncPath === '_no_route') return shell
+          const [first, ...rest] = shell.fragments ?? []
+          const component = first.component
+          return {
+              ...shell,
+              fragments: [{
+                  ...first,
+                  component: {
+                      ...component,
+                      metadata: { ...component.metadata, homeRoute: '/' + syncPath },
+                  }                                     ,
+              }, ...rest],
+          }
+      }
+
+      /** The bundle's root answer (`_no_route`): pre-rendered, else expanded. */
+      const rootIncrement = (state             , localize           = asIs)                          =>
+          bundledIncrement(state, '_no_route') ?? expandedIncrement(state, '_no_route', localize)
+
+      /**
+       * The bundle's answer to a route LOAD, or undefined (→ the backend, if there is one).
+       *
+       * Two loads exist under an app shell, and they must not be confused (#557):
+       *  - the FRESH load (`consumedRoute` "_empty": a deep link, a reload) answers the SHELL, aimed at the
+       *    requested route — exactly what the server does;
+       *  - the CONTENT load (any other consumed route: the shell filling its slot) answers the route's own
+       *    screen — its exported content, a :param template's content, or its definition expanded here.
+       * A content load is never answered with a shell: that is what nested shells until the tab died.
+       * `${i18n.…}` is resolved with `localize`, in the definition expanded and in the answer.
+       * `query` is the route's own query string (`/people?dept=sales` → `{dept: 'sales'}`): it seeds the
+       * screen's state at the server's query level — see withQueryParams.
+       */
+      const resolveLoad = (
+          state             , syncPath        , consumedRoute         , localize           = asIs,
+          query                         ,
+      )                          =>
+          localize(withQueryParams(state, syncPath, resolveLoadRaw(state, syncPath, consumedRoute, localize), query))
+
+      /**
+       * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+       *
+       *   fixed  >  path  >  query  >  what the pre-rendered answer carries (its defaults included)
+       *
+       * The server seeds the query into the state of the load (RouteSegmentUtils.addParameterValues), so
+       * `/people?dept=sales` shows `${state.dept}` filled; a bundle answer was rendered with no query at
+       * all, and dropped it. A pinned (fixed) or path parameter is never overridden from the URL, and an
+       * app shell is left alone — its content load carries the query to the screen.
+       */
+      const withQueryParams = (
+          state             , syncPath        , answer                         , query                         ,
+      )                          => {
+          if (!answer || !query || !Object.keys(query).length || appShellOf(answer)) return answer
+          const match = matchRouteEntry(state, syncPath)
+          const fixed = match?.entry.fixedParams ?? {}
+          const path = match?.pathParams ?? {}
+          const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+          if (!Object.keys(params).length) return answer
+          return {
+              ...answer,
+              fragments: (answer.fragments ?? []).map(f => ({
+                  ...f,
+                  state: { ...f.state, ...params },
+                  data: { ...f.data, ...params },
+              })),
+          }
+      }
+
+      /** The query parameters of a route string (`/people?dept=sales&page=2`), first value of each. */
+      const queryOf = (route                    )                         => {
+          const at = route?.indexOf('?') ?? -1
+          if (at < 0) return {}
+          const out                         = {}
+          new URLSearchParams(route .substring(at + 1)).forEach((value, key) => {
+              if (!(key in out)) out[key] = value
+          })
+          return out
+      }
+
+      const resolveLoadRaw = (
+          state             , syncPath        , consumedRoute                    , localize          ,
+      )                          => {
+          const fresh = consumedRoute === undefined || consumedRoute === '_empty'
+          const own = ()                          =>
+              bundledIncrement(state, syncPath) ?? bundledTemplate(state, syncPath) ?? expandedIncrement(state, syncPath, localize)
+          if (fresh) {
+              const answer = own()
+              if (answer && appShellOf(answer)) return aimedAt(answer, syncPath)
+              // A route of the root mount (an authored entry), or one the bundle cannot answer itself: when
+              // the root is an app shell, the fresh load is that shell. A route of ANOTHER mount (a pathed
+              // @UI page) keeps its own answer.
+              if (syncPath !== '_no_route' && (matchRouteEntry(state, syncPath) || !answer)) {
+                  const root = rootIncrement(state, localize)
+                  if (root && appShellOf(root)) return aimedAt(root, syncPath)
+              }
+              return answer
+          }
+          const content = state.contents.get(syncPath)
+          const exported = content !== undefined
+              ? applyRouteParams(state, syncPath, content)
+              : bundledTemplate(state, syncPath, true)
+          if (exported) return exported
+          const answer = own()
+          return answer && appShellOf(answer) ? undefined : answer
+      }
+
+    }
+
+    // ── expander/expandDefinition.ts ──
+    __defs["expander/expandDefinition.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "isClientExpandable", { enumerable: true, get: () => isClientExpandable });
+      Object.defineProperty(exports, "declaredPageType", { enumerable: true, get: () => declaredPageType });
+      Object.defineProperty(exports, "shapePageType", { enumerable: true, get: () => shapePageType });
+      Object.defineProperty(exports, "definitionWindowTitle", { enumerable: true, get: () => definitionWindowTitle });
+      Object.defineProperty(exports, "expandDefinition", { enumerable: true, get: () => expandDefinition });
+      Object.defineProperty(exports, "requiredValidationsOf", { enumerable: true, get: () => requiredValidationsOf });
+      Object.defineProperty(exports, "lowerStep", { enumerable: true, get: () => lowerStep });
+      Object.defineProperty(exports, "lowerAction", { enumerable: true, get: () => lowerAction });
+      Object.defineProperty(exports, "resolveAppVariant", { enumerable: true, get: () => resolveAppVariant });
+      Object.defineProperty(exports, "shellShortcuts", { enumerable: true, get: () => shellShortcuts });
+      Object.defineProperty(exports, "idleSessionOf", { enumerable: true, get: () => idleSessionOf });
+      Object.defineProperty(exports, "shellHeaderExtras", { enumerable: true, get: () => shellHeaderExtras });
+      Object.defineProperty(exports, "expandAppShell", { enumerable: true, get: () => expandAppShell });
+      // Phase 6 (coherence-plan #1) — expand an authored DEFINITION into a wire `UIIncrement`, in the
+      // browser, with no backend. This is increment 1: the BARE-LAYOUT case (a definition whose `layout`
+      // is a full component tree, no `viewModel`, no field synthesis / delta / listing yet — those arrive
+      // in later increments, each pinned to its own server golden).
+      //
+      // The envelope shape is taken from a captured server golden (about.yaml → its increment):
+      //   - one fragment, targetComponentId "ux_main", action "Replace", component = the expanded layout;
+      //   - a SetWindowTitle command carrying the page title (the route humanized when the definition
+      //     declares none);
+      //   - empty messages/banners, appendBanners false.
+      // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
+      // the render-parity note in design/phase6-client-side-expander.md.
+
+      const { templatePageType } = __mateuRequire("ui/layout/templatePageTypes.ts");
+      const { humanizeFieldId } = __mateuRequire("ui/humanize.ts");
+      const { withoutAccessKeys } = __mateuRequire("expander/accessKeys.ts");
+
+
+      const { expandComponent } = __mateuRequire("expander/expandComponent.ts");
+
+
+      const { actionCatalogue, referencedCatalogueActions } = __mateuRequire("ui/actionCatalogue.ts");
+      const { resolveFieldTypes } = __mateuRequire("expander/fieldTypes.ts");
+
+      // The wire enums as values, without loading the enum modules: this closure is shared with the native
+      // renderer, whose test runner strips types and cannot run a TS `enum` (see http/bundleResolver.ts).
+      const REPLACE = 'Replace'                                // i18n-ok: a wire enum value
+      const SERVER_SIDE = 'ServerSide'
+      const CLIENT_SIDE = 'ClientSide'
+
+      /** A parsed definition: either an envelope with a `layout:` (+ optional viewModel/actions/triggers),
+       *  or a bare component tree (the whole object IS the layout). Loose by design — the authored surface
+       *  is the full component catalog, parsed from JSON or YAML. */
+
+
+
+
+
+
+
+
+
+
+
+      const MAIN = 'ux_main'
+
+      /** True when this definition can be expanded client-side: it has a layout and NO viewModel (a
+       *  viewModel route runs server logic that cannot execute in the browser — the honest boundary). */
+      function isClientExpandable(spec                )          {
+          const hasViewModel = Boolean(spec.viewModel)
+          return !hasViewModel && Boolean(layoutOf(spec))
+      }
+
+      function layoutOf(spec                )                         {
+          if (spec.layout && typeof spec.layout === 'object') return spec.layout
+          // Bare tree: the whole object is the layout, as long as it looks like a component node. Its
+          // `pageType:` is the page's, not the root component's (the server's loader ignores it there) —
+          // and so are its `actions:`/`triggers:` (YamlUidlLoader reads them off the root as the PAGE's;
+          // left on the root component they reached its metadata as raw, unlowered flow steps).
+          if (typeof spec.type === 'string') {
+              const { pageType: _pageType, actions: _actions, triggers: _triggers, ...tree } = spec
+              return tree
+          }
+          return undefined
+      }
+
+      const PAGE_TYPES = ['landing', 'collection', 'detail', 'form', 'process', 'dashboard']
+
+      /** The page type a definition DECLARES, as its wire name — matched without regard to case, an
+       *  unknown value ignored — exactly like the server's `YamlUidlLoader.pageTypeOf`. */
+      function declaredPageType(spec                )                     {
+          const raw = typeof spec.pageType === 'string' ? spec.pageType.trim().toLowerCase() : ''
+          return PAGE_TYPES.includes(raw) ? raw : undefined
+      }
+
+      /**
+       * The page type a definition's SHAPE says when it declares none — the server's
+       * `SeededYamlPage.declaredPageType`: a `Form` filling a `template:` is that template's kind of page,
+       * a `type: Listing` page is a collection. Without it a bundle shipped the page as a form page.
+       */
+      function shapePageType(layout                        )                     {
+          const node = layout
+          if (node?.type === 'Form') {
+              const template = typeof node.template?.type === 'string' ? node.template.type : undefined
+              return templatePageType(template)
+          }
+          return node?.type === 'Listing' ? 'collection' : undefined
+      }
+
+      /** What the route entry adds to its definition when it is expanded (the route, not the screen, owns
+       *  these: one definition can serve several routes). */
+
+
+
+
+
+
+
+      /** What a definition-only page names the window with — the server's rule
+       *  (`ActionInstanceCreator.nameTheWindow`, .NET/Python alike): the root component's own `title`, else
+       *  the route's last literal segment humanized (`orders/:id/edit-notes` → "Edit notes"). A title
+       *  reading the state has no value here (nothing is fetched yet), so it gives way to the route too. */
+      function definitionWindowTitle(layout            , route        )         {
+          if (typeof layout.title === 'string' && layout.title.trim() && !layout.title.includes('${')) {
+              return layout.title
+          }
+          const segments = (route ?? '').split('?')[0].split('/')
+          for (let i = segments.length - 1; i >= 0; i--) {
+              const segment = segments[i]
+              if (segment.trim() && !segment.startsWith(':') && !segment.startsWith('{')) return humanizeSegment(segment)
+          }
+          return route ?? ''
+      }
+
+      /** Java's `Humanizer.toUpperCaseFirst`: '.', '_' and '-' are spaces, words split at case and
+       *  letter/non-letter boundaries, lower case with the first letter upper. */
+      function humanizeSegment(s        )         {
+          let c = s.replace(/[._-]/g, ' ')
+              .replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g, ' ')
+              .toLowerCase()
+              .replace(/ +/g, ' ')
+          if (c.length > 1) c = c[0].toUpperCase() + c.slice(1)
+          return c
+      }
+
+      /** Expand a definition to a wire `UIIncrement`. `route` supplies the default window title when the
+       *  definition declares none. Throws if the definition has no expandable layout.
+       *
+       *  - `type: AppShell` becomes the App shell (see expandAppShell).
+       *  - A screen with BEHAVIOUR — declared `actions:`/`triggers:`, or a route `data:` source — is
+       *    wrapped in a ServerSide page component carrying them, as the server's SeededYamlPage does. In a
+       *    static UI every one of them is a `restAction` the browser runs itself; the route's `data:`
+       *    becomes the synthetic `__restdata__` action plus an OnLoad trigger that fires it (the same
+       *    pair `@RestData` produces), so the record arrives with no backend. */
+      function expandDefinition(spec                , route        , title         ,
+                                       ctx                   = {})              {
+          // No server, no identity: the access keys are cosmetic here (rendered unrestricted, warned once).
+          spec = withoutAccessKeys(spec)
+          // `fieldType:` references take their type's attributes as defaults BEFORE anything is expanded,
+          // exactly as the server's YAML loader does (FieldTypeResolver) — same rule, same output.
+          spec = resolveFieldTypes(spec)
+          const layout = layoutOf(spec)
+          if (!layout) throw new Error(`Definition for route "${route}" has no layout to expand`)
+
+          if (layout.type === 'AppShell') return expandAppShell(layout)
+
+          const windowTitle = title ?? definitionWindowTitle(layout, route)
+          const component = expandComponent(layout)
+
+          return {
+              commands: [
+                  { targetComponentId: MAIN, type: 'SetWindowTitle', data: windowTitle }         ,
+              ],
+              messages: [],
+              fragments: [
+                  {
+                      targetComponentId: MAIN,
+                      component: withBehaviour(spec, component, ctx),
+                      data: undefined,
+                      state: undefined,
+                      action: REPLACE,
+                      containerId: undefined,
+                  },
+              ],
+              banners: [],
+              appendBanners: false,
+              appData: undefined,
+              appState: undefined,
+          }
+      }
+
+      /** The data source of a route, as a restAction source: by name when it names one. */
+      function sourceOf(data                                       )                          {
+          if (data.ref) return { ref: data.ref }
+          return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null && v !== undefined))
+      }
+
+      /**
+       * The checks the browser runs before an action marked validationRequired: one per required,
+       * editable field of the expanded screen — the condition and message the server gives a Java
+       * {@code @NotEmpty} and a served definition-only page (SeededYamlPage.validations). The bundle's
+       * page carried none, so its required fields only wore the required dot.
+       */
+      function requiredValidationsOf(node         )                                                            {
+          const out                                                            = []
+          const seen = new Set         ()
+          const walk = (n         ) => {
+              if (!n || typeof n !== 'object' || seen.has(n)) return
+              seen.add(n)
+              if (Array.isArray(n)) { n.forEach(walk); return }
+              const o = n
+              const md = (o.metadata && typeof o.metadata === 'object' ? o.metadata : o)
+              const fieldId = (md.fieldId ?? md.id)
+              if (md.type === 'FormField' && md.required && !md.readOnly && typeof fieldId === 'string' && fieldId) {
+                  const ref = `state['${fieldId}']`
+                  out.push({
+                      fieldId,
+                      condition: `${ref} != null && ${ref} !== '' && (${ref}.length === undefined || ${ref}.length > 0)`,
+                      message: 'Cannot be empty',
+                  })
+              }
+              Object.values(o).forEach(walk)
+          }
+          walk(node)
+          return out.filter((v, i) => out.findIndex((w) => w.fieldId === v.fieldId) === i)
+      }
+
+      /** Wrap a screen that has behaviour in the ServerSide page component that carries it. */
+      function withBehaviour(spec                , component           , ctx                  )            {
+          const actions = ((spec.actions                                         ) ?? []).map(lowerAction)
+          // OWNER FIRST, then the action catalogue: the entries the layout (or its own flows) names but
+          // does not declare travel with the page, as the server's ActionInstanceCreator carries them —
+          // which is also what makes a page with no actions of its own a component that can run one.
+          actions.push(...(referencedCatalogueActions(spec.layout ?? component, actions)                                        ))
+          const triggers = [...((spec.triggers                                         ) ?? [])]
+          if (ctx.data && (ctx.data.ref || ctx.data.url)) {
+              // resultPath "" = merge the whole response into the page state (what the server sends).
+              actions.push({ id: '__restdata__', restAction: { source: sourceOf(ctx.data), resultPath: '' } })
+              triggers.push({ type: 'OnLoad', actionId: '__restdata__', times: 1 })
+          }
+          // A declared `pageType:` must reach the page. The renderers read it off the fragment's TOP
+          // component (`pageTypeOf`: the wrapper's, which is just that property), so a page with no
+          // behaviour carries it on its root and stays unwrapped — the visual editor's canvas maps a click
+          // to a definition node through that unwrapped tree. (The server wraps instead —
+          // SeededYamlPage — since its bare ClientSide DTO has no such field; Redwood reads the wrapper.)
+          const pageType = declaredPageType(spec) ?? shapePageType(layoutOf(spec))
+          if (!actions.length && !triggers.length) {
+              return pageType ? ({ ...component, pageType }                        ) : component
+          }
+          const path = ctx.path ?? ''
+          return {
+              type: SERVER_SIDE,
+              id: 'page_' + (path || 'root').replace(/[^A-Za-z0-9_-]/g, '_'),
+              // No class behind it: every action it declares runs in the browser (restAction).
+              serverSideType: undefined,
+              route: '/' + path,
+              initialData: {},
+              actions,
+              triggers,
+              rules: [],
+              validations: requiredValidationsOf(component),
+              children: [component],
+              ...(pageType ? { pageType } : {}),
+          }
+      }
+
+      /**
+       * One declared flow step → the wire command it lowers to — the browser twin of the server's
+       * `Step.toCommand` + `ActionDtoMapper.mapSteps`: every v0 verb is exactly one existing command, with
+       * a null target (the firing component applies it). An unknown verb yields nothing.
+       */
+      function lowerStep(step                         )                                      {
+          const command = (type        , data         ) => ({ targetComponentId: null, type, data })
+          const event = (name         , detail         ) => ({ eventName: name, detail: detail ?? null })
+          switch (step?.type) {
+              case 'Navigate': return command('NavigateTo', step.route ?? null)
+              case 'Emit': return command('DispatchEvent', event(step.event, step.payload))
+              case 'CloseOverlay': return command('CloseModal', step.event ? event(step.event, null) : null)
+              case 'RunAction': return command('RunAction', { actionId: step.actionId })
+              case 'MarkClean': return command('MarkAsClean', null)
+              case 'MarkDirty': return command('MarkAsDirty', null)
+              default: return undefined
+          }
+      }
+
+      /**
+       * An authored action as the wire carries it: a declared flow (`steps:`) travels as `commands` — the
+       * shape `mateu-component` and the shell's menu run with no server round-trip — exactly as the
+       * server lowers it. An action without steps passes through untouched.
+       */
+      function lowerAction(action                         )                          {
+          if (!action || typeof action !== 'object') return action
+          if (!('description' in action) && !Array.isArray(action.steps)) return action
+          // `description` documents the action for whoever picks it from a list; it never reaches the wire
+          const { description: _description, ...withoutDescription } = action
+          if (!Array.isArray(withoutDescription.steps)) return withoutDescription
+          const { steps, ...rest } = withoutDescription
+          const commands = (steps                             ).map(lowerStep).filter(Boolean)
+          return commands.length ? { ...rest, commands } : rest
+      }
+
+      /** The server's `Humanizer.toCamelCase`: where a menu entry with no route of its own points. */
+      function camelCase(label         )         {
+          if (typeof label !== 'string' || !label) return ''
+          const words = label.replace(/\./g, ' ')
+              .replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g, ' ')
+              .toLowerCase().replace(/ +/g, ' ')
+          if (words.length <= 1) return words
+          return words.split(' ').map((w, i) => (i > 0 && w ? w[0].toUpperCase() + w.substring(1) : w)).join('')
+      }
+
+      /** A menu entry's rules on the wire (a RuleLink's `rules:` — e.g. a RunAction naming a shell flow). */
+      function menuRules(item            )                            {
+          if (item.type !== 'RuleLink' || !Array.isArray(item.rules)) return []
+          return (item.rules                             ).map((r) => ({
+              filter: r.filter ?? null,
+              action: r.action ?? null,
+              fieldName: r.fieldName ?? null,
+              fieldAttribute: r.fieldAttribute ?? null,
+              value: r.value ?? null,
+              expression: r.expression ?? null,
+              result: r.result ?? null,
+              actionId: r.actionId ?? null,
+          }))
+      }
+
+      /** An authored menu entry → the wire MenuOption the app shell paints and routes with. */
+      function menuOption(item            )                          {
+          const route = typeof item.route === 'string' && item.route ? item.route
+              : typeof item.path === 'string' ? item.path
+              // an entry with no route of its own (a RuleLink, a group) gets the server's label-derived path
+              : camelCase(item.label)
+          const path = '/' + route.replace(/^\/+/, '')
+          const submenu = (item.submenu ?? item.submenus ?? item.menu)
+          // the card look (AppMenuDtoBuilder): `presentation: {display: cards}` on a group opens it as a
+          // card panel; `icon` / `image` on an entry shown as a card. An entry's own `icon:` wins.
+          const presentation = (item.presentation ?? undefined)
+
+          return {
+              label: item.label,
+              icon: item.icon ?? presentation?.icon ?? undefined,
+              description: item.description ?? undefined,
+              display: presentation?.display === 'cards' ? 'cards' : undefined,
+              image: presentation?.image ?? undefined,
+              path,
+              route: path,
+              consumedRoute: '',
+              uriPrefix: '',
+              visible: !item.hidden,
+              selected: false,
+              disabled: false,
+              separator: item.type === 'MenuSeparator',
+              remote: false,
+              rules: menuRules(item),
+              submenus: Array.isArray(submenu) ? submenu.map(menuOption) : [],
+          }
+      }
+
+      /** The first route a menu can navigate to — the shell's home, as the server's YamlAppLoader does. */
+      function firstRoute(items              )                     {
+          for (const item of items) {
+              if (item.type === 'RouteLink' && (item.route || item.path)) return (item.route ?? item.path)
+              const sub = (item.submenu ?? item.submenus ?? item.menu)
+              if (Array.isArray(sub)) {
+                  const found = firstRoute(sub)
+                  if (found) return found
+              }
+          }
+          return undefined
+      }
+
+      const subOf = (item            )                           => {
+          const sub = (item.submenu ?? item.submenus ?? item.menu)
+          return Array.isArray(sub) ? sub : undefined
+      }
+      const isGroup = (item            ) => item.type === 'Menu' || (!item.type && !!subOf(item)) // i18n-ok: a type discriminator, not chrome text
+      const hasRemoteMenu = (items              )          =>
+          items.some((i) => i.type === 'RemoteMenu' || (isGroup(i) && hasRemoteMenu(subOf(i) ?? [])))
+
+      /**
+       * The navigation chrome a shell declaring `AUTO` (or nothing) gets — the server resolves it before
+       * the wire (`AppMetadataExtractor.getVariant`), so a browser-expanded shell must resolve it the same
+       * way: the renderers have no `AUTO` layout and drew NOTHING for it (an empty play / static app).
+       * Remote sections → MENU_ON_TOP; with groups: a group nesting a group → TILES, more than 7 top
+       * entries → HAMBURGER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
+       */
+      function resolveAppVariant(declared         , menu              )         {
+          if (typeof declared === 'string' && declared.trim() && declared.trim().toUpperCase() !== 'AUTO') return declared.trim()
+          if (hasRemoteMenu(menu)) return 'MENU_ON_TOP'
+          if (menu.some(isGroup)) {
+              if (menu.some((i) => isGroup(i) && (subOf(i) ?? []).some(isGroup))) return 'TILES'
+              if (menu.length > 7) return 'HAMBURGER_MENU'
+              return 'MENU_ON_TOP'
+          }
+          return 'TABS'
+      }
+
+      /** `shortcuts:` of a shell → the wire's (AppShellExtrasMapper): a key or a code, and somewhere to go. */
+      function shellShortcuts(raw         )                            {
+          const text = (v         ) => (typeof v === 'string' && v.trim() ? v.trim() : undefined)
+          return ((raw                                         ) ?? [])
+              .filter((s) => s && typeof s === 'object')
+              .map((s) => ({ key: text(s.key)?.toLowerCase(), code: text(s.code), route: text(s.route), actionId: text(s.actionId), label: text(s.label) }))
+              .filter((s) => (s.key || s.code) && (s.route || s.actionId))
+              .map((s) => {
+                  const route = s.route ? '/' + s.route.replace(/^\/+/, '') : undefined
+                  const last = route?.replace(/\/+$/, '').split('/').pop() ?? ''
+                  const label = s.label ?? (route ? (last ? last.charAt(0).toUpperCase() + last.slice(1).replace(/-/g, ' ') : 'Home') : s.actionId)
+                  return { key: s.key ?? null, label, route: route ?? null, actionId: s.actionId ?? null, code: s.code ?? null }
+              })
+      }
+
+      /** `idleTimeoutMinutes:` & co. → the wire's idle session (AppShellExtrasMapper.idleSession). */
+      function idleSessionOf(shell            )                                 {
+          const minutes = Number(shell.idleTimeoutMinutes ?? 0)
+          if (!(minutes > 0)) return null
+          const timeout = minutes * 60
+          const warning = Math.max(5, Math.min(Number(shell.idleWarningSeconds ?? 60) || 60, timeout))
+          const signOut = typeof shell.idleSignOutUrl === 'string' && shell.idleSignOutUrl.trim() ? shell.idleSignOutUrl.trim() : '/'
+          return { timeoutSeconds: timeout, warningSeconds: warning, signOutUrl: signOut, keepAliveActionId: null }
+      }
+
+      /** A shell header action (`headerActions:`) as AppMapper sends it: its route made absolute. */
+      function headerAction(a                         )                          {
+          const route = typeof a.route === 'string' && a.route.trim() ? '/' + a.route.trim().replace(/^\/+/, '') : null
+          const children = Array.isArray(a.children)
+              ? (a.children                             ).filter((c) => c && typeof c === 'object').map(headerAction)
+              : null
+          return { actionId: a.actionId ?? null, label: a.label, icon: a.icon ?? null, children, route }
+      }
+
+      /**
+       * The header extras a `type: AppShell` authors — `contextSelectors:`, `headerActions:`,
+       * `notifications:` and `globalSearch:` — as AppMapper puts them on the wire App. The sources travel
+       * as authored (usually a `{ref}`), and the browser fetches them (appSources.ts).
+       */
+      function shellHeaderExtras(shell            )                          {
+          const objects = (v         ) => (Array.isArray(v) ? v : []).filter((x) => x && typeof x === 'object')
+          const contextSelectors = objects(shell.contextSelectors)
+              .filter((s) => typeof s.fieldName === 'string' && s.fieldName.trim())
+              .map((s) => ({
+                  fieldName: s.fieldName,
+                  label: typeof s.label === 'string' && s.label.trim() ? s.label : humanizeFieldId(String(s.fieldName)),
+                  options: objects(s.options).map((o) => ({ value: o.value, label: o.label })),
+                  optionsSource: s.optionsSource ?? null,
+              }))
+          const notifications = shell.notifications
+          const globalSearch = shell.globalSearch
+          // `ai:`, the data twin of @AI, read like AppMapper: trimmed, blank = absent.
+          const ai = (shell.ai ?? {})
+          const aiText = (key        ) => (typeof ai[key] === 'string' && ai[key].trim() ? ai[key].trim() : null)
+          return {
+              sseUrl: aiText('sse'),
+              mcpUrl: aiText('mcp'),
+              uploadUrl: aiText('upload'),
+              followLabel: aiText('followLabel'),
+              followingLabel: aiText('followingLabel'),
+              contextSelectors,
+              contextActions: objects(shell.headerActions).map(headerAction),
+              notificationsEnabled: !!notifications?.source,
+              notificationsSource: notifications?.source ?? null,
+              notificationsReadSource: notifications?.markRead ?? null,
+              globalSearchEnabled: !!globalSearch?.source,
+              globalSearchSource: globalSearch?.source ?? null,
+          }
+      }
+
+      /**
+       * `type: AppShell` → the wire App (what the server's YamlAppLoader + AppMapper produce for a
+       * definition-only mount root): title, subtitle, variant and the menu, with `homeRoute` the first
+       * navigable entry. The shell then loads its content slot like any app shell — from the bundle.
+       */
+      function expandAppShell(shell            )              {
+          const menu = (shell.menu                            ) ?? []
+          const widgets = ((shell.widgets                            ) ?? []).filter((w) => w && typeof w === 'object')
+          const flag = (key        ) => shell[key] === true || shell[key] === 'true'
+          return {
+              commands: [
+                  { targetComponentId: MAIN, type: 'SetWindowTitle', data: shell.title ?? '' }         ,
+              ],
+              messages: [],
+              fragments: [{
+                  targetComponentId: MAIN,
+                  component: {
+                      type: CLIENT_SIDE,
+                      id: 'app',
+                      metadata: {
+                          type: 'App',
+                          route: '',
+                          rootRoute: '',
+                          variant: resolveAppVariant(shell.variant, menu),
+                          layout: 'SINGLE_SLOT',
+                          title: shell.title,
+                          subtitle: shell.subtitle,
+                          logo: shell.logo,
+                          favicon: shell.favicon,
+                          themeToggle: flag('themeToggle'),
+                          // the header switches a shell authors (AppMapper: chromeless implies the command center)
+                          commandCenterEnabled: flag('commandCenter') || flag('chromeless'),
+                          chromeless: flag('chromeless'),
+                          accessKeys: flag('accessKeys'),
+                          mobileQr: flag('mobileQr'),
+                          drawerClosed: flag('drawerClosed'),
+                          style: typeof shell.style === 'string' ? shell.style : undefined,
+                          cssClasses: typeof shell.cssClasses === 'string' ? shell.cssClasses : undefined,
+                          // The brand accent (`accentColor:`), as the server's AppMapper sends it: blank → none.
+                          accentColor: typeof shell.accentColor === 'string' && shell.accentColor.trim() ? shell.accentColor.trim() : undefined,
+                          menu: menu.map(menuOption),
+                          totalMenuOptions: menu.length,
+                          // the shell's own `homeRoute:` wins, as in the server's YamlAppLoader; else the first entry
+                          homeRoute: (typeof shell.homeRoute === 'string' && shell.homeRoute.trim()
+                              ? shell.homeRoute.trim().replace(/^\/+/, '')
+                              : firstRoute(menu)) ?? '',
+                          homeConsumedRoute: '',
+                          homeBaseUrl: '',
+                          apps: [],
+                          fabs: [],
+                          // the header extras (AppMapper): pickers, header actions, inbox and palette search
+                          ...shellHeaderExtras(shell),
+                          // the shell's FLOWS, lowered as the server's AppMapper lowers them: a menu
+                          // RuleLink whose RunAction names one runs it in the browser
+                          actions: ((shell.actions                                         ) ?? [])
+                              .filter((a) => a && typeof a === 'object').map(lowerAction),
+                          // the app's ACTION catalogue (AppMapper.actionCatalogue): whatever the client
+                          // holds — the bundle manifest's, or the visual editor's Play
+                          actionCatalogue: actionCatalogue(),
+                          // E2 patterns, as AppShellExtrasMapper reads them off a `type: AppShell`
+                          shortcuts: shellShortcuts(shell.shortcuts),
+                          headerValues: ((shell.headerValues                                         ) ?? [])
+                              .filter((v) => v && typeof v.id === 'string')
+                              .map((v) => ({ id: v.id, label: typeof v.label === 'string' && v.label.trim() ? v.label : null, value: v.value ?? '' })),
+                          // a bundle has no server to stream from, nor to keep alive
+                          liveUpdates: false,
+                          idleSession: idleSessionOf(shell),
+                      },
+                      // the header widgets (AppMapper.mapWidgets): each authored component, in slot "widgets"
+                      children: widgets.map((w) => ({ ...expandComponent(w), slot: 'widgets' })),
+                  }                        ,
+                  data: undefined,
+                  state: undefined,
+                  action: REPLACE,
+                  containerId: undefined,
+              }],
+              banners: [],
+              appendBanners: false,
+              appData: undefined,
+              appState: undefined,
+          }
+      }
+
+    }
+
+    // ── ui/layout/templatePageTypes.ts ──
+    __defs["ui/layout/templatePageTypes.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "templatePageType", { enumerable: true, get: () => templatePageType });
+      /**
+       * The kind of page a YAML `template:` stands for — the same table as the server's
+       * PageTypeResolver.ofTemplate. Dependency-free: the browser expander (also loaded by the React
+       * Native app with plain Node) imports it.
+       */
+      const TEMPLATE_PAGE_TYPES                         = {
+          CollectionDetailPage: 'collection',
+          DataManagementPage: 'collection',
+          DashboardLandingPage: 'dashboard',
+          WelcomePage: 'landing',
+          HeroSearchPage: 'landing',
+          ItemOverviewPage: 'detail',
+          GeneralOverviewPage: 'detail',
+          FoldoutPage: 'detail',
+          MultimediaContentPage: 'detail',
+          GuidedProcessPage: 'process',
+          AdvancedCreateEditPage: 'form',
+      }
+
+      /** The page type a template's type names, or undefined. */
+      const templatePageType = (templateType                    )                     =>
+          templateType ? TEMPLATE_PAGE_TYPES[templateType] : undefined
+
+    }
+
+    // ── ui/humanize.ts ──
+    __defs["ui/humanize.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "humanizeFieldId", { enumerable: true, get: () => humanizeFieldId });
+      /**
+       * A field id as a person would write it — "startDate" → "Start date", "check_out" → "Check out",
+       * "guests.0.name" → "Name". Only used when the screen offers no label at all: an error message that
+       * names a field by its programmer id speaks the system's language, not the user's (Nielsen #2).
+       */
+      const humanizeFieldId = (id        )         => {
+          const last = id.split('.').filter((p) => p && !/^\d+$/.test(p)).pop() ?? id
+          const words = last
+              .replace(/[_-]+/g, ' ')
+              .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+              .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+              .trim()
+              .toLowerCase()
+          return words ? words.charAt(0).toUpperCase() + words.slice(1) : id
+      }
+
+    }
+
+    // ── expander/accessKeys.ts ──
+    __defs["expander/accessKeys.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "ACCESS_KEYS", { enumerable: true, get: () => ACCESS_KEYS });
+      Object.defineProperty(exports, "withoutAccessKeys", { enumerable: true, get: () => withoutAccessKeys });
+      Object.defineProperty(exports, "declaresAccessKeys", { enumerable: true, get: () => declaresAccessKeys });
+      Object.defineProperty(exports, "__resetAccessWarningForTests", { enumerable: true, get: () => __resetAccessWarningForTests });
+      // The YAML access keys (`eyesOnly`/`readOnlyUnless`/`disabledUnless` on components, `access` on
+      // actions and menu items) are decided by the SERVER from the caller's identity (YamlAccess). An
+      // expanded definition has no server and no identity, so here they are cosmetic: the page renders
+      // as authored — unrestricted — and the author is told once. A static bundle that declares them
+      // fails `staticOnly` on the server side for the same reason.
+
+      const ACCESS_KEYS = ['eyesOnly', 'readOnlyUnless', 'disabledUnless', 'access']
+
+      let warned = false
+
+      const strip = (v         , found                  )          => {
+          if (Array.isArray(v)) return v.map(x => strip(x, found))
+          if (v && typeof v === 'object') {
+              const out                          = {}
+              for (const [k, child] of Object.entries(v                           )) {
+                  if ((ACCESS_KEYS                     ).includes(k)) {
+                      found.any = true
+                      continue
+                  }
+                  out[k] = strip(child, found)
+              }
+              return out
+          }
+          return v
+      }
+
+      /** `spec` without its access keys (a copy; the same object when it declares none). */
+      function withoutAccessKeys   (spec   )    {
+          const found = { any: false }
+          const stripped = strip(spec, found)
+          if (!found.any) return spec
+          if (!warned) {
+              warned = true
+              console.warn('mateu: access rules (eyesOnly/readOnlyUnless/disabledUnless/access) need a server '
+                  + 'to check who is asking — with none, the page renders unrestricted')
+          }
+          return stripped
+      }
+
+      /** Whether `spec` declares any access key, anywhere in its tree. */
+      function declaresAccessKeys(spec         )          {
+          const found = { any: false }
+          strip(spec, found)
+          return found.any
+      }
+
+      /** Test hook. */
+      const __resetAccessWarningForTests = ()       => { warned = false }
+
+    }
+
+    // ── expander/expandComponent.ts ──
+    __defs["expander/expandComponent.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "expandComponent", { enumerable: true, get: () => expandComponent });
+      Object.defineProperty(exports, "expandButton", { enumerable: true, get: () => expandButton });
+      // Phase 6 (coherence-plan #1) — the client-side expander: turn an AUTHORED fluent component node
+      // (as parsed from a definition JSON/YAML) into the WIRE component the renderer paints, IN THE
+      // BROWSER, with no backend. This is the TS twin of the server's ComponentMapper for the 100%
+      // declarative path (a route with a `definition`, no `viewModel`).
+      //
+      // The mapping the server performs, distilled from a captured golden (about.yaml → its increment):
+      //   authored  { "type": "VerticalLayout", "content": [ { "type": "Text", "text": "hi" } ] }
+      //   wire       { "type": "ClientSide",
+      //                "metadata": { "type": "VerticalLayout" },
+      //                "children": [ { "type": "ClientSide",
+      //                                "metadata": { "type": "Text", "text": "hi" },
+      //                                "children": [] } ] }
+      //
+      // Two rules:
+      //  1. Every node becomes a ClientSide wrapper: `{ type: "ClientSide", metadata: { type, ...fields },
+      //     children }`. The authored type + its own fields live in `metadata`; the ENVELOPE fields (the
+      //     ones declared on the wire `Component` interface — id/style/cssClasses/slot/sizing/…) sit on
+      //     the ClientSide node itself, as siblings of `metadata`.
+      //  2. A CONTAINER type lifts its `content`/`children` into wire `children` (each recursively
+      //     expanded). A leaf carries no children.
+      //
+      // DEFAULTS ARE NOT FILLED. The server writes per-type defaults (VerticalLayout `spacing:false`, Text
+      // `container:"div"`/`noMargins:false`); the renderer already defaults missing metadata, so the
+      // expander emits the mechanical mapping and relies on RENDER-parity (see
+      // design/phase6-client-side-expander.md, "golden strategy"). Reproducing every component's defaults
+      // would be a fourth copy of what the three backends already hold.
+
+      const { expandFormHeader } = __mateuRequire("expander/pageHeader.ts");
+      const { contentOf: templateContentOf, ownsHeader: templateOwnsHeader, templateMetadataOf } = __mateuRequire("expander/pageTemplates.ts");
+
+
+
+      const { resolveComponent } = __mateuRequire("http/componentCatalogue.ts");
+      const { isNodeIdStamping } = __mateuRequire("ui/renderers/nodeIdStampFlag.ts");
+
+      // ComponentType.ClientSide as a value, without loading the enum module (see expandDefinition.ts).
+      const CLIENT_SIDE = 'ClientSide'
+
+      /** An authored fluent node: a `type` discriminator plus arbitrary type-specific fields, with child
+       *  content under `content` or `children`. This is what `js-yaml`/`JSON.parse` yields from a
+       *  definition file — deliberately loose, since the authored surface is the whole component catalog. */
+
+
+
+
+
+
+
+
+
+      // The fields that live on the wire `Component` envelope (siblings of `metadata`), NOT inside
+      // `metadata`. Mirrors the `Component` interface. Everything else an authored node declares is
+      // type-specific and belongs in `metadata`.
+      const ENVELOPE_FIELDS = new Set([
+          'id',
+          'style',
+          'cssClasses',
+          'slot',
+          'initialData',
+          'confirmOnNavigationIfDirty',
+          'sizing',
+      ])
+
+      // Authored types whose `content`/`children` are LIFTED into wire `children`. These are the plain
+      // layout containers, where a child is a child. Types that hold their content specially (Card under
+      // `metadata.content`, FormLayout's packed rows, sections, listings) are NOT here — they get
+      // dedicated handling in later increments, each pinned to its own golden. An unknown type is treated
+      // as a leaf (its authored fields go to metadata, no child lifting), which is safe: it renders
+      // whatever the renderer makes of the metadata, and never silently drops a child into the void
+      // because a stray `content` on a non-container also lands in metadata verbatim.
+      const CONTAINER_TYPES = new Set([
+          // A page `type: Form` (title/subtitle/toolbar/buttons in metadata, its `content` as children) and
+          // the FormLayout inside it — the read-only record page of a static UI. Pinned by the server wire
+          // of a definition-only Form route (see expandForm.test.ts).
+          'Form',
+          'FormLayout',
+          'VerticalLayout',
+          'HorizontalLayout',
+          'Div',
+          // A custom component (coherence-plan #14) lifts its slotted `content` into wire children, exactly
+          // like the server's CustomComponentMapper — its `name`/`props` stay in metadata. The rendering is
+          // per-renderer (registerCustomComponent), but the expansion is the ordinary container mapping.
+          'CustomComponent',
+          // the responsive grid an Advanced create and edit page template lays its main/detail slots on
+          // (ResponsiveGridMapper: its content as children, each carrying the named area it fills as `slot`)
+          'ResponsiveGrid',
+      ])
+
+      // Component-valued metadata keys: the server's mapper EXPANDS each of them in place (one component,
+      // or a list of them) and keeps it in metadata — NOT lifted to wire children. Pinned by Java goldens:
+      // CardMapper (content + every header slot — CardDefinitionSyncTest, and the component `title` in
+      // TemplateComponentsDefinitionSyncTest) and FormMapper (`header`/`footer` lists, `avatar` — the
+      // latter golden too). A plain value in one of these keys (a string title) is left alone: Java cannot
+      // author one (the record field is a Component), and the renderer prints a string, so it forgives.
+      const METADATA_COMPONENT_KEYS                           = {
+          Card: ['content', 'title', 'subtitle', 'footer', 'header', 'media', 'headerPrefix', 'headerSuffix'],
+          Form: ['header', 'footer', 'avatar'],
+      }
+
+      // Types whose children the server's mapper lifts from a NAMED record component into the wire
+      // children (and drops from metadata): HeroSectionMapper (`content`), DashboardLayoutMapper (`items`),
+      // DashboardPanelMapper (its single `content`). Without them a browser-expanded welcome page lost its
+      // hero buttons and its tiles — the renderer reads children, and the authored key rode in metadata.
+      // Likewise ScoreboardMapper (`metrics`), TabLayoutMapper (`tabs`) and TabMapper (its single
+      // `content`) — pinned by TemplateComponentsDefinitionSyncTest.
+      const CHILDREN_KEY                         = {
+          HeroSection: 'content',
+          DashboardLayout: 'items',
+          DashboardPanel: 'content',
+          Scoreboard: 'metrics',
+          TabLayout: 'tabs',
+          Tab: 'content',
+          // NoticeMapper lifts a notice's `content` (any components inside the tinted strip) the same way:
+          // left in metadata, a statically bundled notice lost them (expandDisplayGallery.test.ts).
+          Notice: 'content',
+      }
+
+      // Authored listing types → the wire `Crud` component. Pinned by the Java golden
+      // (ReadListingDefinitionSyncTest): a read-only listing (no proxy/secret actions) renders as a DIRECT
+      // ClientSide Crud (the ServerSide SeededYamlPage wrapper only appears with server-side actions).
+      // `columns` are ClientSide-wrapped GridColumns; `toolbar`/`filters` serialize as their own wire types
+      // (a Button is `{type:"Button"}`, not ClientSide-wrapped), so they pass through as authored and the
+      // renderer defaults them. Everything else (title/rowRoute/rowsSource/…) rides in metadata as data.
+      // Scope: read + navigate (rowRoute); proxy/secret actions need a backend.
+      const LISTING_TYPES = new Set(['Listing', 'Crudl', 'Crud'])
+
+      /** Map one authored fluent node to its wire component. Recurses into a container's children, or —
+       *  for a Card-family type — into its single `content`, placed under `metadata.content`; a listing
+       *  becomes a Crud with its columns/toolbar/filters expanded. */
+      function expandComponent(authored            )            {
+          // `note:` is the author's design intent (an authoring-only key, see uidl-schema.json): the server
+          // ignores it, so the wire never carries it — and neither does a render made here.
+          const { note, ...node } = authored
+          void note
+          if (LISTING_TYPES.has(node.type)) return expandListing(node)
+          if (node.type === 'FoldoutLayout') return expandFoldout(node)
+
+          // A business-component reference (coherence-plan #13): resolve it against the shipped catalogue,
+          // no backend. The catalogue entry is already a wire component, so it is returned as-is; an
+          // unknown name is a graceful placeholder (matching the server's ComponentRef resolution).
+          if (node.type === 'ComponentRef') {
+              const resolved = resolveComponent(node.ref                      )
+              if (resolved) return resolved
+              return {
+                  type: CLIENT_SIDE,
+                  metadata: { type: 'Text', text: `Unknown business component: ${node.ref          }` },
+                  children: [],
+              }
+          }
+
+          // A ButtonGroup placed in content: the server's ButtonMapper.mapButtonGroupToDto sends it as a
+          // content Button whose `children` are the group's buttons (the toolbar group's shape).
+          if (node.type === 'ButtonGroup') {
+              const envelope                          = {}
+              for (const [key, value] of Object.entries(node)) if (key !== 'type' && ENVELOPE_FIELDS.has(key)) envelope[key] = value
+              return { ...envelope, type: CLIENT_SIDE, metadata: expandButton(node), children: [] }
+          }
+
+          // A Button placed in content (a hero's call to action, a layout's child) is ClientSide-wrapped
+          // on the wire, but the server's ButtonMapper treats it exactly like a toolbar button: a RouteLink
+          // `actionable` becomes the button's `route` (it NAVIGATES on the client) and a missing actionId
+          // comes from the label. Without it a bundled "Browse products" button did nothing.
+          const { type, content: authoredContent, children, ...fields } = (node.type === 'Button' ? expandButton(node) : node)
+          // a page filling a design-system page template: its slots laid out like the server does
+          // (PageTemplates), the template's own values kept on the Form metadata
+          const content = type === 'Form' && fields.template ? templateContentOf(fields.template, authoredContent, fields                           ) : authoredContent
+
+          const envelope                          = {}
+          const metadata                          = { type }
+          for (const [key, value] of Object.entries(fields)) {
+              if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+              else if ((key === 'toolbar' || key === 'buttons') && Array.isArray(value)) {
+                  metadata[key] = (value                ).map(expandButton)
+              } else metadata[key] = value
+          }
+          if (type === 'HorizontalLayout' && metadata.spacing === undefined) {
+              // An authored ROW with no `spacing:` is spaced — the YAML default of every backend (Java
+              // YamlUidlMapperFactory.spacedRowsByDefault, .NET YamlComponentBuilder, Python yaml_preview);
+              // `spacing: false` keeps it off. A column keeps the record default (off).
+              metadata.spacing = true
+          }
+          if (type === 'FormField') {
+              // The authored key for a field's id is `id`; the wire calls it `fieldId` (and keeps `id` on
+              // the node, as the server does). The two defaults the renderer cannot do without.
+              if (fields.id !== undefined) metadata.fieldId = fields.id
+              delete metadata.id
+              metadata.dataType = metadata.dataType ?? 'string'
+              metadata.stereotype = metadata.stereotype ?? 'regular'
+          }
+          if (type === 'Form') {
+              // the page-header keys (overline, badges, kpis, recordSwitcher, banners, fabs…) as FormMapper
+              // shapes them
+              expandFormHeader(metadata)
+              if ('template' in metadata) {
+                  const template = templateMetadataOf(metadata.template)
+                  if (template) metadata.template = template
+                  else delete metadata.template
+                  // a template that draws the header (a welcome banner): no header, no toolbar of the form's
+                  if (template && templateOwnsHeader(fields.template)) {
+                      metadata.noHeader = true
+                      metadata.toolbar = []
+                  }
+              }
+          }
+          if (type === 'HeroSection' && metadata.tone === 'auto') {
+              // HeroSectionMapper: `auto` is the default look, so nothing travels
+              delete metadata.tone
+          }
+          if (type === 'MatrixGrid') normalizeMatrix(metadata)
+          // GridMapper keeps a grid's columns in `metadata.content` (each a ClientSide GridColumn or
+          // GridGroupColumn), and GridGroupColumnMapper its grouped columns in `metadata.columns` — not
+          // lifted to children. Without this a bundled Grid lost every column (content was dropped).
+          if (type === 'Grid' && Array.isArray(content)) metadata.content = (content                ).map(expandColumn)
+          if (type === 'GridGroupColumn' && Array.isArray(metadata.columns)) {
+              metadata.columns = (metadata.columns                ).map(expandColumn)
+          }
+
+          let kids               = []
+          if (CHILDREN_KEY[type]) {
+              const key = CHILDREN_KEY[type]
+              const c = key === 'content' ? content : (fields                           )[key]
+              delete metadata[key]
+              kids = c == null ? [] : (Array.isArray(c) ? c : [c])
+          } else if (CONTAINER_TYPES.has(type)) {
+              // A plain layout container: content/children is an array of children, lifted to the wire.
+              // Tolerate a single node authored without brackets.
+              const c = content ?? children ?? []
+              kids = Array.isArray(c) ? c : [c]
+          }
+
+          // Component-valued metadata keys are expanded in place (a Card's content and header slots, a
+          // Form's header/footer/avatar).
+          for (const key of METADATA_COMPONENT_KEYS[type] ?? []) {
+              const expanded = expandNested(key === 'content' ? content : metadata[key])
+              if (expanded !== undefined) metadata[key] = expanded
+          }
+          if (type === 'Form' && isWireNode(metadata.avatar)) {
+              // FormMapper sizes the avatar with `.addStyle("width: 4rem;height: 4rem;")`, and
+              // ClientSideComponentDto.addStyle appends after a `;` whatever the style was.
+              const avatar = metadata.avatar
+              avatar.style = (typeof avatar.style === 'string' ? avatar.style : '') + ';width: 4rem;height: 4rem;'
+          }
+
+          // Cast through `unknown`: the wire `Component` interface marks style/cssClasses/slot/… as
+          // required, but the server itself omits them when unset (exclude_none) and the renderer defaults
+          // them. The expander emits the same minimal shape (render-parity), so this is deliberate.
+          return {
+              ...envelope,
+              type: CLIENT_SIDE,
+              metadata,
+              children: kids.map(expandComponent),
+          }
+      }
+
+      /** MatrixGridMapper's two normalisations: a section without an id gets `section<i>` (collapsing is
+       *  keyed by it — two id-less sections folded together), and every row carries exactly one cell per
+       *  column (padded with blanks, cut when long), so a short authored row does not shift the grid. */
+      function normalizeMatrix(metadata                         )       {
+          const columnCount = Array.isArray(metadata.columns) ? metadata.columns.length : 0
+          if (!Array.isArray(metadata.sections)) return
+          metadata.sections = (metadata.sections                             ).map((section, i) => ({
+              ...section,
+              id: typeof section.id === 'string' && section.id.trim() !== '' ? section.id : `section${i}`,
+              rows: (Array.isArray(section.rows) ? section.rows                              : []).map((row) => {
+                  const cells = Array.isArray(row.cells) ? row.cells                              : []
+                  return {
+                      ...row,
+                      cells: Array.from({ length: columnCount }, (_, c) => {
+                          const cell = cells[c]
+                          return cell ? { ...cell, value: cell.value ?? '' } : { value: '', link: false }
+                      }),
+                  }
+              }),
+          }))
+      }
+
+      const isAuthoredNode = (v         )                  =>
+          !!v && typeof v === 'object' && !Array.isArray(v) && typeof (v                      ).type === 'string'
+      const isWireNode = (v         )          => !!v && typeof v === 'object' && !Array.isArray(v)
+
+      /** A component-valued key: one authored node, or a list of them, expanded in place. `undefined`
+       *  when there is nothing to expand (absent, or a plain value such as a string title). */
+      function expandNested(value         )          {
+          if (isAuthoredNode(value)) return expandComponent(value)
+          if (Array.isArray(value)) return value.map((v) => isAuthoredNode(v) ? expandComponent(v) : v)
+          return undefined
+      }
+
+      /**
+       * A FoldoutLayout, as FoldoutLayoutMapper builds it: the `overview` becomes a child in slot
+       * `overview`; each panel contributes a header INFO to `metadata.panels` (title/subtitle/icon/open/
+       * width — `open` is a primitive there, so false when unset) and its `content` becomes a child in
+       * slot `panel-<index>` (the index of the PANEL, so a panel with no content leaves a gap, as on the
+       * server); `badges` travel as their texts. Pinned by TemplateComponentsDefinitionSyncTest.
+       */
+      function expandFoldout(node            )            {
+          const { type, content, children, overview, panels, badges, ...fields } = node
+          void content
+          void children
+          const envelope                          = {}
+          const metadata                          = { type }
+          for (const [key, value] of Object.entries(fields)) {
+              if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+              else metadata[key] = value
+          }
+          const kids              = []
+          if (isAuthoredNode(overview)) kids.push({ ...expandComponent(overview), slot: 'overview' }             )
+          const panelList = (Array.isArray(panels) ? panels : [])
+          metadata.panels = panelList.map((panel, i) => {
+              if (isAuthoredNode(panel.content)) {
+                  kids.push({ ...expandComponent(panel.content), slot: 'panel-' + i }             )
+              }
+              // what the FOLDED panel shows under its title (FoldoutPanel.summary) — slot summary-<index>
+              if (isAuthoredNode(panel.summary)) {
+                  kids.push({ ...expandComponent(panel.summary), slot: 'summary-' + i }             )
+              }
+              return Object.fromEntries(Object.entries({
+                  title: panel.title,
+                  subtitle: panel.subtitle,
+                  icon: panel.icon,
+                  open: Boolean(panel.open),
+                  width: panel.width,
+                  // no `open:` authored = the author did not decide: open while it fits (the server's
+                  // YAML default, YamlUidlMapperFactory); absent on the wire otherwise (NON_NULL)
+                  autoOpen: panel.autoOpen === true || (panel.autoOpen === undefined && panel.open === undefined) ? true : undefined,
+                  // the editor selects a panel from the canvas by its node id (editor preview only)
+                  id: isNodeIdStamping() && typeof panel.id === 'string' ? panel.id : undefined,
+              }).filter(([, v]) => v !== undefined))
+          })
+          if (Array.isArray(badges)) {
+              metadata.badges = (badges                        )
+                  .map((b) => b?.text)
+                  .filter((t)              => typeof t === 'string' && t.trim() !== '')
+          }
+          return {
+              ...envelope,
+              type: CLIENT_SIDE,
+              metadata,
+              children: kids,
+          }
+      }
+
+      /**
+       * Expand a listing definition (`type: Listing`/`Crudl`) into the wire `Crud` ClientSide component —
+       * the shape the server produces for a read-only listing (ReadListingDefinitionSyncTest). The node
+       * carries `id: "crud"` and `sizing: "fill"` (as the server does); `columns`/`toolbar`/`filters` hold
+       * child components and are each expanded; `crudlType` defaults to `"table"`; everything else
+       * (title/rowRoute/rowsSource/…) rides in metadata as data. A GridColumn keeps its `id` in metadata
+       * (the column key the grid reads) as well as on the node, matching the golden.
+       */
+      function expandListing(node            )            {
+          const { type, content, children, ...fields } = node
+          void type
+          void content
+          void children
+
+          const envelope                          = { id: 'crud', sizing: 'fill' }
+          const metadata                          = {
+              type: 'Crud',
+              crudlType: (fields.crudlType          ) ?? (fields.listingType          ) ?? 'table',
+              // LOAD-BEARING defaults (the explicit-defaults table of the render-parity rule): the server
+              // always sends them, and the renderer does not default them — with no pageSize a REST
+              // listing painted every row EMPTY and no pager. Values from the fluent Listing's accessors.
+              pageSize: 10,
+              searchOnEnter: true,
+              autoFocusOnSearchText: true,
+              filtersLayout: 'auto',
+              gridLayout: 'auto',
+          }
+          for (const [key, value] of Object.entries(fields)) {
+              if (key === 'crudlType' || key === 'listingType') continue
+              if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+              else if (key === 'columns' && Array.isArray(value)) {
+                  metadata[key] = (value                ).map(expandColumn)
+              } else if (key === 'toolbar' && Array.isArray(value)) {
+                  metadata[key] = (value                ).map(expandButton)
+              } else if (key === 'filters' && Array.isArray(value)) {
+                  metadata[key] = (value                ).map(expandFilter)
+              } else if (key === 'preSearch' && Array.isArray(value)) {
+                  // the smart filter search's pre-search content: components, expanded in place (CrudlMapper)
+                  if (value.length > 0) metadata[key] = (value                ).map(expandComponent)
+              } else metadata[key] = value // filters/rowsSource/title/rowRoute pass through
+          }
+
+          return {
+              ...envelope,
+              type: CLIENT_SIDE,
+              metadata,
+              children: [],
+          }
+      }
+
+      /** Expand a listing column into a ClientSide GridColumn. Its `id` is kept in metadata (the column
+       *  key the grid reads) as well as on the node envelope, matching the server golden. */
+      function expandColumn(node            )            {
+          const wire = expandComponent(node)
+
+
+
+          if (node.id !== undefined && wire.metadata) wire.metadata.id = node.id
+          return wire
+      }
+
+      /** camelCase of a label — the server's Humanizer.toCamelCase, for an action id nobody declared. */
+      const toCamelCase = (label        )         => {
+          const words = label.replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(/\s+/).filter(Boolean)
+          return words.map((w, i) => i === 0
+              ? w.charAt(0).toLowerCase() + w.slice(1)
+              : w.charAt(0).toUpperCase() + w.slice(1)).join('')
+      }
+
+      /**
+       * An authored toolbar/footer Button → its wire shape, as the server's ButtonMapper does it: a
+       * Button whose `actionable` is a RouteLink NAVIGATES on the client, so the link's route becomes the
+       * button's `route`; a button with no `actionId` gets one from its label. A Button is not
+       * ClientSide-wrapped on the wire. Anything else passes through as authored.
+       */
+      function expandButton(node            )                          {
+          if (node?.type === 'ButtonGroup') {
+              // FormMapper/ButtonMapper: a group is a Button carrying the group's buttons as `children`
+              const group = node
+
+              const out                          = { type: 'Button', children: (group.buttons ?? []).map(expandButton) }
+              for (const key of ['label', 'iconOnLeft', 'iconOnRight', 'separatorBefore']         ) {
+                  if (group[key] !== undefined) out[key] = group[key]
+              }
+              return out
+          }
+          if (!node || node.type !== 'Button') return node
+          const { actionable, ...button } = node
+          const out                          = { ...button }
+          if (actionable?.type === 'RouteLink' && actionable.route) out.route = actionable.route
+          if (!out.actionId && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+          return out
+      }
+
+      /** A listing filter is a FormField on the wire too: `id` → `fieldId`, with the type defaults. */
+      function expandFilter(node            )                          {
+          if (!node || node.type !== 'FormField') return node
+          const { id, ...rest } = node
+          return { ...rest, fieldId: (rest                           ).fieldId ?? id, dataType: rest.dataType ?? 'string',
+              stereotype: rest.stereotype ?? 'regular' }
+      }
+
+    }
+
+    // ── expander/pageHeader.ts ──
+    __defs["expander/pageHeader.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "expandFormHeader", { enumerable: true, get: () => expandFormHeader });
+      /**
+       * The page-header keys of an authored `type: Form` (a YAML page's header), shaped into the wire
+       * fields the server's FormMapper emits — the same names a reflected page's header has, so the
+       * renderers read them alike. Mutates `metadata` (the expander's in-progress Form metadata).
+       *
+       * Authored → wire:
+       *  - `badges: [{label, color}]`                → BadgeDto `{text, color ?? 'normal', …}`
+       *  - `kpis: [{label, value}]`                  → KPIDto `{title, text}`
+       *  - `recordSwitcher: {…}`                     → `switcher` (type 'object', actionId '_switchRecord')
+       *  - `banners: [{theme, title, …, closeable}]` → BannerDto `{theme, hasIcon, hasCloseButton, …}`
+       *  - `fabs: [{icon, label, actionId, order}]`  → FabDto `{id, label, icon, actionId, buttonStyle}`, by order
+       *  - `overline`/`titlePlaceholder`/`timestamp`/`peerNav` travel as authored (blank texts dropped).
+       */
+
+
+      const list = (value         )         =>
+          Array.isArray(value) ? value.filter((v)            => !!v && typeof v === 'object') : []
+
+      const nonBlank = (value         )                     =>
+          typeof value === 'string' && value.trim() !== '' ? value : undefined
+
+      function expandFormHeader(metadata      )       {
+          for (const key of ['overline', 'titlePlaceholder', 'timestamp']) {
+              if (key in metadata && !nonBlank(metadata[key])) delete metadata[key]
+          }
+          if ('badges' in metadata) {
+              metadata.badges = list(metadata.badges).map((chip) => ({
+                  text: chip.label, iconOnLeft: null, iconOnRight: null,
+                  color: nonBlank(chip.color) ?? 'normal', primary: false, small: false, pill: false,
+              }))
+          }
+          if ('kpis' in metadata) {
+              const kpis = list(metadata.kpis)
+              if (kpis.length) metadata.kpis = kpis.map((fact) => ({ title: fact.label, text: fact.value }))
+              else delete metadata.kpis
+          }
+          if ('recordSwitcher' in metadata) {
+              const s = metadata.recordSwitcher
+              delete metadata.recordSwitcher
+              if (s && typeof s === 'object') {
+                  metadata.switcher = {
+                      options: list(s.options).map((o) => ({ value: o.value, label: o.label, description: o.description })),
+                      value: s.value,
+                      type: s.type === 'context' ? 'context' : 'object',
+                      label: s.label,
+                      searchable: s.searchable === true,
+                      disabled: s.disabled === true,
+                      actionId: nonBlank(s.actionId) ?? '_switchRecord',
+                      optionsSource: s.optionsSource ?? null,
+                      route: nonBlank(s.route) ?? null,
+                  }
+              }
+          }
+          if ('banners' in metadata) {
+              metadata.banners = list(metadata.banners).map((b) => ({
+                  theme: typeof b.theme === 'string' ? b.theme.toUpperCase() : 'NONE',
+                  hasIcon: false,
+                  hasCloseButton: b.closeable === true,
+                  title: b.title,
+                  description: b.description,
+                  timeoutSeconds: typeof b.timeoutSeconds === 'number' ? b.timeoutSeconds : 0,
+              }))
+          }
+          if ('fabs' in metadata) {
+              const fabs = list(metadata.fabs)
+                  .map((fab, index) => ({ fab, index }))
+                  .sort((a, b) => (Number(a.fab.order ?? 0) - Number(b.fab.order ?? 0)) || (a.index - b.index))
+                  .map(({ fab }) => ({
+                      id: fab.actionId, label: fab.label, icon: fab.icon, actionId: fab.actionId,
+                      buttonStyle: nonBlank(fab.buttonStyle) ?? 'primary',
+                  }))
+              if (fabs.length) metadata.fabs = fabs
+              else delete metadata.fabs
+          }
+      }
+
+    }
+
+    // ── expander/pageTemplates.ts ──
+    __defs["expander/pageTemplates.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "templateMetadataOf", { enumerable: true, get: () => templateMetadataOf });
+      Object.defineProperty(exports, "ownsHeader", { enumerable: true, get: () => ownsHeader });
+      Object.defineProperty(exports, "contentOf", { enumerable: true, get: () => contentOf });
+      /**
+       * A `type: Form` that fills a design-system page template (`template:`), laid out in the BROWSER the
+       * way the server's PageTemplates (core, fragmentmapper) lays it out: the template's slots become
+       * ordinary components, each in a container whose id names the slot, and the template's own values
+       * ride on the Form metadata (`template: {type, avatar, photo}`) for a renderer that has the template
+       * itself (Redwood paints Spectra's). Pinned by the Java goldens (PageTemplateSyncTest).
+       */
+
+
+
+
+      const nodes = (value         )               =>
+          Array.isArray(value) ? value                 : value && typeof value === 'object' ? [value              ] : []
+
+      const filled = (value         )                  => typeof value === 'string' && value.trim() !== ''
+
+      const image = (value         )              => {
+          if (!value || typeof value !== 'object') return null
+          const v = value
+          return { src: v.src ?? null, initials: v.initials ?? null }
+      }
+
+      /** The template's own values, for the Form metadata; undefined for a free page or an unknown template. */
+      function templateMetadataOf(template         )                   {
+          const t = template
+          if (!t) return undefined
+          if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
+          if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
+          if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
+          if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
+          if (t.type === 'CollectionDetailPage') return { type: 'CollectionDetailPage', avatar: null, photo: null }
+          if (t.type === 'FoldoutPage') return { type: 'FoldoutPage', avatar: null, photo: null }
+          if (t.type === 'MultimediaContentPage') return { type: 'MultimediaContentPage', avatar: null, photo: null }
+          if (t.type === 'AdvancedCreateEditPage') return { type: 'AdvancedCreateEditPage', avatar: null, photo: null }
+          if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
+          if (t.type === 'DataManagementPage') return { type: 'DataManagementPage', avatar: null, photo: null }
+          if (t.type === 'HeroSearchPage') return { type: 'HeroSearchPage', avatar: null, photo: null }
+          return undefined
+      }
+
+      /**
+       * Whether the template draws the page's header itself (its title, subtitle and actions live in the
+       * template's banner): the Form then carries no header and no toolbar of its own (PageTemplates.ownsHeader).
+       */
+      function ownsHeader(template         )          {
+          const t = template
+          return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage')
+      }
+
+      /** The page's content: the template laid out, or the authored content of a free page. `form` is the
+       *  authored Form (its title, subtitle, overline, toolbar), which some templates draw. */
+      function contentOf(template         , content         , form       = {})          {
+          const t = template
+          if (!t) return content
+          if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
+          if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
+          if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
+          if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
+          if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
+          if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
+          if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
+          if (t.type === 'FoldoutPage') return [foldout(t, nodes(content))]
+          if (t.type === 'AdvancedCreateEditPage') return advancedCreateEdit(t, nodes(content))
+          if (t.type === 'GuidedProcessPage') return [guidedProcess(t)]
+          if (t.type === 'DataManagementPage') return [dataManagement(t, nodes(content), form)]
+          return content
+      }
+
+      const TONES = ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna']
+
+      /** Spectra's `dark-<tone>` (or the bare tone) → the hero's tone; auto/unknown → none (WelcomePage.toneOrNull). */
+      function toneOf(backgroundColor         )                     {
+          if (!filled(backgroundColor)) return undefined
+          const tone = backgroundColor.trim().replace(/^dark-/, '').toLowerCase()
+          return TONES.includes(tone) ? tone : undefined
+      }
+
+      /** A welcome-style banner (the form's title/subtitle/overline, its toolbar as the calls to action)
+       *  over the content — the Welcome archetype's centred HeroSection (PageTemplates.banner): the welcome
+       *  page's tiles, the multimedia content page's sections. */
+      function banner(id        , t      , tiles              , form      )               {
+          const tone = toneOf(t.backgroundColor)
+          const hero       = {
+              type: 'HeroSection', id, centered: true,
+              style: 'width: 100%; box-sizing: border-box; margin-bottom: 1rem',
+              content: nodes(form.toolbar),
+          }
+          if (form.title !== undefined) hero.title = form.title
+          if (form.subtitle !== undefined) hero.subtitle = form.subtitle
+          if (form.overline !== undefined) hero.overline = form.overline
+          if (tone) hero.tone = tone
+          return [hero                         , ...tiles]
+      }
+
+      // The layouts a template lays out are the SERVER's (Java records, spacing off unless set): they
+      // say `spacing: false` explicitly, or the YAML default (an authored layout is spaced) would apply.
+      const slot = (id        , content              , style         )             =>
+          ({ type: 'VerticalLayout', id, content, spacing: false, ...(style ? { style } : {}) })
+
+      function media(t      )                    {
+          const avatar = t.avatar
+          if (avatar && filled(avatar.src)) {
+              return { type: 'Image', src: avatar.src, style: 'width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover' }
+          }
+          if (avatar && filled(avatar.initials)) {
+              return { type: 'Avatar', abbreviation: avatar.initials, style: 'width: 8rem; height: 8rem' }
+          }
+          const photo = t.photo
+          if (photo && filled(photo.src)) {
+              return { type: 'Image', src: photo.src, style: 'width: 100%; aspect-ratio: 4 / 3; object-fit: cover' }
+          }
+          return null
+      }
+
+      function itemOverview(t      , main              )             {
+          const panel               = []
+          const m = media(t)
+          if (m) panel.push(slot('item-overview-media', [m], 'width: 100%; align-items: center'))
+          panel.push(slot('item-overview-body', nodes(t.body), 'width: 100%'))
+          const footer = nodes(t.footer)
+          if (footer.length) panel.push(slot('item-overview-footer', footer, 'width: 100%'))
+          return {
+              type: 'HorizontalLayout', id: 'item-overview', wrap: true, spacing: true,
+              content: [
+                  {
+                      type: 'Card', id: 'item-overview-panel',
+                      content: slot('item-overview-panel-content', panel, 'width: 100%'),
+                      style: 'flex: 0 0 22rem; max-width: 100%; position: sticky; top: 0; align-self: flex-start',
+                  },
+                  slot('item-overview-main', main, 'flex: 1 1 24rem; min-width: min(24rem, 100%)'),
+              ],
+          }
+      }
+
+      /** Dashboard landing page: the `kpi` slot's metrics as one Scoreboard band over the panels on the
+       *  dashboard grid — the Dashboard archetype's shape; a non-metric component in the slot follows the band. */
+      function dashboard(t      , main              )               {
+          const kpi = nodes(t.kpi)
+          const metrics = kpi.filter((c) => (c        ).type === 'MetricCard')
+          const others = kpi.filter((c) => (c        ).type !== 'MetricCard')
+          const page               = []
+          if (metrics.length) page.push({ type: 'Scoreboard', id: 'dashboard-kpi', metrics }                         )
+          page.push(...others)
+          page.push({ type: 'DashboardLayout', id: 'dashboard-panels', items: main }                         )
+          return page
+      }
+
+      /** General overview: the main slot beside the complementary `info` panel (PageTemplates.generalOverview). */
+      function generalOverview(t      , main              )             {
+          const info = nodes(t.info)
+          const columns               = [slot('general-overview-main', main, 'flex: 2 1 32rem; min-width: min(32rem, 100%)')]
+          if (info.length) columns.push(slot('general-overview-info', info, 'flex: 1 1 16rem; min-width: min(16rem, 100%)'))
+          return { type: 'HorizontalLayout', id: 'general-overview', wrap: true, spacing: true, content: columns }
+      }
+
+      /** Collection detail: the collection (`list`) beside the selected item's detail (the content) — or,
+       *  with no content, the `noSelection` slot (PageTemplates.collectionDetail). */
+      function collectionDetail(t      , detail              )             {
+          const side = 'flex: 1 1 24rem; min-width: min(24rem, 100%)'
+          return {
+              type: 'HorizontalLayout', id: 'collection-detail', wrap: true, spacing: true,
+              content: [
+                  slot('collection-detail-list', nodes(t.list), 'flex: 0 0 24rem; max-width: 100%'),
+                  detail.length ? slot('collection-detail-detail', detail, side) : slot('collection-detail-no-selection', nodes(t.noSelection), side),
+              ],
+          }
+      }
+
+      /** Foldout: one FoldoutLayout — the `overview` slot, the form's FoldoutPanels as its panels (any other
+       *  content component becomes an untitled open panel); the page header stays the form's
+       *  (PageTemplates.foldout). The expander then lays the layout out as FoldoutLayoutMapper does. */
+      function foldout(t      , content              )             {
+          const panels = content.map((c, i) => ((c        ).type === 'FoldoutPanel'
+              ? c : { type: 'FoldoutPanel', id: 'panel' + i, open: true, content: c }                         ))
+          const node       = { type: 'FoldoutLayout', id: 'foldout', overview: slot('foldout-overview', nodes(t.overview), 'width: 100%'), panels }
+          if (t.orientation !== undefined) node.orientation = t.orientation
+          return node
+      }
+
+      /** Advanced create and edit: the main slot (the content) — and, with a `detail`, the detail beside it
+       *  as an @Aside's named slots `"main aside"` of one responsive grid (PageTemplates.advancedCreateEdit). */
+      function advancedCreateEdit(t      , main              )               {
+          const detail = nodes(t.detail)
+          if (!detail.length) return main
+          const region = (slotName        , content              ) =>
+              ({ type: 'VerticalLayout', slot: slotName, content, fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true })
+          return [{
+              type: 'ResponsiveGrid', id: 'advanced-create-edit', gridTemplateColumns: '1fr 22rem', stackBelow: '48rem',
+              gridTemplateAreas: '"main aside"', stickyAreas: [], reorderable: false,
+              content: [region('main', main), region('aside', detail)],
+          }                         ]
+      }
+
+      /** Guided process: one tab per step of the one form, the first active (PageTemplates.guidedProcess);
+       *  Redwood reads the tabs as the template's steps. */
+      function guidedProcess(t      )             {
+          const steps = (Array.isArray(t.steps) ? t.steps : [])
+          return {
+              type: 'TabLayout', id: 'guided-process',
+              tabs: steps.map((step, i) => ({
+                  type: 'Tab', label: step.title, active: i === 0,
+                  content: { type: 'VerticalLayout', content: nodes(step.content), fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true },
+              })),
+          }
+      }
+
+      const docked = (panel      , style        )             => ({
+          type: 'VerticalLayout', ...(panel.id != null ? { id: panel.id } : {}), cssClasses: 'mateu-docked-panel', style, spacing: false,
+          content: [
+              { type: 'HorizontalLayout', style: 'align-items: center; width: 100%;', spacing: false,
+                  content: [{ type: 'Text', text: panel.title, size: 'm', noMargins: true, style: 'font-weight: 600; flex: 1;' }] },
+              ...nodes(panel.content),
+          ],
+      })
+
+      /** Data management: the DataManagement archetype's shape — title, toolbar (the form's buttons), the
+       *  data view (with an open `end` panel beside it) and an open `bottom` panel (PageTemplates.dataManagement). */
+      function dataManagement(t      , main              , form      )             {
+          const page               = []
+          if (filled(form.title)) {
+              page.push({ type: 'Text', id: 'data-management-title', text: form.title, size: 'xl', noMargins: true, style: 'font-weight: 600;' }                         )
+          }
+          page.push({ type: 'HorizontalLayout', id: 'data-management-toolbar', spacing: true, style: 'align-items: center;', content: nodes(form.toolbar) }                         )
+          let view             = { type: 'VerticalLayout', content: main, fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true }
+          const end = t.end
+          if (end && end.open) {
+              view = {
+                  type: 'ResponsiveGrid', id: 'data-management-body', gridTemplateColumns: '1fr ' + (end.size ?? '22rem'), stackBelow: '48rem',
+                  content: [view, docked(end, 'border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-left: var(--lumo-space-m, 1rem);')],
+              }
+          }
+          page.push(view)
+          const bottom = t.bottom
+          if (bottom && bottom.open) {
+              page.push(docked(bottom, 'border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-top: var(--lumo-space-s, .5rem); max-height: '
+                  + (bottom.size ?? '16rem') + '; overflow: auto;'))
+          }
+          return { type: 'VerticalLayout', id: 'data-management', fullWidth: true, spacing: true, horizontalAlignment: 'STRETCH', content: page }
+      }
+
+    }
+
+    // ── http/componentCatalogue.ts ──
+    __defs["http/componentCatalogue.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "setComponentCatalogue", { enumerable: true, get: () => setComponentCatalogue });
+      Object.defineProperty(exports, "resolveComponent", { enumerable: true, get: () => resolveComponent });
+      Object.defineProperty(exports, "componentCatalogue", { enumerable: true, get: () => componentCatalogue });
+
+
+      /**
+       * The app's business-component catalogue, client side (coherence-plan #13) — the twin of
+       * restSourceCatalogue, one level up: a source names an endpoint, a business component names a bound
+       * composition of existing components.
+       *
+       * A `ComponentRef` carries only a NAME, so the composition has to be looked up here before it can be
+       * rendered. It is app-wide (not per-screen) and fed by whichever arrives — the app metadata (live
+       * backend) or the static bundle's manifest (no backend); whichever it is, it REPLACES the catalogue,
+       * because a stale entry surviving a deployment change is the failure the indirection removes.
+       *
+       * A reference the catalogue does not carry resolves to nothing here; the caller renders a graceful
+       * placeholder rather than a broken screen (matching the server's behaviour).
+       */
+
+
+
+
+
+
+      let entries                   = []
+
+      /** Replaces the catalogue. Called when app metadata or a bundle manifest arrives. */
+      const setComponentCatalogue = (incoming                              )       => {
+          entries = Array.isArray(incoming) ? incoming : []
+      }
+
+      /** The composition this name stands for, or undefined when the catalogue does not carry it. */
+      const resolveComponent = (name                    )                        =>
+          name ? entries.find((entry) => entry.name === name)?.component : undefined
+
+      /** Everything currently in the catalogue — for diagnostics and tests. */
+      const componentCatalogue = ()                   => entries
+
+    }
+
+    // ── ui/renderers/nodeIdStampFlag.ts ──
+    __defs["ui/renderers/nodeIdStampFlag.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "setNodeIdStamping", { enumerable: true, get: () => setNodeIdStamping });
+      Object.defineProperty(exports, "isNodeIdStamping", { enumerable: true, get: () => isNodeIdStamping });
+      // The editor's node-id stamping switch (see nodeIdStamp.ts), on its own so code that only READS it
+      // — the client-side expander, which the native renderer shares — does not pull Lit in.
+      let stamping = false
+
+      const setNodeIdStamping = (on         )       => { stamping = on }
+      const isNodeIdStamping = ()          => stamping
+
+    }
+
+    // ── ui/actionCatalogue.ts ──
+    __defs["ui/actionCatalogue.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "setActionCatalogue", { enumerable: true, get: () => setActionCatalogue });
+      Object.defineProperty(exports, "setAuthoredActionCatalogue", { enumerable: true, get: () => setAuthoredActionCatalogue });
+      Object.defineProperty(exports, "lowerCatalogue", { enumerable: true, get: () => lowerCatalogue });
+      Object.defineProperty(exports, "getCatalogueAction", { enumerable: true, get: () => getCatalogueAction });
+      Object.defineProperty(exports, "actionCatalogue", { enumerable: true, get: () => actionCatalogue });
+      Object.defineProperty(exports, "resolveOwnerFirst", { enumerable: true, get: () => resolveOwnerFirst });
+      Object.defineProperty(exports, "referencedActionIds", { enumerable: true, get: () => referencedActionIds });
+      Object.defineProperty(exports, "referencedCatalogueActions", { enumerable: true, get: () => referencedCatalogueActions });
+
+      const { lowerAction } = __mateuRequire("expander/expandDefinition.ts");
+
+      /**
+       * The app's ACTION catalogue, client side: named client-runnable actions (a flow lowered to
+       * `commands`, or a `restAction`) declared once — `specs/ui/actions.yaml`, any `type: Actions` file,
+       * or an `ActionCatalogSupplier` bean — and runnable by id from the shell menu and from any page.
+       *
+       * Resolution is OWNER FIRST: the page's own actions (or, for the menu, the shell's own `actions:`)
+       * win; the catalogue only fills the gaps; an id nobody declares is a server action, as before.
+       *
+       * Fed like the REST source catalogue — the app metadata (`App.actionCatalogue`, live backend), the
+       * static bundle's manifest (`manifest.actions`), or the visual editor's Play (raw entries, lowered
+       * here) — and each arrival REPLACES the table: a stale entry surviving a deployment is exactly what a
+       * catalogue must not do.
+       */
+
+      let entries           = []
+
+      /** Replaces the catalogue with already-lowered wire actions (App metadata, bundle manifest). */
+      const setActionCatalogue = (incoming                      )       => {
+          entries = Array.isArray(incoming) ? incoming.filter((a) => a && typeof a.id === 'string') : []
+      }
+
+      /**
+       * Replaces the catalogue with AUTHORED entries (the raw `actions:` of a `type: Actions` file, as the
+       * visual editor's Play holds them): each one lowered exactly as the server lowers it, and — like the
+       * server's registry — only the client-runnable ones kept.
+       */
+      const setAuthoredActionCatalogue = (raw                       )       => {
+          setActionCatalogue(lowerCatalogue(raw))
+      }
+
+      /** Raw catalogue entries → wire actions (client-runnable only, last id wins). */
+      const lowerCatalogue = (raw                       )           => {
+          const byId = new Map                ()
+          for (const item of Array.isArray(raw) ? raw : []) {
+              if (!item || typeof item !== 'object') continue
+              const entry = item
+              if (typeof entry.id !== 'string' || !entry.id) continue
+              const runnable = (Array.isArray(entry.steps) && entry.steps.length > 0) || !!entry.restAction
+              if (!runnable) {
+                  console.warn(`mateu: action catalogue entry "${entry.id}" is not client-runnable (no steps, no restAction) — ignored`)
+                  continue
+              }
+              byId.set(entry.id, lowerAction(entry)                     )
+          }
+          return [...byId.values()]
+      }
+
+      /** The catalogue entry with this id, or undefined. */
+      const getCatalogueAction = (id                    )                     =>
+          id ? entries.find((a) => a.id === id) : undefined
+
+      /** Everything in the catalogue — for the expander, diagnostics and tests. */
+      const actionCatalogue = ()           => entries
+
+      /**
+       * OWNER FIRST: the owner's own action of this id (whatever it is — one without steps is a server
+       * action of the owner's), else the catalogue's entry, else undefined (→ the server, as before).
+       * `catalogue` defaults to the store; a caller holding the wire App passes `app.actionCatalogue`.
+       */
+      const resolveOwnerFirst = (
+          ownerActions                               ,
+          id                    ,
+          catalogue                       ,
+      )                     => {
+          if (!id) return undefined
+          const own = (ownerActions ?? []).find((a) => a && a.id === id)
+          if (own) return own
+          return (catalogue ?? []).find((a) => a && a.id === id) ?? getCatalogueAction(id)
+      }
+
+      /** Every `actionId` / `*ActionId` string in a tree (the server's TreeActionHarvester key rule). */
+      const referencedActionIds = (node         , out              = new Set())              => {
+          if (Array.isArray(node)) {
+              node.forEach((child) => referencedActionIds(child, out))
+          } else if (node && typeof node === 'object') {
+              for (const [key, value] of Object.entries(node                           )) {
+                  if (typeof value === 'string' && (key === 'actionId' || key.endsWith('ActionId')) && value) {
+                      out.add(value)
+                  } else if (value && typeof value === 'object') {
+                      referencedActionIds(value, out)
+                  }
+              }
+          }
+          return out
+      }
+
+      /**
+       * The catalogue entries an owner has to carry: the ids its tree (and its own actions' flows) name
+       * that it does not own, closed over the catalogue (an entry whose flow runs another brings that one
+       * too). Owner first: an owned id is never replaced. Mirrors the server's
+       * `ActionRegistry.referencedBy`, so an expanded page carries what a server-rendered one does.
+       */
+      const referencedCatalogueActions = (
+          tree         ,
+          ownActions                    = [],
+          catalogue           = entries,
+      )           => {
+          if (!catalogue.length) return []
+          const known = new Set(ownActions.map((a) => a?.id).filter(Boolean)            )
+          const pending = [...referencedActionIds([tree, ownActions])]
+          const found           = []
+          while (pending.length) {
+              const id = pending.shift()
+              if (known.has(id)) continue
+              const entry = catalogue.find((a) => a.id === id)
+              if (!entry) continue
+              known.add(id)
+              found.push(entry)
+              pending.push(...referencedActionIds(entry))
+          }
+          return found
+      }
+
+    }
+
+    // ── expander/fieldTypes.ts ──
+    __defs["expander/fieldTypes.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "setFieldTypeCatalogue", { enumerable: true, get: () => setFieldTypeCatalogue });
+      Object.defineProperty(exports, "fieldTypeCatalogue", { enumerable: true, get: () => fieldTypeCatalogue });
+      Object.defineProperty(exports, "FIELD_TYPE_ATTRIBUTES", { enumerable: true, get: () => FIELD_TYPE_ATTRIBUTES });
+      Object.defineProperty(exports, "FIELD_TYPE_KEY", { enumerable: true, get: () => FIELD_TYPE_KEY });
+      Object.defineProperty(exports, "typesOf", { enumerable: true, get: () => typesOf });
+      Object.defineProperty(exports, "resolveFieldTypes", { enumerable: true, get: () => resolveFieldTypes });
+      // The FIELD TYPE catalogue, client side — the browser twin of the server's FieldTypeRegistry +
+      // FieldTypeResolver, so a definition expanded in the browser (Play, the visual editor's canvas, a
+      // specs-mode bundle) renders exactly like the same definition served by a backend.
+      //
+      // A field type (`specs/ui/types.yaml`, `type: Types`) names a domain concept — OrderStatus, Money,
+      // Email — and the attributes it has as a field or a column. A FormField / GridColumn references one
+      // with `fieldType: <id>`. The rule, identical on every side:
+      //   1. any OBJECT carrying a string `fieldType` is a reference;
+      //   2. every attribute the type declares is copied onto it UNLESS the object already declares that
+      //      attribute with a non-null value — the type supplies defaults, the field's own win;
+      //   3. the `fieldType` key is removed (the wire never carries it);
+      //   4. an unknown type is warned about and the object rendered as declared.
+
+      /** One field type, as authored in types.yaml (every attribute optional; `id` names it). */
+
+
+
+
+
+      let types                   = []
+
+      /** Replaces the catalogue (play's manifest, the visual editor's project index). */
+      const setFieldTypeCatalogue = (incoming                                     )       => {
+          types = Array.isArray(incoming) ? incoming.filter((t) => t && typeof t.id === 'string' && t.id.trim() !== '') : []
+      }
+
+      /** The current catalogue — for diagnostics, pickers and tests. */
+      const fieldTypeCatalogue = ()                   => types
+
+      /** The attributes a type may supply — FieldTypeEntry's components, exactly (the server drops any
+       *  other key when it reads types.yaml, so the browser must too or the two would disagree). */
+      const FIELD_TYPE_ATTRIBUTES = [
+          'label', 'dataType', 'stereotype', 'placeholder', 'description', 'required', 'readOnly',
+          'options', 'optionsSource', 'min', 'max', 'step', 'colspan', 'style', 'cssClasses',
+          'align', 'width', 'autoWidth', 'tones',
+      ]
+
+      /** What each target can carry — the server builds a record, which drops what it has no component
+       *  for (a GridColumn has no `options`, a FormField no `tones`); the browser passes metadata through,
+       *  so it has to drop them itself to produce the same wire. */
+      const ONLY_FOR                                    = {
+          GridColumn: ['label', 'dataType', 'stereotype', 'style', 'cssClasses', 'align', 'width', 'autoWidth', 'tones'],
+          FormField: ['label', 'dataType', 'stereotype', 'placeholder', 'description', 'required', 'readOnly',
+              'options', 'optionsSource', 'min', 'max', 'step', 'colspan', 'style', 'cssClasses'],
+      }
+
+      /** Empty values supply nothing (the server serialises a type NON_EMPTY). */
+      const isEmpty = (v         )          =>
+          v === undefined || v === null || v === ''
+          || (Array.isArray(v) && v.length === 0)
+          || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v          ).length === 0)
+
+      /** The authored key a field references a type by. */
+      const FIELD_TYPE_KEY = 'fieldType'
+
+      /** Parse a types.yaml document (already parsed to a value): a `types:` envelope or a bare list. */
+      const typesOf = (doc         )                   => {
+          const list = Array.isArray(doc) ? doc
+              : doc && typeof doc === 'object' && Array.isArray((doc                       ).types)
+                  ? (doc                        ).types
+                  : []
+          return list.filter((t)                      =>
+              !!t && typeof t === 'object' && typeof (t                  ).id === 'string' && (t                  ).id.trim() !== '')
+      }
+
+      const mentions = (node         )          => {
+          if (Array.isArray(node)) return node.some(mentions)
+          if (!node || typeof node !== 'object') return false
+          const o = node
+          if (typeof o[FIELD_TYPE_KEY] === 'string') return true
+          return Object.values(o).some(mentions)
+      }
+
+      const clone =     (v   )    => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
+
+      /**
+       * A copy of `tree` with every `fieldType` reference resolved against `catalogue` (the module's table
+       * when omitted). The tree is returned AS IS when it references no type, so the common case costs a
+       * walk and nothing else.
+       */
+      function resolveFieldTypes   (tree   , catalogue                   = types)    {
+          if (!mentions(tree)) return tree
+          const byId = new Map(catalogue.map((t) => [t.id.trim(), t]))
+          const warned = new Set        ()
+          const walk = (node         )          => {
+              if (Array.isArray(node)) return node.map(walk)
+              if (!node || typeof node !== 'object') return node
+              const out                          = {}
+              for (const [k, v] of Object.entries(node                           )) {
+                  if (k !== FIELD_TYPE_KEY) out[k] = walk(v)
+              }
+              const ref = (node                           )[FIELD_TYPE_KEY]
+              if (typeof ref === 'string') {
+                  const type = byId.get(ref.trim())
+                  if (!type) {
+                      if (!warned.has(ref)) {
+                          warned.add(ref)
+                          console.warn(`mateu: unknown field type '${ref}' (on '${String(out.id ?? '')}') — rendered as declared`)
+                      }
+                  } else {
+                      const allowed = ONLY_FOR[String(out.type ?? '')] ?? FIELD_TYPE_ATTRIBUTES
+                      for (const attr of allowed) {
+                          const value = (type                           )[attr]
+                          if (isEmpty(value)) continue
+                          if (out[attr] === undefined || out[attr] === null) out[attr] = clone(value)
+                      }
+                  }
+              }
+              return out
+          }
+          return walk(tree)
+      }
+
+    }
+
+    // ── i18n/translations.ts ──
+    __defs["i18n/translations.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "I18N_EXPRESSION", { enumerable: true, get: () => I18N_EXPRESSION });
+      Object.defineProperty(exports, "setFallbackLocale", { enumerable: true, get: () => setFallbackLocale });
+      Object.defineProperty(exports, "pickLocale", { enumerable: true, get: () => pickLocale });
+      Object.defineProperty(exports, "interpolateI18n", { enumerable: true, get: () => interpolateI18n });
+      Object.defineProperty(exports, "translateDeep", { enumerable: true, get: () => translateDeep });
+      Object.defineProperty(exports, "mentionsI18n", { enumerable: true, get: () => mentionsI18n });
+      Object.defineProperty(exports, "i18nKeysAsText", { enumerable: true, get: () => i18nKeysAsText });
+      Object.defineProperty(exports, "translationsOf", { enumerable: true, get: () => translationsOf });
+      Object.defineProperty(exports, "catalogueOf", { enumerable: true, get: () => catalogueOf });
+      Object.defineProperty(exports, "browserLocales", { enumerable: true, get: () => browserLocales });
+      Object.defineProperty(exports, "__resetI18nWarningsForTests", { enumerable: true, get: () => __resetI18nWarningsForTests });
+      // The translation catalogue for pages with NO server — a static bundle, specs mode, the visual
+      // editor's Play. With a server, `${i18n.key}` is resolved there (TranslationRegistry) and the wire
+      // carries finished text; here the catalogue travels in the manifest (`translations`, locale → key →
+      // text) and the browser resolves the same expressions for the visitor's locale.
+      //
+      // Same semantics as the server: lookup exact locale → its language → the fallback locale → the key
+      // itself (one console.warn per missing key).
+
+      /** locale (BCP 47, any case) → flattened key → text. */
+
+
+      /** Mirrors TranslationRegistry.EXPRESSION on the server. */
+      const I18N_EXPRESSION = /\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g
+
+      let fallbackLocale = 'en'
+
+      /** The locale tried after the preferred ones (default `en`, like the server's mateu.i18n.fallback). */
+      const setFallbackLocale = (locale        )       => {
+          fallbackLocale = locale || 'en'
+      }
+
+      const norm = (locale                           )         =>
+          (locale ?? '').trim().replace(/_/g, '-').toLowerCase()
+
+      const findKey = (catalogue                      , locale        )                     =>
+          Object.keys(catalogue).find(k => norm(k) === locale)
+
+      /**
+       * The catalogue locale to use for the preferred ones (most preferred first): exact → language →
+       * fallback → the first locale the catalogue has. undefined for an empty catalogue.
+       */
+      function pickLocale(catalogue                                  ,
+                                 preferred                                          )                     {
+          if (!catalogue) return undefined
+          const keys = Object.keys(catalogue)
+          if (!keys.length) return undefined
+          for (const p of preferred) {
+              const n = norm(p)
+              if (!n) continue
+              const exact = findKey(catalogue, n)
+              if (exact) return exact
+              const language = findKey(catalogue, n.split('-')[0])
+              if (language) return language
+          }
+          return findKey(catalogue, norm(fallbackLocale))
+              ?? findKey(catalogue, norm(fallbackLocale).split('-')[0])
+              ?? keys[0]
+      }
+
+      const warned = new Set        ()
+
+      /** `${i18n.key}` expressions in `text` resolved; a missing key shows as the key (warned once). */
+      function interpolateI18n(text        , messages                                    ,
+                                      fallbackMessages                         )         {
+          if (typeof text !== 'string' || !text.includes('i18n.')) return text
+          return text.replace(I18N_EXPRESSION, (_m, key        ) => {
+              const found = messages?.[key] ?? fallbackMessages?.[key]
+              if (found !== undefined) return found
+              if (!warned.has(key)) {
+                  warned.add(key)
+                  console.warn(`mateu: missing translation '${key}' — showing the key`)
+              }
+              return key
+          })
+      }
+
+      /** Every string inside `value` (deeply, a COPY) with its `${i18n.…}` resolved. */
+      function translateDeep   (value   , messages                                    ,
+                                       fallbackMessages                         )    {
+          const walk = (v         )          => {
+              if (typeof v === 'string') return interpolateI18n(v, messages, fallbackMessages)
+              if (Array.isArray(v)) return v.map(walk)
+              if (v && typeof v === 'object') {
+                  const out                          = {}
+                  for (const [k, child] of Object.entries(v                           )) out[k] = walk(child)
+                  return out
+              }
+              return v
+          }
+          return walk(value)
+      }
+
+      /** Whether `value` mentions a `${i18n.…}` anywhere (cheap check before a deep copy). */
+      const mentionsI18n = (value         )          => {
+          if (value === undefined || value === null) return false
+          const s = typeof value === 'string' ? value : JSON.stringify(value)
+          I18N_EXPRESSION.lastIndex = 0
+          return I18N_EXPRESSION.test(s)
+      }
+
+      /** `${i18n.x}` rendered as just `x` — for a renderer that has NO catalogue (the server resolves). */
+      const i18nKeysAsText = (text        )         =>
+          typeof text === 'string' && text.includes('i18n.') ? text.replace(I18N_EXPRESSION, (_m, k        ) => k) : text
+
+      const flattenInto = (prefix        , node         , out                        ) => {
+          if (!node || typeof node !== 'object' || Array.isArray(node)) return
+          for (const [k, v] of Object.entries(node                           )) {
+              const key = prefix ? `${prefix}.${k}` : k
+              if (v && typeof v === 'object' && !Array.isArray(v)) flattenInto(key, v, out)
+              else if (v !== null && v !== undefined) out[key] = String(v)
+          }
+      }
+
+      /**
+       * A parsed `type: Translations` file (or a `specs/ui/translations/<locale>.yaml`, where `type` and
+       * `locale` may be omitted — pass its path) as `{ locale, messages }` with nested keys flattened, or
+       * undefined when it is not a translations file. The same rules as the server's
+       * TranslationRegistry.parse — for hosts (the visual editor's Play) that build a catalogue from files.
+       */
+      function translationsOf(doc         , path         )
+                                                                           {
+          if (!doc || typeof doc !== 'object' || Array.isArray(doc)) return undefined
+          const o = doc
+          const type = typeof o.type === 'string' ? o.type : ''
+          const p = (path ?? '').replace(/\\/g, '/')
+          const conventional = /(^|\/)specs\/ui\/translations\/[^/]+\.ya?ml$/.test(p) || /(^|\/)translations\/[^/]+\.ya?ml$/.test(p)
+          if (type !== 'Translations' && !(conventional && !type)) return undefined
+          let locale = typeof o.locale === 'string' ? o.locale.trim() : ''
+          if (!locale && p) locale = p.substring(p.lastIndexOf('/') + 1).replace(/\.ya?ml$/, '')
+          if (!locale) return undefined
+          const messages                         = {}
+          flattenInto('', o.messages, messages)
+          return { locale, messages }
+      }
+
+      /** Merge translations files into a catalogue (later files win per key). */
+      function catalogueOf(files                                                                     )                       {
+          const out                       = {}
+          for (const f of files) out[f.locale] = { ...(out[f.locale] ?? {}), ...f.messages }
+          return out
+      }
+
+      /** The browser's preferred locales, most preferred first (empty outside a browser). */
+      const browserLocales = ()           => {
+          const nav = (globalThis                                                                        ).navigator
+          if (!nav) return []
+          return [...(nav.languages ?? []), ...(nav.language ? [nav.language] : [])]
+      }
+
+      /** Test hook: forget the missing-key warnings. */
+      const __resetI18nWarningsForTests = ()       => warned.clear()
+
+    }
+
+    const resolver = __mateuRequire('http/bundleResolver.ts')
+    const i18n = __mateuRequire('i18n/translations.ts')
+    return Object.freeze({
+      parseBundleManifest: resolver.parseBundleManifest,
+      isBundleManifest: resolver.isBundleManifest,
+      resolveLoad: resolver.resolveLoad,
+      rootIncrement: resolver.rootIncrement,
+      appShellOf: resolver.appShellOf,
+      toSyncPath: resolver.toSyncPath,
+      queryOf: resolver.queryOf,
+      pickLocale: i18n.pickLocale,
+      translateDeep: i18n.translateDeep,
+      mentionsI18n: i18n.mentionsI18n,
+      browserLocales: i18n.browserLocales,
+    })
+  })()
+
+
+  // STATIC REMOTES: a federated shell (RemoteMenu) can mount a domain that has no backend at all — its
+  // static bundle. Its base url then names the bundle's manifest (`…/catalog/manifest.json`) instead
+  // of a server, and every LOAD the shell aims at it is answered from that manifest: a pre-rendered
+  // answer, a :param template, or — a `specsOnly` bundle — the RAW YAML definition expanded here, in
+  // the browser. The rules are the web renderers' own (libs/mateu bundleResolver.ts + the expander),
+  // packaged as poc/vendor/bundleResolver.mjs by make-expander.mjs, so both renderers answer a static
+  // remote identically. The remote's REST sources join the catalogue as named sources (what its
+  // screens reference by `ref`); its actions have no server to go to (transport.mjs refuses them).
+  // Each remote keeps its own parsed state; the page's own bundle (bundle.mjs) is untouched.
+
+
+  const staticRemoteBundles = new Map()
+
+  /** Loads (once) the manifest a static remote's base url names; null when it cannot be read. A
+   *  failed load is asked again next time (the remote-menu retry), never cached. */
+  function loadStaticRemote(url, fetchImpl) {
+    const doFetch = fetchImpl || (typeof fetch === 'function' ? fetch : null)
+    let loading = staticRemoteBundles.get(url)
+    if (!loading) {
+      loading = (async () => {
+        try {
+          const res = await doFetch(url)
+          if (!res || !res.ok) return null
+          const manifest = await res.json()
+          if (!mateuBundleResolver.isBundleManifest(manifest)) return null
+          const parsed = mateuBundleResolver.parseBundleManifest(manifest)
+          const sources = manifest.sources && Array.isArray(manifest.sources.sources) ? manifest.sources.sources : []
+          if (sources.length) adoptReferencedSources({ restSources: sources })
+          return parsed
+        } catch (e) {
+          try { console.warn('mateu: static remote manifest load failed', url, e) } catch (ignored) { /* no console */ }
+          return null
+        }
+      })()
+      const settled = loading
+      settled.then((parsed) => { if (!parsed && staticRemoteBundles.get(url) === settled) staticRemoteBundles.delete(url) })
+      staticRemoteBundles.set(url, settled)
+    }
+    return loading
+  }
+
+  /** `${i18n.…}` of a remote's answer resolved with ITS translations, for the page's language. */
+  function localizerOf(state) {
+    const translations = (state && state.translations) || {}
+    const r = mateuBundleResolver
+    return (value) => {
+      if (value === undefined || !Object.keys(translations).length || !r.mentionsI18n(value)) return value
+      const lang = typeof document !== 'undefined' && document.documentElement ? document.documentElement.lang : undefined
+      const locale = r.pickLocale(translations, [lang, ...r.browserLocales()])
+      const fallback = r.pickLocale(translations, [])
+      return r.translateDeep(value, locale ? translations[locale] : undefined,
+        fallback && fallback !== locale ? translations[fallback] : undefined)
+    }
+  }
+
+  /**
+   * A static remote's answer to a route LOAD (actionId ''), with the same rules as the web's
+   * resolveRemoteBundledLoad: the FRESH load (`consumedRoute` absent or '_empty' — the shell asking
+   * for the remote's app, its menu) answers the remote's app shell; a CONTENT load answers the
+   * screen; the remote mounted at its ROOT as content is its home screen, never its own shell nested
+   * in the shell's. Fragments without a target go to `initiator`. null when the manifest cannot be
+   * read or does not answer the route.
+   */
+  async function staticRemoteLoad(url, route, consumedRoute, initiator, fetchImpl) {
+    const remote = await loadStaticRemote(url, fetchImpl)
+    if (!remote) return null
+    const r = mateuBundleResolver
+    const localize = localizerOf(remote)
+    const syncPath = r.toSyncPath(route)
+    // this core sends '_empty' on a fresh load (the menu expansion, a deep link's shell) and '' or the
+    // consumed route on a load INTO the shell — the same split bundle.mjs makes for the page's bundle
+    const fresh = consumedRoute === undefined || consumedRoute === null || consumedRoute === '_empty'
+    let answer
+    if (!fresh && syncPath === '_no_route') {
+      const shell = r.appShellOf(r.rootIncrement(remote, localize))
+      const home = shell && shell.homeRoute
+      if (typeof home !== 'string' || r.toSyncPath(home) === '_no_route') return null
+      answer = r.resolveLoad(remote, r.toSyncPath(home), consumedRoute, localize)
+    } else {
+      answer = r.resolveLoad(remote, syncPath, fresh ? '_empty' : (consumedRoute || syncPath), localize)
+    }
+    if (!answer) return null
+    return {
+      ...answer,
+      fragments: (answer.fragments || []).map((f) => (f.targetComponentId ? f : { ...f, targetComponentId: initiator || '' })),
+    }
+  }
+
+  /** Test hook: forget the loaded remotes. */
+  function resetStaticRemotesForTests() { staticRemoteBundles.clear() }
+
+
   // The mount path of the packaged app (the jar io.mateu:mateu-redwood served by a Mateu backend).
   //
   // The controller the annotation processor generates for an @UI serves _index.html at the UI's
@@ -25754,6 +28339,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** An absolute base url on another origin than the page's (false outside a browser). */
   function isForeignBase(base) {
     if (!base || !/^https?:\/\//i.test(String(base))) return false
@@ -25776,8 +28362,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
-    // a static remote (its base names a bundle's manifest) has no server to POST to
-    if (isStaticBundleBase(base)) throw staticRemoteError(base)
+    // a static remote (its base names a bundle's manifest) has no server to POST to: its LOADS are
+    // answered from the manifest (staticRemotes.mjs — pre-rendered, or a specsOnly definition expanded
+    // here), anything else has nowhere to go
+    if (isStaticBundleBase(base)) {
+      if (body.actionId) throw staticRemoteError(base)
+      const view = options.view !== undefined ? options.view : (options.quiet || options.isolated) ? null : currentView()
+      const route = routeForRemote(base, body.route || '').split('?')[0]
+      const bundled = await staticRemoteLoad(base, route, body.consumedRoute, body.initiatorComponentId || '')
+      if (!bundled) throw staticRemoteError(base, route)
+      if (isViewStale(view)) throw staleResponseError(body.actionId)
+      const increment = answeredBy(base, bundled)
+      adoptReferencedSources(increment)
+      return increment
+    }
     const bare = routeForRemote(base, body.route || '').replace(/^\//, '')
     noteDocumentBase(base) // a parked Document is requested from THIS backend
     const query = typeof options.urlQuery === 'string' && options.urlQuery[0] === '?' ? options.urlQuery : ''
@@ -25971,6 +28569,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
+  /**
+   * The appState an ACTION sends: the app state the answers left (heldAppState — what an action
+   * returning AppState or a route's `appState:` seed put there, the host's and every island's), under
+   * the caller's (the @AppContext picks: a pick the user just made beats the value an older answer
+   * echoed), under what the context itself was given (a MicroFrontend's declared `appState`, kept
+   * in its outbound by loadSubresource). Before, only the @AppContext picks travelled: an island's —
+   * and the page's — answered appState was shown (`${appState.x}`) but never sent back, and a
+   * MicroFrontend's declared appState reached its first load only.
+   */
+  function requestAppStateOf(outbound, sent) {
+    const own = outbound && outbound.appState && typeof outbound.appState === 'object' ? outbound.appState : {}
+    return { ...heldAppState(), ...(sent || {}), ...own }
+  }
+
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
    *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
    *  context (a mediator needs consumedRoute + serverSideType on actions too). */
@@ -26020,6 +28632,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
       ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
+      appState: requestAppStateOf(outbound, extra && extra.appState),
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
@@ -26101,6 +28714,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
         ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
         ...bodyExtra,
+        appState: requestAppStateOf(outbound, bodyExtra.appState),
         route: bare ? `/${bare}` : '',
         actionId,
       }),
@@ -26429,6 +29043,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+      // its declared app state travels with EVERY request it sends, not only its load (requestAppStateOf)
+      ...(sub.appState && typeof sub.appState === 'object' ? { appState: sub.appState } : {}),
       // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
       ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
       // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
@@ -26807,8 +29423,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** What a request to a static remote fails with: it is not a server. */
-  function staticRemoteError(base) {
-    const error = new Error('mateu: ' + base + ' is a static bundle, not a Mateu server')
+  function staticRemoteError(base, route) {
+    const error = new Error(route != null
+      ? 'mateu: the static bundle ' + base + ' does not answer the route "' + route + '"'
+      : 'mateu: ' + base + ' is a static bundle, not a Mateu server')
     error.mateuStaticRemote = true
     return error
   }
@@ -31197,24 +33815,90 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // LIGHT ONLY. Dark mode makes no sense in Redwood (the framework author's decision, 2026-10-13):
-  // the Redwood renderer ignores @App(themeToggle) — no header switch — and always paints light,
-  // whatever the OS prefers (prefers-color-scheme) and whatever a previous version stored in
-  // localStorage['mateu-theme'] (left untouched: the Vaadin renderer of the same app, on the same
-  // origin, still reads it). A page that came up dark — that old choice, or an embedding host page
-  // with JET's inverted scheme on <html> — is turned back to light at boot.
+  // LIGHT / DARK — the same contract as the Vaadin renderer: the user's choice is kept in
+  // localStorage['mateu-theme'] ('light' | 'dark') and wins; without one the OS preference
+  // (prefers-color-scheme) decides, and follows it while no choice is stored. @App(themeToggle)
+  // adds the switch to the global header.
+  //
+  // Redwood's dark is JET's OWN inverted colour scheme: JET 18 (the version loaded from the Oracle
+  // CDN) ships no separate dark theme, only `oj-color-invert`, which re-tokens every --oj-core-*
+  // colour (text, content surface, hover, borders, links) of its subtree. It goes on <html>, so the
+  // whole page (Spectra templates, Core Pack, classic components) is re-tokened; `oj-c-colorscheme-dark`
+  // is the Core Pack's own marker. Only the few surfaces the shell and app.css paint themselves are
+  // overridden, under `html.mateu-theme-dark` (app.css) — no Oracle file is copied.
 
-  // the classes the old dark mode put on <html>: JET's inverted colour scheme (classic + Core Pack)
+  const THEME_KEY = 'mateu-theme'
   const DARK_CLASSES = ['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark']
 
-  /** Paints the (only) light theme on the page: no dark class on the root, `theme="light"`. */
-  function applyLightTheme(doc = typeof document !== 'undefined' ? document : null) {
-    if (!doc) return 'light'
-    const root = doc.documentElement
-    for (const cls of DARK_CLASSES) root.classList.toggle(cls, false)
-    root.setAttribute('theme', 'light')
-    return 'light'
+  /** The theme to start with: the stored choice, else the OS preference, else light. Pure. */
+  function initialThemeOf(stored, prefersDark) {
+    if (stored === 'dark' || stored === 'light') return stored
+    return prefersDark ? 'dark' : 'light'
   }
+
+  /** The other theme. */
+  const nextThemeOf = (theme) => (theme === 'dark' ? 'light' : 'dark')
+
+  const defaultDoc = () => (typeof document !== 'undefined' ? document : null)
+  const defaultWin = () => (typeof window !== 'undefined' ? window : null)
+
+  /** Paints a theme on the page (the root element's classes and its `theme` attribute). */
+  function applyTheme(theme, doc = defaultDoc()) {
+    const t = theme === 'dark' ? 'dark' : 'light'
+    if (!doc) return t
+    const root = doc.documentElement
+    for (const cls of DARK_CLASSES) root.classList.toggle(cls, t === 'dark')
+    root.setAttribute('theme', t)
+    return t
+  }
+
+  const storage = () => { try { return typeof localStorage !== 'undefined' ? localStorage : null } catch (e) { return null } }
+
+  function storedTheme() {
+    const s = storage()
+    try { return s ? s.getItem(THEME_KEY) : null } catch (e) { return null }
+  }
+
+  const darkQuery = (win) => {
+    try { return win && win.matchMedia ? win.matchMedia('(prefers-color-scheme: dark)') : null } catch (e) { return null }
+  }
+
+  let osListening = false
+
+  /**
+   * At boot: the stored choice or the OS preference, painted. While no choice is stored, a change
+   * of the OS preference repaints (registered once).
+   */
+  function applyInitialTheme(doc = defaultDoc(), win = defaultWin()) {
+    const mq = darkQuery(win)
+    const theme = applyTheme(initialThemeOf(storedTheme(), !!(mq && mq.matches)), doc)
+    if (mq && !osListening) {
+      osListening = true
+      const onChange = (e) => {
+        const stored = storedTheme()
+        if (stored === 'dark' || stored === 'light') return
+        applyTheme(e && e.matches ? 'dark' : 'light', doc)
+      }
+      if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
+      else if (typeof mq.addListener === 'function') mq.addListener(onChange)
+    }
+    return theme
+  }
+
+  /** The theme on the page now. */
+  const currentThemeOf = (doc = defaultDoc()) =>
+    (doc && doc.documentElement.getAttribute('theme') === 'dark' ? 'dark' : 'light')
+
+  /** The header switch: flips, paints and remembers. Returns the new theme. */
+  function toggleTheme(doc = defaultDoc()) {
+    const next = applyTheme(nextThemeOf(currentThemeOf(doc)), doc)
+    const s = storage()
+    try { if (s) s.setItem(THEME_KEY, next) } catch (e) { /* private mode: not remembered */ }
+    return next
+  }
+
+  /** For tests: forget the OS listener so applyInitialTheme registers again. */
+  function resetThemeListenerForTests() { osListening = false }
 
 
   // "OPEN ON MOBILE" (@App(mobileQr), design/mobile-app-hub.md): the QR of the "add this UI" link the
@@ -33585,7 +36269,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     fetchGlobalSearch,
     paletteRowsOfHits,
     runAppLevelAction,
-    applyLightTheme,
+    applyInitialTheme,
+    toggleTheme,
     // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
     mobileQrModelOf,
     isPhoneLike,

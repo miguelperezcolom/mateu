@@ -1970,6 +1970,35 @@ and sets `theme="light"`, regardless of `prefers-color-scheme` and of `localStor
 listener, the mateuThemeToggle variable, the themeToggle string and app.css's
 `html.mateu-theme-dark` rules. Pinned by test-chains.mjs.
 
+**Superseded (2026-11-11, GA known issues): dark mode is back.** `poc/theme.mjs` follows the
+Vaadin contract again — `localStorage['mateu-theme']` wins, else `prefers-color-scheme` (followed
+live while nothing is stored); `@App(themeToggle)` shows the `toggleMateuTheme` switch. Painted at
+the START of loadMateuShell (before the shell draws). JET 18.1 (the CDN version) ships no dark theme:
+its Redwood CSS has only `oj-color-invert`, which re-tokens the `--oj-core-*` colours (text, content
+surface = neutral-170, hover, borders, links) but not the palette and not `--oj-core-neutral-30`, so
+app.css re-points what Mateu or Spectra's utility classes paint light (canvas = neutral-190, the
+gallery texture hidden, header band, tables, dialogs, foldouts, data grid) under
+`html.mateu-theme-dark`. The embedded build drops those rules (scopeSelector), as before.
+
+## Static remotes, island appState, island @Toc, REST multi-value options (2026-11-11)
+
+- **Static remotes** (`poc/staticRemotes.mjs`): `callMateu` answers a LOAD to a base that names a
+  manifest from that manifest, with libs/mateu's resolver + expander packaged by
+  `poc/make-expander.mjs` (Node's `module.stripTypeScriptTypes`, one function per file over an
+  `exports` object with getters — the expander ⇄ actionCatalogue cycle resolves because the cycle's
+  imports are hoisted functions). `'_empty'` = fresh (the app shell), anything else = content
+  (never the remote's shell nested in ours). Generated file committed; `--check` in CI and a
+  freshness test in test-static-remotes.mjs.
+- **appState** (`transport.mjs requestAppStateOf`): every action sends held answers' appState
+  (`heldAppState`, content.mjs) < the caller's @AppContext picks < the context's declared appState
+  (a MicroFrontend's, kept in `outbound.appState` by loadSubresource). Loads are unchanged.
+- **@Toc of an island** (`toc.mjs tocOf(host, reg)`): a host with no titled section of its own that
+  embeds exactly one surface takes that surface's sections from its context (descending up to 4
+  levels: the mediator's content). Host declaration > island declaration > auto.
+- **Multi-value `optionsSource`** (`rowEditor.mjs extraWidgetOf`/`isExtraLayoutField`): an array
+  field with an `optionsSource` is a choice before its options arrive (it was skipped as a table or
+  drawn as text).
+
 ## Folded foldout panels — `FoldoutPanel.open = false` (2026-10-18)
 
 Inspected at runtime against the CDN component: `oj-sp-foldout-layout` is a horizontal carousel
