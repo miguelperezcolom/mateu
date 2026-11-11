@@ -6495,6 +6495,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
   }
 
+  /** The app state the answers left (an action returning AppState, a route's `appState:` seed — the
+   *  host's AND an island's): what every later request sends back, like the web client's store. */
+  function heldAppState() {
+    return appScope.appState || {}
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -23154,10 +23160,69 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /(^|[\s"'])aside([\s"']|$)/.test(areas)
   }
 
-  /** The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }. */
-  function tocOf(host) {
+  /** The other surfaces a tree embeds (ServerSide boundaries, a MEDIATOR App), not crossed. */
+  function embeddedSurfacesOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && (n.type === 'ServerSide'
+          || (n.type === 'ClientSide' && n.metadata && n.metadata.type === 'App' && n.metadata.variant === 'MEDIATOR'))) {
+        if (n.id) out.push(n)
+        return
+      }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return out
+  }
+
+  /**
+   * The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }.
+   *
+   * An ISLAND that is the page's main content — the host has no titled section of its own and embeds
+   * exactly ONE other surface (an embedded view, an `@Inline` orchestrator, a nested mediator inside
+   * it…) — gets the index of ITS sections, read from its own context in `reg` (its @Toc declaration
+   * included; the host's, when it declares one, wins). Its sections are painted with the same
+   * `data-mateu-section` marker, so the DOM half finds them in the same order. A page with sections
+   * of its own, or with two islands, keeps the host's rule: another surface's sections are its own.
+   */
+  function tocOf(host, reg) {
     const tree = host && host.tree
     if (!tree) return TOC_EMPTY
+    const own = scanSections(tree)
+    let scan = own
+    const pageOf = findByType(tree, 'Page')
+    let islandPage = null
+    if (!own.entries.length && reg && reg.contexts) {
+      let at = tree
+      for (let depth = 0; depth < 4; depth++) {
+        const surfaces = embeddedSurfacesOf(at)
+        if (surfaces.length !== 1) break
+        const ctx = reg.contexts[surfaces[0].id]
+        const next = (ctx && ctx.tree) || ((surfaces[0].children || []).length ? surfaces[0] : null)
+        if (!next) break
+        const found = scanSections(next)
+        if (found.entries.length) { scan = found; islandPage = findByType(next, 'Page'); break }
+        at = next
+      }
+    }
+    const { entries, zoned, aside } = scan
+    // the Multimedia content page template HAS the vertical anchor navigator: always on
+    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+    const hostDeclared = pageOf && pageOf.metadata && typeof pageOf.metadata.toc === 'boolean' ? pageOf.metadata.toc : null
+    const islandDeclared = islandPage && islandPage.metadata && typeof islandPage.metadata.toc === 'boolean' ? islandPage.metadata.toc : null
+    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+      ? true : (hostDeclared != null ? hostDeclared : islandDeclared)
+    const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
+    // tri-state: declared true forces it, declared false suppresses it, absent = auto
+    const wanted = typeof declared === 'boolean' ? declared : auto
+    const on = !aside && wanted && entries.length > 0
+    return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+  }
+
+  /** The titled @Section cards of ONE surface (not crossing into another), and what forbids an index. */
+  function scanSections(tree) {
     const entries = []
     let zoned = false
     // Redwood's Advanced create and edit: the anchor navigator and the detail slot exclude each other —
@@ -23190,16 +23255,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     walk(tree, true)
-    const page = findByType(tree, 'Page')
-    // the Multimedia content page template HAS the vertical anchor navigator: always on
-    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
-    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
-      ? true : (page && page.metadata ? page.metadata.toc : null)
-    const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
-    // tri-state: declared true forces it, declared false suppresses it, absent = auto
-    const wanted = typeof declared === 'boolean' ? declared : auto
-    const on = !aside && wanted && entries.length > 0
-    return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+    return { entries, zoned, aside }
   }
 
   // ── DOM behaviour (once per document) ────────────────────────────────────────────────────────────
@@ -25322,6 +25378,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
   }
 
+  /**
+   * The appState an ACTION sends: the app state the answers left (heldAppState — what an action
+   * returning AppState or a route's `appState:` seed put there, the host's and every island's), under
+   * the caller's (the @AppContext picks: a pick the user just made beats the value an older answer
+   * echoed), under what the context itself was given (a MicroFrontend's declared `appState`, kept
+   * in its outbound by loadSubresource). Before, only the @AppContext picks travelled: an island's —
+   * and the page's — answered appState was shown (`${appState.x}`) but never sent back, and a
+   * MicroFrontend's declared appState reached its first load only.
+   */
+  function requestAppStateOf(outbound, sent) {
+    const own = outbound && outbound.appState && typeof outbound.appState === 'object' ? outbound.appState : {}
+    return { ...heldAppState(), ...(sent || {}), ...own }
+  }
+
   /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
    *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
    *  context (a mediator needs consumedRoute + serverSideType on actions too). */
@@ -25371,6 +25441,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
       ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
+      appState: requestAppStateOf(outbound, extra && extra.appState),
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
@@ -25452,6 +25523,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
         ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
         ...bodyExtra,
+        appState: requestAppStateOf(outbound, bodyExtra.appState),
         route: bare ? `/${bare}` : '',
         actionId,
       }),
@@ -25780,6 +25852,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+      // its declared app state travels with EVERY request it sends, not only its load (requestAppStateOf)
+      ...(sub.appState && typeof sub.appState === 'object' ? { appState: sub.appState } : {}),
       // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
       ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
       // a MicroFrontend island never names or moves the host window, chrome or not (a crud row

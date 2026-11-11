@@ -179,6 +179,8 @@ define([
 
       // display content of the HOST / of the standalone wizard: re-merge with the island
       const hostFinal = reg.contexts[bridge.HOST_ID];
+      // the @Toc index of an island that IS the page's content follows its sections (toc.mjs)
+      $application.variables.mateuToc = bridge.tocOf(hostFinal, reg);
       const islandRawBlocksNow = islandNow ? bridge.islandContentOf(islandNow) : null;
       if ($application.variables.mateuWizard) {
         if (hostChanged) {

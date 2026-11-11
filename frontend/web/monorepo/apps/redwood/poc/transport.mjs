@@ -4,7 +4,7 @@
 // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withSubresources, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf, findByType, pageListingNodeOf } from './reduceContexts.mjs'
+import { heldAppState, reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withSubresources, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf, findByType, pageListingNodeOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage, mountPrefix } from './navTree.mjs'
@@ -236,6 +236,20 @@ export const loadRoute = async (base, route, initiator = '', extra = {}, callOpt
   return callMateu(base, { route: at >= 0 ? String(route).slice(0, at) : route, actionId: '', initiatorComponentId: initiator, ...extra }, callOptions)
 }
 
+/**
+ * The appState an ACTION sends: the app state the answers left (heldAppState — what an action
+ * returning AppState or a route's `appState:` seed put there, the host's and every island's), under
+ * the caller's (the @AppContext picks: a pick the user just made beats the value an older answer
+ * echoed), under what the context itself was given (a MicroFrontend's declared `appState`, kept
+ * in its outbound by loadSubresource). Before, only the @AppContext picks travelled: an island's —
+ * and the page's — answered appState was shown (`${appState.x}`) but never sent back, and a
+ * MicroFrontend's declared appState reached its first load only.
+ */
+export function requestAppStateOf(outbound, sent) {
+  const own = outbound && outbound.appState && typeof outbound.appState === 'object' ? outbound.appState : {}
+  return { ...heldAppState(), ...(sent || {}), ...own }
+}
+
 /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
  *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
  *  context (a mediator needs consumedRoute + serverSideType on actions too). */
@@ -285,6 +299,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
     // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
     ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
     ...extra,
+    appState: requestAppStateOf(outbound, extra && extra.appState),
   }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
     .then((inc) => {
       release()
@@ -366,6 +381,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
       ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...bodyExtra,
+      appState: requestAppStateOf(outbound, bodyExtra.appState),
       route: bare ? `/${bare}` : '',
       actionId,
     }),
@@ -694,6 +710,8 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   if (sub.baseUrl) base = sub.baseUrl
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+    // its declared app state travels with EVERY request it sends, not only its load (requestAppStateOf)
+    ...(sub.appState && typeof sub.appState === 'object' ? { appState: sub.appState } : {}),
     // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
     ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
     // a MicroFrontend island never names or moves the host window, chrome or not (a crud row
