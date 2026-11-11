@@ -3,7 +3,7 @@ title: "Test the Mateu app on Android"
 description: "Help the Mateu app reach Google Play: join the closed test, install the app from Play on your Android phone and keep it for two weeks. Five minutes of your time."
 ---
 
-The [Mateu app](/native/mateu-app/) — any Mateu UI on your phone — is already on the App Store. To be published on **Google Play**, a new app must first
+The Mateu app — any Mateu UI on your phone — is already on the App Store. To be published on **Google Play**, a new app must first
 run a **closed test**: at least **12 people** opted in as testers for **14 days in a row**. You can be
 one of them. It takes about five minutes, and the app is the same free app everyone will get.
 
@@ -58,3 +58,7 @@ earlier, open the [testing page](https://play.google.com/apps/testing/io.mateu.a
 Joining the group and the test shares your Google account's email with the app's developer, as Google
 Play does for every closed test. The app itself works like the published
 one: what it stores is the list of UIs you add, on your phone.
+
+## More about the app
+
+What the app does and how to use it every day: [the Mateu app](/native/mateu-app/).
