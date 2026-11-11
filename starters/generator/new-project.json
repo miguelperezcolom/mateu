@@ -43,7 +43,8 @@
         "src/main/java/com/example/app/Product.java",
         "src/main/java/com/example/app/ProductStatus.java",
         "src/main/java/com/example/app/ProductStore.java",
-        "src/main/java/com/example/app/Products.java"
+        "src/main/java/com/example/app/Products.java",
+        "src/test/java/com/example/app/ProductsUiTest.java"
       ],
       "unmount": {"removeFiles": ["src/main/java/com/example/app/Shell.java", "src/main/java/com/example/app/Home.java"]},
       "sampleRoute": {"route": "products", "label": "Products", "viewModel": "com.example.app.Products"},
@@ -66,7 +67,7 @@
         {"from": "<pageTitle>My app</pageTitle>", "to": "<pageTitle>${appTitle}</pageTitle>"},
         {"from": "__APP_TITLE__", "to": "${appTitle}"}
       ],
-      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}]
+      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "claude/settings.json", "to": ".claude/settings.json"}, {"from": "src/test/java/com/example/app/ProductsUiTest.java", "to": "src/test/java/${packagePath}/ProductsUiTest.java"}]
     },
     "csharp": {
       "sampleFiles": [],

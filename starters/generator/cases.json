@@ -26,6 +26,7 @@
         "src/main/java/com/acme/shop/Home.java",
         "src/main/java/com/acme/shop/Products.java",
         "src/main/java/com/acme/shop/ProductStore.java",
+        "src/test/java/com/acme/shop/ProductsUiTest.java",
         "src/main/resources/application.properties"
       ],
       "absent": [
@@ -106,6 +107,8 @@
       "absent": [
         "src/main/java/org/example/hello/Products.java",
         "src/main/java/org/example/hello/Product.java",
+        "src/test/java/org/example/hello/ProductsUiTest.java",
+        "src/test/java/com/example/app/ProductsUiTest.java",
         "claude/settings.json"
       ],
       "contains": {

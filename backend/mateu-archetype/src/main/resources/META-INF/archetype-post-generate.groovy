@@ -71,7 +71,16 @@ def move = { from, to ->
 move(root.resolve("variants/${authoring}"), root)
 // (2) the sample: the Empty overlay replaces the CRUD
 if (authoring == 'code' && sample == 'empty') {
-    java.sampleFiles.each { root.resolve(it).toFile().delete() }
+    java.sampleFiles.each {
+        def f = root.resolve(it)
+        f.toFile().delete()
+        // a sample test's folders (src/test/java/com/example/app) go with it
+        def d = f.parent
+        while (d != root && isEmptyDir(d)) {
+            d.toFile().delete()
+            d = d.parent
+        }
+    }
     def empty = gen.resolve('overlays/java/empty')
     if (isDir(empty)) move(empty, root)
 }
@@ -112,7 +121,12 @@ java.renames.each { r ->
     def to = root.resolve(expand(r.to))
     to.parent.toFile().mkdirs()   // claude/settings.json → .claude/settings.json
     nioFiles.move(from, to, replaceExisting)
-    if (from.parent != root && isEmptyDir(from.parent)) from.parent.toFile().delete()
+    // remove the folders the move emptied (src/test/java/com/example/app), innermost first
+    def d = from.parent
+    while (d != root && isEmptyDir(d)) {
+        d.toFile().delete()
+        d = d.parent
+    }
 }
 def pkgDir = root.resolve(java.packageDir)
 if (isDir(pkgDir)) {

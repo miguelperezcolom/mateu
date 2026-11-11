@@ -43,6 +43,18 @@
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
+        <!-- Tests the UI without a browser (src/test/java): see ProductsUiTest -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-test</artifactId>
+            <version>${mateu.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- The generated controllers use Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

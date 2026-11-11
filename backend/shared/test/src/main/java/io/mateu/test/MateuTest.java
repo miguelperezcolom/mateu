@@ -196,6 +196,22 @@ public final class MateuTest implements AutoCloseable {
     }
 
     /**
+     * Serves every {@code @UI} class of these packages (and their sub-packages) found on the class
+     * path — what the annotation processor would register in the app, without listing them one by
+     * one. A package with no {@code @UI} class adds nothing: an app whose shell and routes are YAML
+     * ({@code specs/ui}) needs none.
+     *
+     * @param packages the packages, e.g. {@code "com.example.app"}
+     * @return this builder
+     */
+    public Builder scan(String... packages) {
+      for (String pkg : packages) {
+        this.uis.addAll(UiScanner.uisIn(pkg));
+      }
+      return this;
+    }
+
+    /**
      * Contributes a bean the screens use: a {@code CrudStore}, a service injected into a view
      * model, a {@code Translator}, a {@code ListingExporter}, a {@code PrincipalResolver}… A bean
      * of a type the core also provides replaces the core's.

@@ -62,6 +62,18 @@ class MoreScreensTest {
   }
 
   @Test
+  void scanningAPackageFindsItsUis() {
+    try (var mateu =
+        MateuTest.builder()
+            .scan("io.mateu.test.fixtures")
+            .bean(new io.mateu.test.fixtures.ProductStore())
+            .start()) {
+      assertEquals(4, mateu.open("/products").listing().rows().size());
+      assertTrue(mateu.open("/help").hasButton("openHelp"));
+    }
+  }
+
+  @Test
   void identitiesCanCarryClaims() {
     var identity = Identity.withClaims(Map.of("sub", "ada", "roles", java.util.List.of("admin")));
     assertTrue(identity.toString().contains("ada"), identity.toString());
