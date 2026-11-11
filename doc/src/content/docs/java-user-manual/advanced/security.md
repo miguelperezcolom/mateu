@@ -557,6 +557,7 @@ See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-mod
 
 ## Next
 
+- [Accessibility conformance report](/quality/accessibility-conformance/) — the other statement procurement usually asks for (WCAG 2.2 AA, VPAT-style)
 - [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) — how each service enforces its own authorization
 - [Rules](/java-user-manual/advanced/rules/) — client-side field visibility (complement to server-side `@EyesOnly`)
 - [Testing](/java-user-manual/advanced/testing/) — how to test pages that depend on authorization headers
