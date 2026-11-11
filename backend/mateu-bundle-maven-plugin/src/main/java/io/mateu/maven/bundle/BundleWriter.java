@@ -391,8 +391,11 @@ final class BundleWriter {
     html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
     // no template marker is left in the published page
     // a mirror of Oracle's CDN (mateu.oracle-cdn.url at build time) replaces it in the page
+    // the sign-in providers declared at build time (-Dmateu.auth.providers=…, MATEU_AUTH_…): a
+    // bundle has no server to ask, so its page carries the same <meta name="mateu-auth">
     return io.mateu.core.infra.OracleCdn.apply(
-        IndexPage.withoutMarkers(IndexPage.mountUi(html, ui)));
+        io.mateu.core.infra.security.SignInProviders.head(
+            IndexPage.withoutMarkers(IndexPage.mountUi(html, ui)), null));
   }
 
   private static void copyTree(Path src, Path dest) throws IOException {

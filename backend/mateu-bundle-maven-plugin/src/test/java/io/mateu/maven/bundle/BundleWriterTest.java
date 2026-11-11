@@ -141,6 +141,25 @@ public class BundleWriterTest {
   }
 
   @Test
+  public void thePageCarriesTheSignInProvidersDeclaredAtBuildTime() throws Exception {
+    var classes = dir("classes", Map.of("static/_index.html", INDEX, "static/assets/a.js", ""));
+    var out = tmp.newFolder("out").toPath();
+    System.setProperty("mateu.auth.providers", "keycloak");
+    System.setProperty("mateu.auth.providers.keycloak.issuer", "https://sso.example.com/realms/a");
+    System.setProperty("mateu.auth.providers.keycloak.client-id", "shop");
+    try {
+      BundleWriter.write(out, manifest(), null, loader(classes), "", "T");
+    } finally {
+      System.clearProperty("mateu.auth.providers");
+      System.clearProperty("mateu.auth.providers.keycloak.issuer");
+      System.clearProperty("mateu.auth.providers.keycloak.client-id");
+    }
+    var page = Files.readString(out.resolve("index.html"));
+    assertTrue(page, page.contains("<meta name=\"mateu-auth\""));
+    assertTrue(page, page.contains("https://sso.example.com/realms/a"));
+  }
+
+  @Test
   public void theRendererIsTheProjectsUnlessNamed() throws Exception {
     var project =
         dir("project", Map.of("specs/ui/project.yaml", "type: Project\nrenderer: redwood\n"));
