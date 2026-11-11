@@ -52,7 +52,9 @@ define([
 
       // the @UI's mount (<mateu-ui baseUrl>) before anything else: the API hangs off it
       bridge.initMount(document);
-      const base = bridge.mateuBase($application.constants.mateuBaseUrl);
+      // the Bearer token cookie is scoped to that mount ('/' at the root or in hash mode)
+      bridge.setTokenCookiePath(bridge.isPathMode() ? bridge.currentMount() : '/');
+      const base =bridge.mateuBase($application.constants.mateuBaseUrl);
       // Element (web components): its relative `import` module is served by the BACKEND (another origin in
       // vb-serve / hosted VB), and its events (Element.on) run actions of the content
       // page, so they travel as an application event (the Retry path). Before

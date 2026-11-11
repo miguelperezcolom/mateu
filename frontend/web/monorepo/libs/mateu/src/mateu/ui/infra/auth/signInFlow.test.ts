@@ -45,6 +45,7 @@ beforeEach(() => {
 
 afterEach(() => {
     resetSignInFlow()
+    setAuthToken(null) // the token cookie outlives a test in jsdom
     resetAuthTokenConfig()
     localStorage.clear()
     sessionStorage.clear()

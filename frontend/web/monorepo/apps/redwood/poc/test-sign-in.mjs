@@ -11,6 +11,7 @@ import {
   withSignOutAction, withoutOidcCallback, oidcRedirectUriOf, SIGN_OUT_ACTION,
 } from './signIn.mjs'
 import { askForReauthentication } from './resilience.mjs'
+import { resetTokenStore } from './authStore.mjs'
 
 let passed = 0
 const queue = []
@@ -60,6 +61,7 @@ const page = (auth, { href = 'https://app.example/orders?page=2', choose, tokenA
 }
 const reset = () => {
   resetSignIn()
+  resetTokenStore()
   localStorage.clear()
   sessionStorage.clear()
 }
@@ -110,7 +112,8 @@ test('the callback: token stored where storedToken reads it, URL back on the rou
   const { doc, state } = page({ providers: [acme] }, { href: 'https://app.example/?code=the-code&state=st' })
   assert.equal(await bootSignIn('', doc), true)
   assert.equal(storedSignInToken(), 'access-1')
-  assert.equal(localStorage.getItem('__mateu_auth_token'), 'access-1')
+  // no cookies in Node: the default cookie store falls back to sessionStorage (authStore.mjs)
+  assert.equal(sessionStorage.getItem('__mateu_auth_token'), 'access-1')
   assert.equal(readSignInSession().refreshToken, 'refresh-1')
   assert.deepEqual(state.replaced, ['/orders?page=2'])
   assert.equal(state.tokenRequests[0].code_verifier, 'v')

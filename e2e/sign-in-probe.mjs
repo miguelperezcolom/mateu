@@ -148,7 +148,7 @@ try {
 
     await buttons.first().click()
     await page.waitForURL((u) => u.pathname === '/orders', { timeout: 15000 })
-    await page.waitForFunction(() => !!localStorage.getItem('__mateu_auth_token'), null, { timeout: 15000 })
+    await page.waitForFunction(() => document.cookie.includes('__mateu_auth_token='), null, { timeout: 15000 })
     const authorize = idp.authorizeRequests[0] ?? {}
     check('authorize: code flow + PKCE S256 + state + nonce + redirect uri = the mount root',
         authorize.response_type === 'code' && authorize.code_challenge_method === 'S256' && /^[\w-]{43}$/.test(authorize.code_challenge ?? '')
@@ -157,8 +157,13 @@ try {
     const exchange = idp.tokenRequests.find((r) => r.grant_type === 'authorization_code')
     check('the code was redeemed with the matching verifier', !!exchange && idp.issued >= 1)
     check('the URL is back on the route asked for, without code/state', new URL(page.url()).search === '?page=2', page.url())
-    const stored = await page.evaluate(() => localStorage.getItem('__mateu_auth_token'))
-    check('the token is stored where authToken.ts keeps it', stored === 'access-1', String(stored))
+    // the default store is a cookie (authToken.ts): Path = the mount, SameSite=Strict, no Domain
+    const cookie = (await context.cookies(APP)).find((c) => c.name === '__mateu_auth_token')
+    check('the token is stored in the cookie authToken.ts keeps it in', cookie?.value === 'access-1', JSON.stringify(cookie))
+    check('the cookie: SameSite=Strict, host-only, Path = the mount, not HttpOnly (the client wrote it)',
+        cookie?.sameSite === 'Strict' && !cookie.domain.startsWith('.') && cookie.path === '/' && cookie.httpOnly === false, JSON.stringify(cookie))
+    const leaked = await page.evaluate(() => [localStorage.getItem('__mateu_auth_token'), document.cookie.includes('refresh-')])
+    check('nothing else keeps the token, and no refresh token in a cookie', leaked[0] === null && leaked[1] === false, JSON.stringify(leaked))
     await page.waitForFunction(() => true)
     await new Promise((r) => setTimeout(r, 1500))
     check('the sync call carries the Bearer token', syncCalls.some((c) => c.authorization === 'Bearer access-1'), JSON.stringify(syncCalls.slice(0, 3)))
@@ -180,7 +185,7 @@ try {
     const direct = await browser.newContext()
     const page2 = await direct.newPage()
     await page2.goto(APP + '/reports')
-    await page2.waitForFunction(() => !!localStorage.getItem('__mateu_auth_token'), null, { timeout: 15000 })
+    await page2.waitForFunction(() => document.cookie.includes('__mateu_auth_token='), null, { timeout: 15000 })
     check('one provider: straight to the IdP, no chooser', idp.authorizeRequests.length === 1 && new URL(page2.url()).pathname === '/reports', page2.url())
     await direct.close()
 

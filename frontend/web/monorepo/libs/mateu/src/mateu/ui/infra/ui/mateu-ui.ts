@@ -23,6 +23,7 @@ import { installLiveReload } from '@infra/dev/liveReload.ts'
 import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
+import { useMountForTokenCookie } from '@infra/http/authToken.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
@@ -161,6 +162,8 @@ export class MateuUi extends LitElement {
         // the host page wrote this element (data never can — sanitizePolicy.ts): its backend is
         // trusted with the user's credentials (credentialScope.ts)
         trustRootBaseUrl(this.baseUrl)
+        // the Bearer token cookie is scoped to this mount (authToken.ts; first mateu-ui wins)
+        if (this.top == 'true') useMountForTokenCookie(this.baseUrl)
 
         // <html lang>: the browser's until the app shell says the server's (AppDto.locale).
         applyUiLanguage()
