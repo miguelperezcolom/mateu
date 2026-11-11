@@ -31,6 +31,8 @@ public class UpdateRowActionHandler implements CrudOrchestratorActionHandler {
       // a crafted request, not a defect: said as written, no ERROR + stack per request
       throw new io.mateu.uidl.UserFacingException("update-row requires an _editedRow parameter");
     }
+    io.mateu.core.infra.observability.RequestObservation.recordId(
+        httpRequest, rowMap.get(orchestrator.getIdFieldForRow()));
     try {
       return orchestrator.updateRow((Map<String, Object>) rowMap, httpRequest);
     } catch (

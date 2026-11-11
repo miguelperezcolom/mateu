@@ -30,6 +30,8 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
               .map(id -> orchestrator.toId(String.valueOf(id)))
               .toList();
       orchestrator.deleteAllById(selectedIds, httpRequest);
+      // the audit trail's "on what" (never the rows' values)
+      io.mateu.core.infra.observability.RequestObservation.recordIds(httpRequest, selectedIds);
       if (orchestrator.restorable() && !selectedIds.isEmpty()) {
         // a delete that can be undone tells what it did and offers the way back
         // (W-V-DELETE-FEEDBACK); the Undo runs restore-deleted with the same ids
