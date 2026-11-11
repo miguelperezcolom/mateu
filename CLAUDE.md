@@ -790,7 +790,9 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   default). Rule/validation expressions see only `state`, `data`, `appState`, `appData`, `component`
   — never bare field names; a non-identifier state key is read as `state['a-b']` (the server emits
   that form, `ReflectionFormFieldMapper.stateExpression`). Every server-sent URL goes through
-  `safeNavigate`/`safeHref`; storage through `safeStorage`/`http/authToken.ts`; listeners that must die
+  `safeNavigate`/`safeHref`; storage through `safeStorage`/`http/authToken.ts` (the Bearer token's
+store defaults to a client-written `SameSite=Strict` cookie, fallback sessionStorage; the sign-in's
+refresh/id tokens NEVER go in it — Redwood mirror `poc/authStore.mjs`); listeners that must die
   with a component through `ConnectedElement.connection` (a `ConnectionScope`). The client's own text
   lives in `chromeTexts.ts` (en/es, chosen by `AppDto.locale` ← `Translator.locale(HttpRequest)`;
   `chromeTexts.lint.test.ts` fails on new hard-coded UI strings). `MateuRendererApp` is gone. CI runs

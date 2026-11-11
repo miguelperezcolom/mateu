@@ -114,7 +114,7 @@ const scheduleRefresh = (config: SignInConfig) => {
 const providerOf = (config: SignInConfig, id: string | undefined) => config.providers.find((p) => p.id === id)
 
 const store = (provider: SignInProvider, tokens: { accessToken: string, refreshToken?: string, idToken?: string, expiresAt?: number }) => {
-    setAuthToken(tokens.accessToken)
+    setAuthToken(tokens.accessToken, { expiresAt: tokens.expiresAt })
     writeAuthSession({
         providerId: provider.id, kind: 'oidc', issuer: provider.issuer, clientId: provider.clientId,
         refreshToken: tokens.refreshToken, idToken: tokens.idToken, expiresAt: tokens.expiresAt,

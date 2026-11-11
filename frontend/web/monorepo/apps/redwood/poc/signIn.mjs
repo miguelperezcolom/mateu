@@ -11,17 +11,18 @@
 //    else sign in again;
 //  - sign-out (the header's "Sign out" action): end_session (oidc) or `logoutUrl` (redirect).
 //
-// Tokens: the Bearer token in localStorage `__mateu_auth_token` (what resilience.mjs's storedToken
-// reads), the rest beside it in `__mateu_auth_session`; the pending sign-in in sessionStorage.
-// Rules held to conformance/client/sign-in-flow.json (test-conformance.mjs).
+// Tokens: through authStore.mjs — the Bearer token in the `__mateu_auth_token` cookie by default
+// (what resilience.mjs's storedToken reads), the session record `__mateu_auth_session` split
+// between localStorage (descriptor) and sessionStorage (refresh/id tokens), never in the cookie;
+// the pending sign-in in sessionStorage. Rules held to conformance/client/sign-in-flow.json
+// (test-conformance.mjs).
 
 import { chromeText } from './i18n.mjs'
 import { setBuiltInReauthentication } from './resilience.mjs'
+import { readStoredSession, readStoredToken, writeStoredSession, writeStoredToken } from './authStore.mjs'
 
 export const SIGN_IN_ICONS = ['google', 'microsoft', 'apple', 'github', 'facebook', 'x', 'linkedin', 'gitlab', 'okta', 'auth0', 'keycloak', 'key']
 const SIGN_IN_PLATFORMS = ['web', 'mobile', 'desktop']
-const SIGN_IN_TOKEN_KEY = '__mateu_auth_token'
-const SIGN_IN_SESSION_KEY = '__mateu_auth_session'
 const SIGN_IN_PENDING_KEY = '__mateu_sign_in_pending'
 const SIGN_IN_PENDING_MAX_AGE_MS = 10 * 60000
 /** The header action id of "Sign out" (runMateuHeaderAction handles it locally). */
@@ -286,10 +287,11 @@ const signInGo = (url) => {
   }
 }
 
-export function storedSignInToken() { return signInStoreGet('local', SIGN_IN_TOKEN_KEY) }
-export function readSignInSession() { return signInStoreJson('local', SIGN_IN_SESSION_KEY) }
-const writeSignInSession = (session) => signInStoreSet('local', SIGN_IN_SESSION_KEY, session ? JSON.stringify(session) : null)
-const writeSignInToken = (token) => signInStoreSet('local', SIGN_IN_TOKEN_KEY, token || null)
+// the token and the session record: where authStore.mjs says (the token cookie by default)
+export function storedSignInToken() { return readStoredToken() }
+export function readSignInSession() { return readStoredSession() }
+const writeSignInSession = (session) => writeStoredSession(session)
+const writeSignInToken = (token, expiresAt) => writeStoredToken(token || null, { expiresAt })
 const readSignInPending = () => {
   const p = signInStoreJson('session', SIGN_IN_PENDING_KEY)
   return p && sie().now() - (p.createdAt || 0) <= SIGN_IN_PENDING_MAX_AGE_MS ? p : null
@@ -299,7 +301,7 @@ const writeSignInPending = (p) => signInStoreSet('session', SIGN_IN_PENDING_KEY,
 const signInProviderById = (config, id) => config.providers.find((p) => p.id === id)
 
 const signInStoreTokens = (provider, tokens) => {
-  writeSignInToken(tokens.accessToken)
+  writeSignInToken(tokens.accessToken, tokens.expiresAt)
   writeSignInSession({
     providerId: provider.id, kind: 'oidc', issuer: provider.issuer, clientId: provider.clientId,
     refreshToken: tokens.refreshToken, idToken: tokens.idToken, expiresAt: tokens.expiresAt,

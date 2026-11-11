@@ -88,6 +88,7 @@ const shot = async (page, name) => {
 const newPage = async (browser) => {
   const context = await browser.newContext({ viewport: { width: 1400, height: 900 } })
   // the token the bootstrap (an OIDC adapter, a login page…) would leave for Mateu to send
+  // a token left in localStorage by a bootstrap is still read (the fallback lookup of authToken.ts)
   await context.addInitScript((t) => localStorage.setItem('__mateu_auth_token', t), TOKEN)
   const page = await context.newPage()
   const log = { consoleCalls: [], errors: [], wire: new Set() }
