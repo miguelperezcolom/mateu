@@ -1168,6 +1168,10 @@ Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnly
 Mateu.Uidl.IOverlineSupplier abstract method System.String Overline()
 Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
 Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
+Mateu.Uidl.IPushSender abstract method System.Threading.Tasks.Task<Mateu.Uidl.PushResult> SendAsync(Mateu.Uidl.PushMessage, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PushToken>, System.Threading.CancellationToken = null)
+Mateu.Uidl.IPushTokenStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PushToken> TokensFor(System.String)
+Mateu.Uidl.IPushTokenStore abstract method System.Void Register(System.String, Mateu.Uidl.PushToken)
+Mateu.Uidl.IPushTokenStore abstract method System.Void Unregister(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
 Mateu.Uidl.IRecordSwitcherSupplier abstract method System.Object SwitchTo(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
@@ -1849,6 +1853,27 @@ Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
 Mateu.Uidl.ProgressSteps property System.String ResultTitle { get;init; }
+Mateu.Uidl.PushMessage ctor(System.String, System.String = null, System.String = null, System.String = null)
+Mateu.Uidl.PushMessage property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Data { get;init; }
+Mateu.Uidl.PushMessage property System.String Id { get;init; }
+Mateu.Uidl.PushMessage property System.String Route { get;init; }
+Mateu.Uidl.PushMessage property System.String Text { get;init; }
+Mateu.Uidl.PushMessage property System.String Title { get;init; }
+Mateu.Uidl.PushMessage static method Mateu.Uidl.PushMessage Of(Mateu.Uidl.AppNotification)
+Mateu.Uidl.PushNotifications static method System.IDisposable Subscribe(System.Action<System.String,Mateu.Uidl.PushMessage>)
+Mateu.Uidl.PushNotifications static method System.String SessionKey(System.String)
+Mateu.Uidl.PushNotifications static method System.Void Send(System.String, Mateu.Uidl.AppNotification)
+Mateu.Uidl.PushNotifications static method System.Void Send(System.String, Mateu.Uidl.PushMessage)
+Mateu.Uidl.PushNotifications static method System.Void SendToSession(System.String, Mateu.Uidl.PushMessage)
+Mateu.Uidl.PushResult ctor(System.Int32, System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.PushResult property System.Collections.Generic.IReadOnlyList<System.String> UnregisteredTokens { get;init; }
+Mateu.Uidl.PushResult property System.Int32 Accepted { get;init; }
+Mateu.Uidl.PushResult static property Mateu.Uidl.PushResult None { get; }
+Mateu.Uidl.PushToken ctor(System.String, System.String = null, System.String = null, System.String = null)
+Mateu.Uidl.PushToken property System.String DeviceId { get;init; }
+Mateu.Uidl.PushToken property System.String Platform { get;init; }
+Mateu.Uidl.PushToken property System.String Token { get;init; }
+Mateu.Uidl.PushToken property System.String Ui { get;init; }
 Mateu.Uidl.QueueGroup ctor()
 Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
 Mateu.Uidl.QueueGroup property System.String Label { get;init; }

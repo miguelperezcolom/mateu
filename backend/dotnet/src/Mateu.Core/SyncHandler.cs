@@ -185,6 +185,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (IsAgentAction(rq.ActionId))
             return AgentAction(rq);
 
+        // 0c'''. Remote push: the phone registers / forgets its push token — app-level, independent
+        // of the view (mirrors Java's PushActionRunner).
+        if (IsPushAction(rq.ActionId))
+            return PushAction(rq);
+
         // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
         // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
@@ -660,6 +665,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             };
         app = WithCatalogues(app);
         app = WithBackLink(app, ReflectionMapper.BackLinkParent(appType));
+        // remote push is on when the app opts in to OS notifications AND something sends pushes
+        if (app is { Metadata: AppMetadataDto pushMeta } && pushMeta.OsNotifications && PushSender is not null)
+            app = app with { Metadata = pushMeta with { PushNotifications = true } };
         // a record master the authored table binds under the request route (its tabs, its home)
         var routedMount = string.IsNullOrEmpty(rq.ActionId)
             ? RoutedTabs.MountOf(_routes, rq.Route, appType.FullName)

@@ -59,6 +59,11 @@ public record AppMetadataDto(
     /// asked only from a user gesture. (Mirrors AppDto.osNotifications.) EXPERIMENTAL.</summary>
     public bool OsNotifications { get; init; }
 
+    /// <summary>Remote push is on: OsNotifications AND the server sends pushes (an IPushSender
+    /// service, or Mateu's Expo sender) — the phone app registers its push token with
+    /// <c>_push-register</c>. (Mirrors AppDto.pushNotifications.) EXPERIMENTAL.</summary>
+    public bool PushNotifications { get; init; }
+
     /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette
     /// also searches ENTITIES through the app-level _globalsearch action.</summary>
     public bool GlobalSearchEnabled { get; init; }
