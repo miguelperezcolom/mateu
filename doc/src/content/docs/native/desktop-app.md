@@ -109,6 +109,35 @@ carry the same download mark; if Windows warns when you run `mateu.bat`, unblock
 (**Properties ▸ Unblock**) before extracting it. A white-label build you sign
 with your own Authenticode certificate shows none of this.
 
+#### Signing the setup in CI (SignPath)
+
+The release workflow (`.github/workflows/desktop.yml`, job `sign-windows`) signs the setup with
+[SignPath](https://signpath.io) as soon as it is configured — SignPath Foundation signs open-source
+projects for free. Only the setup `.exe` is signed: it is the only Windows binary of ours, and
+JetBrains' binaries keep JetBrains' signature. Once configured, a signing that fails stops the release:
+nothing is published unsigned by accident. The Windows smoke test then checks the setup's signature.
+
+1. On SignPath, create a project (default slug `mateu`) linked to this GitHub repository as a
+   trusted build system, with a signing policy (default slug `release-signing`) whose submitter is a
+   CI user, and this artifact configuration (the artifact is a zip holding the setup):
+
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+     <zip-file>
+       <pe-file path="mateu-desktop-*-windows-setup.exe">
+         <authenticode-sign />
+       </pe-file>
+     </zip-file>
+   </artifact-configuration>
+   ```
+
+2. In the GitHub repository, add the **secret** `SIGNPATH_API_TOKEN` (the CI user's API token) and the
+   **variable** `SIGNPATH_ORGANIZATION_ID`. The variables `SIGNPATH_PROJECT_SLUG`,
+   `SIGNPATH_SIGNING_POLICY_SLUG` and `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` override the defaults.
+
+Without `SIGNPATH_ORGANIZATION_ID` the job is skipped and the setup ships unsigned, as described above.
+
 The setup is built with [NSIS](https://nsis.sourceforge.io): `makensis` must be on the `PATH`
 (`sudo apt-get install nsis`, `brew install makensis`). Without it the build still produces the
 **portable** `mateu-desktop-<version>-windows.zip` — unzip anywhere and run `mateu.bat`.
@@ -133,6 +162,20 @@ the app first shows the address it names and asks whether to look it up — noth
 (no manifest, no walk up a page's path) until you say yes; then the usual confirm step shows the UI's
 name and sign-in. A server on this machine is never followed to another address (no redirects from
 `localhost`, `127.x`, `[::1]`), and an address that answers without a Mateu manifest is not added.
+
+## The window
+
+The app keeps only its own chrome: the top bar holds **My UIs** (back to the list), **Home**, the UI's
+[application context](/ux-patterns/app-context/) selectors (active hotel, company… one combo each)
+and the IDE's search and settings — the UI's menu is not repeated there, it lives in the side panel; the IDE's tool windows (Project, Services, Version
+control…) are gone. A UI with an app shell shows its menu in the side panel on the left (it goes back
+there on every start); its screens open in the centre, listings included. The record a
+listing row opens takes the **preview tab**, reused by the next row until you edit in it or pin it.
+A UI with an AI chat shows it in its own panel on the right (named after the UI's `askLabel`,
+**Assistant** by default), beside the screens. A UI with **no app shell** — a single page, like
+the counter demo — opens in the centre and the side panel folds away. **Home** brings the UI's home
+back, also after its tab was closed: the shell's home route (else the first menu entry), or the
+root of a UI with no shell.
 
 ## Signing in
 

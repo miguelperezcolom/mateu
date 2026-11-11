@@ -116,6 +116,28 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   release's tests**, like Maven Central: `buid-and-publish.yml` calls their workflows after `e2e`, so
   a release whose tests fail ships none of them. Their build jobs run with a read-only token; only
   small upload jobs, which check nothing out and build nothing, can write to the release.
+- **The desktop app's Windows setup can be signed in CI through SignPath** (`desktop.yml` job
+  `sign-windows`): set the `SIGNPATH_ORGANIZATION_ID` variable and the `SIGNPATH_API_TOKEN` secret.
+  Once configured, a failed signing stops the release and the Windows smoke test checks the setup's
+  Authenticode; unconfigured, the setup ships unsigned as before. Setup in `native/desktop-app.md`.
+
+### Fixed — Desktop app (IntelliJ, focused mode)
+
+- **The side menu always opens what you click**: the whole row is the target (a click right of a
+  short label selected the row and opened nothing), a quick click after another is no longer dropped
+  as a double click, a pointer that moves a pixel no longer loses the click, and an entry whose tab
+  was closed opens again (it refocused the closed, disposed view). The tab appears at once, showing
+  "Loading…" until the server answers.
+- **The status bar says when the app waits for a server**: IntelliJ's own background progress
+  ("Mateu: waiting for the server"), shown when a wait lasts over 150 ms.
+- **Collection Detail pages**: a row of the list opens the record beside it, in the same tab, and the
+  list no longer filters itself by the selected record's fields (the artists list showed one artist).
+- **Card listings** show each row's picture and are titled by their first text column; inside a page
+  they grow with their cards instead of collapsing to a strip.
+- Listings and foldouts stacked in a page grow with the rows and panels that arrive after it is
+  drawn (tables cut after one row, a foldout's last line under its scroll bar); KPI figures and number
+  fields show `18.000.000`, not `1.8E7`; timeline icons are IDE icons, not token text; the menu goes
+  back to the left on every start.
 
 ### Added
 

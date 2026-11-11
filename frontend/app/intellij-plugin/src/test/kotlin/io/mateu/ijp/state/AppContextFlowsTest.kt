@@ -49,6 +49,21 @@ class AppContextFlowsTest : RenderTestCase() {
         assertTrue("no Mateu round trip", server.requests.isEmpty())
     }
 
+    fun testARecordPageIsRenamedOnceItsDataSourceFillsTheTitle() {
+        // the museums' exhibition page: the server names it after the listing ("Exhibitions"), its
+        // header is `${'$'}{state.title}`, and the record only arrives through the route's data: source
+        val ctx = flowContext()
+        server.json["/api/exhibitions/7"] = """{"id":7,"title":"Portraits of an Age"}"""
+        ctx.applyIncrement(json("""{"messages":[],"commands":[{"type":"SetWindowTitle","data":"Exhibitions"}],
+            "fragments":[{"targetComponentId":null,"state":{"id":7},"component":{"type":"ServerSide","id":"p1",
+              "serverSideType":"io.mateu.core.application.runaction.SeededYamlPage",
+              "actions":[{"id":"__restdata__","restAction":{"source":{"url":"${server.baseUrl}/api/exhibitions/${'$'}{state.id}"},"resultPath":""}}],
+              "children":[{"type":"ClientSide","metadata":{"type":"Form","title":"${'$'}{state.title}"},"children":[]}]}}]}"""))
+        assertEquals("Exhibitions", ctx.lastWindowTitle)
+        ctx.runAction("__restdata__", null)
+        waitUntil("the record's title") { ctx.lastWindowTitle == "Portraits of an Age" }
+    }
+
     fun testARestActionNamingItsSourceByRefFetchesTheResolvedEndpoint() {
         val ctx = flowContext()
         server.json["/api/profile"] = """{"data":{"name":"Grace"}}"""

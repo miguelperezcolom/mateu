@@ -189,7 +189,16 @@ class OidcDeviceFlow(
         )
         config.scope?.ifBlank { null }?.let { form["scope"] = it }
         val (status, body) = postForm(endpoints.deviceAuthorization, form)
-        if (status !in 200..299) throw OidcException(errorOf(body) ?: "Device authorization failed (HTTP $status).")
+        if (status !in 200..299) {
+            // the provider refuses the device grant for this client: say what to switch on, not the
+            // provider's own words ("Client is not allowed to initiate OAuth 2.0 Device Authorization Grant")
+            if (body.path("error").asText("") == "unauthorized_client") throw OidcException(
+                "The sign-in provider does not let the desktop app sign in to this UI: its client " +
+                    "\"${config.clientId}\" needs the OAuth 2.0 Device Authorization Grant switched on " +
+                    "(Keycloak: Clients › ${config.clientId} › Capability config).",
+            )
+            throw OidcException(errorOf(body) ?: "Device authorization failed (HTTP $status).")
+        }
         return DeviceCode(
             deviceCode = body.path("device_code").textOrNull() ?: throw OidcException("No device_code in the response."),
             userCode = body.path("user_code").asText(""),

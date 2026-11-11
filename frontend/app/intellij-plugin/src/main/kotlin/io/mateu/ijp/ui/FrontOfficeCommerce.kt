@@ -25,12 +25,21 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         if (current) JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
         else JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(11))
     val image = metadata.text("image")
-    if (image.isNotBlank()) {
-        val img = SvgImages.load(image)
-        if (img != null) {
+    // fetched off the EDT (fetched inline, every card froze the window while its image downloaded)
+    val url = when {
+        image.isBlank() -> null
+        image.trim().startsWith("data:") -> image.trim()
+        else -> resolveImageUrl(image, r.ctx.session.baseUrl)
+    }
+    if (url != null) {
+        val holder = JBLabel()
+        panel.addStacked(holder, 6)
+        offEdt {
+            val img = SvgImages.load(url)
+                ?: return@offEdt
             val scale = minOf(1.0, 320.0 / img.width)
-            panel.addStacked(JBLabel(javax.swing.ImageIcon(
-                img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH))), 6)
+            val icon = javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))
+            javax.swing.SwingUtilities.invokeLater { holder.icon = icon; regrowStacked(holder) }
         }
     }
     val tag = metadata.text("tag")

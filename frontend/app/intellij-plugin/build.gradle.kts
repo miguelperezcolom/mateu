@@ -33,7 +33,7 @@ fun deleteTree(root: File) {
 }
 
 plugins {
-    kotlin("jvm") version "2.4.21"
+    kotlin("jvm") version "2.2.21"
     id("org.jetbrains.intellij.platform") version "2.19.0"
     // Line coverage of the plugin's own code (`koverLog` / `koverXmlReport`, verified by `koverVerify`).
     id("org.jetbrains.kotlinx.kover") version "0.9.11"
@@ -919,6 +919,7 @@ tasks.register<JavaExec>("renderProbe") {
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
     (findProperty("probe.nativeToolbar") as String?)?.let { systemProperty("probe.nativeToolbar", it) }
     (findProperty("probe.followUp") as String?)?.let { systemProperty("probe.followUp", it) }
+    (findProperty("probe.waitMs") as String?)?.let { systemProperty("probe.waitMs", it) }
     // Without this the nested loads (a routed component inside an app shell) go to the default
     // backend and silently render nothing — the probe then reports an app shell with no content.
     (findProperty("probe.baseUrl") as String?)?.let { systemProperty("probe.baseUrl", it) }

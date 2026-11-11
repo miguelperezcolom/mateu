@@ -191,6 +191,9 @@ The native shells render the same wire field:
   to two header actions (the rest, and every dropdown group, in a "More" sheet) and its notification
   bell with the unread count. The chips open the same selectors in a bottom sheet; header actions
   run app-level against the embedded app's class, like the web's.
+- **Desktop app** (IntelliJ, focused mode) — one combo per selector on the top bar ("Hotel: Riu
+  Palace ▾"), next to **Home**; in a developer's IDE they sit at the top of the Mateu panel. Picking
+  a value reloads the app shell.
 
 Like the web picker, a selector with more than 7 options gains a **search box**: typing filters
 the loaded options and (debounced) asks the server for matches beyond the loaded page via the same

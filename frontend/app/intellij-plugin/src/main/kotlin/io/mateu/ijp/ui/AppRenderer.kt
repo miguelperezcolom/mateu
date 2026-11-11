@@ -31,6 +31,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         // and nudge the action system so they pick it up.
         session.appMenu = metadata.path("menu")
         session.appTitle = metadata.text("title")
+        session.contextSelectors = metadata.path("contextSelectors").takeIf { it.isArray && !it.isEmpty }
         // @HomeRoute coordinates: the standalone landing opens this route (like the web shells)
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
@@ -91,8 +92,9 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     }
     // @AppContext selectors: one combo per selector at the top of the navigator; picking a value
     // fixes it in the appState sent with every request and reloads the app shell.
+    // (In the desktop app they are on the main toolbar instead: MateuContextSelectors.)
     val selectors = metadata.path("contextSelectors")
-    if (selectors.isArray && !selectors.isEmpty) {
+    if (selectors.isArray && !selectors.isEmpty && !(r.ctx.appShell && session.contextSelectorsInToolbar)) {
         for (selector in selectors) {
             val fieldName = selector.text("fieldName")
             val row = javax.swing.JPanel(java.awt.BorderLayout(JBUI.scale(6), 0))
@@ -153,7 +155,13 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appMcpUrl = metadata.text("mcpUrl").ifBlank { null }
         session.appUploadUrl = metadata.text("uploadUrl").ifBlank { null }
     }
-    if (sseUrl.isNotBlank()) {
+    val assistantHost = if (r.ctx.appShell) session.onAssistant else null
+    if (assistantHost != null) {
+        // the desktop app: the chat lives in its own panel on the right (MateuAssistantToolWindow)
+        assistantHost(sseUrl.takeIf { it.isNotBlank() }?.let {
+            AppSession.Assistant(it, metadata.text("uploadUrl").ifBlank { null }, metadata.text("askLabel").ifBlank { "Assistant" })
+        })
+    } else if (sseUrl.isNotBlank()) {
         val askLabel = metadata.text("askLabel").ifBlank { "Assistant" }
         val chat = ActionLink(plain("💬 $askLabel")) {
             openChatDialog(session, sseUrl, metadata.text("uploadUrl").ifBlank { null }, askLabel)

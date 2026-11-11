@@ -27,6 +27,14 @@ class ExpressionsTest : TestCase() {
         assertFalse(Expressions.declaresJson(emptyMap()))
     }
 
+    fun testAPeerNavRouteTemplateBecomesTheRouteOrNothing() {
+        // the museums' artwork page: `peerNav.nextRoute` is a template, empty on the last record
+        val tpl = "\${state.nextId ? 'artworks/' + state.nextId : ''}"
+        assertEquals("artworks/42", Expressions.interpolate(tpl, mapOf("state" to mapOf("nextId" to 42))))
+        assertEquals("", Expressions.interpolate(tpl, mapOf("state" to mapOf("nextId" to null))))
+        assertEquals("", Expressions.interpolate(tpl, mapOf("state" to emptyMap<String, Any?>())))
+    }
+
     fun testLiteralsAndArithmetic() {
         assertEquals(7.0, eval("1 + 2 * 3"))
         assertEquals(9.0, eval("(1 + 2) * 3"))

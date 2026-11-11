@@ -3,8 +3,9 @@ title: Mobile App (Open on Mobile)
 description: One generic Mateu app for iOS and Android that renders any Mateu UI natively — UIs are added by scanning a QR code, like accounts in an authenticator app. The server side (the UI manifest and the "Open on mobile" button) ships today.
 ---
 
-**Status:** 🧪 Experimental (`@Experimental`, mobile app 3.0 beta) — phase 1 (server + web) is
-shipped; the app itself is on its way (see [Status](#status)).
+**Status:** 🧪 Experimental (`@Experimental`, mobile app 3.0 beta) — the server side and the app are
+shipped: the Mateu app is on the [App Store](https://apps.apple.com/app/mateu/id6829227403) and in
+Google Play's closed test (see [Status](#status)). For users: [the Mateu app](/native/mateu-app/).
 
 ## Intent
 
@@ -288,9 +289,10 @@ The plan has four phases (see `design/mobile-app-hub.md` in the repository):
 2. **App MVP** — the list of UIs (add by URL or QR, remove, reorder), opening a UI, per-UI OIDC,
    universal links, the export QR. **Built (experimental)**, in internal builds until the store
    release.
-3. **Store release** — listings, a reviewer demo, privacy labels.
+3. **Store release** — listings, a reviewer demo, privacy labels. **On the App Store; Google Play in
+   its closed test** ([help as a tester](/native/android-testers/)).
 4. **Enterprise** — managed configuration (MDM) with a pushed or locked list of UIs, signed QR codes,
    a domain allow-list; then push notifications through the
    [notification inbox](/ux-patterns/notification-inbox/).
 
-Until the app is in the stores, the QR leads to the landing page, which says so.
+Without the app installed, the QR leads to the landing page, which links to the stores.

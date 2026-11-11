@@ -496,9 +496,27 @@ fun richTextField(value: String, kind: String): JComponent {
         }
         else -> SafeHtml.sanitize(value)
     }
+    return linkingHtmlPane(html)
+}
+
+/**
+ * SANITISED html ([SafeHtml.sanitize] — the caller's job) in a read-only pane whose links open in
+ * the OS browser, under [SafeHtml.browse]'s rule. An `<a href>` in a JLabel's html, or in a pane with
+ * no link listener, is painted as a link and does nothing when clicked (the front office's «Ver
+ * recorrido» / CRS booking links, 2026-11-10).
+ */
+fun linkingHtmlPane(html: String): JEditorPane {
     val pane = JEditorPane("text/html", "<html><body>$html</body></html>")
     pane.isEditable = false
     pane.isOpaque = false
+    // the IDE's font and size, not the html kit's serif default
+    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+    pane.font = com.intellij.util.ui.UIUtil.getLabelFont()
+    pane.addHyperlinkListener { e ->
+        if (e.eventType == javax.swing.event.HyperlinkEvent.EventType.ACTIVATED) {
+            SafeHtml.browse(e.url?.toString() ?: e.description)
+        }
+    }
     return pane
 }
 
