@@ -60,3 +60,31 @@ describe('a ButtonGroup in content (a Button with children)', () => {
         expect(seen).toEqual([{ actionId: 'archive', parameters: { all: true } }])
     })
 })
+
+describe('a split button (a ButtonGroup with a primary)', () => {
+    const split = {
+        type: 'ClientSide', id: 'save', children: [],
+        metadata: { type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary', split: true, children: [
+            { type: 'Button', label: 'Save as draft', actionId: 'saveDraft' },
+        ] },
+    } as unknown as ClientSideComponent
+
+    it('is ONE menu bar: the primary runs its action, the named ▾ opens the rest', () => {
+        const host = document.createElement('div')
+        render(renderButton(split, {}, {}), host)
+        const bar = host.querySelector('vaadin-menu-bar') as HTMLElement & { items: any[] }
+        expect(bar.getAttribute('theme')).toBe('primary')
+        expect(bar.items).toHaveLength(2)
+        expect(bar.items[0].text).toBe('Save')
+        expect(bar.items[0].children).toBeUndefined()
+        expect(bar.items[1].tooltip).toBe('More actions')
+        expect((bar.items[1].component as HTMLElement).textContent).toContain('More actions')
+        expect(bar.items[1].children.map((c: any) => c.text)).toEqual(['Save as draft'])
+        expect(bar.querySelector('vaadin-tooltip[slot="tooltip"]')).not.toBeNull()
+        const seen: unknown[] = []
+        host.addEventListener('action-requested', e => seen.push((e as CustomEvent).detail))
+        bar.dispatchEvent(new CustomEvent('item-selected', { detail: { value: bar.items[0] } }))
+        bar.dispatchEvent(new CustomEvent('item-selected', { detail: { value: bar.items[1].children[0] } }))
+        expect(seen.map((d: any) => d.actionId)).toEqual(['save', 'saveDraft'])
+    })
+})

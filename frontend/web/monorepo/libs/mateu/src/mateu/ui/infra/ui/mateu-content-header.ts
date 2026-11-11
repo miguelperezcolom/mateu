@@ -5,6 +5,7 @@ import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { safeHtml } from "./safeHtml";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { isButtonGroup, toolbarGroupComponent } from "@infra/ui/renderers/buttonRenderer.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
@@ -324,6 +325,11 @@ export class MateuContentHeader extends LitElement {
     renderBtn = (shown: Button) => {
         if ((this.data ?? {})[shown.actionId + '.hidden']) return nothing
         const button = this.gated(shown)
+        // a toolbar group (@Toolbar(group) / a ButtonGroup) is the renderer's dropdown or split button
+        if (isButtonGroup(button)) {
+            return stampButton(button, renderComponent(this, toolbarGroupComponent(button, 'header'), this.baseUrl,
+                this.state ?? {}, this.data ?? {}, this.appState ?? {}, this.appData ?? {}))
+        }
         const label = this.evalLabel(button.label)
         // Renderers with their own design system provide the button through
         // the renderToolbarButton hook; the Vaadin default stays here.
@@ -365,7 +371,7 @@ export class MateuContentHeader extends LitElement {
                                 @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
                         ${this._overflowOpen ? html`
                             <div class="overflow-menu">
-                                ${menu.map(this.gated).map(b => html`
+                                ${menu.flatMap(b => isButtonGroup(b) ? [...(b.split ? [{ ...b, children: [] } as Button] : []), ...b.children] : [b]).map(this.gated).map(b => html`
                                     <button class="overflow-item" ?disabled="${b.disabled}"
                                             data-action-id="${b.actionId}"
                                             @click="${() => this.handleButtonClick(b)}">${this.evalLabel(b.label)}</button>
