@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { expandComponent, type FluentNode } from '@infra/expander/expandComponent'
 
 const auto = (field: Record<string, unknown>) =>
-    (expandComponent({ type: 'FormField', id: 'f', ...field } as FluentNode).metadata as Record<string, unknown>).autocomplete
+    ((expandComponent({ type: 'FormField', id: 'f', ...field } as FluentNode) as unknown as { metadata: Record<string, unknown> }).metadata).autocomplete
 
 describe('expander — input purpose', () => {
     it('keeps a declared token, infers email, and leaves the rest without one', () => {

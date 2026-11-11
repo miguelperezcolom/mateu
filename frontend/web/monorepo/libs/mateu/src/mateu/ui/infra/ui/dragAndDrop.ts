@@ -25,3 +25,29 @@ export const draggedIdsOf = (json: string): string[] => {
 /** The parameters of the drop action: the zone's own, plus what was dragged. */
 export const dropParamsOf = (zoneParams: Record<string, unknown> | undefined, ids: string[], type: string) =>
     ({ ...(zoneParams ?? {}), _draggedIds: ids, _dragType: type })
+
+/**
+ * Without dragging (WCAG 2.1.1 Keyboard, 2.5.7 Dragging Movements): a listing with `@DragRows`
+ * PUBLISHES the ids of its selected rows under its drag type, and every drop zone accepting that
+ * type offers a "Move the selected rows here" button that runs the same drop action with them.
+ * Process-wide, by type: the last listing that published wins (one listing per type on a screen).
+ */
+export const DRAG_SELECTION_EVENT = 'mateu-drag-selection-changed'
+
+const selections = new Map<string, string[]>()
+
+/** A listing's current selection for its drag type ([] clears it). */
+export const publishDragSelection = (type: string | null | undefined, ids: string[]) => {
+    if (!type) return
+    const previous = selections.get(type) ?? []
+    if (previous.length === ids.length && previous.every((id, i) => id === ids[i])) return
+    if (ids.length) selections.set(type, [...ids])
+    else selections.delete(type)
+    if (typeof document !== 'undefined') {
+        document.dispatchEvent(new CustomEvent(DRAG_SELECTION_EVENT, { detail: { type, ids: [...ids] } }))
+    }
+}
+
+/** The ids a listing of that drag type has selected now. */
+export const draggableSelectionOf = (type: string | null | undefined): string[] =>
+    (type ? selections.get(type) : undefined) ?? []

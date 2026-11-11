@@ -361,6 +361,15 @@ const en = {
     chartSeries: 'Series',
     chartTrend: '{name}: {count} values from {first} to {last}; lowest {min}, highest {max}',
     appContextReloads: 'Choosing another one reloads the app',
+    planningEarlier: 'One day earlier',
+    planningLater: 'One day later',
+    planningRowUp: 'Previous row',
+    planningRowDown: 'Next row',
+    planningShorter: 'One day shorter',
+    planningLonger: 'One day longer',
+    planningKeys: 'Arrow keys move it, Shift+Left/Right change its length, Enter applies, Escape cancels',
+    planningPending: '{block}: {resource}, {start} to {end}',
+    dropSelected: 'Move the selected rows here ({count})',
     appContextChanging: '{label}: {value}. Reloading the app…',
 }
 
@@ -686,6 +695,15 @@ const es: Catalogue = {
     chartSeries: 'Serie',
     chartTrend: '{name}: {count} valores de {first} a {last}; mínimo {min}, máximo {max}',
     appContextReloads: 'Elegir otro recarga la aplicación',
+    planningEarlier: 'Un día antes',
+    planningLater: 'Un día después',
+    planningRowUp: 'Fila anterior',
+    planningRowDown: 'Fila siguiente',
+    planningShorter: 'Un día menos',
+    planningLonger: 'Un día más',
+    planningKeys: 'Las flechas lo mueven, Mayús+Izquierda/Derecha cambian su duración, Intro aplica, Escape cancela',
+    planningPending: '{block}: {resource}, del {start} al {end}',
+    dropSelected: 'Mover aquí las filas seleccionadas ({count})',
     appContextChanging: '{label}: {value}. Recargando la aplicación…',
 }
 
