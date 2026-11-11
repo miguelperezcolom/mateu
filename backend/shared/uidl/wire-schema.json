@@ -469,6 +469,9 @@
         "osNotifications" : {
           "type" : "boolean"
         },
+        "presence" : {
+          "type" : "boolean"
+        },
         "requiredCapabilities" : {
           "type" : "array",
           "items" : {
@@ -5887,7 +5890,7 @@
     },
     "UICommandTypeDto" : {
       "type" : "string",
-      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged" ]
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged", "PresenceChanged" ]
     },
     "UIFragmentActionDto" : {
       "type" : "string",

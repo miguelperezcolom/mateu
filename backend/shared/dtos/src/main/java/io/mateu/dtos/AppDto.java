@@ -170,7 +170,13 @@ public record AppDto(
      * entry, a background task that finished) while it is not in front. The renderer asks the
      * user's permission only from a user gesture. False otherwise.
      */
-    boolean osNotifications)
+    boolean osNotifications,
+    /**
+     * {@code @App(presence = true)}: record pages tell who else has the same record open and who is
+     * editing it (the {@code _presence} app-level action + {@code PresenceChanged} commands on the
+     * app event stream). False otherwise.
+     */
+    boolean presence)
     implements ComponentMetadataDto {
 
   public AppDto {
