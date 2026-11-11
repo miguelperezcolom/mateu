@@ -219,6 +219,7 @@ same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 257 | 257 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.audit` | 3 | 0 | 3 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 330 | 264 | 66 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
@@ -227,12 +228,13 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **998** | **838** | **100** | **0** | **60** |
+| **Total** | | **1001** | **838** | **103** | **0** | **60** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`, `LiveNotifications`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
+- `io.mateu.uidl.audit`: `ActionAuditEvent`, `ActionAuditListener`, `ActionOutcome`
 - `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
