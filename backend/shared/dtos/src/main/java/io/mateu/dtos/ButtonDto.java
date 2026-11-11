@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Builder;
 
 /** A button */
-@Builder
+@Builder(toBuilder = true)
 public record ButtonDto(
     String label,
     String iconOnLeft,
@@ -33,5 +33,11 @@ public record ButtonDto(
      * while nothing is selected. On the button itself, so no renderer has to find the advertised
      * action by id — the dispatched id and the advertised one are not always the same string.
      */
-    boolean rowsSelectedRequired)
+    boolean rowsSelectedRequired,
+    /**
+     * A SPLIT button: this button runs its own action (or follows its route) and an adjacent ▾
+     * opens its {@code children}. False with {@code children}: a dropdown whose trigger only opens
+     * the menu (a {@code ButtonGroup} with no primary).
+     */
+    boolean split)
     implements ComponentMetadataDto {}

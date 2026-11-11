@@ -168,13 +168,7 @@ public class FormMapper {
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
     if (userTrigger == null) return null;
     if (userTrigger instanceof ButtonGroup group) {
-      return ButtonDto.builder()
-          .label(group.label())
-          .iconOnLeft(group.iconOnLeft())
-          .iconOnRight(group.iconOnRight())
-          .separatorBefore(group.separatorBefore())
-          .children(group.buttons().stream().map(FormMapper::mapToButtonDto).toList())
-          .build();
+      return ButtonMapper.groupToDto(group, FormMapper::mapToButtonDto);
     }
     if (userTrigger instanceof Button button) {
       return ButtonDto.builder()

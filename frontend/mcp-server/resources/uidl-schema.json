@@ -1295,7 +1295,7 @@
       "enum" : [ "none", "success", "error", "warning", "contrast", "normal" ]
     },
     "ButtonGroup" : {
-      "description" : "A group of buttons shown together, usually collapsed into a single dropdown trigger.",
+      "description" : "A group of buttons shown together: a dropdown — one trigger labelled label opening its buttons — or, when it has a primary, a SPLIT button: the primary action runs from the button itself and an adjacent ▾ opens the other buttons (the group's label is not drawn then).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1323,6 +1323,9 @@
           "items" : {
             "$ref" : "#/$defs/Component"
           }
+        },
+        "primary" : {
+          "$ref" : "#/$defs/Component"
         },
         "note" : {
           "type" : "string",
