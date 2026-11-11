@@ -2,9 +2,11 @@
  * Saved views for React Native listings — the RN counterpart of the web's `savedViewsStore`: a
  * named snapshot of the smart-search conditions (free-text `searchText` + every applied filter
  * value, range bounds included), with one optionally marked default (auto-applied on first load).
- * Parity note: the web persists in localStorage; this RN renderer has no AsyncStorage dependency, so
- * views are **session-scoped** (in-memory, keyed by the listing scope) and reset on app restart.
+ * Kept per listing scope (the route + the listing) and persisted per UI on the device
+ * (`PersistedScopes`: AsyncStorage, localStorage on the web build), like the web's localStorage.
  */
+import { PersistedScopes } from './persistedScopes.ts';
+
 export interface SavedView {
   name: string;
   /** filter values by state key (searchText + <fieldId> / <fieldId>_from / <fieldId>_to …) */
@@ -12,11 +14,13 @@ export interface SavedView {
   isDefault?: boolean;
 }
 
-export class SavedViewsStore {
-  private readonly store = new Map<string, SavedView[]>();
+export class SavedViewsStore extends PersistedScopes<SavedView[]> {
+  constructor() {
+    super('mateu-saved-views');
+  }
 
   list(scope: string): SavedView[] {
-    return this.store.get(scope) ?? [];
+    return this.read(scope) ?? [];
   }
 
   /** Save (or replace, matching by name) a view. Empty names / empty snapshots are ignored. */
@@ -25,13 +29,12 @@ export class SavedViewsStore {
     if (!name || Object.keys(view.values ?? {}).length === 0) return;
     const views = this.list(scope).filter((v) => v.name !== name);
     views.push({ ...view, name });
-    this.store.set(scope, views);
+    this.write(scope, views);
   }
 
   delete(scope: string, name: string): void {
     const views = this.list(scope).filter((v) => v.name !== name);
-    if (views.length === 0) this.store.delete(scope);
-    else this.store.set(scope, views);
+    this.write(scope, views.length === 0 ? undefined : views);
   }
 
   /** Toggle the default flag on `name` (clearing it from every other view in the scope). */
@@ -40,7 +43,7 @@ export class SavedViewsStore {
       ...v,
       isDefault: v.name === name ? !v.isDefault : false,
     }));
-    this.store.set(scope, views);
+    this.write(scope, views);
   }
 
   defaultView(scope: string): SavedView | undefined {

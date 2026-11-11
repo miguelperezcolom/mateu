@@ -8,6 +8,10 @@ setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { setLocalNotifier } from '../core/osNotifications';
 import { platformNotifier } from '../ui/localNotifications';
 setLocalNotifier(platformNotifier());
+// saved listing views and column choices survive a restart: the device's app storage (per UI)
+import { setListingPrefsStorage } from '../renderer/persistedScopes';
+import { metaStore } from '../hub/storage';
+setListingPrefsStorage(metaStore);
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
