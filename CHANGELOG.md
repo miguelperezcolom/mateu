@@ -8,6 +8,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Record presence — "Ana is editing this record"** (`@Experimental`). `@App(presence = true)`
+  (YAML `presence: true`, .NET `[App(Presence = true)]`, Python `@app(presence=True)`): on a record
+  page each signed-in user sees who else has the same record open and who is EDITING it (unsaved
+  changes), on a warning tone, so two people do not overwrite each other. A record is its route plus
+  the view class; anonymous callers take no part; a closed tab disappears within 30 s. It rides the
+  app event stream (one per browser) and the app-level `_presence` action; kept in memory per
+  process unless the app registers a `PresenceStore` (`IPresenceStore`, `add_mateu(presence_store=…)`).
+  Rendered by Vaadin, React Native and the IntelliJ plugin. Docs: `ux-patterns/record-presence`.
+
 ### Security
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
