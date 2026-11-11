@@ -48,6 +48,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   fields show `18.000.000`, not `1.8E7`; timeline icons are IDE icons, not token text; the menu goes
   back to the left on every start.
 
+### Fixed — renderer gaps
+
+- **The IntelliJ plugin and the desktop app draw SVG images.** An `Image`, an avatar, a menu card,
+  an offer card or a hero background whose source is an SVG (a `.svg` url, an `image/svg+xml` data
+  URI, base64 or percent-encoded, or an url that serves SVG without saying so) is drawn instead of
+  its `alt` placeholder — through the platform's public `ImageLoader`, which the plugin verifier
+  accepts. Avatars also paint their `image` (any format) in the circle, not only the initials.
+- **Multi-value fields read a REST `optionsSource`.** A multi-select, a checkbox group, a list box, a
+  tree select or a multi combobox fed by `@RestOptions` / `optionsSource` (or a catalogue `ref`) drew
+  no options — only the single select read a source. Fixed on Vaadin, Redwood, React Native and the
+  desktop.
+- **React Native keeps saved views and column choices on the device.** They lasted one app run; now
+  each UI's listings keep them (the web's localStorage equivalent), restored on the next open, and
+  removing the UI from the hub list clears them.
+
 ### Removed
 
 - `plugins-v*` releases no longer publish the plugins on their own.

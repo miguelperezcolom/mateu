@@ -7,6 +7,7 @@ import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from '
 import type { UiManifest } from './manifest';
 import type { MateuSession } from '../core/MateuSession';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, uiStore } from './storage';
+import { clearListingPrefs } from '../core/listingPrefs';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
 import { fileBundleStore } from './bundleFileStore';
@@ -194,6 +195,8 @@ export function HubApp() {
     await uiStore.remove(entry.id);
     // what the app kept of it to open it fast goes with it
     void new ScreenSnapshots(metaStore, entry.id).clear();
+    // …and so do its listings' saved views and column choices
+    void clearListingPrefs(metaStore, entry.id);
     if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
     announce(`${entry.name} removed`);
   };

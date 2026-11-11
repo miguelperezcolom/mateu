@@ -13,6 +13,8 @@ import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
 import type { StaticBundle } from '../core/staticBundle';
 import type { ScreenSnapshots } from '../core/screenSnapshots';
+import type { KeyValueStore } from '../core/sessionId';
+import { persistListingPrefs, type ListingPrefsSnapshot } from '../core/listingPrefs';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -26,6 +28,9 @@ export interface MateuConfig {
   bundle?: StaticBundle | null;
   /** The last screens of this UI, shown at once on the next open (only for a UI without sign-in). */
   snapshots?: ScreenSnapshots | null;
+  /** The listings' saved views and column choices kept on the device for this UI (`scope`), already
+   *  read (`initial`): restored before the first screen and written back on every change. */
+  listingPrefs?: { store: KeyValueStore; scope: string; initial: ListingPrefsSnapshot } | null;
 }
 
 interface AppContextValue {
@@ -54,6 +59,10 @@ export function MateuAppProvider({ config, children }: Props) {
     ref.current = new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}, config.auth);
     if (config.bundle) ref.current.openStaticBundle(config.bundle);
     if (config.snapshots) ref.current.snapshots = config.snapshots;
+    if (config.listingPrefs) {
+      const { store, scope, initial } = config.listingPrefs;
+      persistListingPrefs(ref.current.columnPrefs, ref.current.savedViews, store, scope, initial);
+    }
     config.onSession?.(ref.current);
   }
   const session = ref.current;

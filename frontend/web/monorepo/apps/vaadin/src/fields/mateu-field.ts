@@ -302,9 +302,15 @@ export class MateuField extends LitElement {
         return []
     }
 
+    /**
+     * Whether the field's options live in `data[id].content` (fetched: the server's search, or a
+     * REST `optionsSource` loaded by sourcedOptions) rather than inline in `field.options`.
+     */
+    fetchesItsOptions = (): boolean => !!(this.field?.remoteCoordinates || this.field?.optionsSource)
+
     selectedIndex = (value: any) => {
         if (value) {
-            if (this.field?.remoteCoordinates) {
+            if (this.fetchesItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedOption = this.data[this.id].content.find((option: any) => option.value == value)
@@ -324,11 +330,11 @@ export class MateuField extends LitElement {
 
     selectedIndexes = (value: any[]) => {
         if (value && value.length > 0) {
-            if (this.field?.remoteCoordinates) {
+            if (this.fetchesItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedIndexes = this.data[this.id].content.filter((option: any) =>
-                        value.indexOf(option.value) >= 0)
+                        value.some((v: any) => String(v) === String(option.value)))
                         .map((option: any) => this.data[this.id].content.indexOf(option))
                     return selectedIndexes
                 }
@@ -353,7 +359,7 @@ export class MateuField extends LitElement {
         let value = undefined
         if (this.rendered) {
             if (e.detail.value) {
-                if (this.field?.remoteCoordinates) {
+                if (this.fetchesItsOptions()) {
                     if (this.data[this.id]
                         && this.data[this.id].content) {
                         value = e.detail.value.map((index:any) => this.data[this.id].content[index].value)
@@ -378,7 +384,7 @@ export class MateuField extends LitElement {
     listItemSelected = (e: CustomEvent) => {
         let value = undefined
         if (e.detail.value || e.detail.value == 0) {
-            if (this.field?.remoteCoordinates) {
+            if (this.fetchesItsOptions()) {
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     const selectedOption = this.data[this.id].content[e.detail.value]

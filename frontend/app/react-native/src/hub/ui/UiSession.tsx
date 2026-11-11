@@ -9,6 +9,7 @@ import { BACK_HINT, type MateuSession, type ScreenBack } from '../../core/MateuS
 import { SessionContent } from '../../shell/SessionContent';
 import { type StaticBundle } from '../../core/staticBundle';
 import { ScreenSnapshots } from '../../core/screenSnapshots';
+import { loadListingPrefs, type ListingPrefsSnapshot } from '../../core/listingPrefs';
 import { timed } from '../../core/timing';
 import { cachedStaticBundle } from '../bundleCache';
 import { theme, themed } from '../../theme';
@@ -82,6 +83,7 @@ export function UiSession({
   const [barClaimed, setBarClaimed] = useState(false);
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [listingPrefs, setListingPrefs] = useState<ListingPrefsSnapshot | null>(null);
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -161,7 +163,10 @@ export function UiSession({
         return;
       }
       const id = await uiSessionId(secretStore, entry.id);
+      // the listings' saved views and column choices this UI was left with (kept on the device)
+      const prefs = await loadListingPrefs(metaStore, entry.id);
       if (!alive) return;
+      setListingPrefs(prefs);
       setManifest(m.manifest);
       setBundle(found.bundle);
       setSessionId(id);
@@ -285,7 +290,7 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots }}>
+        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, listingPrefs: listingPrefs && { store: metaStore, scope: entry.id, initial: listingPrefs } }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

@@ -119,6 +119,35 @@ describe('a multiSelect reads its optionsSource', () => {
     })
 })
 
+describe('a list box reads its optionsSource', () => {
+    it('multi-valued (array): one item per option, the current ids selected, a pick written back as ids', async () => {
+        const { root, changes } = await mount({ dataType: 'array', stereotype: 'listBox', optionsSource: source }, { f: [25] })
+        const list = root.querySelector('vaadin-list-box') as any
+        const items = Array.from(root.querySelectorAll('vaadin-item')) as any[]
+        expect(items.map(i => i.textContent.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(list.selectedValues).toEqual([1])
+        fire(list, 'selected-values-changed', { value: [0, 1] })
+        expect(changes.at(-1)?.value).toEqual([7, 25])
+    })
+
+    it('single-valued: one item per option and the current id selected', async () => {
+        const { root, changes } = await mount({ stereotype: 'listBox', optionsSource: source }, { f: 7 })
+        const list = root.querySelector('vaadin-list-box') as any
+        expect(Array.from(root.querySelectorAll('vaadin-item')).map((i: any) => i.textContent.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(Number(list.getAttribute('selected') ?? list.selected)).toBe(0)
+        fire(list, 'selected-changed', { value: 1 })
+        expect(changes.at(-1)?.value).toEqual(25)
+    })
+})
+
+describe('a tree select reads its optionsSource', () => {
+    it('hands the fetched options to the tree', async () => {
+        const { root } = await mount({ stereotype: 'treeSelect', optionsSource: source }, { f: 7 })
+        const tree = root.querySelector('mateu-vaadin-tree-select') as any
+        expect(tree.options.map((o: any) => o.label)).toEqual(['Apollo 11', 'Artemis III'])
+    })
+})
+
 describe('the string-keyed helpers', () => {
     it('leave string options untouched (same array) and keep one copy per numeric list', () => {
         const strings = [{ value: 'a', label: 'A' }]
