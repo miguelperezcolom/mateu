@@ -8,6 +8,27 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Accessibility
+
+- **The gaps of the WCAG 2.2 conformance report, fixed** (`quality/accessibility-conformance.md`
+  updated to match):
+  - 1.1.1 — charts are named images with a text alternative (a hidden data table on `Chart`, a
+    summary on `TrendChart`; a hidden text next to Redwood's `oj-chart`).
+  - 1.3.5 — `@Autocomplete("given-name")` (.NET `[Autocomplete]`, Python `Autocomplete()`, YAML /
+    fluent `FormField.autocomplete`) travels as `FormFieldDto.autocomplete`; an editable email field
+    infers `email`. Vaadin, Redwood and React Native emit it.
+  - 2.2.1 — toasts stop their clock while hovered, focused or the page is hidden; a toast with Undo or
+    Retry stays at least 10 s (React Native: until dismissed while a screen reader is on).
+  - 3.2.2 — the `@AppContext` picker says beforehand that a change reloads the app and announces it.
+  - 2.1.1 / 2.5.7 — `PlanningBoard` blocks move and resize with the keyboard and with a tool row;
+    a `DropZone` offers "Move the selected rows here" for a `@DragRows` listing's selection (web).
+  - 2.4.11 — a keyboard-focused control is scrolled clear of the pinned header, sticky sections and
+    floating buttons (web).
+  - 2.1.4 — one-key shortcuts (`?`, bare-letter shortcuts) can be switched off from the shortcuts
+    list; Ctrl+/ always opens it.
+  - 2.2.2 — an autoplaying `Carousel` has a pause/play button and starts stopped under reduced motion.
+  - The axe gate (`accessibility.spec.ts`, `a11y-audit.mjs`) now includes `wcag22aa`.
+
 ### Security
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /

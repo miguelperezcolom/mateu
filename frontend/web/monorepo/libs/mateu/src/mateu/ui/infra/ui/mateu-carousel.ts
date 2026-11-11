@@ -132,10 +132,12 @@ export class MateuCarousel extends LitElement {
                 background: var(--lumo-contrast-10pct, #eee); color: inherit; border-radius: var(--lumo-border-radius-m, 6px);
                 min-width: 2rem; height: 2rem; font-size: .8rem; }
         .play:focus-visible { outline: 2px solid var(--lumo-primary-color, #1676f3); outline-offset: 2px; }
-        .dots { display: flex; justify-content: center; gap: .4rem; margin-top: var(--lumo-space-s, .5rem); }
-        .dot { width: .6rem; height: .6rem; padding: 0; border-radius: 50%; border: none; cursor: pointer;
-               background: var(--lumo-contrast-30pct, #bbb); }
-        .dot.active { background: var(--lumo-primary-color, #1676f3); }
+        .dots { display: flex; justify-content: center; gap: 0; margin-top: var(--lumo-space-s, .5rem); }
+        /* WCAG 2.5.8 Target Size: the dot is drawn .6rem wide but its button is 24×24 px */
+        .dot { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: none; cursor: pointer;
+               background: radial-gradient(circle, var(--lumo-contrast-30pct, #bbb) 0 .3rem, transparent calc(.3rem + 1px)); }
+        .dot.active { background: radial-gradient(circle, var(--lumo-primary-color, #1676f3) 0 .3rem, transparent calc(.3rem + 1px)); }
+        .dot:focus-visible { outline: 2px solid var(--lumo-primary-color, #1676f3); outline-offset: -2px; }
     `
 }
 
