@@ -253,8 +253,10 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
 - `io.mateu.uidl.annotations.AI`: `followLabel`, `followingLabel`
 - `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `inbox`, `liveUpdates`, `mobileQr`, `osNotifications`
+- `io.mateu.uidl.annotations.Button`: `groupPrimary`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
+- `io.mateu.uidl.annotations.Toolbar`: `groupPrimary`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`
 - `io.mateu.uidl.annotations.WizardCompletionAction`: `availableFromStep`
 - `io.mateu.uidl.data.AppHeaderAction`: `route`

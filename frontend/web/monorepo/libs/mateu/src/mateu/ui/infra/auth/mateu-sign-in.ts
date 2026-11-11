@@ -107,34 +107,34 @@ export class MateuSignIn extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 16px;
+            padding: var(--lumo-space-m, 16px);
             background: var(--lumo-contrast-5pct, #f3f4f6);
         }
         .panel {
             box-sizing: border-box;
             width: 100%;
             max-width: 26rem;
-            padding: 32px 28px;
+            padding: var(--lumo-space-xl, 32px) var(--lumo-space-l, 28px);
             border-radius: 12px;
             background: var(--lumo-base-color, #fff);
             border: 1px solid var(--lumo-contrast-10pct, #e5e7eb);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            box-shadow: var(--lumo-box-shadow-m, 0 8px 24px rgba(0, 0, 0, 0.08));
         }
-        h1 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 600; }
-        .hint { margin: 0 0 24px; color: var(--lumo-secondary-text-color, #57606a); }
+        h1 { margin: 0 0 var(--lumo-space-s, 8px); font-size: var(--lumo-font-size-xl, 1.5rem); font-weight: 600; }
+        .hint { margin: 0 0 var(--lumo-space-l, 24px); color: var(--lumo-secondary-text-color, #57606a); }
         .message {
-            margin: 0 0 24px; padding: 10px 12px; border-radius: 8px;
-            background: #fdecea; color: #7a1c14;
+            margin: 0 0 var(--lumo-space-l, 24px); padding: var(--lumo-space-s, 10px) var(--lumo-space-m, 12px); border-radius: 8px;
+            background: var(--lumo-error-color-10pct, #fdecea); color: var(--lumo-error-text-color, #7a1c14);
         }
-        .providers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .providers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--lumo-space-s, 10px); }
         button { font: inherit; cursor: pointer; }
         .provider {
             width: 100%;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--lumo-space-m, 12px);
             min-height: 44px;
-            padding: 8px 14px;
+            padding: var(--lumo-space-s, 8px) var(--lumo-space-m, 14px);
             border-radius: 8px;
             border: 1px solid var(--lumo-contrast-30pct, #c4c9d0);
             background: var(--lumo-base-color, #fff);
@@ -155,14 +155,14 @@ export class MateuSignIn extends LitElement {
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 0.875rem;
+            font-size: var(--lumo-font-size-s, 0.875rem);
             background: var(--lumo-contrast-10pct, #e8eaed);
             color: var(--lumo-body-text-color, #1f2328);
         }
         .label { flex: 1; }
         .cancel {
-            margin-top: 20px;
-            padding: 8px 4px;
+            margin-top: var(--lumo-space-l, 20px);
+            padding: var(--lumo-space-s, 8px) var(--lumo-space-xs, 4px);
             border: none;
             background: none;
             color: var(--lumo-primary-text-color, #1d4ed8);

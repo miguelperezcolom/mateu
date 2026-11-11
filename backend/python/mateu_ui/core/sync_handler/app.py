@@ -190,7 +190,7 @@ class AppHandlerMixin(MixinBase):
         params = rq.parameters or {}
         token = params.get("token")
         token = token.strip() if isinstance(token, str) else None
-        if not push.valid_token(token):
+        if token is None or not push.valid_token(token):
             raise UserFacingException("A push token is needed.")
         store = push.default_store_warned(self.push_token_store)
         registered = False

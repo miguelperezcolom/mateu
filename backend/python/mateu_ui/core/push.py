@@ -5,6 +5,7 @@ HTTP — no SDK). Mirrors Java's ``PushActionRunner`` / ``Push`` / ``ExpoPushSen
 from __future__ import annotations
 
 import json
+from typing import Any
 import logging
 import os
 import re
@@ -135,7 +136,7 @@ class ExpoPushSender(PushSender):
             data["route"] = message.route
         if message.id is not None:
             data["id"] = message.id
-        out = {"to": token.token, "title": message.title or "Notification"}
+        out: dict[str, Any] = {"to": token.token, "title": message.title or "Notification"}
         if message.text:
             out["body"] = message.text
         out.update({"data": data, "sound": "default", "channelId": cls.CHANNEL})

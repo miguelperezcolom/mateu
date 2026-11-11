@@ -48,6 +48,7 @@ public @interface Button {
    * dropdown labelled with the group name. Only meaningful with a non-blank {@link #group()}; when
    * several members claim it, the first (by {@link #order()}) wins.
    */
+  @Experimental
   boolean groupPrimary() default false;
 
   /** Draws a separator before this button (or its group). */
