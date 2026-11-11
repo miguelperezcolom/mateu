@@ -8,6 +8,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Observability: an OpenTelemetry span and metrics per Mateu request, and an audit hook.** Every
+  sync/sse request is a span (`mateu <action> <route template>`: route, template, action, view,
+  outcome, correlation id) with child spans for proxied REST calls and server-resolved micro
+  frontends, plus the `mateu.request.duration` histogram and `mateu.request.errors` counter — kept
+  low-cardinality (route templates, refused/not-found requests under `_other`, a series cap). Java
+  uses the OpenTelemetry API as an OPTIONAL dependency detected at runtime (no SDK, no exporter; a
+  no-op without it; `mateu.telemetry.enabled=false` switches it off), .NET an `ActivitySource` /
+  `Meter` named `Mateu`, Python an optional `opentelemetry-api` import (`mateu-ui[otel]`). The audit
+  hook (`ActionAuditListener` / `IActionAuditListener` / `add_mateu(audit_listeners=…)`,
+  `@Experimental`) hears who did what, on which records, when and how it ended — never field values;
+  a failing listener is logged once and never fails the request. Guide: `deploy/observability`.
+
 ### Security
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
