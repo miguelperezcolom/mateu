@@ -1,5 +1,5 @@
 {
-  "description": "How a renderer words a running task's ETA (ProgressDto.etaSeconds, computed by the server — see conformance/progress/eta.json). null/absent, or a value <= 0, shows NOTHING (never a guess). Run by libs/mateu (the reference, chromeTexts taskEtaUnderMinute/taskEtaMinutes/taskEtaHours), Redwood (poc/i18n.mjs), React Native and IntelliJ.",
+  "description": "How a renderer words a running task's ETA (ProgressDto.etaSeconds, computed by the server — see conformance/progress/eta.json). null/absent, or a value <= 0, shows NOTHING (never a guess). Every language of the chrome catalogues (en, es, fr, de, pt, it). Run by libs/mateu (the reference, chromeTexts taskEtaUnderMinute/taskEtaMinutes/taskEtaHours), Redwood (poc/i18n.mjs), React Native and IntelliJ.",
   "rules": [
     "etaSeconds null, absent, not a number or <= 0: no text",
     "etaSeconds < 60: under a minute",
@@ -8,24 +8,28 @@
   ],
   "texts": {
     "en": { "underMinute": "less than a minute left", "minutes": "about {n} min left", "hours": "about {n} h left" },
-    "es": { "underMinute": "menos de un minuto", "minutes": "unos {n} min restantes", "hours": "unas {n} h restantes" }
+    "es": { "underMinute": "menos de un minuto", "minutes": "unos {n} min restantes", "hours": "unas {n} h restantes" },
+    "fr": { "underMinute": "moins d'une minute restante", "minutes": "environ {n} min restantes", "hours": "environ {n} h restantes" },
+    "de": { "underMinute": "noch weniger als eine Minute", "minutes": "noch etwa {n} Min.", "hours": "noch etwa {n} Std." },
+    "pt": { "underMinute": "menos de um minuto", "minutes": "cerca de {n} min restantes", "hours": "cerca de {n} h restantes" },
+    "it": { "underMinute": "meno di un minuto", "minutes": "circa {n} min rimanenti", "hours": "circa {n} h rimanenti" }
   },
   "cases": [
-    { "etaSeconds": null, "en": null, "es": null },
-    { "etaSeconds": 0, "en": null, "es": null },
-    { "etaSeconds": -5, "en": null, "es": null },
-    { "etaSeconds": 1, "en": "less than a minute left", "es": "menos de un minuto" },
-    { "etaSeconds": 59, "en": "less than a minute left", "es": "menos de un minuto" },
-    { "etaSeconds": 60, "en": "about 1 min left", "es": "unos 1 min restantes" },
-    { "etaSeconds": 89, "en": "about 1 min left", "es": "unos 1 min restantes" },
-    { "etaSeconds": 90, "en": "about 2 min left", "es": "unos 2 min restantes" },
-    { "etaSeconds": 125, "en": "about 2 min left", "es": "unos 2 min restantes" },
-    { "etaSeconds": 150, "en": "about 3 min left", "es": "unos 3 min restantes" },
-    { "etaSeconds": 3569, "en": "about 59 min left", "es": "unos 59 min restantes" },
-    { "etaSeconds": 3570, "en": "about 1 h left", "es": "unas 1 h restantes" },
-    { "etaSeconds": 3600, "en": "about 1 h left", "es": "unas 1 h restantes" },
-    { "etaSeconds": 5399, "en": "about 1 h left", "es": "unas 1 h restantes" },
-    { "etaSeconds": 5400, "en": "about 2 h left", "es": "unas 2 h restantes" },
-    { "etaSeconds": 59880, "en": "about 17 h left", "es": "unas 17 h restantes" }
+    { "etaSeconds": null, "en": null, "es": null, "fr": null, "de": null, "pt": null, "it": null },
+    { "etaSeconds": 0, "en": null, "es": null, "fr": null, "de": null, "pt": null, "it": null },
+    { "etaSeconds": -5, "en": null, "es": null, "fr": null, "de": null, "pt": null, "it": null },
+    { "etaSeconds": 1, "en": "less than a minute left", "es": "menos de un minuto", "fr": "moins d'une minute restante", "de": "noch weniger als eine Minute", "pt": "menos de um minuto", "it": "meno di un minuto" },
+    { "etaSeconds": 59, "en": "less than a minute left", "es": "menos de un minuto", "fr": "moins d'une minute restante", "de": "noch weniger als eine Minute", "pt": "menos de um minuto", "it": "meno di un minuto" },
+    { "etaSeconds": 60, "en": "about 1 min left", "es": "unos 1 min restantes", "fr": "environ 1 min restantes", "de": "noch etwa 1 Min.", "pt": "cerca de 1 min restantes", "it": "circa 1 min rimanenti" },
+    { "etaSeconds": 89, "en": "about 1 min left", "es": "unos 1 min restantes", "fr": "environ 1 min restantes", "de": "noch etwa 1 Min.", "pt": "cerca de 1 min restantes", "it": "circa 1 min rimanenti" },
+    { "etaSeconds": 90, "en": "about 2 min left", "es": "unos 2 min restantes", "fr": "environ 2 min restantes", "de": "noch etwa 2 Min.", "pt": "cerca de 2 min restantes", "it": "circa 2 min rimanenti" },
+    { "etaSeconds": 125, "en": "about 2 min left", "es": "unos 2 min restantes", "fr": "environ 2 min restantes", "de": "noch etwa 2 Min.", "pt": "cerca de 2 min restantes", "it": "circa 2 min rimanenti" },
+    { "etaSeconds": 150, "en": "about 3 min left", "es": "unos 3 min restantes", "fr": "environ 3 min restantes", "de": "noch etwa 3 Min.", "pt": "cerca de 3 min restantes", "it": "circa 3 min rimanenti" },
+    { "etaSeconds": 3569, "en": "about 59 min left", "es": "unos 59 min restantes", "fr": "environ 59 min restantes", "de": "noch etwa 59 Min.", "pt": "cerca de 59 min restantes", "it": "circa 59 min rimanenti" },
+    { "etaSeconds": 3570, "en": "about 1 h left", "es": "unas 1 h restantes", "fr": "environ 1 h restantes", "de": "noch etwa 1 Std.", "pt": "cerca de 1 h restantes", "it": "circa 1 h rimanenti" },
+    { "etaSeconds": 3600, "en": "about 1 h left", "es": "unas 1 h restantes", "fr": "environ 1 h restantes", "de": "noch etwa 1 Std.", "pt": "cerca de 1 h restantes", "it": "circa 1 h rimanenti" },
+    { "etaSeconds": 5399, "en": "about 1 h left", "es": "unas 1 h restantes", "fr": "environ 1 h restantes", "de": "noch etwa 1 Std.", "pt": "cerca de 1 h restantes", "it": "circa 1 h rimanenti" },
+    { "etaSeconds": 5400, "en": "about 2 h left", "es": "unas 2 h restantes", "fr": "environ 2 h restantes", "de": "noch etwa 2 Std.", "pt": "cerca de 2 h restantes", "it": "circa 2 h rimanenti" },
+    { "etaSeconds": 59880, "en": "about 17 h left", "es": "unas 17 h restantes", "fr": "environ 17 h restantes", "de": "noch etwa 17 Std.", "pt": "cerca de 17 h restantes", "it": "circa 17 h rimanenti" }
   ]
 }
