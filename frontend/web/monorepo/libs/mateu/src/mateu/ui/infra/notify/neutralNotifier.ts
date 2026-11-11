@@ -5,7 +5,8 @@
  * carries zero `@vaadin` (or other DS) imports. Installed as the default by mateu-ui; a DS app
  * may override it via {@link setNotifier} (e.g. the Vaadin app's VaadinNotifier).
  */
-import { Notifier, ToastAction, ToastMessage, forgetKeyedToast, replaceKeyedToast, setNotifier, toastDuration } from '@application/Notifier.ts'
+import { Notifier, ToastAction, ToastMessage, forgetKeyedToast, replaceKeyedToast, setNotifier, toastLifetime } from '@application/Notifier.ts'
+import { DismissTimer, pausableDismiss } from '@infra/notify/dismissTimer.ts'
 import { requestActionOn } from '@infra/ui/requestAction.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -101,7 +102,9 @@ export const neutralNotifier: Notifier = {
         text.textContent = message.text
         toast.appendChild(text)
 
+        let timer: DismissTimer | undefined
         const remove = () => {
+            timer?.cancel()
             forgetKeyedToast(message.key, remove)
             toast.style.opacity = '0'
             setTimeout(() => toast.remove(), 200)
@@ -125,7 +128,8 @@ export const neutralNotifier: Notifier = {
         }
         const control = controls.length > 0
 
-        const duration = toastDuration(message, control ? 10000 : 5000)
+        // an actionable toast never stays less than 10 s (WCAG 2.2.1)
+        const duration = toastLifetime(message, control)
         if (duration <= 0) {
             // a toast that stays needs a way out
             const close = document.createElement('button')
@@ -142,7 +146,8 @@ export const neutralNotifier: Notifier = {
         document.body.appendChild(toast)
         requestAnimationFrame(() => { toast.style.opacity = '1' })
 
-        if (duration > 0) setTimeout(remove, duration)
+        // the clock stops while the toast is hovered, focused or the page is hidden (WCAG 2.2.1)
+        if (duration > 0) timer = pausableDismiss(toast, duration, remove)
     },
 }
 

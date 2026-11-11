@@ -1,5 +1,6 @@
 import { Notification, NotificationPosition } from '@vaadin/notification'
-import { Notifier, ToastMessage, forgetKeyedToast, replaceKeyedToast, toastDuration } from '@application/Notifier.ts'
+import { Notifier, ToastMessage, forgetKeyedToast, replaceKeyedToast, toastLifetime } from '@application/Notifier.ts'
+import { DismissTimer, pausableDismiss } from '@infra/notify/dismissTimer.ts'
 import { announce } from '@infra/a11y/announcer.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { controlsOf } from '@infra/notify/neutralNotifier.ts'
@@ -33,16 +34,25 @@ export function themeOf(variant: string | undefined): string | undefined {
     return variant === 'info' ? 'primary' : variant
 }
 
-function showWithControl(message: ToastMessage, initiator: HTMLElement) {
+/**
+ * Every toast is drawn by hand: vaadin-notification's own clock cannot be paused, so it gets
+ * `duration = 0` and the toast's lifetime is a {@link pausableDismiss} timer on the card — it stops
+ * while the toast is hovered, focused or the page is hidden (WCAG 2.2.1). A toast with a control
+ * never stays less than 10 s.
+ */
+function show(message: ToastMessage, initiator: HTMLElement) {
     const notification = new Notification()
     notification.position = mapPosition(message.position)
-    const duration = toastDuration(message, 10000)
-    notification.duration = duration
+    const controls = controlsOf(message, initiator)
+    const duration = toastLifetime(message, controls.length > 0)
+    notification.duration = 0
     const theme = themeOf(message.variant)
     if (theme) notification.setAttribute('theme', theme)
-    const close = () => { notification.opened = false }
+    let timer: DismissTimer | undefined
+    const close = () => { timer?.cancel(); notification.opened = false }
     notification.renderer = (root: HTMLElement) => {
         if (root.firstElementChild) return
+        if (duration > 0) timer = pausableDismiss(root, duration, close)
         if (message.title) {
             const title = document.createElement('strong')
             title.textContent = message.title
@@ -52,7 +62,7 @@ function showWithControl(message: ToastMessage, initiator: HTMLElement) {
         const text = document.createElement('span')
         text.textContent = message.text
         root.append(text)
-        for (const control of controlsOf(message, initiator)) {
+        for (const control of controls) {
             const button = document.createElement('button')
             button.textContent = control.label
             button.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
@@ -93,15 +103,6 @@ export const vaadinNotifier: Notifier = {
         // interrupt, everything else waits for a pause.
         const spoken = message.title ? `${message.title}. ${message.text}` : message.text
         announce(spoken, { politeness: message.variant === 'error' ? 'assertive' : 'polite' })
-        if (message.undoActionId || message.onAction || (message.actions?.length ?? 0) > 0
-            || message.key || message.title || toastDuration(message, 5000) <= 0) {
-            showWithControl(message, initiator)
-            return
-        }
-        Notification.show(message.text, {
-            position: message.position ? mapPosition(message.position) : 'bottom-end',
-            theme: themeOf(message.variant),
-            duration: message.duration,
-        })
+        show(message, initiator)
     },
 }
